@@ -2,9 +2,13 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "cppbuild",
 			"label": "Compile EGM",
-			"command": "g++.exe",
+			"windows":{
+				"command": "g++.exe"
+			},
+			"linux":{
+				"command": "g++"
+			},
 			"args": [
 				"-fdiagnostics-color=always",
 				"-Wall",
