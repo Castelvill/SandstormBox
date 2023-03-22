@@ -1,0 +1,30 @@
+1. oddziel czêœæ warunkow¹ od czêœci skutkowej - stwórz now¹ klasê warunkow¹ i dodaj jej wektor do klasy Operacja
+2. warunek mo¿e mieæ prefix not i sufix - spójnik logiczny
+3. warunek mo¿e byæ po prostu otwarciem lub zamkniêciem nawiasu
+3. for u¿ywa staków, ¿eby policzyæ wszystkie nawiasy osobno
+4. jeœli nawiasy siê nie zgadzaj¹ nie ma triggera i wyœwietla siê error
+
+
+!(a + !b) * (!c + d)
+a * b * c + d * e
+
+
+bool notPrefix: false, true 
+string eventVariableID: 
+string typeOfTrigger: [mouse_things], logical operator, parentheses
+string triggerObjectID
+string triggerEventID
+string triggerConnection: and, or, none
+
+
+1: true, "", (, "", "", "" -> openParenthese
+2: false, a, ==, obj1, a, or -> addTrigger
+3: true, b, ==, obj1, b, and -> addTrigger
+4: false, "", ), "", "", "" -> closeParenthese
+5: false, "", (, "", "", "" -> openParenthese
+6: true, c, ==, obj1, c, or -> addTrigger
+7: false, d, ==, obj1, d, "" -> addTrigger
+8: false, "", "mouse_release", "", "", "" -> addMouseTrigger("mouse_release")
+
+
+!($.a==$+ !b) * (!c + d)

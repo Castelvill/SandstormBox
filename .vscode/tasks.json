@@ -1,0 +1,52 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C++ Compile",
+			"command": "D:\\Programs\\MSYS64\\mingw64\\bin\\g++.exe",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-Wall",
+				"-std=c++20",
+				"-g",
+				"${workspaceFolder}\\src\\main.cpp",
+				"${workspaceFolder}\\src\\ancestorObject.cpp",
+				"${workspaceFolder}\\src\\camera.cpp",
+				"${workspaceFolder}\\src\\collisionModule.cpp",
+				"${workspaceFolder}\\src\\egmCompiler.cpp",
+				"${workspaceFolder}\\src\\engineLoop.cpp",
+				"${workspaceFolder}\\src\\eventModule.cpp",
+				"${workspaceFolder}\\src\\gameWindow.cpp",
+				"${workspaceFolder}\\src\\imageModule.cpp",
+				"${workspaceFolder}\\src\\layerClass.cpp",
+				"${workspaceFolder}\\src\\mouse.cpp",
+				"${workspaceFolder}\\src\\movementModule.cpp",
+				"${workspaceFolder}\\src\\particles.cpp",
+				"${workspaceFolder}\\src\\primaryModule.cpp",
+				"${workspaceFolder}\\src\\scriptModule.cpp",
+				"${workspaceFolder}\\src\\scrollbarModule.cpp",
+				"${workspaceFolder}\\src\\textModule.cpp",
+				"${workspaceFolder}\\src\\usefull.cpp",
+				"${workspaceFolder}\\src\\variableModule.cpp",
+				"${workspaceFolder}\\src\\vectors.cpp",
+				"-o",
+				"${workspaceFolder}\\EGM.exe",
+				"-lallegro",
+				"-lallegro_font",
+				"-lallegro_ttf",
+				"-lallegro_image",
+				"-lallegro_primitives",
+				"-lallegro_dialog",
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "compiler: D:\\Programs\\MSYS64\\mingw64\\bin\\g++.exe"
+		}
+	]
+}

@@ -1,0 +1,4 @@
+00:"Hello Python","HelloCRAB";00:"Hello Prolog";01:120,50,60;
+01:3,4;
+02:100;
+00:"Hello Lord Gargamon";
