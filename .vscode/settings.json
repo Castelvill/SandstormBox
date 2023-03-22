@@ -1,4 +1,5 @@
 {
+    "src" : "${workspaceFolder}${pathSeparator}src${pathSeparator}",
     "files.associations": {
         "iosfwd": "cpp",
         "array": "cpp",
