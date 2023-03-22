@@ -1,11 +1,13 @@
 #ifndef VECTORS_H_INCLUDED
 #define VECTORS_H_INCLUDED
 #include <vector>
-#include <windows.h>
 #include <string>
-
-
-constexpr auto M_PI = 3.14159265358979323846;
+#if _WIN32
+    #include <windows.h>
+    constexpr auto M_PI = 3.14159265358979323846;
+#elif __linux__
+    #include <stdarg.h> 
+#endif
 
 using std::vector;
 

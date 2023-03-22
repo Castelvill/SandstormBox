@@ -1,5 +1,16 @@
 #include "engineLoop.h"
 
+#if __linux__
+    unsigned long long GetTickCount()
+    {
+        struct timeval tv;
+        if (gettimeofday(&tv, NULL) != 0) {
+            // Handle error
+        }
+        return (unsigned long long) tv.tv_sec * 1000 + (unsigned long long) tv.tv_usec / 1000;
+    }
+#endif
+
 inline unsigned int Interval::value() const{
     return GetTickCount()-initial_;
 }

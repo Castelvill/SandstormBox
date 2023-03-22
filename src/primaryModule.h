@@ -4,7 +4,6 @@
 #include <string>
 #include <cstdio>
 #include <math.h>
-#include <windows.h>
 #include "vectors.h"
 #include "usefull.h"
 

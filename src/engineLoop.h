@@ -3,6 +3,11 @@
 
 #include "layerClass.h"
 
+#if __linux__
+    #include <sys/time.h>
+    unsigned long long GetTickCount();
+#endif
+
 #define KEY_SEEN     1
 #define KEY_RELEASED 2
 
