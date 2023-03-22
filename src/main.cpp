@@ -414,7 +414,7 @@ void createObjects1(vector <AncestorObject> & Objects, vector <SingleFont> & Fon
 
     vec2d scaleFDS(1.0, 1.0);
 
-    unsigned int vam1 = 5, bam1 = 5;
+    unsigned int vam1 = 0, bam1 = 0;
     for(unsigned int i = 0; i < vam1; i++){
         for(unsigned int j = 0; j < bam1; j++){
             if(i>0 && j>0 && i<vam1-1 && j<bam1-1)
@@ -676,7 +676,12 @@ int main(){
 
     uniquenessViolated:
 
-    vector <string> fileNames = getAllFilesNamesWithinFolder("D:/k\271cik programowanka/Easy Game Maker");
+    vector <string> fileNames;
+    #if _WIN32
+        fileNames = getAllFilesNamesWithinFolder("D:/k\271cik programowanka/Easy Game Maker");
+    #elif __linux__
+        fileNames = getAllFilesNamesWithinFolder(".");
+    #endif
     for(auto name : fileNames)
         std::cout << name << std::endl;
 

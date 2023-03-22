@@ -148,9 +148,11 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     //SelectedCamera->pos.translate(randomDouble(-0.5, 0.5), randomDouble(-0.5, 0.5));
                     if(isKeyPressed(ALLEGRO_KEY_LSHIFT) && Mouse.isPressed(0)){
                         SelectedCamera->setRelativePos(Mouse.getPos());
-                        for(Camera2D & PinnedCamera : Cameras){
-                            if(PinnedCamera.getIsActive() && SelectedCamera->getID() != PinnedCamera.getID() && SelectedCamera->pinnedCameraID == PinnedCamera.getID()){
-                                SelectedCamera->relativePos.translate(-PinnedCamera.pos);
+                        SelectedCamera->setPos(SelectedCamera->relativePos);
+                        for(Camera2D & Camera : Cameras){
+                            if(Camera.getIsActive() && SelectedCamera->getID() != Camera.getID()
+                                    && SelectedCamera->getID() == Camera.pinnedCameraID){
+                                Camera.relativePos.translate(-SelectedCamera->pos);
                             }
                         }
 
