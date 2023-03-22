@@ -254,14 +254,14 @@ void createObjects1(vector <AncestorObject> & Objects, vector <SingleFont> & Fon
     Objects.push_back(AncestorObject(Objects.size()));
     Objects.back().setID("Amongus");
     Objects.back().setPos(vec2d(100, 400));
-    Objects.back().setIsAttachedToCamera(true);
+    Objects.back().setIsAttachedToCamera(false);
     Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
     Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "amongus_1");
     Objects.back().ImageContainer[0].setID("amongus");
     Objects.back().ImageContainer[0].setIsScaledFromCenter(false);
     Objects.back().ImageContainer[0].setUsedBitmapLayer(1);
     Objects.back().ImageContainer[0].setScale(0.5, 0.5);
-    Objects.back().ImageContainer[0].setIsAttachedToCamera(true);
+    Objects.back().ImageContainer[0].setIsAttachedToCamera(false);
     Objects.back().VariablesContainer.push_back(0);
     Objects.back().VariablesContainer.back().setID("timer");
     Objects.back().VariablesContainer.back().setDouble(0.0);
