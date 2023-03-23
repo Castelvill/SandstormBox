@@ -144,36 +144,8 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 pressedKeys.clear();
                 pressedKeys = getPressedKeys(key);
 
-                if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
-                    //SelectedCamera->pos.translate(randomDouble(-0.5, 0.5), randomDouble(-0.5, 0.5));
-                    if(isKeyPressed(ALLEGRO_KEY_LSHIFT) && Mouse.isPressed(0)){
-                        SelectedCamera->setRelativePos(Mouse.getPos());
-                        SelectedCamera->setPos(SelectedCamera->relativePos);
-                        for(Camera2D & Camera : Cameras){
-                            if(Camera.getIsActive() && SelectedCamera->getID() != Camera.getID()
-                                    && SelectedCamera->getID() == Camera.pinnedCameraID){
-                                Camera.relativePos.translate(-SelectedCamera->pos);
-                            }
-                        }
-
-                        for(Camera2D & Camera : Cameras){
-                            if(Camera.getIsActive()){
-                                Camera.setPos(Camera.relativePos);
-                            }
-                        }
-                        for(Camera2D & Camera : Cameras){
-                            if(!Camera.getIsActive()){
-                                continue;
-                            }
-                            for(Camera2D & PinnedCamera : Cameras){
-                                if(PinnedCamera.getIsActive() && Camera.getID() != PinnedCamera.getID() && Camera.pinnedCameraID == PinnedCamera.getID()){
-                                    Camera.pos.translate(PinnedCamera.pos);
-                                }
-                            }
-                        }
-                    }
-                }
-
+                updateCamerasPositions(Cameras);
+                
                 moveObjects(Layers, Cameras);
                 
                 moveParticles(Layers);
@@ -287,6 +259,56 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         if(Layers[0].Objects.size() >= 2)
             if(Layers[0].Objects[1].TextContainer.size() > 0)
                 Layers[0].Objects[1].TextContainer[0].modifyContent(0, updatedFpsLabel);
+    }
+}
+void EngineLoop::updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected){
+    unsigned short tokensOfChanges[Cameras.size()];
+    unsigned int i, j;
+    bool somethingChanged;
+    for(i = 0; i < Cameras.size(); i++){
+        tokensOfChanges[i] = 0;
+        if(&Cameras[i] == Selected){
+            tokensOfChanges[i] = 1;
+        }
+    }
+    do{
+        somethingChanged = false;
+        for(i = 0; i < Cameras.size(); i++){
+            if(tokensOfChanges[i] == 1){
+                somethingChanged = true;
+                tokensOfChanges[i] = 2;
+                for(j = 0; j < Cameras.size(); j++){
+                    if(!Cameras[j].isActive || i == j || tokensOfChanges[j] > 0){
+                        continue;
+                    }
+                    if(Cameras[j].pinnedCameraID == Cameras[i].ID){
+                        Cameras[j].pos = Cameras[i].pos + Cameras[j].relativePos;
+                        tokensOfChanges[j] = 1;
+                    }
+                }
+            }
+        }
+    }while(somethingChanged);
+}
+void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
+    //Find all roots of Cameras' graph forest and update each tree.
+    for(Camera2D & Camera : Cameras){
+        if((Camera.isActive && !Camera.isPinnedToCamera) || (Camera.isPinnedToCamera && Camera.pinnedCameraID == "")){
+            updateTreeOfCamerasFromSelectedRoot(Cameras, &Camera);
+        }
+    }
+}
+void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
+    if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && isKeyPressed(ALLEGRO_KEY_LSHIFT) && Mouse.isPressed(0)){
+        SelectedCamera->relativePos = Mouse.getPos();
+        SelectedCamera->pos = SelectedCamera->relativePos;
+        for(Camera2D & Camera : Cameras){
+            if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
+                SelectedCamera->relativePos -= Camera.pos;
+                break;
+            }
+        }
+        updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
     }
 }
 void EngineLoop::focusOnCamera(vector <Camera2D> & Cameras){
@@ -699,7 +721,7 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
         //vector<unsigned int>().swap(ForegroundOfObjects);
         //ForegroundOfObjects.shrink_to_fit();
         if(SelectedCamera != &Camera)
-            al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(2, 185, 175), 4);
+            al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(0, 155, 145), 4);
         else
             al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(62, 249, 239), 4);
     }

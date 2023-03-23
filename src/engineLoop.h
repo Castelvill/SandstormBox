@@ -133,6 +133,9 @@ public:
     void initAllegro();
     void exitAllegro();
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
+    void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
+    void updateAllForestOfCameras(vector <Camera2D> & Cameras);
+    void updateCamerasPositions(vector <Camera2D> & Cameras);
     void focusOnCamera(vector <Camera2D> & Cameras);
     bool isKeyPressed(short key);
     bool isKeyReleased(short key);

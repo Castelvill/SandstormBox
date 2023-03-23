@@ -251,7 +251,7 @@ void createObjects1(vector <AncestorObject> & Objects, vector <SingleFont> & Fon
     Objects.back().TextContainer.back().setPos(0.0, 150.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
 */
-    Objects.push_back(AncestorObject(Objects.size()));
+    /*Objects.push_back(AncestorObject(Objects.size()));
     Objects.back().setID("Amongus");
     Objects.back().setPos(vec2d(100, 400));
     Objects.back().setIsAttachedToCamera(false);
@@ -275,7 +275,7 @@ void createObjects1(vector <AncestorObject> & Objects, vector <SingleFont> & Fon
     Objects.back().TextContainer.back().setIsAttachedToCamera(false);
     Objects.back().TextContainer.back().setUsedBitmapLayer(2);
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
-    Objects.back().TextContainer.back().setColors(255, 0, 0);
+    Objects.back().TextContainer.back().setColors(255, 0, 0);*/
 /*
     Objects.push_back(AncestorObject(Objects.size()));
     Objects.back().setID("Doge");
@@ -583,7 +583,7 @@ void createObjects0(vector <AncestorObject> & Objects, vector <SingleFont> & Fon
 }
 
 void createCameras(vector <Camera2D> & Cameras){
-    Cameras.push_back(Camera2D("Cam2", true, vec2d(300.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
+    Cameras.push_back(Camera2D("Cam0", true, vec2d(0.0, 0.0), vec2d(SCREEN_W/3.0, SCREEN_H), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
@@ -593,7 +593,6 @@ void createCameras(vector <Camera2D> & Cameras){
     Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
     Cameras.back().addVisibleLayer("Editor");
     Cameras.back().addVisibleLayer("L1");
-    Cameras.back().pinToCamera("Cam1");
 
     Cameras.push_back(Camera2D("Cam1", true, vec2d(560.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
@@ -607,8 +606,7 @@ void createCameras(vector <Camera2D> & Cameras){
     Cameras.back().addVisibleLayer("L1");
     Cameras.back().pinToCamera("Cam0");
     
-    
-    Cameras.push_back(Camera2D("Cam0", true, vec2d(0.0, 0.0), vec2d(SCREEN_W/3.0, SCREEN_H), vec2d(0.0, 0.0)));
+    Cameras.push_back(Camera2D("Cam2", true, vec2d(300.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
@@ -618,7 +616,7 @@ void createCameras(vector <Camera2D> & Cameras){
     Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
     Cameras.back().addVisibleLayer("Editor");
     Cameras.back().addVisibleLayer("L1");
-
+    Cameras.back().pinToCamera("Cam1");
 }
 
 Fps fps;
@@ -643,6 +641,7 @@ int main(){
     loadBitmapsToContainer(BitmapContainer);
 
     createCameras(Cameras);
+    EngineLoop1.updateAllForestOfCameras(Cameras);
 
 
     Layers.push_back(LayerClass("Editor", true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
