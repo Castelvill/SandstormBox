@@ -1,6 +1,6 @@
 #include "variableModule.h"
 
-VariableModule::VariableModule(int newID){
+VariableModule::VariableModule(unsigned int newID){
     ID = std::to_string(newID);
     type = 'n';
     vInt = 0;
@@ -282,4 +282,21 @@ bool VariableModule::isConditionMet(VariableModule * OtherVariable, string opera
     }
 
     return false;
+}
+
+VariableModule & VariableModule::operator=(const VariableModule& original){
+    ID = original.ID;
+    type = original.type;
+    if(type == 'b'){
+        vBool = original.vBool;
+    }
+    else if(type == 'i'){
+        vInt = original.vInt;
+    }
+    else if(type == 'd'){
+        vDouble = original.vDouble;
+    }
+    else if(type == 's'){
+        vString = original.vString;
+    }
 }

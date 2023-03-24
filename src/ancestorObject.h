@@ -15,6 +15,7 @@ public:
     vector <CollisionModule> CollisionContainer;
     vector <ParticleEffectModule> ParticlesContainer;
     vector <EventModule> EventsContainer;
+    vector <EveModule> EveContainer;
     vector <VariableModule> VariablesContainer;
     vector <ScrollbarModule> ScrollbarContainer;
     vector <string> textContainerIDs;
@@ -24,6 +25,7 @@ public:
     vector <string> collisionContainerIDs;
     vector <string> particlesContainerIDs;
     vector <string> eventsContainerIDs;
+    vector <string> eveContainerIDs;
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
     AncestorObject();
@@ -34,6 +36,7 @@ public:
     void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs);
     void refreshCoordinates();
     void updateListsOfIds();
+    void triggerEvents();
 };
 
 

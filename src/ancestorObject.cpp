@@ -28,6 +28,9 @@ void AncestorObject::clearContainers(){
     for(auto & Event : EventsContainer){
         Event.clearModule();
     }
+    for(auto & Event : EveContainer){
+        Event.clearModule();
+    }
 
     textContainerIDs.clear();
     editableTextContainerIDs.clear();
@@ -261,6 +264,15 @@ void AncestorObject::updateListsOfIds(){
     for(EventModule content : EventsContainer){
         eventsContainerIDs.push_back(content.getID());
     }
+    for(EveModule content : EveContainer){
+        eveContainerIDs.push_back(content.getID());
+    }
+    for(VariableModule content : VariablesContainer){
+        variablesContainerIDs.push_back(content.getID());
+    }
+    for(ScrollbarModule content : ScrollbarContainer){
+        scrollbarContainerIDs.push_back(content.getID());
+    }
 }
 
 bool isUniquenessOfIDsViolated(vector <AncestorObject> & Objects){
@@ -287,6 +299,7 @@ void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){
     for_each_if(EditorWindow->CollisionContainer.begin(), EditorWindow->CollisionContainer.end(), isStringInGroupModule<CollisionModule>(), deactivateModule<CollisionModule>());
     for_each_if(EditorWindow->EditableTextContainer.begin(), EditorWindow->EditableTextContainer.end(), isStringInGroupModule<EditableTextModule>(), deactivateModule<EditableTextModule>());
     for_each_if(EditorWindow->EventsContainer.begin(), EditorWindow->EventsContainer.end(), isStringInGroupModule<EventModule>(), deactivateModule<EventModule>());
+    for_each_if(EditorWindow->EveContainer.begin(), EditorWindow->EveContainer.end(), isStringInGroupModule<EveModule>(), deactivateModule<EveModule>());
     for_each_if(EditorWindow->ScrollbarContainer.begin(), EditorWindow->ScrollbarContainer.end(), isStringInGroupModule<ScrollbarModule>(), deactivateModule<ScrollbarModule>());
 }
 void activateBasedOnId(AncestorObject * EditorWindow, string activateID){
@@ -463,7 +476,7 @@ void manageWrapper(int categoryIndex, int wrapperIndex, AncestorObject * EditorW
     }
 }
 
-void triggerEvents(){
+void AncestorObject::triggerEvents(){
     vector <EveModule> EventsContainer;
     EventsContainer[0].parentStatus = true;
     for(EveModule & Event : EventsContainer){
@@ -474,8 +487,10 @@ void triggerEvents(){
             continue;
         }
         
-        if(EventsContainer[i].areAllConditionsFulfilled() == true){
+        if(EventsContainer[i].areAllConditionsFulfilled()){
+            
             EventsContainer[i].executeDependentOperations();
+            
             for(EveModule & Event : EventsContainer){
                 if(Event.parentID == EventsContainer[i].getID()){
                     Event.parentStatus = true;

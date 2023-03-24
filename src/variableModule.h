@@ -11,7 +11,7 @@ class VariableModule{
 	double vDouble, defaultDouble;
 	string vString, defaultString;
 public:
-    VariableModule(int newID);
+    VariableModule(unsigned int newID);
     string getID();
     string &getIDAddr();
     char getType();
@@ -45,6 +45,7 @@ public:
     bool isConditionMet(condValueType condVal, string operatorType, char valType);
     bool isConditionMet(string condVal, string operatorType, char valType);
     bool isConditionMet(VariableModule * OtherVariable, string operatorType);
+    VariableModule & operator=(const VariableModule& original);
 };
 
 

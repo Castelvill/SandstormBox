@@ -129,13 +129,10 @@ void EngineLoop::exitAllegro(){
 }
 
 void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer){
-    int durationOfOneSecond = FPS;
-    bool secondHasPassed;
     bool redraw = false;
     do {
         al_wait_for_event(eventQueue , &event);
         Mouse.didMouseMove = false;
-        secondHasPassed = false;
         switch(event.type){
             case ALLEGRO_EVENT_TIMER:
                 //Keyboard input is gathered here
@@ -155,10 +152,9 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 }
 
                 //START EVENT TRIGGER SECTION
-                secondHasPassed = false;
-                if(al_get_timer_count(timer) % durationOfOneSecond == 0){
-                    secondHasPassed = true;
-                }
+                
+
+                triggerEve(Layers, Cameras);
 
                 //END EVENT TRIGGER SECTION
 
@@ -259,6 +255,59 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         if(Layers[0].Objects.size() >= 2)
             if(Layers[0].Objects[1].TextContainer.size() > 0)
                 Layers[0].Objects[1].TextContainer[0].modifyContent(0, updatedFpsLabel);
+    }
+}
+void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    for(LayerClass & Layer : Layers){
+        for(AncestorObject & Object : Layer.Objects){
+            for(EveModule & Event : Object.EveContainer){
+                for(ConditionStruct & Condition : Event.Conditions){
+                    if(Condition.Trigger.triggerName == "each_second"){
+                        Condition.Trigger.Variable.setBool(al_get_timer_count(timer) % (int)FPS == 0);
+                    }
+                    else{ //triggers depended on IDs
+                        if(Condition.Trigger.layerID == Layer.getID()){
+                            if(Condition.Trigger.objectID == Object.getID()){
+                                if(Condition.Trigger.triggerName == "variables"){
+                                    if(Condition.Trigger.moduleID == "variables"){
+                                        for(VariableModule Variable : Object.VariablesContainer){
+                                            if(Variable.getID() == Condition.Trigger.Variable.getID()){
+                                                Condition.Trigger.Variable = Variable;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            for(AncestorObject TargetObject : Layer.Objects){
+                                if(Condition.Trigger.objectID == TargetObject.getID()){
+                                    
+                                    break;
+                                }
+                            }
+                        }
+                        else{
+                            for(LayerClass TargetLayer : Layers){
+                                if(Condition.Trigger.layerID == TargetLayer.getID()){
+                                    for(AncestorObject TargetObject : TargetLayer.Objects){
+                                        if(Condition.Trigger.objectID == TargetObject.getID()){
+                                            //copy
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if(Condition.Trigger.Variable.getBool()){
+                        al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
+                        std::cout << "Second has passed!\n";
+                    }
+                }
+            }
+        }
     }
 }
 void EngineLoop::updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected){

@@ -1,6 +1,22 @@
 #include "eventModule.h"
 
+TriggerStruct::TriggerStruct(unsigned int newID) : Variable(newID){
+}
 
+ConditionStruct::ConditionStruct(unsigned int newID) : Trigger(newID){
+}
+
+EveModule::EveModule(unsigned int eventModuleID){
+    primaryConstructor(eventModuleID);
+    setUpNewInstance();
+}
+EveModule::EveModule(string eventModuleID){
+    primaryConstructor(eventModuleID);
+    setUpNewInstance();
+}
+void EveModule::setUpNewInstance(){
+
+}
 void EveModule::clearModule(){
     Conditions.clear();
     DependentOperations.clear();

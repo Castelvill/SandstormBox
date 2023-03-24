@@ -7,30 +7,30 @@
 #include "variableModule.h"
 #include "scrollbarModule.h"
 
-struct VariableStateStruct{
+class TriggerStruct{
+public:
+    string cameraID;
     string layerID;
     string objectID;
-    string moduleID;
-    string variableID;
-    char type;
-    bool vBool;
-    int vInt;
-	double vDouble;
-	string vString;
+    string moduleID; //ancestor, text, image, movement, collision, particles, variables, scrollbar
+    VariableModule Variable;
+    string triggerName; //time, variable, collisivvxon, mouse, layer, camera, keyboard
+    TriggerStruct(unsigned int newID);
 };
 
-struct ConditionStruct{
-    bool negation;
-    VariableStateStruct Variable;
-    string operation; //==, !=, <=, <, >=, >
+class ConditionStruct{
+public:
+    TriggerStruct Trigger;
+    vector <string> conjunctions; //!, ==, !=, <=, <, >=, >, &&, ||, (, )
+    ConditionStruct(unsigned int newID);
 };
 
 struct OperaStruct{
     string layerID;
     string objectID;
     string moduleID;
-    string functionID; //also break and return
     string affectedVariable;
+    string functionID; //also break and return
     vector <double> choosenDoubles;
     vector <string> choosenStrings;
 };
@@ -50,6 +50,9 @@ public:
 	bool parentStatus;
 	bool werePostOperationsExecuted;
 
+    EveModule(unsigned int textModuleID);
+    EveModule(string textModuleID);
+    void setUpNewInstance();
     void clearModule();
 	void resetStatus();
 	bool areAllConditionsFulfilled();
