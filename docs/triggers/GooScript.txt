@@ -16,6 +16,9 @@ functions:
 obj <= layer.current
 [variable_name] <= obj.[obj_id].[module].[elem_id].[attr]
 
+//Maybe all value based variables should be saved to me.var? 
+[variable_name] <==> me.var.[variable_name]
+
 Root of the script:
     let [variable_name] = [variable_name];
     let [variable_name] = [string];
