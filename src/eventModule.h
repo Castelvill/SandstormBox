@@ -13,7 +13,7 @@ struct ObjectIDs{
     string objectID;
     string moduleID; //ancestor, text, image, movement, collision, particles, variables, scrollbar
 };
-ELSE???
+
 class TriggerClass{
 public:
     vector <ObjectIDs> leftObjects;
@@ -40,10 +40,14 @@ struct ChildStruct{
 	string ID;
 };
 
+struct ConditionStruct{
+    vector <TriggerClass> Triggers; //If empty, it's just else.
+	vector <OperaClass> DependentOperations;
+};
+
 class EveModule: public PrimaryModule{
 public:
-	vector <TriggerClass> Conditions;
-	vector <OperaClass> DependentOperations;
+	vector <ConditionStruct> ConditionalChain; //If one condition is fullfield, others are ignored - otherwise next condition is checked.
 	vector <OperaClass> PostOperations;
 	vector <ChildStruct> Children;
 	string parentID;
