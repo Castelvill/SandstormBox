@@ -1,9 +1,6 @@
 #include "eventModule.h"
 
-TriggerStruct::TriggerStruct(unsigned int newID) : Variable(newID){
-}
-
-ConditionStruct::ConditionStruct(unsigned int newID) : Trigger(newID){
+TriggerClass::TriggerClass(unsigned int newID) : Variable(newID){
 }
 
 EveModule::EveModule(unsigned int eventModuleID){
@@ -48,7 +45,7 @@ bool EveModule::allChildrenFinished(){
     }
     return true;
 }
-void EveModule::controlAncestor(OperaStruct & Operation, vec2d & objectPos, vec2d & objectSize){
+void EveModule::controlAncestor(OperaClass & Operation, vec2d & objectPos, vec2d & objectSize){
     if(Operation.affectedVariable == "position" && Operation.choosenDoubles.size() >= 2){
         objectPos.set(Operation.choosenDoubles[0], Operation.choosenDoubles[1]);
     }
@@ -56,7 +53,7 @@ void EveModule::controlAncestor(OperaStruct & Operation, vec2d & objectPos, vec2
         objectSize.set(Operation.choosenDoubles[0], Operation.choosenDoubles[1]);
     }
 }
-void EveModule::controlText(OperaStruct & Operation, TextModule & Text){
+void EveModule::controlText(OperaClass & Operation, TextModule & Text){
     if(Operation.affectedVariable == "activate"){
         Text.activate();
     }
@@ -91,7 +88,7 @@ void EveModule::controlText(OperaStruct & Operation, TextModule & Text){
         Text.setVisibility(Operation.choosenDoubles[0]);
     }
 }
-void EveModule::controlImage(OperaStruct & Operation, ImageModule & Image){
+void EveModule::controlImage(OperaClass & Operation, ImageModule & Image){
     if(Operation.affectedVariable == "position" && Operation.choosenDoubles.size() >= 2){
         Image.setPos(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
     }
@@ -121,7 +118,7 @@ void EveModule::controlImage(OperaStruct & Operation, ImageModule & Image){
         Image.setLightColor(vec3d(Operation.choosenDoubles[0], Operation.choosenDoubles[1], Operation.choosenDoubles[2]), Operation.choosenDoubles[3]);
     }
 }
-void EveModule::controlMovement(OperaStruct & Operation, MovementModule & Movement){
+void EveModule::controlMovement(OperaClass & Operation, MovementModule & Movement){
     if(Operation.affectedVariable == "move_up"){
         Movement.setNextMove(true, false, false, false, false, false, false);
     }
@@ -147,7 +144,7 @@ void EveModule::controlMovement(OperaStruct & Operation, MovementModule & Moveme
         Movement.addMomentum(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
     }
 }
-void EveModule::controlCollision(OperaStruct & Operation, CollisionModule & Collision){
+void EveModule::controlCollision(OperaClass & Operation, CollisionModule & Collision){
     if(Operation.affectedVariable == "solid"){
         Collision.switchSolid();
     }
@@ -155,7 +152,7 @@ void EveModule::controlCollision(OperaStruct & Operation, CollisionModule & Coll
         Collision.switchSolidPenetration();
     }
 }
-void EveModule::controlParticles(OperaStruct & Operation, ParticleEffectModule & Particles){
+void EveModule::controlParticles(OperaClass & Operation, ParticleEffectModule & Particles){
     if(Operation.affectedVariable == "environment" && Operation.choosenDoubles.size() >= 2){
         Particles.setEnvironment(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
     }
@@ -178,7 +175,7 @@ void EveModule::controlParticles(OperaStruct & Operation, ParticleEffectModule &
         Particles.switchAreParticlesMoving();
     }
 }
-void EveModule::controlVariables(OperaStruct & Operation, VariableModule & Variable){
+void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variable){
     if(Operation.affectedVariable == "toggle_bool"){
         Variable.toggleBool();
     }
@@ -371,7 +368,7 @@ void EveModule::controlVariables(OperaStruct & Operation, VariableModule & Varia
         Variable.addDouble(Operation.choosenDoubles[dice]);
     }
 }
-void EveModule::controlScrollbar(OperaStruct & Operation, ScrollbarModule & Scrollbar){
+void EveModule::controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrollbar){
     if(Operation.affectedVariable == "add_real_area" && Operation.choosenDoubles.size() >= 2){
         Scrollbar.addRealScrollingArea(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
     }

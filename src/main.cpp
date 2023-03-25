@@ -277,8 +277,8 @@ void createObjects1(vector <AncestorObject> & Objects, vector <SingleFont> & Fon
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
     Objects.back().EveContainer.push_back(0);
-    Objects.back().EveContainer.back().Conditions.push_back(ConditionStruct(0));
-    Objects.back().EveContainer.back().Conditions.back().Trigger.triggerName="each_second";
+    Objects.back().EveContainer.back().Conditions.push_back(TriggerClass(0));
+    Objects.back().EveContainer.back().Conditions.back().triggerName="each_second";
 /*
     Objects.push_back(AncestorObject(Objects.size()));
     Objects.back().setID("Doge");

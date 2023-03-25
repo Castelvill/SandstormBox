@@ -261,7 +261,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     for(LayerClass & Layer : Layers){
         for(AncestorObject & Object : Layer.Objects){
             for(EveModule & Event : Object.EveContainer){
-                for(ConditionStruct & Condition : Event.Conditions){
+                for(ConditionClass & Condition : Event.Conditions){
                     if(Condition.Trigger.triggerName == "each_second"){
                         Condition.Trigger.Variable.setBool(al_get_timer_count(timer) % (int)FPS == 0);
                     }

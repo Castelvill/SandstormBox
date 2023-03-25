@@ -7,28 +7,28 @@
 #include "variableModule.h"
 #include "scrollbarModule.h"
 
-class TriggerStruct{
-public:
+struct ObjectIDs{
     string cameraID;
     string layerID;
     string objectID;
     string moduleID; //ancestor, text, image, movement, collision, particles, variables, scrollbar
-    VariableModule Variable;
-    string triggerName; //time, variable, collisivvxon, mouse, layer, camera, keyboard
-    TriggerStruct(unsigned int newID);
 };
-
-class ConditionStruct{
+ELSE???
+class TriggerClass{
 public:
-    TriggerStruct Trigger;
-    vector <string> conjunctions; //!, ==, !=, <=, <, >=, >, &&, ||, (, )
-    ConditionStruct(unsigned int newID);
+    vector <ObjectIDs> leftObjects;
+    vector <ObjectIDs> rightObjects;
+    VariableModule Variable;
+    string triggerName; //time, variable, collision, mouse, layer, camera, keyboard
+    char resultType; //v/i - variable/if, f - first object, a/forall - all objects
+    vector <string> conjunctions; //!, ==, !=, <=, <, >=, >, &&, ||, (, ), +(sum of objects), *(product of objects), c(cartesian product)
+    TriggerClass(unsigned int newID);
 };
 
-struct OperaStruct{
-    string layerID;
-    string objectID;
-    string moduleID;
+class OperaClass{
+public:
+    vector <ObjectIDs> leftObjects;
+    vector <ObjectIDs> rightObjects;
     string affectedVariable;
     string functionID; //also break and return
     vector <double> choosenDoubles;
@@ -42,9 +42,9 @@ struct ChildStruct{
 
 class EveModule: public PrimaryModule{
 public:
-	vector <ConditionStruct> Conditions;
-	vector <OperaStruct> DependentOperations;
-	vector <OperaStruct> PostOperations;
+	vector <TriggerClass> Conditions;
+	vector <OperaClass> DependentOperations;
+	vector <OperaClass> PostOperations;
 	vector <ChildStruct> Children;
 	string parentID;
 	bool parentStatus;
@@ -60,14 +60,14 @@ public:
 	void executePostOperations();
 	bool allChildrenFinished();
 
-    void controlAncestor(OperaStruct & Operation, vec2d & objectPos, vec2d & objectSize);
-    void controlText(OperaStruct & Operation, TextModule & Text);
-    void controlImage(OperaStruct & Operation, ImageModule & Image);
-    void controlMovement(OperaStruct & Operation, MovementModule & Movement);
-    void controlCollision(OperaStruct & Operation, CollisionModule & Collision);
-    void controlParticles(OperaStruct & Operation, ParticleEffectModule & Particles);
-    void controlVariables(OperaStruct & Operation, VariableModule & Variable);
-    void controlScrollbar(OperaStruct & Operation, ScrollbarModule & Scrollbar);
+    void controlAncestor(OperaClass & Operation, vec2d & objectPos, vec2d & objectSize);
+    void controlText(OperaClass & Operation, TextModule & Text);
+    void controlImage(OperaClass & Operation, ImageModule & Image);
+    void controlMovement(OperaClass & Operation, MovementModule & Movement);
+    void controlCollision(OperaClass & Operation, CollisionModule & Collision);
+    void controlParticles(OperaClass & Operation, ParticleEffectModule & Particles);
+    void controlVariables(OperaClass & Operation, VariableModule & Variable);
+    void controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrollbar);
 };
 
 

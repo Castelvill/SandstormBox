@@ -1,0 +1,38 @@
+aggregation:
+1. let creates variables
+
+inGroup(): vec of objects
+
+forall(money.inGroup("money") && me.collisionWith(money) && me.var.money < 100){me.var.money += money.value; money.destroy();}
+->
+T("me_var", "money", <>, ["<"]), T("trigger_var", "var", <>, ["&&"]), T("in_group", "money", <"money", <Objects>>, ["&&"]), T("collision_with", Me, <"money", <Objects>>, [])
+->
+Simple_Cond(value, "<", value), Agg_Cond("money", "money", <Objects>, <Objects>, "*")
+->
+Operations: [{for obj in <Money>: me.var.money += obj.var.value}, {for obj in <Money>: obj.destroy()}]
+
+
+forall(enemy.inGroup("enemy") && guy.inGroup("guy")){
+	enemy.var.money += guy.var.money;
+}
+->
+Agg_Cond("enemy", "guy", <Objects>, <Objects>, "c")
+->
+Operations: [{for enem in <Enemy>: for gu in <Guy>: enem.money += gu.money}]
+
+
+
+forall(enemy.inGroup("enemy") && guy.inGroup("guy")){
+	if(guy.var.money > 0){
+		let randomHaracz = rand % 5;
+		enemy.var.money += randomHaracz;
+		guy.var.money -= randomHaracz;
+	}
+	if(guy.var.money <= 0){
+		guy.var.hp -= 1;
+	}
+}
+->
+Agg_Cond("enemy", "guy", <Objects>, <Objects>, "c")
+->
+Operations: [{for enem in <Enemy>: for gu in <Guy>: enem.money += gu.money}]
