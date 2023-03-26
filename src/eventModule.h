@@ -20,7 +20,8 @@ public:
     vector <ObjectIDs> rightObjects;
     VariableModule Variable;
     string triggerName; //time, variable, collision, mouse, layer, camera, keyboard
-    char resultType; //v/i - variable/if, f - first object, a/forall - all objects
+    //v - variable/if; f - first object; a - all objects; forall
+    char resultType; 
     vector <string> conjunctions; //!, ==, !=, <=, <, >=, >, &&, ||, (, ), +(sum of objects), *(product of objects), c(cartesian product)
     TriggerClass(unsigned int newID);
 };

@@ -261,49 +261,53 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     for(LayerClass & Layer : Layers){
         for(AncestorObject & Object : Layer.Objects){
             for(EveModule & Event : Object.EveContainer){
-                for(ConditionClass & Condition : Event.Conditions){
-                    if(Condition.Trigger.triggerName == "each_second"){
-                        Condition.Trigger.Variable.setBool(al_get_timer_count(timer) % (int)FPS == 0);
-                    }
-                    else{ //triggers depended on IDs
-                        if(Condition.Trigger.layerID == Layer.getID()){
-                            if(Condition.Trigger.objectID == Object.getID()){
-                                if(Condition.Trigger.triggerName == "variables"){
-                                    if(Condition.Trigger.moduleID == "variables"){
-                                        for(VariableModule Variable : Object.VariablesContainer){
-                                            if(Variable.getID() == Condition.Trigger.Variable.getID()){
-                                                Condition.Trigger.Variable = Variable;
-                                                break;
+                for(ConditionStruct & Condition : Event.ConditionalChain){
+                    for(TriggerClass & Trigger : Condition.Triggers){
+                        if(Trigger.resultType == 'v'){
+                            if(Trigger.triggerName == "each_second"){
+                                Trigger.Variable.setBool(al_get_timer_count(timer) % (int)FPS == 0);
+                            }
+                            else{ //triggers depended on IDs
+                                if(Trigger.layerID == Layer.getID()){
+                                    if(Trigger.objectID == Object.getID()){
+                                        if(Trigger.triggerName == "variables"){
+                                            if(Trigger.moduleID == "variables"){
+                                                for(VariableModule Variable : Object.VariablesContainer){
+                                                    if(Variable.getID() == Trigger.Variable.getID()){
+                                                        Trigger.Variable = Variable;
+                                                        break;
+                                                    }
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            }
-                            for(AncestorObject TargetObject : Layer.Objects){
-                                if(Condition.Trigger.objectID == TargetObject.getID()){
-                                    
-                                    break;
-                                }
-                            }
-                        }
-                        else{
-                            for(LayerClass TargetLayer : Layers){
-                                if(Condition.Trigger.layerID == TargetLayer.getID()){
-                                    for(AncestorObject TargetObject : TargetLayer.Objects){
-                                        if(Condition.Trigger.objectID == TargetObject.getID()){
-                                            //copy
+                                    for(AncestorObject TargetObject : Layer.Objects){
+                                        if(Trigger.objectID == TargetObject.getID()){
+                                            
                                             break;
                                         }
                                     }
-                                    break;
+                                }
+                                else{
+                                    for(LayerClass TargetLayer : Layers){
+                                        if(Trigger.layerID == TargetLayer.getID()){
+                                            for(AncestorObject TargetObject : TargetLayer.Objects){
+                                                if(Trigger.objectID == TargetObject.getID()){
+                                                    //copy
+                                                    break;
+                                                }
+                                            }
+                                            break;
+                                        }
+                                    }
                                 }
                             }
+                            
+                            if(Trigger.Variable.getBool()){
+                                al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
+                                std::cout << "Second has passed!\n";
+                            }
                         }
-                    }
-                    
-                    if(Condition.Trigger.Variable.getBool()){
-                        al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
-                        std::cout << "Second has passed!\n";
                     }
                 }
             }
