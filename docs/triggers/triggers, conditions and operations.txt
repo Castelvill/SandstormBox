@@ -28,11 +28,11 @@ forall(enemy.inGroup("enemy") && guy.inGroup("guy")){
 		enemy.var.money += randomHaracz;
 		guy.var.money -= randomHaracz;
 	}
-	if(guy.var.money <= 0){
+	else{
 		guy.var.hp -= 1;
 	}
 }
 ->
 Agg_Cond("enemy", "guy", <Objects>, <Objects>, "c")
 ->
-Operations: [{for enem in <Enemy>: for gu in <Guy>: enem.money += gu.money}]
+Operations: [{for enem in <Enemy> {for gu in <Guy> {if gu.money > 0{ enem.money += gu.money} else gu.hp -= 1}}}]
