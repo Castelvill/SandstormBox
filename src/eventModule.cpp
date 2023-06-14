@@ -12,11 +12,9 @@ EveModule::EveModule(string eventModuleID){
     setUpNewInstance();
 }
 void EveModule::setUpNewInstance(){
-
 }
 void EveModule::clearModule(){
-    Conditions.clear();
-    DependentOperations.clear();
+    ConditionalChain.clear();
     PostOperations.clear();
     Children.clear();
 }

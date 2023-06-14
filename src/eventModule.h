@@ -16,12 +16,12 @@ struct ObjectIDs{
 
 class TriggerClass{
 public:
+    bool isIsolated;
     vector <ObjectIDs> leftObjects;
     vector <ObjectIDs> rightObjects;
     VariableModule Variable;
     string triggerName; //time, variable, collision, mouse, layer, camera, keyboard
-    //v - variable/if; f - first object; a - all objects; forall
-    char resultType; 
+    char resultType; //v - variable/if; f - first object; a - all objects; forall
     vector <string> conjunctions; //!, ==, !=, <=, <, >=, >, &&, ||, (, ), +(sum of objects), *(product of objects), c(cartesian product)
     TriggerClass(unsigned int newID);
 };

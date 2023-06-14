@@ -267,40 +267,11 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                             if(Trigger.triggerName == "each_second"){
                                 Trigger.Variable.setBool(al_get_timer_count(timer) % (int)FPS == 0);
                             }
+                            else if(Trigger.triggerName == "isolated_if"){
+
+                            }
                             else{ //triggers depended on IDs
-                                if(Trigger.layerID == Layer.getID()){
-                                    if(Trigger.objectID == Object.getID()){
-                                        if(Trigger.triggerName == "variables"){
-                                            if(Trigger.moduleID == "variables"){
-                                                for(VariableModule Variable : Object.VariablesContainer){
-                                                    if(Variable.getID() == Trigger.Variable.getID()){
-                                                        Trigger.Variable = Variable;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    for(AncestorObject TargetObject : Layer.Objects){
-                                        if(Trigger.objectID == TargetObject.getID()){
-                                            
-                                            break;
-                                        }
-                                    }
-                                }
-                                else{
-                                    for(LayerClass TargetLayer : Layers){
-                                        if(Trigger.layerID == TargetLayer.getID()){
-                                            for(AncestorObject TargetObject : TargetLayer.Objects){
-                                                if(Trigger.objectID == TargetObject.getID()){
-                                                    //copy
-                                                    break;
-                                                }
-                                            }
-                                            break;
-                                        }
-                                    }
-                                }
+
                             }
                             
                             if(Trigger.Variable.getBool()){
@@ -1062,8 +1033,8 @@ void EngineLoop::selectObject(vector <LayerClass> & Layers, vector <SingleBitmap
                 SelectedObject->refreshCoordinates();
                 //std::cout << "Selected: " << SelectedObject->getID() << "\n";
 
-                EditorObject = &Layers[0].Objects[0];
-
+                /*EditorObject = &Layers[0].Objects[0];
+                THERE IS A MEMORY LEAK HERE
                 char lastActiveCategory = getActiveEditorWindowCategory(EditorObject);
                 //std::cout << "Last active category: " << lastActiveCategory << "\n";
 
@@ -1084,7 +1055,7 @@ void EngineLoop::selectObject(vector <LayerClass> & Layers, vector <SingleBitmap
                 activateBasedOnFirstChar(EditorObject, lastActiveCategory);
                 deactivateWrapped((int)(lastActiveCategory - '0'), EditorObject);
 
-                updateEditorWindowOnSelection(EditorObject->EditableTextContainer);
+                updateEditorWindowOnSelection(EditorObject->EditableTextContainer);*/
 
                 return;
             }

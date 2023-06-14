@@ -299,4 +299,5 @@ VariableModule & VariableModule::operator=(const VariableModule& original){
     else if(type == 's'){
         vString = original.vString;
     }
+    return *this;
 }

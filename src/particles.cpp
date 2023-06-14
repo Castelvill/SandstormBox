@@ -336,6 +336,7 @@ void ParticleEffectModule::drawParticles(vector <ImageModule> & ImageContainer, 
     }
 }
 void ParticleEffectModule::updateParticles(){
+    std::cout << (int)particleEffect.capacity() << " " << (int)colorIntervals.capacity() << " " << (int)basicColorsList.capacity() << " " << (int)usedImagesList.capacity() << "\n";
     for(unsigned int i=0; i < particleEffect.size(); i++){
         particleEffect[i].colorIntensity -= particleEffect[i].colorFading;
         if(isEnvironmentSynchronized){
