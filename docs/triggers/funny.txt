@@ -1,0 +1,114 @@
+fun funny(string something){
+    print(something)
+    funny(something);
+}
+
+let hehe = true;
+
+if(hehe){
+    funny("hello");
+}
+----------------------------
+Goo Interpreter:
+---------------------------
+1 set hehe true
+2 jmpne hehe 1 5
+3 print "hello"
+4 jmp 3
+5 exit
+-----------------------------
+
+
+let n = me.var.n;
+n = 10;
+while(n > 0){
+    print(f"Bananas: {n}\n");
+    me.var.n--;
+}
+----------------------------
+Goo Interpreter:
+---------------------------
+1 set me.var.n 10
+2 jmple me.var.n 0 10
+3 set _print ""
+4 add _print "Bananas: "
+5 add _print me.var.n
+6 add _print "\n"
+7 print _print
+8 sub me.var.n 1
+9 jmp 2
+10 exit
+-----------------------------
+
+let bobs = all(group == "bob");
+bobs.var.money += 2;
+
+----------------------------
+Goo Interpreter:
+---------------------------
+1 set i 0
+2 jmpne objects[i].group "bob" 5
+3 add objects[i].var.money 2
+4 jmp 2
+5 exit
+-----------------------------
+
+let money = all(group == "money");
+let touched_money = all(me.collision_with(x));
+me.var.money += touched_money.var.value;
+touched_money.kill();
+
+----------------------------
+Goo Interpreter:
+---------------------------
+1 set i 0
+2 jmpe i objects.size 10
+3 jmpne objects[i].group "money" 8
+4 jmpne objects[i].collision me 8
+5 add me.var.money objects[i].var.value
+6 kill objects[i]
+7 jmp 2
+8 add i 1
+9 jmp 2
+10 exit
+-----------------------------
+
+layers.clone(layers.second.patrick, layers.first.new_patrick);
+
+----------------------------
+Goo Interpreter:
+---------------------------
+
+
+
+
+NIEEE, NAJPIERW znajdź warstwę do której się kopiuje, bo to useless inaczej
+
+
+
+
+
+set _layer layers.begin
+jmpe _layer layers.end exit
+jmpne _layer.id "second" next _layer
+set _object _layer.objects.begin
+jmpe _object _layer.objects.end next _layer
+jmpne _object.id "patrick" next _object
+set _clone_layer layers.begin 
+jmpe _clone_layer layers.end 
+jmpne _clone_layer "first" next _clone_layer
+clone _object _clone_layer
+jmp exit
+next _clone_layer
+next _object
+next _layer
+jmp 2
+-----------------------------
+
+objects.bob.events.sleepy.run();
+
+----------------------------
+Goo Interpreter:
+---------------------------
+run objects.bob
+-----------------------------
