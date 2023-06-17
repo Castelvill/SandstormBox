@@ -54,13 +54,71 @@ Goo Interpreter:
 -----------------------------
 
 let money = all(group == "money");
-let touched_money = all(me.collision_with(x));
+let touched_money = all(me.collision_with(money));
 me.var.money += touched_money.var.value;
 touched_money.kill();
 
 ----------------------------
+c++
+----------------------------
+VariableModule * VarMoney = nullptr;
+for(VariableModule & Variable : Me.VariablesContainer){
+    if(Variable.getID("money")){
+        VarMoney = &Variable;
+        break;
+    }
+}
+if(VarMoney == nullptr){
+    return -1;
+}
+for(&Money in MyLayer.Objects){
+    if(Money.group == "money" && Money.collisionWith(Me)){
+        for(VariableModule & Variable : Money.VariablesContainer){
+            if(Variable.getID("value")){
+                VarMoney.addInt(Variable.getInt());
+                Money.destroy(); //Method sets up a "toBeDestroyed" flag in an object. 
+                //All objects with toBeDestroyed flag set to true, will be destroyed as soon as possible in clearDestroyedObjects() method of the layer.
+                break;
+            }
+        }
+    }
+}
+MyLayer.clearDestroyedObjects();
+----------------------------
 Goo Interpreter:
 ---------------------------
+forall(_object : MyLayer.Objects)
+    .if(_object.group == "money")
+    .if(_object.collisionWith(Me))
+    .first(_var0 : _object.VariableModule)
+    .if(_var0.id == "value")
+    .first(_var1 : Me.VariableModule)
+    .scope(.if(_var1.id == "money")
+    .add(_var0, _var1))
+    .kill(_object);
+
+or
+
+all(group == "money" : _object)
+    .if(_object.collisionWith(Me))
+    .first(_object.var.id == "value" : _var0)
+    .first(Me.var.id == "money" : _var1)
+    .add(_var0, _var1)
+    .kill(_object);
+
+or
+
+all(_object.group == "money" && _object.collisionWith(Me)){
+    first(_object._var0.id == "value"){
+        first(Me._var1.id == "money"){
+            _var1.add(_var0);
+        }
+    }
+    _object.kill();
+}
+
+
+
 1 set i 0
 2 jmpe i objects.size 10
 3 jmpne objects[i].group "money" 8
@@ -78,8 +136,11 @@ layers.clone(layers.second.patrick, layers.first.new_patrick);
 ----------------------------
 Goo Interpreter:
 ---------------------------
+
+cloneObjectFromAnotherLayer(Layers, "second", "patrick", "first", "new_patrick");
+
 int cloneObjectFromAnotherLayer(vector <LayerClass> & Layers, string fromLayerID, string fromObjectID, string toLayerID, string toObjectID){
-    for(DestLayer in Layers){
+    for(DestLayer : Layers){
         if(DestLayer.getID() != toLayerID)
             continue;
         for(SrcLayer in Layers){
@@ -110,10 +171,10 @@ int LayerClass::clone(AncestorObject OriginalObject, string cloneID){
     Objects.back().clone(OriginalObject);
 }
 int forceCloneObject(AncestorObject OriginalObject, LayerClass DestLayer, string cloneID){
-    //If the same ID of an object is found,  
-    for(DestObject in DestLayer.Objects){
+    //If the same ID of an object is found, replace it with the provided object.
+    for(&DestObject in DestLayer.Objects){
         if(DestObject.getID() == cloneID){
-            return -4; //Object {cloneID} already exists in layer {DestLayer}. In order to overwrite an object use forceCloneObject().
+            return DestObject.clone(OriginalObject);
         }
     }
     return DestLayer.clone(OriginalObject, cloneID);
