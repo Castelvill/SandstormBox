@@ -78,32 +78,48 @@ layers.clone(layers.second.patrick, layers.first.new_patrick);
 ----------------------------
 Goo Interpreter:
 ---------------------------
-
-
-
-
-NIEEE, NAJPIERW znajdź warstwę do której się kopiuje, bo to useless inaczej
-
-
-
-
-
-set _layer layers.begin
-jmpe _layer layers.end exit
-jmpne _layer.id "second" next _layer
-set _object _layer.objects.begin
-jmpe _object _layer.objects.end next _layer
-jmpne _object.id "patrick" next _object
-set _clone_layer layers.begin 
-jmpe _clone_layer layers.end 
-jmpne _clone_layer "first" next _clone_layer
-clone _object _clone_layer
-jmp exit
-next _clone_layer
-next _object
-next _layer
-jmp 2
+int cloneObjectFromAnotherLayer(vector <LayerClass> & Layers, string fromLayerID, string fromObjectID, string toLayerID, string toObjectID){
+    for(DestLayer in Layers){
+        if(DestLayer.getID() != toLayerID)
+            continue;
+        for(SrcLayer in Layers){
+            if(SrcLayer.getID() != fromLayerID)
+                continue;
+            for(OriginalObject in SrcLayer.objects){
+                if(OriginalObject.getID() != fromObjectID)
+                    continue;
+                return cloneObject(OriginalObject, DestLayer, toObjectID);
+            }
+            return -3; //Original object {fromObjectID} not found.
+        }
+        return -2; //Source layer {fromLayerID} not found.
+    }
+    return -1; //Destination layer {toLayerID} not found.
+}
+int cloneObject(AncestorObject OriginalObject, LayerClass DestLayer, string cloneID){
+    //If the same ID of an object is found, abort the operation - this function does not have permission to overwrite objects.
+    for(DestObject in DestLayer.Objects){
+        if(DestObject.getID() == cloneID){
+            return -4; //Object {cloneID} already exists in layer {DestLayer}. In order to overwrite an object use forceCloneObject().
+        }
+    }
+    return DestLayer.clone(OriginalObject, cloneID);
+}
+int LayerClass::clone(AncestorObject OriginalObject, string cloneID){
+    Objects.push_back(AncestorObject(cloneID));
+    Objects.back().clone(OriginalObject);
+}
+int forceCloneObject(AncestorObject OriginalObject, LayerClass DestLayer, string cloneID){
+    //If the same ID of an object is found,  
+    for(DestObject in DestLayer.Objects){
+        if(DestObject.getID() == cloneID){
+            return -4; //Object {cloneID} already exists in layer {DestLayer}. In order to overwrite an object use forceCloneObject().
+        }
+    }
+    return DestLayer.clone(OriginalObject, cloneID);
+}
 -----------------------------
+
 
 objects.bob.events.sleepy.run();
 
