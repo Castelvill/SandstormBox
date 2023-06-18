@@ -1,0 +1,33 @@
+Camera:
+agg(Camera.inView(Objects))
+agg(Camera.outsideView(Objects))
+
+Mouse:
+agg(Mouse.collision_with(Objects))
+agg(Mouse.outside_of(Objects))
+agg(Mouse.pressed_on(Objects))
+agg(Mouse.released_on(Objects))
+
+Objects:
+agg(Layers.{string}.{string})
+agg(Objects)
+agg(Objects.id == {string})
+agg(Objects.id in {vector<string>})
+agg(Objects.group == {string})
+agg(Objects.group in {vector<string>})
+agg(Objects.pos in {vec2d, vec2d})
+agg(Objects.isScaledFromCenter == {bool})
+agg(Objects.isAttachedToCamera == {bool})
+agg(Objects.canBeSelected == {bool})
+agg(Objects.isScrollable == {bool})
+
+Variables:
+agg(Var.id == {string} && Var.value {op} {value})
+agg(Var.{string} {op} {value})
+
+Collision:
+agg(Me.outside_of(Objects)) 
+agg(Me.overlaping_with(Objects))
+agg(Me.collision_with(Objects))
+agg(Me.collision_on_X_with(Objects))
+agg(Me.collision_on_Y_with(Objects))

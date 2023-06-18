@@ -9,7 +9,7 @@ bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2);
 struct DetectedCollision{
     string solidID;
     string collisionID;
-    short collisionType;
+    short collisionType; //0 - invalid collision, 1 - collision on X axis, 2 - collision on Y axis, 3 - collision with corners, 4 - overlaping "collision"
     vec2d momentum;
 };
 

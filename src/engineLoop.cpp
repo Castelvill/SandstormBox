@@ -151,12 +151,11 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     SelectedCamera->update(pressedKeys);
                 }
 
-                //START EVENT TRIGGER SECTION
+                //START EVENT CONTROL SECTION
                 
-
                 triggerEve(Layers, Cameras);
 
-                //END EVENT TRIGGER SECTION
+                //END EVENT CONTROL SECTION
 
                 Mouse.resetButtonDown();
                 
@@ -258,26 +257,31 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     }
 }
 void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    for(LayerClass & Layer : Layers){
-        for(AncestorObject & Object : Layer.Objects){
-            for(EveModule & Event : Object.EveContainer){
-                for(ConditionStruct & Condition : Event.ConditionalChain){
-                    for(TriggerClass & Trigger : Condition.Triggers){
-                        if(Trigger.resultType == 'v'){
-                            if(Trigger.triggerName == "each_second"){
-                                Trigger.Variable.setBool(al_get_timer_count(timer) % (int)FPS == 0);
-                            }
-                            else if(Trigger.triggerName == "isolated_if"){
+    //
+    
+    //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects must wait for the next iteration.
+    //Remember to delete pointers to destroyed objects during the iteration
+    vector <unique_ptr<AncestorObject>> TriggeredObjects;
+    
+    
+    for(const auto & Triggered : TriggeredObjects){
+        for(EveModule & Event : Triggered->EveContainer){
+            for(ConditionStruct & Condition : Event.ConditionalChain){
+                for(TriggerClass & Trigger : Condition.Triggers){
+                    if(Trigger.resultType == 'v'){
+                        if(Trigger.triggerName == "each_second"){
+                            Trigger.Variable.setBool(al_get_timer_count(timer) % (int)FPS == 0);
+                        }
+                        else if(Trigger.triggerName == "isolated_if"){
 
-                            }
-                            else{ //triggers depended on IDs
+                        }
+                        else{ //triggers depended on IDs
 
-                            }
-                            
-                            if(Trigger.Variable.getBool()){
-                                al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
-                                std::cout << "Second has passed!\n";
-                            }
+                        }
+                        
+                        if(Trigger.Variable.getBool()){
+                            al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
+                            std::cout << "Second has passed!\n";
                         }
                     }
                 }
@@ -365,7 +369,7 @@ bool EngineLoop::isKeyReleased(short key){
 }
 void EngineLoop::detectStartPosOfDraggingObjects(){
     wasMousePressedInSelectedObject = false;
-                
+
     if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true)
             && SelectedLayer != nullptr && SelectedObject != nullptr){
         if(SelectedObject->getIsAttachedToCamera()){

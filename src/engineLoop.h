@@ -2,6 +2,9 @@
 #define ENGINELOOP_H_INCLUDED
 
 #include "layerClass.h"
+#include <memory>
+
+using std::unique_ptr;
 
 #if __linux__
     #include <sys/time.h>
