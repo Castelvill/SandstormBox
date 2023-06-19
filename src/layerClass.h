@@ -9,9 +9,13 @@ private:
     bool isActive;
 public:
     vector <AncestorObject> Objects;
+    //Uniques of IDs is checked only for objects existing in the same layer - user should be able to copy entire layers
+    //without worring about providing unique IDs for every object, ex. testing or branching.
+    vector <string> listOfUniqueIDs;
     vec2d pos, size;
     LayerClass(string layerID, bool activate, vec2d bufferPos, vec2d bufferSize);
     void clear();
+    bool createListOfUniqueIDs();
 
     void setID(string newID);
     void setIsActive(bool newIsActive);

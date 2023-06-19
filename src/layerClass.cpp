@@ -7,8 +7,39 @@ LayerClass::LayerClass(string layerID, bool activate, vec2d bufferPos, vec2d buf
     size.set(bufferSize);
 }
 void LayerClass::clear(){
-    
+    Objects.clear();
+    listOfUniqueIDs.clear();
 }
+//Returns true if uniqueness is violeted. 
+bool LayerClass::createListOfUniqueIDs(){
+    listOfUniqueIDs.clear();
+    unsigned i, j;
+    bool violated = false;
+    for(i = 0; i < Objects.size(); i++){
+        for(j = 0; j < Objects.size(); j++){
+            if(i == j){
+                continue;
+            }
+            if(Objects[i].getID() == Objects[j].getID()){
+                if(!violated){
+                    std::cout << "\n\n";
+                }
+                std::cout << "Uniqueness has been violated in: Layer[" << ID << "]=" << ID
+                    << " by Object[" << j << "]=" << Objects[j].getID() << "\n";
+                violated = true;
+            }
+        }
+        if(!violated){
+            listOfUniqueIDs.push_back(Objects[i].getID());
+        }
+    }
+
+    if(violated){
+        std::cout << "\n";
+    }
+    return violated;
+}
+
 void LayerClass::setID(string newID){
     ID = newID;
 }

@@ -256,10 +256,14 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 Layers[0].Objects[1].TextContainer[0].modifyContent(0, updatedFpsLabel);
     }
 }
+void EngineLoop::updateTriggerListenersList(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+
+}
 void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     //
     
-    //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects must wait for the next iteration.
+    //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects must wait with execution
+    //for the next iteration, unless run() command will be used.
     //Remember to delete pointers to destroyed objects during the iteration
     vector <unique_ptr<AncestorObject>> TriggeredObjects;
     
@@ -965,7 +969,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                         }
                     }
                     if(TextField.getEditingIsActive() == true){
-                        Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, listOfAncestorIDs);
+                        Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.listOfUniqueIDs);
                     }
                     TextField.setEditingIsActive(false);
                     if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
@@ -988,7 +992,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                             TextField.editText(releasedKeys, pressedKeys);
 
                             if(TextField.getUpdateConnectedVariable() == true){
-                                Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, listOfAncestorIDs);
+                                Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.listOfUniqueIDs);
                                 TextField.setUpdateConnectedVariable(false);
 
                                 if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
@@ -1109,16 +1113,6 @@ void EngineLoop::drawSelectionBorder(Camera2D Camera){
         al_draw_rectangle(borderPos.x, borderPos.y, borderPos.x + borderSize.x, borderPos.y + borderSize.y, al_map_rgb(216, 78, 213), 4);
     }
 }
-void EngineLoop::updateListOfAncestorIDs(vector <AncestorObject> & Objects){
-    listOfAncestorIDs.clear();
-
-    for(AncestorObject Obj : Objects){
-        listOfAncestorIDs.push_back(Obj.getID());
-    }
-
-    checkUniquenessOfTheList(listOfAncestorIDs);
-}
-
 
 EditorWindowArrangement::EditorWindowArrangement(){
     windowWidth = 500.0;
@@ -1194,12 +1188,12 @@ void removeListsInEditorWindow(AncestorObject * EditorWindow){
     }
 }
 
-void prepareEditorWindow(vector <AncestorObject> & Objects, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer){
+void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer){
     EditorWindowArrangement Arr;
     Arr.labelHeight = getFontHeight(FontContainer, Arr.labelFontID);
     Arr.attributeSize.y = getFontHeight(FontContainer, Arr.attributeFontID);
 
-    Objects.push_back(AncestorObject(Objects.size()));
+    Objects.push_back(AncestorObject(Objects.size(), layerID));
     AncestorObject * EditorWindow = &Objects.back();
 
     EditorWindow->setID("editor_window");

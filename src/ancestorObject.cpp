@@ -2,9 +2,23 @@
 
 AncestorObject::AncestorObject(){
     //blank object
+    std::cout << "[Warning] You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
-AncestorObject::AncestorObject(int ancestorID){
+AncestorObject::AncestorObject(int ancestorID, string newLayerID){
+    layerID = newLayerID;
     primaryConstructor(ancestorID);
+}
+void AncestorObject::clearVectorsOfIDs(){
+    textContainerIDs.clear();
+    editableTextContainerIDs.clear();
+    imageContainerIDs.clear();
+    movementContainerIDs.clear();
+    collisionContainerIDs.clear();
+    particlesContainerIDs.clear();
+    eventsContainerIDs.clear();
+    eveContainerIDs.clear();
+    variablesContainerIDs.clear();
+    scrollbarContainerIDs.clear();
 }
 void AncestorObject::clearContainers(){
     for(auto & Text : TextContainer){
@@ -32,15 +46,7 @@ void AncestorObject::clearContainers(){
         Event.clearModule();
     }
 
-    textContainerIDs.clear();
-    editableTextContainerIDs.clear();
-    imageContainerIDs.clear();
-    movementContainerIDs.clear();
-    collisionContainerIDs.clear();
-    particlesContainerIDs.clear();
-    eventsContainerIDs.clear();
-    variablesContainerIDs.clear();
-    scrollbarContainerIDs.clear();
+    clearVectorsOfIDs();
     groups.clear();
     TextContainer.clear();
     EditableTextContainer.clear();
@@ -158,7 +164,7 @@ void AncestorObject::operateEvent(int sourceID, int event, int operationID, vect
     }
 }
 void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs){
-    for(auto & Object : Objects){
+    for(AncestorObject & Object : Objects){
         if(EditableText.connectedObject == Object.getID()
            || Object.isInAGroup(EditableText.connectedGroup)){
             bool success = false;
@@ -242,7 +248,8 @@ void AncestorObject::refreshCoordinates(){
     pos.set(minPos);
     size.set(maxPos-minPos);
 }
-void AncestorObject::updateListsOfIds(){
+void AncestorObject::createVectorsOfIds(){
+    clearVectorsOfIDs();
     for(TextModule content : TextContainer){
         textContainerIDs.push_back(content.getID());
     }
@@ -275,22 +282,7 @@ void AncestorObject::updateListsOfIds(){
     }
 }
 
-bool isUniquenessOfIDsViolated(vector <AncestorObject> & Objects){
-    bool violated = false;
-    for(unsigned i = 0; i < Objects.size(); i++){
-        for(unsigned j = i+1; j < Objects.size(); j++){
-            if(Objects[i].getID() == Objects[j].getID()){
-                if(!violated)
-                    std::cout << "\n\n";
-                std::cout << "Uniqueness has been violated with ID: " << Objects[i].getID() << " [" << i << "," << j << "]\n";
-                violated = true;
-            }
-        }
-    }
-    if(violated)
-        std::cout << "\n";
-    return violated;
-}
+
 
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){

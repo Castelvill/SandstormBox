@@ -53,22 +53,6 @@ short translateToAllegroKey(char key){
         return ALLEGRO_KEY_LEFT;
     return ALLEGRO_KEY_UNKNOWN;
 }
-bool checkUniquenessOfTheList(vector <string> listOfIDs){
-    bool violated = false;
-    for(unsigned i = 0; i < listOfIDs.size(); i++){
-        for(unsigned j = i+1; j < listOfIDs.size(); j++){
-            if(listOfIDs[i] == listOfIDs[j]){
-                if(!violated)
-                    std::cout << "\n\n";
-                std::cout << "Uniqueness has been violated with ID: " << listOfIDs[i] << " \n";
-                violated = true;
-            }
-        }
-    }
-    if(violated)
-        std::cout << "\n";
-    return violated;
-}
 
 bool isStringInGroup(string ID, int count, ...){
     va_list args;

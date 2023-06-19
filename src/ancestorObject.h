@@ -8,6 +8,7 @@ The most important class, a container for all modules that make an object.
 */
 class AncestorObject: public PrimaryModule{
 public:
+    string layerID; //This ID is needed in events' trigger detection in the engine class. 
     vector <TextModule> TextContainer;
     vector <EditableTextModule> EditableTextContainer;
     vector <ImageModule> ImageContainer;
@@ -29,19 +30,16 @@ public:
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
     AncestorObject();
-    AncestorObject(int ancestorID);
+    AncestorObject(int ancestorID, string newLayerID);
+    void clearVectorsOfIDs();
     void clearContainers();
     void createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter);
     void operateEvent(int sourceID, int event, int operationID, vector <AncestorObject> & Objects);
     void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs);
     void refreshCoordinates();
-    void updateListsOfIds();
+    void createVectorsOfIds();
     void triggerEvents();
 };
-
-
-
-bool isUniquenessOfIDsViolated(vector <AncestorObject> & Objects);
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);
 void activateBasedOnId(AncestorObject * EditorWindow, string activateID);

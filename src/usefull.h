@@ -21,7 +21,6 @@ double countDistance2(double & x1, double & y1, double & x2, double & y2);
 int randomInt(int minValue, int maxValue);
 double randomDouble(double minValue, double maxValue);
 short translateToAllegroKey(char key);
-bool checkUniquenessOfTheList(vector <string> listOfIDs);
 bool isStringInGroup(string ID, int count, ...);
 bool isCharInGroup(char ID, int count, ...);
 

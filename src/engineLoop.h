@@ -57,7 +57,7 @@ struct EditorWindowArrangement{
 
 void createObjects0(vector <AncestorObject> & Objects, vector <SingleFont> FontContainer, ALLEGRO_DISPLAY * window);
 void createObjects(vector <AncestorObject> & Objects, vector <SingleFont> FontContainer, ALLEGRO_DISPLAY * window);
-void prepareEditorWindow(vector <AncestorObject> & Objects, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer);
+void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer);
 void prepareEditorWindowGeneral(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
 void removeListsInEditorWindow(AncestorObject * EditorWindow);
 char getActiveEditorWindowCategory(AncestorObject * EditorWindow);
@@ -95,6 +95,17 @@ public:
     unsigned int get() const;
 };
 
+struct EventsLookupTable{
+    vector <AncestorObject*> TimeTriggered;
+    vector <AncestorObject*> CameraTriggered;
+    vector <AncestorObject*> KeyboardTriggered;
+    vector <AncestorObject*> MouseTriggered;
+    vector <AncestorObject*> ObjectsTriggered;
+    vector <AncestorObject*> VariablesTriggered;
+    vector <AncestorObject*> CollisionTriggered;
+    vector <AncestorObject*> EditableTextTriggered;
+    vector <AncestorObject*> MovementTriggered;
+};
 
 class EngineLoop{
 private:
@@ -126,7 +137,6 @@ private:
     vec2d dragStartingPos;
     vec2d dragCameraStaringPos;
     vector <unsigned int> ForegroundOfObjects;
-    vector <string> listOfAncestorIDs;
 
 public:
     MouseClass Mouse;
@@ -163,9 +173,9 @@ public:
     void updateEditorWindowOnSelection(vector <EditableTextModule> & EditableTextContainer);
     void updateEditorWindowOnAxisChange(vector <EditableTextModule> & EditableTextContainer);
     void drawSelectionBorder(Camera2D Camera);
-    void updateListOfAncestorIDs(vector <AncestorObject> & Objects);
     void startScrollbarDragging(vector <LayerClass> & Layers);
     void dragScrollbars(vector <LayerClass> & Layers);
+    void updateTriggerListenersList(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
 
     void prepareEditorWindowObjectsList(int categoryIndex, AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr);
     void prepareEditorWindowImage(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
