@@ -17,8 +17,9 @@ struct ObjectIDs{
 class TriggerClass{
 public:
     bool isIsolated;
-    vector <ObjectIDs> leftObjects;
-    vector <ObjectIDs> rightObjects;
+    //In event underclasses you can't use vectors of objects (of their ids) or variables, because making aggregation is a dynamic process - it will be taken care of in engine.
+    ObjectIDs leftObject;
+    ObjectIDs rightObject;
     VariableModule Variable;
     string triggerName; //time, variable, collision, mouse, layer, camera, keyboard
     char resultType; //v - variable/if; f - first object; a - all objects; forall
@@ -44,13 +45,15 @@ struct ChildStruct{
 struct ConditionStruct{
     vector <TriggerClass> Triggers; //If empty, it's just else.
 	vector <OperaClass> DependentOperations;
+    vector <OperaClass> PostOperations;
 };
 
 class EveModule: public PrimaryModule{
 public:
-	vector <ConditionStruct> ConditionalChain; //If one condition is fullfield, others are ignored - otherwise next condition is checked.
+	vector <ConditionStruct> ConditionalChain;
 	vector <OperaClass> PostOperations;
 	vector <ChildStruct> Children;
+    vector <string> primaryTriggerTypes; //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed by other events and a direct use of run() command.
 	string parentID;
 	bool parentStatus;
 	bool werePostOperationsExecuted;

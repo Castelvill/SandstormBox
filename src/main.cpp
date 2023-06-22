@@ -657,7 +657,6 @@ int main(){
     Layers.push_back(LayerClass("L1", true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
     createObjects1(Layers[1].Objects, Layers[1].getID(), FontContainer, BitmapContainer, EngineLoop1.window);
     
-    
     unsigned numberOfObjects = 0;
 
     for(LayerClass & layer : Layers){
@@ -669,6 +668,8 @@ int main(){
         numberOfObjects += layer.Objects.size();
     }
     std::cout << "Number of objects: " << numberOfObjects << "\n";
+
+    EngineLoop1.updateBaseOfTriggerableObjects(Layers, Cameras);
 
     EngineLoop1.startTimer();
     

@@ -1,0 +1,32 @@
+1.i=start, j[::]=start, cond_done[::]="null", depend_done[::]=false, child[::]=org_child[::], agg[::]=null
+2.if cond_done[i]=="true" or (cond_done[i]=="null" and cond[i]==true) then
+	cond_done[i]="true"
+	if depend_done[i]==false then
+		do depend[i]
+		depend_done[i]=true
+	if child[i].size>0 then
+		j[child[i].next]=i
+		i=child[i].next
+		child.pop()
+		goto 2
+	if child[i].size==0 then
+		goto 4
+3.if cond_done[i]=="false" or (cond_done[i]=="null" and cond[i]==false) then
+	cond_done[i]="false"
+	if else_child[i]!=null then
+		j[else_child[i]]=i
+		i=else_child[i]
+		goto 2.
+4.do post[i]
+5.if i!=0 then
+	i=j[i]
+	goto 2.
+6.exit
+
+
+i=0
+j[1]=0
+j[2]=1
+j[3]=2
+j[4]=3
+j[5]=4

@@ -29,6 +29,7 @@ public:
     vector <string> eveContainerIDs;
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
+    bool isAddedToTriggeredObjects;
     AncestorObject();
     AncestorObject(int ancestorID, string newLayerID);
     void clearVectorsOfIDs();

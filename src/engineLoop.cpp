@@ -35,6 +35,17 @@ unsigned int Fps::get() const{
     return m_fps;
 }
 
+void EventsLookupTable::clearLookupTable(){
+    TimeTriggered.clear();
+    CameraTriggered.clear();
+    KeyboardTriggered.clear();
+    MouseTriggered.clear();
+    ObjectsTriggered.clear();
+    VariablesTriggered.clear();
+    CollisionTriggered.clear();
+    EditableTextTriggered.clear();
+    MovementTriggered.clear();
+}
 
 EngineLoop::EngineLoop(std::string title){
     mainBuffer = NULL;
@@ -126,6 +137,8 @@ void EngineLoop::exitAllegro(){
     al_destroy_event_queue(eventQueue);
     releasedKeys.clear();
     pressedKeys.clear();
+    foregroundOfObjects.clear();
+    BaseOfTriggerableObjects.clearLookupTable();
 }
 
 void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer){
@@ -256,17 +269,65 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 Layers[0].Objects[1].TextContainer[0].modifyContent(0, updatedFpsLabel);
     }
 }
-void EngineLoop::updateTriggerListenersList(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-
+void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    BaseOfTriggerableObjects.clearLookupTable();
+    
+    for(LayerClass & Layer : Layers){
+        for(AncestorObject & Object : Layer.Objects){
+            Object.isAddedToTriggeredObjects = false;
+            for(EveModule Event : Object.EveContainer){
+                for(string type : Event.primaryTriggerTypes){
+                    if(type == "time"){
+                        BaseOfTriggerableObjects.TimeTriggered.push_back(&Object);
+                    }
+                    else if(type == "camera"){
+                        BaseOfTriggerableObjects.CameraTriggered.push_back(&Object);
+                    }
+                    else if(type == "keyboard"){
+                        BaseOfTriggerableObjects.KeyboardTriggered.push_back(&Object);
+                    }
+                    else if(type == "mouse"){
+                        BaseOfTriggerableObjects.MouseTriggered.push_back(&Object);
+                    }
+                    else if(type == "objects"){
+                        BaseOfTriggerableObjects.ObjectsTriggered.push_back(&Object);
+                    }
+                    else if(type == "variables"){
+                        BaseOfTriggerableObjects.VariablesTriggered.push_back(&Object);
+                    }
+                    else if(type == "collision"){
+                        BaseOfTriggerableObjects.CollisionTriggered.push_back(&Object);
+                    }
+                    else if(type == "editables"){
+                        BaseOfTriggerableObjects.EditableTextTriggered.push_back(&Object);
+                    }
+                    else if(type == "movement"){
+                        BaseOfTriggerableObjects.MovementTriggered.push_back(&Object);
+                    }
+                }
+            }
+        }
+    }
+}
+void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <unique_ptr<AncestorObject>> & TriggeredObjects){
+    //TODO: Make sure each Event will be executed only once.
+    
 }
 void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    //
     
+    //now its time to detect triggers, check them in lookuptable and push triggered objects into TriggeredObjects
+
+
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects must wait with execution
     //for the next iteration, unless run() command will be used.
-    //Remember to delete pointers to destroyed objects during the iteration
     vector <unique_ptr<AncestorObject>> TriggeredObjects;
-    
+
+
+
+
+    //Make sure each Event will be executed only once. 
+
+    //Remember to delete pointers to destroyed objects during the iteration
     
     for(const auto & Triggered : TriggeredObjects){
         for(EveModule & Event : Triggered->EveContainer){
@@ -731,17 +792,17 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
             }
             
             numberOfDrawnObjects = 0;
-            ForegroundOfObjects.clear();
+            foregroundOfObjects.clear();
 
             for(int currentlyDrawnLayer = 0; currentlyDrawnLayer < totalNumberOfBitmapLayers; currentlyDrawnLayer++){
                 for(i = 0; i < Layer.Objects.size(); i++){
                     if(Layer.Objects[i].getIsActive())
-                        drawModules(Layer.Objects[i], i, Camera, FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, ForegroundOfObjects, false);
+                        drawModules(Layer.Objects[i], i, Camera, FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false);
                 }
             }
-            for(i = 0; i < ForegroundOfObjects.size(); i++){
-                if(Layer.Objects[ForegroundOfObjects[i]].getIsActive())
-                    drawModules(Layer.Objects[ForegroundOfObjects[i]], i, Camera, FontContainer, -1, numberOfDrawnObjects, ForegroundOfObjects, true);
+            for(i = 0; i < foregroundOfObjects.size(); i++){
+                if(Layer.Objects[foregroundOfObjects[i]].getIsActive())
+                    drawModules(Layer.Objects[foregroundOfObjects[i]], i, Camera, FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true);
             }
             if(SelectedLayer == &Layer)
                 drawSelectionBorder(Camera);
@@ -749,9 +810,9 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
         al_set_target_bitmap(al_get_backbuffer(window));
         al_draw_bitmap(Camera.bitmapBuffer, Camera.pos.x, Camera.pos.y, 0);
 
-        ForegroundOfObjects.clear();
-        //vector<unsigned int>().swap(ForegroundOfObjects);
-        //ForegroundOfObjects.shrink_to_fit();
+        foregroundOfObjects.clear();
+        //vector<unsigned int>().swap(foregroundOfObjects);
+        //foregroundOfObjects.shrink_to_fit();
         if(SelectedCamera != &Camera)
             al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(0, 155, 145), 4);
         else
@@ -759,7 +820,7 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
     }
 }
 void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Camera2D Camera, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
-                             vector <unsigned int> & ForegroundOfObjects, bool isTimeForForeground){
+                             vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground){
     vec2d newPos;
     vec2d objectSize;
     vec2d scaledObjectSize;
@@ -774,7 +835,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         if(Image.usedBitmapLayer == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
             if(wasForegroundUpdated)
                 continue;
-            ForegroundOfObjects.push_back(iteration);
+            foregroundOfObjects.push_back(iteration);
             wasForegroundUpdated = true;
             continue;
         }
@@ -808,7 +869,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         if(Text.usedBitmapLayer == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
             if(wasForegroundUpdated)
                 continue;
-            ForegroundOfObjects.push_back(iteration);
+            foregroundOfObjects.push_back(iteration);
             wasForegroundUpdated = true;
             continue;
         }
@@ -849,7 +910,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         if(Editable.usedBitmapLayer == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
             if(wasForegroundUpdated)
                 continue;
-            ForegroundOfObjects.push_back(iteration);
+            foregroundOfObjects.push_back(iteration);
             wasForegroundUpdated = true;
             continue;
         }
@@ -892,7 +953,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         if(Scrollbar.getUsedBitmapLayer() == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
             if(wasForegroundUpdated)
                 continue;
-            ForegroundOfObjects.push_back(iteration);
+            foregroundOfObjects.push_back(iteration);
             wasForegroundUpdated = true;
             continue;
         }

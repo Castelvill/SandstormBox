@@ -95,6 +95,7 @@ public:
     unsigned int get() const;
 };
 
+//This struct consists of pointers to every object that has at least one event triggerable by the right source  
 struct EventsLookupTable{
     vector <AncestorObject*> TimeTriggered;
     vector <AncestorObject*> CameraTriggered;
@@ -105,6 +106,7 @@ struct EventsLookupTable{
     vector <AncestorObject*> CollisionTriggered;
     vector <AncestorObject*> EditableTextTriggered;
     vector <AncestorObject*> MovementTriggered;
+    void clearLookupTable();
 };
 
 class EngineLoop{
@@ -136,7 +138,8 @@ private:
     AncestorObject * EditorObject;
     vec2d dragStartingPos;
     vec2d dragCameraStaringPos;
-    vector <unsigned int> ForegroundOfObjects;
+    vector <unsigned int> foregroundOfObjects;
+    EventsLookupTable BaseOfTriggerableObjects;
 
 public:
     MouseClass Mouse;
@@ -156,7 +159,7 @@ public:
     void detectStartPosOfDraggingObjects();
     void drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer);
     void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D Cameras, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
-                     vector <unsigned int> & ForegroundOfObjects, bool isTimeForForeground);
+                     vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground);
     void updateOtherEvents(vector <AncestorObject> & Objects);
     void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement);
     void detectRealCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement);
@@ -175,7 +178,8 @@ public:
     void drawSelectionBorder(Camera2D Camera);
     void startScrollbarDragging(vector <LayerClass> & Layers);
     void dragScrollbars(vector <LayerClass> & Layers);
-    void updateTriggerListenersList(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <unique_ptr<AncestorObject>> & TriggeredObjects);
 
     void prepareEditorWindowObjectsList(int categoryIndex, AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr);
     void prepareEditorWindowImage(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);

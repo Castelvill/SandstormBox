@@ -31,3 +31,6 @@ agg(Me.overlaping_with(Objects))
 agg(Me.collision_with(Objects))
 agg(Me.collision_on_X_with(Objects))
 agg(Me.collision_on_Y_with(Objects))
+
+General:
+agg(...).size()
