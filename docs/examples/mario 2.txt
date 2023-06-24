@@ -1,0 +1,31 @@
+let timer = me.var.timer;
+
+each_second{
+    timer++;
+    if(timer == 5){
+	say("5 seconds have passed")
+        timer = 0;
+    }
+}
+
+let entity = all(collision == me);
+let x = first(entity.group == "enemy");
+if(x.size() == 1){
+	me.var.life -= 1;
+        let gameVar = layer.master.game.var;
+        if(me.var.life > 0){
+            layer.transform_into(layer(gameVar.currentWorld));
+            me.x = gameVar.lastCheckpointX;
+            me.y = gameVar.lastCheckpointY;
+        }
+        else{
+            layer.transform_into(layer(gameVar.menu));
+        }
+}
+let mushroom = first(entity.group == "mushroom");
+mushroom.events.power_up();
+let money = all(entity.group == "money");
+me.var.money += money.var.value;
+money.kill();
+
+

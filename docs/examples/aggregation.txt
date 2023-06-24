@@ -1,0 +1,29 @@
+1) Single aggregation
+let x = all(group=="enemy");
+x.var.money++;
+
+2) Two aggregations
+let x = all(group=="bob");
+x.var.gold++;
+x = all(var.gold < 5);
+x.var.gold += 500;
+
+3) Referencing two variables
+let x = all(group=="bob");
+x.var.gold++;
+let y = all(x.var.gold < 5);
+y.var.gold += 500;
+x.var.debt += 10;
+
+4) Cartesian product
+let enemy = all(group=="enemy");
+let guy = all(group=="guy");
+if(guy.var.money > 0){
+	let randomHaracz = rand(0, 5);
+	enemy.var.money += randomHaracz;
+	guy.var.money -= randomHaracz;
+}
+else{
+	guy.var.hp -= 1;
+}
+
