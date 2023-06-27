@@ -1,4 +1,4 @@
-1.i=start, j[::]=start, cond_done[::]="null", depend_done[::]=false, child[::]=org_child[::], agg[::]=null
+1.i=start, j[::]=start[::], cond_done[::]="null", depend_done[::]=false, child[::]=org_child[::], agg[::]=null
 2.if cond_done[i]=="true" or (cond_done[i]=="null" and cond[i]==true) then
 	cond_done[i]="true"
 	if depend_done[i]==false then
@@ -13,12 +13,12 @@
 		goto 4
 3.if cond_done[i]=="false" or (cond_done[i]=="null" and cond[i]==false) then
 	cond_done[i]="false"
-	if else_child[i]!=null then
+	if else_child[i]!="" then
 		j[else_child[i]]=i
 		i=else_child[i]
 		goto 2.
 4.do post[i]
-5.if i!=0 then
+5.if i!=start then
 	i=j[i]
 	goto 2.
 6.exit

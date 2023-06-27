@@ -10,6 +10,16 @@ VariableModule::VariableModule(unsigned int newID){
     vString = "";
     defaultString = "";
 }
+VariableModule::VariableModule(string newID){
+    ID = newID;
+    type = 'n';
+    vInt = 0;
+    defaultInt = 0;
+    vDouble = 0.0;
+    defaultDouble = 0.0;
+    vString = "";
+    defaultString = "";
+}
 string VariableModule::getID(){
     return ID;
 }

@@ -1,0 +1,14 @@
+//Make it that no object from group "a" can have var.state=="5"
+let a = all(group == "a"); //a=10
+let b = all(group == "b"); //b=15
+atomic(a, b){
+	while(a.var.state == "5"){
+
+		a.events.tryToChangeState(); //a=1
+		b.events.increaseRandomVariable(); //b=1
+	}
+}
+
+
+
+let a = all(group == "a");

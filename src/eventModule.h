@@ -11,19 +11,15 @@ struct ObjectIDs{
     string cameraID;
     string layerID;
     string objectID;
-    string moduleID; //ancestor, text, image, movement, collision, particles, variables, scrollbar
+    string moduleID; //ancestor, text, editable, image, movement, collision, particles, variables, scrollbar
 };
 
 class TriggerClass{
 public:
-    bool isIsolated;
-    //In event underclasses you can't use vectors of objects (of their ids) or variables, because making aggregation is a dynamic process - it will be taken care of in engine.
-    ObjectIDs leftObject;
-    ObjectIDs rightObject;
-    VariableModule Variable;
-    string triggerName; //time, variable, collision, mouse, layer, camera, keyboard
-    char resultType; //v - variable/if; f - first object; a - all objects; forall
-    vector <string> conjunctions; //!, ==, !=, <=, <, >=, >, &&, ||, (, ), +(sum of objects), *(product of objects), c(cartesian product)
+    ObjectIDs leftObject, rightObject;
+    VariableModule LeftLiteral, RightLiteral;
+    string triggerName; //time, keyboard, mouse, literal, camera, layer, object
+    vector <string> conjunctions; //!, ==, !=, <=, <, >=, >, &&, ||, (, )
     TriggerClass(unsigned int newID);
 };
 
@@ -38,23 +34,21 @@ public:
 };
 
 struct ChildStruct{
-	bool finished;
+	bool finished; //If true, ignore the child.
 	string ID;
-};
-
-struct ConditionStruct{
-    vector <TriggerClass> Triggers; //If empty, it's just else.
-	vector <OperaClass> DependentOperations;
-    vector <OperaClass> PostOperations;
 };
 
 class EveModule: public PrimaryModule{
 public:
-	vector <ConditionStruct> ConditionalChain;
+	vector <TriggerClass> ConditionalChain;
+    vector <OperaClass> DependentOperations;
 	vector <OperaClass> PostOperations;
 	vector <ChildStruct> Children;
     vector <string> primaryTriggerTypes; //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed by other events and a direct use of run() command.
 	string parentID;
+    string elseChildID; //Ignore if empty.
+    char conditionStatus; //n-null, t-true, f-false
+    bool areDependentOperationsDone;
 	bool parentStatus;
 	bool werePostOperationsExecuted;
 

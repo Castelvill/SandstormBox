@@ -12,6 +12,7 @@ class VariableModule{
 	string vString, defaultString;
 public:
     VariableModule(unsigned int newID);
+    VariableModule(string newID);
     string getID();
     string &getIDAddr();
     char getType();

@@ -311,6 +311,28 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
 }
 void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <unique_ptr<AncestorObject>> & TriggeredObjects){
     //TODO: Make sure each Event will be executed only once.
+    if(secondHasPassed()){ 
+        for(AncestorObject * Object : BaseOfTriggerableObjects.TimeTriggered){
+            TriggeredObjects.push_back(std::make_unique<AncestorObject>(*Object));
+        }
+    }
+    /*
+    if(){ 
+        for(AncestorObject * Object : BaseOfTriggerableObjects.CameraTriggered){
+            TriggeredObjects.push_back(std::make_unique<AncestorObject>(Object));
+        }
+    }
+    */
+    if(pressedKeys.size() > 0 || releasedKeys.size() > 0){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyboardTriggered){
+            TriggeredObjects.push_back(std::make_unique<AncestorObject>(*Object));
+        }
+    }
+    if(Mouse.didMouseMove || Mouse.isMouseButtonDown() || Mouse.wasMousePressed() || Mouse.wasMouseReleased()){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseTriggered){
+            TriggeredObjects.push_back(std::make_unique<AncestorObject>(*Object));
+        }
+    }
     
 }
 void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
@@ -331,25 +353,11 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     
     for(const auto & Triggered : TriggeredObjects){
         for(EveModule & Event : Triggered->EveContainer){
-            for(ConditionStruct & Condition : Event.ConditionalChain){
-                for(TriggerClass & Trigger : Condition.Triggers){
-                    if(Trigger.resultType == 'v'){
-                        if(Trigger.triggerName == "each_second"){
-                            Trigger.Variable.setBool(al_get_timer_count(timer) % (int)FPS == 0);
-                        }
-                        else if(Trigger.triggerName == "isolated_if"){
+            for(TriggerClass & Condition : Event.ConditionalChain){
+                
+                //secondHasPassed() - each_second
+                //al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
 
-                        }
-                        else{ //triggers depended on IDs
-
-                        }
-                        
-                        if(Trigger.Variable.getBool()){
-                            al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
-                            std::cout << "Second has passed!\n";
-                        }
-                    }
-                }
             }
         }
     }
@@ -1157,6 +1165,10 @@ void EngineLoop::updateEditorWindowOnAxisChange(vector <EditableTextModule> & Ed
 
     EditableTextContainer[1].modifyContent(0, std::to_string(SelectedObject->getPos(false).x));
     EditableTextContainer[2].modifyContent(0, std::to_string(SelectedObject->getPos(false).y));
+}
+
+bool EngineLoop::secondHasPassed(){
+    return al_get_timer_count(timer) % (int)FPS == 0;
 }
 
 void EngineLoop::drawSelectionBorder(Camera2D Camera){

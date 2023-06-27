@@ -95,6 +95,8 @@ public:
     unsigned int get() const;
 };
 
+
+
 //This struct consists of pointers to every object that has at least one event triggerable by the right source  
 struct EventsLookupTable{
     vector <AncestorObject*> TimeTriggered;
@@ -180,6 +182,7 @@ public:
     void dragScrollbars(vector <LayerClass> & Layers);
     void updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <unique_ptr<AncestorObject>> & TriggeredObjects);
+    bool secondHasPassed();
 
     void prepareEditorWindowObjectsList(int categoryIndex, AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr);
     void prepareEditorWindowImage(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);

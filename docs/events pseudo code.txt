@@ -18,7 +18,7 @@
 		i=else_child[i]
 		goto 2.
 4.do post[i]
-5.if i!=0 then
+5.if i!=start then
 	i=j[i]
 	goto 2.
 6.exit

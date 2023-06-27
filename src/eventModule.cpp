@@ -1,6 +1,6 @@
 #include "eventModule.h"
 
-TriggerClass::TriggerClass(unsigned int newID) : Variable(newID){
+TriggerClass::TriggerClass(unsigned int newID) : LeftLiteral(0), RightLiteral(1){
 }
 
 EveModule::EveModule(unsigned int eventModuleID){
