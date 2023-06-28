@@ -96,13 +96,20 @@ public:
 };
 
 
+vector <short> getPressedKeys(unsigned char key[]);
+vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys);
 
 //This struct consists of pointers to every object that has at least one event triggerable by the right source  
 struct EventsLookupTable{
     vector <AncestorObject*> TimeTriggered;
     vector <AncestorObject*> CameraTriggered;
-    vector <AncestorObject*> KeyboardTriggered;
-    vector <AncestorObject*> MouseTriggered;
+    vector <AncestorObject*> KeyboardFirstPressedTriggered;
+    vector <AncestorObject*> KeyboardLongPressedTriggered;
+    vector <AncestorObject*> KeyboardReleasedTriggered;
+    vector <AncestorObject*> MouseMovedTriggered;
+    vector <AncestorObject*> MouseFirstPressedTriggered;
+    vector <AncestorObject*> MouseLongPressedTriggered;
+    vector <AncestorObject*> MouseReleasedTriggered;
     vector <AncestorObject*> ObjectsTriggered;
     vector <AncestorObject*> VariablesTriggered;
     vector <AncestorObject*> CollisionTriggered;
@@ -128,6 +135,7 @@ private:
     bool drawOnlyVisibleObjects; //If true, engine will not attempt to draw objects outside the camera view. (Allegro 5 is using similar mechanism.)
     bool wasMousePressedInSelectedObject;
     vector <short> pressedKeys;
+    vector <short> firstPressedKeys;
     vector <short> releasedKeys;
     long timeToInterruptMovement;
     long timeToInterruptParticles;
@@ -151,6 +159,8 @@ public:
     void initAllegro();
     void exitAllegro();
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
+    void executeDependentOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    char evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
     void updateAllForestOfCameras(vector <Camera2D> & Cameras);
@@ -181,7 +191,7 @@ public:
     void startScrollbarDragging(vector <LayerClass> & Layers);
     void dragScrollbars(vector <LayerClass> & Layers);
     void updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    void detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <unique_ptr<AncestorObject>> & TriggeredObjects);
+    void detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects);
     bool secondHasPassed();
 
     void prepareEditorWindowObjectsList(int categoryIndex, AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr);

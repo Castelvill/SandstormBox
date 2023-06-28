@@ -498,7 +498,7 @@ void AncestorObject::triggerEvents(){
             if(EventsContainer[i].Children.size() == 0){
                 EventsContainer[i].executePostOperations();
                 for(EveModule & Event : EventsContainer){
-                    if(Event.werePostOperationsExecuted == false && Event.parentStatus == true && Event.allChildrenFinished()){
+                    if(Event.werePostOperationsExecuted == false && Event.parentStatus == true && Event.checkIfAllChildrenFinished()){
                         Event.executePostOperations();
                     }
                 }

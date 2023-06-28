@@ -1,0 +1,47 @@
+[source=, dynamic_name=, literal=, layer=, id=, module=, element=, pre_conj={}, post_conj={}]
+
+pre_conj: !, (,
+post_conj: ==, !=, !=, <=, <, >=, >, &&, ||, )
+
+
+if((!second_passed || objects.bob.collision_with == objects.aqua) && (key_pressed == w || me.var.x != 50)){}
+
+[source=second_passed, dynamic_name=, literal=, layer=, id=, module=, element=, pre_conj={(,!}, post_conj={||}]
+[source=object, dynamic_name=, literal=, layer=0, id=bob, module=collision, element=with, pre_conj={}, post_conj={==}]
+[source=object, dynamic_name=, literal=, layer=0, id=aqua, module=, element=, pre_conj=, post_conj={), &&}]
+[source=key_pressed, dynamic_name=, literal=, layer=, id=, module=, element=, pre_conj={(}, post_conj={==}]
+[source=literal, dynamic_name=, literal="w", layer=, id=, module=, element=, pre_conj=, post_conj={||}]
+[source=owner, dynamic_name=, literal=, layer=, id=, module=var, element=x, pre_conj=, post_conj={!=}]
+[source=literal, dynamic_name=, literal=50, layer=, id=, module=, element=, pre_conj=, post_conj={)}]
+
+let a = 10;
+let b = Objects.bob.var.b;
+if(a > b){}
+
+[source=dynamic, dynamic_name=a, literal=, layer=, id=, module=, element=, pre_conj={}, post_conj={>}]
+[source=dynamic, dynamic_name=b, literal=, layer=, id=, module=, element=, pre_conj={}, post_conj={}]
+
+
+let a = 20;
+let bob_var = Objects.bob.var;
+if(a > bob_var.b){}
+
+[source=dynamic, dynamic_name=a, literal=, layer=, id=, module=, element=, pre_conj={}, post_conj={>}]
+[source=dynamic, dynamic_name=bob_var, literal=, layer=, id=, module=, element=b, pre_conj={}, post_conj={}]
+
+let a = 20;
+let bob_var = Objects.bob;
+if(a > bob_var.var.b){}
+
+[source=dynamic, dynamic_name=a, literal=, layer=, id=, module=, element=, pre_conj={}, post_conj={>}]
+[source=dynamic, dynamic_name=bob_var, literal=, layer=, id=, module=var, element=b, pre_conj={}, post_conj={}]
+
+
+if(((1==1)&&(2==2))&&3==3){}
+
+[source=literal, dynamic_name=, literal=1, layer=, id=, module=, element=, pre_conj={(, (}, post_conj={==}]
+[source=literal, dynamic_name=, literal=1, layer=, id=, module=, element=, pre_conj={}, post_conj={),&&}]
+[source=literal, dynamic_name=, literal=2, layer=, id=, module=, element=, pre_conj={(}, post_conj={==}]
+[source=literal, dynamic_name=, literal=2, layer=, id=, module=, element=, pre_conj={}, post_conj={), ), &&}]
+[source=literal, dynamic_name=, literal=3, layer=, id=, module=, element=, pre_conj={}, post_conj={==}]
+[source=literal, dynamic_name=, literal=3, layer=, id=, module=, element=, pre_conj={}, post_conj={}]

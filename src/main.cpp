@@ -278,7 +278,10 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().TextContainer.back().setColors(255, 0, 0);
     Objects.back().EveContainer.push_back(0);
     Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass(0));
-    Objects.back().EveContainer.back().ConditionalChain.back().triggerName="each_second";
+    //Objects.back().EveContainer.back().ConditionalChain.back().triggerName="second_passed";
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("mouse_released");
+    Objects.back().EveContainer.push_back(1);
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("keyboard_released");
 /*
     Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("Doge");

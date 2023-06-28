@@ -3,9 +3,7 @@
 
 #include "camera.h"
 
-vector <short> getPressedKeys(unsigned char key[]);
-vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys);
-
+#define BUTTONS_NUM_MAX 5
 
 class MouseClass{
 private:
@@ -14,9 +12,9 @@ private:
     vec2d pressedPos;
     vec2d zoomPressedPos;
     int scrollPos, lastScrollPos;
-    bool pressed[5];
-    bool released[5];
-    bool buttonDown[5];
+    bool pressed[BUTTONS_NUM_MAX];
+    bool released[BUTTONS_NUM_MAX];
+    bool buttonDown[BUTTONS_NUM_MAX];
 public:
     bool didMouseMove;
 

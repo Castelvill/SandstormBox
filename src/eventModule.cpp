@@ -1,6 +1,6 @@
 #include "eventModule.h"
 
-TriggerClass::TriggerClass(unsigned int newID) : LeftLiteral(0), RightLiteral(1){
+TriggerClass::TriggerClass(unsigned int newID) : Literal(0){
 }
 
 EveModule::EveModule(unsigned int eventModuleID){
@@ -25,17 +25,7 @@ void EveModule::resetStatus(){
 	}
 	werePostOperationsExecuted = false;
 }
-bool EveModule::areAllConditionsFulfilled(){
-    return false;
-}
-void EveModule::executeDependentOperations(){
-
-}
-void EveModule::executePostOperations(){
-	//...
-	werePostOperationsExecuted = true;
-}
-bool EveModule::allChildrenFinished(){
+bool EveModule::checkIfAllChildrenFinished(){
     for(ChildStruct Child : Children){
         if(!Child.finished){
             return false;

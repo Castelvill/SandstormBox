@@ -35,11 +35,36 @@ unsigned int Fps::get() const{
     return m_fps;
 }
 
+vector <short> getPressedKeys(unsigned char key[]){
+    vector <short> pressedKeys;
+    for(short i = 1; i < ALLEGRO_KEY_MAX; i++){
+        if(key[i]){
+            pressedKeys.push_back(i);
+        }
+    }
+    return pressedKeys;
+}
+
+vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
+    vector <short> releasedKeys;
+    for(unsigned int i = 0; i < pressedKeys.size(); i++){
+        if(!key[pressedKeys[i]]){
+            releasedKeys.push_back(pressedKeys[i]);
+        }
+    }
+    return releasedKeys;
+}
+
 void EventsLookupTable::clearLookupTable(){
     TimeTriggered.clear();
     CameraTriggered.clear();
-    KeyboardTriggered.clear();
-    MouseTriggered.clear();
+    KeyboardFirstPressedTriggered.clear();
+    KeyboardLongPressedTriggered.clear();
+    KeyboardReleasedTriggered.clear();
+    MouseMovedTriggered.clear();
+    MouseFirstPressedTriggered.clear();
+    MouseLongPressedTriggered.clear();
+    MouseReleasedTriggered.clear();
     ObjectsTriggered.clear();
     VariablesTriggered.clear();
     CollisionTriggered.clear();
@@ -136,6 +161,7 @@ void EngineLoop::exitAllegro(){
     al_destroy_timer(timer);
     al_destroy_event_queue(eventQueue);
     releasedKeys.clear();
+    firstPressedKeys.clear();
     pressedKeys.clear();
     foregroundOfObjects.clear();
     BaseOfTriggerableObjects.clearLookupTable();
@@ -145,7 +171,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     bool redraw = false;
     do {
         al_wait_for_event(eventQueue , &event);
-        Mouse.didMouseMove = false;
         switch(event.type){
             case ALLEGRO_EVENT_TIMER:
                 //Keyboard input is gathered here
@@ -169,6 +194,10 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 triggerEve(Layers, Cameras);
 
                 //END EVENT CONTROL SECTION
+
+                firstPressedKeys.clear();
+
+                Mouse.didMouseMove = false;
 
                 Mouse.resetButtonDown();
                 
@@ -217,6 +246,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
                 key[event.keyboard.keycode] = KEY_SEEN | KEY_RELEASED;
+                firstPressedKeys = getPressedKeys(key);
                 break;
             case ALLEGRO_EVENT_KEY_UP:
                 key[event.keyboard.keycode] &= KEY_RELEASED;
@@ -277,17 +307,32 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
             Object.isAddedToTriggeredObjects = false;
             for(EveModule Event : Object.EveContainer){
                 for(string type : Event.primaryTriggerTypes){
-                    if(type == "time"){
+                    if(type == "second_passed"){
                         BaseOfTriggerableObjects.TimeTriggered.push_back(&Object);
                     }
                     else if(type == "camera"){
                         BaseOfTriggerableObjects.CameraTriggered.push_back(&Object);
                     }
-                    else if(type == "keyboard"){
-                        BaseOfTriggerableObjects.KeyboardTriggered.push_back(&Object);
+                    else if(type == "keyboard_first_pressed"){
+                        BaseOfTriggerableObjects.KeyboardFirstPressedTriggered.push_back(&Object);
                     }
-                    else if(type == "mouse"){
-                        BaseOfTriggerableObjects.MouseTriggered.push_back(&Object);
+                    else if(type == "keyboard_long_pressed"){
+                        BaseOfTriggerableObjects.KeyboardLongPressedTriggered.push_back(&Object);
+                    }
+                    else if(type == "keyboard_released"){
+                        BaseOfTriggerableObjects.KeyboardReleasedTriggered.push_back(&Object);
+                    }
+                    else if(type == "mouse_moved"){
+                        BaseOfTriggerableObjects.MouseMovedTriggered.push_back(&Object);
+                    }
+                    else if(type == "mouse_first_pressed"){
+                        BaseOfTriggerableObjects.MouseFirstPressedTriggered.push_back(&Object);
+                    }
+                    else if(type == "mouse_long_pressed"){
+                        BaseOfTriggerableObjects.MouseLongPressedTriggered.push_back(&Object);
+                    }
+                    else if(type == "mouse_released"){
+                        BaseOfTriggerableObjects.MouseReleasedTriggered.push_back(&Object);
                     }
                     else if(type == "objects"){
                         BaseOfTriggerableObjects.ObjectsTriggered.push_back(&Object);
@@ -309,11 +354,10 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
         }
     }
 }
-void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <unique_ptr<AncestorObject>> & TriggeredObjects){
-    //TODO: Make sure each Event will be executed only once.
+void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects){
     if(secondHasPassed()){ 
         for(AncestorObject * Object : BaseOfTriggerableObjects.TimeTriggered){
-            TriggeredObjects.push_back(std::make_unique<AncestorObject>(*Object));
+            TriggeredObjects.push_back(Object);
         }
     }
     /*
@@ -323,44 +367,101 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
         }
     }
     */
-    if(pressedKeys.size() > 0 || releasedKeys.size() > 0){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyboardTriggered){
-            TriggeredObjects.push_back(std::make_unique<AncestorObject>(*Object));
+    if(firstPressedKeys.size() > 0){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyboardFirstPressedTriggered){
+            TriggeredObjects.push_back(Object);
         }
     }
-    if(Mouse.didMouseMove || Mouse.isMouseButtonDown() || Mouse.wasMousePressed() || Mouse.wasMouseReleased()){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseTriggered){
-            TriggeredObjects.push_back(std::make_unique<AncestorObject>(*Object));
+    if(pressedKeys.size() > 0){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyboardLongPressedTriggered){
+            TriggeredObjects.push_back(Object);
         }
+    }
+    if(releasedKeys.size() > 0){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyboardReleasedTriggered){
+            TriggeredObjects.push_back(Object);
+        }
+    }
+    if(Mouse.didMouseMove){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseMovedTriggered){
+            TriggeredObjects.push_back(Object);
+        }
+    }
+    if(Mouse.isMouseButtonDown()){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseFirstPressedTriggered){
+            TriggeredObjects.push_back(Object);
+        }
+    }
+    if(Mouse.wasMousePressed()){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseLongPressedTriggered){
+            TriggeredObjects.push_back(Object);
+        }
+    }
+    if(Mouse.wasMouseReleased()){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseReleasedTriggered){
+            TriggeredObjects.push_back(Object);
+        }
+    }
+
+    for(unsigned int i=0; i < TriggeredObjects.size(); i++){
+        for(unsigned int j=i+1; j < TriggeredObjects.size(); j++){
+            if(&TriggeredObjects[i] == &TriggeredObjects[j]){
+                continue;
+            }
+            TriggeredObjects.erase(TriggeredObjects.begin()+j);
+            j--;
+        }
+    }
+}
+void EngineLoop::executeDependentOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+  
+}
+char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    for(TriggerClass & Condition : Event.ConditionalChain){
+    
+        //secondHasPassed() - each_second
+        //al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
+
     }
     
+    return 'n';
 }
 void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    
-    //now its time to detect triggers, check them in lookuptable and push triggered objects into TriggeredObjects
+    //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
+    //must wait with execution for the next iteration, unless run() command will be used.
+    vector <AncestorObject*> TriggeredObjects;
 
+    detectTriggeredEvents(Layers, Cameras, TriggeredObjects);
 
-    //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects must wait with execution
-    //for the next iteration, unless run() command will be used.
-    vector <unique_ptr<AncestorObject>> TriggeredObjects;
-
-
-
-
-    //Make sure each Event will be executed only once. 
+    if(TriggeredObjects.size() > 0){
+        std::cout << TriggeredObjects.size() << " ";
+    }
 
     //Remember to delete pointers to destroyed objects during the iteration
     
-    for(const auto & Triggered : TriggeredObjects){
-        for(EveModule & Event : Triggered->EveContainer){
-            for(TriggerClass & Condition : Event.ConditionalChain){
+    for(AncestorObject * Triggered : TriggeredObjects){
+        vector<EveModule>::iterator Event;
+        
+        for(Event = Triggered->EveContainer.begin(); Event < Triggered->EveContainer.end(); Event++){
+            if(Event->conditionalStatus == 'n'){
+                Event->conditionalStatus = evaluateConditionalChain(Triggered, *Event, Layers, Cameras);
+            }
+            if(Event->conditionalStatus == 't'){
+                if(!Event->areDependentOperationsDone){
+                    executeDependentOperations(Triggered, *Event, Layers, Cameras);
+                    Event->areDependentOperationsDone = true;
+                }
+                if(!Event->checkIfAllChildrenFinished()){
+                    
+                }
+            }
+            else if(Event->conditionalStatus == 'f'){
                 
-                //secondHasPassed() - each_second
-                //al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
-
             }
         }
     }
+
+    TriggeredObjects.clear();
 }
 void EngineLoop::updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected){
     unsigned short tokensOfChanges[Cameras.size()];

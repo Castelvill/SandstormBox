@@ -1,43 +1,22 @@
 #include "mouse.h"
 
-vector <short> getPressedKeys(unsigned char key[]){
-    vector <short> pressedKeys;
-    for(short i = 1; i < ALLEGRO_KEY_MAX; i++){
-        if(key[i]){
-            pressedKeys.push_back(i);
-        }
-    }
-    return pressedKeys;
-}
-
-vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
-    vector <short> releasedKeys;
-    for(unsigned int i = 0; i < pressedKeys.size(); i++){
-        if(!key[pressedKeys[i]]){
-            releasedKeys.push_back(pressedKeys[i]);
-        }
-    }
-    return releasedKeys;
-}
-
-
 MouseClass::MouseClass(){
     scrollPos = 0;
     lastScrollPos = 0;
 }
 void MouseClass::reset(){
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
         pressed[i] = false;
         released[i] = false;
     }
 }
 void MouseClass::resetReleased(){
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
         released[i] = false;
     }
 }
 void MouseClass::resetButtonDown(){
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
         buttonDown[i] = false;
     }
 }
@@ -45,12 +24,12 @@ void MouseClass::setUp(){
     reset();
 }
 void MouseClass::getPressed(bool tempArr[]){
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
         tempArr[i] = pressed[i];
     }
 }
 void MouseClass::getReleased(bool tempArr[]){
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
         tempArr[i] = released[i];
     }
 }
@@ -251,21 +230,21 @@ bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool 
     return false;
 }
 bool MouseClass::isMouseButtonDown(){
-    for(unsigned int i = 0; i < 5; i++){
+    for(unsigned int i = 0; i < BUTTONS_NUM_MAX; i++){
         if(buttonDown[i])
             return true;
     }
     return false;
 }
 bool MouseClass::wasMousePressed(){
-    for(unsigned int i = 0; i < 5; i++){
+    for(unsigned int i = 0; i < BUTTONS_NUM_MAX; i++){
         if(pressed[i])
             return true;
     }
     return false;
 }
 bool MouseClass::wasMouseReleased(){
-    for(unsigned int i = 0; i < 5; i++){
+    for(unsigned int i = 0; i < BUTTONS_NUM_MAX; i++){
         if(released[i])
             return true;
     }

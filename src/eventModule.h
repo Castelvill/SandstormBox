@@ -11,15 +11,18 @@ struct ObjectIDs{
     string cameraID;
     string layerID;
     string objectID;
-    string moduleID; //ancestor, text, editable, image, movement, collision, particles, variables, scrollbar
+    string module; //ancestor, text, editable, image, movement, collision, particles, variables, scrollbar
+    string elementID; 
 };
 
 class TriggerClass{
 public:
-    ObjectIDs leftObject, rightObject;
-    VariableModule LeftLiteral, RightLiteral;
-    string triggerName; //time, keyboard, mouse, literal, camera, layer, object
-    vector <string> conjunctions; //!, ==, !=, <=, <, >=, >, &&, ||, (, )
+    string source; //second_passed, key_down, key_pressed, key_released, mouse_down, mouse_pressed, mouse_released, literal, camera, layer, owner, object, pointer
+    string dynamicName;
+    VariableModule Literal;
+    ObjectIDs Object;
+    vector <string> pre_conjunctions; //!, (
+    vector <string> post_conjunctions; //==, !=, <=, <, >=, >, &&, ||, )
     TriggerClass(unsigned int newID);
 };
 
@@ -45,9 +48,10 @@ public:
 	vector <OperaClass> PostOperations;
 	vector <ChildStruct> Children;
     vector <string> primaryTriggerTypes; //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed by other events and a direct use of run() command.
-	string parentID;
+	char directive; //n - normal, a - atomic, u - unique, r - random
+    char conditionalStatus; //n-null, t-true, f-false
+    string parentID;
     string elseChildID; //Ignore if empty.
-    char conditionStatus; //n-null, t-true, f-false
     bool areDependentOperationsDone;
 	bool parentStatus;
 	bool werePostOperationsExecuted;
@@ -57,10 +61,7 @@ public:
     void setUpNewInstance();
     void clearModule();
 	void resetStatus();
-	bool areAllConditionsFulfilled();
-	void executeDependentOperations();
-	void executePostOperations();
-	bool allChildrenFinished();
+	bool checkIfAllChildrenFinished();
 
     void controlAncestor(OperaClass & Operation, vec2d & objectPos, vec2d & objectSize);
     void controlText(OperaClass & Operation, TextModule & Text);
