@@ -1,7 +1,7 @@
 [source=, dynamic_name=, literal=, layer=, id=, module=, element=, pre_conj={}, post_conj={}]
 
 pre_conj: !, (,
-post_conj: ==, !=, !=, <=, <, >=, >, &&, ||, )
+post_conj: ==, !=, <=, <, >=, >, &&, ||, )
 
 
 if((!second_passed || objects.bob.collision_with == objects.aqua) && (key_pressed == w || me.var.x != 50)){}

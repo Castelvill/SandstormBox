@@ -54,6 +54,7 @@ public:
     string elseChildID; //Ignore if empty.
     bool areDependentOperationsDone;
 	bool parentStatus;
+    bool elseChildFinished;
 	bool werePostOperationsExecuted;
 
     EveModule(unsigned int textModuleID);

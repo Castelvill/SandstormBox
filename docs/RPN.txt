@@ -1,0 +1,70 @@
+RPN:
+1. if symbol.back() == value:
+	result.push_back(symbol.back())
+2. elif symbol.back().type == op:
+	while(symbol.back().priority <= stack.back().priority):
+		result.push_back(stack.back());
+		stack.pop_back();
+	stack.push_back(symbol.back());
+3. elif symbol.back().type == "(":
+	stack.push_back(symbol.back());
+4. elif symbol.back().type == ")":
+	while(stack.size() > 0 && stack.back() != "("):
+		result.push_back(stack.back());
+		stack.pop_back();
+	if(stack.size() == 0):
+		return ERROR
+	stack.pop_back();
+	if stack.back() == "!":
+		result.push_back(stack.back())
+		stack.pop_back();
+5. symbol.pop_back();
+6. if(symbol.size > 0):
+	goto 1.;
+7. end
+
+4 !
+3 ==, !=, <=, >=, <, >
+2 &&
+1 ||
+
+Evaluate RPN:
+if rpn.back().type == op:
+	stack.push_back(rpn.back())
+else: //if == number
+	if stack.back() == "!":
+		result.push_back(stack.back() rpn.back());
+		stack.pop_back();
+	elif result.size > 0 && stack.back() == "&&/||":
+		tmp = result.back();
+		result.pop_back();
+		result.push_back(tmp stack.back() rpn.back());
+		stack.pop_back();
+	elif stack.back().type == number:
+		tmp = stack.back();
+		stack.pop_back();
+		result.push_back(rpn.back() stack.back() tmp)
+		stack.pop_back();
+rpn.pop_back();
+if(rpn.size() > 0):
+	goto 1.;
+while(stack.size() > 0):
+	if stack.back() == "!":
+		tmp = result.back();
+		result.pop_back();
+		result.push_back(stack.back() tmp);
+	else if stack.back() == "&&/||":
+		tmp1 = result.back()
+		result.pop_back();
+		tmp2 = result.back();
+		result.pop_back();
+		result.push_back(tmp1 stack.back() tmp2);
+	else:
+		tmp1 = result.back();
+		result.pop_back();
+		tmp2 = stack.back()
+		stack.pop_back();
+		op = stack.back()
+		stack.pop_back();
+		result.push_back(tmp1 stack.back() tmp2);
+	stack.pop_back();

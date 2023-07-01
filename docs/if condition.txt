@@ -1,0 +1,38 @@
+1) vec result = [];
+
+2) source_value = findSourceValue();
+i = 0;
+
+3) if conj[i] == "!":
+	source_value != source_value;
+if conj[i] == "==":
+	source_value = result.back() == source_value;
+	result.pop_back();
+if conj[i] == "!=":
+	source_value = result.back() != source_value;
+	result.pop_back();
+if conj[i] == "<=":
+	source_value = result.back() <= source_value;
+	result.pop_back();
+if conj[i] == "<":
+	source_value = result.back() < source_value;
+	result.pop_back();
+if conj[i] == ">=":
+	source_value = result.back() >= source_value;
+	result.pop_back();
+if conj[i] == ">":
+	source_value = result.back() > source_value;
+	result.pop_back();
+if conj[i] == "&&":
+	source_value = result.back() && source_value;
+	result.pop_back();
+if conj[i] == "&&":
+	source_value = result.back() || source_value;
+	result.pop_back();
+i++;
+if i < conj.size():
+	goto 3)
+
+4) result.add(source_value);
+
+	

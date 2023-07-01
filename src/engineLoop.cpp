@@ -416,6 +416,9 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
 void EngineLoop::executeDependentOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
   
 }
+void EngineLoop::executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+
+}
 char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     for(TriggerClass & Condition : Event.ConditionalChain){
     
@@ -425,6 +428,31 @@ char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Ev
     }
     
     return 'n';
+}
+vector<EveModule>::iterator EngineLoop::FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event){
+    vector<EveModule>::iterator Unfinished;
+    for(ChildStruct & Child : Event->Children){
+        if(!Child.finished){
+            for(Unfinished = Triggered->EveContainer.begin(); Unfinished < Triggered->EveContainer.end(); Unfinished++){
+                if(Unfinished->getID() == Child.ID){
+                    Child.finished = true;
+                    return Unfinished;
+                }
+            }
+            Child.finished = true;
+        }
+    }
+    return Event;
+}
+vector<EveModule>::iterator EngineLoop::FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event){
+    vector<EveModule>::iterator ElseEvent;
+    for(ElseEvent = Triggered->EveContainer.begin(); ElseEvent < Triggered->EveContainer.end(); ElseEvent++){
+        if(ElseEvent->getID() == Event->elseChildID){
+            Event->elseChildFinished = true;
+            return ElseEvent;
+        }
+    }
+    return Event;
 }
 void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
@@ -439,10 +467,22 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
     //Remember to delete pointers to destroyed objects during the iteration
     
+    vector<EveModule>::iterator StartingEvent, Event;
+    vector<vector<EveModule>::iterator> MemoryStack;
+
     for(AncestorObject * Triggered : TriggeredObjects){
-        vector<EveModule>::iterator Event;
-        
-        for(Event = Triggered->EveContainer.begin(); Event < Triggered->EveContainer.end(); Event++){
+        for(EveModule & Eve : Triggered->EveContainer){
+            Event->conditionalStatus = 'n';
+            Event->areDependentOperationsDone = false;
+            Event->elseChildFinished = false;
+            for(ChildStruct & Unfinished : Event->Children){
+                Unfinished.finished = true;
+            }
+        }
+        Event = Triggered->EveContainer.begin();
+        StartingEvent = Event;
+        MemoryStack.clear();
+        do{
             if(Event->conditionalStatus == 'n'){
                 Event->conditionalStatus = evaluateConditionalChain(Triggered, *Event, Layers, Cameras);
             }
@@ -452,13 +492,28 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     Event->areDependentOperationsDone = true;
                 }
                 if(!Event->checkIfAllChildrenFinished()){
-                    
+                    MemoryStack.push_back(Event);
+                    Event = FindUnfinishedEvent(Triggered, Event);
+                    continue;
                 }
             }
-            else if(Event->conditionalStatus == 'f'){
-                
+            else if(Event->conditionalStatus == 'f' && Event->elseChildID != "" && !Event->elseChildFinished){
+                MemoryStack.push_back(Event);
+                Event = FindElseEvent(Triggered, Event);
+                if(Event->elseChildFinished){ //True if else event has been found.
+                    continue;
+                }
+                MemoryStack.pop_back();
             }
-        }
+            executePostOperations(Triggered, *Event, Layers, Cameras);
+            if(StartingEvent != Event){
+                Event = MemoryStack.back();
+                MemoryStack.pop_back();
+                continue;
+            }
+            MemoryStack.clear();
+            Event++;
+        }while(Event < Triggered->EveContainer.end());
     }
 
     TriggeredObjects.clear();
