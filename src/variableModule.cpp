@@ -20,11 +20,39 @@ VariableModule::VariableModule(string newID){
     vString = "";
     defaultString = "";
 }
+VariableModule::VariableModule(){
+    ID = "";
+    type = 'n';
+    vInt = 0;
+    defaultInt = 0;
+    vDouble = 0.0;
+    defaultDouble = 0.0;
+    vString = "";
+    defaultString = "";
+}
 string VariableModule::getID(){
     return ID;
 }
 string & VariableModule::getIDAddr(){
     return ID;
+}
+string VariableModule::getAnyValue(){
+    if(type == 'b'){
+        if(vBool){
+            return "true";
+        }
+        return "false";
+    }
+    if(type == 'i'){
+        return intToStr8(vInt);
+    }
+    if(type == 'd'){
+        return doubleToStr8(vDouble);
+    }
+    if(type == 's'){
+        return "\"" + vString + "\"";
+    }
+    return "";
 }
 char VariableModule::getType(){
     return type;
@@ -42,15 +70,45 @@ string VariableModule::getDefaultString(){
     return defaultString;
 }
 bool VariableModule::getBool(){
+    if(type == 'i'){
+        return vInt > 0;
+    }
+    else if(type == 'd'){
+        return vDouble > 0;
+    }
+    else if(type != 'b'){
+        std::cout << "Error [VariableModule]: You can't access boolean variable.\n";
+        return false;
+    }
     return vBool;
 }
 int VariableModule::getInt(){
+    if(type == 'd'){
+        std::cout << "Warning [VariableModule]: floating point ignored.\n";
+        return vDouble;
+    }
+    else if(type != 'i'){
+        std::cout << "Error [VariableModule]: You can't access int variable.\n";
+        return 0;
+    }
     return vInt;
 }
 double VariableModule::getDouble(){
+    if(type == 'i'){
+        std::cout << "Warning [VariableModule]: no floating point.\n";
+        return vInt;
+    }
+    else if(type != 'd'){
+        std::cout << "Error [VariableModule]: You can't access double variable.\n";
+        return 0;
+    }
     return vDouble;
 }
 string VariableModule::getString(){
+    if(type != 's'){
+        std::cout << "Error [VariableModule]: You can't access string variable.\n";
+        return "";
+    }
     return vString;
 }
 void VariableModule::setID(string newID){
@@ -172,6 +230,23 @@ void VariableModule::resetValue(){
         vString = defaultString;
     }
 }
+void VariableModule::negate(){
+    if(type == 'b'){
+        toggleBool();
+    }
+    else if(type == 'i'){
+        vInt = -vInt;
+    }
+    else if(type == 'd'){
+        vDouble = -vDouble;
+    }
+    else if(type == 's'){
+        std::cout << "Error [VariableModule]: You can't negate a string.\n";
+    }
+    else{
+        std::cout << "Error [VariableModule]: You can't negate the value of already not-initialized variable.\n";
+    }
+}
 
 template <typename condValueType>
 bool VariableModule::isConditionMet(condValueType condVal, string operatorType, char valType){
@@ -179,7 +254,29 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
         std::cout << "Error [VariableModule]: Comparison of two different variable types.\n";
         return false;
     }
-    if(operatorType == "=="){
+    if(operatorType == "||"){
+        if(valType == 'b'){
+            return vBool || condVal;
+        }
+        else if(valType == 'i'){
+            return vInt || condVal;
+        }
+        else if(valType == 'd'){
+            return vDouble || condVal;
+        }
+    }
+    else if(operatorType == "&&"){
+        if(valType == 'b'){
+            return vBool && condVal;
+        }
+        else if(valType == 'i'){
+            return vInt && condVal;
+        }
+        else if(valType == 'd'){
+            return vDouble && condVal;
+        }
+    }
+    else if(operatorType == "=="){
         if(valType == 'b'){
             return vBool == condVal;
         }
@@ -273,7 +370,7 @@ bool VariableModule::isConditionMet(string condVal, string operatorType, char va
     return false;
 }
 
-bool VariableModule::isConditionMet(VariableModule * OtherVariable, string operatorType){
+bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherVariable){
     if(type != OtherVariable->getType()){
         std::cout << "Error [VariableModule]: Comparison of two different variable types.\n";
         return false;
@@ -290,7 +387,7 @@ bool VariableModule::isConditionMet(VariableModule * OtherVariable, string opera
     else if(OtherVariable->getType() == 's'){
         return isConditionMet(OtherVariable->getString(), operatorType, OtherVariable->getType());
     }
-
+    
     return false;
 }
 

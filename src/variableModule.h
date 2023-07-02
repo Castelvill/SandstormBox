@@ -13,8 +13,10 @@ class VariableModule{
 public:
     VariableModule(unsigned int newID);
     VariableModule(string newID);
+    VariableModule();
     string getID();
     string &getIDAddr();
+    string getAnyValue();
     char getType();
     bool getDefaultBool();
     int getDefaultInt();
@@ -42,10 +44,11 @@ public:
     bool addInt(int);
     bool addDouble(double);
     void resetValue();
+    void negate();
     template <typename condValueType>
     bool isConditionMet(condValueType condVal, string operatorType, char valType);
     bool isConditionMet(string condVal, string operatorType, char valType);
-    bool isConditionMet(VariableModule * OtherVariable, string operatorType);
+    bool isConditionMet(string operatorType, VariableModule * OtherVariable);
     VariableModule & operator=(const VariableModule& original);
 };
 

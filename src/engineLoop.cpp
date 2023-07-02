@@ -414,18 +414,83 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
     }
 }
 void EngineLoop::executeDependentOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-  
+
 }
 void EngineLoop::executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
 
 }
 char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    for(TriggerClass & Condition : Event.ConditionalChain){
+    bool ignoreFlagOr = false, ignoreFlagAnd = false, comparasion;
+    VariableModule leftOperand, rightOperand;
+    vector<VariableModule> resultStack;
     
-        //secondHasPassed() - each_second
-        //al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
+    for(TriggerClass & Condition : Event.ConditionalChain){
+        //check source
+        if(!ignoreFlagOr && !ignoreFlagAnd){
+            if(Condition.source == "second_passed"){
+                resultStack.push_back(VariableModule());
+                resultStack.back().setBool(secondHasPassed());
+            }
+            if(Condition.source == "literal"){
+                resultStack.push_back(Condition.Literal);
+            }
+        }
+        if(resultStack.size() == 0){
+            continue;
+        }
+        //check conjunctions
+        for(string op : Condition.operators){
+            if(ignoreFlagOr){
+                if(op == "||"){
+                    ignoreFlagOr = false;
+                }
+                continue;
+            }
+            if(ignoreFlagAnd){
+                if(op == "&&"){
+                    ignoreFlagAnd = false;
+                }
+                continue;
+            }
+            if(op == "!"){
+                leftOperand = resultStack.back();
+                leftOperand.negate();
+                std::cout << "!(" << resultStack.back().getAnyValue() << ") -> " << leftOperand.getAnyValue() << "\n";
+                resultStack.pop_back();
+                resultStack.push_back(leftOperand);
+            }
+            else if(op == "igT" && resultStack.back().isConditionMet(true, "==", 'b')){
+                std::cout << "true||... -> true\n";
+                ignoreFlagOr = true;
+            }
+            else if(op == "igF" && resultStack.back().isConditionMet(false, "==", 'b')){
+                std::cout << "false&&... -> false\n";
+                ignoreFlagAnd = true;
+            }
+            else if(resultStack.size() >= 2){
+                rightOperand = resultStack.back();
+                resultStack.pop_back();
+                leftOperand = resultStack.back();
+                resultStack.pop_back();
+                
 
+                comparasion = leftOperand.isConditionMet(op, &rightOperand);
+
+                std::cout << leftOperand.getAnyValue() << op << rightOperand.getAnyValue() << " -> " << comparasion << "\n";
+
+                resultStack.push_back(VariableModule());
+                resultStack.back().setBool(comparasion);
+            }
+        }
     }
+    if(resultStack.size() == 1){
+        if(resultStack.back().getBool()){
+            return 't';
+        }
+        return 'f';
+    }
+
+    //al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
     
     return 'n';
 }
@@ -470,21 +535,39 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     vector<EveModule>::iterator StartingEvent, Event;
     vector<vector<EveModule>::iterator> MemoryStack;
 
+    bool noTriggerableEvents;
+
     for(AncestorObject * Triggered : TriggeredObjects){
+        std::cout << "Hello!\n";
         for(EveModule & Eve : Triggered->EveContainer){
-            Event->conditionalStatus = 'n';
-            Event->areDependentOperationsDone = false;
-            Event->elseChildFinished = false;
-            for(ChildStruct & Unfinished : Event->Children){
+            Eve.conditionalStatus = 'n';
+            Eve.areDependentOperationsDone = false;
+            Eve.elseChildFinished = false;
+            for(ChildStruct & Unfinished : Eve.Children){
                 Unfinished.finished = true;
             }
         }
-        Event = Triggered->EveContainer.begin();
+
+        //Find the first triggerable event.
+        noTriggerableEvents = true;
+        for(EveModule & Eve : Triggered->EveContainer){
+            if(Eve.primaryTriggerTypes.size() > 0){
+                noTriggerableEvents = false;
+                Event = Triggered->EveContainer.begin();
+                break;
+            }
+        }
+
+        if(noTriggerableEvents){
+            continue;
+        }
+        
         StartingEvent = Event;
         MemoryStack.clear();
         do{
             if(Event->conditionalStatus == 'n'){
                 Event->conditionalStatus = evaluateConditionalChain(Triggered, *Event, Layers, Cameras);
+                std::cout << "Result: " << Event->conditionalStatus << "\n";
             }
             if(Event->conditionalStatus == 't'){
                 if(!Event->areDependentOperationsDone){
@@ -512,7 +595,12 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 continue;
             }
             MemoryStack.clear();
-            Event++;
+            
+            do{
+                Event++;
+                StartingEvent++;
+            }while(Event->primaryTriggerTypes.size() == 0 && Event < Triggered->EveContainer.end());
+            
         }while(Event < Triggered->EveContainer.end());
     }
 

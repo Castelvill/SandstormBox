@@ -5,6 +5,10 @@ RPN:
 	while(symbol.back().priority <= stack.back().priority):
 		result.push_back(stack.back());
 		stack.pop_back();
+	if(symbol.back() == "||"):
+		result.push_back("#");
+	if(symbol.back() == "&&"):
+		result.push_back("@");
 	stack.push_back(symbol.back());
 3. elif symbol.back().type == "(":
 	stack.push_back(symbol.back());
@@ -26,45 +30,32 @@ RPN:
 4 !
 3 ==, !=, <=, >=, <, >
 2 &&
-1 ||
+1 igT igF
+0 ||
 
 Evaluate RPN:
-if rpn.back().type == op:
-	stack.push_back(rpn.back())
-else: //if == number
-	if stack.back() == "!":
-		result.push_back(stack.back() rpn.back());
-		stack.pop_back();
-	elif result.size > 0 && stack.back() == "&&/||":
-		tmp = result.back();
-		result.pop_back();
-		result.push_back(tmp stack.back() rpn.back());
-		stack.pop_back();
-	elif stack.back().type == number:
-		tmp = stack.back();
-		stack.pop_back();
-		result.push_back(rpn.back() stack.back() tmp)
-		stack.pop_back();
-rpn.pop_back();
-if(rpn.size() > 0):
-	goto 1.;
-while(stack.size() > 0):
-	if stack.back() == "!":
-		tmp = result.back();
-		result.pop_back();
-		result.push_back(stack.back() tmp);
-	else if stack.back() == "&&/||":
-		tmp1 = result.back()
-		result.pop_back();
-		tmp2 = result.back();
-		result.pop_back();
-		result.push_back(tmp1 stack.back() tmp2);
-	else:
-		tmp1 = result.back();
-		result.pop_back();
-		tmp2 = stack.back()
-		stack.pop_back();
-		op = stack.back()
-		stack.pop_back();
-		result.push_back(tmp1 stack.back() tmp2);
+for symbol in rpn:
+if ignore_flag_or == true:
+	if symbol == "||"
+		ignore_flag_or = false;
+	continue;
+if ignore_flag_and == true:
+	if symbol == "&&"
+		ignore_flag_and = false;
+	continue;
+if symbol.type == value:
+	stack.push_back(symbol);
+elif symbol == "!":
+	tmp = stack.back();
 	stack.pop_back();
+	stack.push_back(!tmp);
+elif symbol.type == op: //bi-operand
+	operand1 = stack.back();
+	stack.pop_back();
+	operand2 = stack.back();
+	stack.pop_back();
+	stack.push_back(operand2 symbol operand1);
+elif symbol == "#" && stack.back() == true:
+	ignore_flag_or = true;
+elif symbol == "@" && stack.back() == false:
+	ignore_flag_and = true;

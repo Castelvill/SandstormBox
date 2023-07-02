@@ -466,7 +466,7 @@ bool EventModule::isEventTriggered(int operationID, MouseClass mouse, vec2d objP
         if(EventVariable == nullptr || ObjectVariable == nullptr){
             return false;
         }
-        bool saa = EventVariable->isConditionMet(ObjectVariable, Operations[operationID].typeOfTrigger);
+        bool saa = EventVariable->isConditionMet(Operations[operationID].typeOfTrigger, ObjectVariable);
         return saa;
     }
 

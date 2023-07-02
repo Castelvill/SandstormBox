@@ -39,7 +39,6 @@ public:
     void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs);
     void refreshCoordinates();
     void createVectorsOfIds();
-    void triggerEvents();
 };
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);

@@ -21,8 +21,7 @@ public:
     string dynamicName;
     VariableModule Literal;
     ObjectIDs Object;
-    vector <string> pre_conjunctions; //!, (
-    vector <string> post_conjunctions; //==, !=, <=, <, >=, >, &&, ||, )
+    vector <string> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
     TriggerClass(unsigned int newID);
 };
 
