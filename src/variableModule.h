@@ -49,6 +49,8 @@ public:
     bool isConditionMet(condValueType condVal, string operatorType, char valType);
     bool isConditionMet(string condVal, string operatorType, char valType);
     bool isConditionMet(string operatorType, VariableModule * OtherVariable);
+    int intOperation(string operatorType, VariableModule * OtherVariable);
+    double floatingOperation(string operatorType, VariableModule * OtherVariable);
     VariableModule & operator=(const VariableModule& original);
 };
 

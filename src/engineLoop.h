@@ -14,8 +14,8 @@ using std::unique_ptr;
 #define KEY_SEEN     1
 #define KEY_RELEASED 2
 
-const int SCREEN_W = 1680;//1920/1.0;
-const int SCREEN_H = 900;//1025/1.0;
+const int SCREEN_W = 1680*0.7;//1920/1.0;
+const int SCREEN_H = 900*0.7;//1025/1.0;
 const float MAX_ZOOM = 1.0;
 const int BUFFER_W = SCREEN_W * MAX_ZOOM;
 const int BUFFER_H = SCREEN_H * MAX_ZOOM;

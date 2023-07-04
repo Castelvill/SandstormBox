@@ -390,7 +390,57 @@ bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherV
     
     return false;
 }
-
+double VariableModule::floatingOperation(string operatorType, VariableModule * OtherVariable){
+    if(type == 's' || OtherVariable->getType() == 's'){
+        std::cout << "Error [VariableModule]: You cannot use string variable in arithmetic operation.\n";
+        return false;
+    }
+    if(operatorType == "+"){
+        return getDouble() + OtherVariable->getDouble();
+    }
+    else if(operatorType == "-"){
+        return getDouble() - OtherVariable->getDouble();
+    }
+    else if(operatorType == "*"){
+        return getDouble() * OtherVariable->getDouble();
+    }
+    else if(operatorType == "/"){
+        return getDouble() / OtherVariable->getDouble();
+    }
+    else if(operatorType == "%"){
+        return int(getDouble()) % int(OtherVariable->getDouble());
+    }
+    else if(operatorType == "**"){
+        return pow(getDouble(), OtherVariable->getDouble());
+    }
+    std::cout << "Error [VariableModule]: Unrecognized operator.\n";
+    return 0.0;
+}
+int VariableModule::intOperation(string operatorType, VariableModule * OtherVariable){
+    if(type == 's' || OtherVariable->getType() == 's'){
+        std::cout << "Error [VariableModule]: You cannot use string variable in arithmetic operation.\n";
+        return false;
+    }
+    if(operatorType == "+"){
+        return getInt() + OtherVariable->getInt();
+    }
+    else if(operatorType == "-"){
+        return getInt() - OtherVariable->getInt();
+    }
+    else if(operatorType == "*"){
+        return getInt() * OtherVariable->getInt();
+    }
+    else if(operatorType == "/"){
+        return getInt() / OtherVariable->getInt();
+    }
+    else if(operatorType == "%"){
+        return int(getInt()) % int(OtherVariable->getInt());
+    }
+    else if(operatorType == "**"){
+        return pow(getInt(), OtherVariable->getInt());
+    }
+    return false;
+}
 VariableModule & VariableModule::operator=(const VariableModule& original){
     ID = original.ID;
     type = original.type;

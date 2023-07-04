@@ -405,7 +405,7 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
 
     for(unsigned int i=0; i < TriggeredObjects.size(); i++){
         for(unsigned int j=i+1; j < TriggeredObjects.size(); j++){
-            if(&TriggeredObjects[i] == &TriggeredObjects[j]){
+            if(TriggeredObjects[i] != TriggeredObjects[j]){
                 continue;
             }
             TriggeredObjects.erase(TriggeredObjects.begin()+j);
@@ -420,15 +420,19 @@ void EngineLoop::executePostOperations(AncestorObject * Owner, EveModule & Event
 
 }
 char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    bool ignoreFlagOr = false, ignoreFlagAnd = false, comparasion;
+    short ignoreFlagOr = 0, ignoreFlagAnd = 0;
+    bool comparasion;
+    int resultInt;
+    double resultDouble;
     VariableModule leftOperand, rightOperand;
     vector<VariableModule> resultStack;
+    string newID;
     
     for(TriggerClass & Condition : Event.ConditionalChain){
         //check source
-        if(!ignoreFlagOr && !ignoreFlagAnd){
+        if(ignoreFlagOr==0 && ignoreFlagAnd==0){
             if(Condition.source == "second_passed"){
-                resultStack.push_back(VariableModule());
+                resultStack.push_back(VariableModule("second_passed"));
                 resultStack.back().setBool(secondHasPassed());
             }
             if(Condition.source == "literal"){
@@ -440,46 +444,77 @@ char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Ev
         }
         //check conjunctions
         for(string op : Condition.operators){
-            if(ignoreFlagOr){
-                if(op == "||"){
-                    ignoreFlagOr = false;
+            if(ignoreFlagOr > 0 || ignoreFlagAnd > 0){
+                if(op == "||" && ignoreFlagOr > 0){
+                    ignoreFlagOr--;
                 }
-                continue;
-            }
-            if(ignoreFlagAnd){
-                if(op == "&&"){
-                    ignoreFlagAnd = false;
+                if(op == "&&" && ignoreFlagAnd > 0){
+                    ignoreFlagAnd--;
                 }
-                continue;
             }
-            if(op == "!"){
+            else if(op == "!"){
                 leftOperand = resultStack.back();
                 leftOperand.negate();
-                std::cout << "!(" << resultStack.back().getAnyValue() << ") -> " << leftOperand.getAnyValue() << "\n";
+                std::cout << "!(" << resultStack.back().getID() << ":" << resultStack.back().getAnyValue() << ") -> " << leftOperand.getAnyValue() << "\n";
                 resultStack.pop_back();
+                leftOperand.setID("!("+leftOperand.getID()+")");
                 resultStack.push_back(leftOperand);
             }
-            else if(op == "igT" && resultStack.back().isConditionMet(true, "==", 'b')){
-                std::cout << "true||... -> true\n";
-                ignoreFlagOr = true;
+            else if(op == "igT"){
+                if(resultStack.back().isConditionMet(true, "==", 'b')){
+                    std::cout << resultStack.back().getID() << ":" << "true || ... -> true\n";
+                    ignoreFlagOr++;
+                }
             }
-            else if(op == "igF" && resultStack.back().isConditionMet(false, "==", 'b')){
-                std::cout << "false&&... -> false\n";
-                ignoreFlagAnd = true;
+            else if(op == "igF"){
+                if(resultStack.back().isConditionMet(false, "==", 'b')){
+                    std::cout << resultStack.back().getID() << ":" << "false && ... -> false\n";
+                    ignoreFlagAnd++;
+                }
             }
             else if(resultStack.size() >= 2){
+
+                if(!isStringInGroup(op, 12, "==", "!=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%", "**")){
+                    std::cout << "Error [Engine]: Unrecognized operator in the if statement.\n";
+                    continue;
+                }
+
                 rightOperand = resultStack.back();
                 resultStack.pop_back();
                 leftOperand = resultStack.back();
                 resultStack.pop_back();
+
+                newID = "(";
+                newID += leftOperand.getID();
+                newID += op;
+                newID += rightOperand.getID();
+                newID += ")";
+
+                resultStack.push_back(VariableModule(newID));
                 
+                if (isStringInGroup(op, 6, "==", "!=", ">", "<", ">=", "<=")){
+                    comparasion = leftOperand.isConditionMet(op, &rightOperand);
 
-                comparasion = leftOperand.isConditionMet(op, &rightOperand);
+                    std::cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << op << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << comparasion << "\n";
+                    
+                    resultStack.back().setBool(comparasion);
+                }
+                else if(isStringInGroup(op, 6, "+", "-", "*", "/", "%", "**")){
+                    if(leftOperand.getType() == 'd' || rightOperand.getType() == 'd'){
+                        resultDouble = leftOperand.floatingOperation(op, &rightOperand);
 
-                std::cout << leftOperand.getAnyValue() << op << rightOperand.getAnyValue() << " -> " << comparasion << "\n";
+                        std::cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << op << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << resultDouble << "\n";
 
-                resultStack.push_back(VariableModule());
-                resultStack.back().setBool(comparasion);
+                        resultStack.back().setDouble(resultDouble);
+                    }
+                    else{
+                        resultInt = leftOperand.intOperation(op, &rightOperand);
+
+                        std::cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << op << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << resultInt << "\n";
+
+                        resultStack.back().setInt(resultInt);
+                    }
+                }
             }
         }
     }
@@ -527,7 +562,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     detectTriggeredEvents(Layers, Cameras, TriggeredObjects);
 
     if(TriggeredObjects.size() > 0){
-        std::cout << TriggeredObjects.size() << " ";
+        std::cout << "\nTriggered "<< TriggeredObjects.size() << " objects:\n\n";
     }
 
     //Remember to delete pointers to destroyed objects during the iteration
@@ -538,7 +573,6 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     bool noTriggerableEvents;
 
     for(AncestorObject * Triggered : TriggeredObjects){
-        std::cout << "Hello!\n";
         for(EveModule & Eve : Triggered->EveContainer){
             Eve.conditionalStatus = 'n';
             Eve.areDependentOperationsDone = false;
@@ -567,7 +601,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         do{
             if(Event->conditionalStatus == 'n'){
                 Event->conditionalStatus = evaluateConditionalChain(Triggered, *Event, Layers, Cameras);
-                std::cout << "Result: " << Event->conditionalStatus << "\n";
+                std::cout << "Result: " << Event->conditionalStatus << "\n\n";
             }
             if(Event->conditionalStatus == 't'){
                 if(!Event->areDependentOperationsDone){

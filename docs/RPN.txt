@@ -6,9 +6,9 @@ RPN:
 		result.push_back(stack.back());
 		stack.pop_back();
 	if(symbol.back() == "||"):
-		result.push_back("#");
+		result.push_back("igT");
 	if(symbol.back() == "&&"):
-		result.push_back("@");
+		result.push_back("igF");
 	stack.push_back(symbol.back());
 3. elif symbol.back().type == "(":
 	stack.push_back(symbol.back());
@@ -27,10 +27,9 @@ RPN:
 	goto 1.;
 7. end
 
-4 !
-3 ==, !=, <=, >=, <, >
-2 &&
-1 igT igF
+3 !
+2 ==, !=, <=, >=, <, >
+1 && 
 0 ||
 
 Evaluate RPN:

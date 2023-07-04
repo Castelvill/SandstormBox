@@ -23,6 +23,8 @@ public:
     ObjectIDs Object;
     vector <string> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
     TriggerClass(unsigned int newID);
+    TriggerClass(string newID);
+    TriggerClass();
 };
 
 class OperaClass{

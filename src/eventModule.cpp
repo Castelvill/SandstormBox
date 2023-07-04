@@ -1,7 +1,8 @@
 #include "eventModule.h"
 
-TriggerClass::TriggerClass(unsigned int newID) : Literal(0){
-}
+TriggerClass::TriggerClass(unsigned int newID) : Literal(newID){}
+TriggerClass::TriggerClass(string newID) : Literal(newID){}
+TriggerClass::TriggerClass() : Literal(""){}
 
 EveModule::EveModule(unsigned int eventModuleID){
     primaryConstructor(eventModuleID);
