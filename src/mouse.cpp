@@ -5,31 +5,32 @@ MouseClass::MouseClass(){
     lastScrollPos = 0;
 }
 void MouseClass::reset(){
-    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
+    for(int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
+        firstPressed[i] = false;
         pressed[i] = false;
         released[i] = false;
     }
 }
 void MouseClass::resetReleased(){
-    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
+    for(int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
         released[i] = false;
     }
 }
-void MouseClass::resetButtonDown(){
-    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
-        buttonDown[i] = false;
+void MouseClass::resetFirstPressed(){
+    for(int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
+        firstPressed[i] = false;
     }
 }
 void MouseClass::setUp(){
     reset();
 }
 void MouseClass::getPressed(bool tempArr[]){
-    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
+    for(int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
         tempArr[i] = pressed[i];
     }
 }
 void MouseClass::getReleased(bool tempArr[]){
-    for(int i = 0; i < BUTTONS_NUM_MAX; i++){
+    for(int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
         tempArr[i] = released[i];
     }
 }
@@ -73,27 +74,26 @@ void MouseClass::updateZoomForCamera(Camera2D * Camera){
     lastScrollPos = scrollPos;
 }
 void MouseClass::updateButtonsPressed(ALLEGRO_EVENT event){
-    reset();
     bool updatePressedPos = true;
     if((event.mouse.button & 1) && (event.mouse.button & 2) && (event.mouse.button & 3)){
         pressed[2] = true;
-        buttonDown[2] = true;
+        firstPressed[2] = true;
     }
     else if((event.mouse.button & 1) && (event.mouse.button & 3) && (event.mouse.button & 4)){
         pressed[3] = true;
-        buttonDown[3] = true;
+        firstPressed[3] = true;
     }
     else if(event.mouse.button & 1){
         pressed[0] = true;
-        buttonDown[0] = true;
+        firstPressed[0] = true;
     }
     else if(event.mouse.button & 2){
         pressed[1] = true;
-        buttonDown[1] = true;
+        firstPressed[1] = true;
     }
     else if(event.mouse.button & 4){
         pressed[4] = true;
-        buttonDown[4] = true;
+        firstPressed[4] = true;
     }
     else{
         updatePressedPos = false;
@@ -104,21 +104,30 @@ void MouseClass::updateButtonsPressed(ALLEGRO_EVENT event){
     }
 }
 void MouseClass::updateButtonsReleased(ALLEGRO_EVENT event){
-    reset();
     if((event.mouse.button & 1) && (event.mouse.button & 2) && (event.mouse.button & 3)){
         released[2] = true;
+        firstPressed[2] = false;
+        pressed[2] = false;
     }
     else if((event.mouse.button & 1) && (event.mouse.button & 3) && (event.mouse.button & 4)){
         released[3] = true;
+        firstPressed[3] = false;
+        pressed[3] = false;
     }
     else if(event.mouse.button & 1){
         released[0] = true;
+        firstPressed[0] = false;
+        pressed[0] = false;
     }
     else if(event.mouse.button & 2){
         released[1] = true;
+        firstPressed[1] = false;
+        pressed[1] = false;
     }
     else if(event.mouse.button & 4){
         released[4] = true;
+        firstPressed[4] = false;
+        pressed[4] = false;
     }
 }
 bool MouseClass::inRectangle(vec2d rPos, vec2d rSize, bool isObjectAttachedToCamera){
@@ -135,22 +144,74 @@ bool MouseClass::inRectangle(vec2d rPos, vec2d rSize, bool isObjectAttachedToCam
 
     return false;
 }
+bool MouseClass::isFirstPressed(){
+    for(unsigned int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
+        if(firstPressed[i])
+            return true;
+    }
+    return false;
+}
+bool MouseClass::isPressed(){
+    for(unsigned int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
+        if(pressed[i])
+            return true;
+    }
+    return false;
+}
+bool MouseClass::isReleased(){
+    for(unsigned int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
+        if(released[i])
+            return true;
+    }
+    return false;
+}
+bool MouseClass::doesButtonExist(short button){
+    if(button < 0 || button >= MOUSE_BUTTONS_NUM_MAX){
+        std::cout << "Error [Mouse]: Mouse button with number " << button << " does not exist.\n";
+        return false;
+    }
+    return true;
+}
+bool MouseClass::isFirstPressed(short button){
+    if(!doesButtonExist(button)){
+        return false;
+    }
+    return firstPressed[button];
+}
 bool MouseClass::isPressed(short button){
+    if(!doesButtonExist(button)){
+        return false;
+    }
     return pressed[button];
 }
-bool MouseClass::buttonDownInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
-    if(buttonDown[button]){
+bool MouseClass::isReleased(short button){
+    if(!doesButtonExist(button)){
+        return false;
+    }
+    return released[button];
+}
+bool MouseClass::firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
+    if(!doesButtonExist(button)){
+        return false;
+    }
+    if(firstPressed[button]){
         return inRectangle(rPos, rSize, isObjectAttachedToCamera);
     }
     return false;
 }
 bool MouseClass::pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
+    if(!doesButtonExist(button)){
+        return false;
+    }
     if(pressed[button]){
         return inRectangle(rPos, rSize, isObjectAttachedToCamera);
     }
     return false;
 }
 bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
+    if(!doesButtonExist(button)){
+        return false;
+    }
     if(pressed[button]){
         if(isObjectAttachedToCamera){
             if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
@@ -166,6 +227,9 @@ bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button,
     return false;
 }
 bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
+    if(!doesButtonExist(button)){
+        return false;
+    }
     if(released[button]){
         if(isObjectAttachedToCamera){
             if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
@@ -198,19 +262,28 @@ bool MouseClass::inRadius(vec2d rPos, double radius, bool isObjectAttachedToCame
 
     return false;
 }
-bool MouseClass::buttonDownInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera){
-    if(buttonDown[button]){
+bool MouseClass::firstPressedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera){
+    if(!doesButtonExist(button)){
+        return false;
+    }
+    if(firstPressed[button]){
         return inRadius(rPos, radius, isObjectAttachedToCamera);
     }
     return false;
 }
 bool MouseClass::pressedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera){
+    if(!doesButtonExist(button)){
+        return false;
+    }
     if(pressed[button]){
         return inRadius(rPos, radius, isObjectAttachedToCamera);
     }
     return false;
 }
 bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera){
+    if(!doesButtonExist(button)){
+        return false;
+    }
     if(released[button]){
         if(isObjectAttachedToCamera){
             if(countDistance2(pressedPos.x, pressedPos.y, rPos.x, rPos.y) <= radius){
@@ -226,27 +299,6 @@ bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool 
                 }
             }
         }
-    }
-    return false;
-}
-bool MouseClass::isMouseButtonDown(){
-    for(unsigned int i = 0; i < BUTTONS_NUM_MAX; i++){
-        if(buttonDown[i])
-            return true;
-    }
-    return false;
-}
-bool MouseClass::wasMousePressed(){
-    for(unsigned int i = 0; i < BUTTONS_NUM_MAX; i++){
-        if(pressed[i])
-            return true;
-    }
-    return false;
-}
-bool MouseClass::wasMouseReleased(){
-    for(unsigned int i = 0; i < BUTTONS_NUM_MAX; i++){
-        if(released[i])
-            return true;
     }
     return false;
 }

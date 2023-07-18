@@ -8,16 +8,15 @@
 #include "scrollbarModule.h"
 
 struct ObjectIDs{
-    string cameraID;
     string layerID;
     string objectID;
     string module; //ancestor, text, editable, image, movement, collision, particles, variables, scrollbar
-    string elementID; 
+    string element; 
 };
 
 class TriggerClass{
 public:
-    string source; //second_passed, key_down, key_pressed, key_released, mouse_down, mouse_pressed, mouse_released, literal, camera, layer, owner, object, pointer
+    string source; //second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, owner, object, pointer
     string dynamicName;
     VariableModule Literal;
     ObjectIDs Object;
@@ -48,8 +47,10 @@ public:
     vector <OperaClass> DependentOperations;
 	vector <OperaClass> PostOperations;
 	vector <ChildStruct> Children;
-    vector <string> primaryTriggerTypes; //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed by other events and a direct use of run() command.
-	char directive; //n - normal, a - atomic, u - unique, r - random
+    //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed by other events and a direct use of run() command.
+    //aaaa
+    vector <string> primaryTriggerTypes;
+    char directive; //n - normal, a - atomic, u - unique, r - random
     char conditionalStatus; //n-null, t-true, f-false
     string parentID;
     string elseChildID; //Ignore if empty.

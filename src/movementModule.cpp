@@ -476,6 +476,8 @@ MovementModule::MovementModule(unsigned int movementModuleID){
     directionOfMove.set(0.0, 0.0);
     mouseButton = 0;
     moveOnMouseRelease = true;
+    
+    activate();
 }
 void MovementModule::translateKeyboardToState(vector <short> pressedKeys){
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
@@ -615,6 +617,12 @@ double MovementModule::getBaseFriction(){
 }
 vec2d MovementModule::getMomentum(){
     return momentum;
+}
+bool MovementModule::isMoving(){
+    if(momentum.x != 0 || momentum.y != 0){
+        return true;
+    }
+    return false;
 }
 double MovementModule::getMaxMomentumX(){
     return maxMomentumX;

@@ -3,7 +3,7 @@
 
 #include "camera.h"
 
-#define BUTTONS_NUM_MAX 5
+#define MOUSE_BUTTONS_NUM_MAX 5
 
 class MouseClass{
 private:
@@ -12,16 +12,16 @@ private:
     vec2d pressedPos;
     vec2d zoomPressedPos;
     int scrollPos, lastScrollPos;
-    bool pressed[BUTTONS_NUM_MAX];
-    bool released[BUTTONS_NUM_MAX];
-    bool buttonDown[BUTTONS_NUM_MAX];
+    bool pressed[MOUSE_BUTTONS_NUM_MAX];
+    bool released[MOUSE_BUTTONS_NUM_MAX];
+    bool firstPressed[MOUSE_BUTTONS_NUM_MAX];
 public:
     bool didMouseMove;
 
     MouseClass();
     void reset();
     void resetReleased();
-    void resetButtonDown();
+    void resetFirstPressed();
     void setUp();
     void getPressed(bool tempArr[]);
     void getReleased(bool tempArr[]);
@@ -34,19 +34,22 @@ public:
     void updateZoomForCamera(Camera2D * Camera);
     void updateButtonsPressed(ALLEGRO_EVENT event);
     void updateButtonsReleased(ALLEGRO_EVENT event);
+    bool isFirstPressed();
+    bool isPressed();
+    bool isReleased();
+    bool doesButtonExist(short button);
+    bool isFirstPressed(short button);
     bool isPressed(short button);
+    bool isReleased(short button);
     bool inRectangle(vec2d rPos, vec2d rSize, bool isObjectAttachedToCamera);
-    bool buttonDownInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
+    bool firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
     bool pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
     bool firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
     bool releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
     bool inRadius(vec2d rPos, double radius, bool isObjectAttachedToCamera);
-    bool buttonDownInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera);
+    bool firstPressedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera);
     bool pressedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera);
     bool releasedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera);
-    bool isMouseButtonDown();
-    bool wasMousePressed();
-    bool wasMouseReleased();
 };
 
 

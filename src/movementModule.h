@@ -110,6 +110,7 @@ public:
     double getGravitation();
     double getBaseFriction();
     vec2d getMomentum();
+    bool isMoving();
     double getMaxMomentumX();
     double getMinMomentumY();
     double getMaxMomentumY();

@@ -39,6 +39,7 @@ public:
     void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs);
     void refreshCoordinates();
     void createVectorsOfIds();
+    vec2d getPosOnCamera(Camera2D * SelectedCamera);
 };
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);

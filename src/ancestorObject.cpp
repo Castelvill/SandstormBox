@@ -282,7 +282,14 @@ void AncestorObject::createVectorsOfIds(){
         scrollbarContainerIDs.push_back(content.getID());
     }
 }
-
+vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
+    vec2d finalPos(getPos(false));
+    if(!getIsAttachedToCamera())
+        finalPos.translate(SelectedCamera->pos/SelectedCamera->zoom + SelectedCamera->visionShift);
+    else
+        finalPos.translate(SelectedCamera->pos);
+    return finalPos;
+}
 
 
 

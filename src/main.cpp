@@ -267,6 +267,9 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().VariablesContainer.back().setDouble(0.0);
     Objects.back().VariablesContainer.push_back(0);
     Objects.back().VariablesContainer.back().setID("bbb");
+    Objects.back().VariablesContainer.push_back(0);
+    Objects.back().VariablesContainer.back().setID("test");
+    Objects.back().VariablesContainer.back().setInt(65);
     Objects.back().CollisionContainer.push_back(0);
     Objects.back().TextContainer.push_back(0);
     Objects.back().TextContainer.back().setID("label1");
@@ -277,30 +280,28 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
     Objects.back().EveContainer.push_back(0);
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("keyboard_released");
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("second_passed");
     Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(3);
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "object";
+    Objects.back().EveContainer.back().ConditionalChain.back().Object.layerID = layerID;
+    Objects.back().EveContainer.back().ConditionalChain.back().Object.objectID = "par";
+    Objects.back().EveContainer.back().ConditionalChain.back().Object.module = "variable";
+    Objects.back().EveContainer.back().ConditionalChain.back().Object.element = "par_test";
     Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
     Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(3);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("*");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("c"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(2);
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("d"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(2);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("+");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("**");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("d"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(6562);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("!=");
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(6);
+    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back(">");
+
+
+    /*Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "mouse_released";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(1);
+    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("!");
+    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");*/
     
     /*  !(a > b && (c || d == e))&&(f || !g && h != i)
     Objects.back().EveContainer.push_back(0);
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("keyboard_released");
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_released");
     Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
     Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
     Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(99);
@@ -432,6 +433,9 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().ParticlesContainer[0].setMaxSpeed(10.0);
     Objects.back().ParticlesContainer[0].setIsAttachedToCamera(false);
     Objects.back().MovementContainer.push_back(MovementModule(Objects.back().MovementContainer.size()));
+    Objects.back().VariablesContainer.push_back(0);
+    Objects.back().VariablesContainer.back().setID("par_test");
+    Objects.back().VariablesContainer.back().setInt(69);
 
     //changeMoveParameters(short newMovementType, short newInputType, double newBodyMass, double newWalkingSpeed, double newRunningSpeed,
     //                                      double newBaseFriction, double newMaxMomentumX, double newMoveCooldown, bool newCanMoveDiagonally)

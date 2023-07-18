@@ -101,20 +101,22 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys);
 
 //This struct consists of pointers to every object that has at least one event triggerable by the right source  
 struct EventsLookupTable{
+    vector <AncestorObject*> IterationTriggered; //If a trigger is negated or has else statements, in most cases interpreter puts its event into IterationTriggered events. 
     vector <AncestorObject*> TimeTriggered;
-    vector <AncestorObject*> CameraTriggered;
-    vector <AncestorObject*> KeyboardFirstPressedTriggered;
-    vector <AncestorObject*> KeyboardLongPressedTriggered;
-    vector <AncestorObject*> KeyboardReleasedTriggered;
+    vector <AncestorObject*> KeyPressedTriggered;
+    vector <AncestorObject*> KeyPressingTriggered;
+    vector <AncestorObject*> KeyReleasedTriggered;
     vector <AncestorObject*> MouseMovedTriggered;
-    vector <AncestorObject*> MouseFirstPressedTriggered;
-    vector <AncestorObject*> MouseLongPressedTriggered;
+    vector <AncestorObject*> MouseNotMovedTriggered;
+    vector <AncestorObject*> MousePressedTriggered;
+    vector <AncestorObject*> MousePressingTriggered;
     vector <AncestorObject*> MouseReleasedTriggered;
     vector <AncestorObject*> ObjectsTriggered;
     vector <AncestorObject*> VariablesTriggered;
     vector <AncestorObject*> CollisionTriggered;
     vector <AncestorObject*> EditableTextTriggered;
     vector <AncestorObject*> MovementTriggered;
+    vector <AncestorObject*> StillnessTriggered;
     void clearLookupTable();
 };
 
@@ -161,7 +163,9 @@ public:
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
     void executeDependentOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    char evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    char evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
@@ -169,6 +173,7 @@ public:
     void updateAllForestOfCameras(vector <Camera2D> & Cameras);
     void updateCamerasPositions(vector <Camera2D> & Cameras);
     void focusOnCamera(vector <Camera2D> & Cameras);
+    bool isKeyFirstPressed(short key);
     bool isKeyPressed(short key);
     bool isKeyReleased(short key);
     void detectStartPosOfDraggingObjects();

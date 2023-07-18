@@ -128,7 +128,7 @@ void Camera2D::update(vector <short> pressedKeys){
     if(zoom < minZoom)
         zoom = minZoom;
 }
-bool Camera2D::isRectangleOnScreen(vec2d objPos, vec2d objSize){
+bool Camera2D::isObjectVisible(vec2d objPos, vec2d objSize){
     objPos.translate(visionShift);
     vec2d zeroPoint((size.x/2)*(1-1/zoom), (size.y/2)*(1-1/zoom));
     vec2d maxPoint((size.x/2)*(1+1/zoom), (size.y/2)*(1+1/zoom));

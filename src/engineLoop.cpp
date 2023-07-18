@@ -56,20 +56,22 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
 }
 
 void EventsLookupTable::clearLookupTable(){
+    IterationTriggered.clear();
     TimeTriggered.clear();
-    CameraTriggered.clear();
-    KeyboardFirstPressedTriggered.clear();
-    KeyboardLongPressedTriggered.clear();
-    KeyboardReleasedTriggered.clear();
+    KeyPressedTriggered.clear();
+    KeyPressingTriggered.clear();
+    KeyReleasedTriggered.clear();
     MouseMovedTriggered.clear();
-    MouseFirstPressedTriggered.clear();
-    MouseLongPressedTriggered.clear();
+    MouseNotMovedTriggered.clear();
+    MousePressedTriggered.clear();
+    MousePressingTriggered.clear();
     MouseReleasedTriggered.clear();
     ObjectsTriggered.clear();
     VariablesTriggered.clear();
     CollisionTriggered.clear();
     EditableTextTriggered.clear();
     MovementTriggered.clear();
+    StillnessTriggered.clear();
 }
 
 EngineLoop::EngineLoop(std::string title){
@@ -199,7 +201,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
                 Mouse.didMouseMove = false;
 
-                Mouse.resetButtonDown();
+                Mouse.resetFirstPressed();
                 
                 if(key[ALLEGRO_KEY_ESCAPE])
                     closeEditor = true;
@@ -256,7 +258,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 break;
         }
 
-        if(Mouse.wasMousePressed() || releasedKeys.size() != 0 || pressedKeys.size() != 0){
+        if(Mouse.isPressed() || releasedKeys.size() != 0 || pressedKeys.size() != 0){
             for(unsigned int i = 0; i < releasedKeys.size(); i++){
                 if(releasedKeys[i] >= ALLEGRO_KEY_0 && releasedKeys[i] <= ALLEGRO_KEY_9 && int(Layers.size()) >= releasedKeys[i]-26){
                     Layers[releasedKeys[i]-27].setIsActive(!Layers[releasedKeys[i]-27].getIsActive());
@@ -307,29 +309,32 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
             Object.isAddedToTriggeredObjects = false;
             for(EveModule Event : Object.EveContainer){
                 for(string type : Event.primaryTriggerTypes){
-                    if(type == "second_passed"){
+                    if(type == "each_iteration"){
+                        BaseOfTriggerableObjects.IterationTriggered.push_back(&Object);
+                    }
+                    else if(type == "second_passed"){
                         BaseOfTriggerableObjects.TimeTriggered.push_back(&Object);
                     }
-                    else if(type == "camera"){
-                        BaseOfTriggerableObjects.CameraTriggered.push_back(&Object);
+                    else if(type == "key_pressed"){
+                        BaseOfTriggerableObjects.KeyPressedTriggered.push_back(&Object);
                     }
-                    else if(type == "keyboard_first_pressed"){
-                        BaseOfTriggerableObjects.KeyboardFirstPressedTriggered.push_back(&Object);
+                    else if(type == "key_pressing"){
+                        BaseOfTriggerableObjects.KeyPressingTriggered.push_back(&Object);
                     }
-                    else if(type == "keyboard_long_pressed"){
-                        BaseOfTriggerableObjects.KeyboardLongPressedTriggered.push_back(&Object);
-                    }
-                    else if(type == "keyboard_released"){
-                        BaseOfTriggerableObjects.KeyboardReleasedTriggered.push_back(&Object);
+                    else if(type == "key_released"){
+                        BaseOfTriggerableObjects.KeyReleasedTriggered.push_back(&Object);
                     }
                     else if(type == "mouse_moved"){
                         BaseOfTriggerableObjects.MouseMovedTriggered.push_back(&Object);
                     }
-                    else if(type == "mouse_first_pressed"){
-                        BaseOfTriggerableObjects.MouseFirstPressedTriggered.push_back(&Object);
+                    else if(type == "mouse_not_moved"){
+                        BaseOfTriggerableObjects.MouseNotMovedTriggered.push_back(&Object);
                     }
-                    else if(type == "mouse_long_pressed"){
-                        BaseOfTriggerableObjects.MouseLongPressedTriggered.push_back(&Object);
+                    else if(type == "mouse_pressed"){
+                        BaseOfTriggerableObjects.MousePressedTriggered.push_back(&Object);
+                    }
+                    else if(type == "mouse_pressing"){
+                        BaseOfTriggerableObjects.MousePressingTriggered.push_back(&Object);
                     }
                     else if(type == "mouse_released"){
                         BaseOfTriggerableObjects.MouseReleasedTriggered.push_back(&Object);
@@ -349,36 +354,35 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
                     else if(type == "movement"){
                         BaseOfTriggerableObjects.MovementTriggered.push_back(&Object);
                     }
+                    else if(type == "stillness"){
+                        BaseOfTriggerableObjects.StillnessTriggered.push_back(&Object);
+                    }
                 }
             }
         }
     }
 }
 void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects){
+    for(AncestorObject * Object : BaseOfTriggerableObjects.IterationTriggered){
+        TriggeredObjects.push_back(Object);
+    }
     if(secondHasPassed()){ 
         for(AncestorObject * Object : BaseOfTriggerableObjects.TimeTriggered){
             TriggeredObjects.push_back(Object);
         }
     }
-    /*
-    if(){ 
-        for(AncestorObject * Object : BaseOfTriggerableObjects.CameraTriggered){
-            TriggeredObjects.push_back(std::make_unique<AncestorObject>(Object));
-        }
-    }
-    */
     if(firstPressedKeys.size() > 0){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyboardFirstPressedTriggered){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyPressedTriggered){
             TriggeredObjects.push_back(Object);
         }
     }
     if(pressedKeys.size() > 0){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyboardLongPressedTriggered){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyPressingTriggered){
             TriggeredObjects.push_back(Object);
         }
     }
     if(releasedKeys.size() > 0){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyboardReleasedTriggered){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyReleasedTriggered){
             TriggeredObjects.push_back(Object);
         }
     }
@@ -387,18 +391,47 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
             TriggeredObjects.push_back(Object);
         }
     }
-    if(Mouse.isMouseButtonDown()){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseFirstPressedTriggered){
+    if(!Mouse.didMouseMove){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseNotMovedTriggered){
             TriggeredObjects.push_back(Object);
         }
     }
-    if(Mouse.wasMousePressed()){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseLongPressedTriggered){
+    if(Mouse.isFirstPressed()){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.MousePressedTriggered){
             TriggeredObjects.push_back(Object);
         }
     }
-    if(Mouse.wasMouseReleased()){
+    if(Mouse.isPressed()){
+        for(AncestorObject * Object : BaseOfTriggerableObjects.MousePressingTriggered){
+            TriggeredObjects.push_back(Object);
+        }
+    }
+    if(Mouse.isReleased()){
         for(AncestorObject * Object : BaseOfTriggerableObjects.MouseReleasedTriggered){
+            TriggeredObjects.push_back(Object);
+        }
+    }
+    for(AncestorObject * Object : BaseOfTriggerableObjects.MovementTriggered){
+        for(MovementModule Movement : Object->MovementContainer){
+            if(!Movement.getIsActive()){
+                continue;
+            }
+            if(Movement.isMoving()){
+                TriggeredObjects.push_back(Object);
+                break;
+            }
+        }
+    }
+    bool triggered;
+    for(AncestorObject * Object : BaseOfTriggerableObjects.StillnessTriggered){
+        triggered = true;
+        for(MovementModule Movement : Object->MovementContainer){
+            if(Movement.getIsActive() && Movement.isMoving()){
+                triggered = false;
+                break;
+            }
+        }
+        if(triggered){
             TriggeredObjects.push_back(Object);
         }
     }
@@ -419,7 +452,253 @@ void EngineLoop::executeDependentOperations(AncestorObject * Owner, EveModule & 
 void EngineLoop::executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
 
 }
-char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    VariableModule NewValue("null");
+    LayerClass * CurrentLayer = nullptr;
+    AncestorObject * CurrentObject = nullptr;
+    if(Condition.Object.layerID == Owner->layerID){
+        CurrentLayer = OwnerLayer;
+    }
+    else{
+        for(LayerClass & Layer : Layers){
+            if(Layer.getIsActive() && Layer.getID() == Condition.Object.layerID){
+                CurrentLayer = &Layer;
+            }
+        }
+    }
+    if(CurrentLayer == nullptr){
+        NewValue.setBool("false");
+        return NewValue;
+    }
+    if(CurrentLayer == OwnerLayer && Condition.Object.objectID == Owner->getID()){
+        CurrentObject = Owner;
+    }
+    else{
+        for(AncestorObject & Object : CurrentLayer->Objects){
+            if(Object.getIsActive() && Object.getID() == Condition.Object.objectID){
+                CurrentObject = &Object;
+                break;
+            }
+        }
+    }
+    if(CurrentObject == nullptr){
+        NewValue.setBool("false");
+        return NewValue;
+    }
+
+    if(Condition.Object.module == "variable"){
+        for(VariableModule Variable : CurrentObject->VariablesContainer){
+            if(Variable.getID() == Condition.Object.element){
+                return Variable;
+            }
+        }
+    }
+    else if(Condition.Object.module == "camera"){
+        if(Condition.Object.element == "visible"){
+            NewValue.setID("camera_visible");
+            NewValue.setBool(false);
+            for(Camera2D Camera : Cameras){
+                if(Camera.isObjectVisible(CurrentObject->getPos(false), CurrentObject->getSize())){
+                    NewValue.setBool(true);
+                    break;
+                }
+            }
+            return NewValue;
+        }
+        else if(Condition.Object.element == "visible_specific"){
+            NewValue.setID("camera_visible_specific");
+            NewValue.setBool(false);
+            for(Camera2D Camera : Cameras){
+                if(Camera.getID() == Condition.Literal.getString()
+                    && Camera.isObjectVisible(CurrentObject->getPos(false), CurrentObject->getSize())
+                ){
+                    NewValue.setBool(true);
+                    break;
+                }
+            }
+            return NewValue;
+        }
+    }
+    else if(Condition.Object.module == "mouse"){
+        NewValue.setBool(false);
+        if(Condition.Object.element == "pressed"){
+            NewValue.setID("mouse_pressed_on");
+            if(SelectedCamera != nullptr && Mouse.firstPressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true)){
+                NewValue.setBool(
+                    Mouse.firstPressedInRectangle(
+                        CurrentObject->getPosOnCamera(SelectedCamera),
+                        CurrentObject->getSize(),
+                        Condition.Literal.getInt(),
+                        CurrentObject->getIsAttachedToCamera()
+                    )
+                );
+            }
+            return NewValue;
+        }
+        else if(Condition.Object.element == "pressing"){
+            NewValue.setID("mouse_pressing_on");
+            if(SelectedCamera != nullptr && Mouse.pressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true)){
+                NewValue.setBool(
+                    Mouse.pressedInRectangle(
+                        CurrentObject->getPosOnCamera(SelectedCamera),
+                        CurrentObject->getSize(),
+                        Condition.Literal.getInt(),
+                        CurrentObject->getIsAttachedToCamera()
+                    )
+                );
+            }
+            return NewValue;
+        }
+        else if(Condition.Object.element == "released"){
+            NewValue.setID("mouse_released_on");
+            if(SelectedCamera != nullptr && Mouse.releasedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true)){
+                NewValue.setBool(
+                    Mouse.releasedInRectangle(
+                        CurrentObject->getPosOnCamera(SelectedCamera),
+                        CurrentObject->getSize(),
+                        Condition.Literal.getInt(),
+                        CurrentObject->getIsAttachedToCamera()
+                    )
+                );
+            }
+            return NewValue;
+        }
+    }
+    else if(Condition.Object.module == "movement"){
+        if(Condition.Object.element == "is_moving"){
+            NewValue.setBool(false);
+            NewValue.setID("is_moving");
+            for(MovementModule Movement : CurrentObject->MovementContainer){
+                if(Movement.getIsActive() && Movement.isMoving()){
+                    NewValue.setBool(true);
+                    break;
+                }
+            }
+            return NewValue;
+        }
+        else if(Condition.Object.element == "is_still"){
+            NewValue.setBool(true);
+            NewValue.setID("is_still");
+            for(MovementModule Movement : CurrentObject->MovementContainer){
+                if(Movement.getIsActive() && Movement.isMoving()){
+                    NewValue.setBool(false);
+                    break;
+                }
+            }
+            return NewValue;
+        }
+    }
+    
+    NewValue.setBool("false");
+    return NewValue;
+}
+VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    VariableModule NewValue("null");
+    
+    if(Condition.source == "object"){
+        return findNextValueAmongObjects(Condition, Owner, Event, OwnerLayer, Layers, Cameras);
+    }
+    if(Condition.source == "second_passed"){
+        NewValue.setID("is_still");
+        NewValue.setBool(secondHasPassed());
+        return NewValue;
+    }
+    if(Condition.source == "literal"){
+        return Condition.Literal;
+    }
+    if(Condition.source == "key_pressed"){
+        NewValue.setID("key_pressed");
+        NewValue.setBool(isKeyFirstPressed(Condition.Literal.getInt()));
+        return NewValue;
+    }
+    if(Condition.source == "key_pressing"){
+        NewValue.setID("key_pressing");
+        NewValue.setBool(isKeyPressed(Condition.Literal.getInt()));
+        return NewValue;
+    }
+    if(Condition.source == "key_released"){
+        NewValue.setID("key_released");
+        NewValue.setBool(isKeyReleased(Condition.Literal.getInt()));
+        return NewValue;
+    }
+    if(Condition.source == "any_key_pressed"){
+        NewValue.setID("any_key_pressed");
+        NewValue.setBool(firstPressedKeys.size() > 0);
+        return NewValue;
+    }
+    if(Condition.source == "any_key_pressing"){
+        NewValue.setID("any_key_pressing");
+        NewValue.setBool(pressedKeys.size() > 0);
+        return NewValue;
+    }
+    if(Condition.source == "any_key_released"){
+        NewValue.setID("any_key_released");
+        NewValue.setBool(releasedKeys.size() > 0);
+        return NewValue;
+    }
+    if(Condition.source == "mouse_moved"){
+        NewValue.setID("mouse_moved");
+        NewValue.setBool(Mouse.didMouseMove);
+        return NewValue;
+    }
+    if(Condition.source == "mouse_pressed"){
+        NewValue.setID("mouse_pressed");
+        NewValue.setBool(Mouse.isFirstPressed(Condition.Literal.getInt()));
+        return NewValue;
+    }
+    if(Condition.source == "mouse_pressing"){
+        NewValue.setID("mouse_pressing");
+        NewValue.setBool(Mouse.isPressed(Condition.Literal.getInt()));
+        return NewValue;
+    }
+    if(Condition.source == "mouse_released"){
+        NewValue.setID("mouse_released");
+        NewValue.setBool(Mouse.isReleased(Condition.Literal.getInt()));
+        return NewValue;
+    }
+    if(Condition.source == "variable"){
+        for(VariableModule Variable : Owner->VariablesContainer){
+            if(Variable.getID() == Condition.Literal.getString()){
+                return Variable;
+            }
+        }
+    }
+    if(Condition.source == "camera"){
+        for(Camera2D Camera : Cameras){
+            if(Camera.getID() == Condition.Literal.getString()){
+                if(Condition.Object.element == "pos_x"){
+                    NewValue.setID("camera_pos_x");
+                    NewValue.setDouble(Camera.pos.x);
+                    return NewValue;
+                }
+                if(Condition.Object.element == "pos_y"){
+                    NewValue.setID("camera_pos_y");
+                    NewValue.setDouble(Camera.pos.y);
+                    return NewValue;
+                }
+                if(Condition.Object.element == "size_x"){
+                    NewValue.setID("camera_size_x");
+                    NewValue.setDouble(Camera.size.x);
+                    return NewValue;
+                }
+                if(Condition.Object.element == "size_y"){
+                    NewValue.setID("camera_size_y");
+                    NewValue.setDouble(Camera.size.y);
+                    return NewValue;
+                }
+                if(Condition.Object.element == "zoom"){
+                    NewValue.setID("camera_zoom");
+                    NewValue.setDouble(Camera.zoom);
+                    return NewValue;
+                }
+                break;
+            }
+        }
+    }
+    NewValue.setBool("false");
+    return NewValue;
+}
+char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     short ignoreFlagOr = 0, ignoreFlagAnd = 0;
     bool comparasion;
     int resultInt;
@@ -430,14 +709,8 @@ char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Ev
     
     for(TriggerClass & Condition : Event.ConditionalChain){
         //check source
-        if(ignoreFlagOr==0 && ignoreFlagAnd==0){
-            if(Condition.source == "second_passed"){
-                resultStack.push_back(VariableModule("second_passed"));
-                resultStack.back().setBool(secondHasPassed());
-            }
-            if(Condition.source == "literal"){
-                resultStack.push_back(Condition.Literal);
-            }
+        if(ignoreFlagOr == 0 && ignoreFlagAnd == 0){
+            resultStack.push_back(findNextValue(Condition, Owner, Event, OwnerLayer, Layers, Cameras));
         }
         if(resultStack.size() == 0){
             continue;
@@ -474,7 +747,7 @@ char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Ev
             }
             else if(resultStack.size() >= 2){
 
-                if(!isStringInGroup(op, 12, "==", "!=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%", "**")){
+                if(!isStringInGroup(op, 14, "&&", "||", "==", "!=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%", "**")){
                     std::cout << "Error [Engine]: Unrecognized operator in the if statement.\n";
                     continue;
                 }
@@ -492,7 +765,7 @@ char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Ev
 
                 resultStack.push_back(VariableModule(newID));
                 
-                if (isStringInGroup(op, 6, "==", "!=", ">", "<", ">=", "<=")){
+                if (isStringInGroup(op, 8, "&&", "||", "==", "!=", ">", "<", ">=", "<=")){
                     comparasion = leftOperand.isConditionMet(op, &rightOperand);
 
                     std::cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << op << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << comparasion << "\n";
@@ -562,7 +835,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     detectTriggeredEvents(Layers, Cameras, TriggeredObjects);
 
     if(TriggeredObjects.size() > 0){
-        std::cout << "\nTriggered "<< TriggeredObjects.size() << " objects:\n\n";
+        std::cout << "\nTriggered "<< TriggeredObjects.size() << " objects:\n";
     }
 
     //Remember to delete pointers to destroyed objects during the iteration
@@ -571,6 +844,8 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     vector<vector<EveModule>::iterator> MemoryStack;
 
     bool noTriggerableEvents;
+
+    LayerClass * TriggeredLayer;
 
     for(AncestorObject * Triggered : TriggeredObjects){
         for(EveModule & Eve : Triggered->EveContainer){
@@ -595,12 +870,19 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         if(noTriggerableEvents){
             continue;
         }
+
+        for(LayerClass & Layer : Layers){
+            if(Triggered->layerID == Layer.getID()){
+                TriggeredLayer = &Layer;
+                break;
+            }
+        }
         
         StartingEvent = Event;
         MemoryStack.clear();
         do{
             if(Event->conditionalStatus == 'n'){
-                Event->conditionalStatus = evaluateConditionalChain(Triggered, *Event, Layers, Cameras);
+                Event->conditionalStatus = evaluateConditionalChain(Triggered, *Event, TriggeredLayer, Layers, Cameras);
                 std::cout << "Result: " << Event->conditionalStatus << "\n\n";
             }
             if(Event->conditionalStatus == 't'){
@@ -702,17 +984,25 @@ void EngineLoop::focusOnCamera(vector <Camera2D> & Cameras){
         }
     }
 }
+bool EngineLoop::isKeyFirstPressed(short key){
+    for(short firstPressed : firstPressedKeys){
+        if(firstPressed == key){
+            return true;
+        }
+    }
+    return false;
+}
 bool EngineLoop::isKeyPressed(short key){
-    for(unsigned int i = 0; i < pressedKeys.size(); i++){
-        if(pressedKeys[i] == key){
+    for(short pressed : pressedKeys){
+        if(pressed == key){
             return true;
         }
     }
     return false;
 }
 bool EngineLoop::isKeyReleased(short key){
-    for(unsigned int i = 0; i < releasedKeys.size(); i++){
-        if(releasedKeys[i] == key){
+    for(short released : releasedKeys){
+        if(released == key){
             return true;
         }
     }
@@ -1284,7 +1574,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
     if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
         return;
     }
-    if(Mouse.wasMousePressed() == true){
+    if(Mouse.isPressed() == true){
         vec2d finalPos, finalSize;
         bool isScrollable;
         for(LayerClass & Layer : Layers){
@@ -1358,7 +1648,6 @@ void EngineLoop::selectObject(vector <LayerClass> & Layers, vector <SingleBitmap
         return;
     }
     
-    vec2d finalPos;
     for(LayerClass & Layer : Layers){
         if(!Layer.getIsActive() && !SelectedCamera->isLayerVisible(Layer.getID())){
             continue;
@@ -1372,12 +1661,7 @@ void EngineLoop::selectObject(vector <LayerClass> & Layers, vector <SingleBitmap
             if(!Object.getCanBeSelected()){
                 continue;
             }
-            finalPos.set(Object.getPos(false));
-            if(!Object.getIsAttachedToCamera())
-                finalPos.translate(SelectedCamera->pos/SelectedCamera->zoom + SelectedCamera->visionShift);
-            else
-                finalPos.translate(SelectedCamera->pos);
-            if(Mouse.pressedInRectangle(finalPos, Object.getSize(), 0, Object.getIsAttachedToCamera())){
+            if(Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera), Object.getSize(), 0, Object.getIsAttachedToCamera())){
                 if(&Layer == SelectedLayer && &Object == SelectedObject){
                     return;
                 }
