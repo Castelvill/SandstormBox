@@ -624,6 +624,21 @@ bool MovementModule::isMoving(){
     }
     return false;
 }
+bool MovementModule::isMovingInThisDirection(string direction){
+    if(direction == "is_moving_up"){
+        return isMovingUp;
+    }
+    if(direction == "is_moving_right"){
+        return isMovingRight;
+    }
+    if(direction == "is_moving_down"){
+        return isMovingDown;
+    }
+    if(direction == "is_moving_left"){
+        return isMovingLeft;
+    }
+    return false;
+}
 double MovementModule::getMaxMomentumX(){
     return maxMomentumX;
 }

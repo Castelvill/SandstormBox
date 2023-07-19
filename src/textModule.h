@@ -59,6 +59,7 @@ public:
     string getContent(unsigned int textID);
     unsigned short getColor(char whichColor);
     unsigned int getCurrentTextID();
+    string getCurrentContent();
 };
 
 
@@ -80,7 +81,7 @@ public:
     string connectedObject;
     string connectedGroup;
     string affectedModule;
-    string connectedModuleName;
+    string connectedModuleID;
     string affectedVariable;
 
     void setUpEditableInstance();

@@ -22,19 +22,19 @@ vecXs::vecXs(int count, ...){
 
 
 vec3d::vec3d(double a, double b, double c){
-    setVecX(3, a, b, c);
+    setNewVecX(3, a, b, c);
 }
 vec4d::vec4d(double a, double b, double c, double d){
-    setVecX(4, a, b, c, d);
+    setNewVecX(4, a, b, c, d);
 }
 vec5d::vec5d(double a, double b, double c, double d, double e){
-    setVecX(5, a, b, c, d, e);
+    setNewVecX(5, a, b, c, d, e);
 }
 vec6d::vec6d(double a, double b, double c, double d, double e, double f){
-    setVecX(6, a, b, c, d, e, f);
+    setNewVecX(6, a, b, c, d, e, f);
 }
 vec7d::vec7d(double a, double b, double c, double d, double e, double f, double g){
-    setVecX(7, a, b, c, d, e, f, g);
+    setNewVecX(7, a, b, c, d, e, f, g);
 }
 
 

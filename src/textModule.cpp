@@ -353,8 +353,10 @@ unsigned short TextModule::getColor(char whichColor){
     return 0;
 }
 unsigned int TextModule::getCurrentTextID(){
-    std::cout << currentTextID << "\n";
     return currentTextID;
+}
+string TextModule::getCurrentContent(){
+    return getContent(getCurrentTextID());
 }
 
 
@@ -417,13 +419,13 @@ void EditableTextModule::setConnectedObjectID(string newValue){
 void EditableTextModule::setConnectedObject(string objectID, string moduleType, string moduleID, string variableName){
     setConnectedObjectID(objectID);
     affectedModule = moduleType;
-    connectedModuleName = moduleID;
+    connectedModuleID = moduleID;
     affectedVariable = variableName;
 }
 void EditableTextModule::setConnectedGroup(string groupName, string moduleType, string moduleID, string variableName){
     connectedGroup = groupName;
     affectedModule = moduleType;
-    connectedModuleName = moduleID;
+    connectedModuleID = moduleID;
     affectedVariable = variableName;
 }
 bool EditableTextModule::getCanBeEdited(){
@@ -692,7 +694,6 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
     }
 
     return success;
-    return true;
 }
 bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOfIDs){
     bool success = false;
@@ -719,7 +720,7 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
 
     if(affectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Text.getIDAddr(), cContent)){
-            connectedModuleName = cContent;
+            connectedModuleID = cContent;
             return true;
         }
     }
@@ -843,7 +844,7 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
 
     if(affectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Image.getIDAddr(), cContent)){
-            connectedModuleName = cContent;
+            connectedModuleID = cContent;
             return true;
         }
     }
@@ -978,7 +979,7 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
 
     if(affectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Movement.getIDAddr(), cContent)){
-            connectedModuleName = cContent;
+            connectedModuleID = cContent;
             return true;
         }
     }
@@ -1136,7 +1137,7 @@ bool EditableTextModule::controlCollision(CollisionModule & Collision, vector <s
 
     if(affectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Collision.getIDAddr(), cContent)){
-            connectedModuleName = cContent;
+            connectedModuleID = cContent;
             return true;
         }
     }
@@ -1199,7 +1200,7 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
 
     if(affectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Particles.getIDAddr(), cContent)){
-            connectedModuleName = cContent;
+            connectedModuleID = cContent;
             return true;
         }
     }
@@ -1407,7 +1408,7 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
 
     if(affectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Variable.getIDAddr(), cContent)){
-            connectedModuleName = cContent;
+            connectedModuleID = cContent;
             return true;
         }
         return false;

@@ -111,6 +111,7 @@ public:
     double getBaseFriction();
     vec2d getMomentum();
     bool isMoving();
+    bool isMovingInThisDirection(string direction);
     double getMaxMomentumX();
     double getMinMomentumY();
     double getMaxMomentumY();

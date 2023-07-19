@@ -21,7 +21,7 @@ public:
             val.push_back(va_arg(args, type));
         }
     }
-    void setVecX(int count, ...){
+    void setNewVecX(int count, ...){
         va_list args;
         va_start(args, count);
         for (int i = 0; i < count; i++){

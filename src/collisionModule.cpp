@@ -27,13 +27,13 @@ bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2){
 CollisionModule::CollisionModule(int collisionModuleID){
     primaryConstructor(collisionModuleID);
     setSize(0.0, 0.0);
-    isSolid = false;
+    isSolid = true;
     canPenetrateSolids = false;
 }
 CollisionModule::CollisionModule(int collisionModuleID, vec2d size){
     primaryConstructor(collisionModuleID);
     setSize(size);
-    isSolid = false;
+    isSolid = true;
     canPenetrateSolids = false;
 }
 

@@ -132,6 +132,7 @@ private:
     unsigned char key[ALLEGRO_KEY_MAX];
     string windowTitle;
     bool drawTextFieldBorders;
+    bool drawHitboxes;
     bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
     bool ignoreDistantObjects;
     bool drawOnlyVisibleObjects; //If true, engine will not attempt to draw objects outside the camera view. (Allegro 5 is using similar mechanism.)
@@ -163,6 +164,7 @@ public:
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
     void executeDependentOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);
     VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     char evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
@@ -178,10 +180,10 @@ public:
     bool isKeyReleased(short key);
     void detectStartPosOfDraggingObjects();
     void drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer);
-    void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D Cameras, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
+    void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Cameras, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
                      vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground);
     void updateOtherEvents(vector <AncestorObject> & Objects);
-    void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement);
+    void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, vec2d momentum);
     void detectRealCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement);
     void adjustAndStopMomentum(AncestorObject & Object, MovementModule & Movement);
     void updateCameraPosition(Camera2D & Cameras, AncestorObject * FollowedByCamera);

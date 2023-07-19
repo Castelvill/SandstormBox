@@ -1,0 +1,15 @@
+attr "detected":
+me.collision_detected()
+
+attr "with_object":
+me.collision_with(obj.bob)
+
+attr "with_hitbox":
+me.Collision.leg.detected()
+
+attr "with_foreign_hitbox":
+me.collision_with(obj.bob.Collision.leg)
+
+attr "of_foreign_hitboxes":
+me.Collision.leg.with(obj.bob.Collision.leg)
+

@@ -7,11 +7,13 @@
 #include "variableModule.h"
 #include "scrollbarModule.h"
 
-struct ObjectIDs{
+struct ValueLocation{
     string layerID;
     string objectID;
-    string module; //ancestor, text, editable, image, movement, collision, particles, variables, scrollbar
-    string element; 
+    string moduleType; //ancestor, text, editable, image, movement, collision, particles, variables, scrollbar
+    string moduleID;
+    string attribute;
+    string spareID; //used in detecting collision of two specific hitboxes
 };
 
 class TriggerClass{
@@ -19,7 +21,7 @@ public:
     string source; //second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, owner, object, pointer
     string dynamicName;
     VariableModule Literal;
-    ObjectIDs Object;
+    ValueLocation Location;
     vector <string> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
     TriggerClass(unsigned int newID);
     TriggerClass(string newID);
@@ -28,8 +30,8 @@ public:
 
 class OperaClass{
 public:
-    vector <ObjectIDs> leftObjects;
-    vector <ObjectIDs> rightObjects;
+    vector <ValueLocation> leftObjects;
+    vector <ValueLocation> rightObjects;
     string affectedVariable;
     string functionID; //also break and return
     vector <double> choosenDoubles;

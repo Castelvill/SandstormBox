@@ -174,42 +174,42 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
             }
             else if(EditableText.affectedModule == "text"){
                 for(auto & Text : Object.TextContainer){
-                    if(EditableText.connectedModuleName == Text.getID()){
+                    if(EditableText.connectedModuleID == Text.getID()){
                         success = EditableText.controlText(Text, Object.textContainerIDs);
                     }
                 }
             }
             else if(EditableText.affectedModule == "image"){
                 for(auto & Image : Object.ImageContainer){
-                    if(EditableText.connectedModuleName == Image.getID()){
+                    if(EditableText.connectedModuleID == Image.getID()){
                         success = EditableText.controlImage(Image, BitmapContainer, Object.imageContainerIDs);
                     }
                 }
             }
             else if(EditableText.affectedModule == "movement"){
                 for(auto & Movement : Object.MovementContainer){
-                    if(EditableText.connectedModuleName == Movement.getID()){
+                    if(EditableText.connectedModuleID == Movement.getID()){
                         success = EditableText.controlMovement(Movement, Object.movementContainerIDs);
                     }
                 }
             }
             else if(EditableText.affectedModule == "collision"){
                 for(auto & Collision : Object.CollisionContainer){
-                    if(EditableText.connectedModuleName == Collision.getID()){
+                    if(EditableText.connectedModuleID == Collision.getID()){
                         success = EditableText.controlCollision(Collision, Object.collisionContainerIDs);
                     }
                 }
             }
             else if(EditableText.affectedModule == "particles"){
                 for(auto & Particles : Object.ParticlesContainer){
-                    if(EditableText.connectedModuleName == Particles.getID()){
+                    if(EditableText.connectedModuleID == Particles.getID()){
                         success = EditableText.controlParticles(Particles, Object.particlesContainerIDs);
                     }
                 }
             }
             else if(EditableText.affectedModule == "variable"){
                 for(auto & Variable : Object.VariablesContainer){
-                    if(EditableText.connectedModuleName == Variable.getID()){
+                    if(EditableText.connectedModuleID == Variable.getID()){
                         success = EditableText.controlVariable(Variable, Object.variablesContainerIDs);
                     }
                 }

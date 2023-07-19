@@ -270,7 +270,9 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().VariablesContainer.push_back(0);
     Objects.back().VariablesContainer.back().setID("test");
     Objects.back().VariablesContainer.back().setInt(65);
-    Objects.back().CollisionContainer.push_back(0);
+    Objects.back().CollisionContainer.push_back(CollisionModule(0, vec2d(50, 50)));
+    Objects.back().CollisionContainer.push_back(CollisionModule(1, vec2d(50, 50)));
+    Objects.back().CollisionContainer.back().setPos(50, 0);
     Objects.back().TextContainer.push_back(0);
     Objects.back().TextContainer.back().setID("label1");
     Objects.back().TextContainer.back().setFontID("Minecraft24");
@@ -283,14 +285,14 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().EveContainer.back().primaryTriggerTypes.push_back("second_passed");
     Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
     Objects.back().EveContainer.back().ConditionalChain.back().source = "object";
-    Objects.back().EveContainer.back().ConditionalChain.back().Object.layerID = layerID;
-    Objects.back().EveContainer.back().ConditionalChain.back().Object.objectID = "par";
-    Objects.back().EveContainer.back().ConditionalChain.back().Object.module = "variable";
-    Objects.back().EveContainer.back().ConditionalChain.back().Object.element = "par_test";
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(6);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back(">");
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.layerID = layerID;
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.objectID = "Amongus";
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.moduleType = "collision";
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.moduleID = "1";
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.attribute = "of_foreign_hitboxes";
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.spareID = "1";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("par");
+    
 
 
     /*Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
@@ -454,10 +456,12 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     //Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
     //Objects.back().ImageContainer[1].connectBitmap(BitmapContainer, "cat260");
     //Objects.back().ImageContainer[1].changeParameters("cat", vec6d(0.0, 0.0, 260.0, 260.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(0.0, 0.0, 0.0, 0.0));
-    Objects.back().CollisionContainer.push_back(CollisionModule(Objects.back().CollisionContainer.size(), Objects.back().getSize()));
-    Objects.back().CollisionContainer[0].setID("1");
-    Objects.back().CollisionContainer[0].changeParameters(true, false, vec2d(0.0, 0.0), vec2d(100.0, 100.0));
-    Objects.back().CollisionContainer[0].addToIgnoreCollisionList("pupa");
+    Objects.back().CollisionContainer.push_back(CollisionModule(0, Objects.back().getSize()));
+    Objects.back().CollisionContainer.back().changeParameters(true, false, vec2d(0.0, 0.0), vec2d(100.0, 100.0));
+    Objects.back().CollisionContainer.back().addToIgnoreCollisionList("pupa");
+    Objects.back().CollisionContainer.push_back(CollisionModule(1));
+    Objects.back().CollisionContainer.back().setPos(Objects.back().getSize().x, 0);
+    Objects.back().CollisionContainer.back().setSize(Objects.back().getSize());
 
 /*
 
@@ -689,7 +693,7 @@ void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <S
 }
 
 void createCameras(vector <Camera2D> & Cameras){
-    Cameras.push_back(Camera2D("Cam0", true, vec2d(0.0, 0.0), vec2d(SCREEN_W/3.0, SCREEN_H), vec2d(0.0, 0.0)));
+    Cameras.push_back(Camera2D("Cam0", true, vec2d(0.0, 0.0), vec2d(SCREEN_W/2.0, SCREEN_H), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
@@ -700,7 +704,7 @@ void createCameras(vector <Camera2D> & Cameras){
     Cameras.back().addVisibleLayer("Editor");
     Cameras.back().addVisibleLayer("L1");
 
-    Cameras.push_back(Camera2D("Cam1", true, vec2d(560.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
+    Cameras.push_back(Camera2D("Cam1", true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
