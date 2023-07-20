@@ -162,11 +162,11 @@ public:
     void initAllegro();
     void exitAllegro();
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
-    void executeDependentOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void executeDependentOperations(LayerClass * OwnerLayer, AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);
-    VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     char evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
@@ -184,6 +184,7 @@ public:
                      vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground);
     void updateOtherEvents(vector <AncestorObject> & Objects);
     void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, vec2d momentum);
+    bool shouldCheckOverlapingOnly(CollisionModule & Collision, AncestorObject & SolidObject, CollisionModule & SolidCollision);
     void detectRealCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement);
     void adjustAndStopMomentum(AncestorObject & Object, MovementModule & Movement);
     void updateCameraPosition(Camera2D & Cameras, AncestorObject * FollowedByCamera);

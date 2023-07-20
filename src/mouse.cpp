@@ -24,15 +24,11 @@ void MouseClass::resetFirstPressed(){
 void MouseClass::setUp(){
     reset();
 }
-void MouseClass::getPressed(bool tempArr[]){
-    for(int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
-        tempArr[i] = pressed[i];
-    }
+bool * MouseClass::getPressed(){
+    return pressed;
 }
-void MouseClass::getReleased(bool tempArr[]){
-    for(int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
-        tempArr[i] = released[i];
-    }
+bool * MouseClass::getReleased(){
+    return released;
 }
 vec2d MouseClass::getPos(){
     return pos;

@@ -6,7 +6,6 @@ AncestorObject::AncestorObject(){
 }
 AncestorObject::AncestorObject(int ancestorID, string newLayerID){
     layerID = newLayerID;
-    isAddedToTriggeredObjects = false;
     primaryConstructor(ancestorID);
 }
 void AncestorObject::clearVectorsOfIDs(){

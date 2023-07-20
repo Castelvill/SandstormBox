@@ -35,6 +35,7 @@ class PrimaryModule{
     void removeGroup(string selectedGroup);
     void clearGroups();
     bool isInAGroup(string findGroup);
+    vector <string> getGroups();
 
     void setPos(vec2d newPos);
     void setScrollShift(vec2d newValue);

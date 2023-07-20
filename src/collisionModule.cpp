@@ -125,7 +125,10 @@ void CollisionModule::changeParameters(bool newIsSolid, bool newCanPenetrateSoli
     canPenetrateSolids = newCanPenetrateSolids;
 }
 void CollisionModule::clearModule(){
-    ignoreCollisionList.clear();
+    ignoredObjectsList.clear();
+    ignoredGroupsOfObjectsList.clear();
+    ignoredHitboxesList.clear();
+    ignoredGroupsOfHitboxesList.clear();
     Detected.clear();
 }
 void CollisionModule::switchSolid(){
@@ -137,14 +140,48 @@ void CollisionModule::switchSolidPenetration(){
     else
         canPenetrateSolids = true;
 }
-void CollisionModule::addToIgnoreCollisionList(string objectName){
-    ignoreCollisionList.push_back(objectName);
+void CollisionModule::addToIgnoreList(string ignoring_type, string entity){
+    if(ignoring_type == "objects"){
+        addUniqueToStringVector(ignoredObjectsList, entity);
+    }
+    if(ignoring_type == "groups_of_objects"){
+        addUniqueToStringVector(ignoredGroupsOfObjectsList, entity);
+    }
+    if(ignoring_type == "hitboxes"){
+        addUniqueToStringVector(ignoredHitboxesList, entity);
+    }
+    if(ignoring_type == "groups_of_hitboxes"){
+        addUniqueToStringVector(ignoredGroupsOfHitboxesList, entity);
+    }
 }
-void CollisionModule::removeFromIgnoreCollisionList(string objectName){
-    //removeValueFromVector<std::string>(ignoreCollisionList, objectName);
-    ignoreCollisionList.erase(std::remove(ignoreCollisionList.begin(),
-                                          ignoreCollisionList.end(), objectName),
-                                          ignoreCollisionList.end());
+void CollisionModule::removeFromIgnoreList(string ignoring_type, string entity){
+    if(ignoring_type == "objects"){
+        removeFromStringVector(ignoredObjectsList, entity);
+    }
+    if(ignoring_type == "groups_of_objects"){
+        removeFromStringVector(ignoredGroupsOfObjectsList, entity);
+    }
+    if(ignoring_type == "hitboxes"){
+        removeFromStringVector(ignoredHitboxesList, entity);
+    }
+    if(ignoring_type == "groups_of_hitboxes"){
+        removeFromStringVector(ignoredGroupsOfHitboxesList, entity);
+    }
+}
+bool CollisionModule::ignores(string ignoring_type, string entity){
+    if(ignoring_type == "objects"){
+        return inStringVector(ignoredObjectsList, entity);
+    }
+    if(ignoring_type == "groups_of_objects"){
+        return inStringVector(ignoredGroupsOfObjectsList, entity);
+    }
+    if(ignoring_type == "hitboxes"){
+        return inStringVector(ignoredHitboxesList, entity);
+    }
+    if(ignoring_type == "groups_of_hitboxes"){
+        return inStringVector(ignoredGroupsOfHitboxesList, entity);
+    }
+    return false;
 }
 void CollisionModule::removeImaginaryCollisions(){
     if(Detected.size() <= 1){
@@ -211,9 +248,6 @@ bool CollisionModule::getIsSolid(){
 }
 bool CollisionModule::getCanPenetrateSolids(){
     return canPenetrateSolids;
-}
-vector <string> CollisionModule::getIgnoreCollisionList(){
-    return ignoreCollisionList;
 }
 
 void CollisionModule::setIsSolid(bool newValue){

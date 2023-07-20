@@ -307,7 +307,6 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
     
     for(LayerClass & Layer : Layers){
         for(AncestorObject & Object : Layer.Objects){
-            Object.isAddedToTriggeredObjects = false;
             for(EveModule Event : Object.EveContainer){
                 for(string type : Event.primaryTriggerTypes){
                     if(type == "each_iteration"){
@@ -447,7 +446,7 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
         }
     }
 }
-void EngineLoop::executeDependentOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+void EngineLoop::executeDependentOperations(LayerClass * OwnerLayer, AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
 
 }
 void EngineLoop::executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
@@ -541,7 +540,7 @@ VariableModule EngineLoop::findNextValueInMovementModule(TriggerClass & Conditio
     NewValue.setID("null");
     return NewValue;
 }
-VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     VariableModule NewValue("null");
     LayerClass * CurrentLayer = nullptr;
     AncestorObject * CurrentObject = nullptr;
@@ -555,10 +554,12 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             }
         }
     }
+    
     if(CurrentLayer == nullptr){
         NewValue.setBool(false);
         return NewValue;
     }
+    
     if(CurrentLayer == OwnerLayer && Condition.Location.objectID == Owner->getID()){
         CurrentObject = Owner;
     }
@@ -570,6 +571,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             }
         }
     }
+    
     if(CurrentObject == nullptr){
         NewValue.setBool(false);
         return NewValue;
@@ -585,7 +587,34 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
         }
     }
     else if(Condition.Location.moduleType == "ancestor"){
-        
+        if(Condition.Location.attribute == "is_active"){
+            NewValue.setBool(CurrentObject->getIsActive());
+        }
+        else if(Condition.Location.attribute == "in_group"){
+            NewValue.setBool(CurrentObject->isInAGroup(Condition.Literal.getString()));
+        }
+        else if(Condition.Location.attribute == "pos_x"){
+            NewValue.setDouble(CurrentObject->getPos(false).x);
+        }
+        else if(Condition.Location.attribute == "pos_y"){
+            NewValue.setDouble(CurrentObject->getPos(false).y);
+        }
+        else if(Condition.Location.attribute == "size_x"){
+            NewValue.setDouble(CurrentObject->getSize().x);
+        }
+        else if(Condition.Location.attribute == "size_y"){
+            NewValue.setDouble(CurrentObject->getSize().y);
+        }
+        else if(Condition.Location.attribute == "scale_x"){
+            NewValue.setDouble(CurrentObject->getSize().x);
+        }
+        else if(Condition.Location.attribute == "scale_y"){
+            NewValue.setDouble(CurrentObject->getSize().y);
+        }
+        else{
+            NewValue.setBool(false);
+        }
+        return NewValue;
     }
     else if(Condition.Location.moduleType == "camera"){
         if(Condition.Location.attribute == "visible"){
@@ -705,8 +734,27 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
         }
     }
     else if(Condition.Location.moduleType == "collision"){
+        NewValue.setBool(false);
+        if(Condition.Location.attribute == "has_solid_hitbox"){
+            for(CollisionModule Collision : CurrentObject->CollisionContainer){
+                if(Collision.getIsSolid()){
+                    NewValue.setBool(true);
+                    return NewValue;
+                }
+            }
+            return NewValue;
+        }
+        if(Condition.Location.attribute == "is_fully_solid"){
+            NewValue.setBool(true);
+            for(CollisionModule Collision : CurrentObject->CollisionContainer){
+                if(!Collision.getIsSolid()){
+                    NewValue.setBool(false);
+                    return NewValue;
+                }
+            }
+            return NewValue;
+        }
         if(Condition.Location.attribute == "detected"){
-            NewValue.setBool(false);
             for(CollisionModule Collision : CurrentObject->CollisionContainer){
                 for(DetectedCollision Detected : Collision.Detected){
                     if(Detected.collisionType > 0){
@@ -718,7 +766,6 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             return NewValue;
         }
         if(Condition.Location.attribute == "with_object"){
-            NewValue.setBool(false);
             for(CollisionModule Collision : CurrentObject->CollisionContainer){
                 for(DetectedCollision Detected : Collision.Detected){
                     if(Detected.collisionType > 0 && Detected.solidID == Condition.Literal.getString()){
@@ -729,51 +776,97 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             }
             return NewValue;
         }
-        if(Condition.Location.attribute == "with_my_hitbox"){
-            NewValue.setBool(false);
+        if(Condition.Location.attribute == "with_hitbox"){
             for(CollisionModule Collision : CurrentObject->CollisionContainer){
-                if(Collision.getID() != Condition.Location.moduleID){
-                    continue;
+                for(DetectedCollision Detected : Collision.Detected){
+                    if(Detected.collisionType > 0
+                        && Detected.solidID == Condition.Literal.getString()
+                        && Detected.collisionID == Condition.Location.spareID
+                    ){
+                        NewValue.setBool(true);
+                        return NewValue;
+                    }
                 }
+            }
+            return NewValue;
+        }
+        for(CollisionModule Collision : CurrentObject->CollisionContainer){
+            if(Collision.getID() != Condition.Location.moduleID){
+                continue;
+            }
+            if(Condition.Location.attribute == "hitbox_is_solid"){
+                NewValue.setBool(Collision.getIsSolid());
+                return NewValue;
+            }
+            if(Condition.Location.attribute == "hitbox_can_penetrate"){
+                NewValue.setBool(Collision.getCanPenetrateSolids());
+                return NewValue;
+            }
+            if(Condition.Location.attribute == "hitbox_ignores_object"){
+                NewValue.setBool(Collision.ignores("object", Condition.Location.spareID));
+                return NewValue;
+            }
+            if(Condition.Location.attribute == "hitbox_ignores_object_group"){
+                for(PrimaryModule Primary : CurrentLayer->Objects){
+                    if(Primary.getID() != Condition.Location.spareID){
+                        continue;
+                    }
+                    for(string group : Primary.getGroups()){
+                        NewValue.setBool(Collision.ignores("groups_of_objects", group));
+                        return NewValue;
+                    }
+                    return NewValue;
+                }
+                return NewValue;
+            }
+            if(Condition.Location.attribute == "hitbox_ignores_hitbox"){
+                NewValue.setBool(Collision.ignores("hitboxes", Condition.Location.spareID));
+                return NewValue;
+            }
+            if(Condition.Location.attribute == "hitbox_ignores_hitbox_group"){
+                for(AncestorObject NextObject : CurrentLayer->Objects){
+                    if(NextObject.getID() != Condition.Location.spareID){
+                        continue;
+                    }
+                    for(PrimaryModule PrimaryCollision : NextObject.CollisionContainer){
+                        if(PrimaryCollision.getID() != Condition.Literal.getString()){
+                            continue;
+                        }
+                        for(string group : PrimaryCollision.getGroups()){
+                            NewValue.setBool(Collision.ignores("groups_of_hitboxes", group));
+                            return NewValue;
+                        }
+                        return NewValue;
+                    }
+                    return NewValue;
+                }
+                return NewValue;
+            }
+            if(Condition.Location.attribute == "detected_by_hitbox"){
                 for(DetectedCollision Detected : Collision.Detected){
                     if(Detected.collisionType > 0){
                         NewValue.setBool(true);
                         return NewValue;
                     }
                 }
+                return NewValue;
             }
-            return NewValue;
-        }
-        if(Condition.Location.attribute == "with_foreign_hitbox"){
-            NewValue.setBool(false);
-            for(CollisionModule Collision : CurrentObject->CollisionContainer){
-                for(DetectedCollision Detected : Collision.Detected){
-                    if(Detected.collisionType > 0
-                        && Detected.solidID == Condition.Literal.getString()
-                        && Detected.collisionID == Condition.Location.spareID
-                    ){
-                        NewValue.setBool(true);
-                        return NewValue;
+            if(Condition.Location.attribute == "between_hitboxes"){
+                for(CollisionModule Collision : CurrentObject->CollisionContainer){
+                    if(Collision.getID() != Condition.Location.moduleID){
+                        continue;
+                    }
+                    for(DetectedCollision Detected : Collision.Detected){
+                        if(Detected.collisionType > 0
+                            && Detected.solidID == Condition.Literal.getString()
+                            && Detected.collisionID == Condition.Location.spareID
+                        ){
+                            NewValue.setBool(true);
+                            return NewValue;
+                        }
                     }
                 }
-            }
-            return NewValue;
-        }
-        if(Condition.Location.attribute == "of_foreign_hitboxes"){
-            NewValue.setBool(false);
-            for(CollisionModule Collision : CurrentObject->CollisionContainer){
-                if(Collision.getID() != Condition.Location.moduleID){
-                    continue;
-                }
-                for(DetectedCollision Detected : Collision.Detected){
-                    if(Detected.collisionType > 0
-                        && Detected.solidID == Condition.Literal.getString()
-                        && Detected.collisionID == Condition.Location.spareID
-                    ){
-                        NewValue.setBool(true);
-                        return NewValue;
-                    }
-                }
+                return NewValue;
             }
             return NewValue;
         }
@@ -783,11 +876,11 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
     NewValue.setBool(false);
     return NewValue;
 }
-VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     VariableModule NewValue(Condition.source);
     
     if(Condition.source == "object"){
-        return findNextValueAmongObjects(Condition, Owner, Event, OwnerLayer, Layers, Cameras);
+        return findNextValueAmongObjects(Condition, Owner, OwnerLayer, Layers, Cameras);
     }
     if(Condition.source == "second_passed"){
         NewValue.setBool(secondHasPassed());
@@ -886,7 +979,7 @@ char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Ev
     for(TriggerClass & Condition : Event.ConditionalChain){
         //check source
         if(ignoreFlagOr == 0 && ignoreFlagAnd == 0){
-            resultStack.push_back(findNextValue(Condition, Owner, Event, OwnerLayer, Layers, Cameras));
+            resultStack.push_back(findNextValue(Condition, Owner, OwnerLayer, Layers, Cameras));
         }
         if(resultStack.size() == 0){
             continue;
@@ -1063,7 +1156,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             if(Event->conditionalStatus == 't'){
                 if(!Event->areDependentOperationsDone){
-                    executeDependentOperations(Triggered, *Event, Layers, Cameras);
+                    executeDependentOperations(TriggeredLayer, Triggered, *Event, Layers, Cameras);
                     Event->areDependentOperationsDone = true;
                 }
                 if(!Event->checkIfAllChildrenFinished()){
@@ -1303,9 +1396,26 @@ void EngineLoop::detectBackgroundCollisions(LayerClass & Layer, AncestorObject &
         }
     }
 }
-void EngineLoop::detectRealCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement){
-    bool checkOverlapingOnly;
+bool EngineLoop::shouldCheckOverlapingOnly(CollisionModule & Collision, AncestorObject & SolidObject, CollisionModule & SolidCollision){
+    return Collision.getCanPenetrateSolids()
+        || Collision.ignores("objects", SolidObject.getID())
+        || Collision.ignores("hitboxes", SolidCollision.getID());
 
+    for(string groupID : SolidObject.getGroups()){
+        if(Collision.ignores("groups_of_objects", groupID)){
+            return true;
+        }
+    }
+
+    for(string groupID : SolidCollision.getGroups()){
+        if(Collision.ignores("groups_of_hitboxes", groupID)){
+            return true;
+        }
+    }
+
+    return false;
+}
+void EngineLoop::detectRealCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement){
     for(CollisionModule & Collision : Object.CollisionContainer){
         Collision.Detected.clear();
         if(!Collision.getIsActive()){
@@ -1320,35 +1430,22 @@ void EngineLoop::detectRealCollisions(LayerClass & Layer, AncestorObject & Objec
                     continue;
                 }
 
-                checkOverlapingOnly = false;
-
-                if(Collision.getCanPenetrateSolids()){
-                    checkOverlapingOnly = true;
-                }
-
-                for(string group : Collision.getIgnoreCollisionList()){
-                    if(SolidCollision.isInAGroup(group)){
-                        checkOverlapingOnly = true;
-                        break;
-                    }
-                }
-
-                if(ignoreDistantObjects){
-                    //Check if objects are in range to collide
-                    if(!SolidCollision.isCloseEnough(SolidObject.getPos(false), SolidObject.getID(),
-                            Object.getPos(false), Movement.getMomentum(), &Collision)){
-                        continue;
-                    }
-                }
-
-                if(checkOverlapingOnly){
-                    Collision.detectOverlaping(SolidObject.getID(), SolidCollision.getID(), SolidObject.getPos(false)+SolidCollision.getPos(false),
-                        SolidCollision.getSize(), Object.getPos(false), Movement.getMomentum());
+                if(ignoreDistantObjects && !SolidCollision.isCloseEnough(SolidObject.getPos(false), SolidObject.getID(), Object.getPos(false), Movement.getMomentum(), &Collision)){
                     continue;
                 }
 
-                Collision.detectCollision(SolidObject.getID(), SolidCollision.getID(), SolidObject.getPos(false)+SolidCollision.getPos(false),
-                    SolidCollision.getSize(), Object.getPos(false), Movement.getMomentum());
+                if(shouldCheckOverlapingOnly(Collision, SolidObject, SolidCollision)){
+                    Collision.detectOverlaping(
+                        SolidObject.getID(), SolidCollision.getID(), SolidObject.getPos(false) + SolidCollision.getPos(false),
+                        SolidCollision.getSize(), Object.getPos(false), Movement.getMomentum()
+                    );
+                    continue;
+                }
+
+                Collision.detectCollision(
+                    SolidObject.getID(), SolidCollision.getID(), SolidObject.getPos(false)+SolidCollision.getPos(false),
+                    SolidCollision.getSize(), Object.getPos(false), Movement.getMomentum()
+                );
             }
         }
         Collision.removeImaginaryCollisions();
@@ -1429,13 +1526,8 @@ void EngineLoop::moveObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
                 if(!Movement.getIsActive()){
                     continue;
                 }
-                bool mousePressed[5];
-                bool mouseReleased[5];
-                Mouse.getPressed(mousePressed);
-                Mouse.getReleased(mouseReleased);
-                Movement.updateStatesAndVectors(pressedKeys, mousePressed, mouseReleased, Mouse.getZoomPos(), Object.getPos(false));
+                Movement.updateStatesAndVectors(pressedKeys, Mouse.getPressed(), Mouse.getReleased(), Mouse.getZoomPos(), Object.getPos(false));
                 Movement.updateMomentum(Object.getPos(false));
-
 
                 //If object doesn't move, clear movement's collisions and detect overlaping objects
                 if(Movement.getMomentum().isEqual(0.0, 0.0)){
@@ -1740,6 +1832,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
     }
 
     if(drawHitboxes){
+        vec2d hitboxSize;
         for(CollisionModule & Hitbox : Object.CollisionContainer){
             if(!Hitbox.getIsActive()){
                 continue;
@@ -1748,7 +1841,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
 
            
             newPos.set(Camera.translateWithZoom(newPos));
-            vec2d hitboxSize = Hitbox.getSize();
+            hitboxSize = Hitbox.getSize();
             hitboxSize.multiply(Camera.zoom);
             
             vec4d borderColor(0, 0, 255, 127);

@@ -32,16 +32,19 @@ void PrimaryModule::setID(std::string newID){
 
 
 void PrimaryModule::addGroup(std::string newGroup){
-    addNewStringToVector(groups, newGroup);
+    addUniqueToStringVector(groups, newGroup);
 }
 void PrimaryModule::removeGroup(std::string selectedGroup){
-    removeStringFromVector(groups, selectedGroup);
+    removeFromStringVector(groups, selectedGroup);
 }
 void PrimaryModule::clearGroups(){
     groups.clear();
 }
 bool PrimaryModule::isInAGroup(std::string findGroup){
-    return isInAStringVector(groups, findGroup);
+    return inStringVector(groups, findGroup);
+}
+vector <string> PrimaryModule::getGroups(){
+    return groups;
 }
 
 

@@ -23,8 +23,8 @@ public:
     void resetReleased();
     void resetFirstPressed();
     void setUp();
-    void getPressed(bool tempArr[]);
-    void getReleased(bool tempArr[]);
+    bool * getPressed();
+    bool * getReleased();
     vec2d getPos();
     vec2d getZoomPos();
     vec2d getPressedPos();

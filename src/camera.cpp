@@ -168,16 +168,16 @@ vec2d Camera2D::translateWithZoom(vec2d objPos){
     return translateWithZoom(vec2d(0.0, 0.0), objPos);
 }
 void Camera2D::addVisibleLayer(std::string newLayer){
-    addNewStringToVector(visibleLayersIDs, newLayer);
+    addUniqueToStringVector(visibleLayersIDs, newLayer);
 }
 void Camera2D::removeVisibleLayer(std::string selectedLayer){
-    removeStringFromVector(visibleLayersIDs, selectedLayer);
+    removeFromStringVector(visibleLayersIDs, selectedLayer);
 }
 void Camera2D::clearVisibleLayers(){
     visibleLayersIDs.clear();
 }
 bool Camera2D::isLayerVisible(std::string findLayer){
-    return isInAStringVector(visibleLayersIDs, findLayer);
+    return inStringVector(visibleLayersIDs, findLayer);
 }
 void Camera2D::pinToCamera(string cameraID){
     pinnedCameraID = cameraID;

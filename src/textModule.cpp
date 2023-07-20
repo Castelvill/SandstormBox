@@ -1121,11 +1121,29 @@ bool EditableTextModule::controlCollision(CollisionModule & Collision, vector <s
 
     string cContent = getContent(0);
 
-    if(affectedVariable == "add_to_ignore_collision_list"){
-        Collision.addToIgnoreCollisionList(cContent);
+    if(affectedVariable == "add_to_ignored_objects"){
+        Collision.addToIgnoreList("objects", cContent);
     }
-    else if(affectedVariable == "remove_from_ignore_collision_list"){
-        Collision.removeFromIgnoreCollisionList(cContent);
+    else if(affectedVariable == "add_to_ignored_groups_of_objects"){
+        Collision.addToIgnoreList("groups_of_objects", cContent);
+    }
+    else if(affectedVariable == "add_to_ignored_hitboxes"){
+        Collision.addToIgnoreList("hitboxes", cContent);
+    }
+    else if(affectedVariable == "add_to_ignored_groups_of_hitboxes"){
+        Collision.addToIgnoreList("groups_of_hitboxes", cContent);
+    }
+    else if(affectedVariable == "remove_from_ignored_objects"){
+        Collision.removeFromIgnoreList("objects", cContent);
+    }
+    else if(affectedVariable == "remove_from_ignored_groups_of_objects"){
+        Collision.removeFromIgnoreList("groups_of_objects", cContent);
+    }
+    else if(affectedVariable == "remove_from_ignored_hitboxes"){
+        Collision.removeFromIgnoreList("hitboxes", cContent);
+    }
+    else if(affectedVariable == "remove_from_ignored_groups_of_hitboxes"){
+        Collision.removeFromIgnoreList("groups_of_hitboxes", cContent);
     }
     else{
         success = false;

@@ -78,19 +78,19 @@ bool isCharInGroup(char ID, int count, ...){
     return false;
 }
 
-void addNewStringToVector(vector <string> & stringVec, string newString){
+void addUniqueToStringVector(vector <string> & stringVec, string newString){
     auto findString = std::find(begin(stringVec), end(stringVec), newString);
-    if(findString == std::end(stringVec))
+    if(findString == std::end(stringVec)){
         stringVec.push_back(newString);
+    }
 }
-void removeStringFromVector(vector <string> & stringVec, std::string selectedString){
-    std::cout << "ATTENTION GAMERS: 'removeStringFromVector' function is experimental!";
+void removeFromStringVector(vector <string> & stringVec, std::string selectedString){
     auto foundString = std::find(begin(stringVec), end(stringVec), selectedString);
     if(foundString != std::end(stringVec)){
         stringVec.erase(foundString);
     }
 }
-bool isInAStringVector(vector <string> & stringVec, std::string findString){
+bool inStringVector(vector <string> & stringVec, std::string findString){
     auto foundGroup = std::find(begin(stringVec), end(stringVec), findString);
     return foundGroup != std::end(stringVec);
 }

@@ -458,7 +458,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     //Objects.back().ImageContainer[1].changeParameters("cat", vec6d(0.0, 0.0, 260.0, 260.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(0.0, 0.0, 0.0, 0.0));
     Objects.back().CollisionContainer.push_back(CollisionModule(0, Objects.back().getSize()));
     Objects.back().CollisionContainer.back().changeParameters(true, false, vec2d(0.0, 0.0), vec2d(100.0, 100.0));
-    Objects.back().CollisionContainer.back().addToIgnoreCollisionList("pupa");
+    Objects.back().CollisionContainer.back().addToIgnoreList("groups_of_hitboxes", "pupa");
     Objects.back().CollisionContainer.push_back(CollisionModule(1));
     Objects.back().CollisionContainer.back().setPos(Objects.back().getSize().x, 0);
     Objects.back().CollisionContainer.back().setSize(Objects.back().getSize());

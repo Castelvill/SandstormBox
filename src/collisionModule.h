@@ -17,7 +17,10 @@ class CollisionModule: public PrimaryModule{
 private:
     bool isSolid;
     bool canPenetrateSolids;
-    vector <string> ignoreCollisionList; //Collisions are ignored if object
+    vector <string> ignoredObjectsList;
+    vector <string> ignoredGroupsOfObjectsList;
+    vector <string> ignoredHitboxesList;
+    vector <string> ignoredGroupsOfHitboxesList;
 public:
     vector <DetectedCollision> Detected;
     CollisionModule(int collisionModuleID);
@@ -30,13 +33,16 @@ public:
     void changeParameters(bool newIsSolid, bool newCanPenetrateSolids, vec2d newPos, vec2d newSize);
     void switchSolid();
     void switchSolidPenetration();
-    void addToIgnoreCollisionList(string objectName);
-    void removeFromIgnoreCollisionList(string objectName);
+    //ignoring_type = ["objects", "groups_of_objects", "hitboxes", "groups_of_hitboxes"]
+    void addToIgnoreList(string ignoring_type, string entity);
+    //ignoring_type = ["objects", "groups_of_objects", "hitboxes", "groups_of_hitboxes"]
+    void removeFromIgnoreList(string ignoring_type, string entity);
+    //ignoring_type = ["objects", "groups_of_objects", "hitboxes", "groups_of_hitboxes"]
+    bool ignores(string ignoring_type, string entity);
     void removeImaginaryCollisions();
 
     bool getIsSolid();
     bool getCanPenetrateSolids();
-    vector <string> getIgnoreCollisionList();
 
     void setIsSolid(bool);
     void setCanPenetrateSolids(bool);

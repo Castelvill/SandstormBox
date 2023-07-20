@@ -24,9 +24,9 @@ short translateToAllegroKey(char key);
 bool isStringInGroup(string ID, int count, ...);
 bool isCharInGroup(char ID, int count, ...);
 
-void addNewStringToVector(vector <string> & stringVec, string newString);
-void removeStringFromVector(vector <string> & stringVec, std::string selectedString);
-bool isInAStringVector(vector <string> & stringVec, std::string findString);
+void addUniqueToStringVector(vector <string> & stringVec, string newString);
+void removeFromStringVector(vector <string> & stringVec, std::string selectedString);
+bool inStringVector(vector <string> & stringVec, std::string findString);
 
 
 template<typename Iterator, typename Pred, typename OperationClass>
