@@ -23,19 +23,22 @@ bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2){
     return false;
 }
 
-
-CollisionModule::CollisionModule(int collisionModuleID){
-    primaryConstructor(collisionModuleID);
-    setSize(0.0, 0.0);
-    isSolid = true;
-    canPenetrateSolids = false;
-}
-CollisionModule::CollisionModule(int collisionModuleID, vec2d size){
-    primaryConstructor(collisionModuleID);
+CollisionModule::CollisionModule(string newID, vec2d size){
+    primaryConstructor(newID);
     setSize(size);
     isSolid = true;
     canPenetrateSolids = false;
 }
+CollisionModule::CollisionModule(unsigned newID, vec2d size){
+    CollisionModule(intToStr4(newID), size);
+}
+CollisionModule::CollisionModule(string newID){
+    CollisionModule(newID, vec2d(0.0, 0.0));
+}
+CollisionModule::CollisionModule(unsigned newID){
+    CollisionModule(newID, vec2d(0.0, 0.0));
+}
+
 
 void CollisionModule::detectOverlaping(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum){
     //Check if object is in other object

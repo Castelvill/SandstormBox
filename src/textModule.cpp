@@ -27,13 +27,17 @@ void TextModule::setUpNewInstance(){
     visibility = 1.0;
     usedBitmapLayer = 0;
 }
+TextModule::TextModule(string textModuleID){
+    primaryConstructor(textModuleID);
+    setUpNewInstance();
+}
 TextModule::TextModule(unsigned int textModuleID){
     primaryConstructor(textModuleID);
     setUpNewInstance();
 }
-TextModule::TextModule(string textModuleID){
-    primaryConstructor(textModuleID);
-    setUpNewInstance();
+void TextModule::clone(const TextModule& Original){
+    content = Original.content;
+    
 }
 void TextModule::addNewContent(string newContent){
     content.push_back(newContent);

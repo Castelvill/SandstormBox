@@ -33,7 +33,7 @@ float cx, float cy, float dx, float dy, float xscale, float yscale, float angle,
 
 SingleBitmap::SingleBitmap(unsigned int bitmapID){
     ID = intToStr4(bitmapID);
-    bitmap = NULL;
+    bitmap = nullptr;
 }
 void SingleBitmap::loadBitmap(string newID, string filePath){
     if(bitmap)
@@ -69,54 +69,92 @@ void ImageModule::setUpImageInstance(){
     for(int i = 0; i < 3; i++)
         lightColor[i] = 1.0;
     isScaledFromCenter = false;
-    image = NULL;
-    lightBitmap = NULL;
+    image = nullptr;
+    lightBitmap = nullptr;
     isBitmapFromContainer[0] = false;
     isBitmapFromContainer[1] = false;
     usedBitmapLayer = 0;
-}
-ImageModule::ImageModule(int imageModuleID){
-    primaryConstructor(imageModuleID);
-    setUpImageInstance();
 }
 ImageModule::ImageModule(string imageModuleID){
     primaryConstructor(imageModuleID);
     setUpImageInstance();
 }
+ImageModule::ImageModule(unsigned int imageModuleID){
+    primaryConstructor(imageModuleID);
+    setUpImageInstance();
+}
+void ImageModule::clone(const ImageModule& Image){
+    PrimaryModule::clone(Image);
+    rotPos = Image.rotPos;
+    start = Image.start;
+    frameSize = Image.frameSize;
+    currentFrame = Image.currentFrame;
+    isBitmapFromContainer[0] = Image.isBitmapFromContainer[0];
+    isBitmapFromContainer[1] = Image.isBitmapFromContainer[1];
+    rotateAngle = Image.rotateAngle;
+    mirrorX = Image.mirrorX;
+    mirrorY = Image.mirrorY;
+    std::copy(Image.imageColor, Image.imageColor+4, imageColor);
+    lightLevel = Image.lightLevel;
+    std::copy(Image.lightColor, Image.lightColor+4, lightColor);
+    usedBitmapLayer = Image.usedBitmapLayer;
+    image = nullptr;
+    lightBitmap = nullptr;
+    if(Image.image){
+        if(!Image.isBitmapFromContainer[0]){
+            image = al_clone_bitmap(Image.image);
+        }
+        else{
+            image = Image.image;
+        }
+    }
+    if(Image.lightBitmap){
+        if(!Image.isBitmapFromContainer[1]){
+            lightBitmap = al_clone_bitmap(Image.lightBitmap);
+        }
+        else{
+            lightBitmap = Image.lightBitmap;
+        }
+    }
+    if(image || lightBitmap){
+        std::cout << "Copy has been made!\n";
+    }
+}
+void ImageModule::operator=(const ImageModule& Image){
+    clone(Image);
+}
 void ImageModule::destroyBitmap(){
     if(image){
-        if(isBitmapFromContainer[0])
-            image = NULL;
-        else{
+        if(!isBitmapFromContainer[0]){
             al_destroy_bitmap(image);
             std::cout << "Bitmap '"<< ID <<"' destroyed! (by ImageModule)\n";
         }
+        image = nullptr;
     }
     if(lightBitmap){
-        if(isBitmapFromContainer[1])
-            lightBitmap = NULL;
-        else{
+        if(!isBitmapFromContainer[1]){
             al_destroy_bitmap(lightBitmap);
             std::cout << "Light bitmap '"<< ID <<"' destroyed! (by ImageModule)\n";
         }
+        lightBitmap = nullptr;
     }
 }
 void ImageModule::loadImage(string newID, string filePath){
     if(image && !isBitmapFromContainer[0])
         al_destroy_bitmap(image);
     else
-        image = NULL;
+        image = nullptr;
     if(lightBitmap && !isBitmapFromContainer[1])
         al_destroy_bitmap(lightBitmap);
     else
-        lightBitmap = NULL;
+        lightBitmap = nullptr;
 
     isBitmapFromContainer[0] = false;
     isBitmapFromContainer[1] = false;
     ID = newID;
     image = al_load_bitmap(filePath.c_str());
     if(!image){
-        std::cout << "Image module error! (image bitmap)\n";
+        std::cout << "Error: Loading image failed.\n";
         return;
     }
     size.set(al_get_bitmap_width(image), al_get_bitmap_height(image));
@@ -133,24 +171,28 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
             break;
         }
     }
-    if(bitmapExists == false){
+    if(!bitmapExists){
         return;
     }
 
-    if(image && !isBitmapFromContainer[0])
+    if(image && !isBitmapFromContainer[0]){
         al_destroy_bitmap(image);
-    else
-        image = NULL;
-    if(lightBitmap && !isBitmapFromContainer[1])
+    }
+    else{
+        image = nullptr;
+    }
+    if(lightBitmap && !isBitmapFromContainer[1]){
         al_destroy_bitmap(lightBitmap);
-    else
-        lightBitmap = NULL;
-
+    } 
+    else{
+        lightBitmap = nullptr;
+    }
+        
     isBitmapFromContainer[0] = true;
     isBitmapFromContainer[1] = true;
-    for(unsigned int i = 0; i < BitmapContainer.size(); i++){
-        if(BitmapContainer[i].ID == bitmapID){
-            image = BitmapContainer[i].bitmap;
+    for(SingleBitmap & Bitmap : BitmapContainer){
+        if(Bitmap.ID == bitmapID){
+            image = Bitmap.bitmap;
             if(!image){
                 image = al_create_bitmap(100, 100);
             }
@@ -170,7 +212,7 @@ void ImageModule::loadLight(string filePath){
     if(lightBitmap && !isBitmapFromContainer[1])
         al_destroy_bitmap(lightBitmap);
     else
-        lightBitmap = NULL;
+        lightBitmap = nullptr;
 
     isBitmapFromContainer[1] = false;
     lightBitmap = al_load_bitmap(filePath.c_str());
@@ -183,7 +225,7 @@ void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, st
     if(lightBitmap && !isBitmapFromContainer[1])
         al_destroy_bitmap(lightBitmap);
     else
-        lightBitmap = NULL;
+        lightBitmap = nullptr;
 
     isBitmapFromContainer[1] = true;
     for(unsigned int i = 0; i < BitmapContainer.size(); i++){
@@ -208,9 +250,9 @@ void ImageModule::checkImage(ALLEGRO_DISPLAY * window){
     }
 }
 void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
-    if((!outSourcing && !getIsActive()) || image == NULL)
+    if((!outSourcing && !getIsActive()) || image == NULL){
         return;
-
+    }
     vec2d newScale(scale);
 
     if(!isAttachedToCamera){
@@ -427,7 +469,7 @@ void ImageModule::setLightColor(float newLightColor, char whichLight){
 void ImageModule::setUsedBitmapLayer(int newLayer){
     usedBitmapLayer = newLayer;
 }
-float ImageModule::getLightLevel(){
+float ImageModule::getLightLevel() const{
     return lightLevel;
 }
 void ImageModule::changeParameters(string newID, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors){

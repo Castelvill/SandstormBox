@@ -8,7 +8,7 @@ The most important class, a container for all modules that make an object.
 */
 class AncestorObject: public PrimaryModule{
 public:
-    string layerID; //This ID is needed in events' trigger detection in the engine class. 
+    string layerID; //This ID is needed in events' trigger detection in the engine class. Warning: DO NOT CHANGE IT IN CLONE METHOD.
     vector <TextModule> TextContainer;
     vector <EditableTextModule> EditableTextContainer;
     vector <ImageModule> ImageContainer;
@@ -29,8 +29,10 @@ public:
     vector <string> eveContainerIDs;
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
+
     AncestorObject();
     AncestorObject(int ancestorID, string newLayerID);
+    void clone(const AncestorObject& Original);
     void clearVectorsOfIDs();
     void clearContainers();
     void createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter);
@@ -39,7 +41,11 @@ public:
     void refreshCoordinates();
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
+    string addModuleInstance(string module, string newID);
+    string destroyModuleInstance(string module, string destroyID);
 };
+
+string findRightID(vector <string> IDs, string newID);
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);
 void activateBasedOnId(AncestorObject * EditorWindow, string activateID);
@@ -48,9 +54,39 @@ void activateBasedOnFirstChar(AncestorObject * EditorWindow, char activateID);
 void deactivateWrapped(int categoryIndex, AncestorObject * EditorWindow);
 void manageWrapper(int categoryIndex, int wrapperIndex, AncestorObject * EditorWindow, double containerHeight);
 
+
+template<class Module>
+bool removeModuleInstanceByID(vector <Module> & Container, string destroyID){
+    auto foundInstance = std::find_if(begin(Container), end(Container), [destroyID](Module &Instance){
+        return Instance.getID() == destroyID;
+    });
+    if(foundInstance != std::end(Container)){
+        Container.erase(foundInstance);
+        return true;
+    }
+    return false;
+}
+
+string SuccessInstanceAdded(string module, string ID);
+string ErrorNoInstance(string module, string ID);
+string SuccessInstanceDestroyed(string module, string ID);
+template<class Module>
+string tryRemovingModuleInstance(string module, vector <Module> & Container, vector <string> & IDs, string destroyID){
+    if(!inStringVector(IDs, destroyID)){
+        return ErrorNoInstance(module, destroyID);
+    }
+    if(!removeModuleInstanceByID(Container, destroyID)){
+        return ErrorNoInstance(module, destroyID);
+    }
+    removeFromStringVector(IDs, destroyID);
+    return SuccessInstanceDestroyed(module, destroyID);
+}
+
 template<class Module>
 struct isStringInGroupModule {
-    bool operator()(Module& Object) { return isCharInGroup(Object.getID()[0], 10, "l" /*It's L*/, "1", "2", "3", "4", "5", "6", "7", "8", "9");}
+    bool operator()(Module& Object) {
+        return isCharInGroup(Object.getID()[0], 10, "l" /*It's L*/, "1", "2", "3", "4", "5", "6", "7", "8", "9");
+    }
 };
 template<class Module>
 struct isIDEqualString {

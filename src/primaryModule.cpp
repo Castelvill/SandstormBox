@@ -1,19 +1,7 @@
 #include "primaryModule.h"
 
-void PrimaryModule::primaryConstructor(unsigned int moduleID){
-    ID = intToStr4(moduleID);
-    pos.set(0.0, 0.0);
-    scrollShift.set(0.0, 0.0);
-    size.set(100.0, 100.0);
-    scale.set(0.0, 0.0);
 
-    isActive = true;
-    isScaledFromCenter = false;
-    isAttachedToCamera = false;
-    canBeSelected = true;
-    isScrollable = false;
-}
-void PrimaryModule::primaryConstructor(std::string moduleID){
+void PrimaryModule::primaryConstructor(string moduleID){
     ID = moduleID;
     pos.set(0.0, 0.0);
     scrollShift.set(0.0, 0.0);
@@ -26,21 +14,28 @@ void PrimaryModule::primaryConstructor(std::string moduleID){
     canBeSelected = true;
     isScrollable = false;
 }
-void PrimaryModule::setID(std::string newID){
+void PrimaryModule::primaryConstructor(unsigned int moduleID){
+    primaryConstructor(intToStr4(moduleID));
+}
+void PrimaryModule::clone(const PrimaryModule & Original){
+    *this = Original;
+}
+
+void PrimaryModule::setID(string newID){
     ID = newID;
 }
 
 
-void PrimaryModule::addGroup(std::string newGroup){
+void PrimaryModule::addGroup(string newGroup){
     addUniqueToStringVector(groups, newGroup);
 }
-void PrimaryModule::removeGroup(std::string selectedGroup){
+void PrimaryModule::removeGroup(string selectedGroup){
     removeFromStringVector(groups, selectedGroup);
 }
 void PrimaryModule::clearGroups(){
     groups.clear();
 }
-bool PrimaryModule::isInAGroup(std::string findGroup){
+bool PrimaryModule::isInAGroup(string findGroup){
     return inStringVector(groups, findGroup);
 }
 vector <string> PrimaryModule::getGroups(){
@@ -111,7 +106,7 @@ void PrimaryModule::setCanBeSelected(bool newValue){
 void PrimaryModule::setIsScrollable(bool newValue){
     isScrollable = newValue;
 }
-string PrimaryModule::getID(){
+string PrimaryModule::getID() const{
     return ID;
 }
 string & PrimaryModule::getIDAddr(){

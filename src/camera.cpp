@@ -31,6 +31,8 @@ Camera2D::Camera2D(string newID, bool newIsActive, vec2d newPos, vec2d newSize, 
 }
 void Camera2D::clear(){
     al_destroy_bitmap(bitmapBuffer);
+    clearVisibleLayers();
+    clearAccessibleLayers();
 }
 void Camera2D::setID(string newID){
     ID = newID;
@@ -167,17 +169,29 @@ vec2d Camera2D::translateWithZoom(vec2d objBasePos, vec2d objPosShift){
 vec2d Camera2D::translateWithZoom(vec2d objPos){
     return translateWithZoom(vec2d(0.0, 0.0), objPos);
 }
-void Camera2D::addVisibleLayer(std::string newLayer){
+void Camera2D::addVisibleLayer(string newLayer){
     addUniqueToStringVector(visibleLayersIDs, newLayer);
 }
-void Camera2D::removeVisibleLayer(std::string selectedLayer){
+void Camera2D::addAccessibleLayer(string newLayer){
+    addUniqueToStringVector(accessibleLayersIDs, newLayer);
+}
+void Camera2D::removeVisibleLayer(string selectedLayer){
     removeFromStringVector(visibleLayersIDs, selectedLayer);
+}
+void Camera2D::removeAccessibleLayer(string selectedLayer){
+    removeFromStringVector(accessibleLayersIDs, selectedLayer);
 }
 void Camera2D::clearVisibleLayers(){
     visibleLayersIDs.clear();
 }
-bool Camera2D::isLayerVisible(std::string findLayer){
+void Camera2D::clearAccessibleLayers(){
+    accessibleLayersIDs.clear();
+}
+bool Camera2D::isLayerVisible(string findLayer){
     return inStringVector(visibleLayersIDs, findLayer);
+}
+bool Camera2D::isLayerAccessible(string findLayer){
+    return inStringVector(accessibleLayersIDs, findLayer);
 }
 void Camera2D::pinToCamera(string cameraID){
     pinnedCameraID = cameraID;

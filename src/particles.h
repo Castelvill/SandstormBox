@@ -76,7 +76,8 @@ private:
 public:
     int usedBitmapLayer;
 
-    ParticleEffectModule(int moduleID);
+    ParticleEffectModule(string newID);
+    ParticleEffectModule(unsigned int newID);
     void clearModule();
     void spawnParticles(vec2d objPos, vector <short> pressedKeys); //Particles spawn in a point or a rectangle.
     void killParticles();

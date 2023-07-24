@@ -1,4 +1,5 @@
 #include "ancestorObject.h"
+#include <ctype.h>
 
 AncestorObject::AncestorObject(){
     //blank object
@@ -7,6 +8,31 @@ AncestorObject::AncestorObject(){
 AncestorObject::AncestorObject(int ancestorID, string newLayerID){
     layerID = newLayerID;
     primaryConstructor(ancestorID);
+}
+void AncestorObject::clone(const AncestorObject& Original){
+    PrimaryModule::clone(Original);
+    ID += "c";
+    TextContainer = Original.TextContainer;
+    EditableTextContainer = Original.EditableTextContainer;
+    for(const ImageModule & Image : Original.ImageContainer){
+        ImageContainer.push_back(ImageModule(""));
+        ImageContainer.back().clone(Image);
+    }
+    MovementContainer = Original.MovementContainer;
+    CollisionContainer = Original.CollisionContainer;
+    ParticlesContainer = Original.ParticlesContainer;
+    EveContainer = Original.EveContainer;
+    VariablesContainer = Original.VariablesContainer;
+    ScrollbarContainer = Original.ScrollbarContainer;
+    textContainerIDs = Original.textContainerIDs;
+    editableTextContainerIDs = Original.editableTextContainerIDs;
+    imageContainerIDs = Original.imageContainerIDs;
+    movementContainerIDs = Original.movementContainerIDs;
+    collisionContainerIDs = Original.collisionContainerIDs;
+    particlesContainerIDs = Original.particlesContainerIDs;
+    eveContainerIDs = Original.eveContainerIDs;
+    variablesContainerIDs = Original.variablesContainerIDs;
+    scrollbarContainerIDs = Original.scrollbarContainerIDs;
 }
 void AncestorObject::clearVectorsOfIDs(){
     textContainerIDs.clear();
@@ -289,9 +315,116 @@ vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
         finalPos.translate(SelectedCamera->pos);
     return finalPos;
 }
+string SuccessInstanceAdded(string module, string ID){
+    return "Instance of " + module + "Module with ID: \'" + ID + "\' has been added.\n";
+}
+string AncestorObject::addModuleInstance(string module, string newID){
+    if(module == "text"){
+        newID = findRightID(textContainerIDs, newID);
+        TextContainer.push_back(newID);
+        textContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    if(module == "editable_text"){
+        newID = findRightID(editableTextContainerIDs, newID);
+        EditableTextContainer.push_back(newID);
+        editableTextContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    if(module == "image"){
+        newID = findRightID(imageContainerIDs, newID);
+        ImageContainer.push_back(newID);
+        imageContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    if(module == "movement"){
+        newID = findRightID(movementContainerIDs, newID);
+        MovementContainer.push_back(newID);
+        movementContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    if(module == "collision"){
+        newID = findRightID(collisionContainerIDs, newID);
+        CollisionContainer.push_back(newID);
+        collisionContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    if(module == "particles"){
+        newID = findRightID(particlesContainerIDs, newID);
+        ParticlesContainer.push_back(newID);
+        particlesContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    if(module == "event"){
+        newID = findRightID(eveContainerIDs, newID);
+        EveContainer.push_back(newID);
+        eveContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    if(module == "variable"){
+        newID = findRightID(variablesContainerIDs, newID);
+        VariablesContainer.push_back(newID);
+        variablesContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    if(module == "scrollbar"){
+        newID = findRightID(scrollbarContainerIDs, newID);
+        ScrollbarContainer.push_back(newID);
+        scrollbarContainerIDs.push_back(newID);
+        return SuccessInstanceAdded(module, newID);
+    }
+    return "Error: Module \'" + module + "\' does not exist!\n";
+}
+string ErrorNoInstance(string module, string ID){
+    return "Error: There is no instance of " + module + "Module with ID: \'" + ID + "\'.\n";
+}
+string SuccessInstanceDestroyed(string module, string ID){
+    return "Instance of " + module + "Module with ID: \'" + ID + "\' has been destroyed.\n";
+}
+string AncestorObject::destroyModuleInstance(string module, string destroyID){
+    if(module == "text"){
+        return tryRemovingModuleInstance(module, TextContainer, textContainerIDs, destroyID);
+    }
+    if(module == "editableText"){
+        return tryRemovingModuleInstance(module, EditableTextContainer, editableTextContainerIDs, destroyID);
+    }
+    if(module == "image"){
+        return tryRemovingModuleInstance(module, ImageContainer, imageContainerIDs, destroyID);
+    }
+    if(module == "movement"){
+        return tryRemovingModuleInstance(module, MovementContainer, movementContainerIDs, destroyID);
+    }
+    if(module == "collision"){
+        return tryRemovingModuleInstance(module, CollisionContainer, collisionContainerIDs, destroyID);
+    }
+    if(module == "particles"){
+        return tryRemovingModuleInstance(module, ParticlesContainer, particlesContainerIDs, destroyID);
+    }
+    if(module == "event"){
+        return tryRemovingModuleInstance(module, EveContainer, eveContainerIDs, destroyID);
+    }
+    if(module == "variable"){
+        return tryRemovingModuleInstance(module, VariablesContainer, variablesContainerIDs, destroyID);
+    }
+    if(module == "scrollbar"){
+        return tryRemovingModuleInstance(module, ScrollbarContainer, scrollbarContainerIDs, destroyID);
+    }
+    return "Error: " + module + "Module does not exist!\n";
+}
 
-
-
+string findRightID(vector <string> IDs, string newID){
+    if(newID == ""){
+        newID = "1";
+    }
+    while(inStringVector(IDs, newID)){
+        if(isdigit(newID.back()) && int(isdigit(newID.back())) < 9){
+            newID.back() = char(int(newID.back())+1);
+        }else{
+            newID += '1';
+        }
+    }
+    return newID;
+}
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){
     for_each_if(EditorWindow->TextContainer.begin(), EditorWindow->TextContainer.end(), isStringInGroupModule<TextModule>(), deactivateModule<TextModule>());
     for_each_if(EditorWindow->ImageContainer.begin(), EditorWindow->ImageContainer.end(), isStringInGroupModule<ImageModule>(), deactivateModule<ImageModule>());

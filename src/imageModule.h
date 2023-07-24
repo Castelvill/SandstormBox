@@ -41,9 +41,13 @@ private:
 public:
     int usedBitmapLayer; //Images with numbers higher or equal to zero are drawn in ascending order, but if the value is -1, image will be drawn on top of everything else.
 
+    float getLightLevel() const;
+
     void setUpImageInstance();
-    ImageModule(int imageModuleID);
     ImageModule(string imageModuleID);
+    ImageModule(unsigned int imageModuleID);
+    void clone(const ImageModule& Image);
+    void operator=(const ImageModule& Image);
 
     void loadImage(string newID, string filePath);
     void connectBitmap(vector <SingleBitmap> & BitmapContainer, string bitmapName);
@@ -73,7 +77,6 @@ public:
     void setLightColor(vec3d newLightColor, float newLightLevel);
     void setLightColor(float newLightColor, char whichLight);
     void setUsedBitmapLayer(int newLayer);
-    float getLightLevel();
     void changeParameters(string newName, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors);
     void modifyFrames(vec2d newFrameSize);
     void chooseFrames(vec2i newCurrentFrame);

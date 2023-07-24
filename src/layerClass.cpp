@@ -52,3 +52,7 @@ string LayerClass::getID(){
 bool LayerClass::getIsActive(){
     return isActive;
 }
+void LayerClass::clone(const LayerClass& Orginal){
+    *this = Orginal;
+    ID += "c";
+}

@@ -86,6 +86,9 @@ void loadBitmapsToContainer(vector <SingleBitmap> & BitmapContainer){
     BitmapContainer.back().loadBitmap("amongus_1", "images/amongus1.png");
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
+    BitmapContainer.back().loadBitmap("amongus_2", "images/amongus2.png");
+
+    BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
     BitmapContainer.back().loadBitmap("cobblestone", "images/cobblestone.png");
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
@@ -256,12 +259,13 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().setPos(vec2d(100, 400));
     Objects.back().setIsAttachedToCamera(false);
     Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
-    Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "amongus_1");
+    Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "amongus_2");
     Objects.back().ImageContainer[0].setID("amongus");
     Objects.back().ImageContainer[0].setIsScaledFromCenter(false);
     Objects.back().ImageContainer[0].setUsedBitmapLayer(1);
     Objects.back().ImageContainer[0].setScale(0.5, 0.5);
     Objects.back().ImageContainer[0].setIsAttachedToCamera(false);
+
     Objects.back().VariablesContainer.push_back(0);
     Objects.back().VariablesContainer.back().setID("timer");
     Objects.back().VariablesContainer.back().setDouble(0.0);
@@ -281,7 +285,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().TextContainer.back().setUsedBitmapLayer(2);
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
-    Objects.back().EveContainer.push_back(0);
+    /*Objects.back().EveContainer.push_back(0);
     Objects.back().EveContainer.back().primaryTriggerTypes.push_back("second_passed");
     Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
     Objects.back().EveContainer.back().ConditionalChain.back().source = "object";
@@ -291,9 +295,11 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().EveContainer.back().ConditionalChain.back().Location.moduleID = "1";
     Objects.back().EveContainer.back().ConditionalChain.back().Location.attribute = "of_foreign_hitboxes";
     Objects.back().EveContainer.back().ConditionalChain.back().Location.spareID = "1";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("par");
-    
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("par");*/
 
+    Objects.push_back(AncestorObject(Objects.size(), layerID));
+    Objects.back().clone(Objects[Objects.size()-2]);
+    Objects.back().translatePos(vec2d(300.0, 0.0));
 
     /*Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
     Objects.back().EveContainer.back().ConditionalChain.back().source = "mouse_released";
@@ -703,17 +709,20 @@ void createCameras(vector <Camera2D> & Cameras){
     Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
     Cameras.back().addVisibleLayer("Editor");
     Cameras.back().addVisibleLayer("L1");
+    Cameras.back().addVisibleLayer("L1c");
+    Cameras.back().addAccessibleLayer("L1");
 
     Cameras.push_back(Camera2D("Cam1", true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
-    Cameras.back().setFollowedLayerID("L1");
+    Cameras.back().setFollowedLayerID("L1c");
     Cameras.back().setFollowedImageID("");
     Cameras.back().setIsFollowingObject(false);
     Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
     Cameras.back().addVisibleLayer("Editor");
-    Cameras.back().addVisibleLayer("L1");
+    Cameras.back().addVisibleLayer("L1c");
+    Cameras.back().addAccessibleLayer("L1c");
     Cameras.back().pinToCamera("Cam0");
     
     Cameras.push_back(Camera2D("Cam2", true, vec2d(300.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
@@ -762,6 +771,10 @@ int main(){
 
     Layers.push_back(LayerClass("L1", true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
     createObjects1(Layers[1].Objects, Layers[1].getID(), FontContainer, BitmapContainer, EngineLoop1.window);
+
+    Layers.push_back(LayerClass("", true, vec2d(0.0, 0.0), vec2d(0, 0)));
+    Layers.back().clone(Layers[Layers.size()-2]);
+    
     
     unsigned numberOfObjects = 0;
 
@@ -788,7 +801,7 @@ int main(){
 
     vector <string> fileNames;
     #if _WIN32
-        fileNames = getAllFilesNamesWithinFolder("D:/k\271cik programowanka/Easy Game Maker");
+        fileNames = getAllFilesNamesWithinFolder("D:/Programming/Easy Game Maker");
     #elif __linux__
         fileNames = getAllFilesNamesWithinFolder(".");
     #endif

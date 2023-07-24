@@ -27,6 +27,7 @@ public:
     bool isUsingCursorPositionToMove;
 
     vector <string> visibleLayersIDs;
+    vector <string> accessibleLayersIDs; //User can interact with those Layers through this Camera;
     ALLEGRO_BITMAP * bitmapBuffer;
 
     Camera2D(string newID, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
@@ -57,9 +58,13 @@ public:
     vec2d translateWithZoom(vec2d objBasePos, vec2d objPosShift);
     vec2d translateWithZoom(vec2d objPos);
     void addVisibleLayer(string newLayer);
+    void addAccessibleLayer(std::string newLayer);
     void removeVisibleLayer(string selectedLayer);
+    void removeAccessibleLayer(std::string selectedLayer);
     void clearVisibleLayers();
+    void clearAccessibleLayers();
     bool isLayerVisible(string findLayer);
+    bool isLayerAccessible(string findLayer);
     void pinToCamera(string cameraID);
     void setIsPinned(bool isPinned);
     void activatePin();

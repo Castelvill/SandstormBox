@@ -14,9 +14,7 @@ class PrimaryModule{
     protected:
 
     string ID;
-
     vector <string> groups;
-
     vec2d pos, scrollShift, size, scale;
 
     bool isActive; //deactivated object doesn't interact with the program, you can only activate it.
@@ -27,8 +25,9 @@ class PrimaryModule{
 
     public:
 
-    void primaryConstructor(unsigned int moduleID);
     void primaryConstructor(string moduleID);
+    void primaryConstructor(unsigned int moduleID);
+    void clone(const PrimaryModule & Original);
     void setID(string newID);
 
     void addGroup(string newGroup);
@@ -58,7 +57,7 @@ class PrimaryModule{
     void setIsAttachedToCamera(bool newIsAttachedToCamera);
     void setCanBeSelected(bool newValue);
     void setIsScrollable(bool newValue);
-    string getID();
+    string getID() const;
     string & getIDAddr();
     vec2d getPos(bool useScrollshift);
     vec2d & getPosAddr();

@@ -6,7 +6,7 @@
 #include "primaryModule.h"
 #include <allegro5/allegro.h>
 #include <algorithm>
-
+#include <iterator>
 
 using std::string;
 
@@ -48,6 +48,5 @@ SearchModule * findByIDAndReturnPointer(vector <SearchModule> & Container, strin
     }
     return nullptr;
 }
-
 
 #endif // USEFULL_H_INCLUDED

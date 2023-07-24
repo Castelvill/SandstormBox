@@ -152,9 +152,8 @@ double SingleParticle::getRadius(){
     return radius;
 }
 
-
-ParticleEffectModule::ParticleEffectModule(int moduleID){
-    primaryConstructor(moduleID);
+ParticleEffectModule::ParticleEffectModule(string newID){
+    primaryConstructor(newID);
     environment.set(0.0, 0.0);
     environmentSpeed.set(0.0, 0.0);
     minSpeed = 0.0;
@@ -196,6 +195,9 @@ ParticleEffectModule::ParticleEffectModule(int moduleID){
     spawnKeyBind = ALLEGRO_KEY_P;
     spawnOnKeyRelease = false;
     usedBitmapLayer = 0;
+}
+ParticleEffectModule::ParticleEffectModule(unsigned int newID){
+    ParticleEffectModule(intToStr4(newID));
 }
 void ParticleEffectModule::clearModule(){
     particleEffect.clear();

@@ -84,6 +84,50 @@ void ChainMovement::clearChain(){
     posChain.clear();
 }
 
+
+MovementModule::MovementModule(string newID){
+    ID = newID;
+    movementType = 0;
+    allowedJumps = 0;
+    jumpsCount = 0;
+    jumpCooldown = 0.0;
+    jumpCooldownDuration = 0.0;
+    isMovePlanned = false;
+    canJump = false;
+    bodyMass = 0.0;
+    walkingSpeed = 0.0;
+    runningSpeed = 0.0;
+    jumpSpeed = 0.0;
+    gravitation = 0.0;
+    baseFriction = 0.0;
+    momentum.set(0.0, 0.0);
+    maxMomentumX = 0.0;
+    minMomentumY = 0.0;
+    maxMomentumY = 0.0;
+    moveCooldown = 0.0;
+    moveCooldownDuration = 0.0;
+    canMoveDiagonally = true;
+    resetMomentumWhenJumping = true;
+
+    upKey = ALLEGRO_KEY_UP;
+    rightKey = ALLEGRO_KEY_RIGHT;
+    downKey = ALLEGRO_KEY_DOWN;
+    leftKey = ALLEGRO_KEY_LEFT;
+    jumpKey = ALLEGRO_KEY_UP;
+    runningKey = ALLEGRO_KEY_LSHIFT;
+
+    clearStates();
+
+    directionOfMove.set(0.0, 0.0);
+    mouseButton = 0;
+    moveOnMouseRelease = true;
+    
+    activate();
+}
+MovementModule::MovementModule(unsigned int movementModuleID){
+    MovementModule(intToStr4(movementModuleID));
+}
+
 void MovementModule::translateNumericalActionToState(short action){
     if(action == 0)
         return;
@@ -439,45 +483,6 @@ void MovementModule::clearStates(){
     isJumping = false;
     isFalling = false;
     isRunning = false;
-}
-MovementModule::MovementModule(unsigned int movementModuleID){
-    ID = intToStr4(movementModuleID);
-    movementType = 0;
-    allowedJumps = 0;
-    jumpsCount = 0;
-    jumpCooldown = 0.0;
-    jumpCooldownDuration = 0.0;
-    isMovePlanned = false;
-    canJump = false;
-    bodyMass = 0.0;
-    walkingSpeed = 0.0;
-    runningSpeed = 0.0;
-    jumpSpeed = 0.0;
-    gravitation = 0.0;
-    baseFriction = 0.0;
-    momentum.set(0.0, 0.0);
-    maxMomentumX = 0.0;
-    minMomentumY = 0.0;
-    maxMomentumY = 0.0;
-    moveCooldown = 0.0;
-    moveCooldownDuration = 0.0;
-    canMoveDiagonally = true;
-    resetMomentumWhenJumping = true;
-
-    upKey = ALLEGRO_KEY_UP;
-    rightKey = ALLEGRO_KEY_RIGHT;
-    downKey = ALLEGRO_KEY_DOWN;
-    leftKey = ALLEGRO_KEY_LEFT;
-    jumpKey = ALLEGRO_KEY_UP;
-    runningKey = ALLEGRO_KEY_LSHIFT;
-
-    clearStates();
-
-    directionOfMove.set(0.0, 0.0);
-    mouseButton = 0;
-    moveOnMouseRelease = true;
-    
-    activate();
 }
 void MovementModule::translateKeyboardToState(vector <short> pressedKeys){
     for(unsigned int i = 0; i < pressedKeys.size(); i++){

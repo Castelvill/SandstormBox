@@ -210,7 +210,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     key[i] &= KEY_SEEN;
                 redraw = true;
                 Mouse.resetReleased();
-                triggerEvents(Layers, 0);
                 break;
             case ALLEGRO_EVENT_MOUSE_AXES:
                 Mouse.updateAxes(event);
@@ -245,7 +244,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
                 Mouse.updateButtonsReleased(event);
-                triggerEvents(Layers, 1);
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
                 key[event.keyboard.keycode] = KEY_SEEN | KEY_RELEASED;
@@ -1280,8 +1278,13 @@ bool EngineLoop::isKeyReleased(short key){
 void EngineLoop::detectStartPosOfDraggingObjects(){
     wasMousePressedInSelectedObject = false;
 
-    if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true)
-            && SelectedLayer != nullptr && SelectedObject != nullptr){
+    if(
+        SelectedCamera != nullptr && SelectedCamera->getIsActive()
+        && SelectedLayer != nullptr && SelectedObject != nullptr
+        && Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true)
+        && SelectedCamera->isLayerVisible(SelectedLayer->getID())
+        && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
+    ){
         if(SelectedObject->getIsAttachedToCamera()){
             if(Mouse.inRectangle(SelectedCamera->pos + SelectedObject->getPos(false)+SelectedLayer->pos, SelectedObject->getSize(), true)){
                 wasMousePressedInSelectedObject = true;
@@ -1301,7 +1304,7 @@ void EngineLoop::startScrollbarDragging(vector <LayerClass> & Layers){
         return;
     }
     for(LayerClass & Layer : Layers){
-        if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID())){
+        if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID()) || !SelectedCamera->isLayerAccessible(Layer.getID())){
             continue;
         }
         for(AncestorObject & Object : Layer.Objects){
@@ -1553,7 +1556,11 @@ void EngineLoop::moveObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
 }
 void EngineLoop::moveSelectedObject(vector <EditableTextModule> & EditableTextContainer){
     if(SelectedLayer != nullptr && SelectedObject != nullptr && Mouse.isPressed(0) && wasMousePressedInSelectedObject){
-        if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
+        if(
+            SelectedCamera != nullptr && SelectedCamera->getIsActive()
+            && SelectedCamera->isLayerVisible(SelectedLayer->getID())
+            && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
+        ){
             if(SelectedObject->getIsAttachedToCamera()){
                 SelectedObject->setPos(Mouse.getPos()-dragStartingPos);
             }
@@ -1878,7 +1885,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
         vec2d finalPos, finalSize;
         bool isScrollable;
         for(LayerClass & Layer : Layers){
-            if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID())){
+            if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID()) || !SelectedCamera->isLayerAccessible(Layer.getID())){
                 continue;
             }
             for(AncestorObject & Object : Layer.Objects){
@@ -1949,7 +1956,7 @@ void EngineLoop::selectObject(vector <LayerClass> & Layers, vector <SingleBitmap
     }
     
     for(LayerClass & Layer : Layers){
-        if(!Layer.getIsActive() && !SelectedCamera->isLayerVisible(Layer.getID())){
+        if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID()) || !SelectedCamera->isLayerAccessible(Layer.getID())){
             continue;
         }
         

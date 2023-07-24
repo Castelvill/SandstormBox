@@ -67,6 +67,7 @@ private:
     short upKey, rightKey, downKey, leftKey, jumpKey, runningKey;
 
 public:
+    MovementModule(string newID);
     MovementModule(unsigned int movementModuleID);
 
     void changeJumpParameters(double newJumpSpeed, short newAllowedJumps, double newJumpCooldownDuration, double newGravitation, double newMinMomentumY, double newMaxMomentumY, bool newResetMomentumWhenJumping);
