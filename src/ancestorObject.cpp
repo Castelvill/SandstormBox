@@ -9,9 +9,12 @@ AncestorObject::AncestorObject(int ancestorID, string newLayerID){
     layerID = newLayerID;
     primaryConstructor(ancestorID);
 }
-void AncestorObject::clone(const AncestorObject& Original){
+void AncestorObject::clone(const AncestorObject& Original, bool isClonedFromDifferentLayer, vector <string> & listOfUniqueIDs){
     PrimaryModule::clone(Original);
-    ID += "c";
+    if(!isClonedFromDifferentLayer){
+        setID(findRightID(listOfUniqueIDs, getID()));
+        listOfUniqueIDs.push_back(getID());
+    }
     TextContainer = Original.TextContainer;
     EditableTextContainer = Original.EditableTextContainer;
     for(const ImageModule & Image : Original.ImageContainer){
@@ -412,19 +415,6 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
     return "Error: " + module + "Module does not exist!\n";
 }
 
-string findRightID(vector <string> IDs, string newID){
-    if(newID == ""){
-        newID = "1";
-    }
-    while(inStringVector(IDs, newID)){
-        if(isdigit(newID.back()) && int(isdigit(newID.back())) < 9){
-            newID.back() = char(int(newID.back())+1);
-        }else{
-            newID += '1';
-        }
-    }
-    return newID;
-}
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){
     for_each_if(EditorWindow->TextContainer.begin(), EditorWindow->TextContainer.end(), isStringInGroupModule<TextModule>(), deactivateModule<TextModule>());
     for_each_if(EditorWindow->ImageContainer.begin(), EditorWindow->ImageContainer.end(), isStringInGroupModule<ImageModule>(), deactivateModule<ImageModule>());

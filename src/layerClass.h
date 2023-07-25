@@ -21,7 +21,7 @@ public:
     void setIsActive(bool newIsActive);
     string getID();
     bool getIsActive();
-    void clone(const LayerClass& Orginal);
+    void clone(const LayerClass& Orginal, vector <string> & layersIDs);
 };
 
 

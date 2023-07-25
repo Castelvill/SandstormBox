@@ -161,6 +161,8 @@ public:
     EngineLoop(string title);
     void initAllegro();
     void exitAllegro();
+    bool createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers, vector <string> & layersIDs);
+    bool createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs);
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
     void executeDependentOperations(LayerClass * OwnerLayer, AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);

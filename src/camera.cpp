@@ -29,6 +29,20 @@ Camera2D::Camera2D(string newID, bool newIsActive, vec2d newPos, vec2d newSize, 
     isUsingCursorPositionToMove = false;
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
+Camera2D::Camera2D(string newID){
+    Camera2D(newID, false, vec2d(0.0, 0.0), vec2d(0.0, 0.0), vec2d(0.0, 0.0));
+}
+void Camera2D::clone(const Camera2D& Orginal, bool isClonedFromDifferentLayer, vector <string> & camerasIDs){
+    *this = Orginal;
+    if(!isClonedFromDifferentLayer){
+        ID = findRightID(camerasIDs, getID());
+        camerasIDs.push_back(getID());
+    }
+    if(bitmapBuffer){
+        bitmapBuffer = nullptr;
+        bitmapBuffer = al_create_bitmap(size.x, size.y);
+    }
+}
 void Camera2D::clear(){
     al_destroy_bitmap(bitmapBuffer);
     clearVisibleLayers();
@@ -195,6 +209,7 @@ bool Camera2D::isLayerAccessible(string findLayer){
 }
 void Camera2D::pinToCamera(string cameraID){
     pinnedCameraID = cameraID;
+    isPinnedToCamera = true;
 }
 void Camera2D::setIsPinned(bool isPinned){
     isPinnedToCamera = isPinned;

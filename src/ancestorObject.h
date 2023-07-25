@@ -32,7 +32,7 @@ public:
 
     AncestorObject();
     AncestorObject(int ancestorID, string newLayerID);
-    void clone(const AncestorObject& Original);
+    void clone(const AncestorObject& Original, bool isClonedFromDifferentLayer, vector <string> & listOfUniqueIDs);
     void clearVectorsOfIDs();
     void clearContainers();
     void createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter);
@@ -44,8 +44,6 @@ public:
     string addModuleInstance(string module, string newID);
     string destroyModuleInstance(string module, string destroyID);
 };
-
-string findRightID(vector <string> IDs, string newID);
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);
 void activateBasedOnId(AncestorObject * EditorWindow, string activateID);

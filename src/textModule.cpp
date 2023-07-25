@@ -35,10 +35,6 @@ TextModule::TextModule(unsigned int textModuleID){
     primaryConstructor(textModuleID);
     setUpNewInstance();
 }
-void TextModule::clone(const TextModule& Original){
-    content = Original.content;
-    
-}
 void TextModule::addNewContent(string newContent){
     content.push_back(newContent);
 }

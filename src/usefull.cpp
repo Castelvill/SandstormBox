@@ -95,5 +95,17 @@ bool inStringVector(vector <string> & stringVec, std::string findString){
     return foundGroup != std::end(stringVec);
 }
 
-
+string findRightID(vector <string> IDs, string newID){
+    if(newID == ""){
+        newID = "1";
+    }
+    while(inStringVector(IDs, newID)){
+        if(isdigit(newID.back()) && int(isdigit(newID.back())) < 9){
+            newID.back() = char(int(newID.back())+1);
+        }else{
+            newID += '1';
+        }
+    }
+    return newID;
+}
 

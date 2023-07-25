@@ -36,7 +36,6 @@ public:
     void setUpNewInstance();
     TextModule(unsigned int textModuleID);
     TextModule(string textModuleID);
-    void clone(const TextModule& Original);
     void fitSizeToText(std::vector <SingleFont> FontContainer);
     void addNewContent(string newContent);
     void addNewContentAndResize(string newContent, std::vector <SingleFont> FontContainer);

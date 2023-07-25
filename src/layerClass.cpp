@@ -52,7 +52,8 @@ string LayerClass::getID(){
 bool LayerClass::getIsActive(){
     return isActive;
 }
-void LayerClass::clone(const LayerClass& Orginal){
+void LayerClass::clone(const LayerClass& Orginal, vector <string> & layersIDs){
     *this = Orginal;
-    ID += "c";
+    ID = findRightID(layersIDs, getID());
+    layersIDs.push_back(ID);
 }

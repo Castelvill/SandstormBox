@@ -169,6 +169,60 @@ void EngineLoop::exitAllegro(){
     foregroundOfObjects.clear();
     BaseOfTriggerableObjects.clearLookupTable();
 }
+bool EngineLoop::createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers, vector <string> & layersIDs){
+    layersIDs.clear();
+    unsigned i, j;
+    bool violated = false;
+    for(i = 0; i < Layers.size(); i++){
+        for(j = 0; j < Layers.size(); j++){
+            if(i == j){
+                continue;
+            }
+            if(Layers[i].getID() == Layers[j].getID()){
+                if(!violated){
+                    std::cout << "\n\n";
+                }
+                std::cout << "Uniqueness has been violated by \'" << Layers[j].getID() << "\' layer.\n";
+                violated = true;
+            }
+        }
+        if(!violated){
+            layersIDs.push_back(Layers[i].getID());
+        }
+    }
+
+    if(violated){
+        std::cout << "\n";
+    }
+    return violated;
+}
+bool EngineLoop::createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
+    camerasIDs.clear();
+    unsigned i, j;
+    bool violated = false;
+    for(i = 0; i < Cameras.size(); i++){
+        for(j = 0; j < Cameras.size(); j++){
+            if(i == j){
+                continue;
+            }
+            if(Cameras[i].getID() == Cameras[j].getID()){
+                if(!violated){
+                    std::cout << "\n\n";
+                }
+                std::cout << "Uniqueness has been violated by \'" << Cameras[j].getID() << "\' layer.\n";
+                violated = true;
+            }
+        }
+        if(!violated){
+            camerasIDs.push_back(Cameras[i].getID());
+        }
+    }
+
+    if(violated){
+        std::cout << "\n";
+    }
+    return violated;
+}
 
 void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer){
     bool redraw = false;
@@ -1209,7 +1263,7 @@ void EngineLoop::updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras
                     if(!Cameras[j].isActive || i == j || tokensOfChanges[j] > 0){
                         continue;
                     }
-                    if(Cameras[j].pinnedCameraID == Cameras[i].ID){
+                    if(Cameras[j].isPinnedToCamera && Cameras[j].pinnedCameraID == Cameras[i].ID){
                         Cameras[j].pos = Cameras[i].pos + Cameras[j].relativePos;
                         tokensOfChanges[j] = 1;
                     }

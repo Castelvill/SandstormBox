@@ -166,7 +166,7 @@ vector<string> getAllFilesNamesWithinFolder(string folder){
     return names;
 }
 
-void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
+void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
     /*Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("king_arthur");
     Objects.back().setPos(vec2d(0.0, 0.0));
@@ -256,6 +256,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
 
     Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("Amongus");
+    listOfUniqueIDs.push_back(Objects.back().getID());
     Objects.back().setPos(vec2d(100, 400));
     Objects.back().setIsAttachedToCamera(false);
     Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
@@ -298,7 +299,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("par");*/
 
     Objects.push_back(AncestorObject(Objects.size(), layerID));
-    Objects.back().clone(Objects[Objects.size()-2]);
+    Objects.back().clone(Objects[Objects.size()-2], false, listOfUniqueIDs);
     Objects.back().translatePos(vec2d(300.0, 0.0));
 
     /*Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
@@ -698,7 +699,7 @@ void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().deactivate();
 }
 
-void createCameras(vector <Camera2D> & Cameras){
+void createCameras(vector <Camera2D> & Cameras, vector <string> camerasIDs){
     Cameras.push_back(Camera2D("Cam0", true, vec2d(0.0, 0.0), vec2d(SCREEN_W/2.0, SCREEN_H), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
@@ -709,20 +710,20 @@ void createCameras(vector <Camera2D> & Cameras){
     Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
     Cameras.back().addVisibleLayer("Editor");
     Cameras.back().addVisibleLayer("L1");
-    Cameras.back().addVisibleLayer("L1c");
+    Cameras.back().addVisibleLayer("L2");
     Cameras.back().addAccessibleLayer("L1");
 
     Cameras.push_back(Camera2D("Cam1", true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
-    Cameras.back().setFollowedLayerID("L1c");
+    Cameras.back().setFollowedLayerID("L2");
     Cameras.back().setFollowedImageID("");
     Cameras.back().setIsFollowingObject(false);
     Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
     Cameras.back().addVisibleLayer("Editor");
-    Cameras.back().addVisibleLayer("L1c");
-    Cameras.back().addAccessibleLayer("L1c");
+    Cameras.back().addVisibleLayer("L2");
+    Cameras.back().addAccessibleLayer("L2");
     Cameras.back().pinToCamera("Cam0");
     
     Cameras.push_back(Camera2D("Cam2", true, vec2d(300.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
@@ -736,6 +737,11 @@ void createCameras(vector <Camera2D> & Cameras){
     Cameras.back().addVisibleLayer("Editor");
     Cameras.back().addVisibleLayer("L1");
     Cameras.back().pinToCamera("Cam1");
+
+    Cameras.push_back(Camera2D(""));
+    Cameras.back().clone(Cameras[1], false, camerasIDs);
+    Cameras.back().setIsPinned(false);
+    Cameras.back().setPos(vec2d(SCREEN_W/2.0, 300.0));
 }
 
 Fps fps;
@@ -751,7 +757,8 @@ int main(){
     vector <SingleBitmap> BitmapContainer;
     vector <LayerClass> Layers;
     vector <Camera2D> Cameras;
-
+    vector <string> layersIDs;
+    vector <string> camerasIDs;
 
     EngineLoop1.initAllegro();
     loadFontsToContainer(FontContainer);
@@ -759,7 +766,8 @@ int main(){
 
     loadBitmapsToContainer(BitmapContainer);
 
-    createCameras(Cameras);
+    createCameras(Cameras, camerasIDs);
+    EngineLoop1.createListOfUniqueIDsOfCameras(Cameras, camerasIDs);
     EngineLoop1.updateAllForestOfCameras(Cameras);
 
 
@@ -770,11 +778,12 @@ int main(){
 
 
     Layers.push_back(LayerClass("L1", true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
-    createObjects1(Layers[1].Objects, Layers[1].getID(), FontContainer, BitmapContainer, EngineLoop1.window);
+    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].listOfUniqueIDs, FontContainer, BitmapContainer, EngineLoop1.window);
+
+    EngineLoop1.createListOfUniqueIDsOfLayers(Layers, layersIDs);
 
     Layers.push_back(LayerClass("", true, vec2d(0.0, 0.0), vec2d(0, 0)));
-    Layers.back().clone(Layers[Layers.size()-2]);
-    
+    Layers.back().clone(Layers[Layers.size()-2], layersIDs);
     
     unsigned numberOfObjects = 0;
 

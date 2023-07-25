@@ -28,6 +28,8 @@ void addUniqueToStringVector(vector <string> & stringVec, string newString);
 void removeFromStringVector(vector <string> & stringVec, std::string selectedString);
 bool inStringVector(vector <string> & stringVec, std::string findString);
 
+string findRightID(vector <string> IDs, string newID);
+
 
 template<typename Iterator, typename Pred, typename OperationClass>
 void for_each_if(Iterator begin, Iterator end, Pred p, OperationClass op) {
