@@ -4,6 +4,10 @@ TriggerClass::TriggerClass(unsigned int newID) : Literal(newID){}
 TriggerClass::TriggerClass(string newID) : Literal(newID){}
 TriggerClass::TriggerClass() : Literal(""){}
 
+OperaClass::OperaClass(){
+    instruction = "";
+}
+
 EveModule::EveModule(unsigned int eventModuleID){
     primaryConstructor(eventModuleID);
     setUpNewInstance();
@@ -35,11 +39,11 @@ bool EveModule::checkIfAllChildrenFinished(){
     return true;
 }
 void EveModule::controlAncestor(OperaClass & Operation, vec2d & objectPos, vec2d & objectSize){
-    if(Operation.affectedVariable == "position" && Operation.choosenDoubles.size() >= 2){
-        objectPos.set(Operation.choosenDoubles[0], Operation.choosenDoubles[1]);
+    if(Operation.affectedVariable == "position" && Operation.Literals.size() >= 2){
+        objectPos.set(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
     }
-    if(Operation.affectedVariable == "size" && Operation.choosenDoubles.size() >= 2){
-        objectSize.set(Operation.choosenDoubles[0], Operation.choosenDoubles[1]);
+    if(Operation.affectedVariable == "size" && Operation.Literals.size() >= 2){
+        objectSize.set(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
     }
 }
 void EveModule::controlText(OperaClass & Operation, TextModule & Text){
@@ -49,62 +53,62 @@ void EveModule::controlText(OperaClass & Operation, TextModule & Text){
     else if(Operation.affectedVariable == "deactivate"){
         Text.deactivate();
     }
-    else if(Operation.affectedVariable == "position" && Operation.choosenDoubles.size() >= 2){
-        Text.setPos(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "position" && Operation.Literals.size() >= 2){
+        Text.setPos(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "size" && Operation.choosenDoubles.size() >= 2){
-        Text.setSize(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "size" && Operation.Literals.size() >= 2){
+        Text.setSize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "set_scale" && Operation.choosenDoubles.size() >= 2){
-        Text.setScale(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "set_scale" && Operation.Literals.size() >= 2){
+        Text.setScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "add_scale" && Operation.choosenDoubles.size() >= 2){
-        Text.addScale(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "add_scale" && Operation.Literals.size() >= 2){
+        Text.addScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "color" && Operation.choosenDoubles.size() >= 3){
-        Text.setColors(Operation.choosenDoubles[0], Operation.choosenDoubles[1], Operation.choosenDoubles[2]);
+    else if(Operation.affectedVariable == "color" && Operation.Literals.size() >= 3){
+        Text.setColors(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble(), Operation.Literals[2].getDouble());
     }
     else if(Operation.affectedVariable == "random_color"){
         Text.setRandomColors();
     }
-    else if(Operation.affectedVariable == "set_rotation" && Operation.choosenDoubles.size() >= 1){
-        Text.setRotation(Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "set_rotation" && Operation.Literals.size() >= 1){
+        Text.setRotation(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "rotate" && Operation.choosenDoubles.size() >= 1){
-        Text.addRotation(Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "rotate" && Operation.Literals.size() >= 1){
+        Text.addRotation(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "visibility" && Operation.choosenDoubles.size() >= 1){
-        Text.setVisibility(Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "visibility" && Operation.Literals.size() >= 1){
+        Text.setVisibility(Operation.Literals[0].getDouble());
     }
 }
 void EveModule::controlImage(OperaClass & Operation, ImageModule & Image){
-    if(Operation.affectedVariable == "position" && Operation.choosenDoubles.size() >= 2){
-        Image.setPos(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    if(Operation.affectedVariable == "position" && Operation.Literals.size() >= 2){
+        Image.setPos(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "size" && Operation.choosenDoubles.size() >= 2){
-        Image.setSize(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "size" && Operation.Literals.size() >= 2){
+        Image.setSize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "scale" && Operation.choosenDoubles.size() >= 2){
-        Image.setScale(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "scale" && Operation.Literals.size() >= 2){
+        Image.setScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "resize" && Operation.choosenDoubles.size() >= 2){
-        Image.resize(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "resize" && Operation.Literals.size() >= 2){
+        Image.resize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "set_rotation" && Operation.choosenDoubles.size() >= 1){
-        Image.setRotation(Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "set_rotation" && Operation.Literals.size() >= 1){
+        Image.setRotation(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "rotate" && Operation.choosenDoubles.size() >= 1){
-        Image.addRotation(Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "rotate" && Operation.Literals.size() >= 1){
+        Image.addRotation(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "mirror" && Operation.choosenDoubles.size() >= 2){
-        Image.setMirror(Operation.choosenDoubles[0], Operation.choosenDoubles[1]);
+    else if(Operation.affectedVariable == "mirror" && Operation.Literals.size() >= 2){
+        Image.setMirror(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
     }
-    else if(Operation.affectedVariable == "image_color" && Operation.choosenDoubles.size() >= 4){
-        float arr[] = {float(Operation.choosenDoubles[0]), float(Operation.choosenDoubles[1]), float(Operation.choosenDoubles[2]), float(Operation.choosenDoubles[3])};
+    else if(Operation.affectedVariable == "image_color" && Operation.Literals.size() >= 4){
+        float arr[] = {float(Operation.Literals[0].getDouble()), float(Operation.Literals[1].getDouble()), float(Operation.Literals[2].getDouble()), float(Operation.Literals[3].getDouble())};
         Image.setImageColor(arr);
     }
-    else if(Operation.affectedVariable == "light" && Operation.choosenDoubles.size() >= 4){
-        Image.setLightColor(vec3d(Operation.choosenDoubles[0], Operation.choosenDoubles[1], Operation.choosenDoubles[2]), Operation.choosenDoubles[3]);
+    else if(Operation.affectedVariable == "light" && Operation.Literals.size() >= 4){
+        Image.setLightColor(vec3d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble(), Operation.Literals[2].getDouble()), Operation.Literals[3].getDouble());
     }
 }
 void EveModule::controlMovement(OperaClass & Operation, MovementModule & Movement){
@@ -129,8 +133,8 @@ void EveModule::controlMovement(OperaClass & Operation, MovementModule & Movemen
     else if(Operation.affectedVariable == "move_run"){
         Movement.setNextMove(false, false, false, false, false, false, true);
     }
-    else if(Operation.affectedVariable == "move" && Operation.choosenDoubles.size() >= 2){
-        Movement.addMomentum(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "move" && Operation.Literals.size() >= 2){
+        Movement.addMomentum(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
 }
 void EveModule::controlCollision(OperaClass & Operation, CollisionModule & Collision){
@@ -142,14 +146,14 @@ void EveModule::controlCollision(OperaClass & Operation, CollisionModule & Colli
     }
 }
 void EveModule::controlParticles(OperaClass & Operation, ParticleEffectModule & Particles){
-    if(Operation.affectedVariable == "environment" && Operation.choosenDoubles.size() >= 2){
-        Particles.setEnvironment(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    if(Operation.affectedVariable == "environment" && Operation.Literals.size() >= 2){
+        Particles.setEnvironment(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "environment_speed" && Operation.choosenDoubles.size() >= 2){
-        Particles.setEnvironmentSpeed(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "environment_speed" && Operation.Literals.size() >= 2){
+        Particles.setEnvironmentSpeed(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "shape" && Operation.choosenDoubles.size() >= 1){
-        Particles.setParticlesShape(Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "shape" && Operation.Literals.size() >= 1){
+        Particles.setParticlesShape(Operation.Literals[0].getDouble());
     }
     else if(Operation.affectedVariable == "image"){
         Particles.switchUseImageAsParticles();
@@ -173,193 +177,193 @@ void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variab
             Variable.toggleDefaultBool();
         }
     }
-    else if(Operation.affectedVariable == "set_default_bool_probability" && Operation.choosenDoubles.size() >= 3){
+    else if(Operation.affectedVariable == "set_default_bool_probability" && Operation.Literals.size() >= 3){
         bool setBool;
-        if(Operation.choosenDoubles[0] == 0){
+        if(Operation.Literals[0].getDouble() == 0){
             setBool = false;
         }
-        else if(Operation.choosenDoubles[0] == 1){
+        else if(Operation.Literals[0].getDouble() == 1){
             setBool = true;
         }
         else{
             return;
         }
 
-        if(rand() % (int)Operation.choosenDoubles[2] <= (int)Operation.choosenDoubles[1]){
+        if(rand() % Operation.Literals[2].getInt() <= Operation.Literals[1].getInt()){
             Variable.setDefaultBool(setBool);
         }
     }
-    else if(Operation.affectedVariable == "set_default_bool_probability" && Operation.choosenDoubles.size() >= 2){
+    else if(Operation.affectedVariable == "set_default_bool_probability" && Operation.Literals.size() >= 2){
         bool setBool;
-        if(Operation.choosenDoubles[0] == 0){
+        if(Operation.Literals[0].getDouble() == 0){
             setBool = false;
         }
-        else if(Operation.choosenDoubles[0] == 1){
+        else if(Operation.Literals[0].getDouble() == 1){
             setBool = true;
         }
         else{
             return;
         }
 
-        if(rand() % 100 <= Operation.choosenDoubles[1]){
+        if(rand() % 100 <= Operation.Literals[1].getDouble()){
             Variable.setDefaultBool(setBool);
         }
     }
-    else if(Operation.affectedVariable == "set_default_bool" && Operation.choosenDoubles.size() >= 1){
-        if(Operation.choosenDoubles[0] == 0){
+    else if(Operation.affectedVariable == "set_default_bool" && Operation.Literals.size() >= 1){
+        if(Operation.Literals[0].getDouble() == 0){
             Variable.setDefaultBool(false);
         }
-        if(Operation.choosenDoubles[0] == 1){
+        if(Operation.Literals[0].getDouble() == 1){
             Variable.setDefaultBool(true);
         }
     }
-    else if(Operation.affectedVariable == "set_default_int" && Operation.choosenDoubles.size() >= 1){
-        Variable.setDefaultInt((int)Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "set_default_int" && Operation.Literals.size() >= 1){
+        Variable.setDefaultInt(Operation.Literals[0].getInt());
     }
-    else if(Operation.affectedVariable == "set_default_int_interval" && Operation.choosenDoubles.size() >= 2){
-        Variable.setDefaultInt(randomInt((int)Operation.choosenDoubles[0], (int)Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "set_default_int_interval" && Operation.Literals.size() >= 2){
+        Variable.setDefaultInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
     }
-    else if(Operation.affectedVariable == "set_default_int_random" && Operation.choosenDoubles.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenDoubles.size();
-        Variable.setDefaultInt((int)Operation.choosenDoubles[dice]);
+    else if(Operation.affectedVariable == "set_default_int_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.setDefaultInt(Operation.Literals[dice].getInt());
     }
-    else if(Operation.affectedVariable == "set_default_double" && Operation.choosenDoubles.size() >= 1){
-        Variable.setDefaultDouble(Operation.choosenDoubles[0]);;
+    else if(Operation.affectedVariable == "set_default_double" && Operation.Literals.size() >= 1){
+        Variable.setDefaultDouble(Operation.Literals[0].getDouble());;
     }
-    else if(Operation.affectedVariable == "set_default_double_interval" && Operation.choosenDoubles.size() >= 2){
-        Variable.setDefaultDouble(randomDouble(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));;
+    else if(Operation.affectedVariable == "set_default_double_interval" && Operation.Literals.size() >= 2){
+        Variable.setDefaultDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
     }
-    else if(Operation.affectedVariable == "set_default_double_random" && Operation.choosenDoubles.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenDoubles.size();
-        Variable.setDefaultDouble(Operation.choosenDoubles[dice]);
+    else if(Operation.affectedVariable == "set_default_double_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.setDefaultDouble(Operation.Literals[dice].getDouble());
     }
-    else if(Operation.affectedVariable == "set_default_string" && Operation.choosenStrings.size() >= 1){
-        Variable.setDefaultString(Operation.choosenStrings[0]);
+    else if(Operation.affectedVariable == "set_default_string" && Operation.Literals.size() >= 1){
+        Variable.setDefaultString(Operation.Literals[0].getString());
     }
-    else if(Operation.affectedVariable == "set_default_string_random" && Operation.choosenStrings.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenStrings.size();
-        Variable.setDefaultString(Operation.choosenStrings[dice]);
+    else if(Operation.affectedVariable == "set_default_string_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.setDefaultString(Operation.Literals[dice].getString());
     }
     else if(Operation.affectedVariable == "set_bool_random"){
         if(rand() % 2 == 0)
         Variable.toggleBool();
     }
-    else if(Operation.affectedVariable == "set_bool_probability" && Operation.choosenDoubles.size() >= 3){
+    else if(Operation.affectedVariable == "set_bool_probability" && Operation.Literals.size() >= 3){
         bool settingBool;
-        if(Operation.choosenDoubles[0] == 0){
+        if(Operation.Literals[0].getDouble() == 0){
             settingBool = false;
         }
-        else if(Operation.choosenDoubles[0] == 1){
+        else if(Operation.Literals[0].getDouble() == 1){
             settingBool = true;
         }
         else{
             return;
         }
 
-        if(rand() % (int)Operation.choosenDoubles[2] <= (int)Operation.choosenDoubles[1]){
+        if(rand() % Operation.Literals[2].getInt() <= Operation.Literals[1].getInt()){
             Variable.setBool(settingBool);
         }
     }
-    else if(Operation.affectedVariable == "set_bool_probability" && Operation.choosenDoubles.size() >= 2){
+    else if(Operation.affectedVariable == "set_bool_probability" && Operation.Literals.size() >= 2){
         bool settingBool;
-        if(Operation.choosenDoubles[0] == 0){
+        if(Operation.Literals[0].getDouble() == 0){
             settingBool = false;
         }
-        else if(Operation.choosenDoubles[0] == 1){
+        else if(Operation.Literals[0].getDouble() == 1){
             settingBool = true;
         }
         else{
             return;
         }
 
-        if(rand() % 100 <= Operation.choosenDoubles[1]){
+        if(rand() % 100 <= Operation.Literals[1].getDouble()){
             Variable.setBool(settingBool);
         }
     }
-    else if(Operation.affectedVariable == "set_bool" && Operation.choosenDoubles.size() >= 1){
-        if(Operation.choosenDoubles[0] == 0){
+    else if(Operation.affectedVariable == "set_bool" && Operation.Literals.size() >= 1){
+        if(Operation.Literals[0].getDouble() == 0){
             Variable.setBool(false);
         }
-        if(Operation.choosenDoubles[0] == 1){
+        if(Operation.Literals[0].getDouble() == 1){
             Variable.setBool(true);
         }
     }
-    else if(Operation.affectedVariable == "set_int" && Operation.choosenDoubles.size() >= 1){
-        Variable.setInt((int)Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "set_int" && Operation.Literals.size() >= 1){
+        Variable.setInt(Operation.Literals[0].getInt());
     }
-    else if(Operation.affectedVariable == "set_int_interval" && Operation.choosenDoubles.size() >= 2){
-        Variable.setInt(randomInt((int)Operation.choosenDoubles[0], (int)Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "set_int_interval" && Operation.Literals.size() >= 2){
+        Variable.setInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
     }
-    else if(Operation.affectedVariable == "set_int_random" && Operation.choosenDoubles.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenDoubles.size();
-        Variable.setInt((int)Operation.choosenDoubles[dice]);
+    else if(Operation.affectedVariable == "set_int_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.setInt(Operation.Literals[dice].getInt());
     }
-    else if(Operation.affectedVariable == "set_double" && Operation.choosenDoubles.size() >= 1){
-        Variable.setDouble(Operation.choosenDoubles[0]);;
+    else if(Operation.affectedVariable == "set_double" && Operation.Literals.size() >= 1){
+        Variable.setDouble(Operation.Literals[0].getDouble());;
     }
-    else if(Operation.affectedVariable == "set_double_interval" && Operation.choosenDoubles.size() >= 2){
-        Variable.setDouble(randomDouble(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));;
+    else if(Operation.affectedVariable == "set_double_interval" && Operation.Literals.size() >= 2){
+        Variable.setDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
     }
-    else if(Operation.affectedVariable == "set_double_random" && Operation.choosenDoubles.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenDoubles.size();
-        Variable.setDouble(Operation.choosenDoubles[dice]);
+    else if(Operation.affectedVariable == "set_double_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.setDouble(Operation.Literals[dice].getDouble());
     }
-    else if(Operation.affectedVariable == "set_string" && Operation.choosenStrings.size() >= 1){
-        Variable.setString(Operation.choosenStrings[0]);
+    else if(Operation.affectedVariable == "set_string" && Operation.Literals.size() >= 1){
+        Variable.setString(Operation.Literals[0].getString());
     }
-    else if(Operation.affectedVariable == "set_string_random" && Operation.choosenStrings.size() >= 1){
+    else if(Operation.affectedVariable == "set_string_random" && Operation.Literals.size() >= 1){
         std::cout << "hello ";
-        unsigned int dice = rand() % Operation.choosenStrings.size();
-        std::cout << Variable.setString(Operation.choosenStrings[dice]) << " ";
+        unsigned int dice = rand() % Operation.Literals.size();
+        std::cout << Variable.setString(Operation.Literals[dice].getString()) << " ";
         std::cout << Variable.getString() << "\n";
     }
     else if(Operation.affectedVariable == "set_to_default"){
         Variable.resetValue();
     }
-    else if(Operation.affectedVariable == "add_default_int" && Operation.choosenDoubles.size() >= 1){
-        Variable.addDefaultInt((int)Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "add_default_int" && Operation.Literals.size() >= 1){
+        Variable.addDefaultInt(Operation.Literals[0].getInt());
     }
-    else if(Operation.affectedVariable == "add_default_int_interval" && Operation.choosenDoubles.size() >= 2){
-        Variable.addDefaultInt(randomInt((int)Operation.choosenDoubles[0], (int)Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "add_default_int_interval" && Operation.Literals.size() >= 2){
+        Variable.addDefaultInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
     }
-    else if(Operation.affectedVariable == "add_default_int_random" && Operation.choosenDoubles.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenDoubles.size();
-        Variable.addDefaultInt((int)Operation.choosenDoubles[dice]);
+    else if(Operation.affectedVariable == "add_default_int_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.addDefaultInt(Operation.Literals[dice].getInt());
     }
-    else if(Operation.affectedVariable == "add_default_double" && Operation.choosenDoubles.size() >= 1){
-        Variable.addDefaultDouble(Operation.choosenDoubles[0]);;
+    else if(Operation.affectedVariable == "add_default_double" && Operation.Literals.size() >= 1){
+        Variable.addDefaultDouble(Operation.Literals[0].getDouble());;
     }
-    else if(Operation.affectedVariable == "add_default_double_interval" && Operation.choosenDoubles.size() >= 2){
-        Variable.addDefaultDouble(randomDouble(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));;
+    else if(Operation.affectedVariable == "add_default_double_interval" && Operation.Literals.size() >= 2){
+        Variable.addDefaultDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
     }
-    else if(Operation.affectedVariable == "add_default_double_random" && Operation.choosenDoubles.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenDoubles.size();
-        Variable.addDefaultDouble(Operation.choosenDoubles[dice]);
+    else if(Operation.affectedVariable == "add_default_double_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.addDefaultDouble(Operation.Literals[dice].getDouble());
     }
-    else if(Operation.affectedVariable == "add_int" && Operation.choosenDoubles.size() >= 1){
-        Variable.addInt((int)Operation.choosenDoubles[0]);
+    else if(Operation.affectedVariable == "add_int" && Operation.Literals.size() >= 1){
+        Variable.addInt(Operation.Literals[0].getInt());
     }
-    else if(Operation.affectedVariable == "add_int_interval" && Operation.choosenDoubles.size() >= 2){
-        Variable.addInt(randomInt((int)Operation.choosenDoubles[0], (int)Operation.choosenDoubles[1]));
+    else if(Operation.affectedVariable == "add_int_interval" && Operation.Literals.size() >= 2){
+        Variable.addInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
     }
-    else if(Operation.affectedVariable == "add_int_random" && Operation.choosenDoubles.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenDoubles.size();
-        Variable.addInt((int)Operation.choosenDoubles[dice]);
+    else if(Operation.affectedVariable == "add_int_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.addInt(Operation.Literals[dice].getInt());
     }
-    else if(Operation.affectedVariable == "add_double" && Operation.choosenDoubles.size() >= 1){
-        Variable.addDouble(Operation.choosenDoubles[0]);;
+    else if(Operation.affectedVariable == "add_double" && Operation.Literals.size() >= 1){
+        Variable.addDouble(Operation.Literals[0].getDouble());;
     }
-    else if(Operation.affectedVariable == "add_double_interval" && Operation.choosenDoubles.size() >= 2){
-        Variable.addDouble(randomDouble(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));;
+    else if(Operation.affectedVariable == "add_double_interval" && Operation.Literals.size() >= 2){
+        Variable.addDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
     }
-    else if(Operation.affectedVariable == "add_double_random" && Operation.choosenDoubles.size() >= 1){
-        unsigned int dice = rand() % Operation.choosenDoubles.size();
-        Variable.addDouble(Operation.choosenDoubles[dice]);
+    else if(Operation.affectedVariable == "add_double_random" && Operation.Literals.size() >= 1){
+        unsigned int dice = rand() % Operation.Literals.size();
+        Variable.addDouble(Operation.Literals[dice].getDouble());
     }
 }
 void EveModule::controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrollbar){
-    if(Operation.affectedVariable == "add_real_area" && Operation.choosenDoubles.size() >= 2){
-        Scrollbar.addRealScrollingArea(vec2d(Operation.choosenDoubles[0], Operation.choosenDoubles[1]));
+    if(Operation.affectedVariable == "add_real_area" && Operation.Literals.size() >= 2){
+        Scrollbar.addRealScrollingArea(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
 }
 

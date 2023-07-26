@@ -117,7 +117,26 @@ struct EventsLookupTable{
     vector <AncestorObject*> EditableTextTriggered;
     vector <AncestorObject*> MovementTriggered;
     vector <AncestorObject*> StillnessTriggered;
-    void clearLookupTable();
+    void clear();
+};
+
+struct PointerContainer{
+    string ID;
+    vector <VariableModule> Variables; //Variables exist during the lifespan of Events' chain execution.
+    vector <TextModule*> TextAggregation;
+    vector <EditableTextModule*> EditableTextAggregation;
+    vector <ImageModule*> ImageAggregation;
+    vector <MovementModule*> MovementAggregation;
+    vector <CollisionModule*> CollisionAggregation;
+    vector <ParticleEffectModule*> ParticlesAggregation;
+    vector <EveModule*> EveAggregation;
+    vector <VariableModule*> VariablesAggregation;
+    vector <ScrollbarModule*> ScrollbarAggregation;
+    vector <AncestorObject*> Objects;
+    vector <LayerClass*> Layers;
+    vector <Camera2D*> Cameras;
+    PointerContainer();
+    void clear();
 };
 
 class EngineLoop{
@@ -164,12 +183,17 @@ public:
     bool createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers, vector <string> & layersIDs);
     bool createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs);
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
-    void executeDependentOperations(LayerClass * OwnerLayer, AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    void executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void findCameras(OperaClass & Operation, PointerContainer & NewVariable, vector <Camera2D> & Cameras);
+    void findAggregatedCameras(OperaClass & Operation, PointerContainer & NewVariable, vector <Camera2D*> & AggregatedCameras, vector <Camera2D> & Cameras);
+    void findLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void findAggregatedLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> & AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void findObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void findAggregatedObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);
     VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    char evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    char evaluateConditionalChain(vector<TriggerClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);

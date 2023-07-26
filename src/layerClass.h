@@ -13,6 +13,7 @@ public:
     //without worring about providing unique IDs for every object, ex. testing or branching.
     vector <string> listOfUniqueIDs;
     vec2d pos, size;
+    LayerClass();
     LayerClass(string layerID, bool activate, vec2d bufferPos, vec2d bufferSize);
     void clear();
     bool createListOfUniqueIDs();

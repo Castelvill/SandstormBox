@@ -8,6 +8,7 @@
 #include "scrollbarModule.h"
 
 struct ValueLocation{
+    string cameraID;
     string layerID;
     string objectID;
     string moduleType; //ancestor, text, editable, image, movement, collision, particles, variables, scrollbar
@@ -30,12 +31,15 @@ public:
 
 class OperaClass{
 public:
-    vector <ValueLocation> leftObjects;
-    vector <ValueLocation> rightObjects;
+    vector <TriggerClass> ConditionalChain; //Location.layerID MUST be equal OwnerLayer.getID
+    ValueLocation leftOperand;
+    ValueLocation rightOperand;
+    vector <VariableModule> Literals;
     string affectedVariable;
-    string functionID; //also break and return
-    vector <double> choosenDoubles;
-    vector <string> choosenStrings;
+    string instruction; //first, last, all, random, let, assigment, class method, run(), break, return
+    string entityType;
+    string dynamicVariableID;
+    OperaClass();
 };
 
 struct ChildStruct{

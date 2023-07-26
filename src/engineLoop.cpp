@@ -55,7 +55,7 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
     return releasedKeys;
 }
 
-void EventsLookupTable::clearLookupTable(){
+void EventsLookupTable::clear(){
     IterationTriggered.clear();
     TimeTriggered.clear();
     KeyPressedTriggered.clear();
@@ -167,7 +167,7 @@ void EngineLoop::exitAllegro(){
     firstPressedKeys.clear();
     pressedKeys.clear();
     foregroundOfObjects.clear();
-    BaseOfTriggerableObjects.clearLookupTable();
+    BaseOfTriggerableObjects.clear();
 }
 bool EngineLoop::createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers, vector <string> & layersIDs){
     layersIDs.clear();
@@ -355,7 +355,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     }
 }
 void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    BaseOfTriggerableObjects.clearLookupTable();
+    BaseOfTriggerableObjects.clear();
     
     for(LayerClass & Layer : Layers){
         for(AncestorObject & Object : Layer.Objects){
@@ -498,11 +498,339 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
         }
     }
 }
-void EngineLoop::executeDependentOperations(LayerClass * OwnerLayer, AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-
+void PointerContainer::clear(){
+    ID = "";
+    Variables.clear();
+    TextAggregation.clear();
+    EditableTextAggregation.clear();
+    ImageAggregation.clear();
+    MovementAggregation.clear();
+    CollisionAggregation.clear();
+    ParticlesAggregation.clear();
+    EveAggregation.clear();
+    VariablesAggregation.clear();
+    ScrollbarAggregation.clear();
+    Objects.clear();
+    Layers.clear();
+    Cameras.clear();
 }
-void EngineLoop::executePostOperations(AncestorObject * Owner, EveModule & Event, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+PointerContainer::PointerContainer(){
+    ID = "";
+}
+void EngineLoop::findCameras(OperaClass & Operation, PointerContainer & NewVariable, vector <Camera2D> & Cameras){
+    if(Operation.leftOperand.attribute == "" && Operation.instruction == "last"){
+        NewVariable.Cameras.push_back(&Cameras.back());
+        return;
+    }
+    AncestorObject * TempObject = new AncestorObject();
+    LayerClass * TempLayer = new LayerClass();
+    vector <LayerClass> TempLayers;
+    for(Camera2D & Camera : Cameras){
+        for(TriggerClass & Condition : Operation.ConditionalChain){
+            Condition.source = "camera";
+            Condition.Literal.setType('s');
+            Condition.Literal.setString(Camera.getID());
+        }
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, TempLayer, TempLayers, Cameras) == 't'){
+            if(Operation.instruction != "last" || NewVariable.Cameras.size() == 0){
+                NewVariable.Cameras.push_back(&Camera);
+            }
+            else{
+                NewVariable.Cameras.back() = &Camera;
+            }
+        }
+        if(Operation.instruction == "first" && NewVariable.Cameras.size() > 0){
+            delete TempObject;
+            delete TempLayer;
+            return;
+        }
+    }
+    delete TempObject;
+    delete TempLayer;
+    if(Operation.instruction == "random"){
+        Camera2D * randomCamera = NewVariable.Cameras[rand() % NewVariable.Cameras.size()];
+        NewVariable.Cameras.clear();
+        NewVariable.Cameras.push_back(randomCamera);
+    }
+}
+void EngineLoop::findAggregatedCameras(OperaClass & Operation, PointerContainer & NewVariable, vector <Camera2D*> & AggregatedCameras, vector <Camera2D> & Cameras){
+    if(AggregatedCameras.size() == 0){
+        return;
+    }
+    if(Operation.leftOperand.attribute == "" && Operation.instruction == "last"){
+        NewVariable.Cameras.push_back(AggregatedCameras.back());
+        return;
+    }
+    AncestorObject * TempObject = new AncestorObject();
+    LayerClass * TempLayer = new LayerClass();
+    vector <LayerClass> TempLayers;
+    for(Camera2D * Camera : AggregatedCameras){
+        for(TriggerClass & Condition : Operation.ConditionalChain){
+            Condition.source = "camera";
+            Condition.Literal.setType('s');
+            Condition.Literal.setString(Camera->getID());
+        }
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, TempLayer, TempLayers, Cameras) == 't'){
+            if(Operation.instruction != "last" || NewVariable.Cameras.size() == 0){
+                NewVariable.Cameras.push_back(Camera);
+            }
+            else{
+                NewVariable.Cameras.back() = Camera;
+            }
+        }
+        if(Operation.instruction == "first" && NewVariable.Cameras.size() > 0){
+            delete TempObject;
+            delete TempLayer;
+            return;
+        }
+    }
+    delete TempObject;
+    delete TempLayer;
+    if(Operation.instruction == "random" && NewVariable.Cameras.size() > 0){
+        Camera2D * randomCamera = NewVariable.Cameras[rand() % NewVariable.Cameras.size()];
+        NewVariable.Cameras.clear();
+        NewVariable.Cameras.push_back(randomCamera);
+    }
+}
+void EngineLoop::findLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    if(Operation.leftOperand.attribute == "" && Operation.instruction == "last"){
+        NewVariable.Layers.push_back(&Layers.back());
+        return;
+    }
+    AncestorObject * TempObject = new AncestorObject();
+    for(LayerClass & Layer : Layers){
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, &Layer, Layers, Cameras) == 't'){
+            if(Operation.instruction != "last" || NewVariable.Layers.size() == 0){
+                NewVariable.Layers.push_back(&Layer);
+            }
+            else{
+                NewVariable.Layers.back() = &Layer;
+            }
+        }
+        if(Operation.instruction == "first" && NewVariable.Layers.size() > 0){
+            delete TempObject;
+            return;
+        }
+    }
+    delete TempObject;
+    if(Operation.instruction == "random"){
+        LayerClass * randomLayer = NewVariable.Layers[rand() % NewVariable.Layers.size()];
+        NewVariable.Layers.clear();
+        NewVariable.Layers.push_back(randomLayer);
+    }
+}
+void EngineLoop::findAggregatedLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> & AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    if(AggregatedLayers.size() == 0){
+        return;
+    }
+    if(Operation.leftOperand.attribute == "" && Operation.instruction == "last"){
+        NewVariable.Layers.push_back(AggregatedLayers.back());
+        return;
+    }
+    AncestorObject * TempObject = new AncestorObject();
+    for(LayerClass * Layer : AggregatedLayers){
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, Layer, Layers, Cameras) == 't'){
+            if(Operation.instruction != "last" || NewVariable.Layers.size() == 0){
+                NewVariable.Layers.push_back(Layer);
+            }
+            else{
+                NewVariable.Layers.back() = Layer;
+            }
+        }
+        if(Operation.instruction == "first" && NewVariable.Layers.size() > 0){
+            delete TempObject;
+            return;
+        }
+    }
+    delete TempObject;
+    if(Operation.instruction == "random" && NewVariable.Layers.size() > 0){
+        LayerClass * randomLayer = NewVariable.Layers[rand() % NewVariable.Layers.size()];
+        NewVariable.Layers.clear();
+        NewVariable.Layers.push_back(randomLayer);
+    }
+}
+void EngineLoop::findObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    for(LayerClass & Layer : Layers){
+        if(Layer.getID() != Operation.leftOperand.layerID){
+            continue;
+        }
+        if(Operation.leftOperand.attribute == "" && Operation.instruction == "last"){
+            NewVariable.Objects.push_back(&Layer.Objects.back());
+            return;
+        }
+        for(AncestorObject & Object : Layer.Objects){
+            //all Condition.Location.layerID = Layer.getID();
+            if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, &Object, &Layer, Layers, Cameras) == 't'){
+                if(Operation.instruction != "last" || NewVariable.Objects.size() == 0){
+                    NewVariable.Objects.push_back(&Object);
+                }
+                else{
+                    NewVariable.Objects.back() = &Object;
+                }
+            }
+            if(Operation.instruction == "first" && NewVariable.Objects.size() > 0){
+                return;
+            }
+        }
+        if(Operation.instruction == "random"){
+            AncestorObject * randomObjects = NewVariable.Objects[rand() % NewVariable.Objects.size()];
+            NewVariable.Objects.clear();
+            NewVariable.Objects.push_back(randomObjects);
+        }
 
+        break;
+    }
+}
+void EngineLoop::findAggregatedObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    if(AggregatedObjects.size() == 0){
+        return;
+    }
+    if(Operation.leftOperand.attribute == "" && Operation.instruction == "last"){
+        NewVariable.Objects.push_back(AggregatedObjects.back());
+        return;
+    }
+    for(LayerClass & Layer : Layers){
+        if(Layer.getID() != AggregatedObjects.back()->getID()){
+            continue;
+        }
+        
+        for(AncestorObject * Object : AggregatedObjects){
+            //all Condition.Location.layerID = Layer.getID();
+            if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
+                if(Operation.instruction != "last" || NewVariable.Objects.size() == 0){
+                    NewVariable.Objects.push_back(Object);
+                }
+                else{
+                    NewVariable.Objects.back() = Object;
+                }
+            }
+            if(Operation.instruction == "first" && NewVariable.Objects.size() > 0){
+                return;
+            }
+        }
+        if(Operation.instruction == "random" && NewVariable.Objects.size() > 0){
+            AncestorObject * randomObjects = NewVariable.Objects[rand() % NewVariable.Objects.size()];
+            NewVariable.Objects.clear();
+            NewVariable.Objects.push_back(randomObjects);
+        }
+
+        break;
+    }
+}
+OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & EventVariables, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    bool variableExisted;
+    for(OperaClass & Operation : Operations){
+        if(isStringInGroup(Operation.instruction, 3, "break", "return", "run")){
+            return Operation;
+        }
+        
+        //Aggregate entities.
+        if(isStringInGroup(Operation.instruction, 4, "first", "last", "all", "random")){
+            EventVariables.push_back(PointerContainer());
+            EventVariables.back().ID = "";
+            if(Operation.dynamicVariableID != ""){
+                PointerContainer * rightOperand;
+                variableExisted = false;
+                for(PointerContainer & DynamicVariable : EventVariables){
+                    if(DynamicVariable.ID == Operation.dynamicVariableID){
+                        variableExisted = true;
+                        rightOperand = &DynamicVariable;
+                        break;
+                    }
+                }
+                if(variableExisted){
+                    if(Operation.entityType == "camera"){
+                        findAggregatedCameras(Operation, EventVariables.back(), rightOperand->Cameras, Cameras);
+                    }
+                    else if(Operation.entityType == "layers"){
+                        findAggregatedLayers(Operation, EventVariables.back(), rightOperand->Layers, Layers, Cameras);
+                    }
+                    else if(Operation.entityType == "objects"){
+                        findAggregatedObjects(Operation, EventVariables.back(), rightOperand->Objects, Layers, Cameras);
+                    }
+                }
+                else{
+                    std::cout << "Error: Variable \'" << Operation.dynamicVariableID << "\' does not exist. ~ executeOperations()\n";
+                }
+            }
+            if(!variableExisted){
+                if(Operation.entityType == "camera"){
+                    findCameras(Operation, EventVariables.back(), Cameras);
+                }
+                else if(Operation.entityType == "layers"){
+                    findLayers(Operation, EventVariables.back(), Layers, Cameras);
+                }
+                else if(Operation.entityType == "objects"){
+                    findObjects(Operation, EventVariables.back(), Layers, Cameras);
+                }
+            }
+        }
+
+        //Assign the previously aggregated entities to a variable.
+        if(Operation.instruction == "let"){
+            if(EventVariables.size() == 0){
+                std::cout << "Error: Variable \'" << Operation.dynamicVariableID << "\' can't be created. ~ executeOperations()\n";
+                continue;
+            }
+            variableExisted = false;
+            for(PointerContainer & DynamicVariable : EventVariables){
+                if(DynamicVariable.ID == Operation.dynamicVariableID){
+                    variableExisted = true;
+                    DynamicVariable = EventVariables.back();
+                    EventVariables.pop_back();
+                    break;
+                }
+            }
+            if(!variableExisted){
+                EventVariables.back().ID = Operation.dynamicVariableID;
+            }
+        }
+
+        
+        if(Operation.instruction == "set"){
+            PointerContainer * leftOperand;
+            if(Operation.dynamicVariableID != ""){
+                variableExisted = false;
+                for(PointerContainer & DynamicVariable : EventVariables){
+                    if(DynamicVariable.ID == Operation.dynamicVariableID){
+                        variableExisted = true;
+                        leftOperand = &DynamicVariable;
+                        break;
+                    }
+                }
+                if(!variableExisted){
+                    std::cout << "Error: Variable \'" << Operation.dynamicVariableID << "\' does not exist. ~ executeOperations()\n";
+                    continue;
+                }
+            }
+            else{
+                if(EventVariables.size() > 0){
+                    leftOperand = &EventVariables.back();
+                    EventVariables.pop_back();
+                }
+                else{
+                    std::cout << "Error: Left operand not found. ~ executeOperations()\n";
+                    continue;
+                }
+            }
+            if(Operation.entityType == "camera"){
+                for(Camera2D * Camera : leftOperand->Cameras){
+
+                }
+            }
+            else if(Operation.entityType == "layers"){
+                for(LayerClass * Layer : leftOperand->Layers){
+                    
+                }
+            }
+            else if(Operation.entityType == "objects"){
+                for(AncestorObject * Object : leftOperand->Objects){
+                    
+                }
+            }
+        }
+    }
+    return OperaClass();
 }
 VariableModule EngineLoop::findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject){
     VariableModule NewValue(Condition.Location.moduleType + "_" + Condition.Location.attribute);
@@ -1019,7 +1347,7 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
     NewValue.setBool(false);
     return NewValue;
 }
-char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Event, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+char EngineLoop::evaluateConditionalChain(vector<TriggerClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     short ignoreFlagOr = 0, ignoreFlagAnd = 0;
     bool comparasion;
     int resultInt;
@@ -1028,15 +1356,13 @@ char EngineLoop::evaluateConditionalChain(AncestorObject * Owner, EveModule & Ev
     vector<VariableModule> resultStack;
     string newID;
     
-    for(TriggerClass & Condition : Event.ConditionalChain){
-        //check source
+    for(TriggerClass & Condition : ConditionalChain){
         if(ignoreFlagOr == 0 && ignoreFlagAnd == 0){
             resultStack.push_back(findNextValue(Condition, Owner, OwnerLayer, Layers, Cameras));
         }
         if(resultStack.size() == 0){
             continue;
         }
-        //check conjunctions
         for(string op : Condition.operators){
             if(ignoreFlagOr > 0 || ignoreFlagAnd > 0){
                 if(op == "||" && ignoreFlagOr > 0){
@@ -1167,6 +1493,8 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     bool noTriggerableEvents;
 
     LayerClass * TriggeredLayer;
+    vector <PointerContainer> EventVariables;
+    OperaClass Interrupt;
 
     for(AncestorObject * Triggered : TriggeredObjects){
         for(EveModule & Eve : Triggered->EveContainer){
@@ -1174,7 +1502,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             Eve.areDependentOperationsDone = false;
             Eve.elseChildFinished = false;
             for(ChildStruct & Unfinished : Eve.Children){
-                Unfinished.finished = true;
+                Unfinished.finished = false;
             }
         }
 
@@ -1200,15 +1528,21 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         }
         
         StartingEvent = Event;
+
+        for(auto _ : EventVariables){
+            _.clear();
+        }
+        EventVariables.clear();
+        
         MemoryStack.clear();
         do{
             if(Event->conditionalStatus == 'n'){
-                Event->conditionalStatus = evaluateConditionalChain(Triggered, *Event, TriggeredLayer, Layers, Cameras);
+                Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Layers, Cameras);
                 std::cout << "Result: " << Event->conditionalStatus << "\n\n";
             }
             if(Event->conditionalStatus == 't'){
                 if(!Event->areDependentOperationsDone){
-                    executeDependentOperations(TriggeredLayer, Triggered, *Event, Layers, Cameras);
+                    Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, EventVariables, Layers, Cameras);
                     Event->areDependentOperationsDone = true;
                 }
                 if(!Event->checkIfAllChildrenFinished()){
@@ -1225,19 +1559,22 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 }
                 MemoryStack.pop_back();
             }
-            executePostOperations(Triggered, *Event, Layers, Cameras);
+            Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, EventVariables, Layers, Cameras);
             if(StartingEvent != Event){
                 Event = MemoryStack.back();
                 MemoryStack.pop_back();
                 continue;
             }
             MemoryStack.clear();
+            for(auto _ : EventVariables){
+                _.clear();
+            }
+            EventVariables.clear();
             
             do{
                 Event++;
                 StartingEvent++;
             }while(Event->primaryTriggerTypes.size() == 0 && Event < Triggered->EveContainer.end());
-            
         }while(Event < Triggered->EveContainer.end());
     }
 

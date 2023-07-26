@@ -1,5 +1,9 @@
 #include "layerClass.h"
 
+LayerClass::LayerClass(){
+    ID = "";
+    isActive = false;
+}
 LayerClass::LayerClass(string layerID, bool activate, vec2d bufferPos, vec2d bufferSize){
     ID = layerID;
     isActive = activate;
