@@ -124,6 +124,7 @@ public:
     bool controlCollision(CollisionModule & Collision, vector <string> & listOfIDs);
     bool controlParticles(ParticleEffectModule & Particles, vector <string> & listOfIDs);
     bool controlVariable(VariableModule & Variable, vector <string> & listOfIDs);
+    void bindEditableToVariable(string attribute, BasePointersStruct & UniversalVariable);
 };
 
 void printNotNumericalWarning();

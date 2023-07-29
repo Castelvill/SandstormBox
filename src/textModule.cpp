@@ -1481,3 +1481,86 @@ void printCommandDoesNotExistWarning(){
     std::cout << "Warning: Command doesn't exist!\n";
 }
 
+void EditableTextModule::bindEditableToVariable(string attribute, BasePointersStruct & UniversalVariable){
+    if(attribute == "content"){
+        UniversalVariable.getPointer(&content[currentTextID]);
+    }
+    else if(attribute == "current_text_id"){
+        UniversalVariable.getPointer(&currentTextID);
+    }
+    else if(attribute == "font_id"){
+        UniversalVariable.getPointer(&fontID);
+    }
+    else if(attribute == "text_color_r"){
+        UniversalVariable.getPointer(&textColor[0]);
+    }
+    else if(attribute == "text_color_g"){
+        UniversalVariable.getPointer(&textColor[1]);
+    }
+    else if(attribute == "text_color_b"){
+        UniversalVariable.getPointer(&textColor[2]);
+    }
+    else if(attribute == "wrapped"){
+        UniversalVariable.getPointer(&wrapped);
+    }
+    else if(attribute == "horizontal_align"){
+        UniversalVariable.getPointer(&horizontalAlign);
+    }
+    else if(attribute == "vertical_align"){
+        UniversalVariable.getPointer(&verticalAlign);
+    }
+    else if(attribute == "rotate_angle"){
+        UniversalVariable.getPointer(&rotateAngle);
+    }
+    else if(attribute == "visibility"){
+        UniversalVariable.getPointer(&visibility);
+    }
+    else if(attribute == "used_bitmap_layer"){
+        UniversalVariable.getPointer(&usedBitmapLayer);
+    }
+    else if(attribute == "can_be_edited"){
+        UniversalVariable.getPointer(&canBeEdited);
+    }
+    else if(attribute == "editing_is_active"){
+        UniversalVariable.getPointer(&editingIsActive);
+    }
+    else if(attribute == "can_use_space"){
+        UniversalVariable.getPointer(&canUseSpace);
+    }
+    else if(attribute == "is_numerical"){
+        UniversalVariable.getPointer(&isNumerical);
+    }
+    else if(attribute == "has_floating_point"){
+        UniversalVariable.getPointer(&hasFloatingPoint);
+    }
+    else if(attribute == "can_clear_content_after_success"){
+        UniversalVariable.getPointer(&canClearContentAfterSuccess);
+    }
+    else if(attribute == "use_arrows_as_char"){
+        UniversalVariable.getPointer(&useArrowsAsChar);
+    }
+    else if(attribute == "min_content_size"){
+        UniversalVariable.getPointer(&minContentSize);
+    }
+    else if(attribute == "max_content_size"){
+        UniversalVariable.getPointer(&maxContentSize);
+    }
+    else if(attribute == "connected_object"){
+        UniversalVariable.getPointer(&connectedObject);
+    }
+    else if(attribute == "connected_group"){
+        UniversalVariable.getPointer(&connectedGroup);
+    }
+    else if(attribute == "affected_module"){
+        UniversalVariable.getPointer(&affectedModule);
+    }
+    else if(attribute == "connected_module_id"){
+        UniversalVariable.getPointer(&connectedModuleID);
+    }
+    else if(attribute == "affected_variable"){
+        UniversalVariable.getPointer(&affectedVariable);
+    }
+    else{
+        bindPrimaryToVariable(attribute, UniversalVariable);
+    }
+}

@@ -9,6 +9,28 @@
 
 using std::string;
 
+class BasePointersStruct{
+public:
+    string type;
+    bool * vBool;
+    short * vShort;
+    unsigned short * vUShort;
+    int * vInt;
+    unsigned int * vUInt;
+    float * vFloat;
+    double * vDouble;
+    string * vString;
+    void clear();
+    void getPointer(bool*);
+    void getPointer(short*);
+    void getPointer(unsigned short*);
+    void getPointer(int*);
+    void getPointer(unsigned int*);
+    void getPointer(float*);
+    void getPointer(double*);
+    void getPointer(string*);
+};
+
 class PrimaryModule{
     //List of inheriting classes: ImageModule, TextModule, CollisionModule, EventModule, ParticleEffectModule, MovementModule
     protected:
@@ -70,6 +92,7 @@ class PrimaryModule{
     bool getIsAttachedToCamera();
     bool getCanBeSelected();
     bool getIsScrollable();
+    void bindPrimaryToVariable(string attribute, BasePointersStruct & UniversalVariable);
 };
 
 #endif // PRIMARYMODULE_H_INCLUDED

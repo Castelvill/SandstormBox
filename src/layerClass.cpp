@@ -53,8 +53,14 @@ void LayerClass::setIsActive(bool newIsActive){
 string LayerClass::getID(){
     return ID;
 }
+string* LayerClass::getIDAddr(){
+    return &ID;
+}
 bool LayerClass::getIsActive(){
     return isActive;
+}
+bool* LayerClass::getIsActiveAddr(){
+    return &isActive;
 }
 void LayerClass::clone(const LayerClass& Orginal, vector <string> & layersIDs){
     *this = Orginal;

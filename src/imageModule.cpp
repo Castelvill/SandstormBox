@@ -507,3 +507,62 @@ void ImageModule::chooseFrames(vec2i newCurrentFrame){
     else
         currentFrame.y = 0;
 }
+void ImageModule::bindImageToVariable(string attribute, BasePointersStruct & UniversalVariable){
+    if(attribute == "rot_pos_x"){
+        UniversalVariable.getPointer(&rotPos.x);
+    }
+    else if(attribute == "rot_pos_y"){
+        UniversalVariable.getPointer(&rotPos.y);
+    }
+    else if(attribute == "start_y"){
+        UniversalVariable.getPointer(&start.y);
+    }
+    else if(attribute == "start_y"){
+        UniversalVariable.getPointer(&start.y);
+    }
+    else if(attribute == "frame_size_y"){
+        UniversalVariable.getPointer(&frameSize.y);
+    }
+    else if(attribute == "frame_size_y"){
+        UniversalVariable.getPointer(&frameSize.y);
+    }
+    else if(attribute == "rotate_angle"){
+        UniversalVariable.getPointer(&rotateAngle);
+    }
+    else if(attribute == "mirror_x"){
+        UniversalVariable.getPointer(&mirrorX);
+    }
+    else if(attribute == "mirror_y"){
+        UniversalVariable.getPointer(&mirrorY);
+    }
+    else if(attribute == "image_color_r"){
+        UniversalVariable.getPointer(&imageColor[0]);
+    }
+    else if(attribute == "image_color_g"){
+        UniversalVariable.getPointer(&imageColor[1]);
+    }
+    else if(attribute == "image_color_b"){
+        UniversalVariable.getPointer(&imageColor[2]);
+    }
+    else if(attribute == "image_color_a"){
+        UniversalVariable.getPointer(&imageColor[3]);
+    }
+    else if(attribute == "light_level"){
+        UniversalVariable.getPointer(&lightLevel);
+    }
+    else if(attribute == "light_color_r"){
+        UniversalVariable.getPointer(&lightColor[0]);
+    }
+    else if(attribute == "light_color_g"){
+        UniversalVariable.getPointer(&lightColor[1]);
+    }
+    else if(attribute == "light_color_b"){
+        UniversalVariable.getPointer(&lightColor[2]);
+    }
+    else if(attribute == "used_bitmap_layer"){
+        UniversalVariable.getPointer(&usedBitmapLayer);
+    }
+    else{
+        bindPrimaryToVariable(attribute, UniversalVariable);
+    }
+}

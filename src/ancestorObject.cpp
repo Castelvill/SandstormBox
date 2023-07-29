@@ -414,6 +414,85 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
     }
     return "Error: " + module + "Module does not exist!\n";
 }
+void AncestorObject::bindToVariable(string moduleType, string moduleID, string attribute, BasePointersStruct & UniversalVariable){
+    if(moduleType == "" || attribute == ""){
+        return;
+    }
+    if(moduleType == "ancestor"){
+        if(attribute == "layer_id"){
+            UniversalVariable.getPointer(&layerID);
+        }
+        else{
+            bindPrimaryToVariable(attribute, UniversalVariable);
+        }
+    }
+    else if(moduleType == "text"){
+        for(TextModule & Text : TextContainer){
+            if(Text.getID() != moduleID){
+                continue;
+            }
+            if(attribute == "content"){
+                UniversalVariable.getPointer(&Text.content[Text.currentTextID]);
+            }
+            else if(attribute == "current_text_id"){
+                UniversalVariable.getPointer(&Text.currentTextID);
+            }
+            else if(attribute == "font_id"){
+                UniversalVariable.getPointer(&Text.fontID);
+            }
+            else if(attribute == "text_color_r"){
+                UniversalVariable.getPointer(&Text.textColor[0]);
+            }
+            else if(attribute == "text_color_g"){
+                UniversalVariable.getPointer(&Text.textColor[1]);
+            }
+            else if(attribute == "text_color_b"){
+                UniversalVariable.getPointer(&Text.textColor[2]);
+            }
+            else if(attribute == "wrapped"){
+                UniversalVariable.getPointer(&Text.wrapped);
+            }
+            else if(attribute == "horizontal_align"){
+                UniversalVariable.getPointer(&Text.horizontalAlign);
+            }
+            else if(attribute == "vertical_align"){
+                UniversalVariable.getPointer(&Text.verticalAlign);
+            }
+            else if(attribute == "rotate_angle"){
+                UniversalVariable.getPointer(&Text.rotateAngle);
+            }
+            else if(attribute == "visibility"){
+                UniversalVariable.getPointer(&Text.visibility);
+            }
+            else if(attribute == "used_bitmap_layer"){
+                UniversalVariable.getPointer(&Text.usedBitmapLayer);
+            }
+            else{
+                Text.bindPrimaryToVariable(attribute, UniversalVariable);
+            }
+            break;
+        }
+    }
+    else if(moduleType == "text"){
+        for(EditableTextModule & EditableText : EditableTextContainer){
+            if(EditableText.getID() != moduleID){
+                continue;
+            }
+            EditableText.bindEditableToVariable(attribute, UniversalVariable);
+            break;
+        }
+    }
+    else if(moduleType == "image"){
+        for(ImageModule & Image : ImageContainer){
+            if(Image.getID() != moduleID){
+                continue;
+            }
+            Image.bindImageToVariable(attribute, UniversalVariable);
+            break;
+        }
+    }
+    
+}
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){
     for_each_if(EditorWindow->TextContainer.begin(), EditorWindow->TextContainer.end(), isStringInGroupModule<TextModule>(), deactivateModule<TextModule>());

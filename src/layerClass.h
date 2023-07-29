@@ -21,7 +21,9 @@ public:
     void setID(string newID);
     void setIsActive(bool newIsActive);
     string getID();
+    string* getIDAddr();
     bool getIsActive();
+    bool* getIsActiveAddr();
     void clone(const LayerClass& Orginal, vector <string> & layersIDs);
 };
 

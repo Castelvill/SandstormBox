@@ -122,7 +122,9 @@ struct EventsLookupTable{
 
 struct PointerContainer{
     string ID;
+    string type;
     vector <VariableModule> Variables; //Variables exist during the lifespan of Events' chain execution.
+    vector <BasePointersStruct> UniversalVariable;
     vector <TextModule*> TextAggregation;
     vector <EditableTextModule*> EditableTextAggregation;
     vector <ImageModule*> ImageAggregation;
@@ -137,6 +139,13 @@ struct PointerContainer{
     vector <Camera2D*> Cameras;
     PointerContainer();
     void clear();
+    void addUniversalVariable(bool*);
+    void addUniversalVariable(short*);
+    void addUniversalVariable(unsigned short*);
+    void addUniversalVariable(int*);
+    void addUniversalVariable(unsigned int*);
+    void addUniversalVariable(double*);
+    void addUniversalVariable(string*);
 };
 
 class EngineLoop{
@@ -189,6 +198,9 @@ public:
     void findAggregatedLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> & AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void findObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void findAggregatedObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void findContextInCamera(TriggerClass & Location, PointerContainer & NewVariable, vector <Camera2D> & Cameras);
+    void findContextInObjects(TriggerClass & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers);
+    void findContext(TriggerClass & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);
     VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);

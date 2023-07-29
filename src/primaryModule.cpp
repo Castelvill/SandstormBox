@@ -150,3 +150,83 @@ bool PrimaryModule::getCanBeSelected(){
 bool PrimaryModule::getIsScrollable(){
     return isScrollable;
 }
+void PrimaryModule::bindPrimaryToVariable(string attribute, BasePointersStruct & UniversalVariable){
+    if(attribute == "id"){
+        UniversalVariable.getPointer(&ID);
+    }
+    else if(attribute == "pos_x"){
+        UniversalVariable.getPointer(&pos.x);
+    }
+    else if(attribute == "pos_y"){
+        UniversalVariable.getPointer(&pos.y);
+    }
+    else if(attribute == "size_x"){
+        UniversalVariable.getPointer(&size.x);
+    }
+    else if(attribute == "size_y"){
+        UniversalVariable.getPointer(&size.y);
+    }
+    else if(attribute == "scale_x"){
+        UniversalVariable.getPointer(&scale.x);
+    }
+    else if(attribute == "scale_y"){
+        UniversalVariable.getPointer(&scale.y);
+    }
+    else if(attribute == "is_active"){
+        UniversalVariable.getPointer(&isActive);
+    }
+    else if(attribute == "is_scaled_from_center"){
+        UniversalVariable.getPointer(&isScaledFromCenter);
+    }
+    else if(attribute == "is_attached_to_camera"){
+        UniversalVariable.getPointer(&isAttachedToCamera);
+    }
+    else if(attribute == "can_be_selected"){
+        UniversalVariable.getPointer(&canBeSelected);
+    }
+    else if(attribute == "is_scrollable"){
+        UniversalVariable.getPointer(&isScrollable);
+    }
+}
+void BasePointersStruct::clear(){
+    type = "";
+    vBool = nullptr;
+    vShort = nullptr;
+    vUShort = nullptr;
+    vInt = nullptr;
+    vUInt = nullptr;
+    vDouble = nullptr;
+    vString = nullptr;
+}
+void BasePointersStruct::getPointer(bool * pointer){
+    vBool = pointer;
+    type = "bool";
+}
+void BasePointersStruct::getPointer(short * pointer){
+    vShort = pointer;
+    type = "short";
+}
+void BasePointersStruct::getPointer(unsigned short * pointer){
+    vUShort = pointer;
+    type = "unsigned_short";
+}
+void BasePointersStruct::getPointer(int * pointer){
+    vInt = pointer;
+    type = "int";
+}
+void BasePointersStruct::getPointer(unsigned int * pointer){
+    vUInt = pointer;
+    type = "unsigned_int";
+}
+void BasePointersStruct::getPointer(float * pointer){
+    vFloat = pointer;
+    type = "float";
+}
+void BasePointersStruct::getPointer(double * pointer){
+    vDouble = pointer;
+    type = "double";
+}
+void BasePointersStruct::getPointer(string * pointer){
+    vString = pointer;
+    type = "string";
+}

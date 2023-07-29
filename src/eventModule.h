@@ -38,7 +38,7 @@ public:
     string affectedVariable;
     string instruction; //first, last, all, random, let, assigment, class method, run(), break, return
     string entityType;
-    string dynamicVariableID;
+    vector <string> dynamicIDs;
     OperaClass();
 };
 
