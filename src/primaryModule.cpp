@@ -202,6 +202,10 @@ void BasePointersStruct::getPointer(bool * pointer){
     vBool = pointer;
     type = "bool";
 }
+void BasePointersStruct::getPointer(char * pointer){
+    vChar = pointer;
+    type = "char";
+}
 void BasePointersStruct::getPointer(short * pointer){
     vShort = pointer;
     type = "short";

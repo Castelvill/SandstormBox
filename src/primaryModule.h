@@ -13,6 +13,7 @@ class BasePointersStruct{
 public:
     string type;
     bool * vBool;
+    char * vChar;
     short * vShort;
     unsigned short * vUShort;
     int * vInt;
@@ -22,6 +23,7 @@ public:
     string * vString;
     void clear();
     void getPointer(bool*);
+    void getPointer(char*);
     void getPointer(short*);
     void getPointer(unsigned short*);
     void getPointer(int*);

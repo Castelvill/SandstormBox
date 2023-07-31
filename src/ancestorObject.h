@@ -3,6 +3,19 @@
 #include "eventModule.h"
 #include "scrollbarModule.h"
 
+
+struct ModulesPointers{
+    vector <TextModule*> Texts;
+    vector <EditableTextModule*> EditableTexts;
+    vector <ImageModule*> Images;
+    vector <MovementModule*> Movements;
+    vector <CollisionModule*> Collisions;
+    vector <ParticleEffectModule*> Particles;
+    vector <EveModule*> Events;
+    vector <VariableModule*> Variables;
+    vector <ScrollbarModule*> Scrollbars;
+};
+
 /**
 The most important class, a container for all modules that make an object.
 */
@@ -43,7 +56,7 @@ public:
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
     string addModuleInstance(string module, string newID);
     string destroyModuleInstance(string module, string destroyID);
-    void bindToVariable(string moduleType, string moduleID, string attribute, BasePointersStruct & UniversalVariable);
+    void bindToVariable(string moduleType, string moduleID, string attribute, ModulesPointers & AggregatedModules, BasePointersStruct & UniversalVariable);
 };
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);

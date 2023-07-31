@@ -245,6 +245,17 @@ void CollisionModule::removeImaginaryCollisions(){
         }
     }
 }
+void CollisionModule::bindCollisionToVariable(string attribute, BasePointersStruct & UniversalVariable){
+    if(attribute == "is_solid"){
+        UniversalVariable.getPointer(&isSolid);
+    }
+    else if(attribute == "can_penetrate_solids"){
+        UniversalVariable.getPointer(&canPenetrateSolids);
+    }
+    else{
+        bindPrimaryToVariable(attribute, UniversalVariable);
+    }
+}
 
 bool CollisionModule::getIsSolid(){
     return isSolid;

@@ -500,16 +500,16 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
 }
 void PointerContainer::clear(){
     ID = "";
-    Variables.clear();
-    TextAggregation.clear();
-    EditableTextAggregation.clear();
-    ImageAggregation.clear();
-    MovementAggregation.clear();
-    CollisionAggregation.clear();
-    ParticlesAggregation.clear();
-    EveAggregation.clear();
-    VariablesAggregation.clear();
-    ScrollbarAggregation.clear();
+    NormalVariables.clear();
+    Modules.Texts.clear();
+    Modules.EditableTexts.clear();
+    Modules.Images.clear();
+    Modules.Movements.clear();
+    Modules.Collisions.clear();
+    Modules.Particles.clear();
+    Modules.Events.clear();
+    Modules.Variables.clear();
+    Modules.Scrollbars.clear();
     Objects.clear();
     Layers.clear();
     Cameras.clear();
@@ -877,8 +877,13 @@ void EngineLoop::findContextInObjects(TriggerClass & Location, PointerContainer 
         return;
     }
 
+    if(Location.Location.attribute == "self"){
+        NewVariable.Objects.push_back(CurrentObject);
+        return;
+    }
+
     NewVariable.UniversalVariable.push_back(BasePointersStruct());
-    CurrentObject->bindToVariable(Location.Location.moduleType, Location.Location.moduleID, Location.Location.attribute, NewVariable.UniversalVariable.back());
+    CurrentObject->bindToVariable(Location.Location.moduleType, Location.Location.moduleID, Location.Location.attribute, NewVariable.Modules, NewVariable.UniversalVariable.back());
 }
 void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     if(Location.source == "object"){
@@ -910,6 +915,7 @@ void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewVari
             else if(Location.Location.attribute == "size_y"){
                 NewVariable.addUniversalVariable(&Layer.size.y);
             }
+            return;
         }
     }
     if(Location.source == "camera"){
@@ -970,12 +976,12 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             EventVariables.push_back(PointerContainer());
             EventVariables.back().ID = Operation.dynamicIDs.back();
             for(TriggerClass ValueLocation : Operation.ConditionalChain){
-                EventVariables.back().Variables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Layers, Cameras));
+                EventVariables.back().NormalVariables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Layers, Cameras));
             }
         }
 
-        //Get addressess of the modules.
-        if(Operation.instruction == "id"){
+        //Get singular context.
+        if(Operation.instruction == "context"){
             EventVariables.push_back(PointerContainer());
             EventVariables.back().ID = Operation.dynamicIDs.back();
             for(TriggerClass Location : Operation.ConditionalChain){

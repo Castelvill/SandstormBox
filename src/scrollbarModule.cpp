@@ -110,6 +110,50 @@ vec2d ScrollbarModule::countScrollShift(){
     std::cout << scrollShift.x << " " << scrollShift.y << "\n";
     return scrollShift;
 }
+void ScrollbarModule::bindScrollbarToVariable(string attribute, BasePointersStruct & UniversalVariable){
+    if(attribute == "thumbPos_x"){
+        UniversalVariable.getPointer(&thumbPos.x);
+    }
+    else if(attribute == "thumbPos_y"){
+        UniversalVariable.getPointer(&thumbPos.y);
+    }
+    else if(attribute == "thumbSize_x"){
+        UniversalVariable.getPointer(&thumbSize.x);
+    }
+    else if(attribute == "thumbSize_y"){
+        UniversalVariable.getPointer(&thumbSize.y);
+    }
+    else if(attribute == "scrollingArea_x"){
+        UniversalVariable.getPointer(&scrollingArea.x);
+    }
+    else if(attribute == "scrollingArea_y"){
+        UniversalVariable.getPointer(&scrollingArea.y);
+    }
+    else if(attribute == "realScrollingArea_x"){
+        UniversalVariable.getPointer(&realScrollingArea.x);
+    }
+    else if(attribute == "realScrollingArea_y"){
+        UniversalVariable.getPointer(&realScrollingArea.y);
+    }
+    else if(attribute == "dragStartingPos_x"){
+        UniversalVariable.getPointer(&dragStartingPos.x);
+    }
+    else if(attribute == "dragStartingPos_y"){
+        UniversalVariable.getPointer(&dragStartingPos.y);
+    }
+    else if(attribute == "thumbImageID"){
+        UniversalVariable.getPointer(&thumbImageID);
+    }
+    else if(attribute == "trackImageID"){
+        UniversalVariable.getPointer(&trackImageID);
+    }
+    else if(attribute == "usedBitmapLayer"){
+        UniversalVariable.getPointer(&usedBitmapLayer);
+    }
+    else{
+        bindPrimaryToVariable(attribute, UniversalVariable);
+    }
+}
 
 void ScrollbarModule::setThumbPos(vec2d newValue){
     thumbPos.set(newValue);

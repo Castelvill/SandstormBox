@@ -414,7 +414,8 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
     }
     return "Error: " + module + "Module does not exist!\n";
 }
-void AncestorObject::bindToVariable(string moduleType, string moduleID, string attribute, BasePointersStruct & UniversalVariable){
+void AncestorObject::bindToVariable(string moduleType, string moduleID, string attribute, ModulesPointers & AggregatedModules, BasePointersStruct & UniversalVariable){
+    
     if(moduleType == "" || attribute == ""){
         return;
     }
@@ -431,54 +432,26 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Text.getID() != moduleID){
                 continue;
             }
-            if(attribute == "content"){
-                UniversalVariable.getPointer(&Text.content[Text.currentTextID]);
-            }
-            else if(attribute == "current_text_id"){
-                UniversalVariable.getPointer(&Text.currentTextID);
-            }
-            else if(attribute == "font_id"){
-                UniversalVariable.getPointer(&Text.fontID);
-            }
-            else if(attribute == "text_color_r"){
-                UniversalVariable.getPointer(&Text.textColor[0]);
-            }
-            else if(attribute == "text_color_g"){
-                UniversalVariable.getPointer(&Text.textColor[1]);
-            }
-            else if(attribute == "text_color_b"){
-                UniversalVariable.getPointer(&Text.textColor[2]);
-            }
-            else if(attribute == "wrapped"){
-                UniversalVariable.getPointer(&Text.wrapped);
-            }
-            else if(attribute == "horizontal_align"){
-                UniversalVariable.getPointer(&Text.horizontalAlign);
-            }
-            else if(attribute == "vertical_align"){
-                UniversalVariable.getPointer(&Text.verticalAlign);
-            }
-            else if(attribute == "rotate_angle"){
-                UniversalVariable.getPointer(&Text.rotateAngle);
-            }
-            else if(attribute == "visibility"){
-                UniversalVariable.getPointer(&Text.visibility);
-            }
-            else if(attribute == "used_bitmap_layer"){
-                UniversalVariable.getPointer(&Text.usedBitmapLayer);
+            if(attribute == "self"){
+                AggregatedModules.Texts.push_back(&Text);
             }
             else{
-                Text.bindPrimaryToVariable(attribute, UniversalVariable);
+                Text.bindTextToVariable(attribute, UniversalVariable);
             }
             break;
         }
     }
-    else if(moduleType == "text"){
+    else if(moduleType == "editable_text"){
         for(EditableTextModule & EditableText : EditableTextContainer){
             if(EditableText.getID() != moduleID){
                 continue;
             }
-            EditableText.bindEditableToVariable(attribute, UniversalVariable);
+            if(attribute == "self"){
+                AggregatedModules.EditableTexts.push_back(&EditableText);
+            }
+            else{
+                EditableText.bindEditableToVariable(attribute, UniversalVariable);
+            }
             break;
         }
     }
@@ -487,11 +460,99 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Image.getID() != moduleID){
                 continue;
             }
-            Image.bindImageToVariable(attribute, UniversalVariable);
+            if(attribute == "self"){
+                AggregatedModules.Images.push_back(&Image);
+            }
+            else{
+                Image.bindImageToVariable(attribute, UniversalVariable);
+            }
             break;
         }
     }
-    
+    else if(moduleType == "movement"){
+        for(MovementModule & Movement : MovementContainer){
+            if(Movement.getID() != moduleID){
+                continue;
+            }
+            if(attribute == "self"){
+                AggregatedModules.Movements.push_back(&Movement);
+            }
+            else{
+                Movement.bindMovementToVariable(attribute, UniversalVariable);
+            }
+            break;
+        }
+    }
+    else if(moduleType == "collision"){
+        for(CollisionModule & Collision : CollisionContainer){
+            if(Collision.getID() != moduleID){
+                continue;
+            }
+            if(attribute == "self"){
+                AggregatedModules.Collisions.push_back(&Collision);
+            }
+            else{
+                Collision.bindCollisionToVariable(attribute, UniversalVariable);
+            }
+            break;
+        }
+    }
+    else if(moduleType == "particles"){
+        for(ParticleEffectModule & Particles : ParticlesContainer){
+            if(Particles.getID() != moduleID){
+                continue;
+            }
+            if(attribute == "self"){
+                AggregatedModules.Particles.push_back(&Particles);
+            }
+            else{
+                Particles.bindParticlesToVariable(attribute, UniversalVariable);
+            }
+            break;
+        }
+    }
+    else if(moduleType == "event"){
+        for(EveModule & Event : EveContainer){
+            if(Event.getID() != moduleID){
+                continue;
+            }
+            if(attribute == "self"){
+                AggregatedModules.Events.push_back(&Event);
+            }
+            else{
+                Event.bindEventToVariable(attribute, UniversalVariable);
+            }
+            break;
+        }
+    }
+    else if(moduleType == "variable"){
+        for(VariableModule & Variable : VariablesContainer){
+            if(Variable.getID() != moduleID){
+                continue;
+            }
+            if(attribute == "self"){
+                AggregatedModules.Variables.push_back(&Variable);
+            }
+            else{
+                Variable.bindVariableToVariable(attribute, UniversalVariable);
+            }
+            break;
+        }
+    }
+    else if(moduleType == "scrollbar"){
+        for(ScrollbarModule & Scrollbar : ScrollbarContainer){
+            if(Scrollbar.getID() != moduleID){
+                continue;
+            }
+            if(attribute == "self"){
+                AggregatedModules.Scrollbars.push_back(&Scrollbar);
+            }
+            else{
+                Scrollbar.bindScrollbarToVariable(attribute, UniversalVariable);
+            }
+            break;
+        }
+    }
 }
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){

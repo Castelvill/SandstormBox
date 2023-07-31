@@ -247,6 +247,38 @@ void VariableModule::negate(){
         std::cout << "Error [VariableModule]: You can't negate the value of already not-initialized variable.\n";
     }
 }
+void VariableModule::bindVariableToVariable(string attribute, BasePointersStruct & UniversalVariable){
+    if(attribute == "id"){
+        UniversalVariable.getPointer(&ID);
+    }
+    else if(attribute == "type"){
+        UniversalVariable.getPointer(&type);
+    }
+    else if(attribute == "bool"){
+        UniversalVariable.getPointer(&vBool);
+    }
+    else if(attribute == "default_bool"){
+        UniversalVariable.getPointer(&defaultBool);
+    }
+    else if(attribute == "int"){
+        UniversalVariable.getPointer(&vInt);
+    }
+    else if(attribute == "default_int"){
+        UniversalVariable.getPointer(&defaultInt);
+    }
+    else if(attribute == "double"){
+        UniversalVariable.getPointer(&vDouble);
+    }
+    else if(attribute == "default_double"){
+        UniversalVariable.getPointer(&defaultDouble);
+    }
+    else if(attribute == "string"){
+        UniversalVariable.getPointer(&vString);
+    }
+    else if(attribute == "default_string"){
+        UniversalVariable.getPointer(&defaultString);
+    }
+}
 
 template <typename condValueType>
 bool VariableModule::isConditionMet(condValueType condVal, string operatorType, char valType){

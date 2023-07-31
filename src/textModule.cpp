@@ -332,6 +332,47 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
         currentLength += al_get_text_width(font, temp.c_str());
     }
 }
+void TextModule::bindTextToVariable(string attribute, BasePointersStruct & UniversalVariable){
+    if(attribute == "content"){
+        UniversalVariable.getPointer(&content[currentTextID]);
+    }
+    else if(attribute == "current_text_id"){
+        UniversalVariable.getPointer(&currentTextID);
+    }
+    else if(attribute == "font_id"){
+        UniversalVariable.getPointer(&fontID);
+    }
+    else if(attribute == "text_color_r"){
+        UniversalVariable.getPointer(&textColor[0]);
+    }
+    else if(attribute == "text_color_g"){
+        UniversalVariable.getPointer(&textColor[1]);
+    }
+    else if(attribute == "text_color_b"){
+        UniversalVariable.getPointer(&textColor[2]);
+    }
+    else if(attribute == "wrapped"){
+        UniversalVariable.getPointer(&wrapped);
+    }
+    else if(attribute == "horizontal_align"){
+        UniversalVariable.getPointer(&horizontalAlign);
+    }
+    else if(attribute == "vertical_align"){
+        UniversalVariable.getPointer(&verticalAlign);
+    }
+    else if(attribute == "rotate_angle"){
+        UniversalVariable.getPointer(&rotateAngle);
+    }
+    else if(attribute == "visibility"){
+        UniversalVariable.getPointer(&visibility);
+    }
+    else if(attribute == "used_bitmap_layer"){
+        UniversalVariable.getPointer(&usedBitmapLayer);
+    }
+    else{
+        bindPrimaryToVariable(attribute, UniversalVariable);
+    }
+}
 string TextModule::getFontID(){
     return fontID;
 }

@@ -468,7 +468,140 @@ void ParticleEffectModule::removeImage(unsigned int id){
 void ParticleEffectModule::activeSpawn(){
     canParticlesSpawn = true;
 }
-
+void ParticleEffectModule::bindParticlesToVariable(string attribute, BasePointersStruct & UniversalVariable){
+    if(attribute == "environment_x"){
+        UniversalVariable.getPointer(&environment.x);
+    }
+    else if(attribute == "environment_y"){
+        UniversalVariable.getPointer(&environment.y);
+    }
+    else if(attribute == "environment_speed_x"){
+        UniversalVariable.getPointer(&environmentSpeed.x);
+    }
+    else if(attribute == "environment_speed_y"){
+        UniversalVariable.getPointer(&environmentSpeed.y);
+    }
+    else if(attribute == "min_speed"){
+        UniversalVariable.getPointer(&minSpeed);
+    }
+    else if(attribute == "max_speed"){
+        UniversalVariable.getPointer(&maxSpeed);
+    }
+    else if(attribute == "min_basic_speed"){
+        UniversalVariable.getPointer(&minBasicSpeed);
+    }
+    else if(attribute == "max_basic_speed"){
+        UniversalVariable.getPointer(&maxBasicSpeed);
+    }
+    else if(attribute == "min_acceleration"){
+        UniversalVariable.getPointer(&minAcceleration);
+    }
+    else if(attribute == "max_acceleration"){
+        UniversalVariable.getPointer(&maxAcceleration);
+    }
+    else if(attribute == "min_particle_mass"){
+        UniversalVariable.getPointer(&minParticleMass);
+    }
+    else if(attribute == "max_particle_mass"){
+        UniversalVariable.getPointer(&maxParticleMass);
+    }
+    else if(attribute == "min_direction_degree"){
+        UniversalVariable.getPointer(&minDirectionDegree);
+    }
+    else if(attribute == "max_direction_degree"){
+        UniversalVariable.getPointer(&maxDirectionDegree);
+    }
+    else if(attribute == "min_rotation_speed"){
+        UniversalVariable.getPointer(&minRotationSpeed);
+    }
+    else if(attribute == "max_rotation_speed"){
+        UniversalVariable.getPointer(&maxRotationSpeed);
+    }
+    else if(attribute == "min_time_to_negate_rotation"){
+        UniversalVariable.getPointer(&minTimeToNegateRotation);
+    }
+    else if(attribute == "max_time_to_negate_rotation"){
+        UniversalVariable.getPointer(&maxTimeToNegateRotation);
+    }
+    else if(attribute == "are_particles_moving"){
+        UniversalVariable.getPointer(&areParticlesMoving);
+    }
+    else if(attribute == "is_environment_synchronized"){
+        UniversalVariable.getPointer(&isEnvironmentSynchronized);
+    }
+    else if(attribute == "min_particle_radius"){
+        UniversalVariable.getPointer(&minParticleRadius);
+    }
+    else if(attribute == "max_particle_radius"){
+        UniversalVariable.getPointer(&maxParticleRadius);
+    }
+    else if(attribute == "min_time_to_death"){
+        UniversalVariable.getPointer(&minTimeToDeath);
+    }
+    else if(attribute == "max_time_to_death"){
+        UniversalVariable.getPointer(&maxTimeToDeath);
+    }
+    else if(attribute == "min_shape_rotation_speed"){
+        UniversalVariable.getPointer(&minShapeRotationSpeed);
+    }
+    else if(attribute == "max_shape_rotation_speed"){
+        UniversalVariable.getPointer(&maxShapeRotationSpeed);
+    }
+    else if(attribute == "min_color_intensity"){
+        UniversalVariable.getPointer(&minColorIntensity);
+    }
+    else if(attribute == "max_color_intensity"){
+        UniversalVariable.getPointer(&maxColorIntensity);
+    }
+    else if(attribute == "particles_shape"){
+        UniversalVariable.getPointer(&particlesShape);
+    }
+    else if(attribute == "use_image_as_particles"){
+        UniversalVariable.getPointer(&useImageAsParticles);
+    }
+    else if(attribute == "use_random_colors"){
+        UniversalVariable.getPointer(&useRandomColors);
+    }
+    else if(attribute == "is_module_static"){
+        UniversalVariable.getPointer(&isModuleStatic);
+    }
+    else if(attribute == "is_drawing_with_details"){
+        UniversalVariable.getPointer(&isDrawingWithDetails);
+    }
+    else if(attribute == "block_particles_spawn"){
+        UniversalVariable.getPointer(&blockParticlesSpawn);
+    }
+    else if(attribute == "can_particles_spawn"){
+        UniversalVariable.getPointer(&canParticlesSpawn);
+    }
+    else if(attribute == "min_particles_per_spawn"){
+        UniversalVariable.getPointer(&minParticlesPerSpawn);
+    }
+    else if(attribute == "max_particles_per_spawn"){
+        UniversalVariable.getPointer(&maxParticlesPerSpawn);
+    }
+    else if(attribute == "max_particles_count"){
+        UniversalVariable.getPointer(&maxParticlesCount);
+    }
+    else if(attribute == "time_to_spawn"){
+        UniversalVariable.getPointer(&timeToSpawn);
+    }
+    else if(attribute == "max_time_to_spawn"){
+        UniversalVariable.getPointer(&maxTimeToSpawn);
+    }
+    else if(attribute == "spawn_key_bind"){
+        UniversalVariable.getPointer(&spawnKeyBind);
+    }
+    else if(attribute == "spawn_on_key_release"){
+        UniversalVariable.getPointer(&spawnOnKeyRelease);
+    }
+    else if(attribute == "used_bitmap_layer"){
+        UniversalVariable.getPointer(&usedBitmapLayer);
+    }
+    else{
+        bindPrimaryToVariable(attribute, UniversalVariable);
+    }
+}
 
 void ParticleEffectModule::addColorInHex(string hexColor){
     if(hexColor.size() != 6)

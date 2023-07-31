@@ -123,17 +123,9 @@ struct EventsLookupTable{
 struct PointerContainer{
     string ID;
     string type;
-    vector <VariableModule> Variables; //Variables exist during the lifespan of Events' chain execution.
+    vector <VariableModule> NormalVariables; //Variables exist during the lifespan of Events' chain execution.
     vector <BasePointersStruct> UniversalVariable;
-    vector <TextModule*> TextAggregation;
-    vector <EditableTextModule*> EditableTextAggregation;
-    vector <ImageModule*> ImageAggregation;
-    vector <MovementModule*> MovementAggregation;
-    vector <CollisionModule*> CollisionAggregation;
-    vector <ParticleEffectModule*> ParticlesAggregation;
-    vector <EveModule*> EveAggregation;
-    vector <VariableModule*> VariablesAggregation;
-    vector <ScrollbarModule*> ScrollbarAggregation;
+    ModulesPointers Modules;
     vector <AncestorObject*> Objects;
     vector <LayerClass*> Layers;
     vector <Camera2D*> Cameras;

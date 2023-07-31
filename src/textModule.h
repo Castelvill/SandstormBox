@@ -55,6 +55,7 @@ public:
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign);
     void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, bool editingIsActive);
     void drawTextByLetters(ALLEGRO_FONT * font);
+    void bindTextToVariable(string attribute, BasePointersStruct & UniversalVariable);
     string getFontID();
     string getContent(unsigned int textID);
     unsigned short getColor(char whichColor);

@@ -24,6 +24,8 @@ public:
     bool startDragging(vec2d basePos, MouseClass Mouse, Camera2D * Camera);
     bool dragThumb(vec2d basePos, MouseClass Mouse);
     vec2d countScrollShift();
+    void bindScrollbarToVariable(string attribute, BasePointersStruct & UniversalVariable);
+
     void setThumbPos(vec2d newValue);
     void setThumbSize(vec2d newValue);
     void setScrollingArea(vec2d newValue);
