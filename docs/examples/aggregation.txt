@@ -1,26 +1,26 @@
 1) Single aggregation
-vec x = all(group=="enemy");
+vec x = Objects.all(group=="enemy");
 x.var.money++;
 
 2) Two aggregations
-vec x = all(group=="bob");
+vec x = Objects.all(group=="bob");
 x.var.gold++;
-x = all(var.gold < 5);
+x = x.all(var.gold < 5);
 x.var.gold += 500;
 
 3) Referencing two variables
-vec x = all(group=="bob");
+vec x = Objects.all(group=="bob");
 x.var.gold++;
-vec y = all(x.var.gold < 5);
+vec y = x.all(var.gold < 5);
 y.var.gold += 500;
 x.var.debt += 10;
 
 4)Complex aggregation
-group a = all(group == "a"); //a=50
-vec d = all(group == "d"); //d=10
-vec ad = all(a.group == "d"); //ad=10
-vec ad2 = all(group == "a" && group == "d"); //ad2=ad=10
-vec ad3 = all(group == "a" || group == "d"); //ad3=a+d=60
+group a = Objects.all(group == "a"); //a=50
+vec d = Objects.all(group == "d"); //d=10
+vec ad = a.all(group == "d"); //ad=10
+vec ad2 = Objects.all(group == "a" && group == "d"); //ad2=ad=10
+vec ad3 = Objects.all(group == "a" || group == "d"); //ad3=a+d=60
 vec ad4 = a||d; //ad4=ad3=60
 vec ad5 = a&&d; //ad5=ad2=10
 

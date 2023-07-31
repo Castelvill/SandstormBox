@@ -37,7 +37,7 @@ public:
     vector <VariableModule> Literals;
     string affectedVariable;
     string instruction; //first, last, all, random, let, assigment, class method, run(), break, return
-    string entityType;
+    string searchedEntityType;
     vector <string> dynamicIDs;
     OperaClass();
 };

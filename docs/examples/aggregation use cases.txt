@@ -1,36 +1,36 @@
 Camera:
-agg(Camera.inView(Objects))
-agg(Camera.outsideView(Objects))
+Objects.agg(Camera.inView)
+Objects.agg(Camera.outsideView)
 
 Mouse:
-agg(Mouse.collision_with(Objects))
-agg(Mouse.outside_of(Objects))
-agg(Mouse.pressed_on(Objects))
-agg(Mouse.released_on(Objects))
+Objects.agg(Mouse.collision_with)
+Objects.agg(Mouse.outside_of)
+Objects.agg(Mouse.pressed_on)
+Objects.agg(Mouse.released_on))
 
 Objects:
-agg(Layers.{string}.{string})
-agg(Objects)
-agg(Objects.id == {string})
-agg(Objects.id in {vector<string>})
-agg(Objects.group == {string})
-agg(Objects.group in {vector<string>})
-agg(Objects.pos in {vec2d, vec2d})
-agg(Objects.isScaledFromCenter == {bool})
-agg(Objects.isAttachedToCamera == {bool})
-agg(Objects.canBeSelected == {bool})
-agg(Objects.isScrollable == {bool})
+Layers.agg(...)
+Objects.agg(...)
+Objects.agg(id == {string})
+Objects.agg(id in {vector<string>})
+Objects.agg(group == {string})
+Objects.agg(group in {vector<string>})
+Objects.agg(pos in {vec2d, vec2d})
+Objects.agg(isScaledFromCenter == {bool})
+Objects.agg(isAttachedToCamera == {bool})
+Objects.agg(canBeSelected == {bool})
+Objects.agg(isScrollable == {bool})
 
 Variables:
-agg(Var.id == {string} && Var.value {op} {value})
-agg(Var.{string} {op} {value})
+Objects.agg(...).Var.agg(id == {string} && value {op} {value})
+Objects.agg(...).Var.agg({string} {op} {value})
 
 Collision:
-agg(Me.outside_of(Objects)) 
-agg(Me.overlaping_with(Objects))
-agg(Me.collision_with(Objects))
-agg(Me.collision_on_X_with(Objects))
-agg(Me.collision_on_Y_with(Objects))
+Objects.agg(Me.outside_of) 
+Objects.agg(Me.overlaping_with)
+Objects.agg(Me.collision_with)
+Objects.agg(Me.collision_on_X_with)
+Objects.agg(Me.collision_on_Y_with)
 
 General:
-agg(...).size()
+Objects.agg(...).size()

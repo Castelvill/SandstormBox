@@ -414,9 +414,94 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
     }
     return "Error: " + module + "Module does not exist!\n";
 }
-void AncestorObject::bindToVariable(string moduleType, string moduleID, string attribute, ModulesPointers & AggregatedModules, BasePointersStruct & UniversalVariable){
-    
-    if(moduleType == "" || attribute == ""){
+void AncestorObject::bindModuleToContext(string moduleType, string moduleID, string attribute, ModulesPointers & AggregatedModules){
+    if(moduleType == ""){
+        return;
+    }
+    if(moduleType == "text"){
+        for(TextModule & Text : TextContainer){
+            if(Text.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.Texts.push_back(&Text);
+            break;
+        }
+    }
+    else if(moduleType == "editable_text"){
+        for(EditableTextModule & EditableText : EditableTextContainer){
+            if(EditableText.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.EditableTexts.push_back(&EditableText);
+            break;
+        }
+    }
+    else if(moduleType == "image"){
+        for(ImageModule & Image : ImageContainer){
+            if(Image.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.Images.push_back(&Image);
+            break;
+        }
+    }
+    else if(moduleType == "movement"){
+        for(MovementModule & Movement : MovementContainer){
+            if(Movement.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.Movements.push_back(&Movement);
+            break;
+        }
+    }
+    else if(moduleType == "collision"){
+        for(CollisionModule & Collision : CollisionContainer){
+            if(Collision.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.Collisions.push_back(&Collision);
+            break;
+        }
+    }
+    else if(moduleType == "particles"){
+        for(ParticleEffectModule & Particles : ParticlesContainer){
+            if(Particles.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.Particles.push_back(&Particles);
+            break;
+        }
+    }
+    else if(moduleType == "event"){
+        for(EveModule & Event : EveContainer){
+            if(Event.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.Events.push_back(&Event);
+            break;
+        }
+    }
+    else if(moduleType == "variable"){
+        for(VariableModule & Variable : VariablesContainer){
+            if(Variable.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.Variables.push_back(&Variable);
+            break;
+        }
+    }
+    else if(moduleType == "scrollbar"){
+        for(ScrollbarModule & Scrollbar : ScrollbarContainer){
+            if(Scrollbar.getID() != moduleID){
+                continue;
+            }
+            AggregatedModules.Scrollbars.push_back(&Scrollbar);
+            break;
+        }
+    }
+}
+void AncestorObject::bindVariableToContext(string moduleType, string moduleID, string attribute, BasePointersStruct & UniversalVariable){
+    if(moduleType == ""){
         return;
     }
     if(moduleType == "ancestor"){
@@ -432,12 +517,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Text.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.Texts.push_back(&Text);
-            }
-            else{
-                Text.bindTextToVariable(attribute, UniversalVariable);
-            }
+            Text.bindTextToVariable(attribute, UniversalVariable);
             break;
         }
     }
@@ -446,12 +526,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(EditableText.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.EditableTexts.push_back(&EditableText);
-            }
-            else{
-                EditableText.bindEditableToVariable(attribute, UniversalVariable);
-            }
+            EditableText.bindEditableToVariable(attribute, UniversalVariable);
             break;
         }
     }
@@ -460,12 +535,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Image.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.Images.push_back(&Image);
-            }
-            else{
-                Image.bindImageToVariable(attribute, UniversalVariable);
-            }
+            Image.bindImageToVariable(attribute, UniversalVariable);
             break;
         }
     }
@@ -474,12 +544,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Movement.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.Movements.push_back(&Movement);
-            }
-            else{
-                Movement.bindMovementToVariable(attribute, UniversalVariable);
-            }
+            Movement.bindMovementToVariable(attribute, UniversalVariable);
             break;
         }
     }
@@ -488,12 +553,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Collision.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.Collisions.push_back(&Collision);
-            }
-            else{
-                Collision.bindCollisionToVariable(attribute, UniversalVariable);
-            }
+            Collision.bindCollisionToVariable(attribute, UniversalVariable);
             break;
         }
     }
@@ -502,12 +562,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Particles.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.Particles.push_back(&Particles);
-            }
-            else{
-                Particles.bindParticlesToVariable(attribute, UniversalVariable);
-            }
+            Particles.bindParticlesToVariable(attribute, UniversalVariable);
             break;
         }
     }
@@ -516,12 +571,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Event.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.Events.push_back(&Event);
-            }
-            else{
-                Event.bindEventToVariable(attribute, UniversalVariable);
-            }
+            Event.bindEventToVariable(attribute, UniversalVariable);
             break;
         }
     }
@@ -530,12 +580,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Variable.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.Variables.push_back(&Variable);
-            }
-            else{
-                Variable.bindVariableToVariable(attribute, UniversalVariable);
-            }
+            Variable.bindVariableToVariable(attribute, UniversalVariable);
             break;
         }
     }
@@ -544,12 +589,7 @@ void AncestorObject::bindToVariable(string moduleType, string moduleID, string a
             if(Scrollbar.getID() != moduleID){
                 continue;
             }
-            if(attribute == "self"){
-                AggregatedModules.Scrollbars.push_back(&Scrollbar);
-            }
-            else{
-                Scrollbar.bindScrollbarToVariable(attribute, UniversalVariable);
-            }
+            Scrollbar.bindScrollbarToVariable(attribute, UniversalVariable);
             break;
         }
     }

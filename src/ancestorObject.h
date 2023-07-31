@@ -56,7 +56,8 @@ public:
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
     string addModuleInstance(string module, string newID);
     string destroyModuleInstance(string module, string destroyID);
-    void bindToVariable(string moduleType, string moduleID, string attribute, ModulesPointers & AggregatedModules, BasePointersStruct & UniversalVariable);
+    void bindModuleToContext(string moduleType, string moduleID, string attribute, ModulesPointers & AggregatedModules);
+    void bindVariableToContext(string moduleType, string moduleID, string attribute, BasePointersStruct & UniversalVariable);
 };
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);
