@@ -553,79 +553,125 @@ void PointerContainer::addUniversalVariable(string * pointer){
     UniversalVariable.back().getPointer(pointer);
     type = "string";
 }
-void EngineLoop::aggregateCameras(OperaClass & Operation, PointerContainer & NewVariable, vector <Camera2D> & Cameras){
-    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
-        NewVariable.Cameras.push_back(&Cameras.back());
-        return;
+void PointerContainer::setFirstUniversalVariable(bool * pointer){
+    if(UniversalVariable.size() == 0){
+        UniversalVariable.push_back(BasePointersStruct());
+        type = "bool";
     }
-    AncestorObject * TempObject = new AncestorObject();
-    LayerClass * TempLayer = new LayerClass();
-    vector <LayerClass> TempLayers;
-    for(Camera2D & Camera : Cameras){
-        for(TriggerClass & Condition : Operation.ConditionalChain){
-            Condition.source = "camera";
-            Condition.Literal.setType('s');
-            Condition.Literal.setString(Camera.getID());
-        }
-        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, TempLayer, TempLayers, Cameras) == 't'){
-            if(Operation.instruction != "last" || NewVariable.Cameras.size() == 0){
-                NewVariable.Cameras.push_back(&Camera);
-            }
-            else{
-                NewVariable.Cameras.back() = &Camera;
-            }
-        }
-        if(Operation.instruction == "first" && NewVariable.Cameras.size() > 0){
-            delete TempObject;
-            delete TempLayer;
-            return;
-        }
-    }
-    delete TempObject;
-    delete TempLayer;
-    if(Operation.instruction == "random"){
-        Camera2D * randomCamera = NewVariable.Cameras[rand() % NewVariable.Cameras.size()];
-        NewVariable.Cameras.clear();
-        NewVariable.Cameras.push_back(randomCamera);
-    }
+    UniversalVariable.back().getPointer(pointer);
 }
-void EngineLoop::aggregateCamerasInAggregation(OperaClass & Operation, PointerContainer & NewVariable, vector <Camera2D*> & AggregatedCameras, vector <Camera2D> & Cameras){
-    if(AggregatedCameras.size() == 0){
+void PointerContainer::setFirstUniversalVariable(short * pointer){
+    if(UniversalVariable.size() == 0){
+        UniversalVariable.push_back(BasePointersStruct());
+        type = "short";
+    }
+    UniversalVariable.back().getPointer(pointer);
+}
+void PointerContainer::setFirstUniversalVariable(unsigned short * pointer){
+    if(UniversalVariable.size() == 0){
+        UniversalVariable.push_back(BasePointersStruct());
+        type = "unsigned_short";
+    }
+    UniversalVariable.back().getPointer(pointer);
+}
+void PointerContainer::setFirstUniversalVariable(int * pointer){
+    if(UniversalVariable.size() == 0){
+        UniversalVariable.push_back(BasePointersStruct());
+        type = "int";
+    }
+    UniversalVariable.back().getPointer(pointer);
+}
+void PointerContainer::setFirstUniversalVariable(unsigned int * pointer){
+    if(UniversalVariable.size() == 0){
+        UniversalVariable.push_back(BasePointersStruct());
+        type = "unsigned_int";
+    }
+    UniversalVariable.back().getPointer(pointer);
+}
+void PointerContainer::setFirstUniversalVariable(double * pointer){
+    if(UniversalVariable.size() == 0){
+        UniversalVariable.push_back(BasePointersStruct());
+        type = "double";
+    }
+    UniversalVariable.back().getPointer(pointer);
+}
+void PointerContainer::setFirstUniversalVariable(string * pointer){
+    if(UniversalVariable.size() == 0){
+        UniversalVariable.push_back(BasePointersStruct());
+        type = "string";
+    }
+    UniversalVariable.back().getPointer(pointer);
+}
+void EngineLoop::aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras){
+    if(Cameras.size() == 0){
         return;
     }
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
-        NewVariable.Cameras.push_back(AggregatedCameras.back());
+        if(AggregatedCameras.size() == 0){
+            findContextInCamera(Operation.affectedVariable, NewContext, &Cameras.back());
+        }
+        else{
+            findContextInCamera(Operation.affectedVariable, NewContext, AggregatedCameras.back());
+        }
         return;
     }
+
     AncestorObject * TempObject = new AncestorObject();
     LayerClass * TempLayer = new LayerClass();
     vector <LayerClass> TempLayers;
-    for(Camera2D * Camera : AggregatedCameras){
+    Camera2D * Camera;
+    unsigned i = 0, vector_end;
+
+    if(AggregatedCameras.size() == 0){
+        vector_end = Cameras.size();
+    }
+    else{
+        vector_end = AggregatedCameras.size();
+    }
+    
+    while(i < vector_end){
+        Camera = nullptr;
+        if(AggregatedCameras.size() == 0){
+            Camera = &Cameras[i];
+        }
+        else{
+            Camera = AggregatedCameras[i];
+        }
+        if(Camera == nullptr){
+            break;
+        }
         for(TriggerClass & Condition : Operation.ConditionalChain){
             Condition.source = "camera";
             Condition.Literal.setType('s');
             Condition.Literal.setString(Camera->getID());
         }
         if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, TempLayer, TempLayers, Cameras) == 't'){
-            if(Operation.instruction != "last" || NewVariable.Cameras.size() == 0){
-                NewVariable.Cameras.push_back(Camera);
+            if(Operation.instruction != "last"){
+                findContextInCamera(Operation.affectedVariable, NewContext, Camera);
             }
             else{
-                NewVariable.Cameras.back() = Camera;
+                findLastContextInCamera(Operation.affectedVariable, NewContext, Camera);
             }
         }
-        if(Operation.instruction == "first" && NewVariable.Cameras.size() > 0){
-            delete TempObject;
-            delete TempLayer;
-            return;
+        if(Operation.instruction == "first" && (NewContext.UniversalVariable.size() == 1 || NewContext.Cameras.size() == 1)){
+            break;
         }
+        i++;
     }
+
     delete TempObject;
     delete TempLayer;
-    if(Operation.instruction == "random" && NewVariable.Cameras.size() > 0){
-        Camera2D * randomCamera = NewVariable.Cameras[rand() % NewVariable.Cameras.size()];
-        NewVariable.Cameras.clear();
-        NewVariable.Cameras.push_back(randomCamera);
+    if(Operation.instruction == "random"){
+        if(Operation.affectedVariable == "self" && NewContext.Cameras.size() > 0){
+            Camera2D * randomCamera = NewContext.Cameras[rand() % NewContext.Cameras.size()];
+            NewContext.Cameras.clear();
+            NewContext.Cameras.push_back(randomCamera);
+        }
+        else if(NewContext.UniversalVariable.size() > 0){
+            BasePointersStruct randomPointer = NewContext.UniversalVariable[rand() % NewContext.UniversalVariable.size()];
+            NewContext.UniversalVariable.clear();
+            NewContext.UniversalVariable.push_back(randomPointer);
+        }
     }
 }
 void EngineLoop::aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
@@ -1043,103 +1089,195 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
         break;
     }
 }
-void EngineLoop::findContextInCamera(TriggerClass & Location, PointerContainer & NewContext, vector <Camera2D> & Cameras){
-    for(Camera2D & Camera : Cameras){
-        if(Camera.getID() != Location.Literal.getString()){
-            continue;
-        }
-        if(Location.Location.attribute == "self"){
+void EngineLoop::findLastContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera){
+    if(attribute == "self"){
+        if(NewContext.Cameras.size() == 0){
             NewContext.type = "camera";
-            NewContext.Cameras.push_back(&Camera);
+            NewContext.Cameras.push_back(Camera);
         }
-        else if(Location.Location.attribute == "is_Active"){
-            NewContext.addUniversalVariable(&Camera.isActive);
+        else{
+            NewContext.Cameras.back() = Camera;
         }
-        else if(Location.Location.attribute == "id"){
-            NewContext.addUniversalVariable(&Camera.ID);
-        }
-        else if(Location.Location.attribute == "pos_x"){
-            NewContext.addUniversalVariable(&Camera.pos.x);
-        }
-        else if(Location.Location.attribute == "pos_y"){
-            NewContext.addUniversalVariable(&Camera.pos.y);
-        }
-        else if(Location.Location.attribute == "relative_pos_x"){
-            NewContext.addUniversalVariable(&Camera.relativePos.x);
-        }
-        else if(Location.Location.attribute == "relative_pos_y"){
-            NewContext.addUniversalVariable(&Camera.relativePos.y);
-        }
-        else if(Location.Location.attribute == "vision_shift_x"){
-            NewContext.addUniversalVariable(&Camera.visionShift.x);
-        }
-        else if(Location.Location.attribute == "vision_shift_y"){
-            NewContext.addUniversalVariable(&Camera.visionShift.y);
-        }
-        else if(Location.Location.attribute == "size_x"){
-            NewContext.addUniversalVariable(&Camera.size.x);
-        }
-        else if(Location.Location.attribute == "size_y"){
-            NewContext.addUniversalVariable(&Camera.size.y);
-        }
-        else if(Location.Location.attribute == "zoom"){
-            NewContext.addUniversalVariable(&Camera.zoom);
-        }
-        else if(Location.Location.attribute == "min_zoom"){
-            NewContext.addUniversalVariable(&Camera.minZoom);
-        }
-        else if(Location.Location.attribute == "max_zoom"){
-            NewContext.addUniversalVariable(&Camera.maxZoom);
-        }
-        else if(Location.Location.attribute == "speed"){
-            NewContext.addUniversalVariable(&Camera.speed);
-        }
-        else if(Location.Location.attribute == "zoom_in_key"){
-            NewContext.addUniversalVariable(&Camera.zoomInKey);
-        }
-        else if(Location.Location.attribute == "zoom_out_key"){
-            NewContext.addUniversalVariable(&Camera.zoomOutKey);
-        }
-        else if(Location.Location.attribute == "zoom_reset_key"){
-            NewContext.addUniversalVariable(&Camera.zoomResetKey);
-        }
-        else if(Location.Location.attribute == "up_key"){
-            NewContext.addUniversalVariable(&Camera.upKey);
-        }
-        else if(Location.Location.attribute == "right_key"){
-            NewContext.addUniversalVariable(&Camera.rightKey);
-        }
-        else if(Location.Location.attribute == "down_key"){
-            NewContext.addUniversalVariable(&Camera.downKey);
-        }
-        else if(Location.Location.attribute == "left_key"){
-            NewContext.addUniversalVariable(&Camera.leftKey);
-        }
-        else if(Location.Location.attribute == "pinned_camera_id"){
-            NewContext.addUniversalVariable(&Camera.pinnedCameraID);
-        }
-        else if(Location.Location.attribute == "followed_layer_id"){
-            NewContext.addUniversalVariable(&Camera.followedLayerID);
-        }
-        else if(Location.Location.attribute == "followed_object_id"){
-            NewContext.addUniversalVariable(&Camera.followedObjectID);
-        }
-        else if(Location.Location.attribute == "followed_image_id"){
-            NewContext.addUniversalVariable(&Camera.followedImageID);
-        }
-        else if(Location.Location.attribute == "is_pinned_to_camera"){
-            NewContext.addUniversalVariable(&Camera.isPinnedToCamera);
-        }
-        else if(Location.Location.attribute == "is_following_object"){
-            NewContext.addUniversalVariable(&Camera.isFollowingObject);
-        }
-        else if(Location.Location.attribute == "is_using_keyboard_to_move"){
-            NewContext.addUniversalVariable(&Camera.isUsingKeyboardToMove);
-        }
-        else if(Location.Location.attribute == "is_using_cursor_position_to_move"){
-            NewContext.addUniversalVariable(&Camera.isUsingCursorPositionToMove);
-        }
-        return;
+    }
+    else if(attribute == "is_Active"){
+        NewContext.setFirstUniversalVariable(&Camera->isActive);
+    }
+    else if(attribute == "id"){
+        NewContext.setFirstUniversalVariable(&Camera->ID);
+    }
+    else if(attribute == "pos_x"){
+        NewContext.setFirstUniversalVariable(&Camera->pos.x);
+    }
+    else if(attribute == "pos_y"){
+        NewContext.setFirstUniversalVariable(&Camera->pos.y);
+    }
+    else if(attribute == "relative_pos_x"){
+        NewContext.setFirstUniversalVariable(&Camera->relativePos.x);
+    }
+    else if(attribute == "relative_pos_y"){
+        NewContext.setFirstUniversalVariable(&Camera->relativePos.y);
+    }
+    else if(attribute == "vision_shift_x"){
+        NewContext.setFirstUniversalVariable(&Camera->visionShift.x);
+    }
+    else if(attribute == "vision_shift_y"){
+        NewContext.setFirstUniversalVariable(&Camera->visionShift.y);
+    }
+    else if(attribute == "size_x"){
+        NewContext.setFirstUniversalVariable(&Camera->size.x);
+    }
+    else if(attribute == "size_y"){
+        NewContext.setFirstUniversalVariable(&Camera->size.y);
+    }
+    else if(attribute == "zoom"){
+        NewContext.setFirstUniversalVariable(&Camera->zoom);
+    }
+    else if(attribute == "min_zoom"){
+        NewContext.setFirstUniversalVariable(&Camera->minZoom);
+    }
+    else if(attribute == "max_zoom"){
+        NewContext.setFirstUniversalVariable(&Camera->maxZoom);
+    }
+    else if(attribute == "speed"){
+        NewContext.setFirstUniversalVariable(&Camera->speed);
+    }
+    else if(attribute == "zoom_in_key"){
+        NewContext.setFirstUniversalVariable(&Camera->zoomInKey);
+    }
+    else if(attribute == "zoom_out_key"){
+        NewContext.setFirstUniversalVariable(&Camera->zoomOutKey);
+    }
+    else if(attribute == "zoom_reset_key"){
+        NewContext.setFirstUniversalVariable(&Camera->zoomResetKey);
+    }
+    else if(attribute == "up_key"){
+        NewContext.setFirstUniversalVariable(&Camera->upKey);
+    }
+    else if(attribute == "right_key"){
+        NewContext.setFirstUniversalVariable(&Camera->rightKey);
+    }
+    else if(attribute == "down_key"){
+        NewContext.setFirstUniversalVariable(&Camera->downKey);
+    }
+    else if(attribute == "left_key"){
+        NewContext.setFirstUniversalVariable(&Camera->leftKey);
+    }
+    else if(attribute == "pinned_camera_id"){
+        NewContext.setFirstUniversalVariable(&Camera->pinnedCameraID);
+    }
+    else if(attribute == "followed_layer_id"){
+        NewContext.setFirstUniversalVariable(&Camera->followedLayerID);
+    }
+    else if(attribute == "followed_object_id"){
+        NewContext.setFirstUniversalVariable(&Camera->followedObjectID);
+    }
+    else if(attribute == "followed_image_id"){
+        NewContext.setFirstUniversalVariable(&Camera->followedImageID);
+    }
+    else if(attribute == "is_pinned_to_camera"){
+        NewContext.setFirstUniversalVariable(&Camera->isPinnedToCamera);
+    }
+    else if(attribute == "is_following_object"){
+        NewContext.setFirstUniversalVariable(&Camera->isFollowingObject);
+    }
+    else if(attribute == "is_using_keyboard_to_move"){
+        NewContext.setFirstUniversalVariable(&Camera->isUsingKeyboardToMove);
+    }
+    else if(attribute == "is_using_cursor_position_to_move"){
+        NewContext.setFirstUniversalVariable(&Camera->isUsingCursorPositionToMove);
+    }
+}
+void EngineLoop::findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera){
+    if(attribute == "self"){
+        NewContext.type = "camera";
+        NewContext.Cameras.push_back(Camera);
+    }
+    else if(attribute == "is_Active"){
+        NewContext.addUniversalVariable(&Camera->isActive);
+    }
+    else if(attribute == "id"){
+        NewContext.addUniversalVariable(&Camera->ID);
+    }
+    else if(attribute == "pos_x"){
+        NewContext.addUniversalVariable(&Camera->pos.x);
+    }
+    else if(attribute == "pos_y"){
+        NewContext.addUniversalVariable(&Camera->pos.y);
+    }
+    else if(attribute == "relative_pos_x"){
+        NewContext.addUniversalVariable(&Camera->relativePos.x);
+    }
+    else if(attribute == "relative_pos_y"){
+        NewContext.addUniversalVariable(&Camera->relativePos.y);
+    }
+    else if(attribute == "vision_shift_x"){
+        NewContext.addUniversalVariable(&Camera->visionShift.x);
+    }
+    else if(attribute == "vision_shift_y"){
+        NewContext.addUniversalVariable(&Camera->visionShift.y);
+    }
+    else if(attribute == "size_x"){
+        NewContext.addUniversalVariable(&Camera->size.x);
+    }
+    else if(attribute == "size_y"){
+        NewContext.addUniversalVariable(&Camera->size.y);
+    }
+    else if(attribute == "zoom"){
+        NewContext.addUniversalVariable(&Camera->zoom);
+    }
+    else if(attribute == "min_zoom"){
+        NewContext.addUniversalVariable(&Camera->minZoom);
+    }
+    else if(attribute == "max_zoom"){
+        NewContext.addUniversalVariable(&Camera->maxZoom);
+    }
+    else if(attribute == "speed"){
+        NewContext.addUniversalVariable(&Camera->speed);
+    }
+    else if(attribute == "zoom_in_key"){
+        NewContext.addUniversalVariable(&Camera->zoomInKey);
+    }
+    else if(attribute == "zoom_out_key"){
+        NewContext.addUniversalVariable(&Camera->zoomOutKey);
+    }
+    else if(attribute == "zoom_reset_key"){
+        NewContext.addUniversalVariable(&Camera->zoomResetKey);
+    }
+    else if(attribute == "up_key"){
+        NewContext.addUniversalVariable(&Camera->upKey);
+    }
+    else if(attribute == "right_key"){
+        NewContext.addUniversalVariable(&Camera->rightKey);
+    }
+    else if(attribute == "down_key"){
+        NewContext.addUniversalVariable(&Camera->downKey);
+    }
+    else if(attribute == "left_key"){
+        NewContext.addUniversalVariable(&Camera->leftKey);
+    }
+    else if(attribute == "pinned_camera_id"){
+        NewContext.addUniversalVariable(&Camera->pinnedCameraID);
+    }
+    else if(attribute == "followed_layer_id"){
+        NewContext.addUniversalVariable(&Camera->followedLayerID);
+    }
+    else if(attribute == "followed_object_id"){
+        NewContext.addUniversalVariable(&Camera->followedObjectID);
+    }
+    else if(attribute == "followed_image_id"){
+        NewContext.addUniversalVariable(&Camera->followedImageID);
+    }
+    else if(attribute == "is_pinned_to_camera"){
+        NewContext.addUniversalVariable(&Camera->isPinnedToCamera);
+    }
+    else if(attribute == "is_following_object"){
+        NewContext.addUniversalVariable(&Camera->isFollowingObject);
+    }
+    else if(attribute == "is_using_keyboard_to_move"){
+        NewContext.addUniversalVariable(&Camera->isUsingKeyboardToMove);
+    }
+    else if(attribute == "is_using_cursor_position_to_move"){
+        NewContext.addUniversalVariable(&Camera->isUsingCursorPositionToMove);
     }
 }
 bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass * CurrentLayer, AncestorObject * CurrentObject, vector <LayerClass> & Layers){
@@ -1238,7 +1376,13 @@ void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewCont
         }
     }
     if(Location.source == "camera"){
-        findContextInCamera(Location, NewContext, Cameras);
+        for(Camera2D & Camera : Cameras){
+            if(Camera.getID() != Location.Literal.getString()){
+                continue;
+            }
+            findContextInCamera(Location.Location.attribute, NewContext, &Camera);
+            return;
+        }
     }
 }
 void EngineLoop::findLowerContextInObjects(ValueLocation & Location, PointerContainer & Context){
@@ -1332,7 +1476,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
                 if(variableExisted){
                     EventVariables.push_back(PointerContainer());
                     if(Operation.searchedEntityType == "camera"){
-                        aggregateCamerasInAggregation(Operation, EventVariables.back(), rightOperand->Cameras, Cameras);
+                        aggregateCameras(Operation, EventVariables.back(), rightOperand->Cameras, Cameras);
                     }
                     else if(Operation.searchedEntityType == "layer"){
                         aggregateLayersInAggregation(Operation, EventVariables.back(), rightOperand->Layers, Layers, Cameras);
@@ -1351,7 +1495,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             else{
                 EventVariables.push_back(PointerContainer());
                 if(Operation.searchedEntityType == "camera"){
-                    aggregateCameras(Operation, EventVariables.back(), Cameras);
+                    aggregateCameras(Operation, EventVariables.back(), vector<Camera2D*>(), Cameras);
                 }
                 else if(Operation.searchedEntityType == "layers"){
                     aggregateLayers(Operation, EventVariables.back(), Layers, Cameras);

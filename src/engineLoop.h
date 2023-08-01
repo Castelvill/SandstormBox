@@ -138,6 +138,14 @@ struct PointerContainer{
     void addUniversalVariable(unsigned int*);
     void addUniversalVariable(double*);
     void addUniversalVariable(string*);
+
+    void setFirstUniversalVariable(bool*);
+    void setFirstUniversalVariable(short*);
+    void setFirstUniversalVariable(unsigned short*);
+    void setFirstUniversalVariable(int*);
+    void setFirstUniversalVariable(unsigned int*);
+    void setFirstUniversalVariable(double*);
+    void setFirstUniversalVariable(string*);
 };
 
 class EngineLoop{
@@ -184,14 +192,14 @@ public:
     bool createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers, vector <string> & layersIDs);
     bool createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs);
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
-    void aggregateCameras(OperaClass & Operation, PointerContainer & NewVariable, vector <Camera2D> & Cameras);
-    void aggregateCamerasInAggregation(OperaClass & Operation, PointerContainer & NewVariable, vector <Camera2D*> & AggregatedCameras, vector <Camera2D> & Cameras);
+    void aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras);
     void aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void aggregateLayersInAggregation(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> & AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void aggregateObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void aggregateObjectsInAggregation(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void aggregateModules(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    void findContextInCamera(TriggerClass & Location, PointerContainer & NewVariable, vector <Camera2D> & Cameras);
+    void findLastContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
+    void findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
     bool findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass * CurrentLayer, AncestorObject * CurrentObject, vector <LayerClass> & Layers);
     void findContextInObjects(ValueLocation & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers);
     void findContext(TriggerClass & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
