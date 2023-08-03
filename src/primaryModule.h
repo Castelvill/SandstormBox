@@ -21,6 +21,7 @@ public:
     float * vFloat;
     double * vDouble;
     string * vString;
+    BasePointersStruct();
     void clear();
     void getPointer(bool*);
     void getPointer(char*);

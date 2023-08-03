@@ -501,7 +501,7 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
 void PointerContainer::clear(){
     ID = "";
     NormalVariables.clear();
-    UniversalVariable.clear();
+    UniversalVariables.clear();
     Modules.Texts.clear();
     Modules.EditableTexts.clear();
     Modules.Images.clear();
@@ -519,88 +519,88 @@ PointerContainer::PointerContainer(){
     ID = "";
 }
 void PointerContainer::addUniversalVariable(bool * pointer){
-    UniversalVariable.push_back(BasePointersStruct());
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.push_back(BasePointersStruct());
+    UniversalVariables.back().getPointer(pointer);
     type = "bool";
 }
 void PointerContainer::addUniversalVariable(short * pointer){
-    UniversalVariable.push_back(BasePointersStruct());
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.push_back(BasePointersStruct());
+    UniversalVariables.back().getPointer(pointer);
     type = "short";
 }
 void PointerContainer::addUniversalVariable(unsigned short * pointer){
-    UniversalVariable.push_back(BasePointersStruct());
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.push_back(BasePointersStruct());
+    UniversalVariables.back().getPointer(pointer);
     type = "unsigned_short";
 }
 void PointerContainer::addUniversalVariable(int * pointer){
-    UniversalVariable.push_back(BasePointersStruct());
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.push_back(BasePointersStruct());
+    UniversalVariables.back().getPointer(pointer);
     type = "int";
 }
 void PointerContainer::addUniversalVariable(unsigned int * pointer){
-    UniversalVariable.push_back(BasePointersStruct());
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.push_back(BasePointersStruct());
+    UniversalVariables.back().getPointer(pointer);
     type = "unsigned_int";
 }
 void PointerContainer::addUniversalVariable(double * pointer){
-    UniversalVariable.push_back(BasePointersStruct());
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.push_back(BasePointersStruct());
+    UniversalVariables.back().getPointer(pointer);
     type = "double";
 }
 void PointerContainer::addUniversalVariable(string * pointer){
-    UniversalVariable.push_back(BasePointersStruct());
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.push_back(BasePointersStruct());
+    UniversalVariables.back().getPointer(pointer);
     type = "string";
 }
 void PointerContainer::setFirstUniversalVariable(bool * pointer){
-    if(UniversalVariable.size() == 0){
-        UniversalVariable.push_back(BasePointersStruct());
+    if(UniversalVariables.size() == 0){
+        UniversalVariables.push_back(BasePointersStruct());
         type = "bool";
     }
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.back().getPointer(pointer);
 }
 void PointerContainer::setFirstUniversalVariable(short * pointer){
-    if(UniversalVariable.size() == 0){
-        UniversalVariable.push_back(BasePointersStruct());
+    if(UniversalVariables.size() == 0){
+        UniversalVariables.push_back(BasePointersStruct());
         type = "short";
     }
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.back().getPointer(pointer);
 }
 void PointerContainer::setFirstUniversalVariable(unsigned short * pointer){
-    if(UniversalVariable.size() == 0){
-        UniversalVariable.push_back(BasePointersStruct());
+    if(UniversalVariables.size() == 0){
+        UniversalVariables.push_back(BasePointersStruct());
         type = "unsigned_short";
     }
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.back().getPointer(pointer);
 }
 void PointerContainer::setFirstUniversalVariable(int * pointer){
-    if(UniversalVariable.size() == 0){
-        UniversalVariable.push_back(BasePointersStruct());
+    if(UniversalVariables.size() == 0){
+        UniversalVariables.push_back(BasePointersStruct());
         type = "int";
     }
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.back().getPointer(pointer);
 }
 void PointerContainer::setFirstUniversalVariable(unsigned int * pointer){
-    if(UniversalVariable.size() == 0){
-        UniversalVariable.push_back(BasePointersStruct());
+    if(UniversalVariables.size() == 0){
+        UniversalVariables.push_back(BasePointersStruct());
         type = "unsigned_int";
     }
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.back().getPointer(pointer);
 }
 void PointerContainer::setFirstUniversalVariable(double * pointer){
-    if(UniversalVariable.size() == 0){
-        UniversalVariable.push_back(BasePointersStruct());
+    if(UniversalVariables.size() == 0){
+        UniversalVariables.push_back(BasePointersStruct());
         type = "double";
     }
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.back().getPointer(pointer);
 }
 void PointerContainer::setFirstUniversalVariable(string * pointer){
-    if(UniversalVariable.size() == 0){
-        UniversalVariable.push_back(BasePointersStruct());
+    if(UniversalVariables.size() == 0){
+        UniversalVariables.push_back(BasePointersStruct());
         type = "string";
     }
-    UniversalVariable.back().getPointer(pointer);
+    UniversalVariables.back().getPointer(pointer);
 }
 void EngineLoop::aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras){
     if(Cameras.size() == 0){
@@ -641,9 +641,7 @@ void EngineLoop::aggregateCameras(OperaClass & Operation, PointerContainer & New
             break;
         }
         for(TriggerClass & Condition : Operation.ConditionalChain){
-            Condition.source = "camera";
-            Condition.Literal.setType('s');
-            Condition.Literal.setString(Camera->getID());
+            Condition.Location.cameraID = Camera->getID();
         }
         if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, TempLayer, TempLayers, Cameras) == 't'){
             if(Operation.instruction != "last"){
@@ -653,7 +651,7 @@ void EngineLoop::aggregateCameras(OperaClass & Operation, PointerContainer & New
                 findLastContextInCamera(Operation.affectedVariable, NewContext, Camera);
             }
         }
-        if(Operation.instruction == "first" && (NewContext.UniversalVariable.size() == 1 || NewContext.Cameras.size() == 1)){
+        if(Operation.instruction == "first" && (NewContext.UniversalVariables.size() == 1 || NewContext.Cameras.size() == 1)){
             break;
         }
         i++;
@@ -667,135 +665,137 @@ void EngineLoop::aggregateCameras(OperaClass & Operation, PointerContainer & New
             NewContext.Cameras.clear();
             NewContext.Cameras.push_back(randomCamera);
         }
-        else if(NewContext.UniversalVariable.size() > 0){
-            BasePointersStruct randomPointer = NewContext.UniversalVariable[rand() % NewContext.UniversalVariable.size()];
-            NewContext.UniversalVariable.clear();
-            NewContext.UniversalVariable.push_back(randomPointer);
+        else if(NewContext.UniversalVariables.size() > 0){
+            BasePointersStruct randomPointer = NewContext.UniversalVariables[rand() % NewContext.UniversalVariables.size()];
+            NewContext.UniversalVariables.clear();
+            NewContext.UniversalVariables.push_back(randomPointer);
         }
     }
 }
-void EngineLoop::aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
-        NewVariable.Layers.push_back(&Layers.back());
+void EngineLoop::aggregateLayers(OperaClass & Operation, PointerContainer & NewContext, vector <LayerClass*> AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    if(Layers.size() == 0){
         return;
     }
+    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
+        if(AggregatedLayers.size() == 0){
+            findContextInLayer(Operation.affectedVariable, NewContext, &Layers.back());
+        }
+        else{
+            findContextInLayer(Operation.affectedVariable, NewContext, AggregatedLayers.back());
+        }
+        return;
+    }
+
     AncestorObject * TempObject = new AncestorObject();
-    for(LayerClass & Layer : Layers){
-        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, &Layer, Layers, Cameras) == 't'){
-            if(Operation.instruction != "last" || NewVariable.Layers.size() == 0){
-                NewVariable.Layers.push_back(&Layer);
+    LayerClass * Layer;
+    unsigned i = 0, vector_end;
+
+    if(AggregatedLayers.size() == 0){
+        vector_end = Layers.size();
+    }
+    else{
+        vector_end = AggregatedLayers.size();
+    }
+
+    while(i < vector_end){
+        Layer = nullptr;
+        if(AggregatedLayers.size() == 0){
+            Layer = &Layers[i];
+        }
+        else{
+            Layer = AggregatedLayers[i];
+        }
+        if(Layer == nullptr){
+            break;
+        }
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, Layer, Layers, Cameras) == 't'){
+            if(Operation.instruction != "last"){
+                findContextInLayer(Operation.affectedVariable, NewContext, Layer);
             }
             else{
-                NewVariable.Layers.back() = &Layer;
+                findLastContextInLayer(Operation.affectedVariable, NewContext, Layer);
             }
         }
-        if(Operation.instruction == "first" && NewVariable.Layers.size() > 0){
-            delete TempObject;
-            return;
+        if(Operation.instruction == "first" && (NewContext.UniversalVariables.size() == 1 || NewContext.Layers.size() == 1)){
+            break;
         }
+        i++;
     }
+
     delete TempObject;
     if(Operation.instruction == "random"){
-        LayerClass * randomLayer = NewVariable.Layers[rand() % NewVariable.Layers.size()];
-        NewVariable.Layers.clear();
-        NewVariable.Layers.push_back(randomLayer);
+        if(Operation.affectedVariable == "self" && NewContext.Layers.size() > 0){
+            LayerClass * randomLayer = NewContext.Layers[rand() % NewContext.Layers.size()];
+            NewContext.Layers.clear();
+            NewContext.Layers.push_back(randomLayer);
+        }
+        else if(NewContext.UniversalVariables.size() > 0){
+            BasePointersStruct randomPointer = NewContext.UniversalVariables[rand() % NewContext.UniversalVariables.size()];
+            NewContext.UniversalVariables.clear();
+            NewContext.UniversalVariables.push_back(randomPointer);
+        }
     }
 }
-void EngineLoop::aggregateLayersInAggregation(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> & AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    if(AggregatedLayers.size() == 0){
-        return;
-    }
+void EngineLoop::aggregateObjects(OperaClass & Operation, PointerContainer & NewContext, vector <LayerClass*> AggregatedLayers, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
-        NewVariable.Layers.push_back(AggregatedLayers.back());
+        if(AggregatedLayers.size() > 0){
+            findContextInObject(Operation.affectedVariable, NewContext, &AggregatedLayers.back()->Objects.back());
+        }
+        else if(AggregatedObjects.size() > 0){
+            findContextInObject(Operation.affectedVariable, NewContext, AggregatedObjects.back());
+        }
         return;
     }
-    AncestorObject * TempObject = new AncestorObject();
-    for(LayerClass * Layer : AggregatedLayers){
-        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, Layer, Layers, Cameras) == 't'){
-            if(Operation.instruction != "last" || NewVariable.Layers.size() == 0){
-                NewVariable.Layers.push_back(Layer);
-            }
-            else{
-                NewVariable.Layers.back() = Layer;
-            }
-        }
-        if(Operation.instruction == "first" && NewVariable.Layers.size() > 0){
-            delete TempObject;
-            return;
-        }
-    }
-    delete TempObject;
-    if(Operation.instruction == "random" && NewVariable.Layers.size() > 0){
-        LayerClass * randomLayer = NewVariable.Layers[rand() % NewVariable.Layers.size()];
-        NewVariable.Layers.clear();
-        NewVariable.Layers.push_back(randomLayer);
-    }
-}
-void EngineLoop::aggregateObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    for(LayerClass & Layer : Layers){
-        if(Layer.getID() != Operation.leftOperand.layerID){
-            continue;
-        }
-        if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
-            NewVariable.Objects.push_back(&Layer.Objects.back());
-            return;
-        }
-        for(AncestorObject & Object : Layer.Objects){
-            //all Condition.Location.layerID = Layer.getID();
-            if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, &Object, &Layer, Layers, Cameras) == 't'){
-                if(Operation.instruction != "last" || NewVariable.Objects.size() == 0){
-                    NewVariable.Objects.push_back(&Object);
-                }
-                else{
-                    NewVariable.Objects.back() = &Object;
-                }
-            }
-            if(Operation.instruction == "first" && NewVariable.Objects.size() > 0){
-                return;
-            }
-        }
-        if(Operation.instruction == "random"){
-            AncestorObject * randomObjects = NewVariable.Objects[rand() % NewVariable.Objects.size()];
-            NewVariable.Objects.clear();
-            NewVariable.Objects.push_back(randomObjects);
-        }
 
-        break;
-    }
-}
-void EngineLoop::aggregateObjectsInAggregation(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
-    if(AggregatedObjects.size() == 0){
-        return;
-    }
-    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
-        NewVariable.Objects.push_back(AggregatedObjects.back());
-        return;
-    }
-    for(LayerClass & Layer : Layers){
-        if(Layer.getID() != AggregatedObjects.back()->layerID){
-            continue;
+    if(AggregatedLayers.size() > 0){
+        for(LayerClass * Layer : AggregatedLayers){
+            for(AncestorObject & Object : Layer->Objects){
+                if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, &Object, Layer, Layers, Cameras) == 't'){
+                    if(Operation.instruction != "last"){
+                        findContextInObject(Operation.affectedVariable, NewContext, &Object);
+                    }
+                    else{
+                        findLastContextInObject(Operation.affectedVariable, NewContext, &Object);
+                    }
+                }
+                if(Operation.instruction == "first" && (NewContext.UniversalVariables.size() == 1 || NewContext.Objects.size() == 1)){
+                    return;
+                }
+            }
         }
-        
+    }
+    else if(AggregatedObjects.size() > 0){
+        LayerClass * TempLayer = new LayerClass();
         for(AncestorObject * Object : AggregatedObjects){
-            //all Condition.Location.layerID = Layer.getID();
-            if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                if(Operation.instruction != "last" || NewVariable.Objects.size() == 0){
-                    NewVariable.Objects.push_back(Object);
+            for(TriggerClass & Condition : Operation.ConditionalChain){
+                Condition.Location.layerID = Object->layerID;
+            }
+            if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, TempLayer, Layers, Cameras) == 't'){
+                if(Operation.instruction != "last"){
+                    findContextInObject(Operation.affectedVariable, NewContext, Object);
                 }
                 else{
-                    NewVariable.Objects.back() = Object;
+                    findLastContextInObject(Operation.affectedVariable, NewContext, Object);
                 }
             }
-            if(Operation.instruction == "first" && NewVariable.Objects.size() > 0){
-                return;
+            if(Operation.instruction == "first" && (NewContext.UniversalVariables.size() == 1 || NewContext.Objects.size() == 1)){
+                break;;
             }
         }
-        if(Operation.instruction == "random" && NewVariable.Objects.size() > 0){
-            AncestorObject * randomObjects = NewVariable.Objects[rand() % NewVariable.Objects.size()];
-            NewVariable.Objects.clear();
-            NewVariable.Objects.push_back(randomObjects);
+        delete TempLayer;
+    }
+
+    if(Operation.instruction == "random"){
+        if(Operation.affectedVariable == "self" && NewContext.Objects.size() > 0){
+            AncestorObject * randomObject = NewContext.Objects[rand() % NewContext.Objects.size()];
+            NewContext.Objects.clear();
+            NewContext.Objects.push_back(randomObject);
         }
-        break;
+        else if(NewContext.UniversalVariables.size() > 0){
+            BasePointersStruct randomPointer = NewContext.UniversalVariables[rand() % NewContext.UniversalVariables.size()];
+            NewContext.UniversalVariables.clear();
+            NewContext.UniversalVariables.push_back(randomPointer);
+        }
     }
 }
 void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Context, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
@@ -803,31 +803,31 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
         return;
     }
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
-        if(Operation.searchedEntityType == "text" && AggregatedObjects.back()->TextContainer.size() > 0){
+        if(Operation.affectedVariable == "text" && AggregatedObjects.back()->TextContainer.size() > 0){
             Context.Modules.Texts.push_back(&AggregatedObjects.back()->TextContainer.back());
         }
-        else if(Operation.searchedEntityType == "editable_text" && AggregatedObjects.back()->EditableTextContainer.size() > 0){
+        else if(Operation.affectedVariable == "editable_text" && AggregatedObjects.back()->EditableTextContainer.size() > 0){
             Context.Modules.EditableTexts.push_back(&AggregatedObjects.back()->EditableTextContainer.back());
         }
-        else if(Operation.searchedEntityType == "image" && AggregatedObjects.back()->ImageContainer.size() > 0){
+        else if(Operation.affectedVariable == "image" && AggregatedObjects.back()->ImageContainer.size() > 0){
             Context.Modules.Images.push_back(&AggregatedObjects.back()->ImageContainer.back());
         }
-        else if(Operation.searchedEntityType == "movement" && AggregatedObjects.back()->MovementContainer.size() > 0){
+        else if(Operation.affectedVariable == "movement" && AggregatedObjects.back()->MovementContainer.size() > 0){
             Context.Modules.Movements.push_back(&AggregatedObjects.back()->MovementContainer.back());
         }
-        else if(Operation.searchedEntityType == "collision" && AggregatedObjects.back()->CollisionContainer.size() > 0){
+        else if(Operation.affectedVariable == "collision" && AggregatedObjects.back()->CollisionContainer.size() > 0){
             Context.Modules.Collisions.push_back(&AggregatedObjects.back()->CollisionContainer.back());
         }
-        else if(Operation.searchedEntityType == "particles" && AggregatedObjects.back()->ParticlesContainer.size() > 0){
+        else if(Operation.affectedVariable == "particles" && AggregatedObjects.back()->ParticlesContainer.size() > 0){
             Context.Modules.Particles.push_back(&AggregatedObjects.back()->ParticlesContainer.back());
         }
-        else if(Operation.searchedEntityType == "event" && AggregatedObjects.back()->EveContainer.size() > 0){
+        else if(Operation.affectedVariable == "event" && AggregatedObjects.back()->EveContainer.size() > 0){
             Context.Modules.Events.push_back(&AggregatedObjects.back()->EveContainer.back());
         }
-        else if(Operation.searchedEntityType == "variable" && AggregatedObjects.back()->VariablesContainer.size() > 0){
+        else if(Operation.affectedVariable == "variable" && AggregatedObjects.back()->VariablesContainer.size() > 0){
             Context.Modules.Variables.push_back(&AggregatedObjects.back()->VariablesContainer.back());
         }
-        else if(Operation.searchedEntityType == "scrollbar" && AggregatedObjects.back()->ScrollbarContainer.size() > 0){
+        else if(Operation.affectedVariable == "scrollbar" && AggregatedObjects.back()->ScrollbarContainer.size() > 0){
             Context.Modules.Scrollbars.push_back(&AggregatedObjects.back()->ScrollbarContainer.back());
         }
         return;
@@ -838,7 +838,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
         }
         
         for(AncestorObject * Object : AggregatedObjects){
-            if(Operation.searchedEntityType == "text"){
+            if(Operation.affectedVariable == "text"){
                 for(TextModule & Text : Object->TextContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -858,7 +858,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "editable_text"){
+            else if(Operation.affectedVariable == "editable_text"){
                 for(EditableTextModule & EditableText : Object->EditableTextContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -878,7 +878,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "editable_text"){
+            else if(Operation.affectedVariable == "editable_text"){
                 for(EditableTextModule & EditableText : Object->EditableTextContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -898,7 +898,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "image"){
+            else if(Operation.affectedVariable == "image"){
                 for(ImageModule & Image : Object->ImageContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -918,7 +918,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "movement"){
+            else if(Operation.affectedVariable == "movement"){
                 for(MovementModule & Movement : Object->MovementContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -938,7 +938,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "collision"){
+            else if(Operation.affectedVariable == "collision"){
                 for(CollisionModule & Collision : Object->CollisionContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -958,7 +958,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "particles"){
+            else if(Operation.affectedVariable == "particles"){
                 for(ParticleEffectModule & Particles : Object->ParticlesContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -978,7 +978,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "events"){
+            else if(Operation.affectedVariable == "events"){
                 for(EveModule & Event : Object->EveContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -998,7 +998,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "variable"){
+            else if(Operation.affectedVariable == "variable"){
                 for(VariableModule & Variable : Object->VariablesContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -1018,7 +1018,7 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
                     }
                 }
             }
-            else if(Operation.searchedEntityType == "scrollbar"){
+            else if(Operation.affectedVariable == "scrollbar"){
                 for(ScrollbarModule & Scrollbar : Object->ScrollbarContainer){
                     for(TriggerClass & Condition : Operation.ConditionalChain){
                         if(Condition.Location.moduleID == ""){
@@ -1040,47 +1040,47 @@ void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Con
             }
         }
         if(Operation.instruction == "random"){
-            if(Operation.searchedEntityType == "text" && Context.Modules.Texts.size() > 0){
+            if(Operation.affectedVariable == "text" && Context.Modules.Texts.size() > 0){
                 TextModule * random = Context.Modules.Texts[rand() % Context.Modules.Texts.size()];
                 Context.Modules.Texts.clear();
                 Context.Modules.Texts.push_back(random);
             }
-            else if(Operation.searchedEntityType == "editable_text" && Context.Modules.EditableTexts.size() > 0){
+            else if(Operation.affectedVariable == "editable_text" && Context.Modules.EditableTexts.size() > 0){
                 EditableTextModule * random = Context.Modules.EditableTexts[rand() % Context.Modules.EditableTexts.size()];
                 Context.Modules.EditableTexts.clear();
                 Context.Modules.EditableTexts.push_back(random);
             }
-            else if(Operation.searchedEntityType == "image" && Context.Modules.Images.size() > 0){
+            else if(Operation.affectedVariable == "image" && Context.Modules.Images.size() > 0){
                 ImageModule * random = Context.Modules.Images[rand() % Context.Modules.Images.size()];
                 Context.Modules.Images.clear();
                 Context.Modules.Images.push_back(random);
             }
-            else if(Operation.searchedEntityType == "movement" && Context.Modules.Movements.size() > 0){
+            else if(Operation.affectedVariable == "movement" && Context.Modules.Movements.size() > 0){
                 MovementModule * random = Context.Modules.Movements[rand() % Context.Modules.Movements.size()];
                 Context.Modules.Movements.clear();
                 Context.Modules.Movements.push_back(random);
             }
-            else if(Operation.searchedEntityType == "collision" && Context.Modules.Collisions.size() > 0){
+            else if(Operation.affectedVariable == "collision" && Context.Modules.Collisions.size() > 0){
                 CollisionModule * random = Context.Modules.Collisions[rand() % Context.Modules.Collisions.size()];
                 Context.Modules.Collisions.clear();
                 Context.Modules.Collisions.push_back(random);
             }
-            else if(Operation.searchedEntityType == "particles" && Context.Modules.Particles.size() > 0){
+            else if(Operation.affectedVariable == "particles" && Context.Modules.Particles.size() > 0){
                 ParticleEffectModule * random = Context.Modules.Particles[rand() % Context.Modules.Particles.size()];
                 Context.Modules.Particles.clear();
                 Context.Modules.Particles.push_back(random);
             }
-            else if(Operation.searchedEntityType == "event" && Context.Modules.Events.size() > 0){
+            else if(Operation.affectedVariable == "event" && Context.Modules.Events.size() > 0){
                 EveModule * random = Context.Modules.Events[rand() % Context.Modules.Events.size()];
                 Context.Modules.Events.clear();
                 Context.Modules.Events.push_back(random);
             }
-            else if(Operation.searchedEntityType == "variable" && Context.Modules.Variables.size() > 0){
+            else if(Operation.affectedVariable == "variable" && Context.Modules.Variables.size() > 0){
                 VariableModule * random = Context.Modules.Variables[rand() % Context.Modules.Variables.size()];
                 Context.Modules.Variables.clear();
                 Context.Modules.Variables.push_back(random);
             }
-            else if(Operation.searchedEntityType == "scrollbar" && Context.Modules.Scrollbars.size() > 0){
+            else if(Operation.affectedVariable == "scrollbar" && Context.Modules.Scrollbars.size() > 0){
                 ScrollbarModule * random = Context.Modules.Scrollbars[rand() % Context.Modules.Scrollbars.size()];
                 Context.Modules.Scrollbars.clear();
                 Context.Modules.Scrollbars.push_back(random);
@@ -1280,6 +1280,91 @@ void EngineLoop::findContextInCamera(string attribute, PointerContainer & NewCon
         NewContext.addUniversalVariable(&Camera->isUsingCursorPositionToMove);
     }
 }
+void EngineLoop::findLastContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer){
+    if(attribute == "self"){
+        if(NewContext.Layers.size() == 0){
+            NewContext.type = "layer";
+            NewContext.Layers.push_back(Layer);
+        }
+        else{
+            NewContext.Layers.back() = Layer;
+        }
+    }
+    else if(attribute == "is_Active"){
+        NewContext.setFirstUniversalVariable(Layer->getIsActiveAddr());
+    }
+    else if(attribute == "id"){
+        NewContext.setFirstUniversalVariable(Layer->getIDAddr());
+    }
+    else if(attribute == "pos_x"){
+        NewContext.setFirstUniversalVariable(&Layer->pos.x);
+    }
+    else if(attribute == "pos_y"){
+        NewContext.setFirstUniversalVariable(&Layer->pos.y);
+    }
+}
+void EngineLoop::findContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer){
+    if(attribute == "self"){
+        NewContext.type = "layer";
+        NewContext.Layers.push_back(Layer);
+    }
+    else if(attribute == "is_Active"){
+        NewContext.addUniversalVariable(Layer->getIsActiveAddr());
+    }
+    else if(attribute == "id"){
+        NewContext.addUniversalVariable(Layer->getIDAddr());
+    }
+    else if(attribute == "pos_x"){
+        NewContext.addUniversalVariable(&Layer->pos.x);
+    }
+    else if(attribute == "pos_y"){
+        NewContext.addUniversalVariable(&Layer->pos.y);
+    }
+}
+void EngineLoop::findLastContextInObject(string attribute, PointerContainer & NewContext, AncestorObject * Object){
+    if(attribute == "self"){
+        if(NewContext.Objects.size() == 0){
+            NewContext.type = "object";
+            NewContext.Objects.push_back(Object);
+        }
+        else{
+            NewContext.Objects.back() = Object;
+        }
+    }
+    else if(attribute == "layer_id"){
+        NewContext.setFirstUniversalVariable(&Object->layerID);
+    }
+    else{
+        BasePointersStruct UniversalVariable;
+        Object->bindPrimaryToVariable(attribute, UniversalVariable);
+        if(UniversalVariable.type != ""){
+            if(NewContext.UniversalVariables.size() == 0){
+                NewContext.UniversalVariables.push_back(UniversalVariable);
+                NewContext.type = UniversalVariable.type;
+            }
+            else{
+                NewContext.UniversalVariables.back() = UniversalVariable;
+            }
+        }
+    }
+}
+void EngineLoop::findContextInObject(string attribute, PointerContainer & NewContext, AncestorObject * Object){
+    if(attribute == "self"){
+        NewContext.type = "object";
+        NewContext.Objects.push_back(Object);
+    }
+    else if(attribute == "layer_id"){
+        NewContext.addUniversalVariable(&Object->layerID);
+    }
+    else{
+        BasePointersStruct UniversalVariable;
+        Object->bindPrimaryToVariable(attribute, UniversalVariable);
+        if(UniversalVariable.type != ""){
+            NewContext.UniversalVariables.push_back(UniversalVariable);
+            NewContext.type = UniversalVariable.type;
+        }
+    }
+}
 bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass * CurrentLayer, AncestorObject * CurrentObject, vector <LayerClass> & Layers){
     if(Location.layerID == Owner->layerID){
         CurrentLayer = OwnerLayer;
@@ -1335,9 +1420,9 @@ void EngineLoop::findContextInObjects(ValueLocation & Location, PointerContainer
         CurrentObject->bindModuleToContext(Location.moduleType, Location.moduleID, Location.attribute, NewContext.Modules);
     }
     else if(Location.attribute != ""){
-        NewContext.UniversalVariable.push_back(BasePointersStruct());
-        CurrentObject->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, NewContext.UniversalVariable.back());
-        NewContext.type = NewContext.UniversalVariable.back().type;
+        NewContext.UniversalVariables.push_back(BasePointersStruct());
+        CurrentObject->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, NewContext.UniversalVariables.back());
+        NewContext.type = NewContext.UniversalVariables.back().type;
     }
 }
 void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
@@ -1349,29 +1434,7 @@ void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewCont
             if(Layer.getID() != Location.Literal.getString()){
                 continue;
             }
-            if(Location.Location.attribute == "self"){
-                NewContext.Layers.push_back(&Layer);
-                NewContext.type = "layer";
-            }
-            else if(Location.Location.attribute == "is_Active"){
-                NewContext.addUniversalVariable(Layer.getIsActiveAddr());
-            }
-            else if(Location.Location.attribute == "id"){
-                NewContext.addUniversalVariable(Layer.getIDAddr());
-            }
-            else if(Location.Location.attribute == "pos_x"){
-                NewContext.addUniversalVariable(&Layer.pos.x);
-            }
-            else if(Location.Location.attribute == "pos_y"){
-                NewContext.addUniversalVariable(&Layer.pos.y);
-            }
-            else if(Location.Location.attribute == "size_x"){
-                NewContext.addUniversalVariable(&Layer.size.x);
-            }
-            else if(Location.Location.attribute == "size_y"){
-                NewContext.addUniversalVariable(&Layer.size.y);
-            }
-            NewContext.type = "layer";
+            findContextInLayer(Location.Location.attribute, NewContext, &Layer);
             return;
         }
     }
@@ -1395,9 +1458,9 @@ void EngineLoop::findLowerContextInObjects(ValueLocation & Location, PointerCont
                     Object->bindModuleToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.Modules);
                 }
                 else if(Location.attribute != ""){
-                    Context.UniversalVariable.push_back(BasePointersStruct());
-                    Object->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.UniversalVariable.back());
-                    Context.type = Context.UniversalVariable.back().type;
+                    Context.UniversalVariables.push_back(BasePointersStruct());
+                    Object->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.UniversalVariables.back());
+                    Context.type = Context.UniversalVariables.back().type;
                 }
             }
         }
@@ -1411,9 +1474,9 @@ void EngineLoop::findLowerContextInObjects(ValueLocation & Location, PointerCont
                 Object->bindModuleToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.Modules);
             }
             else if(Location.attribute != ""){
-                Context.UniversalVariable.push_back(BasePointersStruct());
-                Object->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.UniversalVariable.back());
-                Context.type = Context.UniversalVariable.back().type;
+                Context.UniversalVariables.push_back(BasePointersStruct());
+                Object->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.UniversalVariables.back());
+                Context.type = Context.UniversalVariables.back().type;
             }
         }
         Context.Objects.clear();
@@ -1463,7 +1526,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         
         //Aggregate entities and push them on the Variables Stack.
         if(isStringInGroup(Operation.instruction, 4, "first", "last", "all", "random")){
-            if(Operation.dynamicIDs.size() == 1){
+            if(Operation.dynamicIDs.size() > 0){
                 PointerContainer * rightOperand;
                 variableExisted = false;
                 for(PointerContainer & DynamicVariable : EventVariables){
@@ -1479,12 +1542,12 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
                         aggregateCameras(Operation, EventVariables.back(), rightOperand->Cameras, Cameras);
                     }
                     else if(Operation.searchedEntityType == "layer"){
-                        aggregateLayersInAggregation(Operation, EventVariables.back(), rightOperand->Layers, Layers, Cameras);
+                        aggregateLayers(Operation, EventVariables.back(), rightOperand->Layers, Layers, Cameras);
                     }
                     else if(Operation.searchedEntityType == "object"){
-                        aggregateObjectsInAggregation(Operation, EventVariables.back(), rightOperand->Objects, Layers, Cameras);
+                        aggregateObjects(Operation, EventVariables.back(), rightOperand->Layers, rightOperand->Objects, Layers, Cameras);
                     }
-                    else if(isStringInGroup(Operation.searchedEntityType, 9, "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
+                    else if(Operation.searchedEntityType == "module"){
                         aggregateModules(Operation, EventVariables.back(), rightOperand->Objects, Layers, Cameras);
                     }
                 }
@@ -1498,10 +1561,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
                     aggregateCameras(Operation, EventVariables.back(), vector<Camera2D*>(), Cameras);
                 }
                 else if(Operation.searchedEntityType == "layers"){
-                    aggregateLayers(Operation, EventVariables.back(), Layers, Cameras);
-                }
-                else if(Operation.searchedEntityType == "objects"){
-                    aggregateObjects(Operation, EventVariables.back(), Layers, Cameras);
+                    aggregateLayers(Operation, EventVariables.back(), vector<LayerClass*>(), Layers, Cameras);
                 }
             }
         }
@@ -2063,7 +2123,7 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
     }
     if(Condition.source == "variable"){
         for(VariableModule Variable : Owner->VariablesContainer){
-            if(Variable.getID() == Condition.Literal.getString()){
+            if(Variable.getID() == Condition.Location.moduleID){
                 return Variable;
             }
         }
@@ -2071,7 +2131,7 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
     if(Condition.source == "layer"){
         NewValue.setID(Condition.source + "_" + Condition.Location.attribute);
         for(LayerClass Layer : Layers){
-            if(Layer.getID() == Condition.Literal.getString()){
+            if(Layer.getID() == Condition.Location.layerID){
                 if(Condition.Location.attribute == "objects_count"){
                     NewValue.setDouble(Layer.Objects.size());
                     return NewValue;
@@ -2103,7 +2163,7 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
     if(Condition.source == "camera"){
         NewValue.setID(Condition.source + "_" + Condition.Location.attribute);
         for(Camera2D Camera : Cameras){
-            if(Camera.getID() == Condition.Literal.getString()){
+            if(Camera.getID() == Condition.Location.cameraID){
                 if(Condition.Location.attribute == "pos_x"){
                     NewValue.setDouble(Camera.pos.x);
                     return NewValue;

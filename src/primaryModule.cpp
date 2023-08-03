@@ -188,6 +188,9 @@ void PrimaryModule::bindPrimaryToVariable(string attribute, BasePointersStruct &
         UniversalVariable.getPointer(&isScrollable);
     }
 }
+BasePointersStruct::BasePointersStruct(){
+    type = "";
+}
 void BasePointersStruct::clear(){
     type = "";
     vBool = nullptr;
