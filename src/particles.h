@@ -104,7 +104,7 @@ public:
     void removeImage(string imageID);
     void removeImage(unsigned int id);
     void activeSpawn();
-    void bindParticlesToVariable(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & UniversalVariable);
 
     double getEnvironmentX();
     double getEnvironmentY();

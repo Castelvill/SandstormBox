@@ -366,7 +366,7 @@ void EveModule::controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrol
         Scrollbar.addRealScrollingArea(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
 }
-void EveModule::bindEventToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void EveModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "parent_id"){
         UniversalVariable.getPointer(&parentID);
     }

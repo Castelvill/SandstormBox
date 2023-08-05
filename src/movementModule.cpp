@@ -565,7 +565,7 @@ void MovementModule::bindKeys(short newUpKey, short newRightKey, short newDownKe
 void MovementModule::bindMouseButton(short newMouseButton){
     mouseButton = newMouseButton;
 }
-void MovementModule::bindMovementToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void MovementModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "movement_type"){
         UniversalVariable.getPointer(&movementType);
     }

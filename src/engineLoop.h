@@ -146,6 +146,26 @@ struct PointerContainer{
     void setFirstUniversalVariable(unsigned int*);
     void setFirstUniversalVariable(double*);
     void setFirstUniversalVariable(string*);
+
+    void addModule(TextModule * Module);
+    void addModule(EditableTextModule * Module);
+    void addModule(ImageModule * Module);
+    void addModule(MovementModule * Module);
+    void addModule(CollisionModule * Module);
+    void addModule(ParticleEffectModule * Module);
+    void addModule(EveModule * Module);
+    void addModule(VariableModule * Module);
+    void addModule(ScrollbarModule * Module);
+
+    void setFirstModule(TextModule * Module);
+    void setFirstModule(EditableTextModule * Module);
+    void setFirstModule(ImageModule * Module);
+    void setFirstModule(MovementModule * Module);
+    void setFirstModule(CollisionModule * Module);
+    void setFirstModule(ParticleEffectModule * Module);
+    void setFirstModule(EveModule * Module);
+    void setFirstModule(VariableModule * Module);
+    void setFirstModule(ScrollbarModule * Module);
 };
 
 class EngineLoop{
@@ -195,7 +215,8 @@ public:
     void aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras);
     void aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void aggregateObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    void aggregateModules(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void chooseRandomModule(OperaClass & Operation, PointerContainer & NewContext);
+    void aggregateModules(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, ModulesPointers AggregatedModules, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void findLastContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
     void findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
     void findLastContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer);
@@ -258,7 +279,17 @@ public:
     void prepareEditorWindowParticles(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
     void prepareEditorWindowVariables(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
     void prepareEditorWindowEditable(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
+
+    template<class ModuleClass>
+    void findModuleContext(vector<ModuleClass> & ModuleContainer, vector<ModuleClass*> AggregatedModules, OperaClass & Operation, PointerContainer & NewContext, AncestorObject * Object, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+
+    template<class ModuleClass>
+    void findContextInModules(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module);
+
+    template<class ModuleClass>
+    void findLastContextInModules(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module);
 };
+
 
 
 

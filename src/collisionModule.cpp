@@ -245,7 +245,7 @@ void CollisionModule::removeImaginaryCollisions(){
         }
     }
 }
-void CollisionModule::bindCollisionToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void CollisionModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "is_solid"){
         UniversalVariable.getPointer(&isSolid);
     }

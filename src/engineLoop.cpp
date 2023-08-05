@@ -602,6 +602,168 @@ void PointerContainer::setFirstUniversalVariable(string * pointer){
     }
     UniversalVariables.back().getPointer(pointer);
 }
+void PointerContainer::addModule(TextModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.Texts.push_back(Module);
+}
+void PointerContainer::addModule(EditableTextModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.EditableTexts.push_back(Module);
+}
+void PointerContainer::addModule(ImageModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.Images.push_back(Module);
+}
+void PointerContainer::addModule(MovementModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.Movements.push_back(Module);
+}
+void PointerContainer::addModule(CollisionModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.Collisions.push_back(Module);
+}
+void PointerContainer::addModule(ParticleEffectModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.Particles.push_back(Module);
+}
+void PointerContainer::addModule(EveModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.Events.push_back(Module);
+}
+void PointerContainer::addModule(VariableModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.Variables.push_back(Module);
+}
+void PointerContainer::addModule(ScrollbarModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    Modules.Scrollbars.push_back(Module);
+}
+void PointerContainer::setFirstModule(TextModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.Texts.size() == 0){
+        type = "text";
+        addModule(Module);
+    }
+    else{
+        Modules.Texts.back() = Module;
+    }
+}
+void PointerContainer::setFirstModule(EditableTextModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.EditableTexts.size() == 0){
+        type = "editable_text";
+        addModule(Module);
+    }
+    else{
+        Modules.EditableTexts.back() = Module;
+    }
+}
+void PointerContainer::setFirstModule(ImageModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.Images.size() == 0){
+        type = "image";
+        addModule(Module);
+    }
+    else{
+        Modules.Images.back() = Module;
+    }
+}
+void PointerContainer::setFirstModule(MovementModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.Movements.size() == 0){
+        type = "movement";
+        addModule(Module);
+    }
+    else{
+        Modules.Movements.back() = Module;
+    }
+}
+void PointerContainer::setFirstModule(CollisionModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.Collisions.size() == 0){
+        type = "collision";
+        addModule(Module);
+    }
+    else{
+        Modules.Collisions.back() = Module;
+    }
+}
+void PointerContainer::setFirstModule(ParticleEffectModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.Particles.size() == 0){
+        type = "particles";
+        addModule(Module);
+    }
+    else{
+        Modules.Particles.back() = Module;
+    }
+}
+void PointerContainer::setFirstModule(EveModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.Events.size() == 0){
+        type = "event";
+        addModule(Module);
+    }
+    else{
+        Modules.Events.back() = Module;
+    }
+}
+void PointerContainer::setFirstModule(VariableModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.Variables.size() == 0){
+        type = "variable";
+        addModule(Module);
+    }
+    else{
+        Modules.Variables.back() = Module;
+    }
+}
+void PointerContainer::setFirstModule(ScrollbarModule * Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.Scrollbars.size() == 0){
+        type = "scrollbar";
+        addModule(Module);
+    }
+    else{
+        Modules.Scrollbars.back() = Module;
+    }
+}
 void EngineLoop::aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras){
     if(Cameras.size() == 0){
         return;
@@ -798,295 +960,268 @@ void EngineLoop::aggregateObjects(OperaClass & Operation, PointerContainer & New
         }
     }
 }
-void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & Context, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+void EngineLoop::chooseRandomModule(OperaClass & Operation, PointerContainer & NewContext){
+    if(Operation.searchedEntityType == "text" && NewContext.Modules.Texts.size() > 0){
+        TextModule * random = NewContext.Modules.Texts[rand() % NewContext.Modules.Texts.size()];
+        NewContext.Modules.Texts.clear();
+        NewContext.Modules.Texts.push_back(random);
+    }
+    else if(Operation.searchedEntityType == "editable_text" && NewContext.Modules.EditableTexts.size() > 0){
+        EditableTextModule * random = NewContext.Modules.EditableTexts[rand() % NewContext.Modules.EditableTexts.size()];
+        NewContext.Modules.EditableTexts.clear();
+        NewContext.Modules.EditableTexts.push_back(random);
+    }
+    else if(Operation.searchedEntityType == "image" && NewContext.Modules.Images.size() > 0){
+        ImageModule * random = NewContext.Modules.Images[rand() % NewContext.Modules.Images.size()];
+        NewContext.Modules.Images.clear();
+        NewContext.Modules.Images.push_back(random);
+    }
+    else if(Operation.searchedEntityType == "movement" && NewContext.Modules.Movements.size() > 0){
+        MovementModule * random = NewContext.Modules.Movements[rand() % NewContext.Modules.Movements.size()];
+        NewContext.Modules.Movements.clear();
+        NewContext.Modules.Movements.push_back(random);
+    }
+    else if(Operation.searchedEntityType == "collision" && NewContext.Modules.Collisions.size() > 0){
+        CollisionModule * random = NewContext.Modules.Collisions[rand() % NewContext.Modules.Collisions.size()];
+        NewContext.Modules.Collisions.clear();
+        NewContext.Modules.Collisions.push_back(random);
+    }
+    else if(Operation.searchedEntityType == "particles" && NewContext.Modules.Particles.size() > 0){
+        ParticleEffectModule * random = NewContext.Modules.Particles[rand() % NewContext.Modules.Particles.size()];
+        NewContext.Modules.Particles.clear();
+        NewContext.Modules.Particles.push_back(random);
+    }
+    else if(Operation.searchedEntityType == "event" && NewContext.Modules.Events.size() > 0){
+        EveModule * random = NewContext.Modules.Events[rand() % NewContext.Modules.Events.size()];
+        NewContext.Modules.Events.clear();
+        NewContext.Modules.Events.push_back(random);
+    }
+    else if(Operation.searchedEntityType == "variable" && NewContext.Modules.Variables.size() > 0){
+        VariableModule * random = NewContext.Modules.Variables[rand() % NewContext.Modules.Variables.size()];
+        NewContext.Modules.Variables.clear();
+        NewContext.Modules.Variables.push_back(random);
+    }
+    else if(Operation.searchedEntityType == "scrollbar" && NewContext.Modules.Scrollbars.size() > 0){
+        ScrollbarModule * random = NewContext.Modules.Scrollbars[rand() % NewContext.Modules.Scrollbars.size()];
+        NewContext.Modules.Scrollbars.clear();
+        NewContext.Modules.Scrollbars.push_back(random);
+    }
+}
+template<class ModuleClass>
+void EngineLoop::findModuleContext(vector<ModuleClass> & ModuleContainer, vector<ModuleClass*> AggregatedModules, OperaClass & Operation, PointerContainer & NewContext, AncestorObject * Object, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+    LayerClass * EmptyLayer = nullptr;
+    ModuleClass * Module = nullptr;
+    unsigned i = 0, vector_end;
+
+    if(AggregatedModules.size() == 0){
+        vector_end = ModuleContainer.size();
+    }
+    else{
+        vector_end = AggregatedModules.size();
+    }
+
+    while(i < vector_end){
+        Module = nullptr;
+        if(AggregatedModules.size() == 0){
+            Module = &ModuleContainer[i];
+        }
+        else{
+            Module = AggregatedModules[i];
+        }
+        if(Module == nullptr){
+            break;
+        }
+        for(TriggerClass & Condition : Operation.ConditionalChain){
+            if(Condition.Location.moduleID == ""){
+                Condition.Location.moduleID = Module->getID();
+            }
+        }
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, EmptyLayer, Layers, Cameras) == 't'){
+            if(Operation.instruction != "last"){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, Module);
+            }
+            else{
+                findLastContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, Module);
+            }
+        }
+        if(Operation.instruction == "first" && NewContext.Modules.hasInstanceOfAnyModule()){
+            return;
+        }
+        i++;
+    }
+}
+template<class ModuleClass>
+void EngineLoop::findContextInModules(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module){
+    if(attribute == "self"){
+        NewContext.type = module;
+        NewContext.addModule(Module);
+    }
+    else{
+        BasePointersStruct UniversalVariable;
+        Module->getContext(attribute, UniversalVariable);
+        if(UniversalVariable.type != ""){
+            NewContext.UniversalVariables.push_back(UniversalVariable);
+            NewContext.type = UniversalVariable.type;
+        }
+    }
+}
+template<class ModuleClass>
+void EngineLoop::findLastContextInModules(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module){
+    if(attribute == "self"){
+        NewContext.setFirstModule(Module);
+    }
+    else{
+        BasePointersStruct UniversalVariable;
+        Module->getContext(attribute, UniversalVariable);
+        if(UniversalVariable.type != ""){
+            if(NewContext.UniversalVariables.size() == 0){
+                NewContext.UniversalVariables.push_back(UniversalVariable);
+                NewContext.type = UniversalVariable.type;
+            }
+            else{
+                NewContext.UniversalVariables.back() = UniversalVariable;
+            }
+        }
+    }
+}
+void EngineLoop::aggregateModules(OperaClass & Operation, PointerContainer & NewContext, vector <AncestorObject*> AggregatedObjects, ModulesPointers AggregatedModules, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     if(AggregatedObjects.size() == 0){
         return;
     }
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
-        if(Operation.affectedVariable == "text" && AggregatedObjects.back()->TextContainer.size() > 0){
-            Context.Modules.Texts.push_back(&AggregatedObjects.back()->TextContainer.back());
+        if(AggregatedObjects.size() > 0){
+            if(Operation.searchedEntityType == "text" && AggregatedObjects.back()->TextContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->TextContainer.back());
+            }
+            else if(Operation.searchedEntityType == "editable_text" && AggregatedObjects.back()->EditableTextContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->EditableTextContainer.back());
+            }
+            else if(Operation.searchedEntityType == "image" && AggregatedObjects.back()->ImageContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->ImageContainer.back());
+            }
+            else if(Operation.searchedEntityType == "movement" && AggregatedObjects.back()->MovementContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->MovementContainer.back());
+            }
+            else if(Operation.searchedEntityType == "collision" && AggregatedObjects.back()->CollisionContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->CollisionContainer.back());
+            }
+            else if(Operation.searchedEntityType == "particles" && AggregatedObjects.back()->ParticlesContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->ParticlesContainer.back());
+            }
+            else if(Operation.searchedEntityType == "event" && AggregatedObjects.back()->EveContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->EveContainer.back());
+            }
+            else if(Operation.searchedEntityType == "variable" && AggregatedObjects.back()->VariablesContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->VariablesContainer.back());
+            }
+            else if(Operation.searchedEntityType == "scrollbar" && AggregatedObjects.back()->ScrollbarContainer.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, &AggregatedObjects.back()->ScrollbarContainer.back());
+            }
         }
-        else if(Operation.affectedVariable == "editable_text" && AggregatedObjects.back()->EditableTextContainer.size() > 0){
-            Context.Modules.EditableTexts.push_back(&AggregatedObjects.back()->EditableTextContainer.back());
-        }
-        else if(Operation.affectedVariable == "image" && AggregatedObjects.back()->ImageContainer.size() > 0){
-            Context.Modules.Images.push_back(&AggregatedObjects.back()->ImageContainer.back());
-        }
-        else if(Operation.affectedVariable == "movement" && AggregatedObjects.back()->MovementContainer.size() > 0){
-            Context.Modules.Movements.push_back(&AggregatedObjects.back()->MovementContainer.back());
-        }
-        else if(Operation.affectedVariable == "collision" && AggregatedObjects.back()->CollisionContainer.size() > 0){
-            Context.Modules.Collisions.push_back(&AggregatedObjects.back()->CollisionContainer.back());
-        }
-        else if(Operation.affectedVariable == "particles" && AggregatedObjects.back()->ParticlesContainer.size() > 0){
-            Context.Modules.Particles.push_back(&AggregatedObjects.back()->ParticlesContainer.back());
-        }
-        else if(Operation.affectedVariable == "event" && AggregatedObjects.back()->EveContainer.size() > 0){
-            Context.Modules.Events.push_back(&AggregatedObjects.back()->EveContainer.back());
-        }
-        else if(Operation.affectedVariable == "variable" && AggregatedObjects.back()->VariablesContainer.size() > 0){
-            Context.Modules.Variables.push_back(&AggregatedObjects.back()->VariablesContainer.back());
-        }
-        else if(Operation.affectedVariable == "scrollbar" && AggregatedObjects.back()->ScrollbarContainer.size() > 0){
-            Context.Modules.Scrollbars.push_back(&AggregatedObjects.back()->ScrollbarContainer.back());
+        else if(AggregatedModules.hasInstanceOfAnyModule()){
+            if(Operation.searchedEntityType == "text" && AggregatedModules.Texts.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.Texts.back());
+            }
+            else if(Operation.searchedEntityType == "editable_text" && AggregatedModules.EditableTexts.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.EditableTexts.back());
+            }
+            else if(Operation.searchedEntityType == "image" && AggregatedModules.Images.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.Images.back());
+            }
+            else if(Operation.searchedEntityType == "movement" && AggregatedModules.Movements.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.Movements.back());
+            }
+            else if(Operation.searchedEntityType == "collision" && AggregatedModules.Collisions.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.Collisions.back());
+            }
+            else if(Operation.searchedEntityType == "particles" && AggregatedModules.Particles.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.Particles.back());
+            }
+            else if(Operation.searchedEntityType == "event" && AggregatedModules.Events.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.Events.back());
+            }
+            else if(Operation.searchedEntityType == "variable" && AggregatedModules.Variables.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.Variables.back());
+            }
+            else if(Operation.searchedEntityType == "scrollbar" && AggregatedModules.Scrollbars.size() > 0){
+                findContextInModules(Operation.searchedEntityType, Operation.affectedVariable, NewContext, AggregatedModules.Scrollbars.back());
+            }
         }
         return;
     }
-    for(LayerClass & Layer : Layers){
-        if(Layer.getID() != AggregatedObjects.back()->layerID){
-            continue;
-        }
-        
+
+    if(AggregatedObjects.size() > 0){
         for(AncestorObject * Object : AggregatedObjects){
-            if(Operation.affectedVariable == "text"){
-                for(TextModule & Text : Object->TextContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = Text.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.Texts.size() == 0){
-                            Context.Modules.Texts.push_back(&Text);
-                        }
-                        else{
-                            Context.Modules.Texts.back() = &Text;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.Texts.size() > 0){
-                        return;
-                    }
-                }
+            if(Operation.searchedEntityType == "text"){
+                findModuleContext(Object->TextContainer, vector<TextModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
-            else if(Operation.affectedVariable == "editable_text"){
-                for(EditableTextModule & EditableText : Object->EditableTextContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = EditableText.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.EditableTexts.size() == 0){
-                            Context.Modules.EditableTexts.push_back(&EditableText);
-                        }
-                        else{
-                            Context.Modules.EditableTexts.back() = &EditableText;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.EditableTexts.size() > 0){
-                        return;
-                    }
-                }
+            else if(Operation.searchedEntityType == "editable_text"){
+                findModuleContext(Object->EditableTextContainer, vector<EditableTextModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
-            else if(Operation.affectedVariable == "editable_text"){
-                for(EditableTextModule & EditableText : Object->EditableTextContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = EditableText.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.EditableTexts.size() == 0){
-                            Context.Modules.EditableTexts.push_back(&EditableText);
-                        }
-                        else{
-                            Context.Modules.EditableTexts.back() = &EditableText;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.EditableTexts.size() > 0){
-                        return;
-                    }
-                }
+            else if(Operation.searchedEntityType == "image"){
+                findModuleContext(Object->ImageContainer, vector<ImageModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
-            else if(Operation.affectedVariable == "image"){
-                for(ImageModule & Image : Object->ImageContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = Image.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.Images.size() == 0){
-                            Context.Modules.Images.push_back(&Image);
-                        }
-                        else{
-                            Context.Modules.Images.back() = &Image;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.Images.size() > 0){
-                        return;
-                    }
-                }
+            else if(Operation.searchedEntityType == "movement"){
+                findModuleContext(Object->MovementContainer, vector<MovementModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
-            else if(Operation.affectedVariable == "movement"){
-                for(MovementModule & Movement : Object->MovementContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = Movement.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.Movements.size() == 0){
-                            Context.Modules.Movements.push_back(&Movement);
-                        }
-                        else{
-                            Context.Modules.Movements.back() = &Movement;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.Movements.size() > 0){
-                        return;
-                    }
-                }
+            else if(Operation.searchedEntityType == "collision"){
+                findModuleContext(Object->CollisionContainer, vector<CollisionModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
-            else if(Operation.affectedVariable == "collision"){
-                for(CollisionModule & Collision : Object->CollisionContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = Collision.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.Collisions.size() == 0){
-                            Context.Modules.Collisions.push_back(&Collision);
-                        }
-                        else{
-                            Context.Modules.Collisions.back() = &Collision;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.Collisions.size() > 0){
-                        return;
-                    }
-                }
+            else if(Operation.searchedEntityType == "particles"){
+                findModuleContext(Object->ParticlesContainer, vector<ParticleEffectModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
-            else if(Operation.affectedVariable == "particles"){
-                for(ParticleEffectModule & Particles : Object->ParticlesContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = Particles.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.Particles.size() == 0){
-                            Context.Modules.Particles.push_back(&Particles);
-                        }
-                        else{
-                            Context.Modules.Particles.back() = &Particles;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.Particles.size() > 0){
-                        return;
-                    }
-                }
+            else if(Operation.searchedEntityType == "events"){
+                findModuleContext(Object->EveContainer, vector<EveModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
-            else if(Operation.affectedVariable == "events"){
-                for(EveModule & Event : Object->EveContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = Event.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.Events.size() == 0){
-                            Context.Modules.Events.push_back(&Event);
-                        }
-                        else{
-                            Context.Modules.Events.back() = &Event;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.Particles.size() > 0){
-                        return;
-                    }
-                }
+            else if(Operation.searchedEntityType == "variable"){
+                findModuleContext(Object->VariablesContainer, vector<VariableModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
-            else if(Operation.affectedVariable == "variable"){
-                for(VariableModule & Variable : Object->VariablesContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = Variable.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.Variables.size() == 0){
-                            Context.Modules.Variables.push_back(&Variable);
-                        }
-                        else{
-                            Context.Modules.Variables.back() = &Variable;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.Particles.size() > 0){
-                        return;
-                    }
-                }
-            }
-            else if(Operation.affectedVariable == "scrollbar"){
-                for(ScrollbarModule & Scrollbar : Object->ScrollbarContainer){
-                    for(TriggerClass & Condition : Operation.ConditionalChain){
-                        if(Condition.Location.moduleID == ""){
-                            Condition.Location.moduleID = Scrollbar.getID();
-                        }
-                    }
-                    if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, &Layer, Layers, Cameras) == 't'){
-                        if(Operation.instruction != "last" || Context.Modules.Scrollbars.size() == 0){
-                            Context.Modules.Scrollbars.push_back(&Scrollbar);
-                        }
-                        else{
-                            Context.Modules.Scrollbars.back() = &Scrollbar;
-                        }
-                    }
-                    if(Operation.instruction == "first" && Context.Modules.Particles.size() > 0){
-                        return;
-                    }
-                }
+            else if(Operation.searchedEntityType == "scrollbar"){
+                findModuleContext(Object->ScrollbarContainer, vector<ScrollbarModule*>(), Operation, NewContext, Object, Layers, Cameras);
             }
         }
-        if(Operation.instruction == "random"){
-            if(Operation.affectedVariable == "text" && Context.Modules.Texts.size() > 0){
-                TextModule * random = Context.Modules.Texts[rand() % Context.Modules.Texts.size()];
-                Context.Modules.Texts.clear();
-                Context.Modules.Texts.push_back(random);
-            }
-            else if(Operation.affectedVariable == "editable_text" && Context.Modules.EditableTexts.size() > 0){
-                EditableTextModule * random = Context.Modules.EditableTexts[rand() % Context.Modules.EditableTexts.size()];
-                Context.Modules.EditableTexts.clear();
-                Context.Modules.EditableTexts.push_back(random);
-            }
-            else if(Operation.affectedVariable == "image" && Context.Modules.Images.size() > 0){
-                ImageModule * random = Context.Modules.Images[rand() % Context.Modules.Images.size()];
-                Context.Modules.Images.clear();
-                Context.Modules.Images.push_back(random);
-            }
-            else if(Operation.affectedVariable == "movement" && Context.Modules.Movements.size() > 0){
-                MovementModule * random = Context.Modules.Movements[rand() % Context.Modules.Movements.size()];
-                Context.Modules.Movements.clear();
-                Context.Modules.Movements.push_back(random);
-            }
-            else if(Operation.affectedVariable == "collision" && Context.Modules.Collisions.size() > 0){
-                CollisionModule * random = Context.Modules.Collisions[rand() % Context.Modules.Collisions.size()];
-                Context.Modules.Collisions.clear();
-                Context.Modules.Collisions.push_back(random);
-            }
-            else if(Operation.affectedVariable == "particles" && Context.Modules.Particles.size() > 0){
-                ParticleEffectModule * random = Context.Modules.Particles[rand() % Context.Modules.Particles.size()];
-                Context.Modules.Particles.clear();
-                Context.Modules.Particles.push_back(random);
-            }
-            else if(Operation.affectedVariable == "event" && Context.Modules.Events.size() > 0){
-                EveModule * random = Context.Modules.Events[rand() % Context.Modules.Events.size()];
-                Context.Modules.Events.clear();
-                Context.Modules.Events.push_back(random);
-            }
-            else if(Operation.affectedVariable == "variable" && Context.Modules.Variables.size() > 0){
-                VariableModule * random = Context.Modules.Variables[rand() % Context.Modules.Variables.size()];
-                Context.Modules.Variables.clear();
-                Context.Modules.Variables.push_back(random);
-            }
-            else if(Operation.affectedVariable == "scrollbar" && Context.Modules.Scrollbars.size() > 0){
-                ScrollbarModule * random = Context.Modules.Scrollbars[rand() % Context.Modules.Scrollbars.size()];
-                Context.Modules.Scrollbars.clear();
-                Context.Modules.Scrollbars.push_back(random);
-            }
+    }
+    else if(AggregatedModules.hasInstanceOfAnyModule()){
+        AncestorObject * EmptyObject = new AncestorObject();
+        if(Operation.searchedEntityType == "text"){
+            findModuleContext(EmptyObject->TextContainer, AggregatedModules.Texts, Operation, NewContext, EmptyObject, Layers, Cameras);
         }
-        break;
+        else if(Operation.searchedEntityType == "editable_text"){
+            findModuleContext(EmptyObject->EditableTextContainer, AggregatedModules.EditableTexts, Operation, NewContext, EmptyObject, Layers, Cameras);
+        }
+        else if(Operation.searchedEntityType == "image"){
+            findModuleContext(EmptyObject->ImageContainer, AggregatedModules.Images, Operation, NewContext, EmptyObject, Layers, Cameras);
+        }
+        else if(Operation.searchedEntityType == "movement"){
+            findModuleContext(EmptyObject->MovementContainer, AggregatedModules.Movements, Operation, NewContext, EmptyObject, Layers, Cameras);
+        }
+        else if(Operation.searchedEntityType == "collision"){
+            findModuleContext(EmptyObject->CollisionContainer, AggregatedModules.Collisions, Operation, NewContext, EmptyObject, Layers, Cameras);
+        }
+        else if(Operation.searchedEntityType == "particles"){
+            findModuleContext(EmptyObject->ParticlesContainer, AggregatedModules.Particles, Operation, NewContext, EmptyObject, Layers, Cameras);
+        }
+        else if(Operation.searchedEntityType == "events"){
+            findModuleContext(EmptyObject->EveContainer, AggregatedModules.Events, Operation, NewContext, EmptyObject, Layers, Cameras);
+        }
+        else if(Operation.searchedEntityType == "variable"){
+            findModuleContext(EmptyObject->VariablesContainer, AggregatedModules.Variables, Operation, NewContext, EmptyObject, Layers, Cameras);
+        }
+        else if(Operation.searchedEntityType == "scrollbar"){
+            findModuleContext(EmptyObject->ScrollbarContainer, AggregatedModules.Scrollbars, Operation, NewContext, EmptyObject, Layers, Cameras);
+        }
+        delete EmptyObject;
+    }
+    
+    if(Operation.instruction == "random"){
+        if(Operation.affectedVariable == "self"){
+            chooseRandomModule(Operation, NewContext);
+        }
+        else if(NewContext.UniversalVariables.size() > 0){
+            BasePointersStruct randomPointer = NewContext.UniversalVariables[rand() % NewContext.UniversalVariables.size()];
+            NewContext.UniversalVariables.clear();
+            NewContext.UniversalVariables.push_back(randomPointer);
+        }
     }
 }
 void EngineLoop::findLastContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera){
@@ -1365,8 +1500,9 @@ void EngineLoop::findContextInObject(string attribute, PointerContainer & NewCon
         }
     }
 }
+
 bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass * CurrentLayer, AncestorObject * CurrentObject, vector <LayerClass> & Layers){
-    if(Location.layerID == Owner->layerID){
+    if(OwnerLayer != nullptr && Location.layerID == Owner->layerID && OwnerLayer != nullptr){
         CurrentLayer = OwnerLayer;
     }
     else{
@@ -1380,7 +1516,7 @@ bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * O
         return false;
     }
     
-    if(CurrentLayer == OwnerLayer && Location.objectID == Owner->getID()){
+    if(OwnerLayer != nullptr && CurrentLayer == OwnerLayer && Location.objectID == Owner->getID()){
         CurrentObject = Owner;
     }
     else{
@@ -1449,7 +1585,7 @@ void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewCont
     }
 }
 void EngineLoop::findLowerContextInObjects(ValueLocation & Location, PointerContainer & Context){
-    if(Context.type == "layer"){
+    /*if(Context.type == "layer"){
         for(LayerClass * Layer : Context.Layers){
             for(AncestorObject * Object : Context.Objects){
 
@@ -1484,7 +1620,7 @@ void EngineLoop::findLowerContextInObjects(ValueLocation & Location, PointerCont
 
     if(isStringInGroup(Context.type, 9, "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
 
-    }
+    }*/
 }
 void EngineLoop::findLowerContext(TriggerClass & Location, PointerContainer & Context){
     if(Location.source == "object"){
@@ -1527,28 +1663,28 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         //Aggregate entities and push them on the Variables Stack.
         if(isStringInGroup(Operation.instruction, 4, "first", "last", "all", "random")){
             if(Operation.dynamicIDs.size() > 0){
-                PointerContainer * rightOperand;
+                PointerContainer * PairedContext = nullptr;
                 variableExisted = false;
                 for(PointerContainer & DynamicVariable : EventVariables){
                     if(DynamicVariable.ID == Operation.dynamicIDs.back()){
                         variableExisted = true;
-                        rightOperand = &DynamicVariable;
+                        PairedContext = &DynamicVariable;
                         break;
                     }
                 }
                 if(variableExisted){
                     EventVariables.push_back(PointerContainer());
                     if(Operation.searchedEntityType == "camera"){
-                        aggregateCameras(Operation, EventVariables.back(), rightOperand->Cameras, Cameras);
+                        aggregateCameras(Operation, EventVariables.back(), PairedContext->Cameras, Cameras);
                     }
                     else if(Operation.searchedEntityType == "layer"){
-                        aggregateLayers(Operation, EventVariables.back(), rightOperand->Layers, Layers, Cameras);
+                        aggregateLayers(Operation, EventVariables.back(), PairedContext->Layers, Layers, Cameras);
                     }
                     else if(Operation.searchedEntityType == "object"){
-                        aggregateObjects(Operation, EventVariables.back(), rightOperand->Layers, rightOperand->Objects, Layers, Cameras);
+                        aggregateObjects(Operation, EventVariables.back(), PairedContext->Layers, PairedContext->Objects, Layers, Cameras);
                     }
-                    else if(Operation.searchedEntityType == "module"){
-                        aggregateModules(Operation, EventVariables.back(), rightOperand->Objects, Layers, Cameras);
+                    else if(isStringInGroup(Operation.searchedEntityType, 9, "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
+                        aggregateModules(Operation, EventVariables.back(), PairedContext->Objects, PairedContext->Modules, Layers, Cameras);
                     }
                 }
                 else{
@@ -1580,12 +1716,12 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             EventVariables.push_back(PointerContainer());
             EventVariables.back().ID = "";
             if(Operation.dynamicIDs.size() == 1){
-                PointerContainer * rightOperand;
+                PointerContainer * Context = nullptr;
                 variableExisted = false;
                 for(PointerContainer & DynamicVariable : EventVariables){
                     if(DynamicVariable.ID == Operation.dynamicIDs.back()){
                         variableExisted = true;
-                        rightOperand = &DynamicVariable;
+                        Context = &DynamicVariable;
                         break;
                     }
                 }
@@ -1652,7 +1788,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
                 }
             }
             
-            if(Operation.searchedEntityType == "camera"){
+            /*if(Operation.searchedEntityType == "camera"){
                 for(Camera2D * Camera : leftOperand->Cameras){
 
                 }
@@ -1666,7 +1802,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
                 for(AncestorObject * Object : leftOperand->Objects){
                     
                 }
-            }
+            }*/
         }
     }
     return OperaClass();

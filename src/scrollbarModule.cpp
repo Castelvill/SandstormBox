@@ -110,7 +110,7 @@ vec2d ScrollbarModule::countScrollShift(){
     std::cout << scrollShift.x << " " << scrollShift.y << "\n";
     return scrollShift;
 }
-void ScrollbarModule::bindScrollbarToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void ScrollbarModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "thumbPos_x"){
         UniversalVariable.getPointer(&thumbPos.x);
     }

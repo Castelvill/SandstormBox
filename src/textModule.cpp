@@ -332,7 +332,7 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
         currentLength += al_get_text_width(font, temp.c_str());
     }
 }
-void TextModule::bindTextToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void TextModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "content"){
         UniversalVariable.getPointer(&content[currentTextID]);
     }
@@ -1522,7 +1522,7 @@ void printCommandDoesNotExistWarning(){
     std::cout << "Warning: Command doesn't exist!\n";
 }
 
-void EditableTextModule::bindEditableToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void EditableTextModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "content"){
         UniversalVariable.getPointer(&content[currentTextID]);
     }

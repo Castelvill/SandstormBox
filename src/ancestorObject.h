@@ -3,7 +3,7 @@
 #include "eventModule.h"
 #include "scrollbarModule.h"
 
-
+//Struct of vectors
 struct ModulesPointers{
     vector <TextModule*> Texts;
     vector <EditableTextModule*> EditableTexts;
@@ -14,6 +14,7 @@ struct ModulesPointers{
     vector <EveModule*> Events;
     vector <VariableModule*> Variables;
     vector <ScrollbarModule*> Scrollbars;
+    bool hasInstanceOfAnyModule();
 };
 
 /**

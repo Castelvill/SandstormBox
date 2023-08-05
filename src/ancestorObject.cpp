@@ -517,7 +517,7 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(Text.getID() != moduleID){
                 continue;
             }
-            Text.bindTextToVariable(attribute, UniversalVariable);
+            Text.getContext(attribute, UniversalVariable);
             break;
         }
     }
@@ -526,7 +526,7 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(EditableText.getID() != moduleID){
                 continue;
             }
-            EditableText.bindEditableToVariable(attribute, UniversalVariable);
+            EditableText.getContext(attribute, UniversalVariable);
             break;
         }
     }
@@ -535,7 +535,7 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(Image.getID() != moduleID){
                 continue;
             }
-            Image.bindImageToVariable(attribute, UniversalVariable);
+            Image.getContext(attribute, UniversalVariable);
             break;
         }
     }
@@ -544,7 +544,7 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(Movement.getID() != moduleID){
                 continue;
             }
-            Movement.bindMovementToVariable(attribute, UniversalVariable);
+            Movement.getContext(attribute, UniversalVariable);
             break;
         }
     }
@@ -553,7 +553,7 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(Collision.getID() != moduleID){
                 continue;
             }
-            Collision.bindCollisionToVariable(attribute, UniversalVariable);
+            Collision.getContext(attribute, UniversalVariable);
             break;
         }
     }
@@ -562,7 +562,7 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(Particles.getID() != moduleID){
                 continue;
             }
-            Particles.bindParticlesToVariable(attribute, UniversalVariable);
+            Particles.getContext(attribute, UniversalVariable);
             break;
         }
     }
@@ -571,7 +571,7 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(Event.getID() != moduleID){
                 continue;
             }
-            Event.bindEventToVariable(attribute, UniversalVariable);
+            Event.getContext(attribute, UniversalVariable);
             break;
         }
     }
@@ -580,7 +580,7 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(Variable.getID() != moduleID){
                 continue;
             }
-            Variable.bindVariableToVariable(attribute, UniversalVariable);
+            Variable.getContext(attribute, UniversalVariable);
             break;
         }
     }
@@ -589,10 +589,16 @@ void AncestorObject::bindVariableToContext(string moduleType, string moduleID, s
             if(Scrollbar.getID() != moduleID){
                 continue;
             }
-            Scrollbar.bindScrollbarToVariable(attribute, UniversalVariable);
+            Scrollbar.getContext(attribute, UniversalVariable);
             break;
         }
     }
+}
+
+bool ModulesPointers::hasInstanceOfAnyModule(){
+    return Texts.size() > 0 || EditableTexts.size() > 0 || Images.size() > 0
+        || Movements.size() > 0 || Collisions.size() > 0 || Particles.size() > 0
+        || Events.size() > 0 || Variables.size() > 0 || Scrollbars.size() > 0;
 }
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){

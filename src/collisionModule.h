@@ -42,7 +42,7 @@ public:
     //ignoring_type = ["objects", "groups_of_objects", "hitboxes", "groups_of_hitboxes"]
     bool ignores(string ignoring_type, string entity);
     void removeImaginaryCollisions();
-    void bindCollisionToVariable(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & UniversalVariable);
 
     bool getIsSolid();
     bool getCanPenetrateSolids();

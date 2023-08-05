@@ -247,7 +247,7 @@ void VariableModule::negate(){
         std::cout << "Error [VariableModule]: You can't negate the value of already not-initialized variable.\n";
     }
 }
-void VariableModule::bindVariableToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void VariableModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "id"){
         UniversalVariable.getPointer(&ID);
     }

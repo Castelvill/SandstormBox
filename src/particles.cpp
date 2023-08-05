@@ -468,7 +468,7 @@ void ParticleEffectModule::removeImage(unsigned int id){
 void ParticleEffectModule::activeSpawn(){
     canParticlesSpawn = true;
 }
-void ParticleEffectModule::bindParticlesToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void ParticleEffectModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "environment_x"){
         UniversalVariable.getPointer(&environment.x);
     }

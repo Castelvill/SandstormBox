@@ -507,7 +507,7 @@ void ImageModule::chooseFrames(vec2i newCurrentFrame){
     else
         currentFrame.y = 0;
 }
-void ImageModule::bindImageToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void ImageModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
     if(attribute == "rot_pos_x"){
         UniversalVariable.getPointer(&rotPos.x);
     }
