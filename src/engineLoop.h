@@ -166,6 +166,8 @@ struct PointerContainer{
     void setFirstModule(EveModule * Module);
     void setFirstModule(VariableModule * Module);
     void setFirstModule(ScrollbarModule * Module);
+
+    void leaveOneRandomUniversalVariable();
 };
 
 class EngineLoop{
@@ -217,6 +219,7 @@ public:
     void aggregateObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void chooseRandomModule(OperaClass & Operation, PointerContainer & NewContext);
     void aggregateModules(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, ModulesPointers AggregatedModules, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void aggregateAttributes(string instruction, PointerContainer & NewContext, vector <BasePointersStruct> AggregatedAttributes);
     void findLastContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
     void findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
     void findLastContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer);
@@ -228,7 +231,10 @@ public:
     void findContext(TriggerClass & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void findLowerContextInObjects(ValueLocation & Location, PointerContainer & Context);
     void findLowerContext(TriggerClass & Location, PointerContainer & Context);
-    OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID);
+    //Method return true if a pair of contexts of the same type is found.
+    bool getPairOfContexts(PointerContainer * LeftOperand, PointerContainer * RightOperand, vector<PointerContainer> & AllContexts, vector <string> contextIDs);
+    OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);
     VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
@@ -247,7 +253,6 @@ public:
     void drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer);
     void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Cameras, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
                      vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground);
-    void updateOtherEvents(vector <AncestorObject> & Objects);
     void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, vec2d momentum);
     bool shouldCheckOverlapingOnly(CollisionModule & Collision, AncestorObject & SolidObject, CollisionModule & SolidCollision);
     void detectRealCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement);
@@ -281,10 +286,13 @@ public:
     void prepareEditorWindowEditable(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
 
     template<class ModuleClass>
-    void findModuleContext(vector<ModuleClass> & ModuleContainer, vector<ModuleClass*> AggregatedModules, OperaClass & Operation, PointerContainer & NewContext, AncestorObject * Object, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void aggregateModuleContextFromVectors(
+        vector<ModuleClass> & ModuleContainer, vector<ModuleClass*> AggregatedModules, OperaClass & Operation,
+        PointerContainer & NewContext, AncestorObject * Object, vector <LayerClass> & Layers, vector <Camera2D> & Cameras
+    );
 
     template<class ModuleClass>
-    void findContextInModules(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module);
+    void getContextFromModule(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module);
 
     template<class ModuleClass>
     void findLastContextInModules(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module);

@@ -57,7 +57,23 @@ string VariableModule::getAnyValue(){
 char VariableModule::getType(){
     return type;
 }
-bool VariableModule::getDefaultBool(){
+string VariableModule::getFullTypeName(){
+    if(type == 'b'){
+        return "bool";
+    }
+    if(type == 'i'){
+        return "int";
+    }
+    if(type == 'd'){
+        return "double";
+    }
+    if(type == 's'){
+        return "string";
+    }
+    return "";
+}
+bool VariableModule::getDefaultBool()
+{
     return defaultBool;
 }
 int VariableModule::getDefaultInt(){

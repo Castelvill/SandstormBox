@@ -39,6 +39,7 @@ public:
     string instruction; //first, last, all, random, let, assigment, class method, run(), break, return
     string searchedEntityType;
     vector <string> dynamicIDs;
+    string newContextID;
     OperaClass();
 };
 

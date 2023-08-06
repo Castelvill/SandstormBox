@@ -18,6 +18,7 @@ public:
     string &getIDAddr();
     string getAnyValue();
     char getType();
+    string getFullTypeName();
     bool getDefaultBool();
     int getDefaultInt();
     double getDefaultDouble();
