@@ -299,7 +299,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("par");*/
 
     Objects.push_back(AncestorObject(Objects.size(), layerID));
-    Objects.back().clone(Objects[Objects.size()-2], false, listOfUniqueIDs);
+    Objects.back().clone(Objects[Objects.size()-2], listOfUniqueIDs);
     Objects.back().translatePos(vec2d(300.0, 0.0));
 
     /*Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
@@ -699,7 +699,7 @@ void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <S
     Objects.back().deactivate();
 }
 
-void createCameras(vector <Camera2D> & Cameras, vector <string> camerasIDs){
+void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
     Cameras.push_back(Camera2D("Cam0", true, vec2d(0.0, 0.0), vec2d(SCREEN_W/2.0, SCREEN_H), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
@@ -737,11 +737,6 @@ void createCameras(vector <Camera2D> & Cameras, vector <string> camerasIDs){
     Cameras.back().addVisibleLayer("Editor");
     Cameras.back().addVisibleLayer("L1");
     Cameras.back().pinToCamera("Cam1");
-
-    Cameras.push_back(Camera2D(""));
-    Cameras.back().clone(Cameras[1], false, camerasIDs);
-    Cameras.back().setIsPinned(false);
-    Cameras.back().setPos(vec2d(SCREEN_W/2.0, 300.0));
 }
 
 Fps fps;
@@ -757,8 +752,6 @@ int main(){
     vector <SingleBitmap> BitmapContainer;
     vector <LayerClass> Layers;
     vector <Camera2D> Cameras;
-    vector <string> layersIDs;
-    vector <string> camerasIDs;
 
     EngineLoop1.initAllegro();
     loadFontsToContainer(FontContainer);
@@ -766,9 +759,14 @@ int main(){
 
     loadBitmapsToContainer(BitmapContainer);
 
-    createCameras(Cameras, camerasIDs);
-    EngineLoop1.createListOfUniqueIDsOfCameras(Cameras, camerasIDs);
+    createCameras(Cameras, EngineLoop1.camerasIDs);
+    EngineLoop1.createListOfUniqueIDsOfCameras(Cameras);
     EngineLoop1.updateAllForestOfCameras(Cameras);
+
+    Cameras.push_back(Camera2D(""));
+    Cameras.back().clone(Cameras[1], EngineLoop1.camerasIDs);
+    Cameras.back().setIsPinned(false);
+    Cameras.back().setPos(vec2d(SCREEN_W/2.0, 300.0));
 
 
     Layers.push_back(LayerClass("Editor", true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
@@ -778,12 +776,12 @@ int main(){
 
 
     Layers.push_back(LayerClass("L1", true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
-    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].listOfUniqueIDs, FontContainer, BitmapContainer, EngineLoop1.window);
+    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, EngineLoop1.window);
 
-    EngineLoop1.createListOfUniqueIDsOfLayers(Layers, layersIDs);
+    EngineLoop1.createListOfUniqueIDsOfLayers(Layers);
 
     Layers.push_back(LayerClass("", true, vec2d(0.0, 0.0), vec2d(0, 0)));
-    Layers.back().clone(Layers[Layers.size()-2], layersIDs);
+    Layers.back().clone(Layers[Layers.size()-2], EngineLoop1.layersIDs);
     
     unsigned numberOfObjects = 0;
 

@@ -39,6 +39,7 @@ class PrimaryModule{
     protected:
 
     string ID;
+    string objectID;
     vector <string> groups;
     vec2d pos, scrollShift, size, scale;
 
@@ -54,6 +55,7 @@ class PrimaryModule{
     void primaryConstructor(unsigned int moduleID);
     void clone(const PrimaryModule & Original);
     void setID(string newID);
+    void setObjectID(string newOwnerID);
 
     void addGroup(string newGroup);
     void removeGroup(string selectedGroup);
@@ -84,6 +86,7 @@ class PrimaryModule{
     void setIsScrollable(bool newValue);
     string getID() const;
     string & getIDAddr();
+    string getObjectID();
     vec2d getPos(bool useScrollshift);
     vec2d & getPosAddr();
     vec2d getSize();

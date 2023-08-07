@@ -25,6 +25,9 @@ void PrimaryModule::setID(string newID){
     ID = newID;
 }
 
+void PrimaryModule::setObjectID(string newOwnerID){
+    objectID = newOwnerID;
+}
 
 void PrimaryModule::addGroup(string newGroup){
     addUniqueToStringVector(groups, newGroup);
@@ -111,6 +114,9 @@ string PrimaryModule::getID() const{
 }
 string & PrimaryModule::getIDAddr(){
     return ID;
+}
+string PrimaryModule::getObjectID(){
+    return objectID;
 }
 vec2d PrimaryModule::getPos(bool useScrollshift){
     if(!useScrollshift){

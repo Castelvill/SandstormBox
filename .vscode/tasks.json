@@ -13,7 +13,6 @@
 				"-fdiagnostics-color=always",
 				"-Wall",
 				"-std=c++20",
-				"-g",
 				"${config:src}main.cpp",
 				"${config:src}ancestorObject.cpp",
 				"${config:src}camera.cpp",

@@ -12,11 +12,11 @@ LayerClass::LayerClass(string layerID, bool activate, vec2d bufferPos, vec2d buf
 }
 void LayerClass::clear(){
     Objects.clear();
-    listOfUniqueIDs.clear();
+    objectsIDs.clear();
 }
 //Returns true if uniqueness is violeted. 
 bool LayerClass::createListOfUniqueIDs(){
-    listOfUniqueIDs.clear();
+    objectsIDs.clear();
     unsigned i, j;
     bool violated = false;
     for(i = 0; i < Objects.size(); i++){
@@ -34,7 +34,7 @@ bool LayerClass::createListOfUniqueIDs(){
             }
         }
         if(!violated){
-            listOfUniqueIDs.push_back(Objects[i].getID());
+            objectsIDs.push_back(Objects[i].getID());
         }
     }
 

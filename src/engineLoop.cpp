@@ -169,7 +169,7 @@ void EngineLoop::exitAllegro(){
     foregroundOfObjects.clear();
     BaseOfTriggerableObjects.clear();
 }
-bool EngineLoop::createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers, vector <string> & layersIDs){
+bool EngineLoop::createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers){
     layersIDs.clear();
     unsigned i, j;
     bool violated = false;
@@ -196,7 +196,7 @@ bool EngineLoop::createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers, vec
     }
     return violated;
 }
-bool EngineLoop::createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
+bool EngineLoop::createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras){
     camerasIDs.clear();
     unsigned i, j;
     bool violated = false;
@@ -209,7 +209,7 @@ bool EngineLoop::createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras, vec
                 if(!violated){
                     std::cout << "\n\n";
                 }
-                std::cout << "Uniqueness has been violated by \'" << Cameras[j].getID() << "\' layer.\n";
+                std::cout << "Uniqueness has been violated by \'" << Cameras[j].getID() << "\' camera.\n";
                 violated = true;
             }
         }
@@ -773,8 +773,7 @@ void PointerContainer::leaveOneRandomUniversalVariable(){
     UniversalVariables.clear();
     UniversalVariables.push_back(randomPointer);
 }
-void EngineLoop::aggregateCameras(OperaClass &Operation, PointerContainer &NewContext, vector<Camera2D *> AggregatedCameras, vector<Camera2D> &Cameras)
-{
+void EngineLoop::aggregateCameras(OperaClass &Operation, PointerContainer &NewContext, vector<Camera2D *> AggregatedCameras, vector<Camera2D> &Cameras){
     if(Cameras.size() == 0){
         return;
     }
@@ -907,10 +906,10 @@ void EngineLoop::aggregateLayers(OperaClass & Operation, PointerContainer & NewC
 void EngineLoop::aggregateObjects(OperaClass & Operation, PointerContainer & NewContext, vector <LayerClass*> AggregatedLayers, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
         if(AggregatedLayers.size() > 0){
-            findContextInObject(Operation.affectedVariable, NewContext, &AggregatedLayers.back()->Objects.back());
+            findContextInTheAncestor(Operation.affectedVariable, NewContext, &AggregatedLayers.back()->Objects.back());
         }
         else if(AggregatedObjects.size() > 0){
-            findContextInObject(Operation.affectedVariable, NewContext, AggregatedObjects.back());
+            findContextInTheAncestor(Operation.affectedVariable, NewContext, AggregatedObjects.back());
         }
         return;
     }
@@ -920,10 +919,10 @@ void EngineLoop::aggregateObjects(OperaClass & Operation, PointerContainer & New
             for(AncestorObject & Object : Layer->Objects){
                 if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, &Object, Layer, Layers, Cameras) == 't'){
                     if(Operation.instruction != "last"){
-                        findContextInObject(Operation.affectedVariable, NewContext, &Object);
+                        findContextInTheAncestor(Operation.affectedVariable, NewContext, &Object);
                     }
                     else{
-                        findLastContextInObject(Operation.affectedVariable, NewContext, &Object);
+                        findLastContextInTheAncestor(Operation.affectedVariable, NewContext, &Object);
                     }
                 }
                 if(Operation.instruction == "first" && (NewContext.UniversalVariables.size() == 1 || NewContext.Objects.size() == 1)){
@@ -940,10 +939,10 @@ void EngineLoop::aggregateObjects(OperaClass & Operation, PointerContainer & New
             }
             if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, TempLayer, Layers, Cameras) == 't'){
                 if(Operation.instruction != "last"){
-                    findContextInObject(Operation.affectedVariable, NewContext, Object);
+                    findContextInTheAncestor(Operation.affectedVariable, NewContext, Object);
                 }
                 else{
-                    findLastContextInObject(Operation.affectedVariable, NewContext, Object);
+                    findLastContextInTheAncestor(Operation.affectedVariable, NewContext, Object);
                 }
             }
             if(Operation.instruction == "first" && (NewContext.UniversalVariables.size() == 1 || NewContext.Objects.size() == 1)){
@@ -1067,6 +1066,49 @@ void EngineLoop::getContextFromModule(string module, string attribute, PointerCo
             NewContext.UniversalVariables.push_back(UniversalVariable);
             NewContext.type = UniversalVariable.type;
         }
+    }
+}
+template<class ModuleClass>
+void EngineLoop::getContextFromModuleVector(string moduleType, string moduleID, string attribute, PointerContainer & NewContext, vector <ModuleClass> * ModuleContainer, vector <ModuleClass*> AggregatedModules){
+    ModuleClass * Module = nullptr;
+    unsigned i = 0, vector_end;
+
+    if(AggregatedModules.size() == 0){
+        vector_end = ModuleContainer->size();
+    }
+    else{
+        vector_end = AggregatedModules.size();
+    }
+
+    while(i < vector_end){
+        Module = nullptr;
+        if(AggregatedModules.size() == 0){
+            Module = &(*ModuleContainer)[i];
+        }
+        else{
+            Module = AggregatedModules[i];
+        }
+        if(Module == nullptr){
+            break;
+        }
+
+        if(Module->getID() != moduleID){
+            continue;
+        }
+        if(attribute == "self"){
+            NewContext.type = moduleType;
+            NewContext.addModule(Module);
+        }
+        else{
+            BasePointersStruct UniversalVariable;
+            Module->getContext(attribute, UniversalVariable);
+            if(UniversalVariable.type != ""){
+                NewContext.UniversalVariables.push_back(UniversalVariable);
+                NewContext.type = UniversalVariable.type;
+            }
+        }
+
+        i++;
     }
 }
 template<class ModuleClass>
@@ -1474,8 +1516,11 @@ void EngineLoop::findContextInLayer(string attribute, PointerContainer & NewCont
     else if(attribute == "pos_y"){
         NewContext.addUniversalVariable(&Layer->pos.y);
     }
+    else{
+        std::cout << "Error: Attribute \'" << attribute <<"\' does not exist.\n";
+    }
 }
-void EngineLoop::findLastContextInObject(string attribute, PointerContainer & NewContext, AncestorObject * Object){
+void EngineLoop::findLastContextInTheAncestor(string attribute, PointerContainer & NewContext, AncestorObject * Object){
     if(attribute == "self"){
         if(NewContext.Objects.size() == 0){
             NewContext.type = "object";
@@ -1502,7 +1547,7 @@ void EngineLoop::findLastContextInObject(string attribute, PointerContainer & Ne
         }
     }
 }
-void EngineLoop::findContextInObject(string attribute, PointerContainer & NewContext, AncestorObject * Object){
+void EngineLoop::findContextInTheAncestor(string attribute, PointerContainer & NewContext, AncestorObject * Object){
     if(attribute == "self"){
         NewContext.type = "object";
         NewContext.Objects.push_back(Object);
@@ -1520,13 +1565,14 @@ void EngineLoop::findContextInObject(string attribute, PointerContainer & NewCon
     }
 }
 bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass * CurrentLayer, AncestorObject * CurrentObject, vector <LayerClass> & Layers){
-    if(OwnerLayer != nullptr && Location.layerID == Owner->layerID && OwnerLayer != nullptr){
+    if(OwnerLayer != nullptr && Owner != nullptr && Location.layerID == Owner->layerID){
         CurrentLayer = OwnerLayer;
     }
     else{
         for(LayerClass & Layer : Layers){
-            if(Layer.getIsActive() && Layer.getID() == Location.layerID){
+            if(Layer.getID() == Location.layerID){
                 CurrentLayer = &Layer;
+                break;
             }
         }
     }
@@ -1534,12 +1580,12 @@ bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * O
         return false;
     }
     
-    if(OwnerLayer != nullptr && CurrentLayer == OwnerLayer && Location.objectID == Owner->getID()){
+    if(CurrentLayer == OwnerLayer && Owner != nullptr && Location.objectID == Owner->getID()){
         CurrentObject = Owner;
     }
     else{
         for(AncestorObject & Object : CurrentLayer->Objects){
-            if(Object.getIsActive() && Object.getID() == Location.objectID){
+            if(Object.getID() == Location.objectID){
                 CurrentObject = &Object;
                 break;
             }
@@ -1550,6 +1596,41 @@ bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * O
     }
 
     return true;
+}
+void EngineLoop::findContextInOneObject(ValueLocation & Location, PointerContainer & NewContext, AncestorObject * CurrentObject){
+    if(Location.moduleType == "ancestor"){
+        findContextInTheAncestor(Location.attribute, NewContext, CurrentObject);
+    }
+    else if(Location.moduleType == "text" && CurrentObject->TextContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->TextContainer, vector<TextModule*>());
+    }
+    else if(Location.moduleType == "editable_text" && CurrentObject->EditableTextContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->EditableTextContainer, vector<EditableTextModule*>());
+    }
+    else if(Location.moduleType == "image" && CurrentObject->ImageContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->ImageContainer, vector<ImageModule*>());
+    }
+    else if(Location.moduleType == "movement" && CurrentObject->MovementContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->MovementContainer, vector<MovementModule*>());
+    }
+    else if(Location.moduleType == "collision" && CurrentObject->CollisionContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->CollisionContainer, vector<CollisionModule*>());
+    }
+    else if(Location.moduleType == "particles" && CurrentObject->ParticlesContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->ParticlesContainer, vector<ParticleEffectModule*>());
+    }
+    else if(Location.moduleType == "event" && CurrentObject->EveContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->EveContainer, vector<EveModule*>());
+    }
+    else if(Location.moduleType == "variable" && CurrentObject->VariablesContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->VariablesContainer, vector<VariableModule*>());
+    }
+    else if(Location.moduleType == "scrollbar" && CurrentObject->ScrollbarContainer.size() > 0){
+        getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->ScrollbarContainer, vector<ScrollbarModule*>());
+    }
+    else{
+        std::cout << "Error: In findContextInOneObject(): There are no instances of the \'" << Location.moduleType << "\' module.\n";
+    }
 }
 void EngineLoop::findContextInObjects(ValueLocation & Location, PointerContainer & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers){
     if(Location.moduleType == ""){
@@ -1563,29 +1644,15 @@ void EngineLoop::findContextInObjects(ValueLocation & Location, PointerContainer
         return;
     }
 
-    if(Location.moduleType == "object"){
-        NewContext.Objects.push_back(CurrentObject);
-        NewContext.type = "object";
-        return;
-    }
-
-    if(Location.attribute == "self"){
-        NewContext.type = Location.moduleType;
-        CurrentObject->bindModuleToContext(Location.moduleType, Location.moduleID, Location.attribute, NewContext.Modules);
-    }
-    else if(Location.attribute != ""){
-        NewContext.UniversalVariables.push_back(BasePointersStruct());
-        CurrentObject->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, NewContext.UniversalVariables.back());
-        NewContext.type = NewContext.UniversalVariables.back().type;
-    }
+    findContextInOneObject(Location, NewContext, CurrentObject);
 }
-void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+void EngineLoop::findContextInEnv(TriggerClass & Location, PointerContainer & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     if(Location.source == "object"){
         findContextInObjects(Location.Location, NewContext, Owner, OwnerLayer, Layers);
     }
     if(Location.source == "layer"){
         for(LayerClass & Layer : Layers){
-            if(Layer.getID() != Location.Literal.getString()){
+            if(Layer.getID() != Location.Location.layerID){
                 continue;
             }
             findContextInLayer(Location.Location.attribute, NewContext, &Layer);
@@ -1594,7 +1661,7 @@ void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewCont
     }
     if(Location.source == "camera"){
         for(Camera2D & Camera : Cameras){
-            if(Camera.getID() != Location.Literal.getString()){
+            if(Camera.getID() != Location.Location.cameraID){
                 continue;
             }
             findContextInCamera(Location.Location.attribute, NewContext, &Camera);
@@ -1602,73 +1669,72 @@ void EngineLoop::findContext(TriggerClass & Location, PointerContainer & NewCont
         }
     }
 }
-void EngineLoop::findLowerContextInObjects(ValueLocation & Location, PointerContainer & Context){
-    /*if(Context.type == "layer"){
-        for(LayerClass * Layer : Context.Layers){
-            for(AncestorObject * Object : Context.Objects){
-
-                if(Location.attribute == "self"){
-                    Context.type = Location.moduleType;
-                    Object->bindModuleToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.Modules);
-                }
-                else if(Location.attribute != ""){
-                    Context.UniversalVariables.push_back(BasePointersStruct());
-                    Object->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.UniversalVariables.back());
-                    Context.type = Context.UniversalVariables.back().type;
-                }
-            }
-        }
-        Context.Layers.clear();
+void EngineLoop::findContextInOneModule(string moduleType, string moduleID, string attribute, PointerContainer & NewContext, ModulesPointers & AggregatedModules){
+    if(moduleType == "text" && AggregatedModules.Texts.size() > 0){
+        getContextFromModuleVector<TextModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Texts);
     }
-
-    if(Context.type == "object"){
-        for(AncestorObject * Object : Context.Objects){
-            if(Location.attribute == "self"){
-                Context.type = Location.moduleType;
-                Object->bindModuleToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.Modules);
-            }
-            else if(Location.attribute != ""){
-                Context.UniversalVariables.push_back(BasePointersStruct());
-                Object->bindVariableToContext(Location.moduleType, Location.moduleID, Location.attribute, Context.UniversalVariables.back());
-                Context.type = Context.UniversalVariables.back().type;
-            }
-        }
-        Context.Objects.clear();
+    else if(moduleType == "editable_text" && AggregatedModules.EditableTexts.size() > 0){
+        getContextFromModuleVector<EditableTextModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.EditableTexts);
     }
-
-    if(isStringInGroup(Context.type, 9, "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
-
-    }*/
+    else if(moduleType == "image" && AggregatedModules.Images.size() > 0){
+        getContextFromModuleVector<ImageModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Images);
+    }
+    else if(moduleType == "movement" && AggregatedModules.Movements.size() > 0){
+        getContextFromModuleVector<MovementModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Movements);
+    }
+    else if(moduleType == "collision" && AggregatedModules.Collisions.size() > 0){
+        getContextFromModuleVector<CollisionModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Collisions);
+    }
+    else if(moduleType == "particles" && AggregatedModules.Particles.size() > 0){
+        getContextFromModuleVector<ParticleEffectModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Particles);
+    }
+    else if(moduleType == "event" && AggregatedModules.Events.size() > 0){
+        getContextFromModuleVector<EveModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Events);
+    }
+    else if(moduleType == "variable" && AggregatedModules.Variables.size() > 0){
+        getContextFromModuleVector<VariableModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Variables);
+    }
+    else if(moduleType == "scrollbar" && AggregatedModules.Scrollbars.size() > 0){
+        getContextFromModuleVector<ScrollbarModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Scrollbars);
+    }
+    else{
+        std::cout << "Error: In findLowerContextInObjects(): There are no instances of the \'" << moduleType << "\' module.\n";
+    }
 }
-void EngineLoop::findLowerContext(TriggerClass & Location, PointerContainer & Context){
+void EngineLoop::findLowerContextInObjects(ValueLocation & Location, PointerContainer & NewContext, PointerContainer * OldContext){
+    if(OldContext->type == "layer"){
+        for(LayerClass * Layer : OldContext->Layers){
+            for(AncestorObject & Object : Layer->Objects){
+                if(Object.getID() != Location.objectID){
+                    continue;
+                }
+                findContextInOneObject(Location, NewContext, &Object);
+                return;
+            }
+        }
+    }
+    else if(OldContext->type == "object"){
+        for(AncestorObject * Object : OldContext->Objects){
+            findContextInOneObject(Location, NewContext, Object);
+        }
+    }
+    else{
+        findContextInOneModule(OldContext->type, Location.moduleID, Location.attribute, NewContext, OldContext->Modules);
+    }
+}
+void EngineLoop::findLowerContext(TriggerClass & Location, PointerContainer & NewContext, PointerContainer * Context){
     if(Location.source == "object"){
-        findLowerContextInObjects(Location.Location, Context);
+        findLowerContextInObjects(Location.Location, NewContext, Context);
     }
     if(Location.source == "layer"){
-        for(LayerClass * Layer : Context.Layers){
-            if(Location.Location.attribute == "is_Active"){
-                Context.addUniversalVariable(Layer->getIsActiveAddr());
-            }
-            else if(Location.Location.attribute == "id"){
-                Context.addUniversalVariable(Layer->getIDAddr());
-            }
-            else if(Location.Location.attribute == "pos_x"){
-                Context.addUniversalVariable(&Layer->pos.x);
-            }
-            else if(Location.Location.attribute == "pos_y"){
-                Context.addUniversalVariable(&Layer->pos.y);
-            }
-            else if(Location.Location.attribute == "size_x"){
-                Context.addUniversalVariable(&Layer->size.x);
-            }
-            else if(Location.Location.attribute == "size_y"){
-                Context.addUniversalVariable(&Layer->size.y);
-            }
+        for(LayerClass * Layer : Context->Layers){
+            findContextInLayer(Location.Location.attribute, NewContext, Layer);
         }
-        Context.Layers.clear();
     }
     if(Location.source == "camera"){
-        //findLowerContextInCamera(Location, Context);
+        for(Camera2D * Camera : Context->Cameras){
+            findContextInCamera(Location.Location.attribute, NewContext, Camera);
+        }
     }
 }
 PointerContainer * EngineLoop::getContextByID(vector<PointerContainer> & AllContexts, string contextID){
@@ -1678,9 +1744,9 @@ PointerContainer * EngineLoop::getContextByID(vector<PointerContainer> & AllCont
         }
         return &Context;
     }
+    std::cout << "Warning: In getContextByID(): Dynamic variable with id \'" << contextID << "\' does not exist.\n";
     return nullptr;
 }
-
 bool EngineLoop::getPairOfContexts(PointerContainer * LeftOperand, PointerContainer * RightOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs){
     if(AllContexts.size() < 2){
         std::cout << "Error: In getPairOfContexts(): There are no context to choose from.\n";
@@ -1709,19 +1775,13 @@ bool EngineLoop::getPairOfContexts(PointerContainer * LeftOperand, PointerContai
     }
 
     if(LeftOperand == nullptr){
-        if(contextIDs.size() > 0){
-            std::cout << "Error: In getPairOfContexts(): Variable \'" << contextIDs[0] << "\' does not exist.\n";
-        }
-        else{
+        if(contextIDs.size() == 0){
             std::cout << "Error: In getPairOfContexts(): Left operand does not exist.\n";
         }
         return false;
     }
     if(RightOperand == nullptr){
-        if(contextIDs.size() > 0){
-            std::cout << "Error: In getPairOfContexts(): Variable \'" << contextIDs[1] << "\' does not exist.\n";
-        }
-        else{
+        if(contextIDs.size() == 0){
             std::cout << "Error: In getPairOfContexts(): Right operand does not exist.\n";
         }
         return false;
@@ -1734,10 +1794,198 @@ bool EngineLoop::getPairOfContexts(PointerContainer * LeftOperand, PointerContai
 
     return true;
 }
+template<class Entity>
+void EngineLoop::executeOperationsOnSets(string instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand){
+    if(instruction == "agg_sum"){
+        NewContext = LeftOperand;
+        NewContext.insert(NewContext.end(), RightOperand.begin(), RightOperand.end());
+    }
+    else if(instruction == "agg_intersection"){
+        for(Entity * LeftEntity : LeftOperand){
+            for(Entity * RightEntity : RightOperand){
+                if(LeftEntity->getID() != RightEntity->getID()){
+                    continue;
+                }
+                NewContext.push_back(LeftEntity);
+                break;
+            }
+        }
+    }
+    else if(instruction == "agg_difference"){
+        bool sameEntity;
+        for(Entity * LeftEntity : LeftOperand){
+            sameEntity = false;
+            for(Entity * RightEntity : RightOperand){
+                if(LeftEntity->getID() == RightEntity->getID()){
+                    sameEntity = true;
+                    break;
+                }
+            }
+            if(!sameEntity){
+                NewContext.push_back(LeftEntity);
+            }
+        }
+    }
+}
+void EngineLoop::aggregateTwoSets(OperaClass & Operation, PointerContainer & NewContext, vector<PointerContainer> & EventContext){
+    PointerContainer * LeftOperand = nullptr;
+    PointerContainer * RightOperand = nullptr;
 
-OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *OwnerLayer, AncestorObject *Owner, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
+    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
+        || isStringInGroup(LeftOperand->type, 9, "bool", "char", "short", "unsigned_short", "int", "unsigned_int", "float", "double", "string")
+    ){
+        return;
+    }
+
+    if(LeftOperand->type == "camera"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Cameras, LeftOperand->Cameras, RightOperand->Cameras);
+    }
+    else if(LeftOperand->type == "layer"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Layers, LeftOperand->Layers, RightOperand->Layers);
+    }
+    else if(LeftOperand->type == "layer"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Layers, LeftOperand->Layers, RightOperand->Layers);
+    }
+    else if(LeftOperand->type == "object"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Objects, LeftOperand->Objects, RightOperand->Objects);
+    }
+    else if(LeftOperand->type == "text"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.Texts, LeftOperand->Modules.Texts, RightOperand->Modules.Texts);
+    }
+    else if(LeftOperand->type == "editable_text"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.EditableTexts, LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts);
+    }
+    else if(LeftOperand->type == "image"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.Images, LeftOperand->Modules.Images, RightOperand->Modules.Images);
+    }
+    else if(LeftOperand->type == "movement"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.Movements, LeftOperand->Modules.Movements, RightOperand->Modules.Movements);
+    }
+    else if(LeftOperand->type == "collision"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.Collisions, LeftOperand->Modules.Collisions, RightOperand->Modules.Collisions);
+    }
+    else if(LeftOperand->type == "particles"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.Particles, LeftOperand->Modules.Particles, RightOperand->Modules.Particles);
+    }
+    else if(LeftOperand->type == "event"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.Events, LeftOperand->Modules.Events, RightOperand->Modules.Events);
+    }
+    else if(LeftOperand->type == "variable"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.Variables, LeftOperand->Modules.Variables, RightOperand->Modules.Variables);
+    }
+    else if(LeftOperand->type == "scrollbar"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.Scrollbars, LeftOperand->Modules.Scrollbars, RightOperand->Modules.Scrollbars);
+    }
+    else{
+        std::cout << "Warning: In executeOperations(): type \'" << LeftOperand->type << "\' does not exist.\n";
+        return;
+    }
+
+    NewContext.ID = Operation.newContextID;
+    EventContext.push_back(NewContext);
+} 
+void EngineLoop::aggregateEntities(OperaClass & Operation, PointerContainer & NewContext, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
+    PointerContainer * LeftOperand = nullptr;
     
+    if(Operation.dynamicIDs.size() > 0){
+        LeftOperand = getContextByID(EventContext, Operation.dynamicIDs.back());
+        if(LeftOperand != nullptr){
+            if(Operation.searchedEntityType == "camera"){
+                aggregateCameras(Operation, NewContext, LeftOperand->Cameras, Cameras);
+            }
+            else if(Operation.searchedEntityType == "layer"){
+                aggregateLayers(Operation, NewContext, LeftOperand->Layers, Layers, Cameras);
+            }
+            else if(Operation.searchedEntityType == "object"){
+                aggregateObjects(Operation, NewContext, LeftOperand->Layers, LeftOperand->Objects, Layers, Cameras);
+            }
+            else if(isStringInGroup(Operation.searchedEntityType, 9, "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
+                aggregateModules(Operation, NewContext, LeftOperand->Objects, LeftOperand->Modules, Layers, Cameras);
+            }
+            else if(Operation.searchedEntityType == "attribute"){
+                aggregateAttributes(Operation.instruction, NewContext, LeftOperand->UniversalVariables);
+            }
+        }
+        else{
+            std::cout << "Error: Variable \'" << Operation.dynamicIDs.back() << "\' does not exist. ~ executeOperations()\n";
+        }
+    }
+    else{
+        if(Operation.searchedEntityType == "camera"){
+            aggregateCameras(Operation, NewContext, vector<Camera2D*>(), Cameras);
+        }
+        else if(Operation.searchedEntityType == "layers"){
+            aggregateLayers(Operation, NewContext, vector<LayerClass*>(), Layers, Cameras);
+        }
+    }
+
+    if(NewContext.type != ""){
+        NewContext.ID = Operation.newContextID;
+        EventContext.push_back(NewContext);
+    }
+}
+void EngineLoop::aggregateValues(PointerContainer & NewContext, vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
+    for(TriggerClass & ValueLocation : Operation.ConditionalChain){
+        NewContext.NormalVariables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Layers, Cameras));
+    }
+    if(NewContext.NormalVariables.size() > 0){
+        NewContext.type = NewContext.NormalVariables.back().getFullTypeName();
+        NewContext.ID = Operation.newContextID;
+        EventContext.push_back(NewContext);
+    }
+}
+void EngineLoop::aggregateOnlyById(PointerContainer & NewContext, vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
+    PointerContainer * LeftOperand = nullptr;
+
+    if(Operation.dynamicIDs.size() > 0){
+        for(string dynamicID : Operation.dynamicIDs){
+            LeftOperand = getContextByID(EventContext, dynamicID);
+            if(LeftOperand == nullptr){
+                continue;
+            }
+            for(TriggerClass Location : Operation.ConditionalChain){
+                findLowerContext(Location, NewContext, LeftOperand);
+            }
+        }
+    }
+    else{
+        for(TriggerClass Location : Operation.ConditionalChain){
+            findContextInEnv(Location, NewContext, Owner, OwnerLayer, Layers, Cameras);
+        }
+    }
+
+    if(NewContext.type != ""){
+        NewContext.ID = Operation.newContextID;
+        EventContext.push_back(NewContext);
+    }
+}
+void EngineLoop::nameVariable(vector<PointerContainer> & EventContext, OperaClass & Operation){
+    PointerContainer * LeftOperand = nullptr;
+
+    if(EventContext.size() == 0){
+        std::cout << "Error: In nameVariable(): Variable \'" << Operation.newContextID << "\' can not be created.\n";
+        return;
+    }
+    LeftOperand = getContextByID(EventContext, Operation.newContextID);
+    if(LeftOperand == nullptr || EventContext.size() == 1){
+        EventContext.back().ID = Operation.newContextID;
+    }
+    else{
+        *LeftOperand = EventContext.back();
+        EventContext.pop_back();
+    }
+}
+
+template<class Entity>
+void cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOperand){
+    for(unsigned i = 0; i < LeftOperand.size() && i < RightOperand.size(); i++){
+        LeftOperand[i]->clone(RightOperand[i]);
+    }
+}
+OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *OwnerLayer, AncestorObject *Owner, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
     PointerContainer NewContext;
+    PointerContainer * LeftOperand = nullptr;
+    PointerContainer * RightOperand = nullptr;
     
     for(OperaClass & Operation : Operations){
 
@@ -1750,169 +1998,84 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         
         //Aggregate entities and push them on the Variables Stack.
         if(isStringInGroup(Operation.instruction, 4, "first", "last", "all", "random")){
-            if(Operation.dynamicIDs.size() > 0){
-                PointerContainer * PairedContext = getContextByID(EventContext, Operation.dynamicIDs.back());
-                if(PairedContext != nullptr){
-                    if(Operation.searchedEntityType == "camera"){
-                        aggregateCameras(Operation, NewContext, PairedContext->Cameras, Cameras);
-                    }
-                    else if(Operation.searchedEntityType == "layer"){
-                        aggregateLayers(Operation, NewContext, PairedContext->Layers, Layers, Cameras);
-                    }
-                    else if(Operation.searchedEntityType == "object"){
-                        aggregateObjects(Operation, NewContext, PairedContext->Layers, PairedContext->Objects, Layers, Cameras);
-                    }
-                    else if(isStringInGroup(Operation.searchedEntityType, 9, "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
-                        aggregateModules(Operation, NewContext, PairedContext->Objects, PairedContext->Modules, Layers, Cameras);
-                    }
-                    else if(Operation.searchedEntityType == "attribute"){
-                        aggregateAttributes(Operation.instruction, NewContext, PairedContext->UniversalVariables);
-                    }
-                }
-                else{
-                    std::cout << "Error: Variable \'" << Operation.dynamicIDs.back() << "\' does not exist. ~ executeOperations()\n";
-                }
-            }
-            else{
-                if(Operation.searchedEntityType == "camera"){
-                    aggregateCameras(Operation, NewContext, vector<Camera2D*>(), Cameras);
-                }
-                else if(Operation.searchedEntityType == "layers"){
-                    aggregateLayers(Operation, NewContext, vector<LayerClass*>(), Layers, Cameras);
-                }
-            }
-            if(NewContext.type != ""){
-                NewContext.ID = Operation.newContextID;
-                EventContext.push_back(NewContext);
-            }
+            aggregateEntities(Operation, NewContext, EventContext, Layers, Cameras);
         }
 
+        //Execute operations on sets.
         if(isStringInGroup(Operation.instruction, 3, "agg_sum", "agg_intersection", "agg_difference")){
-            PointerContainer * LeftOperand = nullptr;
-            PointerContainer * RightOperand = nullptr;
-
-            if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
-                continue;
-            }
-
-            if(Operation.instruction == "agg_sum"){
-                NewContext = *LeftOperand;
-                if(LeftOperand->type == "camera"){
-                    NewContext.Cameras.insert(NewContext.Cameras.end(), RightOperand->Cameras.begin(), RightOperand->Cameras.end());
-                }
-                //...
-            }
-            else if(Operation.instruction == "agg_intersection"){
-                if(LeftOperand->type == "camera"){
-                    for(Camera2D * LeftCamera : LeftOperand->Cameras){
-                        for(Camera2D * RightCamera : RightOperand->Cameras){
-                            if(LeftCamera->getID() != RightCamera->getID()){
-                                continue;
-                            }
-                            NewContext.Cameras.push_back(LeftCamera);
-                            break;
-                        }
-                    }
-                }
-                //...
-            }
-            else if(Operation.instruction == "agg_difference"){
-                bool sameEntity;
-                if(LeftOperand->type == "camera"){
-                    for(Camera2D * LeftCamera : LeftOperand->Cameras){
-                        sameEntity = false;
-                        for(Camera2D * RightCamera : RightOperand->Cameras){
-                            if(LeftCamera->getID() == RightCamera->getID()){
-                                sameEntity = true;
-                                break;
-                            }
-                        }
-                        if(!sameEntity){
-                            NewContext.Cameras.push_back(LeftCamera);
-                        }
-                    }
-                }
-                //...
-            }
-
-            NewContext.ID = Operation.newContextID;
-            EventContext.push_back(NewContext);
+            aggregateTwoSets(Operation, NewContext, EventContext);
         }
-
 
         //Get only values from the environment.
         if(Operation.instruction == "value"){
-            for(TriggerClass & ValueLocation : Operation.ConditionalChain){
-                NewContext.NormalVariables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Layers, Cameras));
-            }
-            if(NewContext.NormalVariables.size() > 0){
-                NewContext.type = NewContext.NormalVariables.back().getFullTypeName();
-                NewContext.ID = Operation.newContextID;
-                EventContext.push_back(NewContext);
-            }
+            aggregateValues(NewContext, EventContext, Operation, OwnerLayer, Owner, Layers, Cameras);
         }
 
-        //Get singular context.
-        if(Operation.instruction == "context"){
-            if(Operation.dynamicIDs.size() > 0){
-                PointerContainer * Context = getContextByID(EventContext, Operation.dynamicIDs.back());
-                if(Context != nullptr){
-                    for(TriggerClass Location : Operation.ConditionalChain){
-                        //findLowerContext(Location, rightOperand);
-                    }
-                }
-            }
-            else{
-                for(TriggerClass Location : Operation.ConditionalChain){
-                    findContext(Location, NewContext, Owner, OwnerLayer, Layers, Cameras);
-                }
-            }
-            if(NewContext.type != ""){
-                NewContext.ID = Operation.newContextID;
-                EventContext.push_back(NewContext);
-            }
+        //Aggregate context only by id.
+        if(Operation.instruction == "all_by_id"){
+            aggregateOnlyById(NewContext, EventContext, Operation, OwnerLayer, Owner, Layers, Cameras);
         }
 
         //Assign the previously aggregated entities to a named variable.
         if(Operation.instruction == "let"){
-            if(EventContext.size() == 0){
-                std::cout << "Error: Variable \'" << Operation.newContextID << "\' can't be created. ~ executeOperations()\n";
-                continue;
-            }
-            PointerContainer * Context = getContextByID(EventContext, Operation.newContextID);
-            if(Context == nullptr || EventContext.size() == 1){
-                EventContext.back().ID = Operation.newContextID;
-            }
-            else{
-                *Context = EventContext.back();
-                EventContext.pop_back();
-            }
+            nameVariable(EventContext, Operation);
         }
         
         if(Operation.instruction == "set"){
-            PointerContainer * LeftOperand = nullptr;
-            PointerContainer * RightOperand = nullptr;
+            LeftOperand = nullptr;
+            RightOperand = nullptr;
+            unsigned i = 0;
+            bool wasObjectFound;
 
             if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
                 continue;
             }
             
-            
-            /*if(Operation.searchedEntityType == "camera"){
-                for(Camera2D * Camera : LeftOperand->Cameras){
+            if(LeftOperand->type == "camera"){
+                for(i = 0; i < LeftOperand->Cameras.size() && i < RightOperand->Cameras.size(); i++){
+                    LeftOperand->Cameras[i]->clone(*RightOperand->Cameras[i], camerasIDs);
+                }
+            }
+            else if(LeftOperand->type == "layer"){
+                for(i = 0; i < LeftOperand->Layers.size() && i < RightOperand->Layers.size(); i++){
+                    LeftOperand->Layers[i]->clone(*RightOperand->Layers[i], layersIDs);
+                }
+            }
+            else if(LeftOperand->type == "object"){
+                for(i = 0; i < LeftOperand->Objects.size() && i < RightOperand->Objects.size(); i++){
+                    for(LayerClass & Layer : Layers){
+                        if(Layer.getID() != LeftOperand->Objects[i]->layerID){
+                            continue;
+                        }
+                        LeftOperand->Objects[i]->clone(*RightOperand->Objects[i], Layer.objectsIDs);
+                        break;
+                    }
+                }
+            }
+            else if(LeftOperand->type == "image"){
+                for(i = 0; i < LeftOperand->Modules.Images.size() && i < RightOperand->Modules.Images.size(); i++){
+                    wasObjectFound = false;
+                    for(LayerClass & Layer : Layers){
+                        for(AncestorObject & Object : Layer.Objects){
+                            if(LeftOperand->Modules.Images[i]->getObjectID() != Object.getID()){
+                                continue;
+                            }
+                            wasObjectFound = true;
+                            LeftOperand->Modules.Images[i]->clone(*LeftOperand->Modules.Images[i], Object.imageContainerIDs, Object.getID());
+                            break;
+                        }
+                        if(wasObjectFound){
+                            break;
+                        }
+                    }
+                }
+            }
+            else if(isStringInGroup(LeftOperand->type, 8, "text", "editable_text", "movement", "collision", "particles", "event", "variable", "scrollbar")){
 
-                }
             }
-            else if(Operation.searchedEntityType == "layer"){
-                for(LayerClass * Layer : LeftOperand->Layers){
-                    
-                }
+            else if(isStringInGroup(LeftOperand->type, 9, "bool", "char", "short", "unsigned_short", "int", "unsigned_int", "float", "double", "string")){
+
             }
-            else if(Operation.searchedEntityType == "object"){
-                for(AncestorObject * Object : LeftOperand->Objects){
-                    
-                }
-            }*/
         }
     }
     return OperaClass();
@@ -3394,7 +3557,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                         }
                     }
                     if(TextField.getEditingIsActive() == true){
-                        Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.listOfUniqueIDs);
+                        Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs);
                     }
                     TextField.setEditingIsActive(false);
                     if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
@@ -3417,7 +3580,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                             TextField.editText(releasedKeys, pressedKeys);
 
                             if(TextField.getUpdateConnectedVariable() == true){
-                                Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.listOfUniqueIDs);
+                                Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs);
                                 TextField.setUpdateConnectedVariable(false);
 
                                 if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){

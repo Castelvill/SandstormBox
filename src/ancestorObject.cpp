@@ -9,17 +9,15 @@ AncestorObject::AncestorObject(int ancestorID, string newLayerID){
     layerID = newLayerID;
     primaryConstructor(ancestorID);
 }
-void AncestorObject::clone(const AncestorObject& Original, bool isClonedFromDifferentLayer, vector <string> & listOfUniqueIDs){
-    PrimaryModule::clone(Original);
-    if(!isClonedFromDifferentLayer){
-        setID(findRightID(listOfUniqueIDs, getID()));
-        listOfUniqueIDs.push_back(getID());
-    }
+void AncestorObject::clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs){
+    PrimaryModule::clone(Original); 
+    setID(findRightID(listOfUniqueIDs, getID()));
+    listOfUniqueIDs.push_back(getID());
     TextContainer = Original.TextContainer;
     EditableTextContainer = Original.EditableTextContainer;
     for(const ImageModule & Image : Original.ImageContainer){
         ImageContainer.push_back(ImageModule(""));
-        ImageContainer.back().clone(Image);
+        ImageContainer.back().cloneIgnoringIDs(Image);
     }
     MovementContainer = Original.MovementContainer;
     CollisionContainer = Original.CollisionContainer;
@@ -413,186 +411,6 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
         return tryRemovingModuleInstance(module, ScrollbarContainer, scrollbarContainerIDs, destroyID);
     }
     return "Error: " + module + "Module does not exist!\n";
-}
-void AncestorObject::bindModuleToContext(string moduleType, string moduleID, string attribute, ModulesPointers & AggregatedModules){
-    if(moduleType == ""){
-        return;
-    }
-    if(moduleType == "text"){
-        for(TextModule & Text : TextContainer){
-            if(Text.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.Texts.push_back(&Text);
-            break;
-        }
-    }
-    else if(moduleType == "editable_text"){
-        for(EditableTextModule & EditableText : EditableTextContainer){
-            if(EditableText.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.EditableTexts.push_back(&EditableText);
-            break;
-        }
-    }
-    else if(moduleType == "image"){
-        for(ImageModule & Image : ImageContainer){
-            if(Image.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.Images.push_back(&Image);
-            break;
-        }
-    }
-    else if(moduleType == "movement"){
-        for(MovementModule & Movement : MovementContainer){
-            if(Movement.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.Movements.push_back(&Movement);
-            break;
-        }
-    }
-    else if(moduleType == "collision"){
-        for(CollisionModule & Collision : CollisionContainer){
-            if(Collision.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.Collisions.push_back(&Collision);
-            break;
-        }
-    }
-    else if(moduleType == "particles"){
-        for(ParticleEffectModule & Particles : ParticlesContainer){
-            if(Particles.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.Particles.push_back(&Particles);
-            break;
-        }
-    }
-    else if(moduleType == "event"){
-        for(EveModule & Event : EveContainer){
-            if(Event.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.Events.push_back(&Event);
-            break;
-        }
-    }
-    else if(moduleType == "variable"){
-        for(VariableModule & Variable : VariablesContainer){
-            if(Variable.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.Variables.push_back(&Variable);
-            break;
-        }
-    }
-    else if(moduleType == "scrollbar"){
-        for(ScrollbarModule & Scrollbar : ScrollbarContainer){
-            if(Scrollbar.getID() != moduleID){
-                continue;
-            }
-            AggregatedModules.Scrollbars.push_back(&Scrollbar);
-            break;
-        }
-    }
-}
-void AncestorObject::bindVariableToContext(string moduleType, string moduleID, string attribute, BasePointersStruct & UniversalVariable){
-    if(moduleType == ""){
-        return;
-    }
-    if(moduleType == "ancestor"){
-        if(attribute == "layer_id"){
-            UniversalVariable.getPointer(&layerID);
-        }
-        else{
-            bindPrimaryToVariable(attribute, UniversalVariable);
-        }
-    }
-    else if(moduleType == "text"){
-        for(TextModule & Text : TextContainer){
-            if(Text.getID() != moduleID){
-                continue;
-            }
-            Text.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
-    else if(moduleType == "editable_text"){
-        for(EditableTextModule & EditableText : EditableTextContainer){
-            if(EditableText.getID() != moduleID){
-                continue;
-            }
-            EditableText.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
-    else if(moduleType == "image"){
-        for(ImageModule & Image : ImageContainer){
-            if(Image.getID() != moduleID){
-                continue;
-            }
-            Image.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
-    else if(moduleType == "movement"){
-        for(MovementModule & Movement : MovementContainer){
-            if(Movement.getID() != moduleID){
-                continue;
-            }
-            Movement.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
-    else if(moduleType == "collision"){
-        for(CollisionModule & Collision : CollisionContainer){
-            if(Collision.getID() != moduleID){
-                continue;
-            }
-            Collision.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
-    else if(moduleType == "particles"){
-        for(ParticleEffectModule & Particles : ParticlesContainer){
-            if(Particles.getID() != moduleID){
-                continue;
-            }
-            Particles.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
-    else if(moduleType == "event"){
-        for(EveModule & Event : EveContainer){
-            if(Event.getID() != moduleID){
-                continue;
-            }
-            Event.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
-    else if(moduleType == "variable"){
-        for(VariableModule & Variable : VariablesContainer){
-            if(Variable.getID() != moduleID){
-                continue;
-            }
-            Variable.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
-    else if(moduleType == "scrollbar"){
-        for(ScrollbarModule & Scrollbar : ScrollbarContainer){
-            if(Scrollbar.getID() != moduleID){
-                continue;
-            }
-            Scrollbar.getContext(attribute, UniversalVariable);
-            break;
-        }
-    }
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule(){

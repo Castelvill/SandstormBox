@@ -46,7 +46,8 @@ public:
     void setUpImageInstance();
     ImageModule(string imageModuleID);
     ImageModule(unsigned int imageModuleID);
-    void clone(const ImageModule& Image);
+    void cloneIgnoringIDs(const ImageModule& Image);
+    void clone(const ImageModule& Image, vector<string> & listOfIDs, string newOwnerID);
     void operator=(const ImageModule& Image);
 
     void loadImage(string newID, string filePath);

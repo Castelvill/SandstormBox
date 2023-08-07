@@ -83,7 +83,7 @@ ImageModule::ImageModule(unsigned int imageModuleID){
     primaryConstructor(imageModuleID);
     setUpImageInstance();
 }
-void ImageModule::clone(const ImageModule& Image){
+void ImageModule::cloneIgnoringIDs(const ImageModule& Image){
     PrimaryModule::clone(Image);
     rotPos = Image.rotPos;
     start = Image.start;
@@ -120,8 +120,14 @@ void ImageModule::clone(const ImageModule& Image){
         std::cout << "Copy has been made!\n";
     }
 }
+void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, string newOwnerID){
+    cloneIgnoringIDs(Image);
+    ID = findRightID(listOfIDs, getID());
+    listOfIDs.push_back(getID());
+    objectID = newOwnerID;
+}
 void ImageModule::operator=(const ImageModule& Image){
-    clone(Image);
+    cloneIgnoringIDs(Image);
 }
 void ImageModule::destroyBitmap(){
     if(image){

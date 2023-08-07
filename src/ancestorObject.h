@@ -46,7 +46,7 @@ public:
 
     AncestorObject();
     AncestorObject(int ancestorID, string newLayerID);
-    void clone(const AncestorObject& Original, bool isClonedFromDifferentLayer, vector <string> & listOfUniqueIDs);
+    void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs);
     void clearVectorsOfIDs();
     void clearContainers();
     void createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter);
@@ -57,8 +57,6 @@ public:
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
     string addModuleInstance(string module, string newID);
     string destroyModuleInstance(string module, string destroyID);
-    void bindModuleToContext(string moduleType, string moduleID, string attribute, ModulesPointers & AggregatedModules);
-    void bindVariableToContext(string moduleType, string moduleID, string attribute, BasePointersStruct & UniversalVariable);
 };
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);

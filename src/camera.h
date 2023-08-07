@@ -32,7 +32,7 @@ public:
 
     Camera2D(string newID, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
     Camera2D(string newID);
-    void clone(const Camera2D& Orginal, bool isClonedFromDifferentLayer, vector <string> & camerasIDs);
+    void clone(const Camera2D& Orginal, vector <string> & camerasIDs);
     void clear();
     void setID(string newID);
     string getID();
