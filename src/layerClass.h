@@ -14,11 +14,11 @@ public:
     vector <string> objectsIDs;
     vec2d pos, size;
     LayerClass();
-    LayerClass(string layerID, bool activate, vec2d bufferPos, vec2d bufferSize);
+    LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2d bufferSize);
     void clear();
     bool createListOfUniqueIDs();
 
-    void setID(string newID);
+    void setID(string newID, vector <string> & layersIDs);
     void setIsActive(bool newIsActive);
     string getID();
     string* getIDAddr();

@@ -9,13 +9,20 @@ void ScrollbarModule::initScrollbar(){
     usedBitmapLayer = 0;
     FocusedCamera = nullptr;
 }
-ScrollbarModule::ScrollbarModule(unsigned int moduleID){
-    initScrollbar();
-    primaryConstructor(moduleID);
+ScrollbarModule::ScrollbarModule(){
 }
-ScrollbarModule::ScrollbarModule(string moduleID){
+ScrollbarModule::ScrollbarModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     initScrollbar();
-    primaryConstructor(moduleID);
+}
+ScrollbarModule::ScrollbarModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+    initScrollbar();
+}
+
+void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    *this = Original;
+    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
 }
 
 void ScrollbarModule::draw(vec2d basePos ,vector <ImageModule> & ImageContainer, Camera2D Camera){

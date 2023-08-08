@@ -54,7 +54,7 @@ void SingleBitmap::loadBitmap(string newID, string filePath){
     }
 }
 
-void ImageModule::setUpImageInstance(){
+void ImageModule::setUpNewInstance(){
     rotPos.set(0.0, 0.0);
     start.set(0.0, 0.0);
     frameSize.set(0.0, 0.0);
@@ -75,16 +75,18 @@ void ImageModule::setUpImageInstance(){
     isBitmapFromContainer[1] = false;
     usedBitmapLayer = 0;
 }
-ImageModule::ImageModule(string imageModuleID){
-    primaryConstructor(imageModuleID);
-    setUpImageInstance();
+ImageModule::ImageModule(){
 }
-ImageModule::ImageModule(unsigned int imageModuleID){
-    primaryConstructor(imageModuleID);
-    setUpImageInstance();
+ImageModule::ImageModule(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+    setUpNewInstance();
 }
-void ImageModule::cloneIgnoringIDs(const ImageModule& Image){
-    PrimaryModule::clone(Image);
+ImageModule::ImageModule(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+    setUpNewInstance();
+}
+void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    PrimaryModule::clone(Image, listOfIDs, newLayerID, newObjectID);
     rotPos = Image.rotPos;
     start = Image.start;
     frameSize = Image.frameSize;
@@ -119,15 +121,6 @@ void ImageModule::cloneIgnoringIDs(const ImageModule& Image){
     if(image || lightBitmap){
         std::cout << "Copy has been made!\n";
     }
-}
-void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, string newOwnerID){
-    cloneIgnoringIDs(Image);
-    ID = findRightID(listOfIDs, getID());
-    listOfIDs.push_back(getID());
-    objectID = newOwnerID;
-}
-void ImageModule::operator=(const ImageModule& Image){
-    cloneIgnoringIDs(Image);
 }
 void ImageModule::destroyBitmap(){
     if(image){
@@ -478,8 +471,8 @@ void ImageModule::setUsedBitmapLayer(int newLayer){
 float ImageModule::getLightLevel() const{
     return lightLevel;
 }
-void ImageModule::changeParameters(string newID, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors){
-    setID(newID);
+void ImageModule::changeParameters(string newID, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors){
+    setID(newID, listOfIDs);
     setPos(vec2d(dimPos.val[0], dimPos.val[1]));
     setSize(vec2d(dimPos.val[2], dimPos.val[3]));
     setScale(newScale);

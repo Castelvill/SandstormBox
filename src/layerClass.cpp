@@ -4,8 +4,8 @@ LayerClass::LayerClass(){
     ID = "";
     isActive = false;
 }
-LayerClass::LayerClass(string layerID, bool activate, vec2d bufferPos, vec2d bufferSize){
-    ID = layerID;
+LayerClass::LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2d bufferSize){
+    setID(newID, layersIDs);
     isActive = activate;
     pos.set(bufferPos);
     size.set(bufferSize);
@@ -44,8 +44,10 @@ bool LayerClass::createListOfUniqueIDs(){
     return violated;
 }
 
-void LayerClass::setID(string newID){
-    ID = newID;
+void LayerClass::setID(string newID, vector <string> & layersIDs){
+    removeFromStringVector(layersIDs, ID);
+    ID = findRightID(layersIDs, newID);
+    layersIDs.push_back(ID);
 }
 void LayerClass::setIsActive(bool newIsActive){
     isActive = newIsActive;

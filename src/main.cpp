@@ -166,7 +166,7 @@ vector<string> getAllFilesNamesWithinFolder(string folder){
     return names;
 }
 
-void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
+void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
     /*Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("king_arthur");
     Objects.back().setPos(vec2d(0.0, 0.0));
@@ -254,26 +254,20 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().TextContainer.back().setPos(0.0, 150.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);*/
 
-    Objects.push_back(AncestorObject(Objects.size(), layerID));
-    Objects.back().setID("Amongus");
-    listOfUniqueIDs.push_back(Objects.back().getID());
+    Objects.push_back(AncestorObject("Amongus", listOfUniqueIDs, layerID));
     Objects.back().setPos(vec2d(100, 400));
     Objects.back().setIsAttachedToCamera(false);
-    Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
+    Objects.back().ImageContainer.push_back(ImageModule("amongus", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
     Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "amongus_2");
-    Objects.back().ImageContainer[0].setID("amongus");
     Objects.back().ImageContainer[0].setIsScaledFromCenter(false);
     Objects.back().ImageContainer[0].setUsedBitmapLayer(1);
     Objects.back().ImageContainer[0].setScale(0.5, 0.5);
     Objects.back().ImageContainer[0].setIsAttachedToCamera(false);
 
-    Objects.back().VariablesContainer.push_back(0);
-    Objects.back().VariablesContainer.back().setID("timer");
+    Objects.back().VariablesContainer.push_back(VariableModule("timer", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.back().setDouble(0.0);
-    Objects.back().VariablesContainer.push_back(0);
-    Objects.back().VariablesContainer.back().setID("bbb");
-    Objects.back().VariablesContainer.push_back(0);
-    Objects.back().VariablesContainer.back().setID("test");
+    Objects.back().VariablesContainer.push_back(VariableModule("bbb", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().VariablesContainer.push_back(VariableModule("test", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.back().setInt(65);
     Objects.back().CollisionContainer.push_back(CollisionModule(0, vec2d(50, 50)));
     Objects.back().CollisionContainer.push_back(CollisionModule(1, vec2d(50, 50)));
@@ -442,8 +436,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().ParticlesContainer[0].setMaxSpeed(10.0);
     Objects.back().ParticlesContainer[0].setIsAttachedToCamera(false);
     Objects.back().MovementContainer.push_back(MovementModule(Objects.back().MovementContainer.size()));
-    Objects.back().VariablesContainer.push_back(0);
-    Objects.back().VariablesContainer.back().setID("par_test");
+    Objects.back().VariablesContainer.push_back(VariableModule("par_test", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.back().setInt(69);
 
     //changeMoveParameters(short newMovementType, short newInputType, double newBodyMass, double newWalkingSpeed, double newRunningSpeed,
@@ -597,8 +590,8 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     }
 }
 
-void createObjects(vector <AncestorObject> & Objects, string layerID, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
-    Objects.push_back(AncestorObject(Objects.size(), layerID));
+void createObjects(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
+    /*Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("Smok");
     Objects.back().setPos(vec2d(100, 100));
     Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
@@ -673,11 +666,10 @@ void createObjects(vector <AncestorObject> & Objects, string layerID, vector <Si
 
     for(auto &Object : Objects){
         Object.refreshCoordinates();
-    }
+    }*/
 }
 
-
-void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
+void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
     Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setCanBeSelected(false);
     Objects.back().TextContainer.push_back(TextModule(0));

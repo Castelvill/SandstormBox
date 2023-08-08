@@ -3,37 +3,54 @@
 
 AncestorObject::AncestorObject(){
     //blank object
-    std::cout << "[Warning] You are creating a blank object - it doesn't have an ID nor layerID.\n";
+    std::cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
-AncestorObject::AncestorObject(int ancestorID, string newLayerID){
-    layerID = newLayerID;
-    primaryConstructor(ancestorID);
+AncestorObject::AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID){
+    primaryConstructor(newID, listOfIDs, newLayerID, "");
 }
-void AncestorObject::clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs){
-    PrimaryModule::clone(Original); 
-    setID(findRightID(listOfUniqueIDs, getID()));
-    listOfUniqueIDs.push_back(getID());
-    TextContainer = Original.TextContainer;
-    EditableTextContainer = Original.EditableTextContainer;
-    for(const ImageModule & Image : Original.ImageContainer){
-        ImageContainer.push_back(ImageModule(""));
-        ImageContainer.back().cloneIgnoringIDs(Image);
+AncestorObject::AncestorObject(unsigned newID, vector<string> &listOfIDs, string newLayerID){
+    primaryConstructor(newID, listOfIDs, newLayerID, "");
+}
+void AncestorObject::clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID){
+    clearVectorsOfIDs();
+    clearContainers();
+    PrimaryModule::clone(Original, listOfUniqueIDs, layerID, "");
+    for(const TextModule & Text : Original.TextContainer){
+        TextContainer.push_back(TextModule());
+        TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID());
     }
-    MovementContainer = Original.MovementContainer;
-    CollisionContainer = Original.CollisionContainer;
-    ParticlesContainer = Original.ParticlesContainer;
-    EveContainer = Original.EveContainer;
-    VariablesContainer = Original.VariablesContainer;
-    ScrollbarContainer = Original.ScrollbarContainer;
-    textContainerIDs = Original.textContainerIDs;
-    editableTextContainerIDs = Original.editableTextContainerIDs;
-    imageContainerIDs = Original.imageContainerIDs;
-    movementContainerIDs = Original.movementContainerIDs;
-    collisionContainerIDs = Original.collisionContainerIDs;
-    particlesContainerIDs = Original.particlesContainerIDs;
-    eveContainerIDs = Original.eveContainerIDs;
-    variablesContainerIDs = Original.variablesContainerIDs;
-    scrollbarContainerIDs = Original.scrollbarContainerIDs;
+    for(const EditableTextModule & Editable : Original.EditableTextContainer){
+        EditableTextContainer.push_back(EditableTextModule());
+        EditableTextContainer.back().clone(Editable, editableTextContainerIDs, newLayerID, getID());
+    }
+    for(const ImageModule & Image : Original.ImageContainer){
+        ImageContainer.push_back(ImageModule());
+        ImageContainer.back().clone(Image, imageContainerIDs, newLayerID, getID());
+    }
+    for(const MovementModule & Movement : Original.MovementContainer){
+        MovementContainer.push_back(MovementModule());
+        MovementContainer.back().clone(Movement, movementContainerIDs, newLayerID, getID());
+    }
+    for(const CollisionModule & Collision : Original.CollisionContainer){
+        CollisionContainer.push_back(CollisionModule());
+        CollisionContainer.back().clone(Collision, collisionContainerIDs, newLayerID, getID());
+    }
+    for(const ParticleEffectModule & Particle : Original.ParticlesContainer){
+        ParticlesContainer.push_back(ParticleEffectModule());
+        ParticlesContainer.back().clone(Particle, particlesContainerIDs, newLayerID, getID());
+    }
+    for(const EveModule & Event : Original.EveContainer){
+        EveContainer.push_back(EveModule());
+        EveContainer.back().clone(Event, eveContainerIDs, newLayerID, getID());
+    }
+    for(const VariableModule & Collision : Original.VariablesContainer){
+        VariablesContainer.push_back(VariableModule());
+        VariablesContainer.back().clone(Collision, variablesContainerIDs, newLayerID, getID());
+    }
+    for(const ScrollbarModule & Scrollbar : Original.ScrollbarContainer){
+        ScrollbarContainer.push_back(ScrollbarModule());
+        ScrollbarContainer.back().clone(Scrollbar, scrollbarContainerIDs, newLayerID, getID());
+    }
 }
 void AncestorObject::clearVectorsOfIDs(){
     textContainerIDs.clear();
@@ -85,7 +102,7 @@ void AncestorObject::clearContainers(){
     VariablesContainer.clear();
     ScrollbarContainer.clear();
 }
-void AncestorObject::createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter){
+/*void AncestorObject::createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter){
     setID(bID);
     setPos(bPos);
     setSize(bSize);
@@ -95,7 +112,7 @@ void AncestorObject::createButton(string bID, vec2d bPos, vec2d bSize, vec2d bIm
     ImageContainer.back().setIsScaledFromCenter(bIsScaledFromCenter);
     ImageContainer.back().setIsAttachedToCamera(true);
     setIsAttachedToCamera(true);
-}
+}*/
 void AncestorObject::operateEvent(int sourceID, int event, int operationID, vector <AncestorObject> & Objects){
     unsigned int objIndex = EventsContainer[event].Operations[operationID].affectedObjectIndex;
 
@@ -321,58 +338,40 @@ string SuccessInstanceAdded(string module, string ID){
 }
 string AncestorObject::addModuleInstance(string module, string newID){
     if(module == "text"){
-        newID = findRightID(textContainerIDs, newID);
-        TextContainer.push_back(newID);
-        textContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        TextContainer.push_back(TextModule(newID, textContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, TextContainer.back().getID());
     }
     if(module == "editable_text"){
-        newID = findRightID(editableTextContainerIDs, newID);
-        EditableTextContainer.push_back(newID);
-        editableTextContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        EditableTextContainer.push_back(EditableTextModule(newID, editableTextContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, EditableTextContainer.back().getID());
     }
     if(module == "image"){
-        newID = findRightID(imageContainerIDs, newID);
-        ImageContainer.push_back(newID);
-        imageContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        ImageContainer.push_back(ImageModule(newID, imageContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, ImageContainer.back().getID());
     }
     if(module == "movement"){
-        newID = findRightID(movementContainerIDs, newID);
-        MovementContainer.push_back(newID);
-        movementContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        MovementContainer.push_back(MovementModule(newID, movementContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, MovementContainer.back().getID());
     }
     if(module == "collision"){
-        newID = findRightID(collisionContainerIDs, newID);
-        CollisionContainer.push_back(newID);
-        collisionContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        CollisionContainer.push_back(CollisionModule(newID, collisionContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, CollisionContainer.back().getID());
     }
     if(module == "particles"){
-        newID = findRightID(particlesContainerIDs, newID);
-        ParticlesContainer.push_back(newID);
-        particlesContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        ParticlesContainer.push_back(ParticleEffectModule(newID, particlesContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, ParticlesContainer.back().getID());
     }
     if(module == "event"){
-        newID = findRightID(eveContainerIDs, newID);
-        EveContainer.push_back(newID);
-        eveContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        EveContainer.push_back(EveModule(newID, eveContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, EveContainer.back().getID());
     }
     if(module == "variable"){
-        newID = findRightID(variablesContainerIDs, newID);
-        VariablesContainer.push_back(newID);
-        variablesContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        VariablesContainer.push_back(VariableModule(newID, &variablesContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, VariablesContainer.back().getID());
     }
     if(module == "scrollbar"){
-        newID = findRightID(scrollbarContainerIDs, newID);
-        ScrollbarContainer.push_back(newID);
-        scrollbarContainerIDs.push_back(newID);
-        return SuccessInstanceAdded(module, newID);
+        ScrollbarContainer.push_back(ScrollbarModule(newID, scrollbarContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, ScrollbarContainer.back().getID());
     }
     return "Error: Module \'" + module + "\' does not exist!\n";
 }

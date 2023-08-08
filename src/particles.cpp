@@ -152,8 +152,10 @@ double SingleParticle::getRadius(){
     return radius;
 }
 
-ParticleEffectModule::ParticleEffectModule(string newID){
-    primaryConstructor(newID);
+ParticleEffectModule::ParticleEffectModule(){
+}
+ParticleEffectModule::ParticleEffectModule(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     environment.set(0.0, 0.0);
     environmentSpeed.set(0.0, 0.0);
     minSpeed = 0.0;
@@ -196,8 +198,12 @@ ParticleEffectModule::ParticleEffectModule(string newID){
     spawnOnKeyRelease = false;
     usedBitmapLayer = 0;
 }
-ParticleEffectModule::ParticleEffectModule(unsigned int newID){
-    ParticleEffectModule(intToStr4(newID));
+ParticleEffectModule::ParticleEffectModule(unsigned newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    ParticleEffectModule(intToStr4(newID), listOfIDs, newLayerID, newObjectID);
+}
+void ParticleEffectModule::clone(const ParticleEffectModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    *this = Original;
+    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
 }
 void ParticleEffectModule::clearModule(){
     particleEffect.clear();

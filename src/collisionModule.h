@@ -23,10 +23,12 @@ private:
     vector <string> ignoredGroupsOfHitboxesList;
 public:
     vector <DetectedCollision> Detected;
-    CollisionModule(string newID, vec2d size);
-    CollisionModule(unsigned newID, vec2d size);
-    CollisionModule(string newID);
-    CollisionModule(unsigned newID);
+    CollisionModule();
+    CollisionModule(string newID, vec2d size, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    CollisionModule(unsigned newID, vec2d size, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    CollisionModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    CollisionModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const CollisionModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     bool isCloseEnough(vec2d solidPos, string solidName, vec2d movingPos, vec2d movingMomentum, CollisionModule * movingColl);
     void detectOverlaping(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum);
     void detectCollision(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum);

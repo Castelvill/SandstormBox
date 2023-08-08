@@ -65,9 +65,11 @@ public:
 	bool parentStatus;
     bool elseChildFinished;
 	bool werePostOperationsExecuted;
+    EveModule();
+    EveModule(unsigned int textModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    EveModule(string textModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const EveModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
-    EveModule(unsigned int textModuleID);
-    EveModule(string textModuleID);
     void setUpNewInstance();
     void clearModule();
 	void resetStatus();
@@ -118,6 +120,7 @@ private:
     bool isButton;
 public:
     vector <OperationClass> Operations;
+    EventModule();
     EventModule(int moduleID);
     string getTypeOfTrigger(short operationID);
     void setUpButton(vec2d newPos, vec2d newSize);

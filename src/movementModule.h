@@ -67,8 +67,10 @@ private:
     short upKey, rightKey, downKey, leftKey, jumpKey, runningKey;
 
 public:
-    MovementModule(string newID);
-    MovementModule(unsigned int movementModuleID);
+    MovementModule();
+    MovementModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    MovementModule(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const MovementModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void changeJumpParameters(double newJumpSpeed, short newAllowedJumps, double newJumpCooldownDuration, double newGravitation, double newMinMomentumY, double newMaxMomentumY, bool newResetMomentumWhenJumping);
     void changeMoveParameters(short newMovementType, short newInputType, double newBodyMass, double newWalkingSpeed, double newRunningSpeed, double newBaseFriction, double newMaxMomentumX, double newMoveCooldown, bool newCanMoveDiagonally);

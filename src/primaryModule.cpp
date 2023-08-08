@@ -1,8 +1,9 @@
 #include "primaryModule.h"
 
 
-void PrimaryModule::primaryConstructor(string moduleID){
-    ID = moduleID;
+void PrimaryModule::primaryConstructor(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+    
     pos.set(0.0, 0.0);
     scrollShift.set(0.0, 0.0);
     size.set(100.0, 100.0);
@@ -14,19 +15,32 @@ void PrimaryModule::primaryConstructor(string moduleID){
     canBeSelected = true;
     isScrollable = false;
 }
-void PrimaryModule::primaryConstructor(unsigned int moduleID){
-    primaryConstructor(intToStr4(moduleID));
+void PrimaryModule::primaryConstructor(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(intToStr4(newID), listOfIDs, newLayerID, newObjectID);
 }
-void PrimaryModule::clone(const PrimaryModule & Original){
+void PrimaryModule::clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID){
     *this = Original;
+    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
 }
 
-void PrimaryModule::setID(string newID){
-    ID = newID;
+void PrimaryModule::setID(string newID, vector<string> & listOfIDs){
+    removeFromStringVector(listOfIDs, ID);
+    ID = findRightID(listOfIDs, newID);
+    listOfIDs.push_back(ID);
+}
+
+void PrimaryModule::setLayerID(string newLayerID){
+    layerID = newLayerID;
 }
 
 void PrimaryModule::setObjectID(string newOwnerID){
     objectID = newOwnerID;
+}
+
+void PrimaryModule::setAllIDs(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    setID(newID, listOfIDs);
+    setLayerID(newLayerID);
+    setObjectID(newObjectID);
 }
 
 void PrimaryModule::addGroup(string newGroup){
@@ -112,7 +126,13 @@ void PrimaryModule::setIsScrollable(bool newValue){
 string PrimaryModule::getID() const{
     return ID;
 }
-string & PrimaryModule::getIDAddr(){
+string PrimaryModule::getLayerID() const{
+    return layerID;
+}
+string &PrimaryModule::getLayerIDAddr(){
+    return layerID;
+}
+string &PrimaryModule::getIDAddr(){
     return ID;
 }
 string PrimaryModule::getObjectID(){

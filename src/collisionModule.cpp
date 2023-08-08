@@ -23,22 +23,27 @@ bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2){
     return false;
 }
 
-CollisionModule::CollisionModule(string newID, vec2d size){
-    primaryConstructor(newID);
+CollisionModule::CollisionModule(){
+}
+CollisionModule::CollisionModule(string newID, vec2d size, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setSize(size);
     isSolid = true;
     canPenetrateSolids = false;
 }
-CollisionModule::CollisionModule(unsigned newID, vec2d size){
-    CollisionModule(intToStr4(newID), size);
+CollisionModule::CollisionModule(unsigned newID, vec2d size, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    CollisionModule(intToStr4(newID), size, listOfIDs, newLayerID, newObjectID);
 }
-CollisionModule::CollisionModule(string newID){
-    CollisionModule(newID, vec2d(0.0, 0.0));
+CollisionModule::CollisionModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    CollisionModule(newID, vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
 }
-CollisionModule::CollisionModule(unsigned newID){
-    CollisionModule(newID, vec2d(0.0, 0.0));
+CollisionModule::CollisionModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    CollisionModule(intToStr4(newID), vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
 }
-
+void CollisionModule::clone(const CollisionModule &Original, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    *this = Original;
+    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+}
 
 void CollisionModule::detectOverlaping(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum){
     //Check if object is in other object

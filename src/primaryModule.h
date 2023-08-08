@@ -39,6 +39,7 @@ class PrimaryModule{
     protected:
 
     string ID;
+    string layerID; //This ID is needed in events' trigger detection.
     string objectID;
     vector <string> groups;
     vec2d pos, scrollShift, size, scale;
@@ -51,11 +52,13 @@ class PrimaryModule{
 
     public:
 
-    void primaryConstructor(string moduleID);
-    void primaryConstructor(unsigned int moduleID);
-    void clone(const PrimaryModule & Original);
-    void setID(string newID);
+    void primaryConstructor(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void primaryConstructor(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void setID(string newID, vector<string> & listOfIDs);
+    void setLayerID(string newLayerID);
     void setObjectID(string newOwnerID);
+    void setAllIDs(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void addGroup(string newGroup);
     void removeGroup(string selectedGroup);
@@ -85,6 +88,8 @@ class PrimaryModule{
     void setCanBeSelected(bool newValue);
     void setIsScrollable(bool newValue);
     string getID() const;
+    string &getLayerIDAddr();
+    string getLayerID() const;
     string & getIDAddr();
     string getObjectID();
     vec2d getPos(bool useScrollshift);

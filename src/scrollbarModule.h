@@ -17,8 +17,10 @@ class ScrollbarModule : public PrimaryModule{
     Camera2D * FocusedCamera;
 public:
     void initScrollbar();
-    ScrollbarModule(unsigned int moduleID);
-    ScrollbarModule(string moduleID);
+    ScrollbarModule();
+    ScrollbarModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    ScrollbarModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const ScrollbarModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera);
     bool startDragging(vec2d basePos, MouseClass Mouse, Camera2D * Camera);

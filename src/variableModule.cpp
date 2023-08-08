@@ -1,7 +1,7 @@
 #include "variableModule.h"
 
-VariableModule::VariableModule(unsigned int newID){
-    ID = std::to_string(newID);
+VariableModule::VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    setAllIDs(newID, listOfIDs, newLayerID, newObjectID);
     type = 'n';
     vInt = 0;
     defaultInt = 0;
@@ -10,15 +10,8 @@ VariableModule::VariableModule(unsigned int newID){
     vString = "";
     defaultString = "";
 }
-VariableModule::VariableModule(string newID){
-    ID = newID;
-    type = 'n';
-    vInt = 0;
-    defaultInt = 0;
-    vDouble = 0.0;
-    defaultDouble = 0.0;
-    vString = "";
-    defaultString = "";
+VariableModule::VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    VariableModule(std::to_string(newID), listOfIDs, newLayerID, newObjectID);
 }
 VariableModule::VariableModule(){
     ID = "";
@@ -30,10 +23,30 @@ VariableModule::VariableModule(){
     vString = "";
     defaultString = "";
 }
+void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    *this = Original;
+    setAllIDs(getID(), &listOfIDs, newLayerID, newObjectID);
+}
+void VariableModule::setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    setID(newID);
+    if(listOfIDs != nullptr){
+        setID(findRightID(*listOfIDs, getID()));
+        listOfIDs->push_back(getID());
+    }
+    setLayerID(newLayerID);
+    setObjectID(newObjectID);
+}
 string VariableModule::getID(){
     return ID;
 }
-string & VariableModule::getIDAddr(){
+string VariableModule::getLayerID(){
+    return layerID;
+}
+string VariableModule::getObjectID(){
+    return objectID;
+}
+string &VariableModule::getIDAddr()
+{
     return ID;
 }
 string VariableModule::getAnyValue(){
@@ -130,7 +143,14 @@ string VariableModule::getString(){
 void VariableModule::setID(string newID){
     ID = newID;
 }
-bool VariableModule::setType(char newType){
+void VariableModule::setLayerID(string newID){
+    layerID = newID;
+}
+void VariableModule::setObjectID(string newID){
+    objectID = newID;
+}
+bool VariableModule::setType(char newType)
+{
     if(isCharInGroup(newType, 4, 'b', 'i', 'd', 's')){
         type = newType;
         return true;

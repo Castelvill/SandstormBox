@@ -1,7 +1,7 @@
 #include "camera.h"
 
-Camera2D::Camera2D(string newID, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
-    ID = newID;
+Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
+    setID(newID, camerasIDs);
     isActive = newIsActive;
     relativePos = newPos;
     pos = newPos;
@@ -29,8 +29,8 @@ Camera2D::Camera2D(string newID, bool newIsActive, vec2d newPos, vec2d newSize, 
     isUsingCursorPositionToMove = false;
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
-Camera2D::Camera2D(string newID){
-    Camera2D(newID, false, vec2d(0.0, 0.0), vec2d(0.0, 0.0), vec2d(0.0, 0.0));
+Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
+    Camera2D(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(0.0, 0.0), vec2d(0.0, 0.0));
 }
 void Camera2D::clone(const Camera2D& Orginal, vector <string> & camerasIDs){
     *this = Orginal;
@@ -46,8 +46,10 @@ void Camera2D::clear(){
     clearVisibleLayers();
     clearAccessibleLayers();
 }
-void Camera2D::setID(string newID){
-    ID = newID;
+void Camera2D::setID(string newID, vector <string> & camerasIDs){
+    removeFromStringVector(camerasIDs, ID);
+    ID = findRightID(camerasIDs, newID);
+    camerasIDs.push_back(ID);
 }
 string Camera2D::getID(){
     return ID;

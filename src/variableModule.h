@@ -5,16 +5,22 @@
 
 class VariableModule{
     string ID;
+    string layerID; //This ID is needed in events' trigger detection.
+    string objectID;
     char type;
     bool vBool, defaultBool;
     int vInt, defaultInt;
 	double vDouble, defaultDouble;
 	string vString, defaultString;
 public:
-    VariableModule(unsigned int newID);
-    VariableModule(string newID);
+    VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule();
+    void clone(const VariableModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     string getID();
+    string getLayerID();
+    string getObjectID();
     string &getIDAddr();
     string getAnyValue();
     char getType();
@@ -28,6 +34,8 @@ public:
     double getDouble();
     string getString();
     void setID(string);
+    void setLayerID(string);
+    void setObjectID(string);
     bool setType(char);
     bool tryToSetType(char newType);
     bool setDefaultBool(bool);

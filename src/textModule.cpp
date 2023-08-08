@@ -27,12 +27,16 @@ void TextModule::setUpNewInstance(){
     visibility = 1.0;
     usedBitmapLayer = 0;
 }
-TextModule::TextModule(string textModuleID){
-    primaryConstructor(textModuleID);
+TextModule::TextModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-TextModule::TextModule(unsigned int textModuleID){
-    primaryConstructor(textModuleID);
+void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    *this = Original;
+    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+}
+TextModule::TextModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void TextModule::addNewContent(string newContent){
@@ -401,7 +405,7 @@ string TextModule::getCurrentContent(){
 }
 
 
-void EditableTextModule::setUpEditableInstance(){
+void EditableTextModule::setUpNewInstance(){
     isAttachedToCamera = true;
     canBeEdited = true;
     editingIsActive = false;
@@ -415,11 +419,19 @@ void EditableTextModule::setUpEditableInstance(){
     minContentSize = 0;
     maxContentSize = 20;
 }
-EditableTextModule::EditableTextModule(unsigned int EditableTextModuleID) : TextModule(EditableTextModuleID){
-    setUpEditableInstance();
+EditableTextModule::EditableTextModule(){
 }
-EditableTextModule::EditableTextModule(string EditableTextModuleID) : TextModule(EditableTextModuleID){
-    setUpEditableInstance();
+EditableTextModule::EditableTextModule(unsigned newID, vector<string> &listOfIDs, string newLayerID, string newObjectID)
+    : TextModule(newID, listOfIDs, newLayerID, newObjectID){
+    setUpNewInstance();
+}
+EditableTextModule::EditableTextModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID)
+    : TextModule(newID, listOfIDs, newLayerID, newObjectID){
+    setUpNewInstance();
+}
+void EditableTextModule::clone(const EditableTextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    *this = Original;
+    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
 }
 void EditableTextModule::setCanBeEdited(bool newCanBeEdited){
     canBeEdited = newCanBeEdited;

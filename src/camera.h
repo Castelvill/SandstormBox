@@ -30,11 +30,11 @@ public:
     vector <string> accessibleLayersIDs; //User can interact with those Layers through this Camera;
     ALLEGRO_BITMAP * bitmapBuffer;
 
-    Camera2D(string newID, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
-    Camera2D(string newID);
+    Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
+    Camera2D(string newID, vector <string> & camerasIDs);
     void clone(const Camera2D& Orginal, vector <string> & camerasIDs);
     void clear();
-    void setID(string newID);
+    void setID(string newID, vector <string> & camerasIDs);
     string getID();
     void setIsActive(bool newValue);
     void activate();

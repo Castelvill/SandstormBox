@@ -55,9 +55,9 @@ struct EditorWindowArrangement{
     EditorWindowArrangement();
 };
 
-void createObjects0(vector <AncestorObject> & Objects, vector <SingleFont> FontContainer, ALLEGRO_DISPLAY * window);
-void createObjects(vector <AncestorObject> & Objects, vector <SingleFont> FontContainer, ALLEGRO_DISPLAY * window);
-void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer);
+void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window);
+void createObjects(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window);
+void prepareEditorWindow(vector <AncestorObject> & Objects, vector<string> &listOfIDs, string layerID, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer);
 void prepareEditorWindowGeneral(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
 void removeListsInEditorWindow(AncestorObject * EditorWindow);
 char getActiveEditorWindowCategory(AncestorObject * EditorWindow);

@@ -22,7 +22,6 @@ The most important class, a container for all modules that make an object.
 */
 class AncestorObject: public PrimaryModule{
 public:
-    string layerID; //This ID is needed in events' trigger detection in the engine class. Warning: DO NOT CHANGE IT IN CLONE METHOD.
     vector <TextModule> TextContainer;
     vector <EditableTextModule> EditableTextContainer;
     vector <ImageModule> ImageContainer;
@@ -45,8 +44,9 @@ public:
     vector <string> scrollbarContainerIDs;
 
     AncestorObject();
-    AncestorObject(int ancestorID, string newLayerID);
-    void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs);
+    AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID);
+    AncestorObject(unsigned newID, vector<string> &listOfIDs, string newLayerID);
+    void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID);
     void clearVectorsOfIDs();
     void clearContainers();
     void createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter);

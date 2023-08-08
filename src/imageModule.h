@@ -43,12 +43,11 @@ public:
 
     float getLightLevel() const;
 
-    void setUpImageInstance();
-    ImageModule(string imageModuleID);
-    ImageModule(unsigned int imageModuleID);
-    void cloneIgnoringIDs(const ImageModule& Image);
-    void clone(const ImageModule& Image, vector<string> & listOfIDs, string newOwnerID);
-    void operator=(const ImageModule& Image);
+    void setUpNewInstance();
+    ImageModule();
+    ImageModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    ImageModule(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void loadImage(string newID, string filePath);
     void connectBitmap(vector <SingleBitmap> & BitmapContainer, string bitmapName);
@@ -78,7 +77,7 @@ public:
     void setLightColor(vec3d newLightColor, float newLightLevel);
     void setLightColor(float newLightColor, char whichLight);
     void setUsedBitmapLayer(int newLayer);
-    void changeParameters(string newName, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors);
+    void changeParameters(string newID, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors);
     void modifyFrames(vec2d newFrameSize);
     void chooseFrames(vec2i newCurrentFrame);
     void destroyBitmap();

@@ -1,22 +1,30 @@
 #include "eventModule.h"
 
-TriggerClass::TriggerClass(unsigned int newID) : Literal(newID){}
-TriggerClass::TriggerClass(string newID) : Literal(newID){}
-TriggerClass::TriggerClass() : Literal(""){}
+TriggerClass::TriggerClass(unsigned int newID) : Literal(newID, nullptr, "", ""){}
+TriggerClass::TriggerClass(string newID) : Literal(newID, nullptr, "", ""){}
+TriggerClass::TriggerClass() : Literal(){}
 
 OperaClass::OperaClass(){
     instruction = "";
 }
 
-EveModule::EveModule(unsigned int eventModuleID){
-    primaryConstructor(eventModuleID);
+void EveModule::clone(const EveModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    *this = Original;
+    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+}
+
+EveModule::EveModule(){
+}
+EveModule::EveModule(unsigned int eventModuleID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-EveModule::EveModule(string eventModuleID){
-    primaryConstructor(eventModuleID);
+EveModule::EveModule(string eventModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void EveModule::setUpNewInstance(){
+    std::cout << "Warning: In EventModule: In setUpNewInstance(): Nothing happens.\n";
 }
 void EveModule::clearModule(){
     ConditionalChain.clear();
@@ -403,8 +411,13 @@ short OperationClass::getBindedMouseButton(){
     return 0;
 }
 
-EventModule::EventModule(int moduleID){
-    primaryConstructor(moduleID);
+EventModule::EventModule(){
+}
+
+EventModule::EventModule(int moduleID)
+{
+    vector <string> temp;
+    primaryConstructor(moduleID, temp, "", "");
     /*
     Here, fill it with all variables. Go ahead.
     */

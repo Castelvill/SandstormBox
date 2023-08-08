@@ -34,8 +34,10 @@ public:
     short usedBitmapLayer;  //Text fields with numbers higher or equal to zero are drawn in ascending order. If the value is -1, text will be drawn on top of everything else.
 
     void setUpNewInstance();
-    TextModule(unsigned int textModuleID);
-    TextModule(string textModuleID);
+    TextModule();
+    TextModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    TextModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const TextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     void fitSizeToText(std::vector <SingleFont> FontContainer);
     void addNewContent(string newContent);
     void addNewContentAndResize(string newContent, std::vector <SingleFont> FontContainer);
@@ -85,9 +87,11 @@ public:
     string connectedModuleID;
     string affectedVariable;
 
-    void setUpEditableInstance();
-    EditableTextModule(unsigned int EditableTextModuleID);
-    EditableTextModule(string EditableTextModuleID);
+    void setUpNewInstance();
+    EditableTextModule();
+    EditableTextModule(unsigned EditableTextModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    EditableTextModule(string EditableTextModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const EditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     void setCanBeEdited(bool newCanBeEdited);
     void setEditingIsActive(bool newEditingIsActive);
     void setCanUseSpace(bool newCanUseSpace);
