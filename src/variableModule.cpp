@@ -24,19 +24,17 @@ VariableModule::VariableModule(){
     defaultString = "";
 }
 void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    string oldID = ID;
     *this = Original;
-    setAllIDs(getID(), &listOfIDs, newLayerID, newObjectID);
+    ID = oldID;
+    setAllIDs(Original.getID(), &listOfIDs, newLayerID, newObjectID);
 }
 void VariableModule::setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    setID(newID);
-    if(listOfIDs != nullptr){
-        setID(findRightID(*listOfIDs, getID()));
-        listOfIDs->push_back(getID());
-    }
+    setID(newID, listOfIDs);
     setLayerID(newLayerID);
     setObjectID(newObjectID);
 }
-string VariableModule::getID(){
+string VariableModule::getID() const{
     return ID;
 }
 string VariableModule::getLayerID(){
@@ -140,8 +138,15 @@ string VariableModule::getString(){
     }
     return vString;
 }
-void VariableModule::setID(string newID){
-    ID = newID;
+void VariableModule::setID(string newID, vector<string> * listOfIDs){
+    if(listOfIDs != nullptr){
+        removeFromStringVector(*listOfIDs, ID);
+        ID = findNewUniqueID(*listOfIDs, newID);
+        listOfIDs->push_back(ID);
+    }
+    else{
+        ID = newID;
+    }
 }
 void VariableModule::setLayerID(string newID){
     layerID = newID;

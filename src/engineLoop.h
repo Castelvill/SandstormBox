@@ -57,7 +57,7 @@ struct EditorWindowArrangement{
 
 void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window);
 void createObjects(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window);
-void prepareEditorWindow(vector <AncestorObject> & Objects, vector<string> &listOfIDs, string layerID, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer);
+void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector<string> &listOfIDs, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer);
 void prepareEditorWindowGeneral(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
 void removeListsInEditorWindow(AncestorObject * EditorWindow);
 char getActiveEditorWindowCategory(AncestorObject * EditorWindow);
@@ -213,8 +213,8 @@ public:
     EngineLoop(string title);
     void initAllegro();
     void exitAllegro();
-    bool createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers);
-    bool createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras);
+    bool isLayersUniquenessViolated(vector <LayerClass> Layers);
+    bool isCamerasUniquenessViolated(vector <Camera2D> Cameras);
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
     void aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras);
     void aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);

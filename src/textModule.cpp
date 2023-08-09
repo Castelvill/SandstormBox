@@ -27,13 +27,16 @@ void TextModule::setUpNewInstance(){
     visibility = 1.0;
     usedBitmapLayer = 0;
 }
-TextModule::TextModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+TextModule::TextModule(){}
+TextModule::TextModule(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    string oldID = ID;
     *this = Original;
-    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+    ID = oldID;
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
 }
 TextModule::TextModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
@@ -115,9 +118,9 @@ void TextModule::setFontID(string newValue){
 void TextModule::setVisibility(double newVisibility){
     visibility = newVisibility;
 }
-void TextModule::TextModule::changeParameters(string newID, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
+void TextModule::changeParameters(string newID, vector<string> & listOfIDs, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign){
-    setID(newID);
+    setID(newID, listOfIDs);
     setPos(vec2d(posSize.val[0], posSize.val[1]));
     setSize(vec2d(posSize.val[2], posSize.val[3]));
     setScale(newScale);
@@ -430,8 +433,10 @@ EditableTextModule::EditableTextModule(string newID, vector<string> & listOfIDs,
     setUpNewInstance();
 }
 void EditableTextModule::clone(const EditableTextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    string oldID = ID;
     *this = Original;
-    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+    ID = oldID;
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
 }
 void EditableTextModule::setCanBeEdited(bool newCanBeEdited){
     canBeEdited = newCanBeEdited;

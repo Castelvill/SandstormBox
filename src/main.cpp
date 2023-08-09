@@ -269,11 +269,10 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().VariablesContainer.push_back(VariableModule("bbb", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.push_back(VariableModule("test", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.back().setInt(65);
-    Objects.back().CollisionContainer.push_back(CollisionModule(0, vec2d(50, 50)));
-    Objects.back().CollisionContainer.push_back(CollisionModule(1, vec2d(50, 50)));
+    Objects.back().CollisionContainer.push_back(CollisionModule(0, vec2d(50, 50), Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().CollisionContainer.push_back(CollisionModule(1, vec2d(50, 50), Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
     Objects.back().CollisionContainer.back().setPos(50, 0);
-    Objects.back().TextContainer.push_back(0);
-    Objects.back().TextContainer.back().setID("label1");
+    Objects.back().TextContainer.push_back(TextModule("label1", Objects.back().textContainerIDs, layerID, Objects.back().getID()));
     Objects.back().TextContainer.back().setFontID("Minecraft24");
     Objects.back().TextContainer.back().addNewContentAndResize("0", FontContainer);
     Objects.back().TextContainer.back().setIsAttachedToCamera(false);
@@ -292,8 +291,8 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().ConditionalChain.back().Location.spareID = "1";
     Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("par");*/
 
-    Objects.push_back(AncestorObject(Objects.size(), layerID));
-    Objects.back().clone(Objects[Objects.size()-2], listOfUniqueIDs);
+    Objects.push_back(AncestorObject(Objects.size(), listOfUniqueIDs, layerID));
+    Objects.back().clone(Objects[Objects.size()-2], listOfUniqueIDs, layerID);
     Objects.back().translatePos(vec2d(300.0, 0.0));
 
     /*Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
@@ -415,12 +414,10 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().CollisionContainer[0].changeParameters(true, false, vec2d(0.0, 0.0), vec2d(100.0, 100.0), true);
 */
 
-    Objects.push_back(AncestorObject(Objects.size(), layerID));
-    Objects.back().setID("par");
+    Objects.push_back(AncestorObject("par", listOfUniqueIDs, layerID));
     Objects.back().setPos(500.0, 500.0);
     Objects.back().setIsAttachedToCamera(false);
-    Objects.back().ParticlesContainer.push_back(ParticleEffectModule(Objects.back().ParticlesContainer.size()));
-    Objects.back().ParticlesContainer[0].setID("par");
+    Objects.back().ParticlesContainer.push_back(ParticleEffectModule("par", Objects.back().particlesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().ParticlesContainer[0].changeSpawningParameters(false, true, true, 5000, 5000, 5000, 0.05);
     Objects.back().ParticlesContainer[0].changeMotionParameters(3.5, 5.7, -10.0, 10.0, vec2d(0.0, 0.0), vec2d(0.0, 0.0), 0.00, 0.00,
         0.4, 0.7, 0.0, 360.0, -0.0, 0.0, 0.0, 0.0);
@@ -435,7 +432,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().ParticlesContainer[0].setMinSpeed(0.1);
     Objects.back().ParticlesContainer[0].setMaxSpeed(10.0);
     Objects.back().ParticlesContainer[0].setIsAttachedToCamera(false);
-    Objects.back().MovementContainer.push_back(MovementModule(Objects.back().MovementContainer.size()));
+    Objects.back().MovementContainer.push_back(MovementModule("", Objects.back().movementContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.push_back(VariableModule("par_test", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.back().setInt(69);
 
@@ -446,20 +443,19 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     //Objects.back().MovementContainer[0].changeJumpParameters(newJumpSpeed, newAllowedJumps, newJumpCooldownDuration, newGravitation, newMinMomentumY, newMaxMomentumY, newResetMomentumWhenJumping)
     Objects.back().MovementContainer[0].changeJumpParameters(18.0, 1, 0.5, 3.0, 20.0, 20.0, true);
     Objects.back().MovementContainer[0].bindKeys(ALLEGRO_KEY_W, ALLEGRO_KEY_D, ALLEGRO_KEY_S, ALLEGRO_KEY_A, ALLEGRO_KEY_W, ALLEGRO_KEY_LSHIFT);
-    Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
-    Objects.back().ImageContainer[0].setID("steve");
+    Objects.back().ImageContainer.push_back(ImageModule("steve", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
     Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "steve");
-    Objects.back().ImageContainer[0].changeParameters("lel", vec6d(0.0, 0.0, 100.0, 100.0, 0.0, 0.0), 0.0, vec2d(1.0, 1.0), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
+    Objects.back().ImageContainer[0].changeParameters("lel", Objects.back().imageContainerIDs, vec6d(0.0, 0.0, 100.0, 100.0, 0.0, 0.0), 0.0, vec2d(1.0, 1.0), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
     Objects.back().ImageContainer[0].setUsedBitmapLayer(1);
     Objects.back().ImageContainer[0].setIsAttachedToCamera(false);
     //Objects.back().ImageContainer[0].setIsActive();
     //Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
     //Objects.back().ImageContainer[1].connectBitmap(BitmapContainer, "cat260");
     //Objects.back().ImageContainer[1].changeParameters("cat", vec6d(0.0, 0.0, 260.0, 260.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(0.0, 0.0, 0.0, 0.0));
-    Objects.back().CollisionContainer.push_back(CollisionModule(0, Objects.back().getSize()));
+    Objects.back().CollisionContainer.push_back(CollisionModule(0, Objects.back().getSize(), Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
     Objects.back().CollisionContainer.back().changeParameters(true, false, vec2d(0.0, 0.0), vec2d(100.0, 100.0));
     Objects.back().CollisionContainer.back().addToIgnoreList("groups_of_hitboxes", "pupa");
-    Objects.back().CollisionContainer.push_back(CollisionModule(1));
+    Objects.back().CollisionContainer.push_back(CollisionModule(0, Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
     Objects.back().CollisionContainer.back().setPos(Objects.back().getSize().x, 0);
     Objects.back().CollisionContainer.back().setSize(Objects.back().getSize());
 
@@ -511,14 +507,14 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
         for(unsigned int j = 0; j < bam; j++){
             if(i>0 && j>0 && i<vam-1 && j<bam-1)
                 continue;
-            Objects.push_back(AncestorObject(Objects.size(), layerID));
+            Objects.push_back(AncestorObject("22a", listOfUniqueIDs, layerID));
             Objects.back().setPos(40+i*200, 50+j*200);
-            Objects.back().CollisionContainer.push_back(CollisionModule(Objects.back().CollisionContainer.size(), Objects.back().getSize()));
+            Objects.back().CollisionContainer.push_back(CollisionModule("", Objects.back().getSize(), Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
             Objects.back().CollisionContainer.back().addGroup("pupa");
             Objects.back().CollisionContainer[0].changeParameters(true, false, vec2d(0.0, 0.0), vec2d(200.0, 200.0));
-            Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
+            Objects.back().ImageContainer.push_back(ImageModule("", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
             Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "cobblestone");
-            Objects.back().ImageContainer[0].changeParameters("rocks", vec6d(0.0, 0.0, 400.0, 400.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
+            Objects.back().ImageContainer[0].changeParameters("rocks", Objects.back().imageContainerIDs, vec6d(0.0, 0.0, 400.0, 400.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
         }
     }
 
@@ -534,15 +530,14 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
                 scaleFDS.x = scaleFDS.y;
                 scaleFDS.y = temp;
             }
-            Objects.push_back(AncestorObject(Objects.size(), layerID));
+            Objects.push_back(AncestorObject("", listOfUniqueIDs, layerID));
             //Objects.back().setID("A"+intToStr8(i*1000+j));
             Objects.back().setPos(40+i*100+rand()%50, 50+j*100+rand()%50);
-            Objects.back().CollisionContainer.push_back(CollisionModule(Objects.back().CollisionContainer.size(), Objects.back().getSize()));
-            Objects.back().CollisionContainer[0].setID("1");
-            Objects.back().CollisionContainer[0].changeParameters(true, false, vec2d(0.0, 0.0), vec2d(100.0, 100.0)*scaleFDS);
-            Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
-            Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "puss");
-            Objects.back().ImageContainer[0].changeParameters("puss", vec6d(0.0, 0.0, 100.0, 100.0, 0.0, 0.0), 0.0, vec2d(1.0, 1.0)*scaleFDS, false, false, vec4d(1.0, 1.0, 1.0, 1.0));
+            Objects.back().CollisionContainer.push_back(CollisionModule("1", Objects.back().getSize(), Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
+            Objects.back().CollisionContainer.back().changeParameters(true, false, vec2d(0.0, 0.0), vec2d(100.0, 100.0)*scaleFDS);
+            Objects.back().ImageContainer.push_back(ImageModule("", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
+            Objects.back().ImageContainer.back().connectBitmap(BitmapContainer, "puss");
+            Objects.back().ImageContainer.back().changeParameters("puss", Objects.back().imageContainerIDs, vec6d(0.0, 0.0, 100.0, 100.0, 0.0, 0.0), 0.0, vec2d(1.0, 1.0)*scaleFDS, false, false, vec4d(1.0, 1.0, 1.0, 1.0));
         }
     }
 /*
@@ -565,22 +560,19 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
       //                                    double newBaseFriction, double newMaxMomentumX, double newMoveCooldown, bool newCanMoveDiagonally)
 */
     for(unsigned int i = 0; i < 0; i++){
-        Objects.push_back(AncestorObject(Objects.size(), layerID));
-        Objects.back().setID("Obiekt"+intToStr8(i));
-        Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
+        Objects.push_back(AncestorObject("Obiekt"+intToStr8(i), listOfUniqueIDs, layerID));
+        Objects.back().ImageContainer.push_back(ImageModule("", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
         Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "cat260");
-        Objects.back().ImageContainer[0].changeParameters("Feet", vec6d(0.0, 0.0, 260.0, 260.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
+        Objects.back().ImageContainer[0].changeParameters("Feet", Objects.back().imageContainerIDs, vec6d(0.0, 0.0, 260.0, 260.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
         Objects.back().ImageContainer[0].setIsScaledFromCenter(false);
         Objects.back().setPos(800.0, 300.0);
         //Objects.back().pos.set(3000.0, 3000.0);
-        Objects.back().MovementContainer.push_back(MovementModule(Objects.back().MovementContainer.size()));
-        Objects.back().MovementContainer[0].setID("ruch");
+        Objects.back().MovementContainer.push_back(MovementModule("ruch", Objects.back().movementContainerIDs, layerID, Objects.back().getID()));
         //Objects.back().MovementContainer[0].changeMoveParameters(1, 0.5, 2.0, 3.5, 1.1, 9.0, 0.0);
         Objects.back().MovementContainer[0].changeMoveParameters(0, 1, 0.5, 5.0, 5.0, 5.0, 5.0, 0.0, true);
         Objects.back().MovementContainer[0].changeJumpParameters(30.0, 2, 0.5, 3.0, 30.0, 20.0, true);
         Objects.back().MovementContainer[0].changeRandomActionsSettings(true, 0.5, 2.0, 40.0, 70.0, false, 0.1);
-        Objects.back().CollisionContainer.push_back(CollisionModule(Objects.back().CollisionContainer.size(), Objects.back().getSize()));
-        Objects.back().CollisionContainer[0].setID("kolizja");
+        Objects.back().CollisionContainer.push_back(CollisionModule("kolizja", Objects.back().getSize(), Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
         Objects.back().CollisionContainer[0].changeParameters(true, false, vec2d(0.0, 0.0), vec2d(130.0, 130.0));
         //Objects.back().CollisionContainer[0].addToIgnoreCollisionList("Obiekt");
     }
@@ -669,30 +661,29 @@ void createObjects(vector <AncestorObject> & Objects, string layerID, vector <st
     }*/
 }
 
-void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
-    Objects.push_back(AncestorObject(Objects.size(), layerID));
-    Objects.back().setCanBeSelected(false);
-    Objects.back().TextContainer.push_back(TextModule(0));
+void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <string> & objectsIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
+    Objects.push_back(AncestorObject("", objectsIDs, layerID));
+    Objects.back().setCanBeSelected(false );
+    Objects.back().TextContainer.push_back(TextModule("", Objects.back().textContainerIDs, layerID, Objects.back().getID()));
     Objects.back().TextContainer[0].addNewContent("FPS: ");
-    Objects.back().TextContainer[0].changeParameters("king", vec4d(10.0, 10.0, 200.0, 200.0), vec3d(255.0, 0.0, 0.0), "Minecraft24", vec2d(1.0, 1.0), 0.0, 2, 0, 0);
+    Objects.back().TextContainer[0].changeParameters("king", Objects.back().textContainerIDs, vec4d(10.0, 10.0, 200.0, 200.0), vec3d(255.0, 0.0, 0.0), "Minecraft24", vec2d(1.0, 1.0), 0.0, 2, 0, 0);
     Objects.back().TextContainer[0].setIsAttachedToCamera(true);
     Objects.back().TextContainer[0].setUsedBitmapLayer(-1);
 
 
-    Objects.push_back(AncestorObject(Objects.size(), layerID));
-    Objects.back().setID("background");
+    Objects.push_back(AncestorObject("background", objectsIDs, layerID));
     Objects.back().setPos(vec2d(0, 0));
     Objects.back().setCanBeSelected(false);
-    Objects.back().ImageContainer.push_back(ImageModule(Objects.back().ImageContainer.size()));
+    Objects.back().ImageContainer.push_back(ImageModule("", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
     Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "background");
-    Objects.back().ImageContainer[0].changeParameters("background", vec6d(0.0, 0.0, 1280.0, 853.0, 0.0, 0.0), 0.0, vec2d(1.0, 1.0), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
+    Objects.back().ImageContainer[0].changeParameters("background", Objects.back().imageContainerIDs, vec6d(0.0, 0.0, 1280.0, 853.0, 0.0, 0.0), 0.0, vec2d(1.0, 1.0), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
     Objects.back().ImageContainer[0].setIsScaledFromCenter(false);
     Objects.back().ImageContainer[0].resize(vec2d(SCREEN_W, SCREEN_H));
     Objects.back().deactivate();
 }
 
 void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
-    Cameras.push_back(Camera2D("Cam0", true, vec2d(0.0, 0.0), vec2d(SCREEN_W/2.0, SCREEN_H), vec2d(0.0, 0.0)));
+    Cameras.push_back(Camera2D("Cam0", camerasIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W/2.0, SCREEN_H), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
@@ -705,7 +696,7 @@ void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
     Cameras.back().addVisibleLayer("L2");
     Cameras.back().addAccessibleLayer("L1");
 
-    Cameras.push_back(Camera2D("Cam1", true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
+    Cameras.push_back(Camera2D("Cam1", camerasIDs, true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
@@ -718,7 +709,7 @@ void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
     Cameras.back().addAccessibleLayer("L2");
     Cameras.back().pinToCamera("Cam0");
     
-    Cameras.push_back(Camera2D("Cam2", true, vec2d(300.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
+    Cameras.push_back(Camera2D("Cam2", camerasIDs, true, vec2d(300.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
@@ -739,62 +730,67 @@ int main(){
     Compiler.loadTestData();
     Compiler.writeAllText();
 
-    EngineLoop EngineLoop1("EGM");
+    EngineLoop Environment("EGM");
     vector <SingleFont> FontContainer;
     vector <SingleBitmap> BitmapContainer;
     vector <LayerClass> Layers;
     vector <Camera2D> Cameras;
 
-    EngineLoop1.initAllegro();
+    unsigned numberOfObjects = 0;
+
+    Environment.initAllegro();
     loadFontsToContainer(FontContainer);
     std::cout << FontContainer.size() << "\n";
 
     loadBitmapsToContainer(BitmapContainer);
 
-    createCameras(Cameras, EngineLoop1.camerasIDs);
-    EngineLoop1.createListOfUniqueIDsOfCameras(Cameras);
-    EngineLoop1.updateAllForestOfCameras(Cameras);
 
-    Cameras.push_back(Camera2D(""));
-    Cameras.back().clone(Cameras[1], EngineLoop1.camerasIDs);
+    createCameras(Cameras, Environment.camerasIDs);
+    Environment.updateAllForestOfCameras(Cameras);
+
+    Cameras.push_back(Camera2D("", Environment.camerasIDs));
+    Cameras.back().clone(Cameras[1], Environment.camerasIDs);
     Cameras.back().setIsPinned(false);
     Cameras.back().setPos(vec2d(SCREEN_W/2.0, 300.0));
 
+    if(Environment.isCamerasUniquenessViolated(Cameras)){
+        goto uniquenessViolated;
+    }
 
-    Layers.push_back(LayerClass("Editor", true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
-    prepareEditorWindow(Layers[0].Objects, Layers[0].getID(), FontContainer, BitmapContainer);
+
+    Layers.push_back(LayerClass("Editor", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
+    prepareEditorWindow(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer);
     Layers[0].Objects[0].deactivate();
-    createObjects0(Layers[0].Objects, Layers[0].getID(), FontContainer, BitmapContainer, EngineLoop1.window);
+    createObjects0(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer, Environment.window);
 
+    Layers.push_back(LayerClass("L1", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
+    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Environment.window);
 
-    Layers.push_back(LayerClass("L1", true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
-    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, EngineLoop1.window);
-
-    EngineLoop1.createListOfUniqueIDsOfLayers(Layers);
-
-    Layers.push_back(LayerClass("", true, vec2d(0.0, 0.0), vec2d(0, 0)));
-    Layers.back().clone(Layers[Layers.size()-2], EngineLoop1.layersIDs);
+    Layers.push_back(LayerClass("", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(0, 0)));
+    Layers.back().clone(Layers[Layers.size()-2], Environment.layersIDs);
     
-    unsigned numberOfObjects = 0;
+    if(Environment.isLayersUniquenessViolated(Layers)){
+        goto uniquenessViolated;
+    }
 
     for(LayerClass & layer : Layers){
         for(AncestorObject & obj : layer.Objects){
             obj.createVectorsOfIds();
         }
-        if(layer.createListOfUniqueIDs())
+        if(layer.isObjectsUniquenessViolated())
             goto uniquenessViolated;
         numberOfObjects += layer.Objects.size();
     }
     std::cout << "Number of objects: " << numberOfObjects << "\n";
 
-    EngineLoop1.updateBaseOfTriggerableObjects(Layers, Cameras);
+    Environment.updateBaseOfTriggerableObjects(Layers, Cameras);
 
-    EngineLoop1.startTimer();
+    Environment.startTimer();
     
     //Main loop
     do{
-        EngineLoop1.windowLoop(Layers, Cameras, FontContainer, fps, BitmapContainer);
-    }while(!EngineLoop1.closeEditor);
+        Environment.windowLoop(Layers, Cameras, FontContainer, fps, BitmapContainer);
+    }while(!Environment.closeEditor);
 
     uniquenessViolated:
 
@@ -807,7 +803,7 @@ int main(){
     for(auto name : fileNames)
         std::cout << name << std::endl;
 
-    EngineLoop1.exitAllegro();
+    Environment.exitAllegro();
 
     freeFontsFromContainer(FontContainer);
     freeBitmapsFromContainer(BitmapContainer);

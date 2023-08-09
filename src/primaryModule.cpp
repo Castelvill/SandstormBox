@@ -2,7 +2,7 @@
 
 
 void PrimaryModule::primaryConstructor(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+    setAllIDs(newID, listOfIDs, newLayerID, newObjectID);
     
     pos.set(0.0, 0.0);
     scrollShift.set(0.0, 0.0);
@@ -19,13 +19,15 @@ void PrimaryModule::primaryConstructor(unsigned newID, vector<string> & listOfID
     primaryConstructor(intToStr4(newID), listOfIDs, newLayerID, newObjectID);
 }
 void PrimaryModule::clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    string oldID = ID;
     *this = Original;
-    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+    ID = oldID;
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
 }
 
 void PrimaryModule::setID(string newID, vector<string> & listOfIDs){
     removeFromStringVector(listOfIDs, ID);
-    ID = findRightID(listOfIDs, newID);
+    ID = findNewUniqueID(listOfIDs, newID);
     listOfIDs.push_back(ID);
 }
 
@@ -53,7 +55,7 @@ void PrimaryModule::clearGroups(){
     groups.clear();
 }
 bool PrimaryModule::isInAGroup(string findGroup){
-    return inStringVector(groups, findGroup);
+    return isStringInVector(groups, findGroup);
 }
 vector <string> PrimaryModule::getGroups(){
     return groups;

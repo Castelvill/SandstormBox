@@ -18,7 +18,7 @@ public:
     VariableModule();
     void clone(const VariableModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
-    string getID();
+    string getID() const;
     string getLayerID();
     string getObjectID();
     string &getIDAddr();
@@ -33,7 +33,7 @@ public:
     int getInt();
     double getDouble();
     string getString();
-    void setID(string);
+    void setID(string, vector<string> * listOfIDs);
     void setLayerID(string);
     void setObjectID(string);
     bool setType(char);

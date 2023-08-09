@@ -41,8 +41,10 @@ CollisionModule::CollisionModule(unsigned newID, vector<string> & listOfIDs, str
     CollisionModule(intToStr4(newID), vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
 }
 void CollisionModule::clone(const CollisionModule &Original, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+    string oldID = ID;
     *this = Original;
-    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+    ID = oldID;
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
 }
 
 void CollisionModule::detectOverlaping(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum){
@@ -178,16 +180,16 @@ void CollisionModule::removeFromIgnoreList(string ignoring_type, string entity){
 }
 bool CollisionModule::ignores(string ignoring_type, string entity){
     if(ignoring_type == "objects"){
-        return inStringVector(ignoredObjectsList, entity);
+        return isStringInVector(ignoredObjectsList, entity);
     }
     if(ignoring_type == "groups_of_objects"){
-        return inStringVector(ignoredGroupsOfObjectsList, entity);
+        return isStringInVector(ignoredGroupsOfObjectsList, entity);
     }
     if(ignoring_type == "hitboxes"){
-        return inStringVector(ignoredHitboxesList, entity);
+        return isStringInVector(ignoredHitboxesList, entity);
     }
     if(ignoring_type == "groups_of_hitboxes"){
-        return inStringVector(ignoredGroupsOfHitboxesList, entity);
+        return isStringInVector(ignoredGroupsOfHitboxesList, entity);
     }
     return false;
 }

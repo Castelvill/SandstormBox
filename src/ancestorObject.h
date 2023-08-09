@@ -84,7 +84,7 @@ string ErrorNoInstance(string module, string ID);
 string SuccessInstanceDestroyed(string module, string ID);
 template<class Module>
 string tryRemovingModuleInstance(string module, vector <Module> & Container, vector <string> & IDs, string destroyID){
-    if(!inStringVector(IDs, destroyID)){
+    if(!isStringInVector(IDs, destroyID)){
         return ErrorNoInstance(module, destroyID);
     }
     if(!removeModuleInstanceByID(Container, destroyID)){

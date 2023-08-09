@@ -16,11 +16,11 @@ public:
     LayerClass();
     LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2d bufferSize);
     void clear();
-    bool createListOfUniqueIDs();
+    bool isObjectsUniquenessViolated();
 
     void setID(string newID, vector <string> & layersIDs);
     void setIsActive(bool newIsActive);
-    string getID();
+    string getID() const;
     string* getIDAddr();
     bool getIsActive();
     bool* getIsActiveAddr();

@@ -15,26 +15,20 @@ void LayerClass::clear(){
     objectsIDs.clear();
 }
 //Returns true if uniqueness is violeted. 
-bool LayerClass::createListOfUniqueIDs(){
-    objectsIDs.clear();
+bool LayerClass::isObjectsUniquenessViolated(){
     unsigned i, j;
     bool violated = false;
     for(i = 0; i < Objects.size(); i++){
         for(j = 0; j < Objects.size(); j++){
-            if(i == j){
+            if(i == j || Objects[i].getID() != Objects[j].getID()){
                 continue;
             }
-            if(Objects[i].getID() == Objects[j].getID()){
-                if(!violated){
-                    std::cout << "\n\n";
-                }
-                std::cout << "Uniqueness has been violated in: Layer[" << ID << "]=" << ID
-                    << " by Object[" << j << "]=" << Objects[j].getID() << "\n";
-                violated = true;
+            if(!violated){
+                std::cout << "\n\n";
             }
-        }
-        if(!violated){
-            objectsIDs.push_back(Objects[i].getID());
+            std::cout << "Uniqueness has been violated in: Layer[" << ID << "]=" << ID
+                << " by Object[" << j << "]=" << Objects[j].getID() << "\n";
+            violated = true;
         }
     }
 
@@ -46,13 +40,13 @@ bool LayerClass::createListOfUniqueIDs(){
 
 void LayerClass::setID(string newID, vector <string> & layersIDs){
     removeFromStringVector(layersIDs, ID);
-    ID = findRightID(layersIDs, newID);
+    ID = findNewUniqueID(layersIDs, newID);
     layersIDs.push_back(ID);
 }
 void LayerClass::setIsActive(bool newIsActive){
     isActive = newIsActive;
 }
-string LayerClass::getID(){
+string LayerClass::getID() const{
     return ID;
 }
 string* LayerClass::getIDAddr(){
@@ -64,8 +58,9 @@ bool LayerClass::getIsActive(){
 bool* LayerClass::getIsActiveAddr(){
     return &isActive;
 }
-void LayerClass::clone(const LayerClass& Orginal, vector <string> & layersIDs){
-    *this = Orginal;
-    ID = findRightID(layersIDs, getID());
-    layersIDs.push_back(ID);
+void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs){
+    string oldID = ID;
+    *this = Original;
+    ID = oldID;
+    setID(Original.getID(), layersIDs);
 }

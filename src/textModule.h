@@ -53,7 +53,7 @@ public:
     void addRotation(double newAngle);
     void setVisibility(double newVisibility);
     void setFontID(string);
-    void changeParameters(string newID, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
+    void changeParameters(string newID, vector<string> & listOfIDs, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign);
     void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, bool editingIsActive);
     void drawTextByLetters(ALLEGRO_FONT * font);

@@ -169,25 +169,19 @@ void EngineLoop::exitAllegro(){
     foregroundOfObjects.clear();
     BaseOfTriggerableObjects.clear();
 }
-bool EngineLoop::createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers){
-    layersIDs.clear();
+bool EngineLoop::isLayersUniquenessViolated(vector <LayerClass> Layers){
     unsigned i, j;
     bool violated = false;
     for(i = 0; i < Layers.size(); i++){
         for(j = 0; j < Layers.size(); j++){
-            if(i == j){
+            if(i == j || Layers[i].getID() != Layers[j].getID()){
                 continue;
             }
-            if(Layers[i].getID() == Layers[j].getID()){
-                if(!violated){
-                    std::cout << "\n\n";
-                }
-                std::cout << "Uniqueness has been violated by \'" << Layers[j].getID() << "\' layer.\n";
-                violated = true;
+            if(!violated){
+                std::cout << "\n\n";
             }
-        }
-        if(!violated){
-            layersIDs.push_back(Layers[i].getID());
+            std::cout << "Uniqueness has been violated by \'" << Layers[j].getID() << "\' layer.\n";
+            violated = true;
         }
     }
 
@@ -196,25 +190,19 @@ bool EngineLoop::createListOfUniqueIDsOfLayers(vector <LayerClass> & Layers){
     }
     return violated;
 }
-bool EngineLoop::createListOfUniqueIDsOfCameras(vector <Camera2D> & Cameras){
-    camerasIDs.clear();
+bool EngineLoop::isCamerasUniquenessViolated(vector <Camera2D> Cameras){
     unsigned i, j;
     bool violated = false;
     for(i = 0; i < Cameras.size(); i++){
         for(j = 0; j < Cameras.size(); j++){
-            if(i == j){
+            if(i == j || Cameras[i].getID() != Cameras[j].getID()){
                 continue;
             }
-            if(Cameras[i].getID() == Cameras[j].getID()){
-                if(!violated){
-                    std::cout << "\n\n";
-                }
-                std::cout << "Uniqueness has been violated by \'" << Cameras[j].getID() << "\' camera.\n";
-                violated = true;
+            if(!violated){
+                std::cout << "\n\n";
             }
-        }
-        if(!violated){
-            camerasIDs.push_back(Cameras[i].getID());
+            std::cout << "Uniqueness has been violated by \'" << Cameras[j].getID() << "\' camera.\n";
+            violated = true;
         }
     }
 
@@ -2162,7 +2150,7 @@ VariableModule EngineLoop::findNextValueInMovementModule(TriggerClass & Conditio
         break;
     }
     NewValue.setBool(false);
-    NewValue.setID("null");
+    NewValue.setID("null", nullptr);
     return NewValue;
 }
 VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
@@ -2175,7 +2163,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
         return NewValue;
     }
 
-    NewValue.setID(Condition.Location.moduleType + "_" + Condition.Location.attribute);
+    NewValue.setID(Condition.Location.moduleType + "_" + Condition.Location.attribute, nullptr);
 
     if(Condition.Location.moduleType == "variable"){
         for(VariableModule Variable : CurrentObject->VariablesContainer){
@@ -2470,7 +2458,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
         }
     }
     
-    NewValue.setID("null");
+    NewValue.setID("null", nullptr);
     NewValue.setBool(false);
     return NewValue;
 }
@@ -2535,7 +2523,7 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
         }
     }
     if(Condition.source == "layer"){
-        NewValue.setID(Condition.source + "_" + Condition.Location.attribute);
+        NewValue.setID(Condition.source + "_" + Condition.Location.attribute, nullptr);
         for(LayerClass Layer : Layers){
             if(Layer.getID() == Condition.Location.layerID){
                 if(Condition.Location.attribute == "objects_count"){
@@ -2567,7 +2555,7 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
         }
     }
     if(Condition.source == "camera"){
-        NewValue.setID(Condition.source + "_" + Condition.Location.attribute);
+        NewValue.setID(Condition.source + "_" + Condition.Location.attribute, nullptr);
         for(Camera2D Camera : Cameras){
             if(Camera.getID() == Condition.Location.cameraID){
                 if(Condition.Location.attribute == "pos_x"){
@@ -2627,7 +2615,7 @@ char EngineLoop::evaluateConditionalChain(vector<TriggerClass> & ConditionalChai
                 leftOperand.negate();
                 std::cout << "!(" << resultStack.back().getID() << ":" << resultStack.back().getAnyValue() << ") -> " << leftOperand.getAnyValue() << "\n";
                 resultStack.pop_back();
-                leftOperand.setID("!("+leftOperand.getID()+")");
+                leftOperand.setID("!("+leftOperand.getID()+")", nullptr);
                 resultStack.push_back(leftOperand);
             }
             else if(op == "igT"){

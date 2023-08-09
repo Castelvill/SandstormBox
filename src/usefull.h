@@ -26,9 +26,9 @@ bool isCharInGroup(char ID, int count, ...);
 
 void addUniqueToStringVector(vector <string> & stringVec, string newString);
 void removeFromStringVector(vector <string> & stringVec, std::string selectedString);
-bool inStringVector(vector <string> & stringVec, std::string findString);
+bool isStringInVector(vector <string> & stringVec, std::string findString);
 
-string findRightID(vector <string> IDs, string newID);
+string findNewUniqueID(vector <string> IDs, string newID);
 
 
 template<typename Iterator, typename Pred, typename OperationClass>

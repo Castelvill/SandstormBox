@@ -90,20 +90,22 @@ void removeFromStringVector(vector <string> & stringVec, std::string selectedStr
         stringVec.erase(foundString);
     }
 }
-bool inStringVector(vector <string> & stringVec, std::string findString){
+bool isStringInVector(vector <string> & stringVec, std::string findString){
     auto foundGroup = std::find(begin(stringVec), end(stringVec), findString);
     return foundGroup != std::end(stringVec);
 }
 
-string findRightID(vector <string> IDs, string newID){
+string findNewUniqueID(vector <string> uniqueIDs, string newID){
     if(newID == ""){
-        newID = "1";
+        newID = "0";
     }
-    while(inStringVector(IDs, newID)){
-        if(isdigit(newID.back()) && int(isdigit(newID.back())) < 9){
-            newID.back() = char(int(newID.back())+1);
-        }else{
-            newID += '1';
+    while(isStringInVector(uniqueIDs, newID)){
+        if(isdigit(newID.back())){
+            size_t last_index = newID.find_last_not_of("0123456789");
+            newID = newID.substr(0, last_index + 1) + intToStr8(stoi(newID.substr(last_index + 1)) + 1);
+        }
+        else{
+            newID += "0";
         }
     }
     return newID;

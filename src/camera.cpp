@@ -32,10 +32,11 @@ Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive,
 Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
     Camera2D(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(0.0, 0.0), vec2d(0.0, 0.0));
 }
-void Camera2D::clone(const Camera2D& Orginal, vector <string> & camerasIDs){
-    *this = Orginal;
-    ID = findRightID(camerasIDs, getID());
-    camerasIDs.push_back(getID());
+void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs){
+    string oldID = ID;
+    *this = Original;
+    ID = oldID;
+    setID(Original.getID(), camerasIDs);
     if(bitmapBuffer){
         bitmapBuffer = nullptr;
         bitmapBuffer = al_create_bitmap(size.x, size.y);
@@ -48,10 +49,10 @@ void Camera2D::clear(){
 }
 void Camera2D::setID(string newID, vector <string> & camerasIDs){
     removeFromStringVector(camerasIDs, ID);
-    ID = findRightID(camerasIDs, newID);
+    ID = findNewUniqueID(camerasIDs, newID);
     camerasIDs.push_back(ID);
 }
-string Camera2D::getID(){
+string Camera2D::getID() const{
     return ID;
 }
 void Camera2D::setIsActive(bool newValue){
@@ -202,10 +203,10 @@ void Camera2D::clearAccessibleLayers(){
     accessibleLayersIDs.clear();
 }
 bool Camera2D::isLayerVisible(string findLayer){
-    return inStringVector(visibleLayersIDs, findLayer);
+    return isStringInVector(visibleLayersIDs, findLayer);
 }
 bool Camera2D::isLayerAccessible(string findLayer){
-    return inStringVector(accessibleLayersIDs, findLayer);
+    return isStringInVector(accessibleLayersIDs, findLayer);
 }
 void Camera2D::pinToCamera(string cameraID){
     pinnedCameraID = cameraID;

@@ -127,8 +127,10 @@ MovementModule::MovementModule(unsigned int newID, vector<string> & listOfIDs, s
     MovementModule(intToStr4(newID), listOfIDs, newLayerID, newObjectID);
 }
 void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+    string oldID = ID;
     *this = Original;
-    setAllIDs(getID(), listOfIDs, newLayerID, newObjectID);
+    ID = oldID;
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
 }
 
 void MovementModule::translateNumericalActionToState(short action){
