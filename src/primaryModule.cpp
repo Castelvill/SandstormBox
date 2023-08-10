@@ -178,42 +178,42 @@ bool PrimaryModule::getCanBeSelected(){
 bool PrimaryModule::getIsScrollable(){
     return isScrollable;
 }
-void PrimaryModule::bindPrimaryToVariable(string attribute, BasePointersStruct & UniversalVariable){
+void PrimaryModule::bindPrimaryToVariable(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "id"){
-        UniversalVariable.getPointer(&ID);
+        BasePointer.setPointer(&ID);
     }
     else if(attribute == "pos_x"){
-        UniversalVariable.getPointer(&pos.x);
+        BasePointer.setPointer(&pos.x);
     }
     else if(attribute == "pos_y"){
-        UniversalVariable.getPointer(&pos.y);
+        BasePointer.setPointer(&pos.y);
     }
     else if(attribute == "size_x"){
-        UniversalVariable.getPointer(&size.x);
+        BasePointer.setPointer(&size.x);
     }
     else if(attribute == "size_y"){
-        UniversalVariable.getPointer(&size.y);
+        BasePointer.setPointer(&size.y);
     }
     else if(attribute == "scale_x"){
-        UniversalVariable.getPointer(&scale.x);
+        BasePointer.setPointer(&scale.x);
     }
     else if(attribute == "scale_y"){
-        UniversalVariable.getPointer(&scale.y);
+        BasePointer.setPointer(&scale.y);
     }
     else if(attribute == "is_active"){
-        UniversalVariable.getPointer(&isActive);
+        BasePointer.setPointer(&isActive);
     }
     else if(attribute == "is_scaled_from_center"){
-        UniversalVariable.getPointer(&isScaledFromCenter);
+        BasePointer.setPointer(&isScaledFromCenter);
     }
     else if(attribute == "is_attached_to_camera"){
-        UniversalVariable.getPointer(&isAttachedToCamera);
+        BasePointer.setPointer(&isAttachedToCamera);
     }
     else if(attribute == "can_be_selected"){
-        UniversalVariable.getPointer(&canBeSelected);
+        BasePointer.setPointer(&canBeSelected);
     }
     else if(attribute == "is_scrollable"){
-        UniversalVariable.getPointer(&isScrollable);
+        BasePointer.setPointer(&isScrollable);
     }
 }
 BasePointersStruct::BasePointersStruct(){
@@ -221,47 +221,129 @@ BasePointersStruct::BasePointersStruct(){
 }
 void BasePointersStruct::clear(){
     type = "";
-    vBool = nullptr;
-    vShort = nullptr;
-    vUShort = nullptr;
-    vInt = nullptr;
-    vUInt = nullptr;
-    vDouble = nullptr;
-    vString = nullptr;
+    pBool = nullptr;
+    pShort = nullptr;
+    pUShort = nullptr;
+    pInt = nullptr;
+    pUInt = nullptr;
+    pDouble = nullptr;
+    pString = nullptr;
 }
-void BasePointersStruct::getPointer(bool * pointer){
-    vBool = pointer;
+template<typename T>
+void BasePointersStruct::tryToSet(T * LeftOperand, const T * RightOperand){
+    if(LeftOperand == nullptr){
+        std::cout << "Error: In BasePointersStruct::tryToSet(): Left operand of \'" << type << "\' type does not exist.\n";
+        return;
+    }
+    if(RightOperand == nullptr){
+        std::cout << "Error: In BasePointersStruct::tryToSet(): Right operand of \'" << type << "\' type does not exist.\n";
+        return;
+    }
+    *LeftOperand = *RightOperand;
+}
+void BasePointersStruct::clone(const BasePointersStruct &RightOperand){
+    if(type == "bool"){
+        tryToSet(pBool, RightOperand.pBool);
+    }
+    else if(type == "char"){
+        tryToSet(pChar, RightOperand.pChar);
+    }
+    else if(type == "short"){
+        tryToSet(pShort, RightOperand.pShort);
+    }
+    else if(type == "unsigned_short"){
+        tryToSet(pUShort, RightOperand.pUShort);
+    }
+    else if(type == "int"){
+        tryToSet(pInt, RightOperand.pInt);
+    }
+    else if(type == "unsigned_int"){
+        tryToSet(pUInt, RightOperand.pUInt);
+    }
+    else if(type == "float"){
+        tryToSet(pFloat, RightOperand.pFloat);
+    }
+    else if(type == "double"){
+        tryToSet(pDouble, RightOperand.pDouble);
+    }
+    else if(type == "string"){
+        tryToSet(pString, RightOperand.pString);
+    }
+    else{
+        std::cout << "Error: In BasePointersStruct::clone(): \'" << type << "\' is not a valid type.\n"; 
+    }
+}
+void BasePointersStruct::setPointer(bool *pointer){
+    pBool = pointer;
     type = "bool";
 }
-void BasePointersStruct::getPointer(char * pointer){
-    vChar = pointer;
+void BasePointersStruct::setPointer(char * pointer){
+    pChar = pointer;
     type = "char";
 }
-void BasePointersStruct::getPointer(short * pointer){
-    vShort = pointer;
+void BasePointersStruct::setPointer(short * pointer){
+    pShort = pointer;
     type = "short";
 }
-void BasePointersStruct::getPointer(unsigned short * pointer){
-    vUShort = pointer;
+void BasePointersStruct::setPointer(unsigned short * pointer){
+    pUShort = pointer;
     type = "unsigned_short";
 }
-void BasePointersStruct::getPointer(int * pointer){
-    vInt = pointer;
+void BasePointersStruct::setPointer(int * pointer){
+    pInt = pointer;
     type = "int";
 }
-void BasePointersStruct::getPointer(unsigned int * pointer){
-    vUInt = pointer;
+void BasePointersStruct::setPointer(unsigned int * pointer){
+    pUInt = pointer;
     type = "unsigned_int";
 }
-void BasePointersStruct::getPointer(float * pointer){
-    vFloat = pointer;
+void BasePointersStruct::setPointer(float * pointer){
+    pFloat = pointer;
     type = "float";
 }
-void BasePointersStruct::getPointer(double * pointer){
-    vDouble = pointer;
+void BasePointersStruct::setPointer(double * pointer){
+    pDouble = pointer;
     type = "double";
 }
-void BasePointersStruct::getPointer(string * pointer){
-    vString = pointer;
+void BasePointersStruct::setPointer(string * pointer){
+    pString = pointer;
     type = "string";
+}
+
+bool BasePointersStruct::areEqual(BasePointersStruct *OtherVariable){
+    if(type != OtherVariable->type){
+        std::cout << "Error: Pointers of built-in types have different types.\n";
+        return false;
+    }
+    if(type == "bool"){
+        return *pBool == *OtherVariable->pBool;
+    }
+    else if(type == "char"){
+        return *pChar == *OtherVariable->pChar;
+    }
+    else if(type == "short"){
+        return *pShort == *OtherVariable->pShort;
+    }
+    else if(type == "unsigned_short"){
+        return *pUShort == *OtherVariable->pUShort;
+    }
+    else if(type == "int"){
+        return *pInt == *OtherVariable->pInt;
+    }
+    else if(type == "unsigned_int"){
+        return *pUInt == *OtherVariable->pUInt;
+    }
+    else if(type == "float"){
+        return *pFloat == *OtherVariable->pFloat;
+    }
+    else if(type == "double"){
+        return *pDouble == *OtherVariable->pDouble;
+    }
+    else if(type == "string"){
+        return *pString == *OtherVariable->pString;
+    }
+    else{
+        std::cout << "Error: In BasePointersStruct::areEqual(): \'" << type << "\' is not a valid type.\n"; 
+    }
+    return false;
 }

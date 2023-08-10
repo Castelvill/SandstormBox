@@ -93,7 +93,7 @@ public:
     void resetJump();
     void bindKeys(short newUpKey, short newRightKey, short newDownKey, short newLeftKey, short newJumpKey, short newRunningKey);
     void bindMouseButton(short newMouseButton);
-    void getContext(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & BasePointer);
 
     short getMovementType();
     short getInputType();

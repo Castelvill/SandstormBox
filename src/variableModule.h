@@ -54,7 +54,7 @@ public:
     bool addDouble(double);
     void resetValue();
     void negate();
-    void getContext(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & BasePointer);
     template <typename condValueType>
     bool isConditionMet(condValueType condVal, string operatorType, char valType);
     bool isConditionMet(string condVal, string operatorType, char valType);

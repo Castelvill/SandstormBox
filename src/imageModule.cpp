@@ -506,62 +506,62 @@ void ImageModule::chooseFrames(vec2i newCurrentFrame){
     else
         currentFrame.y = 0;
 }
-void ImageModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
+void ImageModule::getContext(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "rot_pos_x"){
-        UniversalVariable.getPointer(&rotPos.x);
+        BasePointer.setPointer(&rotPos.x);
     }
     else if(attribute == "rot_pos_y"){
-        UniversalVariable.getPointer(&rotPos.y);
+        BasePointer.setPointer(&rotPos.y);
     }
     else if(attribute == "start_y"){
-        UniversalVariable.getPointer(&start.y);
+        BasePointer.setPointer(&start.y);
     }
     else if(attribute == "start_y"){
-        UniversalVariable.getPointer(&start.y);
+        BasePointer.setPointer(&start.y);
     }
     else if(attribute == "frame_size_y"){
-        UniversalVariable.getPointer(&frameSize.y);
+        BasePointer.setPointer(&frameSize.y);
     }
     else if(attribute == "frame_size_y"){
-        UniversalVariable.getPointer(&frameSize.y);
+        BasePointer.setPointer(&frameSize.y);
     }
     else if(attribute == "rotate_angle"){
-        UniversalVariable.getPointer(&rotateAngle);
+        BasePointer.setPointer(&rotateAngle);
     }
     else if(attribute == "mirror_x"){
-        UniversalVariable.getPointer(&mirrorX);
+        BasePointer.setPointer(&mirrorX);
     }
     else if(attribute == "mirror_y"){
-        UniversalVariable.getPointer(&mirrorY);
+        BasePointer.setPointer(&mirrorY);
     }
     else if(attribute == "image_color_r"){
-        UniversalVariable.getPointer(&imageColor[0]);
+        BasePointer.setPointer(&imageColor[0]);
     }
     else if(attribute == "image_color_g"){
-        UniversalVariable.getPointer(&imageColor[1]);
+        BasePointer.setPointer(&imageColor[1]);
     }
     else if(attribute == "image_color_b"){
-        UniversalVariable.getPointer(&imageColor[2]);
+        BasePointer.setPointer(&imageColor[2]);
     }
     else if(attribute == "image_color_a"){
-        UniversalVariable.getPointer(&imageColor[3]);
+        BasePointer.setPointer(&imageColor[3]);
     }
     else if(attribute == "light_level"){
-        UniversalVariable.getPointer(&lightLevel);
+        BasePointer.setPointer(&lightLevel);
     }
     else if(attribute == "light_color_r"){
-        UniversalVariable.getPointer(&lightColor[0]);
+        BasePointer.setPointer(&lightColor[0]);
     }
     else if(attribute == "light_color_g"){
-        UniversalVariable.getPointer(&lightColor[1]);
+        BasePointer.setPointer(&lightColor[1]);
     }
     else if(attribute == "light_color_b"){
-        UniversalVariable.getPointer(&lightColor[2]);
+        BasePointer.setPointer(&lightColor[2]);
     }
     else if(attribute == "used_bitmap_layer"){
-        UniversalVariable.getPointer(&usedBitmapLayer);
+        BasePointer.setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, UniversalVariable);
+        bindPrimaryToVariable(attribute, BasePointer);
     }
 }

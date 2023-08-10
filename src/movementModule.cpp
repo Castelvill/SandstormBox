@@ -570,180 +570,180 @@ void MovementModule::bindKeys(short newUpKey, short newRightKey, short newDownKe
 void MovementModule::bindMouseButton(short newMouseButton){
     mouseButton = newMouseButton;
 }
-void MovementModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
+void MovementModule::getContext(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "movement_type"){
-        UniversalVariable.getPointer(&movementType);
+        BasePointer.setPointer(&movementType);
     }
     else if(attribute == "input_type"){
-        UniversalVariable.getPointer(&inputType);
+        BasePointer.setPointer(&inputType);
     }
     else if(attribute == "allowed_jumps"){
-        UniversalVariable.getPointer(&allowedJumps);
+        BasePointer.setPointer(&allowedJumps);
     }
     else if(attribute == "jumps_count"){
-        UniversalVariable.getPointer(&jumpsCount);
+        BasePointer.setPointer(&jumpsCount);
     }
     else if(attribute == "jump_cooldown"){
-        UniversalVariable.getPointer(&jumpCooldown);
+        BasePointer.setPointer(&jumpCooldown);
     }
     else if(attribute == "jump_cooldown_duration"){
-        UniversalVariable.getPointer(&jumpCooldownDuration);
+        BasePointer.setPointer(&jumpCooldownDuration);
     }
     else if(attribute == "move_cooldown"){
-        UniversalVariable.getPointer(&moveCooldown);
+        BasePointer.setPointer(&moveCooldown);
     }
     else if(attribute == "move_cooldown_duration"){
-        UniversalVariable.getPointer(&moveCooldownDuration);
+        BasePointer.setPointer(&moveCooldownDuration);
     }
     else if(attribute == "can_move_diagonally"){
-        UniversalVariable.getPointer(&canMoveDiagonally);
+        BasePointer.setPointer(&canMoveDiagonally);
     }
     else if(attribute == "reset_momentum_when_jumping"){
-        UniversalVariable.getPointer(&resetMomentumWhenJumping);
+        BasePointer.setPointer(&resetMomentumWhenJumping);
     }
     else if(attribute == "is_move_planned"){
-        UniversalVariable.getPointer(&isMovePlanned);
+        BasePointer.setPointer(&isMovePlanned);
     }
     else if(attribute == "can_jump"){
-        UniversalVariable.getPointer(&canJump);
+        BasePointer.setPointer(&canJump);
     }
     else if(attribute == "body_mass"){
-        UniversalVariable.getPointer(&bodyMass);
+        BasePointer.setPointer(&bodyMass);
     }
     else if(attribute == "walking_speed"){
-        UniversalVariable.getPointer(&walkingSpeed);
+        BasePointer.setPointer(&walkingSpeed);
     }
     else if(attribute == "running_speed"){
-        UniversalVariable.getPointer(&runningSpeed);
+        BasePointer.setPointer(&runningSpeed);
     }
     else if(attribute == "jump_speed"){
-        UniversalVariable.getPointer(&jumpSpeed);
+        BasePointer.setPointer(&jumpSpeed);
     }
     else if(attribute == "gravitation"){
-        UniversalVariable.getPointer(&gravitation);
+        BasePointer.setPointer(&gravitation);
     }
     else if(attribute == "base_friction"){
-        UniversalVariable.getPointer(&baseFriction);
+        BasePointer.setPointer(&baseFriction);
     }
     else if(attribute == "momentum_x"){
-        UniversalVariable.getPointer(&momentum.x);
+        BasePointer.setPointer(&momentum.x);
     }
     else if(attribute == "momentum_y"){
-        UniversalVariable.getPointer(&momentum.y);
+        BasePointer.setPointer(&momentum.y);
     }
     else if(attribute == "max_momentum_x"){
-        UniversalVariable.getPointer(&maxMomentumX);
+        BasePointer.setPointer(&maxMomentumX);
     }
     else if(attribute == "min_momentum_y"){
-        UniversalVariable.getPointer(&minMomentumY);
+        BasePointer.setPointer(&minMomentumY);
     }
     else if(attribute == "max_momentum_y"){
-        UniversalVariable.getPointer(&maxMomentumY);
+        BasePointer.setPointer(&maxMomentumY);
     }
     else if(attribute == "destination_x"){
-        UniversalVariable.getPointer(&destination.x);
+        BasePointer.setPointer(&destination.x);
     }
     else if(attribute == "destination_y"){
-        UniversalVariable.getPointer(&destination.y);
+        BasePointer.setPointer(&destination.y);
     }
     else if(attribute == "direction_of_move_x"){
-        UniversalVariable.getPointer(&directionOfMove.x);
+        BasePointer.setPointer(&directionOfMove.x);
     }
     else if(attribute == "direction_of_move_y"){
-        UniversalVariable.getPointer(&directionOfMove.y);
+        BasePointer.setPointer(&directionOfMove.y);
     }
     else if(attribute == "mouse_button"){
-        UniversalVariable.getPointer(&mouseButton);
+        BasePointer.setPointer(&mouseButton);
     }
     else if(attribute == "move_on_mouse_release"){
-        UniversalVariable.getPointer(&moveOnMouseRelease);
+        BasePointer.setPointer(&moveOnMouseRelease);
     }
     else if(attribute == "reset_direction_after_collision"){
-        UniversalVariable.getPointer(&resetDirectionAfterCollision);
+        BasePointer.setPointer(&resetDirectionAfterCollision);
     }
     else if(attribute == "is_moving_up"){
-        UniversalVariable.getPointer(&isMovingUp);
+        BasePointer.setPointer(&isMovingUp);
     }
     else if(attribute == "is_moving_right"){
-        UniversalVariable.getPointer(&isMovingRight);
+        BasePointer.setPointer(&isMovingRight);
     }
     else if(attribute == "is_moving_down"){
-        UniversalVariable.getPointer(&isMovingDown);
+        BasePointer.setPointer(&isMovingDown);
     }
     else if(attribute == "is_moving_left"){
-        UniversalVariable.getPointer(&isMovingLeft);
+        BasePointer.setPointer(&isMovingLeft);
     }
     else if(attribute == "is_jumping"){
-        UniversalVariable.getPointer(&isJumping);
+        BasePointer.setPointer(&isJumping);
     }
     else if(attribute == "is_falling"){
-        UniversalVariable.getPointer(&isFalling);
+        BasePointer.setPointer(&isFalling);
     }
     else if(attribute == "is_running"){
-        UniversalVariable.getPointer(&isRunning);
+        BasePointer.setPointer(&isRunning);
     }
     else if(attribute == "up_key"){
-        UniversalVariable.getPointer(&upKey);
+        BasePointer.setPointer(&upKey);
     }
     else if(attribute == "right_key"){
-        UniversalVariable.getPointer(&rightKey);
+        BasePointer.setPointer(&rightKey);
     }
     else if(attribute == "down_key"){
-        UniversalVariable.getPointer(&downKey);
+        BasePointer.setPointer(&downKey);
     }
     else if(attribute == "left_key"){
-        UniversalVariable.getPointer(&leftKey);
+        BasePointer.setPointer(&leftKey);
     }
     else if(attribute == "jump_key"){
-        UniversalVariable.getPointer(&jumpKey);
+        BasePointer.setPointer(&jumpKey);
     }
     else if(attribute == "running_key"){
-        UniversalVariable.getPointer(&runningKey);
+        BasePointer.setPointer(&runningKey);
     }
     else if(attribute == "are_random_actions_enabled"){
-        UniversalVariable.getPointer(&areRandomActionsEnabled);
+        BasePointer.setPointer(&areRandomActionsEnabled);
     }
     else if(attribute == "time_when_action_persists"){
-        UniversalVariable.getPointer(&timeWhenActionPersists);
+        BasePointer.setPointer(&timeWhenActionPersists);
     }
     else if(attribute == "min_time_of_action"){
-        UniversalVariable.getPointer(&minTimeOfAction);
+        BasePointer.setPointer(&minTimeOfAction);
     }
     else if(attribute == "max_time_of_action"){
-        UniversalVariable.getPointer(&maxTimeOfAction);
+        BasePointer.setPointer(&maxTimeOfAction);
     }
     else if(attribute == "min_move_distance"){
-        UniversalVariable.getPointer(&minMoveDistance);
+        BasePointer.setPointer(&minMoveDistance);
     }
     else if(attribute == "max_move_distance"){
-        UniversalVariable.getPointer(&maxMoveDistance);
+        BasePointer.setPointer(&maxMoveDistance);
     }
     else if(attribute == "saved_action"){
-        UniversalVariable.getPointer(&savedAction);
+        BasePointer.setPointer(&savedAction);
     }
     else if(attribute == "saved_direction_x"){
-        UniversalVariable.getPointer(&savedDirection.x);
+        BasePointer.setPointer(&savedDirection.x);
     }
     else if(attribute == "saved_direction_y"){
-        UniversalVariable.getPointer(&savedDirection.y);
+        BasePointer.setPointer(&savedDirection.y);
     }
     else if(attribute == "chance_for_break"){
-        UniversalVariable.getPointer(&chanceForBreak);
+        BasePointer.setPointer(&chanceForBreak);
     }
     else if(attribute == "current_direction_x"){
-        UniversalVariable.getPointer(&currentDirection.x);
+        BasePointer.setPointer(&currentDirection.x);
     }
     else if(attribute == "current_direction_y"){
-        UniversalVariable.getPointer(&currentDirection.y);
+        BasePointer.setPointer(&currentDirection.y);
     }
     else if(attribute == "current_pos"){
-        UniversalVariable.getPointer(&currentPos);
+        BasePointer.setPointer(&currentPos);
     }
     else if(attribute == "loop_movement"){
-        UniversalVariable.getPointer(&loopMovement);
+        BasePointer.setPointer(&loopMovement);
     }
     else{
-        bindPrimaryToVariable(attribute, UniversalVariable);
+        bindPrimaryToVariable(attribute, BasePointer);
     }
 }
 

@@ -12,26 +12,30 @@ using std::string;
 class BasePointersStruct{
 public:
     string type;
-    bool * vBool;
-    char * vChar;
-    short * vShort;
-    unsigned short * vUShort;
-    int * vInt;
-    unsigned int * vUInt;
-    float * vFloat;
-    double * vDouble;
-    string * vString;
+    bool * pBool;
+    char * pChar;
+    short * pShort;
+    unsigned short * pUShort;
+    int * pInt;
+    unsigned int * pUInt;
+    float * pFloat;
+    double * pDouble;
+    string * pString;
     BasePointersStruct();
     void clear();
-    void getPointer(bool*);
-    void getPointer(char*);
-    void getPointer(short*);
-    void getPointer(unsigned short*);
-    void getPointer(int*);
-    void getPointer(unsigned int*);
-    void getPointer(float*);
-    void getPointer(double*);
-    void getPointer(string*);
+    template<typename T>
+    void tryToSet(T * LeftOperand, const T * RightOperand);
+    void clone(const BasePointersStruct & RightOperand);
+    void setPointer(bool*);
+    void setPointer(char*);
+    void setPointer(short*);
+    void setPointer(unsigned short*);
+    void setPointer(int*);
+    void setPointer(unsigned int*);
+    void setPointer(float*);
+    void setPointer(double*);
+    void setPointer(string*);
+    bool areEqual(BasePointersStruct *OtherVariable);
 };
 
 class PrimaryModule{
@@ -103,7 +107,7 @@ class PrimaryModule{
     bool getIsAttachedToCamera();
     bool getCanBeSelected();
     bool getIsScrollable();
-    void bindPrimaryToVariable(string attribute, BasePointersStruct & UniversalVariable);
+    void bindPrimaryToVariable(string attribute, BasePointersStruct & BasePointer);
 };
 
 #endif // PRIMARYMODULE_H_INCLUDED

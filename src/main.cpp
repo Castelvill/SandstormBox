@@ -94,6 +94,8 @@ void loadBitmapsToContainer(vector <SingleBitmap> & BitmapContainer){
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
     BitmapContainer.back().loadBitmap("steve", "images/steve.png");
 
+    BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
+    BitmapContainer.back().loadBitmap("insanity1", "images/insanity1.png");
 
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
@@ -258,11 +260,18 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().setPos(vec2d(100, 400));
     Objects.back().setIsAttachedToCamera(false);
     Objects.back().ImageContainer.push_back(ImageModule("amongus", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
-    Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "amongus_2");
-    Objects.back().ImageContainer[0].setIsScaledFromCenter(false);
-    Objects.back().ImageContainer[0].setUsedBitmapLayer(1);
-    Objects.back().ImageContainer[0].setScale(0.5, 0.5);
-    Objects.back().ImageContainer[0].setIsAttachedToCamera(false);
+    Objects.back().ImageContainer.back().connectBitmap(BitmapContainer, "amongus_2");
+    Objects.back().ImageContainer.back().setIsScaledFromCenter(false);
+    Objects.back().ImageContainer.back().setUsedBitmapLayer(1);
+    Objects.back().ImageContainer.back().setScale(0.5, 0.5);
+    Objects.back().ImageContainer.back().setIsAttachedToCamera(false);
+
+    Objects.back().ImageContainer.push_back(ImageModule("insanity", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().ImageContainer.back().connectBitmap(BitmapContainer, "insanity1");
+    Objects.back().ImageContainer.back().translatePos(vec2d(100.0, 300.0));
+    Objects.back().ImageContainer.back().setScale(0.1, 0.1);
+    Objects.back().ImageContainer.back().setUsedBitmapLayer(2);
+    
 
     Objects.back().VariablesContainer.push_back(VariableModule("timer", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.back().setDouble(0.0);
@@ -418,15 +427,15 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().setPos(500.0, 500.0);
     Objects.back().setIsAttachedToCamera(false);
     Objects.back().ParticlesContainer.push_back(ParticleEffectModule("par", Objects.back().particlesContainerIDs, layerID, Objects.back().getID()));
-    Objects.back().ParticlesContainer[0].changeSpawningParameters(false, true, true, 5000, 5000, 5000, 0.05);
+    Objects.back().ParticlesContainer[0].changeSpawningParameters(false, true, true, 100, 100, 100, 0.05);
     Objects.back().ParticlesContainer[0].changeMotionParameters(3.5, 5.7, -10.0, 10.0, vec2d(0.0, 0.0), vec2d(0.0, 0.0), 0.00, 0.00,
         0.4, 0.7, 0.0, 360.0, -0.0, 0.0, 0.0, 0.0);
-    Objects.back().ParticlesContainer[0].changeGeneralParameters(vec2d(0.0, 0.0), vec2d(0.0, 0.0), 10.0, 20.0, 3.0, 10.0,
+    Objects.back().ParticlesContainer[0].changeGeneralParameters(vec2d(0.0, 0.0), vec2d(0.0, 0.0), 50.0, 70.0, 3.0, 10.0,
         0.8, 1.0, -2.0, 2.0, 0, true, false, false);
     Objects.back().ParticlesContainer[0].setSpawnKeyBindShort(ALLEGRO_KEY_P);
-    Objects.back().ParticlesContainer[0].addImage("face");
-    Objects.back().ParticlesContainer[0].setUseImageAsParticles(false);
-    Objects.back().ParticlesContainer[0].addColor(0, 255, 0);
+    Objects.back().ParticlesContainer[0].addImage("insane");
+    Objects.back().ParticlesContainer[0].setUseImageAsParticles(true);
+    //Objects.back().ParticlesContainer[0].addColor(0, 255, 0);
     Objects.back().ParticlesContainer[0].setMinBasicSpeed(0.1);
     Objects.back().ParticlesContainer[0].setMaxBasicSpeed(10.0);
     Objects.back().ParticlesContainer[0].setMinSpeed(0.1);
@@ -459,6 +468,12 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().CollisionContainer.back().setPos(Objects.back().getSize().x, 0);
     Objects.back().CollisionContainer.back().setSize(Objects.back().getSize());
 
+    Objects.back().ImageContainer.push_back(ImageModule("insane", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().ImageContainer.back().connectBitmap(BitmapContainer, "insanity1");
+    Objects.back().ImageContainer.back().translatePos(vec2d(0.0, 0.0));
+    Objects.back().ImageContainer.back().setScale(0.1, 0.1);
+    Objects.back().ImageContainer.back().setUsedBitmapLayer(2);
+    Objects.back().ImageContainer.back().deactivate();
 /*
 
     Objects.push_back(AncestorObject(Objects.size(), layerID));

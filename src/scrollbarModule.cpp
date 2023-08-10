@@ -119,48 +119,48 @@ vec2d ScrollbarModule::countScrollShift(){
     std::cout << scrollShift.x << " " << scrollShift.y << "\n";
     return scrollShift;
 }
-void ScrollbarModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
+void ScrollbarModule::getContext(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "thumbPos_x"){
-        UniversalVariable.getPointer(&thumbPos.x);
+        BasePointer.setPointer(&thumbPos.x);
     }
     else if(attribute == "thumbPos_y"){
-        UniversalVariable.getPointer(&thumbPos.y);
+        BasePointer.setPointer(&thumbPos.y);
     }
     else if(attribute == "thumbSize_x"){
-        UniversalVariable.getPointer(&thumbSize.x);
+        BasePointer.setPointer(&thumbSize.x);
     }
     else if(attribute == "thumbSize_y"){
-        UniversalVariable.getPointer(&thumbSize.y);
+        BasePointer.setPointer(&thumbSize.y);
     }
     else if(attribute == "scrollingArea_x"){
-        UniversalVariable.getPointer(&scrollingArea.x);
+        BasePointer.setPointer(&scrollingArea.x);
     }
     else if(attribute == "scrollingArea_y"){
-        UniversalVariable.getPointer(&scrollingArea.y);
+        BasePointer.setPointer(&scrollingArea.y);
     }
     else if(attribute == "realScrollingArea_x"){
-        UniversalVariable.getPointer(&realScrollingArea.x);
+        BasePointer.setPointer(&realScrollingArea.x);
     }
     else if(attribute == "realScrollingArea_y"){
-        UniversalVariable.getPointer(&realScrollingArea.y);
+        BasePointer.setPointer(&realScrollingArea.y);
     }
     else if(attribute == "dragStartingPos_x"){
-        UniversalVariable.getPointer(&dragStartingPos.x);
+        BasePointer.setPointer(&dragStartingPos.x);
     }
     else if(attribute == "dragStartingPos_y"){
-        UniversalVariable.getPointer(&dragStartingPos.y);
+        BasePointer.setPointer(&dragStartingPos.y);
     }
     else if(attribute == "thumbImageID"){
-        UniversalVariable.getPointer(&thumbImageID);
+        BasePointer.setPointer(&thumbImageID);
     }
     else if(attribute == "trackImageID"){
-        UniversalVariable.getPointer(&trackImageID);
+        BasePointer.setPointer(&trackImageID);
     }
     else if(attribute == "usedBitmapLayer"){
-        UniversalVariable.getPointer(&usedBitmapLayer);
+        BasePointer.setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, UniversalVariable);
+        bindPrimaryToVariable(attribute, BasePointer);
     }
 }
 

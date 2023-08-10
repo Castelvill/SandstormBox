@@ -309,7 +309,7 @@ void ParticleEffectModule::killParticles(){
         i--;
     }
 }
-void ParticleEffectModule::drawParticles(vector <ImageModule> & ImageContainer, vec2i screen, Camera2D Camera){
+void ParticleEffectModule::drawParticles(vector <ImageModule> ImageContainer, vec2i screen, Camera2D Camera){
     float arr[4];
     vec2d newPos;
     for(unsigned int i=0; i < particleEffect.size(); i++){
@@ -339,7 +339,6 @@ void ParticleEffectModule::drawParticles(vector <ImageModule> & ImageContainer, 
                     }
                     ImageContainer[j].setImageColor(arr);
                     particleEffect[i].drawParticleUsingImage(ImageContainer[j], Camera);
-                    ImageContainer[j].deactivate();
                 }
             }
         }
@@ -476,138 +475,138 @@ void ParticleEffectModule::removeImage(unsigned int id){
 void ParticleEffectModule::activeSpawn(){
     canParticlesSpawn = true;
 }
-void ParticleEffectModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
+void ParticleEffectModule::getContext(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "environment_x"){
-        UniversalVariable.getPointer(&environment.x);
+        BasePointer.setPointer(&environment.x);
     }
     else if(attribute == "environment_y"){
-        UniversalVariable.getPointer(&environment.y);
+        BasePointer.setPointer(&environment.y);
     }
     else if(attribute == "environment_speed_x"){
-        UniversalVariable.getPointer(&environmentSpeed.x);
+        BasePointer.setPointer(&environmentSpeed.x);
     }
     else if(attribute == "environment_speed_y"){
-        UniversalVariable.getPointer(&environmentSpeed.y);
+        BasePointer.setPointer(&environmentSpeed.y);
     }
     else if(attribute == "min_speed"){
-        UniversalVariable.getPointer(&minSpeed);
+        BasePointer.setPointer(&minSpeed);
     }
     else if(attribute == "max_speed"){
-        UniversalVariable.getPointer(&maxSpeed);
+        BasePointer.setPointer(&maxSpeed);
     }
     else if(attribute == "min_basic_speed"){
-        UniversalVariable.getPointer(&minBasicSpeed);
+        BasePointer.setPointer(&minBasicSpeed);
     }
     else if(attribute == "max_basic_speed"){
-        UniversalVariable.getPointer(&maxBasicSpeed);
+        BasePointer.setPointer(&maxBasicSpeed);
     }
     else if(attribute == "min_acceleration"){
-        UniversalVariable.getPointer(&minAcceleration);
+        BasePointer.setPointer(&minAcceleration);
     }
     else if(attribute == "max_acceleration"){
-        UniversalVariable.getPointer(&maxAcceleration);
+        BasePointer.setPointer(&maxAcceleration);
     }
     else if(attribute == "min_particle_mass"){
-        UniversalVariable.getPointer(&minParticleMass);
+        BasePointer.setPointer(&minParticleMass);
     }
     else if(attribute == "max_particle_mass"){
-        UniversalVariable.getPointer(&maxParticleMass);
+        BasePointer.setPointer(&maxParticleMass);
     }
     else if(attribute == "min_direction_degree"){
-        UniversalVariable.getPointer(&minDirectionDegree);
+        BasePointer.setPointer(&minDirectionDegree);
     }
     else if(attribute == "max_direction_degree"){
-        UniversalVariable.getPointer(&maxDirectionDegree);
+        BasePointer.setPointer(&maxDirectionDegree);
     }
     else if(attribute == "min_rotation_speed"){
-        UniversalVariable.getPointer(&minRotationSpeed);
+        BasePointer.setPointer(&minRotationSpeed);
     }
     else if(attribute == "max_rotation_speed"){
-        UniversalVariable.getPointer(&maxRotationSpeed);
+        BasePointer.setPointer(&maxRotationSpeed);
     }
     else if(attribute == "min_time_to_negate_rotation"){
-        UniversalVariable.getPointer(&minTimeToNegateRotation);
+        BasePointer.setPointer(&minTimeToNegateRotation);
     }
     else if(attribute == "max_time_to_negate_rotation"){
-        UniversalVariable.getPointer(&maxTimeToNegateRotation);
+        BasePointer.setPointer(&maxTimeToNegateRotation);
     }
     else if(attribute == "are_particles_moving"){
-        UniversalVariable.getPointer(&areParticlesMoving);
+        BasePointer.setPointer(&areParticlesMoving);
     }
     else if(attribute == "is_environment_synchronized"){
-        UniversalVariable.getPointer(&isEnvironmentSynchronized);
+        BasePointer.setPointer(&isEnvironmentSynchronized);
     }
     else if(attribute == "min_particle_radius"){
-        UniversalVariable.getPointer(&minParticleRadius);
+        BasePointer.setPointer(&minParticleRadius);
     }
     else if(attribute == "max_particle_radius"){
-        UniversalVariable.getPointer(&maxParticleRadius);
+        BasePointer.setPointer(&maxParticleRadius);
     }
     else if(attribute == "min_time_to_death"){
-        UniversalVariable.getPointer(&minTimeToDeath);
+        BasePointer.setPointer(&minTimeToDeath);
     }
     else if(attribute == "max_time_to_death"){
-        UniversalVariable.getPointer(&maxTimeToDeath);
+        BasePointer.setPointer(&maxTimeToDeath);
     }
     else if(attribute == "min_shape_rotation_speed"){
-        UniversalVariable.getPointer(&minShapeRotationSpeed);
+        BasePointer.setPointer(&minShapeRotationSpeed);
     }
     else if(attribute == "max_shape_rotation_speed"){
-        UniversalVariable.getPointer(&maxShapeRotationSpeed);
+        BasePointer.setPointer(&maxShapeRotationSpeed);
     }
     else if(attribute == "min_color_intensity"){
-        UniversalVariable.getPointer(&minColorIntensity);
+        BasePointer.setPointer(&minColorIntensity);
     }
     else if(attribute == "max_color_intensity"){
-        UniversalVariable.getPointer(&maxColorIntensity);
+        BasePointer.setPointer(&maxColorIntensity);
     }
     else if(attribute == "particles_shape"){
-        UniversalVariable.getPointer(&particlesShape);
+        BasePointer.setPointer(&particlesShape);
     }
     else if(attribute == "use_image_as_particles"){
-        UniversalVariable.getPointer(&useImageAsParticles);
+        BasePointer.setPointer(&useImageAsParticles);
     }
     else if(attribute == "use_random_colors"){
-        UniversalVariable.getPointer(&useRandomColors);
+        BasePointer.setPointer(&useRandomColors);
     }
     else if(attribute == "is_module_static"){
-        UniversalVariable.getPointer(&isModuleStatic);
+        BasePointer.setPointer(&isModuleStatic);
     }
     else if(attribute == "is_drawing_with_details"){
-        UniversalVariable.getPointer(&isDrawingWithDetails);
+        BasePointer.setPointer(&isDrawingWithDetails);
     }
     else if(attribute == "block_particles_spawn"){
-        UniversalVariable.getPointer(&blockParticlesSpawn);
+        BasePointer.setPointer(&blockParticlesSpawn);
     }
     else if(attribute == "can_particles_spawn"){
-        UniversalVariable.getPointer(&canParticlesSpawn);
+        BasePointer.setPointer(&canParticlesSpawn);
     }
     else if(attribute == "min_particles_per_spawn"){
-        UniversalVariable.getPointer(&minParticlesPerSpawn);
+        BasePointer.setPointer(&minParticlesPerSpawn);
     }
     else if(attribute == "max_particles_per_spawn"){
-        UniversalVariable.getPointer(&maxParticlesPerSpawn);
+        BasePointer.setPointer(&maxParticlesPerSpawn);
     }
     else if(attribute == "max_particles_count"){
-        UniversalVariable.getPointer(&maxParticlesCount);
+        BasePointer.setPointer(&maxParticlesCount);
     }
     else if(attribute == "time_to_spawn"){
-        UniversalVariable.getPointer(&timeToSpawn);
+        BasePointer.setPointer(&timeToSpawn);
     }
     else if(attribute == "max_time_to_spawn"){
-        UniversalVariable.getPointer(&maxTimeToSpawn);
+        BasePointer.setPointer(&maxTimeToSpawn);
     }
     else if(attribute == "spawn_key_bind"){
-        UniversalVariable.getPointer(&spawnKeyBind);
+        BasePointer.setPointer(&spawnKeyBind);
     }
     else if(attribute == "spawn_on_key_release"){
-        UniversalVariable.getPointer(&spawnOnKeyRelease);
+        BasePointer.setPointer(&spawnOnKeyRelease);
     }
     else if(attribute == "used_bitmap_layer"){
-        UniversalVariable.getPointer(&usedBitmapLayer);
+        BasePointer.setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, UniversalVariable);
+        bindPrimaryToVariable(attribute, BasePointer);
     }
 }
 

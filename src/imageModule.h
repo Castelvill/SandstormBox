@@ -81,7 +81,7 @@ public:
     void modifyFrames(vec2d newFrameSize);
     void chooseFrames(vec2i newCurrentFrame);
     void destroyBitmap();
-    void getContext(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & BasePointer);
 };
 
 

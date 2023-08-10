@@ -339,45 +339,45 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
         currentLength += al_get_text_width(font, temp.c_str());
     }
 }
-void TextModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
+void TextModule::getContext(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "content"){
-        UniversalVariable.getPointer(&content[currentTextID]);
+        BasePointer.setPointer(&content[currentTextID]);
     }
     else if(attribute == "current_text_id"){
-        UniversalVariable.getPointer(&currentTextID);
+        BasePointer.setPointer(&currentTextID);
     }
     else if(attribute == "font_id"){
-        UniversalVariable.getPointer(&fontID);
+        BasePointer.setPointer(&fontID);
     }
     else if(attribute == "text_color_r"){
-        UniversalVariable.getPointer(&textColor[0]);
+        BasePointer.setPointer(&textColor[0]);
     }
     else if(attribute == "text_color_g"){
-        UniversalVariable.getPointer(&textColor[1]);
+        BasePointer.setPointer(&textColor[1]);
     }
     else if(attribute == "text_color_b"){
-        UniversalVariable.getPointer(&textColor[2]);
+        BasePointer.setPointer(&textColor[2]);
     }
     else if(attribute == "wrapped"){
-        UniversalVariable.getPointer(&wrapped);
+        BasePointer.setPointer(&wrapped);
     }
     else if(attribute == "horizontal_align"){
-        UniversalVariable.getPointer(&horizontalAlign);
+        BasePointer.setPointer(&horizontalAlign);
     }
     else if(attribute == "vertical_align"){
-        UniversalVariable.getPointer(&verticalAlign);
+        BasePointer.setPointer(&verticalAlign);
     }
     else if(attribute == "rotate_angle"){
-        UniversalVariable.getPointer(&rotateAngle);
+        BasePointer.setPointer(&rotateAngle);
     }
     else if(attribute == "visibility"){
-        UniversalVariable.getPointer(&visibility);
+        BasePointer.setPointer(&visibility);
     }
     else if(attribute == "used_bitmap_layer"){
-        UniversalVariable.getPointer(&usedBitmapLayer);
+        BasePointer.setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, UniversalVariable);
+        bindPrimaryToVariable(attribute, BasePointer);
     }
 }
 string TextModule::getFontID(){
@@ -1539,86 +1539,86 @@ void printCommandDoesNotExistWarning(){
     std::cout << "Warning: Command doesn't exist!\n";
 }
 
-void EditableTextModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
+void EditableTextModule::getContext(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "content"){
-        UniversalVariable.getPointer(&content[currentTextID]);
+        BasePointer.setPointer(&content[currentTextID]);
     }
     else if(attribute == "current_text_id"){
-        UniversalVariable.getPointer(&currentTextID);
+        BasePointer.setPointer(&currentTextID);
     }
     else if(attribute == "font_id"){
-        UniversalVariable.getPointer(&fontID);
+        BasePointer.setPointer(&fontID);
     }
     else if(attribute == "text_color_r"){
-        UniversalVariable.getPointer(&textColor[0]);
+        BasePointer.setPointer(&textColor[0]);
     }
     else if(attribute == "text_color_g"){
-        UniversalVariable.getPointer(&textColor[1]);
+        BasePointer.setPointer(&textColor[1]);
     }
     else if(attribute == "text_color_b"){
-        UniversalVariable.getPointer(&textColor[2]);
+        BasePointer.setPointer(&textColor[2]);
     }
     else if(attribute == "wrapped"){
-        UniversalVariable.getPointer(&wrapped);
+        BasePointer.setPointer(&wrapped);
     }
     else if(attribute == "horizontal_align"){
-        UniversalVariable.getPointer(&horizontalAlign);
+        BasePointer.setPointer(&horizontalAlign);
     }
     else if(attribute == "vertical_align"){
-        UniversalVariable.getPointer(&verticalAlign);
+        BasePointer.setPointer(&verticalAlign);
     }
     else if(attribute == "rotate_angle"){
-        UniversalVariable.getPointer(&rotateAngle);
+        BasePointer.setPointer(&rotateAngle);
     }
     else if(attribute == "visibility"){
-        UniversalVariable.getPointer(&visibility);
+        BasePointer.setPointer(&visibility);
     }
     else if(attribute == "used_bitmap_layer"){
-        UniversalVariable.getPointer(&usedBitmapLayer);
+        BasePointer.setPointer(&usedBitmapLayer);
     }
     else if(attribute == "can_be_edited"){
-        UniversalVariable.getPointer(&canBeEdited);
+        BasePointer.setPointer(&canBeEdited);
     }
     else if(attribute == "editing_is_active"){
-        UniversalVariable.getPointer(&editingIsActive);
+        BasePointer.setPointer(&editingIsActive);
     }
     else if(attribute == "can_use_space"){
-        UniversalVariable.getPointer(&canUseSpace);
+        BasePointer.setPointer(&canUseSpace);
     }
     else if(attribute == "is_numerical"){
-        UniversalVariable.getPointer(&isNumerical);
+        BasePointer.setPointer(&isNumerical);
     }
     else if(attribute == "has_floating_point"){
-        UniversalVariable.getPointer(&hasFloatingPoint);
+        BasePointer.setPointer(&hasFloatingPoint);
     }
     else if(attribute == "can_clear_content_after_success"){
-        UniversalVariable.getPointer(&canClearContentAfterSuccess);
+        BasePointer.setPointer(&canClearContentAfterSuccess);
     }
     else if(attribute == "use_arrows_as_char"){
-        UniversalVariable.getPointer(&useArrowsAsChar);
+        BasePointer.setPointer(&useArrowsAsChar);
     }
     else if(attribute == "min_content_size"){
-        UniversalVariable.getPointer(&minContentSize);
+        BasePointer.setPointer(&minContentSize);
     }
     else if(attribute == "max_content_size"){
-        UniversalVariable.getPointer(&maxContentSize);
+        BasePointer.setPointer(&maxContentSize);
     }
     else if(attribute == "connected_object"){
-        UniversalVariable.getPointer(&connectedObject);
+        BasePointer.setPointer(&connectedObject);
     }
     else if(attribute == "connected_group"){
-        UniversalVariable.getPointer(&connectedGroup);
+        BasePointer.setPointer(&connectedGroup);
     }
     else if(attribute == "affected_module"){
-        UniversalVariable.getPointer(&affectedModule);
+        BasePointer.setPointer(&affectedModule);
     }
     else if(attribute == "connected_module_id"){
-        UniversalVariable.getPointer(&connectedModuleID);
+        BasePointer.setPointer(&connectedModuleID);
     }
     else if(attribute == "affected_variable"){
-        UniversalVariable.getPointer(&affectedVariable);
+        BasePointer.setPointer(&affectedVariable);
     }
     else{
-        bindPrimaryToVariable(attribute, UniversalVariable);
+        bindPrimaryToVariable(attribute, BasePointer);
     }
 }

@@ -83,7 +83,7 @@ public:
     void clearModule();
     void spawnParticles(vec2d objPos, vector <short> pressedKeys); //Particles spawn in a point or a rectangle.
     void killParticles();
-    void drawParticles(vector <ImageModule> & ImageContainer, vec2i screen, Camera2D Camera);
+    void drawParticles(vector <ImageModule> ImageContainer, vec2i screen, Camera2D Camera);
     void updateParticles(); //Changing the color accordingly to speed.
     void moveParticles();
     void changeSpawningParameters(bool newCanParticlesSpawn, bool newBlockParticlesSpawn, bool newSpawnOnKeyRelease, int newMinParticlesPerSpawn,
@@ -106,7 +106,7 @@ public:
     void removeImage(string imageID);
     void removeImage(unsigned int id);
     void activeSpawn();
-    void getContext(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & BasePointer);
 
     double getEnvironmentX();
     double getEnvironmentY();

@@ -288,36 +288,36 @@ void VariableModule::negate(){
         std::cout << "Error [VariableModule]: You can't negate the value of already not-initialized variable.\n";
     }
 }
-void VariableModule::getContext(string attribute, BasePointersStruct & UniversalVariable){
+void VariableModule::getContext(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "id"){
-        UniversalVariable.getPointer(&ID);
+        BasePointer.setPointer(&ID);
     }
     else if(attribute == "type"){
-        UniversalVariable.getPointer(&type);
+        BasePointer.setPointer(&type);
     }
     else if(attribute == "bool"){
-        UniversalVariable.getPointer(&vBool);
+        BasePointer.setPointer(&vBool);
     }
     else if(attribute == "default_bool"){
-        UniversalVariable.getPointer(&defaultBool);
+        BasePointer.setPointer(&defaultBool);
     }
     else if(attribute == "int"){
-        UniversalVariable.getPointer(&vInt);
+        BasePointer.setPointer(&vInt);
     }
     else if(attribute == "default_int"){
-        UniversalVariable.getPointer(&defaultInt);
+        BasePointer.setPointer(&defaultInt);
     }
     else if(attribute == "double"){
-        UniversalVariable.getPointer(&vDouble);
+        BasePointer.setPointer(&vDouble);
     }
     else if(attribute == "default_double"){
-        UniversalVariable.getPointer(&defaultDouble);
+        BasePointer.setPointer(&defaultDouble);
     }
     else if(attribute == "string"){
-        UniversalVariable.getPointer(&vString);
+        BasePointer.setPointer(&vString);
     }
     else if(attribute == "default_string"){
-        UniversalVariable.getPointer(&defaultString);
+        BasePointer.setPointer(&defaultString);
     }
 }
 

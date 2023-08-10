@@ -57,7 +57,7 @@ public:
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign);
     void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, bool editingIsActive);
     void drawTextByLetters(ALLEGRO_FONT * font);
-    void getContext(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & BasePointer);
     string getFontID();
     string getContent(unsigned int textID);
     unsigned short getColor(char whichColor);
@@ -129,7 +129,7 @@ public:
     bool controlCollision(CollisionModule & Collision, vector <string> & listOfIDs);
     bool controlParticles(ParticleEffectModule & Particles, vector <string> & listOfIDs);
     bool controlVariable(VariableModule & Variable, vector <string> & listOfIDs);
-    void getContext(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & BasePointer);
 };
 
 void printNotNumericalWarning();

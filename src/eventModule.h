@@ -83,7 +83,7 @@ public:
     void controlParticles(OperaClass & Operation, ParticleEffectModule & Particles);
     void controlVariables(OperaClass & Operation, VariableModule & Variable);
     void controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrollbar);
-    void getContext(string attribute, BasePointersStruct & UniversalVariable);
+    void getContext(string attribute, BasePointersStruct & BasePointer);
 };
 
 
