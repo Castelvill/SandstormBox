@@ -437,8 +437,30 @@ void ImageModule::setMirrorY(bool newMirrorY){
     mirrorY = newMirrorY;
 }
 void ImageModule::setImageColor(float newImageColor[4]){
-    for(int i = 0; i < 4; i++)
-        imageColor[i] = newImageColor[i];
+    for(unsigned i = 0; i < 4; i++){
+        if(newImageColor[i] > 1){
+            newImageColor[i] = 1.0;
+        }
+        else if(newImageColor[i] < 0){
+            newImageColor[i] = 0.0;
+        }
+        else{
+            imageColor[i] = newImageColor[i];
+        }
+    }
+}
+void ImageModule::setImageColor(vec4d newImageColor){
+    for(unsigned i = 0; i < 4; i++){
+        if(newImageColor.val[i] > 1){
+            imageColor[i] = 1.0;
+        }
+        else if(newImageColor.val[i] < 0){
+            imageColor[i] = 0.0;
+        }
+        else{
+            imageColor[i] = newImageColor.val[i];
+        }
+    }
 }
 void ImageModule::setImageColor(float newImageColor, char whichColor){
     if(whichColor == 'r')

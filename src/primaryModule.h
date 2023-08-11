@@ -9,6 +9,20 @@
 
 using std::string;
 
+class BaseVariableStruct{
+public:
+    string type;
+    bool vBool;
+    char vChar;
+    short vShort;
+    unsigned short vUShort;
+    int vInt;
+    unsigned int vUInt;
+    float vFloat;
+    double vDouble;
+    string vString;
+};
+
 class BasePointersStruct{
 public:
     string type;
@@ -24,8 +38,14 @@ public:
     BasePointersStruct();
     void clear();
     template<typename T>
-    void tryToSet(T * LeftOperand, const T * RightOperand);
-    void clone(const BasePointersStruct & RightOperand);
+    void tryToMove(T * LeftOperand, const T * RightOperand, string instruction);
+    void tryToSetValue(bool vBool, int vInt, double vDouble, string vString, string valueType);
+    void move(const BasePointersStruct & RightOperand, string instruction);
+    template<typename LeftType, typename RightType>
+    LeftType tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, string instruction);
+    template<typename LeftType>
+    LeftType callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, string instruction);
+    BaseVariableStruct executeArithmetics(const BasePointersStruct &RightOperand, string instruction);
     void setPointer(bool*);
     void setPointer(char*);
     void setPointer(short*);

@@ -73,6 +73,7 @@ public:
     void setMirrorX(bool newMirrorX);
     void setMirrorY(bool newMirrorY);
     void setImageColor(float newImageColor[4]);
+    void setImageColor(vec4d);
     void setImageColor(float newImageColor, char whichColor);
     void setLightColor(vec3d newLightColor, float newLightLevel);
     void setLightColor(float newLightColor, char whichLight);

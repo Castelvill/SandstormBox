@@ -17,7 +17,6 @@ public:
     SingleParticle();
     void moveParticle();
     void drawOneParticle(Camera2D Camera);
-    void drawParticleUsingImage(ImageModule image, Camera2D Camera);
     bool isOnScreen(vec2i screen);
     vec2d getPos();
     double getRadius();

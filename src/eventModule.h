@@ -55,7 +55,7 @@ public:
 	vector <OperaClass> PostOperations;
 	vector <ChildStruct> Children;
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed by other events and a direct use of run() command.
-    //aaaa
+    //Types: each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness.
     vector <string> primaryTriggerTypes;
     char directive; //n - normal, a - atomic, u - unique, r - random
     char conditionalStatus; //n-null, t-true, f-false

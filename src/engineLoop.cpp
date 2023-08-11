@@ -1705,11 +1705,6 @@ bool EngineLoop::getPairOfContexts(PointerContainer * LeftOperand, PointerContai
         return false;
     }
 
-    if(LeftOperand->type != RightOperand->type){
-        std::cout << "Error: In getPairOfContexts(): Right operand has a different type than the left operand.\n";
-        return false;
-    }
-
     return true;
 }
 bool EngineLoop::checkDefaultCondition(VariableModule * Left, VariableModule * Right){
@@ -1790,6 +1785,11 @@ void EngineLoop::aggregateTwoSets(OperaClass & Operation, vector<PointerContaine
     PointerContainer * RightOperand = nullptr;
 
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
+        return;
+    }
+
+    if(LeftOperand->type != RightOperand->type){
+        std::cout << "Error: In aggregateTwoSets(): Right operand has a different type than the left operand.\n";
         return;
     }
 
@@ -1958,7 +1958,7 @@ void EngineLoop::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity
         }
     }
 }
-void EngineLoop::executeSetOperation(OperaClass & Operation, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers){
+void EngineLoop::cloneEntities(OperaClass & Operation, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers){
     PointerContainer * LeftOperand = nullptr;
     PointerContainer * RightOperand = nullptr;
     unsigned i = 0;
@@ -1966,64 +1966,154 @@ void EngineLoop::executeSetOperation(OperaClass & Operation, vector<PointerConta
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
         return;
     }
-    
-    if(LeftOperand->type == "pointer"){
-        for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->BasePointers.size(); i++){
-            LeftOperand->BasePointers[i].clone(RightOperand->BasePointers[i]);
-        }
-    }
-    else if(LeftOperand->type == "value"){
-        for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->Variables.size(); i++){
-            LeftOperand->Variables[i] = RightOperand->Variables[i];
-        }
-    }
-    else if(LeftOperand->type == "camera"){
-        for(i = 0; i < LeftOperand->Cameras.size() && i < RightOperand->Cameras.size(); i++){
-            LeftOperand->Cameras[i]->clone(*RightOperand->Cameras[i], camerasIDs);
-        }
-    }
-    else if(LeftOperand->type == "layer"){
-        for(i = 0; i < LeftOperand->Layers.size() && i < RightOperand->Layers.size(); i++){
-            LeftOperand->Layers[i]->clone(*RightOperand->Layers[i], layersIDs);
-        }
-    }
-    else if(LeftOperand->type == "object"){
-        for(i = 0; i < LeftOperand->Objects.size() && i < RightOperand->Objects.size(); i++){
-            for(LayerClass & Layer : Layers){
-                if(Layer.getID() != LeftOperand->Objects[i]->getLayerID()){
-                    continue;
+
+    if(LeftOperand->type != RightOperand->type){
+        if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+            for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->Variables.size(); i++){
+                if(RightOperand->Variables[i].getType() == 'b'){
+                    LeftOperand->BasePointers[i].tryToSetValue(RightOperand->Variables[i].getBool(), 0, 0.0, "", "bool");
                 }
-                LeftOperand->Objects[i]->clone(*RightOperand->Objects[i], Layer.objectsIDs, Layer.getID());
-                break;
+                else if(RightOperand->Variables[i].getType() == 'i'){
+                    LeftOperand->BasePointers[i].tryToSetValue(false, RightOperand->Variables[i].getInt(), 0.0, "", "int");
+                }
+                else if(RightOperand->Variables[i].getType() == 'd'){
+                    LeftOperand->BasePointers[i].tryToSetValue(false, 0, RightOperand->Variables[i].getDouble(), "", "double");
+                }
+                else if(RightOperand->Variables[i].getType() == 's'){
+                    LeftOperand->BasePointers[i].tryToSetValue(false, 0, 0.0, RightOperand->Variables[i].getString(), "string");
+                }
+            }
+        }
+        else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
+            for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->BasePointers.size(); i++){
+                LeftOperand->Variables[i].setValueFromPointer(RightOperand->BasePointers[i]);
+            }
+        }
+        else{
+            std::cout << "Error: In executeSetOperation(): You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        }
+    }
+    else{
+        if(LeftOperand->type == "pointer"){
+            for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->BasePointers.size(); i++){
+                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[i], Operation.instruction);
+            }
+        }
+        else if(LeftOperand->type == "value"){
+            for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->Variables.size(); i++){
+                LeftOperand->Variables[i] = RightOperand->Variables[i];
+            }
+        }
+        else if(LeftOperand->type == "camera"){
+            for(i = 0; i < LeftOperand->Cameras.size() && i < RightOperand->Cameras.size(); i++){
+                LeftOperand->Cameras[i]->clone(*RightOperand->Cameras[i], camerasIDs);
+            }
+        }
+        else if(LeftOperand->type == "layer"){
+            for(i = 0; i < LeftOperand->Layers.size() && i < RightOperand->Layers.size(); i++){
+                LeftOperand->Layers[i]->clone(*RightOperand->Layers[i], layersIDs);
+            }
+        }
+        else if(LeftOperand->type == "object"){
+            for(i = 0; i < LeftOperand->Objects.size() && i < RightOperand->Objects.size(); i++){
+                for(LayerClass & Layer : Layers){
+                    if(Layer.getID() != LeftOperand->Objects[i]->getLayerID()){
+                        continue;
+                    }
+                    LeftOperand->Objects[i]->clone(*RightOperand->Objects[i], Layer.objectsIDs, Layer.getID());
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "text"){
+            cloneRightToLeft(LeftOperand->Modules.Texts, RightOperand->Modules.Texts, Layers);
+        }
+        else if(LeftOperand->type == "editable_text"){
+            cloneRightToLeft(LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts, Layers);
+        }
+        else if(LeftOperand->type == "image"){
+            cloneRightToLeft(LeftOperand->Modules.Images, RightOperand->Modules.Images, Layers);
+        }
+        else if(LeftOperand->type == "movement"){
+            cloneRightToLeft(LeftOperand->Modules.Movements, RightOperand->Modules.Movements, Layers);
+        }
+        else if(LeftOperand->type == "collision"){
+            cloneRightToLeft(LeftOperand->Modules.Collisions, RightOperand->Modules.Collisions, Layers);
+        }
+        else if(LeftOperand->type == "particles"){
+            cloneRightToLeft(LeftOperand->Modules.Particles, RightOperand->Modules.Particles, Layers);
+        }
+        else if(LeftOperand->type == "event"){
+            cloneRightToLeft(LeftOperand->Modules.Events, RightOperand->Modules.Events, Layers);
+        }
+        else if(LeftOperand->type == "variable"){
+            cloneRightToLeft(LeftOperand->Modules.Variables, RightOperand->Modules.Variables, Layers);
+        }
+        else if(LeftOperand->type == "scrollbar"){
+            cloneRightToLeft(LeftOperand->Modules.Scrollbars, RightOperand->Modules.Scrollbars, Layers);
+        }
+    }
+}
+void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContainer> &EventContext){
+    PointerContainer NewContext;
+    BaseVariableStruct result;
+    PointerContainer * LeftOperand = nullptr;
+    PointerContainer * RightOperand = nullptr;
+    unsigned i = 0;
+
+    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
+        || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
+        || (RightOperand->type != "pointer" && RightOperand->type != "value")
+    ){
+        return;
+    }
+
+    if(LeftOperand->type == RightOperand->type){
+        if(LeftOperand->type == "pointer"){
+            for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->BasePointers.size(); i++){
+                result = LeftOperand->BasePointers[i].executeArithmetics(RightOperand->BasePointers[i], Operation.instruction);
+                if(result.type != ""){
+                    NewContext.Variables.push_back(VariableModule());
+                    NewContext.Variables.back().set(result);
+                }
+            }
+        }
+        else if(LeftOperand->type == "value"){
+            for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->Variables.size(); i++){
+                LeftOperand->Variables[i] = RightOperand->Variables[i];
             }
         }
     }
-    else if(LeftOperand->type == "text"){
-        cloneRightToLeft(LeftOperand->Modules.Texts, RightOperand->Modules.Texts, Layers);
+    else{
+        if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+            for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->Variables.size(); i++){
+                if(RightOperand->Variables[i].getType() == 'b'){
+                    LeftOperand->BasePointers[i].tryToSetValue(RightOperand->Variables[i].getBool(), 0, 0.0, "", "bool");
+                }
+                else if(RightOperand->Variables[i].getType() == 'i'){
+                    LeftOperand->BasePointers[i].tryToSetValue(false, RightOperand->Variables[i].getInt(), 0.0, "", "int");
+                }
+                else if(RightOperand->Variables[i].getType() == 'd'){
+                    LeftOperand->BasePointers[i].tryToSetValue(false, 0, RightOperand->Variables[i].getDouble(), "", "double");
+                }
+                else if(RightOperand->Variables[i].getType() == 's'){
+                    LeftOperand->BasePointers[i].tryToSetValue(false, 0, 0.0, RightOperand->Variables[i].getString(), "string");
+                }
+            }
+        }
+        else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
+            for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->BasePointers.size(); i++){
+                LeftOperand->Variables[i].setValueFromPointer(RightOperand->BasePointers[i]);
+            }
+        }
+        else{
+            std::cout << "Error: In executeSetOperation(): You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        }
     }
-    else if(LeftOperand->type == "editable_text"){
-        cloneRightToLeft(LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts, Layers);
-    }
-    else if(LeftOperand->type == "image"){
-        cloneRightToLeft(LeftOperand->Modules.Images, RightOperand->Modules.Images, Layers);
-    }
-    else if(LeftOperand->type == "movement"){
-        cloneRightToLeft(LeftOperand->Modules.Movements, RightOperand->Modules.Movements, Layers);
-    }
-    else if(LeftOperand->type == "collision"){
-        cloneRightToLeft(LeftOperand->Modules.Collisions, RightOperand->Modules.Collisions, Layers);
-    }
-    else if(LeftOperand->type == "particles"){
-        cloneRightToLeft(LeftOperand->Modules.Particles, RightOperand->Modules.Particles, Layers);
-    }
-    else if(LeftOperand->type == "event"){
-        cloneRightToLeft(LeftOperand->Modules.Events, RightOperand->Modules.Events, Layers);
-    }
-    else if(LeftOperand->type == "variable"){
-        cloneRightToLeft(LeftOperand->Modules.Variables, RightOperand->Modules.Variables, Layers);
-    }
-    else if(LeftOperand->type == "scrollbar"){
-        cloneRightToLeft(LeftOperand->Modules.Scrollbars, RightOperand->Modules.Scrollbars, Layers);
+
+    if(NewContext.Variables.size() > 0){
+        NewContext.ID = Operation.newContextID;
+        EventContext.push_back(NewContext);
     }
 }
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *OwnerLayer, AncestorObject *Owner, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
@@ -2047,18 +2137,30 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             aggregateValues(EventContext, Operation, OwnerLayer, Owner, Layers, Cameras);
         }
 
+        if(Operation.instruction == "literal"){
+            PointerContainer NewContext;
+            for(VariableModule & Literal : Operation.Literals){
+                NewContext.Variables.push_back(Literal);
+            }
+            if(NewContext.Variables.size() > 0){
+                NewContext.type = "value";
+                NewContext.ID = Operation.newContextID;
+                EventContext.push_back(NewContext);
+            }
+        }
+
         //Aggregate context only by id.
         if(Operation.instruction == "all_by_id"){
             aggregateOnlyById(EventContext, Operation, OwnerLayer, Owner, Layers, Cameras);
         }
 
-        //Assign the previously aggregated entities to a named variable.
+        //Assign a name to the previously aggregated entities.
         if(Operation.instruction == "let"){
             nameVariable(EventContext, Operation);
         }
         
-        if(Operation.instruction == "set"){
-            executeSetOperation(Operation, EventContext, Layers);
+        if(Operation.instruction == "clone"){
+            cloneEntities(Operation, EventContext, Layers);
         }
     }
     return OperaClass();
@@ -2157,6 +2259,11 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
     AncestorObject * CurrentObject = nullptr;
 
     if(!findLayerAndObject(Condition.Location, Owner, OwnerLayer, CurrentLayer, CurrentObject, Layers)){
+        NewValue.setBool(false);
+        return NewValue;
+    }
+
+    if(CurrentObject == nullptr){
         NewValue.setBool(false);
         return NewValue;
     }
@@ -2617,13 +2724,13 @@ char EngineLoop::evaluateConditionalChain(vector<TriggerClass> & ConditionalChai
                 resultStack.push_back(leftOperand);
             }
             else if(op == "igT"){
-                if(resultStack.back().isConditionMet(true, "==", 'b')){
+                if(resultStack.back().isConditionMet<bool>(true, "==", 'b')){
                     std::cout << resultStack.back().getID() << ":" << "true || ... -> true\n";
                     ignoreFlagOr++;
                 }
             }
             else if(op == "igF"){
-                if(resultStack.back().isConditionMet(false, "==", 'b')){
+                if(resultStack.back().isConditionMet<bool>(false, "==", 'b')){
                     std::cout << resultStack.back().getID() << ":" << "false && ... -> false\n";
                     ignoreFlagAnd++;
                 }
@@ -2756,11 +2863,17 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             continue;
         }
 
+        TriggeredLayer = nullptr;
+
         for(LayerClass & Layer : Layers){
             if(Triggered->getLayerID() == Layer.getID()){
                 TriggeredLayer = &Layer;
                 break;
             }
+        }
+
+        if(TriggeredLayer == nullptr){
+            continue;
         }
         
         StartingEvent = Event;

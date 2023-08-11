@@ -230,7 +230,15 @@ void BasePointersStruct::clear(){
     pString = nullptr;
 }
 template<typename T>
-void BasePointersStruct::tryToSet(T * LeftOperand, const T * RightOperand){
+void BasePointersStruct::tryToMove(T * LeftOperand, const T * RightOperand, string instruction){
+    if(instruction == "inc"){
+        *LeftOperand = *LeftOperand + 1;
+        return;
+    }
+    else if(instruction == "dec"){
+        *LeftOperand = *LeftOperand - 1;
+        return;
+    }
     if(LeftOperand == nullptr){
         std::cout << "Error: In BasePointersStruct::tryToSet(): Left operand of \'" << type << "\' type does not exist.\n";
         return;
@@ -239,39 +247,274 @@ void BasePointersStruct::tryToSet(T * LeftOperand, const T * RightOperand){
         std::cout << "Error: In BasePointersStruct::tryToSet(): Right operand of \'" << type << "\' type does not exist.\n";
         return;
     }
-    *LeftOperand = *RightOperand;
+    if(instruction == "mov" || instruction == "clone"){
+        *LeftOperand = *RightOperand;
+    }
+    else if(instruction == "add"){
+        *LeftOperand = (*LeftOperand + *RightOperand);
+    }
+    else if(instruction == "sub"){
+        *LeftOperand = (*LeftOperand) - (*RightOperand);
+    }
+    else if(instruction == "mul"){
+        *LeftOperand = (*LeftOperand) * (*RightOperand);
+    }
+    else if(instruction == "div" && *RightOperand != 0){
+        *LeftOperand = (*LeftOperand) / (*RightOperand);
+    }
 }
-void BasePointersStruct::clone(const BasePointersStruct &RightOperand){
+void BasePointersStruct::tryToSetValue(bool vBool, int vInt, double vDouble, string vString, string valueType){
+    if(valueType == ""){
+        return;
+    }
+    if(!isStringInGroup(type, 9, "bool", "char", "short", "unsigned_short", "int", "unsigned_int", "float", "double", "string")){
+        std::cout << "Error: In BasePointersStruct::tryToSet(): left operand's \'" << type << "\' type does not exist.\n";
+        return;
+    }
+    if(!isStringInGroup(valueType, 4, "bool", "int", "double", "string")){
+        std::cout << "Error: In BasePointersStruct::tryToSet(): right operand's \'" << valueType << "\' type does not exist.\n";
+        return;
+    }
+    if(valueType == "bool"){
+        if(type == "bool"){
+            *pBool = vBool;
+        }
+        else if(type == "char"){
+            *pChar = vBool;
+        }
+        else if(type == "short"){
+            *pShort = vBool;
+        }
+        else if(type == "unsigned_short"){
+            *pUShort = vBool;
+        }
+        else if(type == "int"){
+            *pInt = vBool;
+        }
+        else if(type == "unsigned_int"){
+            *pUInt = vBool;
+        }
+        else if(type == "float"){
+            *pFloat = vBool;
+        }
+        else if(type == "double"){
+            *pDouble = vBool;
+        }
+        else if(type == "string"){
+            std::cout << "Error: In BasePointersStruct::tryToSet(): You cannot assign non-string type value to a string type variable.\n";
+            return;
+        }
+    }
+    else if(valueType == "int"){
+        if(type == "bool"){
+            *pBool = vInt;
+        }
+        else if(type == "char"){
+            *pChar = vInt;
+        }
+        else if(type == "short"){
+            *pShort = vInt;
+        }
+        else if(type == "unsigned_short"){
+            *pUShort = vInt;
+        }
+        else if(type == "int"){
+            *pInt = vInt;
+        }
+        else if(type == "unsigned_int"){
+            *pUInt = vInt;
+        }
+        else if(type == "float"){
+            *pFloat = vInt;
+        }
+        else if(type == "double"){
+            *pDouble = vInt;
+        }
+        else if(type == "string"){
+            std::cout << "Error: In BasePointersStruct::tryToSet(): You cannot assign non-string type value to a string type variable.\n";
+            return;
+        }
+    }
+    else if(valueType == "double"){
+        if(type == "bool"){
+            *pBool = vDouble;
+        }
+        else if(type == "char"){
+            *pChar = vDouble;
+        }
+        else if(type == "short"){
+            *pShort = vDouble;
+        }
+        else if(type == "unsigned_short"){
+            *pUShort = vDouble;
+        }
+        else if(type == "int"){
+            *pInt = vDouble;
+        }
+        else if(type == "unsigned_int"){
+            *pUInt = vDouble;
+        }
+        else if(type == "float"){
+            *pFloat = vDouble;
+        }
+        else if(type == "double"){
+            *pDouble = vDouble;
+        }
+        else if(type == "string"){
+            std::cout << "Error: In BasePointersStruct::tryToSet(): You cannot assign non-string type value to a string type variable.\n";
+            return;
+        }
+    }
+    else if(valueType == "string"){
+        if(type == "bool"){
+            *pBool = vString.size();
+        }
+        else if(type == "char"){
+            *pChar = vString[0];
+        }
+        else if(type == "short"){
+            *pShort = vString[0];
+        }
+        else if(type == "unsigned_short"){
+            *pUShort = vString[0];
+        }
+        else if(type == "int"){
+            *pInt = vString[0];
+        }
+        else if(type == "unsigned_int"){
+            *pUInt = vString[0];
+        }
+        else if(type == "float"){
+            *pFloat = vString[0];
+        }
+        else if(type == "double"){
+            *pDouble = vString[0];
+        }
+        else if(type == "string"){
+            *pString = vString;
+        }
+    }
+}
+void BasePointersStruct::move(const BasePointersStruct &RightOperand, string instruction){
     if(type == "bool"){
-        tryToSet(pBool, RightOperand.pBool);
+        *pBool = *RightOperand.pBool;
     }
     else if(type == "char"){
-        tryToSet(pChar, RightOperand.pChar);
+        tryToMove(pChar, RightOperand.pChar, instruction);
     }
     else if(type == "short"){
-        tryToSet(pShort, RightOperand.pShort);
+        tryToMove(pShort, RightOperand.pShort, instruction);
     }
     else if(type == "unsigned_short"){
-        tryToSet(pUShort, RightOperand.pUShort);
+        tryToMove(pUShort, RightOperand.pUShort, instruction);
     }
     else if(type == "int"){
-        tryToSet(pInt, RightOperand.pInt);
+        tryToMove(pInt, RightOperand.pInt, instruction);
     }
     else if(type == "unsigned_int"){
-        tryToSet(pUInt, RightOperand.pUInt);
+        tryToMove(pUInt, RightOperand.pUInt, instruction);
     }
     else if(type == "float"){
-        tryToSet(pFloat, RightOperand.pFloat);
+        tryToMove(pFloat, RightOperand.pFloat, instruction);
     }
     else if(type == "double"){
-        tryToSet(pDouble, RightOperand.pDouble);
+        tryToMove(pDouble, RightOperand.pDouble, instruction);
     }
     else if(type == "string"){
-        tryToSet(pString, RightOperand.pString);
+        *pString = *RightOperand.pString;
     }
     else{
         std::cout << "Error: In BasePointersStruct::clone(): \'" << type << "\' is not a valid type.\n"; 
     }
+}
+template<typename LeftType, typename RightType>
+LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, string instruction){
+    if(LeftOperand == nullptr){
+        std::cout << "Error: In BasePointersStruct::tryToSet(): Left operand of \'" << type << "\' type does not exist.\n";
+        return 0;
+    }
+    if(RightOperand == nullptr){
+        std::cout << "Error: In BasePointersStruct::tryToSet(): Right operand of \'" << type << "\' type does not exist.\n";
+        return 0;
+    }
+    if(instruction == "ret_add"){
+        return (*LeftOperand) + (*RightOperand);
+    }
+    else if(instruction == "ret_sub"){
+        return (*LeftOperand) - (*RightOperand);
+    }
+    else if(instruction == "ret_mul"){
+        return (*LeftOperand) * (*RightOperand);
+    }
+    else if(instruction == "ret_div" && *RightOperand != 0){
+        return (*LeftOperand) / (*RightOperand);
+    }
+    return 0;
+}
+template<typename LeftType>
+LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, string instruction){
+    if(RightOperand.type == "bool"){
+        return 0; //Coconut.jpg
+    }
+    else if(RightOperand.type == "char"){
+        return tryArithmetics(LeftOperand, RightOperand.pChar, instruction);
+    }
+    else if(RightOperand.type == "short"){
+        return tryArithmetics(LeftOperand, RightOperand.pShort, instruction);
+    }
+    else if(RightOperand.type == "unsigned_short"){
+        return tryArithmetics(LeftOperand, RightOperand.pUShort, instruction);
+    }
+    else if(RightOperand.type == "int"){
+        return tryArithmetics(LeftOperand, RightOperand.pInt, instruction);
+    }
+    else if(RightOperand.type == "unsigned_int"){
+        return tryArithmetics(LeftOperand, RightOperand.pUInt, instruction);
+    }
+    else if(RightOperand.type == "float"){
+        return tryArithmetics(LeftOperand, RightOperand.pFloat, instruction);
+    }
+    else if(RightOperand.type == "double"){
+        return tryArithmetics(LeftOperand, RightOperand.pDouble, instruction);
+    }
+    return 0;
+}
+BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStruct &RightOperand, string instruction){
+    BaseVariableStruct result;
+    result.type = type;
+    if(type == "string" || RightOperand.type == "string"){
+        type = "";
+        std::cout << "Error: In BasePointersStruct::executeArithmetics(): You cannot execute arithmetic operations on strings.\n";
+    }
+    else if(type == "bool"){
+        result.vBool = false; //Coconut.jpg
+    }
+    else if(type == "char"){
+        result.vChar = callTryArithmeticsForEveryType(pChar, RightOperand, instruction);
+    }
+    else if(type == "short"){
+        result.vShort = callTryArithmeticsForEveryType(pShort, RightOperand, instruction);
+    }
+    else if(type == "unsigned_short"){
+        result.vUShort = callTryArithmeticsForEveryType(pUShort, RightOperand, instruction);
+    }
+    else if(type == "int"){
+        result.vInt = callTryArithmeticsForEveryType(pInt, RightOperand, instruction);
+    }
+    else if(type == "unsigned_int"){
+        result.vUInt = callTryArithmeticsForEveryType(pUInt, RightOperand, instruction);
+    }
+    else if(type == "float"){
+        result.vFloat = callTryArithmeticsForEveryType(pFloat, RightOperand, instruction);
+    }
+    else if(type == "double"){
+        result.vDouble = callTryArithmeticsForEveryType(pDouble, RightOperand, instruction);
+    }
+    else{
+        type = "";
+        std::cout << "Error: In BasePointersStruct::executeArithmetics(): \'" << type << "\' is not a valid type.\n"; 
+    }
+    return result;
 }
 void BasePointersStruct::setPointer(bool *pointer){
     pBool = pointer;

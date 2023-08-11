@@ -164,7 +164,7 @@ bool VariableModule::setType(char newType)
 }
 bool VariableModule::tryToSetType(char newType){
     if(type != 'n' && type != newType){
-        std::cout << "Error [VariableModule]: You can't change the type of already initialized variable.\n";
+        std::cout << "Error: In VariableModule::tryToSetType(): You can't change the type of already initialized variable.\n";
         return false;
     }
     type = newType;
@@ -241,6 +241,13 @@ bool VariableModule::setDouble(double newValue){
 bool VariableModule::setString(string newValue){
     if(tryToSetType('s')){
         vString = newValue;
+        return true;
+    }
+    return false;
+}
+bool VariableModule::setString(char newValue){
+    if(tryToSetType('s')){
+        vString[0] = newValue;
         return true;
     }
     return false;
@@ -442,7 +449,6 @@ bool VariableModule::isConditionMet(string condVal, string operatorType, char va
     }
     return false;
 }
-
 bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherVariable){
     if(type != OtherVariable->getType()){
         std::cout << "Error [VariableModule]: Comparison of two different variable types.\n";
@@ -530,4 +536,137 @@ VariableModule & VariableModule::operator=(const VariableModule& original){
         vString = original.vString;
     }
     return *this;
+}
+
+void VariableModule::setValueFromPointer(const BasePointersStruct &BasePointer){
+    if(!isStringInGroup(BasePointer.type, 9, "bool", "char", "short", "unsigned_short", "int", "unsigned_int", "float", "double", "string")){
+        std::cout << "Error: In BasePointersStruct::setValueFromPointer(): right operand's \'" << BasePointer.type << "\' type does not exist.\n";
+        return;
+    }
+    if(type == 'b'){
+        if(BasePointer.type == "bool"){
+            setBool(*BasePointer.pBool);
+        }
+        else if(BasePointer.type == "char"){
+            setBool(*BasePointer.pChar);
+        }
+        else if(BasePointer.type == "short"){
+            setBool(*BasePointer.pShort);
+        }
+        else if(BasePointer.type == "unsigned_short"){
+            setBool(*BasePointer.pUShort);
+        }
+        else if(BasePointer.type == "int"){
+            setBool(*BasePointer.pInt);
+        }
+        else if(BasePointer.type == "unsigned_int"){
+            setBool(*BasePointer.pUInt);
+        }
+        else if(BasePointer.type == "float"){
+            setBool(*BasePointer.pFloat);
+        }
+        else if(BasePointer.type == "double"){
+            setBool(*BasePointer.pDouble);
+        }
+        else if(BasePointer.type == "string"){
+            setBool(BasePointer.pString->size());
+        }
+    }
+    else if(type == 'i'){
+        if(BasePointer.type == "bool"){
+            setInt(*BasePointer.pBool);
+        }
+        else if(BasePointer.type == "char"){
+            setInt(*BasePointer.pChar);
+        }
+        else if(BasePointer.type == "short"){
+            setInt(*BasePointer.pShort);
+        }
+        else if(BasePointer.type == "unsigned_short"){
+            setInt(*BasePointer.pUShort);
+        }
+        else if(BasePointer.type == "int"){
+            setInt(*BasePointer.pInt);
+        }
+        else if(BasePointer.type == "unsigned_int"){
+            setInt(*BasePointer.pUInt);
+        }
+        else if(BasePointer.type == "float"){
+            setInt(*BasePointer.pFloat);
+        }
+        else if(BasePointer.type == "double"){
+            setInt(*BasePointer.pDouble);
+        }
+        else if(BasePointer.type == "string"){
+            setInt((*BasePointer.pString)[0]);
+        }
+    }
+    else if(type == 'd'){
+        if(BasePointer.type == "bool"){
+            setDouble(*BasePointer.pBool);
+        }
+        else if(BasePointer.type == "char"){
+            setDouble(*BasePointer.pChar);
+        }
+        else if(BasePointer.type == "short"){
+            setDouble(*BasePointer.pShort);
+        }
+        else if(BasePointer.type == "unsigned_short"){
+            setDouble(*BasePointer.pUShort);
+        }
+        else if(BasePointer.type == "int"){
+            setDouble(*BasePointer.pInt);
+        }
+        else if(BasePointer.type == "unsigned_int"){
+            setDouble(*BasePointer.pUInt);
+        }
+        else if(BasePointer.type == "float"){
+            setDouble(*BasePointer.pFloat);
+        }
+        else if(BasePointer.type == "double"){
+            setDouble(*BasePointer.pDouble);
+        }
+        else if(BasePointer.type == "string"){
+            setDouble((*BasePointer.pString)[0]);
+        }
+    }
+    else if(type == 's'){
+        if(BasePointer.type != "string"){
+            std::cout << "Error: In BasePointersStruct::tryToSet(): You cannot assign non-string type value to a string type variable.\n";
+            return;
+        }
+        else{
+            setString(*BasePointer.pString);
+        }
+    }
+}
+
+void VariableModule::set(const BaseVariableStruct &BaseVariable){
+    if(BaseVariable.type == "bool"){
+        setBool(BaseVariable.vBool);
+    }
+    else if(BaseVariable.type == "char"){
+        setString(BaseVariable.vChar);
+    }
+    else if(BaseVariable.type == "short"){
+        setInt(BaseVariable.vShort);
+    }
+    else if(BaseVariable.type == "unsigned_short"){
+        setInt(BaseVariable.vUShort);
+    }
+    else if(BaseVariable.type == "int"){
+        setInt(BaseVariable.vInt);
+    }
+    else if(BaseVariable.type == "unsigned_int"){
+        setInt(BaseVariable.vUInt);
+    }
+    else if(BaseVariable.type == "float"){
+        setDouble(BaseVariable.vFloat);
+    }
+    else if(BaseVariable.type == "double"){
+        setDouble(BaseVariable.vDouble);
+    }
+    else if(BaseVariable.type == "string"){
+        setString(BaseVariable.vString);
+    }
 }

@@ -48,6 +48,7 @@ public:
     bool setInt(int);
     bool setDouble(double);
     bool setString(string);
+    bool setString(char);
     bool addDefaultInt(int);
     bool addDefaultDouble(double);
     bool addInt(int);
@@ -62,6 +63,8 @@ public:
     int intOperation(string operatorType, VariableModule * OtherVariable);
     double floatingOperation(string operatorType, VariableModule * OtherVariable);
     VariableModule & operator=(const VariableModule& original);
+    void setValueFromPointer(const BasePointersStruct & BasePointer);
+    void set(const BaseVariableStruct & BaseVariable);
 };
 
 

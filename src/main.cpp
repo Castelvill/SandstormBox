@@ -265,14 +265,11 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().ImageContainer.back().setUsedBitmapLayer(1);
     Objects.back().ImageContainer.back().setScale(0.5, 0.5);
     Objects.back().ImageContainer.back().setIsAttachedToCamera(false);
-
     Objects.back().ImageContainer.push_back(ImageModule("insanity", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
     Objects.back().ImageContainer.back().connectBitmap(BitmapContainer, "insanity1");
     Objects.back().ImageContainer.back().translatePos(vec2d(100.0, 300.0));
     Objects.back().ImageContainer.back().setScale(0.1, 0.1);
     Objects.back().ImageContainer.back().setUsedBitmapLayer(2);
-    
-
     Objects.back().VariablesContainer.push_back(VariableModule("timer", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.back().setDouble(0.0);
     Objects.back().VariablesContainer.push_back(VariableModule("bbb", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
@@ -288,6 +285,36 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().TextContainer.back().setUsedBitmapLayer(2);
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
+
+    /*
+
+if(pressed("q")){
+	let x = Objects.Amongus.Image.amogus.rotate_angle;
+	x = x + 1;
+}
+    
+    Objects.back().EveContainer.push_back(EveModule("rotate", Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
+    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "key_pressed";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "x";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.layerID = layerID;
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.objectID = "Amongus";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleType = "image";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleID = "amongus";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "rotate_angle";
+
+
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("x");
+
+    */
+
     /*Objects.back().EveContainer.push_back(0);
     Objects.back().EveContainer.back().primaryTriggerTypes.push_back("second_passed");
     Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));

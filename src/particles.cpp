@@ -31,10 +31,12 @@ SingleParticle::SingleParticle(){
 }
 void SingleParticle::moveParticle(){
     speed += acceleration;
-    if(speed > maxSpeed)
+    if(speed > maxSpeed){
         speed = maxSpeed;
-    if(speed < minSpeed)
+    }
+    else if(speed < minSpeed){
         speed = minSpeed;
+    }
 
     environment.translate(environmentSpeed);
 
@@ -47,17 +49,18 @@ void SingleParticle::moveParticle(){
 
     direction.rotate(rotationSpeed);
 
-    vec2d momentum(direction.x * speed * mass, direction.y * speed * mass);
-    momentum.translate(environment);
-    pos.translate(momentum);
+    pos.translate(direction.x * speed * mass, direction.y * speed * mass);
+    pos.translate(environment);
 
     shapeRotation += shapeRotationSpeed;
 }
 void SingleParticle::drawOneParticle(Camera2D Camera){
-    if(colorIntensity > 1.0)
+    if(colorIntensity > 1.0){
         colorIntensity = 1.0;
-    if(colorIntensity < 0.0)
+    }
+    else if(colorIntensity < 0.0){
         colorIntensity = 0.0;
+    }
     double red = particleColor[0] * colorIntensity;
     double green = particleColor[1] * colorIntensity;
     double blue = particleColor[2] * colorIntensity;
@@ -71,22 +74,25 @@ void SingleParticle::drawOneParticle(Camera2D Camera){
         finRadius *= Camera.zoom;
     }
 
-
     if(shape == 0){
         if(isDrawnWithDetails){
-            for(int n = finRadius; n > 0; n-=3)
+            for(int n = finRadius; n > 0; n-=3){
                 al_draw_filled_circle(finPos.x, finPos.y, n, al_map_rgba(red, green, blue, alpha));
+            }
         }
-        else
+        else{
             al_draw_filled_circle(finPos.x, finPos.y, finRadius, al_map_rgba(red, green, blue, alpha));
+        }
     }
     if(shape == 1){
         if(isDrawnWithDetails){
-            for(int n = finRadius; n > 0; n-=3)
+            for(int n = finRadius; n > 0; n-=3){
                 al_draw_circle(finPos.x, finPos.y, finRadius*0.5, al_map_rgba(red, green, blue, alpha), n*0.5);
+            }
         }
-        else
+        else{
             al_draw_circle(finPos.x, finPos.y, finRadius, al_map_rgba(red, green, blue, alpha), finRadius/3);
+        }
     }
     if(shape == 2){
         //vec2d rectVec1, rectVec2;
@@ -126,22 +132,20 @@ void SingleParticle::drawOneParticle(Camera2D Camera){
         triVec2.set(triVec3);
         triVec3.rotate(120.0);
         if(isDrawnWithDetails){
-            for(int n = finRadius; n > 0; n-=3)
+            for(int n = finRadius; n > 0; n-=3){
                 al_draw_filled_triangle(finPos.x-triVec1.x*n, finPos.y-triVec1.y*n, finPos.x-triVec2.x*n, finPos.y-triVec2.y*n, finPos.x-triVec3.x*n, finPos.y-triVec3.y*n, al_map_rgba(red, green, blue, alpha));
+            }
         }
         else{
             al_draw_filled_triangle(finPos.x-triVec1.x*finRadius, finPos.y-triVec1.y*finRadius, finPos.x-triVec2.x*finRadius, finPos.y-triVec2.y*finRadius, finPos.x-triVec3.x*finRadius, finPos.y-triVec3.y*finRadius, al_map_rgba(red, green, blue, alpha));
         }
     }
 }
-void SingleParticle::drawParticleUsingImage(ImageModule image, Camera2D Camera){
-    image.drawImage(pos, Camera, true);
-}
 bool SingleParticle::isOnScreen(vec2i screen){
-    if((pos.x+radius >= 0 && pos.x+radius <= screen.x) || (pos.x-radius >= 0 && pos.x-radius <= screen.x)){
-        if((pos.y+radius >= 0 && pos.y+radius <= screen.y) || (pos.y-radius >= 0 && pos.y-radius <= screen.y)){
-            return true;
-        }
+    if(((pos.x+radius >= 0 && pos.x+radius <= screen.x) || (pos.x-radius >= 0 && pos.x-radius <= screen.x))
+        && ((pos.y+radius >= 0 && pos.y+radius <= screen.y) || (pos.y-radius >= 0 && pos.y-radius <= screen.y))
+    ){
+        return true;
     }
     return false;
 }
@@ -152,8 +156,7 @@ double SingleParticle::getRadius(){
     return radius;
 }
 
-ParticleEffectModule::ParticleEffectModule(){
-}
+ParticleEffectModule::ParticleEffectModule(){}
 ParticleEffectModule::ParticleEffectModule(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     environment.set(0.0, 0.0);
@@ -220,16 +223,20 @@ void ParticleEffectModule::spawnParticles(vec2d objPos, vector <short> pressedKe
             break;
         }
     }
-    if(!canParticlesSpawn || particleEffect.size() == maxParticlesCount || maxParticlesPerSpawn <= 0 || minParticlesPerSpawn < 0)
+    if(!canParticlesSpawn || particleEffect.size() == maxParticlesCount || maxParticlesPerSpawn <= 0 || minParticlesPerSpawn < 0){
         return;
+    }
     timeToSpawn -= 1/FPS;
-    if(timeToSpawn > 0.0)
+    if(timeToSpawn > 0.0){
         return;
+    }
     timeToSpawn = maxTimeToSpawn;
-    if(blockParticlesSpawn)
-        canParticlesSpawn = false;
 
-    int particlesPerSpawn = minParticlesPerSpawn + rand()%(maxParticlesPerSpawn-minParticlesPerSpawn+1);
+    if(blockParticlesSpawn){
+        canParticlesSpawn = false;
+    }
+
+    unsigned int particlesPerSpawn = minParticlesPerSpawn + rand()%(maxParticlesPerSpawn-minParticlesPerSpawn+1);
     if(particleEffect.size() + particlesPerSpawn > maxParticlesCount)
         particlesPerSpawn = maxParticlesCount - particleEffect.size();
     if(particlesPerSpawn <= 0)
@@ -242,10 +249,12 @@ void ParticleEffectModule::spawnParticles(vec2d objPos, vector <short> pressedKe
     particleEffect.reserve(initialCount + particlesPerSpawn);
     for(unsigned int i=initialCount; i < initialCount + particlesPerSpawn; i++){
         particleEffect.push_back(SingleParticle());
-        if(isModuleStatic)
+        if(isModuleStatic){
             particleEffect.back().pos.set(randomDouble(pos.x, pos.x+size.x), randomDouble(pos.y, pos.y+size.y));
-        else
+        }
+        else{
             particleEffect.back().pos.set(randomDouble(objPos.x+pos.x, objPos.x+pos.x+size.x), randomDouble(objPos.y+pos.y, objPos.y+pos.y+size.y));
+        }
         randomRotation = randomDouble(minDirectionDegree, maxDirectionDegree);
         particleEffect.back().direction.set(0.0, -1.0);
         particleEffect.back().direction.rotate(randomRotation);
@@ -296,8 +305,9 @@ void ParticleEffectModule::killParticles(){
     for(unsigned int i=0; i < particleEffect.size(); i++){
         particleEffect[i].timeToDeath -= 1/FPS;
         
-        if(particleEffect[i].timeToDeath > 0.0)
+        if(particleEffect[i].timeToDeath > 0.0){
             continue;
+        }
 
         particleEffect.erase(particleEffect.begin()+i);
         
@@ -310,64 +320,66 @@ void ParticleEffectModule::killParticles(){
     }
 }
 void ParticleEffectModule::drawParticles(vector <ImageModule> ImageContainer, vec2i screen, Camera2D Camera){
-    float arr[4];
-    vec2d newPos;
-    for(unsigned int i=0; i < particleEffect.size(); i++){
-        if(particleEffect[i].timeToDeath <= 0)
+    ImageModule * LastImage = nullptr;
+
+    for(SingleParticle & Particle : particleEffect){
+        if(Particle.timeToDeath <= 0)
             continue;
         if(!useImageAsParticles){
-            //if(Camera.isOnScreenWithRadius(particleEffect[i].getPos(), particleEffect[i].getRadius()))
-                particleEffect[i].drawOneParticle(Camera);
+            //if(Camera.isOnScreenWithRadius(Particle.getPos(), Particle.getRadius()))
+                Particle.drawOneParticle(Camera);
         }
         else{
-            for(unsigned int j=0; j < ImageContainer.size(); j++){
-                newPos.set(particleEffect[i].getPos());
-                newPos.translate(ImageContainer[j].getPos(false));
-                if(particleEffect[i].usedImageName == ImageContainer[j].getID()){
-                    ImageContainer[j].activate();
-                    ImageContainer[j].setRotation(particleEffect[i].shapeRotation);
-                    ImageContainer[j].resize(vec2d(particleEffect[i].radius*2, particleEffect[i].radius*2));
-                    arr[0] = (particleEffect[i].particleColor[0] * particleEffect[i].colorIntensity)/255;
-                    arr[1] = (particleEffect[i].particleColor[1] * particleEffect[i].colorIntensity)/255;
-                    arr[2] = (particleEffect[i].particleColor[2] * particleEffect[i].colorIntensity)/255;
-                    arr[3] = particleEffect[i].colorIntensity;
-                    for(int c = 0; c < 3; c++){
-                        if(arr[c] < 0.0)
-                            arr[c] = 0.0;
-                        if(arr[c] > 1.0)
-                            arr[c] = 1.0;
+            if(LastImage == nullptr || LastImage->getID() != Particle.usedImageName){
+                for(ImageModule & Image : ImageContainer){
+                    if(Particle.usedImageName == Image.getID()){
+                        LastImage = &Image;
+                        LastImage->activate();
+                        break;
                     }
-                    ImageContainer[j].setImageColor(arr);
-                    particleEffect[i].drawParticleUsingImage(ImageContainer[j], Camera);
                 }
             }
+
+            LastImage->setRotation(Particle.shapeRotation);
+            LastImage->resize(vec2d(Particle.radius*2, Particle.radius*2));
+            LastImage->setImageColor(vec4d(
+                (Particle.particleColor[0] * Particle.colorIntensity) / 255.0,
+                (Particle.particleColor[1] * Particle.colorIntensity) / 255.0,
+                (Particle.particleColor[2] * Particle.colorIntensity) / 255.0,
+                Particle.colorIntensity
+            ));
+
+            LastImage->drawImage(Particle.pos, Camera, true);
         }
     }
 }
 void ParticleEffectModule::updateParticles(){
-    for(unsigned int i=0; i < particleEffect.size(); i++){
-        particleEffect[i].colorIntensity -= particleEffect[i].colorFading;
+    for(SingleParticle & Particle : particleEffect){
+        Particle.colorIntensity -= Particle.colorFading;
         if(isEnvironmentSynchronized){
-            particleEffect[i].environment = environment;
-            particleEffect[i].environmentSpeed = environmentSpeed;
+            Particle.environment = environment;
+            Particle.environmentSpeed = environmentSpeed;
         }
     }
     killParticles();
     moveParticles();
     for(unsigned int j=0; j < colorIntervals.size(); j++){
-        for(unsigned int i=0; i < particleEffect.size(); i++){
-            if(particleEffect[i].speed >= colorIntervals[j].minSpeed){
-                particleEffect[i].particleColor[0] = colorIntervals[j].color[0];
-                particleEffect[i].particleColor[1] = colorIntervals[j].color[1];
-                particleEffect[i].particleColor[2] = colorIntervals[j].color[2];
+        for(SingleParticle & Particle : particleEffect){
+            if(Particle.speed >= colorIntervals[j].minSpeed){
+                Particle.particleColor[0] = colorIntervals[j].color[0];
+                Particle.particleColor[1] = colorIntervals[j].color[1];
+                Particle.particleColor[2] = colorIntervals[j].color[2];
             }
         }
     }
 }
 void ParticleEffectModule::moveParticles(){
-    for(unsigned int i=0; i < particleEffect.size(); i++){
-        if(areParticlesMoving)
-            particleEffect[i].moveParticle();
+    if(!areParticlesMoving){
+        return;
+    }
+
+    for(SingleParticle & Particle : particleEffect){
+        Particle.moveParticle();
     }
 }
 void ParticleEffectModule::changeSpawningParameters(bool newCanParticlesSpawn, bool newBlockParticlesSpawn, bool newSpawnOnKeyRelease, int newMinParticlesPerSpawn,
@@ -423,10 +435,7 @@ void ParticleEffectModule::switchUseRandomColors(){
         useRandomColors = true;
 }
 void ParticleEffectModule::switchAreParticlesMoving(){
-    if(areParticlesMoving)
-        areParticlesMoving = false;
-    else
-        areParticlesMoving = true;
+    areParticlesMoving = !areParticlesMoving;
 }
 void ParticleEffectModule::changeGeneralParameters(vec2d newPos, vec2d newSize, double newMinParticleRadius, double newMaxParticleRadius, double newMinTimeToDeath, double newMaxTimeToDeath, double newMinColorIntensity,
         double newMaxColorIntensity, double newMinShapeRotationSpeed, double newMaxShapeRotationSpeed, short newParticlesShape, bool newUseImageAsParticles, bool newIsDrawingWithDetails, bool newIsStatic){
