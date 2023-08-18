@@ -248,6 +248,7 @@ public:
     void nameVariable(vector<PointerContainer> & EventContext, OperaClass & Operation);
     template<class Entity>
     void cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOperand, vector<LayerClass> & Layers);
+    void moveValues(OperaClass & Operation, vector<PointerContainer> &EventContext);
     void cloneEntities(OperaClass & Operation, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers);
     void executeArithmetics(OperaClass & Operation, vector<PointerContainer> &EventContext);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);

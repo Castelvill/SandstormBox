@@ -124,7 +124,7 @@ MovementModule::MovementModule(string newID, vector<string> &listOfIDs, string n
     moveOnMouseRelease = true;
 }
 MovementModule::MovementModule(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    MovementModule(intToStr4(newID), listOfIDs, newLayerID, newObjectID);
+    MovementModule(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
 void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
     string oldID = ID;

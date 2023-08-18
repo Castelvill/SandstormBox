@@ -29,10 +29,10 @@ public:
     int getDefaultInt();
     double getDefaultDouble();
     string getDefaultString();
-    bool getBool();
-    int getInt();
-    double getDouble();
-    string getString();
+    bool getBool() const;
+    int getInt() const;
+    double getDouble() const;
+    string getString() const;
     void setID(string, vector<string> * listOfIDs);
     void setLayerID(string);
     void setObjectID(string);
@@ -60,9 +60,19 @@ public:
     bool isConditionMet(condValueType condVal, string operatorType, char valType);
     bool isConditionMet(string condVal, string operatorType, char valType);
     bool isConditionMet(string operatorType, VariableModule * OtherVariable);
-    int intOperation(string operatorType, VariableModule * OtherVariable);
     double floatingOperation(string operatorType, VariableModule * OtherVariable);
+    double floatingOperation(string operatorType, BasePointersStruct * OtherVariable);
+    int intOperation(string operatorType, VariableModule * OtherVariable);
+    int intOperation(string operatorType, BasePointersStruct * RightOperand);
+    template<typename LeftType, typename RightType>
+    void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, string instruction);
+    template<typename RightType>
+    void moveFromTemp(RightType * RightOperand, string instruction);
+    void move(VariableModule * RightOperand, string instruction);
+    BaseVariableStruct getVariableStruct() const;
     VariableModule & operator=(const VariableModule& original);
+    template <typename T>
+    void tryToSetFromPointer(const T & value);
     void setValueFromPointer(const BasePointersStruct & BasePointer);
     void set(const BaseVariableStruct & BaseVariable);
 };

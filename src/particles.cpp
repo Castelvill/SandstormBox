@@ -202,7 +202,7 @@ ParticleEffectModule::ParticleEffectModule(string newID, vector<string> &listOfI
     usedBitmapLayer = 0;
 }
 ParticleEffectModule::ParticleEffectModule(unsigned newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
-    ParticleEffectModule(intToStr4(newID), listOfIDs, newLayerID, newObjectID);
+    ParticleEffectModule(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
 void ParticleEffectModule::clone(const ParticleEffectModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
     string oldID = ID;

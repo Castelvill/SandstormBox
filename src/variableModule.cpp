@@ -55,10 +55,10 @@ string VariableModule::getAnyValue(){
         return "false";
     }
     if(type == 'i'){
-        return intToStr8(vInt);
+        return intToStr(vInt);
     }
     if(type == 'd'){
-        return doubleToStr8(vDouble);
+        return doubleToStr(vDouble);
     }
     if(type == 's'){
         return "\"" + vString + "\"";
@@ -96,7 +96,7 @@ double VariableModule::getDefaultDouble(){
 string VariableModule::getDefaultString(){
     return defaultString;
 }
-bool VariableModule::getBool(){
+bool VariableModule::getBool() const{
     if(type == 'i'){
         return vInt > 0;
     }
@@ -109,7 +109,7 @@ bool VariableModule::getBool(){
     }
     return vBool;
 }
-int VariableModule::getInt(){
+int VariableModule::getInt() const{
     if(type == 'd'){
         std::cout << "Warning [VariableModule]: floating point ignored.\n";
         return vDouble;
@@ -120,7 +120,7 @@ int VariableModule::getInt(){
     }
     return vInt;
 }
-double VariableModule::getDouble(){
+double VariableModule::getDouble() const{
     if(type == 'i'){
         std::cout << "Warning [VariableModule]: no floating point.\n";
         return vInt;
@@ -131,12 +131,25 @@ double VariableModule::getDouble(){
     }
     return vDouble;
 }
-string VariableModule::getString(){
-    if(type != 's'){
-        std::cout << "Error [VariableModule]: You can't access string variable.\n";
-        return "";
+string VariableModule::getString() const{
+    if(type == 's'){
+        return vString;
     }
-    return vString;
+    else if(type == 'b'){
+        if(vBool){
+            return "true";
+        }
+        return "false";
+    }
+    else if(type == 'i'){
+        return intToStr(vInt);
+    }
+    else if(type == 'd'){
+        return doubleToStr(vDouble);
+    }
+    
+    std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
+    return "[invalid type]";
 }
 void VariableModule::setID(string newID, vector<string> * listOfIDs){
     if(listOfIDs != nullptr){
@@ -164,7 +177,7 @@ bool VariableModule::setType(char newType)
 }
 bool VariableModule::tryToSetType(char newType){
     if(type != 'n' && type != newType){
-        std::cout << "Error: In VariableModule::tryToSetType(): You can't change the type of already initialized variable.\n";
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You can't change the type of already initialized variable.\n";
         return false;
     }
     type = newType;
@@ -471,7 +484,7 @@ bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherV
 }
 double VariableModule::floatingOperation(string operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){
-        std::cout << "Error [VariableModule]: You cannot use string variable in arithmetic operation.\n";
+        std::cout << "Error: " << __PRETTY_FUNCTION__ << ": You cannot use string variable in arithmetic operation.\n";
         return false;
     }
     if(operatorType == "+"){
@@ -492,12 +505,38 @@ double VariableModule::floatingOperation(string operatorType, VariableModule * O
     else if(operatorType == "**"){
         return pow(getDouble(), OtherVariable->getDouble());
     }
-    std::cout << "Error [VariableModule]: Unrecognized operator.\n";
+    std::cout << "Error: " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    return 0.0;
+}
+double VariableModule::floatingOperation(string operatorType, BasePointersStruct * RightOperand){
+    if(type == 's' || RightOperand->type == "string"){
+        std::cout << "Error: " << __PRETTY_FUNCTION__ << ": You cannot use string variable in the arithmetic operation.\n";
+        return false;
+    }
+    if(operatorType == "+"){
+        return getDouble() + RightOperand->getDouble();
+    }
+    else if(operatorType == "-"){
+        return getDouble() - RightOperand->getDouble();
+    }
+    else if(operatorType == "*"){
+        return getDouble() * RightOperand->getDouble();
+    }
+    else if(operatorType == "/"){
+        return getDouble() / RightOperand->getDouble();
+    }
+    else if(operatorType == "%"){
+        return int(getDouble()) % int(RightOperand->getDouble());
+    }
+    else if(operatorType == "**"){
+        return pow(getDouble(), RightOperand->getDouble());
+    }
+    std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
     return 0.0;
 }
 int VariableModule::intOperation(string operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){
-        std::cout << "Error [VariableModule]: You cannot use string variable in arithmetic operation.\n";
+        std::cout << "Error: In VariableModule::intOperation(): You cannot use string variable in arithmetic operation.\n";
         return false;
     }
     if(operatorType == "+"){
@@ -518,9 +557,155 @@ int VariableModule::intOperation(string operatorType, VariableModule * OtherVari
     else if(operatorType == "**"){
         return pow(getInt(), OtherVariable->getInt());
     }
-    return false;
+    std::cout << "Error: In VariableModule::intOperation(): Unrecognized operator.\n";
+    return 0;
 }
-VariableModule & VariableModule::operator=(const VariableModule& original){
+int VariableModule::intOperation(string operatorType, BasePointersStruct * RightOperand){
+    if(type == 's' || RightOperand->type == "string"){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot use string variable in the arithmetic operation.\n";
+        return false;
+    }
+    if(operatorType == "+"){
+        return getInt() + RightOperand->getInt();
+    }
+    else if(operatorType == "-"){
+        return getInt() - RightOperand->getInt();
+    }
+    else if(operatorType == "*"){
+        return getInt() * RightOperand->getInt();
+    }
+    else if(operatorType == "/"){
+        return getInt() / RightOperand->getInt();
+    }
+    else if(operatorType == "%"){
+        return int(getInt()) % int(RightOperand->getInt());
+    }
+    else if(operatorType == "**"){
+        return pow(getInt(), RightOperand->getInt());
+    }
+    std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    return 0;
+}
+BaseVariableStruct VariableModule::getVariableStruct() const{
+    BaseVariableStruct Structure;
+
+    if(type == 'b'){
+        Structure.type = "bool";
+        Structure.vBool = getBool();
+    }
+    else if(type == 'i'){
+        Structure.type = "int";
+        Structure.vInt = getInt();
+    }
+    else if(type == 'd'){
+        Structure.type = "double";
+        Structure.vDouble = getDouble();
+    }
+    else if(type == 's'){
+        Structure.type = "string";
+        Structure.vString = getString();
+    }
+    else{
+        Structure.type = "";
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << type << "\' is not a valid type.\n";
+    }
+
+    return Structure;
+}
+template<typename LeftType, typename RightType>
+void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, string instruction){
+    if(instruction == "++"){
+        *LeftOperand = *LeftOperand + *LeftOperand;
+        return;
+    }
+    else if(instruction == "--"){
+        *LeftOperand = *LeftOperand - *LeftOperand;
+        return;
+    }
+    if(LeftOperand == nullptr){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
+        return;
+    }
+    if(RightOperand == nullptr){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
+        return;
+    }
+    if(instruction == "=" || instruction == "clone"){
+        *LeftOperand = *RightOperand;
+    }
+    else if(instruction == "+="){
+        *LeftOperand = (*LeftOperand + *RightOperand);
+    }
+    else if(instruction == "-="){
+        *LeftOperand = (*LeftOperand) - (*RightOperand);
+    }
+    else if(instruction == "*="){
+        *LeftOperand = (*LeftOperand) * (*RightOperand);
+    }
+    else if(instruction == "/="){
+        if(*RightOperand != 0){
+            *LeftOperand = (*LeftOperand) / (*RightOperand);
+        }
+        else{
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot divide by zero.\n";
+        }
+    }
+    else{
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << instruction << "\' is not a valid instruction.\n";
+    }
+}
+template<typename RightType>
+void VariableModule::moveFromTemp(RightType * RightOperand, string instruction){
+    if(type == 'b'){
+        short temp = vBool;
+        executeMoveTypeInstruction(&temp, RightOperand, instruction);
+        vBool = temp > 0;
+    }
+    else if(type == 'i'){
+        executeMoveTypeInstruction(&vInt, RightOperand, instruction);
+    }
+    else if(type == 'd'){
+        executeMoveTypeInstruction(&vDouble, RightOperand, instruction);
+    }
+    else{
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the left operand: \'" << type << "\' type is not valid.\n";
+    }
+}
+void VariableModule::move(VariableModule *RightOperand, string instruction){
+    if(type == 's' || RightOperand->type == 's'){
+        if(type == 's'){
+            if(instruction == "="){
+                vString = RightOperand->getString();
+            }
+            else if(instruction == "+="){
+                vString += RightOperand->getString();
+            }
+            else{
+                std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+            }
+        }
+        else{
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+        }
+    }
+    else if(RightOperand->type == 'b'){
+        short temp = RightOperand->vBool;
+        moveFromTemp(&temp, instruction);
+    }
+    else if(RightOperand->type == 'i'){
+        moveFromTemp(&RightOperand->vInt, instruction);
+    }
+    else if(RightOperand->type == 'd'){
+        moveFromTemp(&RightOperand->vDouble, instruction);
+    }
+    else if(instruction == "++" || instruction == "--"){
+        moveFromTemp((int*)nullptr, instruction);
+    }
+    else{
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
+    }
+}
+VariableModule &VariableModule::operator=(const VariableModule &original){
     ID = original.ID;
     type = original.type;
     if(type == 'b'){
@@ -538,106 +723,53 @@ VariableModule & VariableModule::operator=(const VariableModule& original){
     return *this;
 }
 
-void VariableModule::setValueFromPointer(const BasePointersStruct &BasePointer){
-    if(!isStringInGroup(BasePointer.type, 9, "bool", "char", "short", "unsigned_short", "int", "unsigned_int", "float", "double", "string")){
-        std::cout << "Error: In BasePointersStruct::setValueFromPointer(): right operand's \'" << BasePointer.type << "\' type does not exist.\n";
-        return;
-    }
+template <typename T>
+void VariableModule::tryToSetFromPointer(const T & value){
     if(type == 'b'){
-        if(BasePointer.type == "bool"){
-            setBool(*BasePointer.pBool);
-        }
-        else if(BasePointer.type == "char"){
-            setBool(*BasePointer.pChar);
-        }
-        else if(BasePointer.type == "short"){
-            setBool(*BasePointer.pShort);
-        }
-        else if(BasePointer.type == "unsigned_short"){
-            setBool(*BasePointer.pUShort);
-        }
-        else if(BasePointer.type == "int"){
-            setBool(*BasePointer.pInt);
-        }
-        else if(BasePointer.type == "unsigned_int"){
-            setBool(*BasePointer.pUInt);
-        }
-        else if(BasePointer.type == "float"){
-            setBool(*BasePointer.pFloat);
-        }
-        else if(BasePointer.type == "double"){
-            setBool(*BasePointer.pDouble);
-        }
-        else if(BasePointer.type == "string"){
-            setBool(BasePointer.pString->size());
-        }
+        setBool(value);
     }
     else if(type == 'i'){
-        if(BasePointer.type == "bool"){
-            setInt(*BasePointer.pBool);
-        }
-        else if(BasePointer.type == "char"){
-            setInt(*BasePointer.pChar);
-        }
-        else if(BasePointer.type == "short"){
-            setInt(*BasePointer.pShort);
-        }
-        else if(BasePointer.type == "unsigned_short"){
-            setInt(*BasePointer.pUShort);
-        }
-        else if(BasePointer.type == "int"){
-            setInt(*BasePointer.pInt);
-        }
-        else if(BasePointer.type == "unsigned_int"){
-            setInt(*BasePointer.pUInt);
-        }
-        else if(BasePointer.type == "float"){
-            setInt(*BasePointer.pFloat);
-        }
-        else if(BasePointer.type == "double"){
-            setInt(*BasePointer.pDouble);
-        }
-        else if(BasePointer.type == "string"){
-            setInt((*BasePointer.pString)[0]);
-        }
+        setInt(value);
     }
     else if(type == 'd'){
-        if(BasePointer.type == "bool"){
-            setDouble(*BasePointer.pBool);
-        }
-        else if(BasePointer.type == "char"){
-            setDouble(*BasePointer.pChar);
-        }
-        else if(BasePointer.type == "short"){
-            setDouble(*BasePointer.pShort);
-        }
-        else if(BasePointer.type == "unsigned_short"){
-            setDouble(*BasePointer.pUShort);
-        }
-        else if(BasePointer.type == "int"){
-            setDouble(*BasePointer.pInt);
-        }
-        else if(BasePointer.type == "unsigned_int"){
-            setDouble(*BasePointer.pUInt);
-        }
-        else if(BasePointer.type == "float"){
-            setDouble(*BasePointer.pFloat);
-        }
-        else if(BasePointer.type == "double"){
-            setDouble(*BasePointer.pDouble);
-        }
-        else if(BasePointer.type == "string"){
-            setDouble((*BasePointer.pString)[0]);
-        }
+        setDouble(value);
     }
-    else if(type == 's'){
-        if(BasePointer.type != "string"){
-            std::cout << "Error: In BasePointersStruct::tryToSet(): You cannot assign non-string type value to a string type variable.\n";
-            return;
+}
+void VariableModule::setValueFromPointer(const BasePointersStruct &BasePointer){
+    if(type == 's' || BasePointer.type == "string"){
+        if(type == 's'){
+            setString(BasePointer.getString());
         }
         else{
-            setString(*BasePointer.pString);
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign string type value to a non-string variable.\n";
         }
+    }
+    else if(BasePointer.type == "bool"){
+        tryToSetFromPointer(*BasePointer.pBool);
+    }
+    else if(BasePointer.type == "char"){
+        tryToSetFromPointer(*BasePointer.pChar);
+    }
+    else if(BasePointer.type == "short"){
+        tryToSetFromPointer(*BasePointer.pShort);
+    }
+    else if(BasePointer.type == "unsigned_short"){
+        tryToSetFromPointer(*BasePointer.pUShort);
+    }
+    else if(BasePointer.type == "int"){
+        tryToSetFromPointer(*BasePointer.pInt);
+    }
+    else if(BasePointer.type == "unsigned_int"){
+        tryToSetFromPointer(*BasePointer.pUInt);
+    }
+    else if(BasePointer.type == "float"){
+        tryToSetFromPointer(*BasePointer.pFloat);
+    }
+    else if(BasePointer.type == "double"){
+        tryToSetFromPointer(*BasePointer.pDouble);
+    }
+    else{
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: \'" << BasePointer.type << "\' type does not exist.\n";
     }
 }
 

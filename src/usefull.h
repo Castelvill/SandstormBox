@@ -12,10 +12,10 @@ using std::string;
 
 const double FPS = 60.0;
 
-string intToStr4(int integer);
-string intToStr8(int integer);
-string doubleToStr4(double doubleVar);
-string doubleToStr8(double doubleVar);
+string shortToStr(short integer);
+string intToStr(int integer);
+string uIntToStr(unsigned int integer);
+string doubleToStr(double doubleVar);
 double countDistance(double x1, double y1, double x2, double y2);
 double countDistance2(double & x1, double & y1, double & x2, double & y2);
 int randomInt(int minValue, int maxValue);

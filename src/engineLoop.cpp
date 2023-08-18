@@ -335,7 +335,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         redraw = false;
 
         fps.update();
-        string updatedFpsLabel = "FPS: " + intToStr4(fps.get());
+        string updatedFpsLabel = "FPS: " + intToStr(fps.get());
 
         if(Layers[0].Objects.size() >= 2)
             if(Layers[0].Objects[1].TextContainer.size() > 0)
@@ -1958,6 +1958,46 @@ void EngineLoop::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity
         }
     }
 }
+void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &EventContext){
+    PointerContainer * LeftOperand = nullptr;
+    PointerContainer * RightOperand = nullptr;
+    unsigned i = 0;
+
+    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
+        || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
+        || (RightOperand->type != "pointer" && RightOperand->type != "value")
+    ){
+        return;
+    }
+
+    if(LeftOperand->type == "pointer" && RightOperand->type == "pointer"){
+        for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->BasePointers.size(); i++){
+            LeftOperand->BasePointers[i].move(RightOperand->BasePointers[i], Operation.instruction);
+        }
+    }
+    else if(LeftOperand->type == "value" && RightOperand->type == "value"){
+        for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->Variables.size(); i++){
+            LeftOperand->Variables[i].move(&RightOperand->Variables[i], Operation.instruction);
+        }
+    }
+    else if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+        BaseVariableStruct RightVariable;
+        for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->Variables.size(); i++){
+            /*RightVariable = RightOperand->Variables[i].getVariableStruct();
+            if(RightVariable.type != ""){
+                LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
+            }*/
+        }
+    }
+    else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
+        for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->BasePointers.size(); i++){
+            //LeftOperand->Variables[i].setValueFromPointer(RightOperand->BasePointers[i]);
+        }
+    }
+    else{
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+    }
+}
 void EngineLoop::cloneEntities(OperaClass & Operation, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers){
     PointerContainer * LeftOperand = nullptr;
     PointerContainer * RightOperand = nullptr;
@@ -1969,18 +2009,11 @@ void EngineLoop::cloneEntities(OperaClass & Operation, vector<PointerContainer> 
 
     if(LeftOperand->type != RightOperand->type){
         if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+            BaseVariableStruct RightVariable;
             for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->Variables.size(); i++){
-                if(RightOperand->Variables[i].getType() == 'b'){
-                    LeftOperand->BasePointers[i].tryToSetValue(RightOperand->Variables[i].getBool(), 0, 0.0, "", "bool");
-                }
-                else if(RightOperand->Variables[i].getType() == 'i'){
-                    LeftOperand->BasePointers[i].tryToSetValue(false, RightOperand->Variables[i].getInt(), 0.0, "", "int");
-                }
-                else if(RightOperand->Variables[i].getType() == 'd'){
-                    LeftOperand->BasePointers[i].tryToSetValue(false, 0, RightOperand->Variables[i].getDouble(), "", "double");
-                }
-                else if(RightOperand->Variables[i].getType() == 's'){
-                    LeftOperand->BasePointers[i].tryToSetValue(false, 0, 0.0, RightOperand->Variables[i].getString(), "string");
+                RightVariable = RightOperand->Variables[i].getVariableStruct();
+                if(RightVariable.type != ""){
+                    LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
                 }
             }
         }
@@ -1990,7 +2023,7 @@ void EngineLoop::cloneEntities(OperaClass & Operation, vector<PointerContainer> 
             }
         }
         else{
-            std::cout << "Error: In executeSetOperation(): You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
     }
     else{
@@ -2075,39 +2108,59 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
                 if(result.type != ""){
                     NewContext.Variables.push_back(VariableModule());
                     NewContext.Variables.back().set(result);
+                    result.type = "";
                 }
             }
         }
         else if(LeftOperand->type == "value"){
             for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->Variables.size(); i++){
-                LeftOperand->Variables[i] = RightOperand->Variables[i];
+                if(LeftOperand->Variables[i].getType() == 'd' || RightOperand->Variables[i].getType() == 'd'){
+                    NewContext.Variables.push_back(VariableModule());
+                    NewContext.Variables.back().setDouble(LeftOperand->Variables[i].floatingOperation(Operation.instruction, &RightOperand->Variables[i]));
+                }
+                else{
+                    NewContext.Variables.push_back(VariableModule());
+                    NewContext.Variables.back().setInt(LeftOperand->Variables[i].intOperation(Operation.instruction, &RightOperand->Variables[i]));
+                }
             }
+        }
+        else{
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
     }
     else{
         if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+            BaseVariableStruct RightVariable;
             for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->Variables.size(); i++){
-                if(RightOperand->Variables[i].getType() == 'b'){
-                    LeftOperand->BasePointers[i].tryToSetValue(RightOperand->Variables[i].getBool(), 0, 0.0, "", "bool");
+                RightVariable = RightOperand->Variables[i].getVariableStruct();
+                
+                if(RightVariable.type == ""){
+                    continue;
                 }
-                else if(RightOperand->Variables[i].getType() == 'i'){
-                    LeftOperand->BasePointers[i].tryToSetValue(false, RightOperand->Variables[i].getInt(), 0.0, "", "int");
-                }
-                else if(RightOperand->Variables[i].getType() == 'd'){
-                    LeftOperand->BasePointers[i].tryToSetValue(false, 0, RightOperand->Variables[i].getDouble(), "", "double");
-                }
-                else if(RightOperand->Variables[i].getType() == 's'){
-                    LeftOperand->BasePointers[i].tryToSetValue(false, 0, 0.0, RightOperand->Variables[i].getString(), "string");
+                
+                result = LeftOperand->BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
+
+                if(result.type != ""){
+                    NewContext.Variables.push_back(VariableModule());
+                    NewContext.Variables.back().set(result);
+                    result.type = "";
                 }
             }
         }
         else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
             for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->BasePointers.size(); i++){
-                LeftOperand->Variables[i].setValueFromPointer(RightOperand->BasePointers[i]);
+                if(LeftOperand->Variables[i].getType() == 'd' || isStringInGroup(RightOperand->BasePointers[i].type, 4, "float", "double")){
+                    NewContext.Variables.push_back(VariableModule());
+                    NewContext.Variables.back().setDouble(LeftOperand->Variables[i].floatingOperation(Operation.instruction, &RightOperand->BasePointers[i]));
+                }
+                else{
+                    NewContext.Variables.push_back(VariableModule());
+                    NewContext.Variables.back().setInt(LeftOperand->Variables[i].intOperation(Operation.instruction, &RightOperand->BasePointers[i]));
+                }
             }
         }
         else{
-            std::cout << "Error: In executeSetOperation(): You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
     }
 
@@ -2161,6 +2214,10 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         
         if(Operation.instruction == "clone"){
             cloneEntities(Operation, EventContext, Layers);
+        }
+
+        if(isStringInGroup(Operation.instruction, 4, "+", "-", "*", "/")){
+            executeArithmetics(Operation, EventContext);
         }
     }
     return OperaClass();

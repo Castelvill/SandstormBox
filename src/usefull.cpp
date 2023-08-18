@@ -1,22 +1,25 @@
 #include "usefull.h"
 
-string intToStr4(int integer){
-    char buff[4];
+string shortToStr(short integer){
+    char buff[6];
     sprintf(buff, "%d", integer);
     return buff;
 }
-string intToStr8(int integer){
-    char buff[8];
+string intToStr(int integer){
+    char buff[11];
     sprintf(buff, "%d", integer);
     return buff;
 }
-string doubleToStr4(double doubleVar){
-    char buff[4];
-    sprintf(buff, "%f", doubleVar);
+string uIntToStr(unsigned int integer){
+    char buff[11];
+    sprintf(buff, "%u", integer);
     return buff;
 }
-string doubleToStr8(double doubleVar){
-    char buff[8];
+string doubleToStr(double doubleVar){
+    if(doubleVar >= 1e16){
+        return "[too big]";
+    }
+    char buff[16];
     sprintf(buff, "%f", doubleVar);
     return buff;
 }
@@ -102,7 +105,7 @@ string findNewUniqueID(vector <string> uniqueIDs, string newID){
     while(isStringInVector(uniqueIDs, newID)){
         if(isdigit(newID.back())){
             size_t last_index = newID.find_last_not_of("0123456789");
-            newID = newID.substr(0, last_index + 1) + intToStr8(stoi(newID.substr(last_index + 1)) + 1);
+            newID = newID.substr(0, last_index + 1) + intToStr(stoi(newID.substr(last_index + 1)) + 1);
         }
         else{
             newID += "0";

@@ -22,7 +22,7 @@ void loadFontsToContainer(vector <SingleFont> & FontContainer){
         for(i = 0; i < (sizeof(fontSizes)/sizeof(*fontSizes)); i++){
             FontContainer.push_back(SingleFont());
             FontContainer.back().font = al_load_ttf_font(filePath.c_str(), fontSizes[i], 2);
-            FontContainer.back().ID = fileName.substr(0, fileName.size()-4) + intToStr4(fontSizes[i]);
+            FontContainer.back().ID = fileName.substr(0, fileName.size()-4) + intToStr(fontSizes[i]);
             FontContainer.back().sizeF = fontSizes[i];
         }
     }
@@ -602,7 +602,7 @@ if(pressed("q")){
       //                                    double newBaseFriction, double newMaxMomentumX, double newMoveCooldown, bool newCanMoveDiagonally)
 */
     for(unsigned int i = 0; i < 0; i++){
-        Objects.push_back(AncestorObject("Obiekt"+intToStr8(i), listOfUniqueIDs, layerID));
+        Objects.push_back(AncestorObject("Obiekt"+intToStr(i), listOfUniqueIDs, layerID));
         Objects.back().ImageContainer.push_back(ImageModule("", Objects.back().imageContainerIDs, layerID, Objects.back().getID()));
         Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "cat260");
         Objects.back().ImageContainer[0].changeParameters("Feet", Objects.back().imageContainerIDs, vec6d(0.0, 0.0, 260.0, 260.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(1.0, 1.0, 1.0, 1.0));

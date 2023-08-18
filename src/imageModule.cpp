@@ -32,7 +32,7 @@ float cx, float cy, float dx, float dy, float xscale, float yscale, float angle,
 
 
 SingleBitmap::SingleBitmap(unsigned int bitmapID){
-    ID = intToStr4(bitmapID);
+    ID = intToStr(bitmapID);
     bitmap = nullptr;
 }
 void SingleBitmap::loadBitmap(string newID, string filePath){

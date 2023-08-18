@@ -21,6 +21,10 @@ public:
     float vFloat;
     double vDouble;
     string vString;
+
+    template<typename LeftType>
+    void moveValue(LeftType * LeftOperand) const;
+    string getString() const;
 };
 
 class BasePointersStruct{
@@ -37,15 +41,20 @@ public:
     string * pString;
     BasePointersStruct();
     void clear();
-    template<typename T>
-    void tryToMove(T * LeftOperand, const T * RightOperand, string instruction);
-    void tryToSetValue(bool vBool, int vInt, double vDouble, string vString, string valueType);
+    template<typename LeftType, typename RightType>
+    void executeMoveTypeInstruction(LeftType * LeftOperand, const RightType * RightOperand, string instruction);
+    void tryToSetValue(const BaseVariableStruct & RightOperand);
+    template<typename RightType>
+    void moveFromTemp(const RightType * RightOperand, string instruction);
     void move(const BasePointersStruct & RightOperand, string instruction);
     template<typename LeftType, typename RightType>
     LeftType tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, string instruction);
     template<typename LeftType>
     LeftType callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, string instruction);
     BaseVariableStruct executeArithmetics(const BasePointersStruct &RightOperand, string instruction);
+    template<typename LeftType>
+    LeftType callTryArithmetics(LeftType * LeftOperand, const BaseVariableStruct & RightOperand, string instruction);
+    BaseVariableStruct executeArithmetics(const BaseVariableStruct & RightOperand, string instruction);
     void setPointer(bool*);
     void setPointer(char*);
     void setPointer(short*);
@@ -56,6 +65,10 @@ public:
     void setPointer(double*);
     void setPointer(string*);
     bool areEqual(BasePointersStruct *OtherVariable);
+
+    double getDouble() const;
+    int getInt() const;
+    string getString() const;
 };
 
 class PrimaryModule{
