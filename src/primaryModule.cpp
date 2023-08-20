@@ -452,6 +452,55 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, string ins
         std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
     }
 }
+void BasePointersStruct::move(const BaseVariableStruct & RightOperand, string instruction){
+    if(type == "string" || RightOperand.type == "string"){
+        if(type == "string"){
+            if(instruction == "="){
+                *pString = RightOperand.getString();
+            }
+            else if(instruction == "+="){
+                *pString += RightOperand.getString();
+            }
+            else{
+                std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+            }
+        }
+        else{
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+        }
+    }
+    else if(RightOperand.type == "bool"){
+        short temp = RightOperand.vBool;
+        moveFromTemp(&temp, instruction);
+    }
+    else if(RightOperand.type == "char"){
+        moveFromTemp(&RightOperand.vChar, instruction);
+    }
+    else if(RightOperand.type == "short"){
+        moveFromTemp(&RightOperand.vShort, instruction);
+    }
+    else if(RightOperand.type == "unsigned_short"){
+        moveFromTemp(&RightOperand.vUShort, instruction);
+    }
+    else if(RightOperand.type == "int"){
+        moveFromTemp(&RightOperand.vInt, instruction);
+    }
+    else if(RightOperand.type == "unsigned_int"){
+        moveFromTemp(&RightOperand.vUInt, instruction);
+    }
+    else if(RightOperand.type == "float"){
+        moveFromTemp(&RightOperand.vFloat, instruction);
+    }
+    else if(RightOperand.type == "double"){
+        moveFromTemp(&RightOperand.vDouble, instruction);
+    }
+    else if(instruction == "++" || instruction == "--"){
+        moveFromTemp((short*)nullptr, instruction);
+    }
+    else{
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
+    }
+}
 template<typename LeftType, typename RightType>
 LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, string instruction){
     if(LeftOperand == nullptr){

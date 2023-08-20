@@ -47,6 +47,7 @@ public:
     template<typename RightType>
     void moveFromTemp(const RightType * RightOperand, string instruction);
     void move(const BasePointersStruct & RightOperand, string instruction);
+    void move(const BaseVariableStruct & RightOperand, string instruction);
     template<typename LeftType, typename RightType>
     LeftType tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, string instruction);
     template<typename LeftType>

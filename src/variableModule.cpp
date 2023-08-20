@@ -689,7 +689,7 @@ void VariableModule::move(VariableModule *RightOperand, string instruction){
         }
     }
     else if(RightOperand->type == 'b'){
-        short temp = RightOperand->vBool;
+        int temp = RightOperand->vBool;
         moveFromTemp(&temp, instruction);
     }
     else if(RightOperand->type == 'i'){
@@ -697,6 +697,42 @@ void VariableModule::move(VariableModule *RightOperand, string instruction){
     }
     else if(RightOperand->type == 'd'){
         moveFromTemp(&RightOperand->vDouble, instruction);
+    }
+    else if(instruction == "++" || instruction == "--"){
+        moveFromTemp((int*)nullptr, instruction);
+    }
+    else{
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
+    }
+}
+void VariableModule::move(const BasePointersStruct *RightOperand, string instruction){
+    if(type == 's' || RightOperand->type == "string"){
+        if(type == 's'){
+            if(instruction == "="){
+                vString = RightOperand->getString();
+            }
+            else if(instruction == "+="){
+                vString += RightOperand->getString();
+            }
+            else{
+                std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+            }
+        }
+        else{
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+        }
+    }
+    else if(RightOperand->type == "bool"){
+        int temp = *RightOperand->pBool;
+        moveFromTemp(&temp, instruction);
+    }
+    else if(RightOperand->type == "char" || RightOperand->type == "short" || RightOperand->type == "unsigned_short" || RightOperand->type == "int" || RightOperand->type == "unsigned_int"){
+        int temp = RightOperand->getInt();
+        moveFromTemp(&temp, instruction);
+    }
+    else if(RightOperand->type == "float" || RightOperand->type == "double"){
+        double temp = RightOperand->getDouble();
+        moveFromTemp(&temp, instruction);
     }
     else if(instruction == "++" || instruction == "--"){
         moveFromTemp((int*)nullptr, instruction);

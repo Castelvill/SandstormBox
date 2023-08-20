@@ -359,6 +359,7 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
                         BaseOfTriggerableObjects.KeyPressedTriggered.push_back(&Object);
                     }
                     else if(type == "key_pressing"){
+                        std::cout << "Trigger from: " << Object.getLayerID() << ":" << Object.getID() << "\n";
                         BaseOfTriggerableObjects.KeyPressingTriggered.push_back(&Object);
                     }
                     else if(type == "key_released"){
@@ -1011,6 +1012,7 @@ void EngineLoop::getContextFromModuleVector(string moduleType, string moduleID, 
         }
 
         if(Module->getID() != moduleID){
+            i++;
             continue;
         }
         if(attribute == "self"){
@@ -1025,7 +1027,6 @@ void EngineLoop::getContextFromModuleVector(string moduleType, string moduleID, 
                 NewContext.type = "pointer";
             }
         }
-
         i++;
     }
 }
@@ -1482,7 +1483,7 @@ void EngineLoop::findContextInTheAncestor(string attribute, PointerContainer & N
         }
     }
 }
-bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass * CurrentLayer, AncestorObject * CurrentObject, vector <LayerClass> & Layers){
+bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, vector <LayerClass> & Layers){
     if(OwnerLayer != nullptr && Owner != nullptr && Location.layerID == Owner->getLayerID()){
         CurrentLayer = OwnerLayer;
     }
@@ -1547,7 +1548,7 @@ void EngineLoop::findContextInOneObject(ValueLocation & Location, PointerContain
         getContextFromModuleVector(Location.moduleType, Location.moduleID, Location.attribute, NewContext, &CurrentObject->ScrollbarContainer, vector<ScrollbarModule*>());
     }
     else{
-        std::cout << "Error: In findContextInOneObject(): There are no instances of the \'" << Location.moduleType << "\' module.\n";
+        std::cout << "Error: In __FUNCTION__: There are no instances of the \'" << Location.moduleType << "\' module.\n";
     }
 }
 void EngineLoop::findContextInObjects(ValueLocation & Location, PointerContainer & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers){
@@ -1561,6 +1562,10 @@ void EngineLoop::findContextInObjects(ValueLocation & Location, PointerContainer
     if(!findLayerAndObject(Location, Owner, OwnerLayer, CurrentLayer, CurrentObject, Layers)){
         return;
     }
+
+    std::cout << "Addresses: " << CurrentObject << " " << Owner << "\n";
+
+    std::cout << "ID: " << CurrentLayer->getID() << " " << CurrentObject->getID() << "\n";
 
     findContextInOneObject(Location, NewContext, CurrentObject);
 }
@@ -1662,19 +1667,19 @@ PointerContainer * EngineLoop::getContextByID(vector<PointerContainer> & AllCont
         }
         return &Context;
     }
-    std::cout << "Warning: In getContextByID(): Dynamic variable with id \'" << contextID << "\' does not exist.\n";
+    std::cout << "Warning: In __FUNCTION__: Dynamic variable with id \'" << contextID << "\' does not exist.\n";
     return nullptr;
 }
-bool EngineLoop::getPairOfContexts(PointerContainer * LeftOperand, PointerContainer * RightOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs){
+bool EngineLoop::getPairOfContexts(PointerContainer *& LeftOperand, PointerContainer *& RightOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs){
     if(AllContexts.size() < 2){
-        std::cout << "Error: In getPairOfContexts(): There are no context to choose from.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
     }
     if(contextIDs.size() == 0){
         LeftOperand = &AllContexts[AllContexts.size()-2];
         RightOperand = &AllContexts.back();
     }
     else if(contextIDs.size() != 2){
-        std::cout << "Error: In getPairOfContexts(): Instruction requires 0 or 2 dynamic IDs.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction requires 0 or 2 dynamic IDs.\n";
         return false;
     }
     else{
@@ -1694,14 +1699,33 @@ bool EngineLoop::getPairOfContexts(PointerContainer * LeftOperand, PointerContai
 
     if(LeftOperand == nullptr){
         if(contextIDs.size() == 0){
-            std::cout << "Error: In getPairOfContexts(): Left operand does not exist.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": Left operand does not exist.\n";
         }
         return false;
     }
     if(RightOperand == nullptr){
         if(contextIDs.size() == 0){
-            std::cout << "Error: In getPairOfContexts(): Right operand does not exist.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": Right operand does not exist.\n";
         }
+        return false;
+    }
+
+    return true;
+}
+bool EngineLoop::getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, string contextID){
+    if(AllContexts.size() == 0){
+        std::cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
+    }
+
+    if(contextID == ""){
+        LeftOperand = &AllContexts[AllContexts.size()-1];
+    }
+    else{
+        LeftOperand = getContextByID(AllContexts, contextID);
+    }
+
+    if(LeftOperand == nullptr){
+        std::cout << "Error: In " << __FUNCTION__ << ": Left operand does not exist.\n";
         return false;
     }
 
@@ -1963,7 +1987,15 @@ void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &Ev
     PointerContainer * RightOperand = nullptr;
     unsigned i = 0;
 
-    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
+    if(Operation.instruction == "++" || Operation.instruction == "--"){
+        if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs.back())
+            || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
+        ){
+            return;
+        }
+        RightOperand = LeftOperand; //Cloning the left operand allows to reuse this function for incrementing and decrementing.
+    }
+    else if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
         || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
         || (RightOperand->type != "pointer" && RightOperand->type != "value")
     ){
@@ -1983,27 +2015,27 @@ void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &Ev
     else if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
         BaseVariableStruct RightVariable;
         for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->Variables.size(); i++){
-            /*RightVariable = RightOperand->Variables[i].getVariableStruct();
+            RightVariable = RightOperand->Variables[i].getVariableStruct();
             if(RightVariable.type != ""){
-                LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
-            }*/
+                LeftOperand->BasePointers[i].move(RightVariable, Operation.instruction);
+            }
         }
     }
     else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
         for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->BasePointers.size(); i++){
-            //LeftOperand->Variables[i].setValueFromPointer(RightOperand->BasePointers[i]);
+            LeftOperand->Variables[i].move(&RightOperand->BasePointers[i], Operation.instruction);
         }
     }
     else{
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
 }
-void EngineLoop::cloneEntities(OperaClass & Operation, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers){
+void EngineLoop::cloneEntities(vector<string> dynamicIDs, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers){
     PointerContainer * LeftOperand = nullptr;
     PointerContainer * RightOperand = nullptr;
     unsigned i = 0;
 
-    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
+    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, dynamicIDs)){
         return;
     }
 
@@ -2023,13 +2055,13 @@ void EngineLoop::cloneEntities(OperaClass & Operation, vector<PointerContainer> 
             }
         }
         else{
-            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
     }
     else{
         if(LeftOperand->type == "pointer"){
             for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->BasePointers.size(); i++){
-                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[i], Operation.instruction);
+                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[i], "clone");
             }
         }
         else if(LeftOperand->type == "value"){
@@ -2125,7 +2157,7 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
             }
         }
         else{
-            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
     }
     else{
@@ -2160,7 +2192,7 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
             }
         }
         else{
-            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
     }
 
@@ -2174,23 +2206,19 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         if(isStringInGroup(Operation.instruction, 3, "break", "return", "run")){
             return Operation;
         }
-        
         //Aggregate entities and push them on the Variables Stack.
-        if(isStringInGroup(Operation.instruction, 4, "first", "last", "all", "random")){
+        else if(isStringInGroup(Operation.instruction, 4, "first", "last", "all", "random")){
             aggregateEntities(Operation, EventContext, Layers, Cameras);
         }
-
         //Execute operations on sets.
-        if(isStringInGroup(Operation.instruction, 3, "agg_sum", "agg_intersection", "agg_difference")){
+        else if(isStringInGroup(Operation.instruction, 3, "agg_sum", "agg_intersection", "agg_difference")){
             aggregateTwoSets(Operation, EventContext);
         }
-
         //Get only values from the environment.
-        if(Operation.instruction == "value"){
+        else if(Operation.instruction == "value"){
             aggregateValues(EventContext, Operation, OwnerLayer, Owner, Layers, Cameras);
         }
-
-        if(Operation.instruction == "literal"){
+        else if(Operation.instruction == "literal"){
             PointerContainer NewContext;
             for(VariableModule & Literal : Operation.Literals){
                 NewContext.Variables.push_back(Literal);
@@ -2201,23 +2229,22 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
                 EventContext.push_back(NewContext);
             }
         }
-
         //Aggregate context only by id.
-        if(Operation.instruction == "all_by_id"){
+        else if(Operation.instruction == "all_by_id"){
             aggregateOnlyById(EventContext, Operation, OwnerLayer, Owner, Layers, Cameras);
         }
-
         //Assign a name to the previously aggregated entities.
-        if(Operation.instruction == "let"){
+        else if(Operation.instruction == "let"){
             nameVariable(EventContext, Operation);
         }
-        
-        if(Operation.instruction == "clone"){
-            cloneEntities(Operation, EventContext, Layers);
+        else if(Operation.instruction == "clone"){
+            cloneEntities(Operation.dynamicIDs, EventContext, Layers);
         }
-
-        if(isStringInGroup(Operation.instruction, 4, "+", "-", "*", "/")){
+        else if(isStringInGroup(Operation.instruction, 4, "+", "-", "*", "/")){
             executeArithmetics(Operation, EventContext);
+        }
+        else if(isStringInGroup(Operation.instruction, 7, "++", "--", "=", "+=", "-=", "*=", "/=")){
+            moveValues(Operation, EventContext);
         }
     }
     return OperaClass();
@@ -2944,7 +2971,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         do{
             if(Event->conditionalStatus == 'n'){
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Layers, Cameras);
-                std::cout << "Result: " << Event->conditionalStatus << "\n\n";
+                std::cout << "Result: " << Event->conditionalStatus << "\n";
             }
             if(Event->conditionalStatus == 't'){
                 if(!Event->areDependentOperationsDone){

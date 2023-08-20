@@ -227,7 +227,7 @@ public:
     void findContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer);
     void findLastContextInTheAncestor(string attribute, PointerContainer & NewContext, AncestorObject * Object);
     void findContextInTheAncestor(string attribute, PointerContainer & NewContext, AncestorObject * Object);
-    bool findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass * CurrentLayer, AncestorObject * CurrentObject, vector <LayerClass> & Layers);
+    bool findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, vector <LayerClass> & Layers);
     void findContextInOneObject(ValueLocation & Location, PointerContainer & NewContext, AncestorObject * CurrentObject);
     void findContextInObjects(ValueLocation & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers);
     void findContextInEnv(TriggerClass & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
@@ -236,7 +236,8 @@ public:
     void findLowerContext(TriggerClass & Location, PointerContainer & NewContext, PointerContainer * OldContext);
     PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID);
     //Method return true if a pair of contexts of the same type is found.
-    bool getPairOfContexts(PointerContainer * LeftOperand, PointerContainer * RightOperand, vector<PointerContainer> & AllContexts, vector <string> contextIDs);
+    bool getPairOfContexts(PointerContainer *& LeftOperand, PointerContainer *& RightOperand, vector<PointerContainer> & AllContexts, vector <string> contextIDs);
+    bool getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, string contextID);
     template<class Entity>
     void executeOperationsOnSets(string instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand);
     template<class Entity>
@@ -249,7 +250,7 @@ public:
     template<class Entity>
     void cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOperand, vector<LayerClass> & Layers);
     void moveValues(OperaClass & Operation, vector<PointerContainer> &EventContext);
-    void cloneEntities(OperaClass & Operation, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers);
+    void cloneEntities(vector<string> dynamicIDs, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers);
     void executeArithmetics(OperaClass & Operation, vector<PointerContainer> &EventContext);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);

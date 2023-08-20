@@ -32,8 +32,6 @@ public:
 class OperaClass{
 public:
     vector <TriggerClass> ConditionalChain; //Location.layerID MUST be equal OwnerLayer.getID
-    ValueLocation leftOperand;
-    ValueLocation rightOperand;
     vector <VariableModule> Literals;
     string affectedVariable;
     string instruction; //first, last, all, random, let, assigment, class method, run(), break, return

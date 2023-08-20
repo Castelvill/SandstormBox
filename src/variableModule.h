@@ -69,6 +69,7 @@ public:
     template<typename RightType>
     void moveFromTemp(RightType * RightOperand, string instruction);
     void move(VariableModule * RightOperand, string instruction);
+    void move(const BasePointersStruct *RightOperand, string instruction);
     BaseVariableStruct getVariableStruct() const;
     VariableModule & operator=(const VariableModule& original);
     template <typename T>

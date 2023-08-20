@@ -286,17 +286,11 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
 
-    /*
-
-if(pressed("q")){
-	let x = Objects.Amongus.Image.amogus.rotate_angle;
-	x = x + 1;
-}
-    
     Objects.back().EveContainer.push_back(EveModule("rotate", Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressing");
     Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "key_pressed";
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "key_pressing";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_Q);
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "x";
@@ -307,12 +301,15 @@ if(pressed("q")){
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleType = "image";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleID = "amongus";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "rotate_angle";
-
-
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "++";
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("x");
 
+    /*
+    if(pressed("q")){
+	let x = Objects.Amongus.Image.amogus.rotate_angle;
+	x++;
+}
     */
 
     /*Objects.back().EveContainer.push_back(0);
@@ -330,6 +327,7 @@ if(pressed("q")){
     Objects.push_back(AncestorObject(Objects.size(), listOfUniqueIDs, layerID));
     Objects.back().clone(Objects[Objects.size()-2], listOfUniqueIDs, layerID);
     Objects.back().translatePos(vec2d(300.0, 0.0));
+    Objects.back().EveContainer.clear();
 
     /*Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
     Objects.back().EveContainer.back().ConditionalChain.back().source = "mouse_released";
@@ -808,8 +806,14 @@ int main(){
     Layers.push_back(LayerClass("L1", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
     createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Environment.window);
 
+    std::cout << "Layer 1: " << Layers.back().getID() << "\n";
+    std::cout << "Object 1: " << Layers.back().Objects[0].getID() << " " << Layers.back().Objects[0].getLayerID() << "\n";
+
     Layers.push_back(LayerClass("", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(0, 0)));
     Layers.back().clone(Layers[Layers.size()-2], Environment.layersIDs);
+
+    std::cout << "Layer 2: " << Layers.back().getID() << "\n";
+    std::cout << "Object 2: " << Layers.back().Objects[0].getID() << " " << Layers.back().Objects[0].getLayerID() << "\n";
     
     if(Environment.isLayersUniquenessViolated(Layers)){
         goto uniquenessViolated;
