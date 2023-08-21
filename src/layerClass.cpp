@@ -87,20 +87,20 @@ void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs){
         for(EveModule & Event : Object.EveContainer){
             Event.setLayerID(getID());
             for(TriggerClass & Trigger : Event.ConditionalChain){
-                if(Trigger.Location.layerID == oldID){
+                if(Trigger.Location.layerID == Original.getID()){
                     Trigger.Location.layerID = getID();
                 }
             }
             for(OperaClass & Operation : Event.DependentOperations){
                 for(TriggerClass & Trigger : Operation.ConditionalChain){
-                    if(Trigger.Location.layerID == oldID){
+                    if(Trigger.Location.layerID == Original.getID()){
                         Trigger.Location.layerID = getID();
                     }
                 }
             }
             for(OperaClass & Operation : Event.PostOperations){
                 for(TriggerClass & Trigger : Operation.ConditionalChain){
-                    if(Trigger.Location.layerID == oldID){
+                    if(Trigger.Location.layerID == Original.getID()){
                         Trigger.Location.layerID = getID();
                     }
                 }

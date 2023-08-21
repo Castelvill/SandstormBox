@@ -237,7 +237,7 @@ public:
     PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID);
     //Method return true if a pair of contexts of the same type is found.
     bool getPairOfContexts(PointerContainer *& LeftOperand, PointerContainer *& RightOperand, vector<PointerContainer> & AllContexts, vector <string> contextIDs);
-    bool getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, string contextID);
+    bool getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs);
     template<class Entity>
     void executeOperationsOnSets(string instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand);
     template<class Entity>

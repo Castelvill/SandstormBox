@@ -293,23 +293,41 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_Q);
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "x";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "image";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "object";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.layerID = layerID;
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.objectID = "Amongus";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleType = "image";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleID = "amongus";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "self";
+
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("image");
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "object";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "rotate_angle";
+    
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "++";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("x");
+
+    /*Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("image");
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "rot_pos_y";
+    
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "++";*/
 
     /*
     if(pressed("q")){
-	let x = Objects.Amongus.Image.amogus.rotate_angle;
-	x++;
-}
+        let image = Objects.Amongus.Image.amogus;
+        image.rotate_angle++;
+        image.rot_pos_y++;
+    }
     */
 
     /*Objects.back().EveContainer.push_back(0);

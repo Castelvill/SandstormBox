@@ -359,7 +359,7 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
                         BaseOfTriggerableObjects.KeyPressedTriggered.push_back(&Object);
                     }
                     else if(type == "key_pressing"){
-                        std::cout << "Trigger from: " << Object.getLayerID() << ":" << Object.getID() << "\n";
+                        std::cout << "Trigger from: " << Object.getLayerID() << ":" << Object.getID() << " " << Event.getLayerID() << "\n";
                         BaseOfTriggerableObjects.KeyPressingTriggered.push_back(&Object);
                     }
                     else if(type == "key_released"){
@@ -1301,6 +1301,9 @@ void EngineLoop::findLastContextInCamera(string attribute, PointerContainer & Ne
     else if(attribute == "is_using_cursor_position_to_move"){
         NewContext.setFirstBasePointer(&Camera->isUsingCursorPositionToMove);
     }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    }
 }
 void EngineLoop::findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera){
     if(attribute == "self"){
@@ -1394,6 +1397,9 @@ void EngineLoop::findContextInCamera(string attribute, PointerContainer & NewCon
     else if(attribute == "is_using_cursor_position_to_move"){
         NewContext.addBasePointer(&Camera->isUsingCursorPositionToMove);
     }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    }
 }
 void EngineLoop::findLastContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer){
     if(attribute == "self"){
@@ -1416,6 +1422,9 @@ void EngineLoop::findLastContextInLayer(string attribute, PointerContainer & New
     }
     else if(attribute == "pos_y"){
         NewContext.setFirstBasePointer(&Layer->pos.y);
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     }
 }
 void EngineLoop::findContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer){
@@ -1563,9 +1572,10 @@ void EngineLoop::findContextInObjects(ValueLocation & Location, PointerContainer
         return;
     }
 
-    std::cout << "Addresses: " << CurrentObject << " " << Owner << "\n";
+    std::cout << "CurrentObject: " << CurrentObject << " " << CurrentLayer->getID() << " " << CurrentObject->getID() << "\n";
 
-    std::cout << "ID: " << CurrentLayer->getID() << " " << CurrentObject->getID() << "\n";
+    std::cout << "Owner: " << Owner << " " << OwnerLayer->getID() << " " << Owner->getID() << "\n";
+    std::cout << Owner->EveContainer.back().DependentOperations[0].ConditionalChain.back().Location.layerID << "\n";
 
     findContextInOneObject(Location, NewContext, CurrentObject);
 }
@@ -1573,7 +1583,7 @@ void EngineLoop::findContextInEnv(TriggerClass & Location, PointerContainer & Ne
     if(Location.source == "object"){
         findContextInObjects(Location.Location, NewContext, Owner, OwnerLayer, Layers);
     }
-    if(Location.source == "layer"){
+    else if(Location.source == "layer"){
         for(LayerClass & Layer : Layers){
             if(Layer.getID() != Location.Location.layerID){
                 continue;
@@ -1582,7 +1592,7 @@ void EngineLoop::findContextInEnv(TriggerClass & Location, PointerContainer & Ne
             return;
         }
     }
-    if(Location.source == "camera"){
+    else if(Location.source == "camera"){
         for(Camera2D & Camera : Cameras){
             if(Camera.getID() != Location.Location.cameraID){
                 continue;
@@ -1590,6 +1600,9 @@ void EngineLoop::findContextInEnv(TriggerClass & Location, PointerContainer & Ne
             findContextInCamera(Location.Location.attribute, NewContext, &Camera);
             return;
         }
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
     }
 }
 void EngineLoop::findContextInOneModule(string moduleType, string moduleID, string attribute, PointerContainer & NewContext, ModulesPointers & AggregatedModules){
@@ -1621,7 +1634,7 @@ void EngineLoop::findContextInOneModule(string moduleType, string moduleID, stri
         getContextFromModuleVector<ScrollbarModule>(moduleType, moduleID, attribute, NewContext, nullptr, AggregatedModules.Scrollbars);
     }
     else{
-        std::cout << "Error: In findLowerContextInObjects(): There are no instances of the \'" << moduleType << "\' module.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": There are no instances of the \'" << moduleType << "\' module.\n";
     }
 }
 void EngineLoop::findLowerContextInObjects(ValueLocation & Location, PointerContainer & NewContext, PointerContainer * OldContext){
@@ -1649,15 +1662,18 @@ void EngineLoop::findLowerContext(TriggerClass & Location, PointerContainer & Ne
     if(Location.source == "object"){
         findLowerContextInObjects(Location.Location, NewContext, Context);
     }
-    if(Location.source == "layer"){
+    else if(Location.source == "layer"){
         for(LayerClass * Layer : Context->Layers){
             findContextInLayer(Location.Location.attribute, NewContext, Layer);
         }
     }
-    if(Location.source == "camera"){
+    else if(Location.source == "camera"){
         for(Camera2D * Camera : Context->Cameras){
             findContextInCamera(Location.Location.attribute, NewContext, Camera);
         }
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
     }
 }
 PointerContainer * EngineLoop::getContextByID(vector<PointerContainer> & AllContexts, string contextID){
@@ -1712,23 +1728,29 @@ bool EngineLoop::getPairOfContexts(PointerContainer *& LeftOperand, PointerConta
 
     return true;
 }
-bool EngineLoop::getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, string contextID){
+bool EngineLoop::getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs){
     if(AllContexts.size() == 0){
         std::cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
     }
 
-    if(contextID == ""){
+    if(contextIDs.size() == 0){
         LeftOperand = &AllContexts[AllContexts.size()-1];
     }
     else{
-        LeftOperand = getContextByID(AllContexts, contextID);
+        LeftOperand = getContextByID(AllContexts, contextIDs.back());
     }
 
     if(LeftOperand == nullptr){
         std::cout << "Error: In " << __FUNCTION__ << ": Left operand does not exist.\n";
         return false;
     }
+    std::cout << "All types: ";
 
+    for(auto A : AllContexts){
+        std::cout << A.type << " ";
+    }   
+
+    std::cout << "\nKEEEEEEEEKEEEE\n";
     return true;
 }
 bool EngineLoop::checkDefaultCondition(VariableModule * Left, VariableModule * Right){
@@ -1988,9 +2010,10 @@ void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &Ev
     unsigned i = 0;
 
     if(Operation.instruction == "++" || Operation.instruction == "--"){
-        if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs.back())
+        if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)
             || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
         ){
+            std::cout << "LOOOOOOOOOL" << LeftOperand->type << "\n";
             return;
         }
         RightOperand = LeftOperand; //Cloning the left operand allows to reuse this function for incrementing and decrementing.
@@ -2261,7 +2284,7 @@ VariableModule EngineLoop::findNextValueInMovementModule(TriggerClass & Conditio
         }
         return NewValue;
     }
-    if(Condition.Location.attribute == "is_still"){
+    else if(Condition.Location.attribute == "is_still"){
         NewValue.setBool(true);
         for(MovementModule Movement : CurrentObject->MovementContainer){
             if(Movement.getIsActive() && Movement.isMoving()){
@@ -2333,6 +2356,7 @@ VariableModule EngineLoop::findNextValueInMovementModule(TriggerClass & Conditio
         }
         break;
     }
+    std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     NewValue.setBool(false);
     NewValue.setID("null", nullptr);
     return NewValue;
@@ -2387,6 +2411,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             NewValue.setDouble(CurrentObject->getSize().y);
         }
         else{
+            std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
             NewValue.setBool(false);
         }
         return NewValue;
@@ -2413,6 +2438,9 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
                 }
             }
             return NewValue;
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
         }
     }
     else if(Condition.Location.moduleType == "mouse"){
@@ -2456,6 +2484,9 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             }
             return NewValue;
         }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+        }
     }
     else if(Condition.Location.moduleType == "movement"){
         return findNextValueInMovementModule(Condition, CurrentObject);
@@ -2465,17 +2496,20 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             if(Text.getID() != Condition.Location.moduleID){
                 continue;
             }
-            if(Condition.Location.attribute == "content"){
+            else if(Condition.Location.attribute == "content"){
                 NewValue.setString(Text.getCurrentContent());
                 return NewValue;
             }
-            if(Condition.Location.attribute == "rotation_angle"){
+            else if(Condition.Location.attribute == "rotation_angle"){
                 NewValue.setDouble(Text.rotateAngle);
                 return NewValue;
             }
-            if(Condition.Location.attribute == "visibility"){
+            else if(Condition.Location.attribute == "visibility"){
                 NewValue.setDouble(Text.visibility);
                 return NewValue;
+            }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
             }
             break;
         }
@@ -2485,25 +2519,28 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             if(Text.getID() != Condition.Location.moduleID){
                 continue;
             }
-            if(Condition.Location.attribute == "content"){
+            else if(Condition.Location.attribute == "content"){
                 NewValue.setString(Text.getCurrentContent());
                 return NewValue;
             }
-            if(Condition.Location.attribute == "rotation_angle"){
+            else if(Condition.Location.attribute == "rotation_angle"){
                 NewValue.setDouble(Text.rotateAngle);
                 return NewValue;
             }
-            if(Condition.Location.attribute == "visibility"){
+            else if(Condition.Location.attribute == "visibility"){
                 NewValue.setDouble(Text.visibility);
                 return NewValue;
             }
-            if(Condition.Location.attribute == "can_be_edited"){
+            else if(Condition.Location.attribute == "can_be_edited"){
                 NewValue.setBool(Text.getCanBeEdited());
                 return NewValue;
             }
-            if(Condition.Location.attribute == "editing"){
+            else if(Condition.Location.attribute == "editing"){
                 NewValue.setBool(Text.getEditingIsActive());
                 return NewValue;
+            }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
             }
             break;
         }
@@ -2519,7 +2556,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             }
             return NewValue;
         }
-        if(Condition.Location.attribute == "is_fully_solid"){
+        else if(Condition.Location.attribute == "is_fully_solid"){
             NewValue.setBool(true);
             for(CollisionModule Collision : CurrentObject->CollisionContainer){
                 if(!Collision.getIsSolid()){
@@ -2529,7 +2566,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             }
             return NewValue;
         }
-        if(Condition.Location.attribute == "detected"){
+        else if(Condition.Location.attribute == "detected"){
             for(CollisionModule Collision : CurrentObject->CollisionContainer){
                 for(DetectedCollision Detected : Collision.Detected){
                     if(Detected.collisionType > 0){
@@ -2540,7 +2577,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             }
             return NewValue;
         }
-        if(Condition.Location.attribute == "with_object"){
+        else if(Condition.Location.attribute == "with_object"){
             for(CollisionModule Collision : CurrentObject->CollisionContainer){
                 for(DetectedCollision Detected : Collision.Detected){
                     if(Detected.collisionType > 0 && Detected.solidID == Condition.Literal.getString()){
@@ -2551,7 +2588,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             }
             return NewValue;
         }
-        if(Condition.Location.attribute == "with_hitbox"){
+        else if(Condition.Location.attribute == "with_hitbox"){
             for(CollisionModule Collision : CurrentObject->CollisionContainer){
                 for(DetectedCollision Detected : Collision.Detected){
                     if(Detected.collisionType > 0
@@ -2569,19 +2606,19 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             if(Collision.getID() != Condition.Location.moduleID){
                 continue;
             }
-            if(Condition.Location.attribute == "hitbox_is_solid"){
+            else if(Condition.Location.attribute == "hitbox_is_solid"){
                 NewValue.setBool(Collision.getIsSolid());
                 return NewValue;
             }
-            if(Condition.Location.attribute == "hitbox_can_penetrate"){
+            else if(Condition.Location.attribute == "hitbox_can_penetrate"){
                 NewValue.setBool(Collision.getCanPenetrateSolids());
                 return NewValue;
             }
-            if(Condition.Location.attribute == "hitbox_ignores_object"){
+            else if(Condition.Location.attribute == "hitbox_ignores_object"){
                 NewValue.setBool(Collision.ignores("object", Condition.Location.spareID));
                 return NewValue;
             }
-            if(Condition.Location.attribute == "hitbox_ignores_object_group"){
+            else if(Condition.Location.attribute == "hitbox_ignores_object_group"){
                 for(PrimaryModule Primary : CurrentLayer->Objects){
                     if(Primary.getID() != Condition.Location.spareID){
                         continue;
@@ -2594,11 +2631,11 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
                 }
                 return NewValue;
             }
-            if(Condition.Location.attribute == "hitbox_ignores_hitbox"){
+            else if(Condition.Location.attribute == "hitbox_ignores_hitbox"){
                 NewValue.setBool(Collision.ignores("hitboxes", Condition.Location.spareID));
                 return NewValue;
             }
-            if(Condition.Location.attribute == "hitbox_ignores_hitbox_group"){
+            else if(Condition.Location.attribute == "hitbox_ignores_hitbox_group"){
                 for(AncestorObject NextObject : CurrentLayer->Objects){
                     if(NextObject.getID() != Condition.Location.spareID){
                         continue;
@@ -2617,7 +2654,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
                 }
                 return NewValue;
             }
-            if(Condition.Location.attribute == "detected_by_hitbox"){
+            else if(Condition.Location.attribute == "detected_by_hitbox"){
                 for(DetectedCollision Detected : Collision.Detected){
                     if(Detected.collisionType > 0){
                         NewValue.setBool(true);
@@ -2626,7 +2663,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
                 }
                 return NewValue;
             }
-            if(Condition.Location.attribute == "between_hitboxes"){
+            else if(Condition.Location.attribute == "between_hitboxes"){
                 for(CollisionModule Collision : CurrentObject->CollisionContainer){
                     if(Collision.getID() != Condition.Location.moduleID){
                         continue;
@@ -2643,6 +2680,9 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
                 }
                 return NewValue;
             }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+            }
             return NewValue;
         }
     }
@@ -2657,119 +2697,130 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
     if(Condition.source == "object"){
         return findNextValueAmongObjects(Condition, Owner, OwnerLayer, Layers, Cameras);
     }
-    if(Condition.source == "second_passed"){
+    else if(Condition.source == "second_passed"){
         NewValue.setBool(secondHasPassed());
         return NewValue;
     }
-    if(Condition.source == "literal"){
+    else if(Condition.source == "literal"){
         return Condition.Literal;
     }
-    if(Condition.source == "key_pressed"){
+    else if(Condition.source == "key_pressed"){
         NewValue.setBool(isKeyFirstPressed(Condition.Literal.getInt()));
         return NewValue;
     }
-    if(Condition.source == "key_pressing"){
+    else if(Condition.source == "key_pressing"){
         NewValue.setBool(isKeyPressed(Condition.Literal.getInt()));
         return NewValue;
     }
-    if(Condition.source == "key_released"){
+    else if(Condition.source == "key_released"){
         NewValue.setBool(isKeyReleased(Condition.Literal.getInt()));
         return NewValue;
     }
-    if(Condition.source == "any_key_pressed"){
+    else if(Condition.source == "any_key_pressed"){
         NewValue.setBool(firstPressedKeys.size() > 0);
         return NewValue;
     }
-    if(Condition.source == "any_key_pressing"){
+    else if(Condition.source == "any_key_pressing"){
         NewValue.setBool(pressedKeys.size() > 0);
         return NewValue;
     }
-    if(Condition.source == "any_key_released"){
+    else if(Condition.source == "any_key_released"){
         NewValue.setBool(releasedKeys.size() > 0);
         return NewValue;
     }
-    if(Condition.source == "mouse_moved"){
+    else if(Condition.source == "mouse_moved"){
         NewValue.setBool(Mouse.didMouseMove);
         return NewValue;
     }
-    if(Condition.source == "mouse_pressed"){
+    else if(Condition.source == "mouse_pressed"){
         NewValue.setBool(Mouse.isFirstPressed(Condition.Literal.getInt()));
         return NewValue;
     }
-    if(Condition.source == "mouse_pressing"){
+    else if(Condition.source == "mouse_pressing"){
         NewValue.setBool(Mouse.isPressed(Condition.Literal.getInt()));
         return NewValue;
     }
-    if(Condition.source == "mouse_released"){
+    else if(Condition.source == "mouse_released"){
         NewValue.setBool(Mouse.isReleased(Condition.Literal.getInt()));
         return NewValue;
     }
-    if(Condition.source == "variable"){
+    else if(Condition.source == "variable"){
         for(VariableModule Variable : Owner->VariablesContainer){
             if(Variable.getID() == Condition.Location.moduleID){
                 return Variable;
             }
         }
     }
-    if(Condition.source == "layer"){
+    else if(Condition.source == "layer"){
         NewValue.setID(Condition.source + "_" + Condition.Location.attribute, nullptr);
         for(LayerClass Layer : Layers){
-            if(Layer.getID() == Condition.Location.layerID){
-                if(Condition.Location.attribute == "objects_count"){
-                    NewValue.setDouble(Layer.Objects.size());
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "is_active"){
-                    NewValue.setDouble(Layer.getIsActive());
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "pos_x"){
-                    NewValue.setDouble(Layer.pos.x);
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "pos_y"){
-                    NewValue.setDouble(Layer.pos.y);
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "size_x"){
-                    NewValue.setDouble(Layer.size.x);
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "size_y"){
-                    NewValue.setDouble(Layer.size.y);
-                    return NewValue;
-                }
-                break;
+            if(Layer.getID() != Condition.Location.layerID){
+                continue;
             }
+            if(Condition.Location.attribute == "objects_count"){
+                NewValue.setDouble(Layer.Objects.size());
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "is_active"){
+                NewValue.setDouble(Layer.getIsActive());
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "pos_x"){
+                NewValue.setDouble(Layer.pos.x);
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "pos_y"){
+                NewValue.setDouble(Layer.pos.y);
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "size_x"){
+                NewValue.setDouble(Layer.size.x);
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "size_y"){
+                NewValue.setDouble(Layer.size.y);
+                return NewValue;
+            }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+            }
+            break;
         }
     }
-    if(Condition.source == "camera"){
+    else if(Condition.source == "camera"){
         NewValue.setID(Condition.source + "_" + Condition.Location.attribute, nullptr);
         for(Camera2D Camera : Cameras){
-            if(Camera.getID() == Condition.Location.cameraID){
-                if(Condition.Location.attribute == "pos_x"){
-                    NewValue.setDouble(Camera.pos.x);
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "pos_y"){
-                    NewValue.setDouble(Camera.pos.y);
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "size_x"){
-                    NewValue.setDouble(Camera.size.x);
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "size_y"){
-                    NewValue.setDouble(Camera.size.y);
-                    return NewValue;
-                }
-                if(Condition.Location.attribute == "zoom"){
-                    NewValue.setDouble(Camera.zoom);
-                    return NewValue;
-                }
-                break;
+            if(Camera.getID() != Condition.Location.cameraID){
+                continue;
             }
+            else if(Condition.Location.attribute == "pos_x"){
+                NewValue.setDouble(Camera.pos.x);
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "pos_y"){
+                NewValue.setDouble(Camera.pos.y);
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "size_x"){
+                NewValue.setDouble(Camera.size.x);
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "size_y"){
+                NewValue.setDouble(Camera.size.y);
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "zoom"){
+                NewValue.setDouble(Camera.zoom);
+                return NewValue;
+            }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+            }
+            break;
         }
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
     }
     NewValue.setBool(false);
     return NewValue;

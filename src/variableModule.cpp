@@ -339,6 +339,9 @@ void VariableModule::getContext(string attribute, BasePointersStruct & BasePoint
     else if(attribute == "default_string"){
         BasePointer.setPointer(&defaultString);
     }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    }
 }
 
 template <typename condValueType>

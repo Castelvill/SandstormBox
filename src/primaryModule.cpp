@@ -215,6 +215,9 @@ void PrimaryModule::bindPrimaryToVariable(string attribute, BasePointersStruct &
     else if(attribute == "is_scrollable"){
         BasePointer.setPointer(&isScrollable);
     }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    }
 }
 BasePointersStruct::BasePointersStruct(){
     type = "";
