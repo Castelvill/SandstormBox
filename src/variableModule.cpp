@@ -323,6 +323,7 @@ void VariableModule::getContext(string attribute, BasePointersStruct & BasePoint
     }
     else if(attribute == "int"){
         BasePointer.setPointer(&vInt);
+        std::cout << "WE POINTED TO: " << BasePointer.getInt() << "\n";
     }
     else if(attribute == "default_int"){
         BasePointer.setPointer(&defaultInt);
@@ -840,4 +841,25 @@ void VariableModule::set(const BaseVariableStruct &BaseVariable){
     else if(BaseVariable.type == "string"){
         setString(BaseVariable.vString);
     }
+}
+
+VariableModule VariableModule::newBool(bool val){
+    VariableModule newVariable;
+    newVariable.setBool(val);
+    return newVariable;
+}
+VariableModule VariableModule::newInt(int val){
+    VariableModule newVariable;
+    newVariable.setInt(val);
+    return newVariable;
+}
+VariableModule VariableModule::newDouble(double val){
+    VariableModule newVariable;
+    newVariable.setDouble(val);
+    return newVariable;
+}
+VariableModule VariableModule::newString(string val){
+    VariableModule newVariable;
+    newVariable.setString(val);
+    return newVariable;
 }

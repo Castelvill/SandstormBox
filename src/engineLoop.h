@@ -224,6 +224,7 @@ public:
     void findLastContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
     void findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
     void findLastContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer);
+    void findContextInLayer(ValueLocation Location, PointerContainer & NewContext, LayerClass * Layer);
     void findContextInLayer(string attribute, PointerContainer & NewContext, LayerClass * Layer);
     void findLastContextInTheAncestor(string attribute, PointerContainer & NewContext, AncestorObject * Object);
     void findContextInTheAncestor(string attribute, PointerContainer & NewContext, AncestorObject * Object);

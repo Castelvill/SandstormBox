@@ -76,6 +76,10 @@ public:
     void tryToSetFromPointer(const T & value);
     void setValueFromPointer(const BasePointersStruct & BasePointer);
     void set(const BaseVariableStruct & BaseVariable);
+    static VariableModule newBool(bool);
+    static VariableModule newInt(int);
+    static VariableModule newDouble(double);
+    static VariableModule newString(string);
 };
 
 
