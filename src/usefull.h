@@ -51,4 +51,6 @@ SearchModule * findByIDAndReturnPointer(vector <SearchModule> & Container, strin
     return nullptr;
 }
 
+bool hasEnding(string const &fullString, string const &ending);
+
 #endif // USEFULL_H_INCLUDED

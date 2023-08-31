@@ -113,3 +113,12 @@ string findNewUniqueID(vector <string> uniqueIDs, string newID){
     }
     return newID;
 }
+
+bool hasEnding(string const &fullString, string const &ending){
+    if(fullString.size() >= ending.size()){
+        return (fullString.compare(fullString.size() - ending.size(), ending.size(), ending) == 0);
+    }
+    else{
+        return false;
+    }
+}

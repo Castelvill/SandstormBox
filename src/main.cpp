@@ -289,25 +289,40 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.push_back(EveModule("rotate-init", Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
     Objects.back().EveContainer.back().primaryTriggerTypes.push_back("each_iteration");
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "image";
-    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
-    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "object";
-    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.layerID = layerID;
-    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.objectID = "Amongus";
-    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleType = "image";
-    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleID = "amongus";
-    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "self";
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "last";
+    Objects.back().EveContainer.back().DependentOperations.back().searchedEntityType = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "L1";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "random";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("L1");
+    Objects.back().EveContainer.back().DependentOperations.back().searchedEntityType = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "Amongus";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("Amongus");
+    Objects.back().EveContainer.back().DependentOperations.back().searchedEntityType = "image";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "image";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "find";
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "speed";
-    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass());
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "object";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.layerID = layerID;
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.objectID = "Amongus";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleType = "variable";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleID = "rot_spd";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "int";
+
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(-50));
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(50));
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "random_int";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "random";
+
     Objects.back().EveContainer.back().Children.push_back({false, "rotate-first-if"});
     //Objects.back().EveContainer.back().Children.push_back({false, "rotate-second-if"});
 
@@ -318,20 +333,31 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_Q);
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("image");
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "find";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "rotate_angle";
-
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(5));
-
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "+=";
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("");
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("speed");
-
-
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("image");
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "find";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "pos_x";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "+=";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("");
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("random");
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("image");
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "find";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "pos_y";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "+=";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("");
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("random");
     Objects.back().EveContainer.back().elseChildID = "rotate-second-if";
 
     Objects.back().EveContainer.push_back(EveModule("rotate-second-if", Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
@@ -341,120 +367,64 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_E);
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("image");
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all_by_id";
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "find";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass("all"));
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "object";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "rotate_angle";
-
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(5));
-
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "-=";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("");
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("speed");
+    Objects.back().EveContainer.back().elseChildID = "speed-1";
 
-    /*Objects.back().EveContainer.push_back(0);
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("second_passed");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "object";
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.layerID = layerID;
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.objectID = "Amongus";
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.moduleType = "collision";
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.moduleID = "1";
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.attribute = "of_foreign_hitboxes";
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.spareID = "1";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("par");*/
-
-    Objects.push_back(AncestorObject(Objects.size(), listOfUniqueIDs, layerID));
-    Objects.back().clone(Objects[Objects.size()-2], listOfUniqueIDs, layerID);
-    Objects.back().translatePos(vec2d(300.0, 0.0));
-    Objects.back().EveContainer.clear();
-
-    /*Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "mouse_released";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(1);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("!");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");*/
-    
-    /*  !(a > b && (c || d == e))&&(f || !g && h != i)
-    Objects.back().EveContainer.push_back(0);
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_released");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
+    Objects.back().EveContainer.push_back(EveModule("speed-1", Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("pressed"));
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "key_pressed";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_A);
+    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("speed"));
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "context";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("speed");
+    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("0"));
     Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(99);
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(965);
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(0);
     Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back(">");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igF");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("c"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(false);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igT");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("d"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(0);
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("e"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(0);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("==");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("||");
     Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("!");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igF");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("f"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(false);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igT");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("g"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(true);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("!");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igF");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("h"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(420);
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("i"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(69);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("!=");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("||");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");*/
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "--";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("speed");
+    Objects.back().EveContainer.back().elseChildID = "speed-2";
 
-    /* a && b || c && d && e && f
-    Objects.push_back(AncestorObject(Objects.size(), layerID));
-    Objects.back().setID("Boby");
-    Objects.back().EveContainer.push_back(0);
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("keyboard_released");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("a"));
+    Objects.back().EveContainer.push_back(EveModule("speed-2", Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass(""));
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "key_pressed";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_S);
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(10));
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "=";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("speed");
+    Objects.back().EveContainer.back().elseChildID = "speed-3";
+
+    Objects.back().EveContainer.push_back(EveModule("speed-3", Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass(""));
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "key_pressed";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_D);
+    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("speed"));
+    Objects.back().EveContainer.back().ConditionalChain.back().source = "context";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("speed");
+    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("20"));
     Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(false);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igF");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("b"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(false);
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(20);
+    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("<");
     Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igT");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("c"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(true);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igF");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("d"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(true);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igF");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("e"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(true);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("igF");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(TriggerClass("f"));
-    Objects.back().EveContainer.back().ConditionalChain.back().source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setBool(true);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("&&");
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("||");*/
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "++";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("speed");
+    Objects.back().EveContainer.back().elseChildID = "speed-3";
+
+    
+    
     
 /*
     Objects.push_back(AncestorObject(Objects.size(), layerID));
@@ -589,6 +559,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
             if(i>0 && j>0 && i<vam-1 && j<bam-1)
                 continue;
             Objects.push_back(AncestorObject("22a", listOfUniqueIDs, layerID));
+            Objects.back().addGroup("cobblestone");
             Objects.back().setPos(40+i*200, 50+j*200);
             Objects.back().CollisionContainer.push_back(CollisionModule("", Objects.back().getSize(), Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
             Objects.back().CollisionContainer.back().addGroup("pupa");
@@ -850,8 +821,8 @@ int main(){
     std::cout << "Layer 1: " << Layers.back().getID() << "\n";
     std::cout << "Object 1: " << Layers.back().Objects[0].getID() << " " << Layers.back().Objects[0].getLayerID() << "\n";
 
-    Layers.push_back(LayerClass("", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(0, 0)));
-    Layers.back().clone(Layers[Layers.size()-2], Environment.layersIDs);
+    //Layers.push_back(LayerClass("", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(0, 0)));
+    //Layers.back().clone(Layers[Layers.size()-2], Environment.layersIDs);
 
     std::cout << "Layer 2: " << Layers.back().getID() << "\n";
     std::cout << "Object 2: " << Layers.back().Objects[0].getID() << " " << Layers.back().Objects[0].getLayerID() << "\n";

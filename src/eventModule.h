@@ -15,12 +15,12 @@ struct ValueLocation{
     string moduleID;
     string attribute;
     string spareID; //used in detecting collision of two specific hitboxes
+    void print(string dynamicID, string source);
 };
 
 class TriggerClass{
 public:
     string source; //second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, owner, object, pointer
-    string dynamicName;
     VariableModule Literal;
     ValueLocation Location;
     vector <string> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
@@ -31,7 +31,7 @@ public:
 
 class OperaClass{
 public:
-    vector <TriggerClass> ConditionalChain; //Location.layerID MUST be equal OwnerLayer.getID
+    vector <TriggerClass> ConditionalChain;
     vector <VariableModule> Literals;
     string affectedVariable;
     string instruction; //first, last, all, random, let, assigment, class method, run(), break, return

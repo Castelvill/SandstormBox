@@ -19,12 +19,17 @@ const int SCREEN_H = 900*0.7;//1025/1.0;
 const float MAX_ZOOM = 1.0;
 const int BUFFER_W = SCREEN_W * MAX_ZOOM;
 const int BUFFER_H = SCREEN_H * MAX_ZOOM;
+const bool printOutLogicalEvaluations = false;
+const bool printInstructions = false;
 
 
 void loadFontsToContainer(vector <SingleFont> & FontContainer);
 void freeFontsFromContainer(vector <SingleFont> & FontContainer);
 
 vector<string> getAllFilesNamesWithinFolder(string folder);
+
+template <class T>
+void getPointersFromVector(vector <T*> & Left, vector<T> & Right);
 
 struct EditorWindowArrangement{
     double windowWidth;
@@ -131,6 +136,8 @@ struct PointerContainer{
     vector <Camera2D*> Cameras;
     PointerContainer();
     void clear();
+    void setID(vector<PointerContainer> &EventContext, string newID);
+    string getValue();
     template<typename T>
     void addBasePointer(T * pointer);
     template<typename T>
@@ -157,6 +164,9 @@ struct PointerContainer{
 
     void leaveOneRandomBasePointer();
 };
+
+PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID, bool warning);
+void extractPointersFromModules(ModulesPointers & ContextModules, AncestorObject * Object, string moduleType);
 
 class EngineLoop{
 private:
@@ -204,14 +214,15 @@ public:
     bool isLayersUniquenessViolated(vector <LayerClass> Layers);
     bool isCamerasUniquenessViolated(vector <Camera2D> Cameras);
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
-    void aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras);
-    void aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    void aggregateObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
+    void aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
+    void aggregateObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
     void chooseRandomModule(OperaClass & Operation, PointerContainer & NewContext);
     template<class ModuleClass>
     void aggregateModuleContextFromVectors(
         vector<ModuleClass> & ModuleContainer, vector<ModuleClass*> AggregatedModules, OperaClass & Operation,
-        PointerContainer & NewContext, AncestorObject * Object, vector <LayerClass> & Layers, vector <Camera2D> & Cameras
+        PointerContainer & NewContext, AncestorObject * Object, vector <LayerClass> & Layers, vector <Camera2D> & Cameras,
+        vector<PointerContainer> &EventContext
     );
     template<class ModuleClass>
     void getContextFromModule(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module);
@@ -219,7 +230,7 @@ public:
     void getContextFromModuleVector(string module, string moduleID, string attribute, PointerContainer & NewContext, vector <ModuleClass> * ModuleVector, vector <ModuleClass*> AggregatedModules);
     template<class ModuleClass>
     void findLastContextInModules(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module);
-    void aggregateModules(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, ModulesPointers AggregatedModules, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void aggregateModules(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects, ModulesPointers AggregatedModules, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
     void aggregateAttributes(string instruction, PointerContainer & NewContext, vector <BasePointersStruct> AggregatedAttributes);
     void findLastContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
     void findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
@@ -235,7 +246,6 @@ public:
     void findContextInOneModule(string moduleType, string moduleID, string attribute, PointerContainer & NewContext, ModulesPointers & AggregatedModules);
     void findLowerContextInObjects(ValueLocation & Location, PointerContainer & NewContext, PointerContainer * OldContext);
     void findLowerContext(TriggerClass & Location, PointerContainer & NewContext, PointerContainer * OldContext);
-    PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID);
     //Method return true if a pair of contexts of the same type is found.
     bool getPairOfContexts(PointerContainer *& LeftOperand, PointerContainer *& RightOperand, vector<PointerContainer> & AllContexts, vector <string> contextIDs);
     bool getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs);
@@ -244,6 +254,7 @@ public:
     template<class Entity>
     void executeOperationsOnSets(string instruction, vector<Entity> & NewContext, vector<Entity> & LeftOperand, vector<Entity> & RightOperand);
     void aggregateTwoSets(OperaClass & Operation, vector<PointerContainer> & EventContext);
+    void addNewContext(vector<PointerContainer> & EventContext, const PointerContainer & NewContext, string type, string newID);
     void aggregateEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
     void aggregateValues(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
     void aggregateOnlyById(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
@@ -253,11 +264,13 @@ public:
     void moveValues(OperaClass & Operation, vector<PointerContainer> &EventContext);
     void cloneEntities(vector<string> dynamicIDs, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers);
     void executeArithmetics(OperaClass & Operation, vector<PointerContainer> &EventContext);
+    void generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation);
+    void createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);
     VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    char evaluateConditionalChain(vector<TriggerClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
+    char evaluateConditionalChain(vector<TriggerClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);

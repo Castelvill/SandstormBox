@@ -323,7 +323,6 @@ void VariableModule::getContext(string attribute, BasePointersStruct & BasePoint
     }
     else if(attribute == "int"){
         BasePointer.setPointer(&vInt);
-        std::cout << "WE POINTED TO: " << BasePointer.getInt() << "\n";
     }
     else if(attribute == "default_int"){
         BasePointer.setPointer(&defaultInt);
@@ -764,15 +763,18 @@ VariableModule &VariableModule::operator=(const VariableModule &original){
 }
 
 template <typename T>
-void VariableModule::tryToSetFromPointer(const T & value){
-    if(type == 'b'){
+void VariableModule::tryToSetFromPointer(const T & value, char newType){
+    if(newType == 'b'){
         setBool(value);
     }
-    else if(type == 'i'){
+    else if(newType == 'i'){
         setInt(value);
     }
-    else if(type == 'd'){
+    else if(newType == 'd'){
         setDouble(value);
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << newType << "\' type does not exist.\n";
     }
 }
 void VariableModule::setValueFromPointer(const BasePointersStruct &BasePointer){
@@ -785,28 +787,28 @@ void VariableModule::setValueFromPointer(const BasePointersStruct &BasePointer){
         }
     }
     else if(BasePointer.type == "bool"){
-        tryToSetFromPointer(*BasePointer.pBool);
+        tryToSetFromPointer(*BasePointer.pBool, 'b');
     }
     else if(BasePointer.type == "char"){
-        tryToSetFromPointer(*BasePointer.pChar);
+        tryToSetFromPointer(*BasePointer.pChar, 'i');
     }
     else if(BasePointer.type == "short"){
-        tryToSetFromPointer(*BasePointer.pShort);
+        tryToSetFromPointer(*BasePointer.pShort, 'i');
     }
     else if(BasePointer.type == "unsigned_short"){
-        tryToSetFromPointer(*BasePointer.pUShort);
+        tryToSetFromPointer(*BasePointer.pUShort, 'i');
     }
     else if(BasePointer.type == "int"){
-        tryToSetFromPointer(*BasePointer.pInt);
+        tryToSetFromPointer(*BasePointer.pInt, 'i');
     }
     else if(BasePointer.type == "unsigned_int"){
-        tryToSetFromPointer(*BasePointer.pUInt);
+        tryToSetFromPointer(*BasePointer.pUInt, 'i');
     }
     else if(BasePointer.type == "float"){
-        tryToSetFromPointer(*BasePointer.pFloat);
+        tryToSetFromPointer(*BasePointer.pFloat, 'd');
     }
     else if(BasePointer.type == "double"){
-        tryToSetFromPointer(*BasePointer.pDouble);
+        tryToSetFromPointer(*BasePointer.pDouble, 'd');
     }
     else{
         std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: \'" << BasePointer.type << "\' type does not exist.\n";

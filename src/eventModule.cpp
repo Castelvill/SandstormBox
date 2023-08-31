@@ -830,3 +830,40 @@ void EventModule::controlScrollbar(int operationID, ScrollbarModule & Scrollbar)
         Scrollbar.addRealScrollingArea(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
     }
 }
+
+void ValueLocation::print(string dynamicID, string source){
+    std::cout << "find ";
+    if(dynamicID != ""){
+        std::cout << dynamicID << " ";
+    }
+    if(source != ""){
+        if(source == "object"){
+            std::cout << "Layers";
+        }
+        else{
+            std::cout << source;
+        }
+    }
+    if(cameraID != ""){
+        std::cout << "." << cameraID;
+    }
+    if(layerID != ""){
+        std::cout << "." << layerID;
+    }
+    if(objectID != ""){
+        std::cout << "." << objectID;
+    }
+    if(moduleType != ""){
+        std::cout << "." << moduleType;
+    }
+    if(moduleID != ""){
+        std::cout << "." << moduleID;
+    }
+    if(attribute != ""){
+        std::cout << "." << attribute;
+    }
+    if(spareID != ""){
+        std::cout << "." << spareID;
+    }
+    std::cout << "\n";
+}

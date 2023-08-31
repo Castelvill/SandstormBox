@@ -3,7 +3,7 @@
 
 AncestorObject::AncestorObject(){
     //blank object
-    std::cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
+    //std::cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
 AncestorObject::AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID){
     primaryConstructor(newID, listOfIDs, newLayerID, "");

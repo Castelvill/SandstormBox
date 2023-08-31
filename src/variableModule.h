@@ -73,7 +73,7 @@ public:
     BaseVariableStruct getVariableStruct() const;
     VariableModule & operator=(const VariableModule& original);
     template <typename T>
-    void tryToSetFromPointer(const T & value);
+    void tryToSetFromPointer(const T & value, char newType);
     void setValueFromPointer(const BasePointersStruct & BasePointer);
     void set(const BaseVariableStruct & BaseVariable);
     static VariableModule newBool(bool);
