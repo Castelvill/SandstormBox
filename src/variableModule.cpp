@@ -37,10 +37,10 @@ void VariableModule::setAllIDs(string newID, vector<string> *listOfIDs, string n
 string VariableModule::getID() const{
     return ID;
 }
-string VariableModule::getLayerID(){
+string VariableModule::getLayerID() const{
     return layerID;
 }
-string VariableModule::getObjectID(){
+string VariableModule::getObjectID() const{
     return objectID;
 }
 string &VariableModule::getIDAddr()
@@ -485,6 +485,25 @@ bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherV
     
     return false;
 }
+bool VariableModule::isConditionMet(string operatorType, const BasePointersStruct & OtherVariable){
+    if(OtherVariable.type == "bool" && type == 'b'){
+        return isConditionMet(OtherVariable.getBool(), operatorType, type);
+    }
+    else if(isStringInGroup(OtherVariable.type, 5, "char", "short", "unsigned_short", "int", "unsigned_int") && type == 'i'){
+        return isConditionMet(OtherVariable.getInt(), operatorType, type);
+    }
+    else if(isStringInGroup(OtherVariable.type, 2, "float", "double") && type == 'd'){
+        return isConditionMet(OtherVariable.getDouble(), operatorType, type);
+    }
+    else if(OtherVariable.type == "string" && type == 's'){
+        return isConditionMet(OtherVariable.getString(), operatorType, type);
+    }
+    else{
+        std::cout << "Error: " << __FUNCTION__ << ": Comparison of two different variable types.\n";
+    }
+    
+    return false;
+}
 double VariableModule::floatingOperation(string operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){
         std::cout << "Error: " << __PRETTY_FUNCTION__ << ": You cannot use string variable in arithmetic operation.\n";
@@ -539,7 +558,7 @@ double VariableModule::floatingOperation(string operatorType, BasePointersStruct
 }
 int VariableModule::intOperation(string operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){
-        std::cout << "Error: In VariableModule::intOperation(): You cannot use string variable in arithmetic operation.\n";
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot use string variable in arithmetic operation.\n";
         return false;
     }
     if(operatorType == "+"){
@@ -560,7 +579,7 @@ int VariableModule::intOperation(string operatorType, VariableModule * OtherVari
     else if(operatorType == "**"){
         return pow(getInt(), OtherVariable->getInt());
     }
-    std::cout << "Error: In VariableModule::intOperation(): Unrecognized operator.\n";
+    std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
     return 0;
 }
 int VariableModule::intOperation(string operatorType, BasePointersStruct * RightOperand){
@@ -585,6 +604,28 @@ int VariableModule::intOperation(string operatorType, BasePointersStruct * Right
     }
     else if(operatorType == "**"){
         return pow(getInt(), RightOperand->getInt());
+    }
+    std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    return 0;
+}
+string VariableModule::stringOperation(string operatorType, VariableModule * OtherVariable){
+    if(type != 's' || OtherVariable->getType() != 's'){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Two variables must be of string type.\n";
+        return "";
+    }
+    if(operatorType == "+"){
+        return getString() + OtherVariable->getString();
+    }
+    std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    return 0;
+}
+string VariableModule::stringOperation(string operatorType, BasePointersStruct * RightOperand){
+    if(type != 's' || RightOperand->type != "string"){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Two variables must be of string type.\n";
+        return "";
+    }
+    if(operatorType == "+"){
+        return getString() + RightOperand->getString();
     }
     std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
     return 0;

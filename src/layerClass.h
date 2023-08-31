@@ -6,6 +6,7 @@
 class LayerClass{
 private:
     string ID;
+    vector <string> groups;
     bool isActive;
 public:
     vector <AncestorObject> Objects;
@@ -25,6 +26,13 @@ public:
     bool getIsActive();
     bool* getIsActiveAddr();
     void clone(const LayerClass& Orginal, vector <string> & layersIDs);
+
+    void addGroup(string newGroup);
+    void removeGroup(string selectedGroup);
+    void clearGroups();
+    bool isInAGroup(string findGroup);
+    vector <string> getGroups();
+    vector <string> & getGroupsAddr();
 };
 
 

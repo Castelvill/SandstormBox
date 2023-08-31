@@ -861,6 +861,9 @@ void EngineLoop::aggregateLayers(OperaClass & Operation, PointerContainer & NewC
         if(Layer == nullptr){
             break;
         }
+        for(TriggerClass & Condition : Operation.ConditionalChain){
+            Condition.Location.layerID = Layer->getID();
+        }
         if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, Layer, Layers, Cameras, EventContext) == 't'){
             if(Operation.instruction != "last"){
                 findContextInLayer(Operation.affectedVariable, NewContext, Layer);
@@ -901,6 +904,10 @@ void EngineLoop::aggregateObjects(OperaClass & Operation, PointerContainer & New
     if(AggregatedLayers.size() > 0){
         for(LayerClass * Layer : AggregatedLayers){
             for(AncestorObject & Object : Layer->Objects){
+                for(TriggerClass & condition : Operation.ConditionalChain){
+                    condition.Location.layerID = Layer->getID();
+                    condition.Location.objectID = Object.getID();
+                }
                 if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, &Object, Layer, Layers, Cameras, EventContext) == 't'){
                     if(Operation.instruction != "last"){
                         findContextInTheAncestor(Operation.affectedVariable, NewContext, &Object);
@@ -920,6 +927,7 @@ void EngineLoop::aggregateObjects(OperaClass & Operation, PointerContainer & New
         for(AncestorObject * Object : AggregatedObjects){
             for(TriggerClass & Condition : Operation.ConditionalChain){
                 Condition.Location.layerID = Object->getLayerID();
+                Condition.Location.objectID = Object->getID();
             }
             if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, TempLayer, Layers, Cameras, EventContext) == 't'){
                 if(Operation.instruction != "last"){
@@ -1019,9 +1027,9 @@ void EngineLoop::aggregateModuleContextFromVectors(vector<ModuleClass> & ModuleC
             break;
         }
         for(TriggerClass & Condition : Operation.ConditionalChain){
-            if(Condition.Location.moduleID == ""){
-                Condition.Location.moduleID = Module->getID();
-            }
+            Condition.Location.layerID = Module->getLayerID();
+            Condition.Location.objectID = Module->getObjectID();
+            Condition.Location.moduleID = Module->getID();
         }
         if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, EmptyLayer, Layers, Cameras, EventContext) == 't'){
             if(Operation.instruction != "last"){
@@ -1049,6 +1057,9 @@ void EngineLoop::getContextFromModule(string module, string attribute, PointerCo
         if(BasePointer.type != ""){
             NewContext.BasePointers.push_back(BasePointer);
             NewContext.type = "pointer";
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Context not found.\n";
         }
     }
 }
@@ -1122,6 +1133,9 @@ void EngineLoop::findLastContextInModules(string module, string attribute, Point
             else{
                 NewContext.BasePointers.back() = BasePointer;
             }
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Context not found.\n";
         }
     }
 }
@@ -1531,11 +1545,16 @@ void EngineLoop::findContextInLayer(ValueLocation Location, PointerContainer & N
             NewContext.Objects.push_back(&Object);
         }
     }
-    else if(Location.attribute == "is_Active"){
+    else if(Location.attribute == "is_active"){
         NewContext.addBasePointer(Layer->getIsActiveAddr());
     }
     else if(Location.attribute == "id"){
         NewContext.addBasePointer(Layer->getIDAddr());
+    }
+    else if(Location.attribute == "group"){
+        for(string & group : Layer->getGroupsAddr()){
+            NewContext.addBasePointer(&group);
+        }
     }
     else if(Location.attribute == "pos_x"){
         NewContext.addBasePointer(&Layer->pos.x);
@@ -1577,6 +1596,9 @@ void EngineLoop::findLastContextInTheAncestor(string attribute, PointerContainer
                 NewContext.BasePointers.back() = BasePointer;
             }
         }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Context not found.\n";
+        }
     }
 }
 void EngineLoop::findContextInTheAncestor(string attribute, PointerContainer & NewContext, AncestorObject * Object){
@@ -1594,6 +1616,9 @@ void EngineLoop::findContextInTheAncestor(string attribute, PointerContainer & N
             NewContext.BasePointers.push_back(BasePointer);
             NewContext.type = "pointer";
         }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Context not found.\n";
+        }
     }
 }
 bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, vector <LayerClass> & Layers){
@@ -1609,6 +1634,7 @@ bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * O
         }
     }
     if(CurrentLayer == nullptr){
+        std::cout << "Error: In " << __FUNCTION__ << ": Layer does not exist.\n";
         return false;
     }
     
@@ -1624,6 +1650,7 @@ bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * O
         }
     }
     if(CurrentObject == nullptr){
+        std::cout << "Error: In " << __FUNCTION__ << ": Object does not exist.\n";
         return false;
     }
 
@@ -2228,9 +2255,24 @@ void EngineLoop::nameVariable(vector<PointerContainer> & EventContext, OperaClas
 
     LeftOperand->setID(EventContext, Operation.newContextID);
 }
+bool checkForVectorSize(size_t leftSize, size_t rightSize, bool & sameSize, string functionName){
+    if(leftSize == rightSize){
+        sameSize = true;
+    }
+    else if(rightSize != 1){
+        std::cout << "Error: In " << functionName << ": Vector sizes: " << leftSize << " and " << rightSize << " are incorrect.\n";
+        return false;
+    }
+    return true;
+}
 template<class Entity>
 void EngineLoop::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOperand, vector<LayerClass> & Layers){
-    for(unsigned i = 0; i < LeftOperand.size() && i < RightOperand.size(); i++){
+    bool sameSize = false;
+    if(!checkForVectorSize(LeftOperand.size(), RightOperand.size(), sameSize, __FUNCTION__)){
+        return;
+    }
+    unsigned i = 0, j = 0;
+    for(; i < LeftOperand.size(); i++, j+=sameSize){
         for(LayerClass & Layer : Layers){
             if(LeftOperand[i]->getLayerID() != Layer.getID()){
                 continue;
@@ -2239,7 +2281,7 @@ void EngineLoop::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity
                 if(LeftOperand[i]->getObjectID() != Object.getID()){
                     continue;
                 }
-                LeftOperand[i]->clone(*RightOperand[i], Object.imageContainerIDs, Layer.getID(), Object.getID());
+                LeftOperand[i]->clone(*RightOperand[j], Object.imageContainerIDs, Layer.getID(), Object.getID());
                 break;
             }
             break;
@@ -2249,7 +2291,6 @@ void EngineLoop::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity
 void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &EventContext){
     PointerContainer * LeftOperand = nullptr;
     PointerContainer * RightOperand = nullptr;
-    unsigned i = 0;
 
     if(Operation.instruction == "++" || Operation.instruction == "--"){
         if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)
@@ -2270,71 +2311,52 @@ void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &Ev
         std::cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
+    bool sameSize = false;
+    unsigned i = 0, j = 0;
+
     if(LeftOperand->type == "pointer" && RightOperand->type == "pointer"){
-        if(LeftOperand->BasePointers.size() == RightOperand->BasePointers.size()){
-            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
-                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[i], Operation.instruction);
-            }
+        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            return;
         }
-        else if(RightOperand->BasePointers.size() == 1){
-            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
-                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[0], Operation.instruction);
-            }
-        }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Vector sizes: " << LeftOperand->BasePointers.size() << " and " << RightOperand->BasePointers.size() << " are incorrect.\n";
+        for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
+            LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], Operation.instruction);
         }
     }
     else if(LeftOperand->type == "value" && RightOperand->type == "value"){
-        if(LeftOperand->Variables.size() == RightOperand->Variables.size()){
-            for(i = 0; i < LeftOperand->Variables.size(); i++){
-                LeftOperand->Variables[i].move(&RightOperand->Variables[i], Operation.instruction);
-            }
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            return;
         }
-        else if(RightOperand->Variables.size() == 1){
-            for(i = 0; i < LeftOperand->Variables.size(); i++){
-                LeftOperand->Variables[i].move(&RightOperand->Variables[0], Operation.instruction);
-            }
-        }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Vector sizes: " << LeftOperand->Variables.size() << " and " << RightOperand->Variables.size() << " are incorrect.\n";
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            LeftOperand->Variables[i].move(&RightOperand->Variables[j], Operation.instruction);
         }
     }
     else if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+
         BaseVariableStruct RightVariable;
-        if(LeftOperand->BasePointers.size() == RightOperand->Variables.size()){
-            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
+
+        for(; i < LeftOperand->BasePointers.size(); i++){
+            if(sameSize || i == 0){
                 RightVariable = RightOperand->Variables[i].getVariableStruct();
-                if(RightVariable.type != ""){
-                    LeftOperand->BasePointers[i].move(RightVariable, Operation.instruction);
+                if(RightVariable.type == ""){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                    if(!sameSize){
+                        return;
+                    }
+                    continue;
                 }
             }
-        }
-        else if(RightOperand->Variables.size() == 1){
-            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
-                RightVariable = RightOperand->Variables[0].getVariableStruct();
-                if(RightVariable.type != ""){
-                    LeftOperand->BasePointers[i].move(RightVariable, Operation.instruction);
-                }
-            }
-        }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Vector sizes: " << LeftOperand->BasePointers.size() << " and " << RightOperand->Variables.size() << " are incorrect.\n";
+            LeftOperand->BasePointers[i].move(RightVariable, Operation.instruction);
         }
     }
     else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
-        if(LeftOperand->Variables.size() == RightOperand->BasePointers.size()){
-            for(i = 0; i < LeftOperand->Variables.size(); i++){
-                LeftOperand->Variables[i].move(&RightOperand->BasePointers[i], Operation.instruction);
-            }
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            return;
         }
-        else if(RightOperand->BasePointers.size() == 1){
-            for(i = 0; i < LeftOperand->Variables.size(); i++){
-                LeftOperand->Variables[i].move(&RightOperand->BasePointers[0], Operation.instruction);
-            }
-        }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Vector sizes: " << LeftOperand->Variables.size() << " and " << RightOperand->BasePointers.size() << " are incorrect.\n";
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            LeftOperand->Variables[i].move(&RightOperand->BasePointers[j], Operation.instruction);
         }
     }
     else{
@@ -2344,11 +2366,13 @@ void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &Ev
 void EngineLoop::cloneEntities(vector<string> dynamicIDs, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers){
     PointerContainer * LeftOperand = nullptr;
     PointerContainer * RightOperand = nullptr;
-    unsigned i = 0;
-
+    
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, dynamicIDs)){
         return;
     }
+
+    unsigned i = 0, j = 0;
+    bool sameSize = false;
 
     if(printInstructions){
         std::cout << "clone " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
@@ -2356,17 +2380,31 @@ void EngineLoop::cloneEntities(vector<string> dynamicIDs, vector<PointerContaine
 
     if(LeftOperand->type != RightOperand->type){
         if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+            if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+                return;
+            }
             BaseVariableStruct RightVariable;
-            for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->Variables.size(); i++){
-                RightVariable = RightOperand->Variables[i].getVariableStruct();
-                if(RightVariable.type != ""){
-                    LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
+            
+            for(; i < LeftOperand->BasePointers.size(); i++){
+                if(sameSize || i == 0){
+                    RightVariable = RightOperand->Variables[i].getVariableStruct();
+                    if(RightVariable.type == ""){
+                        std::cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                        if(!sameSize){
+                            return;
+                        }
+                        continue;
+                    }
                 }
+                LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
             }
         }
         else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
-            for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->BasePointers.size(); i++){
-                LeftOperand->Variables[i].setValueFromPointer(RightOperand->BasePointers[i]);
+            if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+                LeftOperand->Variables[i].setValueFromPointer(RightOperand->BasePointers[j]);
             }
         }
         else{
@@ -2375,32 +2413,47 @@ void EngineLoop::cloneEntities(vector<string> dynamicIDs, vector<PointerContaine
     }
     else{
         if(LeftOperand->type == "pointer"){
-            for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->BasePointers.size(); i++){
-                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[i], "clone");
+            if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
+                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], "clone");
             }
         }
         else if(LeftOperand->type == "value"){
-            for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->Variables.size(); i++){
-                LeftOperand->Variables[i] = RightOperand->Variables[i];
+            if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+                LeftOperand->Variables[i] = RightOperand->Variables[j];
             }
         }
         else if(LeftOperand->type == "camera"){
-            for(i = 0; i < LeftOperand->Cameras.size() && i < RightOperand->Cameras.size(); i++){
-                LeftOperand->Cameras[i]->clone(*RightOperand->Cameras[i], camerasIDs);
+            if(!checkForVectorSize(LeftOperand->Cameras.size(), RightOperand->Cameras.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Cameras.size(); i++, j+=sameSize){
+                LeftOperand->Cameras[i]->clone(*RightOperand->Cameras[j], camerasIDs);
             }
         }
         else if(LeftOperand->type == "layer"){
-            for(i = 0; i < LeftOperand->Layers.size() && i < RightOperand->Layers.size(); i++){
-                LeftOperand->Layers[i]->clone(*RightOperand->Layers[i], layersIDs);
+            if(!checkForVectorSize(LeftOperand->Layers.size(), RightOperand->Layers.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Layers.size(); i++, j+=sameSize){
+                LeftOperand->Layers[i]->clone(*RightOperand->Layers[j], layersIDs);
             }
         }
         else if(LeftOperand->type == "object"){
-            for(i = 0; i < LeftOperand->Objects.size() && i < RightOperand->Objects.size(); i++){
+            if(!checkForVectorSize(LeftOperand->Objects.size(), RightOperand->Objects.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Objects.size(); i++, j+=sameSize){
                 for(LayerClass & Layer : Layers){
                     if(Layer.getID() != LeftOperand->Objects[i]->getLayerID()){
                         continue;
                     }
-                    LeftOperand->Objects[i]->clone(*RightOperand->Objects[i], Layer.objectsIDs, Layer.getID());
+                    LeftOperand->Objects[i]->clone(*RightOperand->Objects[j], Layer.objectsIDs, Layer.getID());
                     break;
                 }
             }
@@ -2435,11 +2488,8 @@ void EngineLoop::cloneEntities(vector<string> dynamicIDs, vector<PointerContaine
     }
 }
 void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContainer> &EventContext){
-    PointerContainer NewContext;
-    BaseVariableStruct result;
     PointerContainer * LeftOperand = nullptr;
     PointerContainer * RightOperand = nullptr;
-    unsigned i = 0;
 
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
         || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
@@ -2448,71 +2498,96 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
         return;
     }
 
+    PointerContainer NewContext;
+    BaseVariableStruct result;
+    unsigned i = 0, j = 0;
+    bool sameSize = false;
+
     if(printInstructions){
         std::cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
-    if(LeftOperand->type == RightOperand->type){
-        if(LeftOperand->type == "pointer"){
-            for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->BasePointers.size(); i++){
-                result = LeftOperand->BasePointers[i].executeArithmetics(RightOperand->BasePointers[i], Operation.instruction);
-                if(result.type != ""){
-                    NewContext.Variables.push_back(VariableModule());
-                    NewContext.Variables.back().set(result);
-                    result.type = "";
-                }
+    if(LeftOperand->type == "pointer" && RightOperand->type == "pointer"){
+        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
+            result = LeftOperand->BasePointers[i].executeArithmetics(RightOperand->BasePointers[j], Operation.instruction);
+            if(result.type == ""){
+                std::cout << "Error: In " << __FUNCTION__ << ": Failed to execute arithmetic equation.\n";
+                continue;
+            }
+            NewContext.Variables.push_back(VariableModule());
+            NewContext.Variables.back().set(result);
+            result.type = "";
+        }
+    }
+    else if(LeftOperand->type == "value" && RightOperand->type == "value"){
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            if(LeftOperand->Variables[i].getType() == 'd' || RightOperand->Variables[j].getType() == 'd'){
+                NewContext.Variables.push_back(VariableModule());
+                NewContext.Variables.back().setDouble(LeftOperand->Variables[i].floatingOperation(Operation.instruction, &RightOperand->Variables[j]));
+            }
+            else if(LeftOperand->Variables[i].getType() != 's' || RightOperand->Variables[j].getType() != 's'){
+                NewContext.Variables.push_back(VariableModule());
+                NewContext.Variables.back().setInt(LeftOperand->Variables[i].intOperation(Operation.instruction, &RightOperand->Variables[j]));
+            }
+            else{
+                NewContext.Variables.push_back(VariableModule());
+                NewContext.Variables.back().setString(LeftOperand->Variables[i].stringOperation(Operation.instruction, &RightOperand->Variables[j]));
             }
         }
-        else if(LeftOperand->type == "value"){
-            for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->Variables.size(); i++){
-                if(LeftOperand->Variables[i].getType() == 'd' || RightOperand->Variables[i].getType() == 'd'){
-                    NewContext.Variables.push_back(VariableModule());
-                    NewContext.Variables.back().setDouble(LeftOperand->Variables[i].floatingOperation(Operation.instruction, &RightOperand->Variables[i]));
-                }
-                else{
-                    NewContext.Variables.push_back(VariableModule());
-                    NewContext.Variables.back().setInt(LeftOperand->Variables[i].intOperation(Operation.instruction, &RightOperand->Variables[i]));
+    }
+    else if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+
+        BaseVariableStruct RightVariable;
+        
+        for(; i < LeftOperand->BasePointers.size(); i++){
+            if(sameSize || i == 0){
+                RightVariable = RightOperand->Variables[i].getVariableStruct();
+                if(RightVariable.type == ""){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                    if(!sameSize){
+                        return;
+                    }
+                    continue;
                 }
             }
+            
+            result = LeftOperand->BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
+
+            if(result.type == ""){
+                std::cout << "Error: In " << __FUNCTION__ << ": Failed to execute arithmetic equation.\n";
+                continue;
+            }
+            NewContext.Variables.push_back(VariableModule());
+            NewContext.Variables.back().set(result);
+            result.type = "";
         }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+    }
+    else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            if(LeftOperand->Variables[i].getType() == 'd' || isStringInGroup(RightOperand->BasePointers[j].type, 4, "float", "double")){
+                NewContext.Variables.push_back(VariableModule());
+                NewContext.Variables.back().setDouble(LeftOperand->Variables[i].floatingOperation(Operation.instruction, &RightOperand->BasePointers[j]));
+            }
+            else{
+                NewContext.Variables.push_back(VariableModule());
+                NewContext.Variables.back().setInt(LeftOperand->Variables[i].intOperation(Operation.instruction, &RightOperand->BasePointers[j]));
+            }
         }
     }
     else{
-        if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
-            BaseVariableStruct RightVariable;
-            for(i = 0; i < LeftOperand->BasePointers.size() && i < RightOperand->Variables.size(); i++){
-                RightVariable = RightOperand->Variables[i].getVariableStruct();
-                
-                if(RightVariable.type == ""){
-                    continue;
-                }
-                
-                result = LeftOperand->BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
-
-                if(result.type != ""){
-                    NewContext.Variables.push_back(VariableModule());
-                    NewContext.Variables.back().set(result);
-                    result.type = "";
-                }
-            }
-        }
-        else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
-            for(i = 0; i < LeftOperand->Variables.size() && i < RightOperand->BasePointers.size(); i++){
-                if(LeftOperand->Variables[i].getType() == 'd' || isStringInGroup(RightOperand->BasePointers[i].type, 4, "float", "double")){
-                    NewContext.Variables.push_back(VariableModule());
-                    NewContext.Variables.back().setDouble(LeftOperand->Variables[i].floatingOperation(Operation.instruction, &RightOperand->BasePointers[i]));
-                }
-                else{
-                    NewContext.Variables.push_back(VariableModule());
-                    NewContext.Variables.back().setInt(LeftOperand->Variables[i].intOperation(Operation.instruction, &RightOperand->BasePointers[i]));
-                }
-            }
-        }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
-        }
+        std::cout << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic equation on variables of types: \'" << RightOperand->type << "\' and \'" << LeftOperand->type << "\'.\n";
     }
 
     if(NewContext.Variables.size() > 0){
@@ -2545,65 +2620,85 @@ void EngineLoop::createLiteral(vector<PointerContainer> &EventContext, const Ope
     }
 }
 void EngineLoop::generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation){
-    PointerContainer NewContext;
-    VariableModule Result;
     PointerContainer * LeftOperand = nullptr;
     PointerContainer * RightOperand = nullptr;
-    unsigned i = 0;
+    bool deletePointers = false;
 
-    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
+    if(Operation.Literals.size() == 2){
+        LeftOperand = new PointerContainer();
+        LeftOperand->Variables.push_back(Operation.Literals[0]);
+        LeftOperand->type = "value";
+        RightOperand = new PointerContainer();
+        RightOperand->Variables.push_back(Operation.Literals[1]);
+        RightOperand->type = "value";
+        deletePointers = true;
+    }
+    else if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
         || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
         || (RightOperand->type != "pointer" && RightOperand->type != "value")
     ){
         return;
     }
 
+    PointerContainer NewContext;
+    VariableModule Result;
+    unsigned i = 0, j = 0;
+    bool sameSize = false;
+
     if(printInstructions){
         std::cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
     if(LeftOperand->type == "pointer" && RightOperand->type == "pointer"){
-        if(LeftOperand->BasePointers.size() == RightOperand->BasePointers.size()){
-            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
-                Result.setInt(randomInt(LeftOperand->BasePointers[i].getInt(), RightOperand->BasePointers[i].getInt()));
-                NewContext.Variables.push_back(Result);
+        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            if(deletePointers){
+                delete LeftOperand;
+                delete RightOperand;
             }
+            return;
         }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Vector sizes: " << LeftOperand->BasePointers.size() << " and " << RightOperand->BasePointers.size() << " are incorrect.\n";
+        for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
+            Result.setInt(randomInt(LeftOperand->BasePointers[i].getInt(), RightOperand->BasePointers[j].getInt()));
+            NewContext.Variables.push_back(Result);
         }
     }
     else if(LeftOperand->type == "value" && RightOperand->type == "value"){
-        if(LeftOperand->Variables.size() == RightOperand->Variables.size()){
-            for(i = 0; i < LeftOperand->Variables.size(); i++){
-                Result.setInt(randomInt(LeftOperand->Variables[i].getInt(), RightOperand->Variables[i].getInt()));
-                NewContext.Variables.push_back(Result);
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            if(deletePointers){
+                delete LeftOperand;
+                delete RightOperand;
             }
+            return;
         }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Vector sizes: " << LeftOperand->Variables.size() << " and " << RightOperand->Variables.size() << " are incorrect.\n";
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            Result.setInt(randomInt(LeftOperand->Variables[i].getInt(), RightOperand->Variables[j].getInt()));
+            NewContext.Variables.push_back(Result);
         }
     }
     else if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
-        if(LeftOperand->BasePointers.size() == RightOperand->Variables.size()){
-            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
-                Result.setInt(randomInt(LeftOperand->BasePointers[i].getInt(), RightOperand->Variables[i].getInt()));
-                NewContext.Variables.push_back(Result);
+        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            if(deletePointers){
+                delete LeftOperand;
+                delete RightOperand;
             }
+            return;
         }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Vector sizes: " << LeftOperand->BasePointers.size() << " and " << RightOperand->Variables.size() << " are incorrect.\n";
+        for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
+            Result.setInt(randomInt(LeftOperand->BasePointers[i].getInt(), RightOperand->Variables[j].getInt()));
+            NewContext.Variables.push_back(Result);
         }
     }
     else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
-        if(LeftOperand->Variables.size() == RightOperand->BasePointers.size()){
-            for(i = 0; i < LeftOperand->Variables.size(); i++){
-                Result.setInt(randomInt(LeftOperand->Variables[i].getInt(), RightOperand->BasePointers[i].getInt()));
-                NewContext.Variables.push_back(Result);
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            if(deletePointers){
+                delete LeftOperand;
+                delete RightOperand;
             }
+            return;
         }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Vector sizes: " << LeftOperand->Variables.size() << " and " << RightOperand->BasePointers.size() << " are incorrect.\n";
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            Result.setInt(randomInt(LeftOperand->Variables[i].getInt(), RightOperand->BasePointers[j].getInt()));
+            NewContext.Variables.push_back(Result);
         }
     }
     else{
@@ -2619,6 +2714,179 @@ void EngineLoop::generateRandomVariable(vector<PointerContainer> &EventContext, 
     else{
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
     }
+
+    if(deletePointers){
+        delete LeftOperand;
+        delete RightOperand;
+    }
+}
+template <class Module>
+bool containsTheSameModule(const vector <Module> & LeftModules, const vector <Module> & RightModules){
+    unsigned i, j;
+    for(i = 0; i < LeftModules.size(); i++){
+        for(j = 0; j < RightModules.size(); j++){
+            if(LeftModules[i]->getID() == RightModules[j]->getID()
+                && LeftModules[i]->getLayerID() == RightModules[j]->getLayerID()
+                && LeftModules[i]->getObjectID() == RightModules[j]->getObjectID()
+            ){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+void EngineLoop::checkIfVectorContainsVector(OperaClass & Operation, vector<PointerContainer> &EventContext){
+    PointerContainer * LeftOperand = nullptr;
+    PointerContainer * RightOperand = nullptr;
+    
+    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
+        return;
+    }
+
+    bool result = false;
+    unsigned i = 0, j = 0;
+
+    if(printInstructions){
+        std::cout << "in " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+    }
+
+    if(LeftOperand->type != RightOperand->type){
+        if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+            BaseVariableStruct RightVariable;
+            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
+                for(j = 0; j < RightOperand->BasePointers.size(); j++){
+                    RightVariable = RightOperand->Variables[j].getVariableStruct();
+                    if(RightVariable.type == ""){
+                        std::cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                        continue;
+                    }
+                    if(LeftOperand->BasePointers[i].areEqual(&RightVariable)){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
+            for(i = 0; i < LeftOperand->Variables.size(); i++){
+                for(j = 0; j < RightOperand->BasePointers.size(); j++){
+                    if(LeftOperand->Variables[i].isConditionMet("==", RightOperand->BasePointers[j])){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        }
+    }
+    else{
+        if(LeftOperand->type == "pointer"){
+            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
+                for(j = 0; j < RightOperand->BasePointers.size(); j++){
+                    if(LeftOperand->BasePointers[i].areEqual(&RightOperand->BasePointers[j])){
+                        result = true;
+                        break;
+                    }
+                }
+            }
+        }
+        else if(LeftOperand->type == "value"){
+            for(i = 0; i < LeftOperand->Variables.size(); i++){
+                for(j = 0; j < RightOperand->Variables.size(); j++){
+                    if(LeftOperand->Variables[i].isConditionMet("==", &RightOperand->Variables[j])){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "camera"){
+            for(i = 0; i < LeftOperand->Cameras.size(); i++){
+                for(j = 0; j < RightOperand->Cameras.size(); j++){
+                    if(LeftOperand->Cameras[i]->getID() == RightOperand->Cameras[j]->getID()){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "layer"){
+            for(i = 0; i < LeftOperand->Layers.size(); i++){
+                for(j = 0; j < RightOperand->Layers.size(); j++){
+                    if(LeftOperand->Layers[i]->getID() == RightOperand->Layers[j]->getID()){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "object"){
+            for(i = 0; i < LeftOperand->Objects.size(); i++){
+                for(j = 0; j < RightOperand->Objects.size(); j++){
+                    if(LeftOperand->Objects[i]->getID() == RightOperand->Objects[j]->getID()
+                        && LeftOperand->Objects[i]->getLayerID() == RightOperand->Objects[j]->getLayerID()
+                    ){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "text"){
+            result = containsTheSameModule(LeftOperand->Modules.Texts, RightOperand->Modules.Texts);
+        }
+        else if(LeftOperand->type == "editable_text"){
+            result = containsTheSameModule(LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts);
+        }
+        else if(LeftOperand->type == "image"){
+            result = containsTheSameModule(LeftOperand->Modules.Images, RightOperand->Modules.Images);
+        }
+        else if(LeftOperand->type == "movement"){
+            result = containsTheSameModule(LeftOperand->Modules.Movements, RightOperand->Modules.Movements);
+        }
+        else if(LeftOperand->type == "collision"){
+            result = containsTheSameModule(LeftOperand->Modules.Collisions, RightOperand->Modules.Collisions);
+        }
+        else if(LeftOperand->type == "particles"){
+            result = containsTheSameModule(LeftOperand->Modules.Particles, RightOperand->Modules.Particles);
+        }
+        else if(LeftOperand->type == "event"){
+            result = containsTheSameModule(LeftOperand->Modules.Events, RightOperand->Modules.Events);
+        }
+        else if(LeftOperand->type == "variable"){
+            result = containsTheSameModule(LeftOperand->Modules.Variables, RightOperand->Modules.Variables);
+        }
+        else if(LeftOperand->type == "scrollbar"){
+            result = containsTheSameModule(LeftOperand->Modules.Scrollbars, RightOperand->Modules.Scrollbars);
+        }
+        else{
+            std::cout << "Error: In: " << __FUNCTION__ << ": \'" << LeftOperand->type << "\' type does not exist.\n";
+        }
+    }
+
+    PointerContainer NewContext;
+    NewContext.Variables.push_back(VariableModule::newBool(result));
+    addNewContext(EventContext, NewContext, "value", Operation.newContextID);
 }
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *OwnerLayer, AncestorObject *Owner, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
     for(OperaClass & Operation : Operations){
@@ -2637,9 +2905,11 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         else if(Operation.instruction == "value"){
             aggregateValues(EventContext, Operation, OwnerLayer, Owner, Layers, Cameras);
         }
+        //Get literals prepared in the event.
         else if(Operation.instruction == "literal"){
             createLiteral(EventContext, Operation);
         }
+        //Generate random int value between  
         else if(Operation.instruction == "random_int"){
             generateRandomVariable(EventContext, Operation);
         }
@@ -2659,6 +2929,9 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         }
         else if(isStringInGroup(Operation.instruction, 7, "++", "--", "=", "+=", "-=", "*=", "/=")){
             moveValues(Operation, EventContext);
+        }
+        else if(Operation.instruction == "in"){
+            checkIfVectorContainsVector(Operation, EventContext);
         }
         if(printInstructions){
             std::cout << "Stack: ";
@@ -2769,11 +3042,6 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
         return NewValue;
     }
 
-    if(CurrentObject == nullptr){
-        NewValue.setBool(false);
-        return NewValue;
-    }
-
     NewValue.setID(Condition.Location.moduleType + "_" + Condition.Location.attribute, nullptr);
 
     if(Condition.Location.moduleType == "variable"){
@@ -2786,6 +3054,9 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
     else if(Condition.Location.moduleType == "ancestor"){
         if(Condition.Location.attribute == "is_active"){
             NewValue.setBool(CurrentObject->getIsActive());
+        }
+        else if(Condition.Location.attribute == "id"){
+            NewValue.setString(CurrentObject->getID());
         }
         else if(Condition.Location.attribute == "in_group"){
             NewValue.setBool(CurrentObject->isInAGroup(Condition.Literal.getString()));
@@ -2894,6 +3165,10 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             if(Text.getID() != Condition.Location.moduleID){
                 continue;
             }
+            if(Condition.Location.attribute == "in_group"){
+                NewValue.setBool(Text.isInAGroup(Condition.Literal.getString()));
+                return NewValue;
+            }
             else if(Condition.Location.attribute == "content"){
                 NewValue.setString(Text.getCurrentContent());
                 return NewValue;
@@ -2916,6 +3191,10 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
         for(EditableTextModule Text : CurrentObject->EditableTextContainer){
             if(Text.getID() != Condition.Location.moduleID){
                 continue;
+            }
+            if(Condition.Location.attribute == "in_group"){
+                NewValue.setBool(Text.isInAGroup(Condition.Literal.getString()));
+                return NewValue;
             }
             else if(Condition.Location.attribute == "content"){
                 NewValue.setString(Text.getCurrentContent());
@@ -3004,6 +3283,10 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
             if(Collision.getID() != Condition.Location.moduleID){
                 continue;
             }
+            if(Condition.Location.attribute == "in_group"){
+                NewValue.setBool(Collision.isInAGroup(Condition.Literal.getString()));
+                return NewValue;
+            }
             else if(Condition.Location.attribute == "hitbox_is_solid"){
                 NewValue.setBool(Collision.getIsSolid());
                 return NewValue;
@@ -3085,6 +3368,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(TriggerClass & Condition, A
         }
     }
     
+    std::cout << "Error: In " << __FUNCTION__ << ": Value not found.\n";
     NewValue.setID("null", nullptr);
     NewValue.setBool(false);
     return NewValue;
@@ -3188,7 +3472,15 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
             if(Layer.getID() != Condition.Location.layerID){
                 continue;
             }
-            if(Condition.Location.attribute == "objects_count"){
+            if(Condition.Location.attribute == "id"){
+                NewValue.setString(Layer.getID());
+                return NewValue;
+            }
+            if(Condition.Location.attribute == "in_group"){
+                NewValue.setBool(Layer.isInAGroup(Condition.Literal.getString()));
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "objects_count"){
                 NewValue.setDouble(Layer.Objects.size());
                 return NewValue;
             }
@@ -3223,6 +3515,10 @@ VariableModule EngineLoop::findNextValue(TriggerClass & Condition, AncestorObjec
         for(Camera2D Camera : Cameras){
             if(Camera.getID() != Condition.Location.cameraID){
                 continue;
+            }
+            if(Condition.Location.attribute == "id"){
+                NewValue.setString(Camera.getID());
+                return NewValue;
             }
             else if(Condition.Location.attribute == "pos_x"){
                 NewValue.setDouble(Camera.pos.x);
@@ -3360,7 +3656,18 @@ char EngineLoop::evaluateConditionalChain(vector<TriggerClass> & ConditionalChai
         }
     }
     if(resultStack.size() == 1){
-        if(resultStack.back().getBool()){
+        if(resultStack.back().getType() == 's'){
+            if(isStringInGroup(resultStack.back().getString(), 2, "true", "t", "1")){
+                return 't';
+            }
+            else if(isStringInGroup(resultStack.back().getString(), 2, "false", "f", "0")){
+                return 'f';
+            }
+            else{
+                std::cout << "Error: In: " << __FUNCTION__ << ": String is not a valid booleon value.\n";
+            }
+        }
+        else if(resultStack.back().getBool()){
             return 't';
         }
         return 'f';
@@ -3402,7 +3709,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
     detectTriggeredEvents(Layers, Cameras, TriggeredObjects);
 
-    if(TriggeredObjects.size() > 0){
+    if(printInstructions && TriggeredObjects.size() > 0){
         std::cout << "\nTriggered "<< TriggeredObjects.size() << " objects:\n";
     }
 
@@ -3457,7 +3764,9 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         
         StartingEvent = Event;
 
-        std::cout << "Starting with: " << StartingEvent->getID() << "\n";
+        if(printInstructions){
+            std::cout << "Starting with: " << StartingEvent->getID() << "\n";
+        }
 
         for(auto _ : Context){
             _.clear();

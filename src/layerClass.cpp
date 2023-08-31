@@ -114,3 +114,22 @@ void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs){
         }
     }
 }
+
+void LayerClass::addGroup(string newGroup){
+    addUniqueToStringVector(groups, newGroup);
+}
+void LayerClass::removeGroup(string selectedGroup){
+    removeFromStringVector(groups, selectedGroup);
+}
+void LayerClass::clearGroups(){
+    groups.clear();
+}
+bool LayerClass::isInAGroup(string findGroup){
+    return isStringInVector(groups, findGroup);
+}
+vector <string> LayerClass::getGroups(){
+    return groups;
+}
+vector<string> &LayerClass::getGroupsAddr(){
+    return groups;
+}

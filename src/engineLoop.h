@@ -31,6 +31,8 @@ vector<string> getAllFilesNamesWithinFolder(string folder);
 template <class T>
 void getPointersFromVector(vector <T*> & Left, vector<T> & Right);
 
+bool checkForVectorSize(size_t leftSize, size_t rightSize, bool & sameSize, string functionName);
+
 struct EditorWindowArrangement{
     double windowWidth;
     vec2d buttonSize;
@@ -266,6 +268,7 @@ public:
     void executeArithmetics(OperaClass & Operation, vector<PointerContainer> &EventContext);
     void generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation);
+    void checkIfVectorContainsVector(OperaClass & Operation, vector<PointerContainer> &EventContext);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);
     VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);

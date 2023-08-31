@@ -289,17 +289,29 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.push_back(EveModule("rotate-init", Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
     Objects.back().EveContainer.back().primaryTriggerTypes.push_back("each_iteration");
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "last";
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
     Objects.back().EveContainer.back().DependentOperations.back().searchedEntityType = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass());
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "in_group";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Literal.setString("kek");
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "L1";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "random";
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("L1");
     Objects.back().EveContainer.back().DependentOperations.back().searchedEntityType = "object";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "Amongus";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "Objects";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass());
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleType = "ancestor";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "id";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(TriggerClass());
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().source = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Literal.setString("22a5");
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().operators.push_back("==");
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("Amongus");
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("Objects");
     Objects.back().EveContainer.back().DependentOperations.back().searchedEntityType = "image";
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "image";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
@@ -313,15 +325,17 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.moduleID = "rot_spd";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.attribute = "int";
 
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    /*Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
     Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(-50));
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(50));
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(50));*/
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "random_int";
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "random";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(-50));
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(50));
 
     Objects.back().EveContainer.back().Children.push_back({false, "rotate-first-if"});
     //Objects.back().EveContainer.back().Children.push_back({false, "rotate-second-if"});
@@ -782,7 +796,8 @@ int main(){
     Compiler.loadTestData();
     Compiler.writeAllText();
 
-    EngineLoop Environment("EGM");
+    vector <EngineLoop> Threads;
+    Threads.push_back(EngineLoop("EGM"));
     vector <SingleFont> FontContainer;
     vector <SingleBitmap> BitmapContainer;
     vector <LayerClass> Layers;
@@ -790,44 +805,45 @@ int main(){
 
     unsigned numberOfObjects = 0;
 
-    Environment.initAllegro();
+    Threads.back().initAllegro();
     loadFontsToContainer(FontContainer);
     std::cout << FontContainer.size() << "\n";
 
     loadBitmapsToContainer(BitmapContainer);
 
 
-    createCameras(Cameras, Environment.camerasIDs);
-    Environment.updateAllForestOfCameras(Cameras);
+    createCameras(Cameras, Threads.back().camerasIDs);
+    Threads.back().updateAllForestOfCameras(Cameras);
 
-    Cameras.push_back(Camera2D("", Environment.camerasIDs));
-    Cameras.back().clone(Cameras[1], Environment.camerasIDs);
+    Cameras.push_back(Camera2D("", Threads.back().camerasIDs));
+    Cameras.back().clone(Cameras[1], Threads.back().camerasIDs);
     Cameras.back().setIsPinned(false);
     Cameras.back().setPos(vec2d(SCREEN_W/2.0, 300.0));
 
-    if(Environment.isCamerasUniquenessViolated(Cameras)){
+    if(Threads.back().isCamerasUniquenessViolated(Cameras)){
         goto uniquenessViolated;
     }
 
 
-    Layers.push_back(LayerClass("Editor", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
+    Layers.push_back(LayerClass("Editor", Threads.back().layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
     prepareEditorWindow(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer);
     Layers[0].Objects[0].deactivate();
-    createObjects0(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer, Environment.window);
+    createObjects0(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer, Threads.back().window);
 
-    Layers.push_back(LayerClass("L1", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
-    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Environment.window);
+    Layers.push_back(LayerClass("L1", Threads.back().layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
+    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Threads.back().window);
+    Layers.back().addGroup("kek");
 
     std::cout << "Layer 1: " << Layers.back().getID() << "\n";
     std::cout << "Object 1: " << Layers.back().Objects[0].getID() << " " << Layers.back().Objects[0].getLayerID() << "\n";
 
-    //Layers.push_back(LayerClass("", Environment.layersIDs, true, vec2d(0.0, 0.0), vec2d(0, 0)));
-    //Layers.back().clone(Layers[Layers.size()-2], Environment.layersIDs);
+    //Layers.push_back(LayerClass("", Threads.back().layersIDs, true, vec2d(0.0, 0.0), vec2d(0, 0)));
+    //Layers.back().clone(Layers[Layers.size()-2], Threads.back().layersIDs);
 
     std::cout << "Layer 2: " << Layers.back().getID() << "\n";
     std::cout << "Object 2: " << Layers.back().Objects[0].getID() << " " << Layers.back().Objects[0].getLayerID() << "\n";
     
-    if(Environment.isLayersUniquenessViolated(Layers)){
+    if(Threads.back().isLayersUniquenessViolated(Layers)){
         goto uniquenessViolated;
     }
 
@@ -841,14 +857,14 @@ int main(){
     }
     std::cout << "Number of objects: " << numberOfObjects << "\n";
 
-    Environment.updateBaseOfTriggerableObjects(Layers, Cameras);
+    Threads.back().updateBaseOfTriggerableObjects(Layers, Cameras);
 
-    Environment.startTimer();
+    Threads.back().startTimer();
     
     //Main loop
     do{
-        Environment.windowLoop(Layers, Cameras, FontContainer, fps, BitmapContainer);
-    }while(!Environment.closeEditor);
+        Threads.back().windowLoop(Layers, Cameras, FontContainer, fps, BitmapContainer);
+    }while(!Threads.back().closeEditor);
 
     uniquenessViolated:
 
@@ -861,7 +877,7 @@ int main(){
     for(auto name : fileNames)
         std::cout << name << std::endl;
 
-    Environment.exitAllegro();
+    Threads.back().exitAllegro();
 
     freeFontsFromContainer(FontContainer);
     freeBitmapsFromContainer(BitmapContainer);

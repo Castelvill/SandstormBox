@@ -66,7 +66,9 @@ public:
     void setPointer(double*);
     void setPointer(string*);
     bool areEqual(BasePointersStruct *OtherVariable);
+    bool areEqual(BaseVariableStruct *OtherVariable);
 
+    bool getBool() const;
     double getDouble() const;
     int getInt() const;
     string getString() const;
@@ -103,6 +105,7 @@ class PrimaryModule{
     void clearGroups();
     bool isInAGroup(string findGroup);
     vector <string> getGroups();
+    vector <string> & getGroupsAddr();
 
     void setPos(vec2d newPos);
     void setScrollShift(vec2d newValue);
@@ -129,7 +132,7 @@ class PrimaryModule{
     string &getLayerIDAddr();
     string getLayerID() const;
     string & getIDAddr();
-    string getObjectID();
+    string getObjectID() const;
     vec2d getPos(bool useScrollshift);
     vec2d & getPosAddr();
     vec2d getSize();

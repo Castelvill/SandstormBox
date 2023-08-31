@@ -60,7 +60,9 @@ bool PrimaryModule::isInAGroup(string findGroup){
 vector <string> PrimaryModule::getGroups(){
     return groups;
 }
-
+vector <string> & PrimaryModule::getGroupsAddr(){
+    return groups;
+}
 
 void PrimaryModule::setPos(vec2d newPos){
     pos.set(newPos);
@@ -137,7 +139,7 @@ string &PrimaryModule::getLayerIDAddr(){
 string &PrimaryModule::getIDAddr(){
     return ID;
 }
-string PrimaryModule::getObjectID(){
+string PrimaryModule::getObjectID() const{
     return objectID;
 }
 vec2d PrimaryModule::getPos(bool useScrollshift){
@@ -181,6 +183,11 @@ bool PrimaryModule::getIsScrollable(){
 void PrimaryModule::bindPrimaryToVariable(string attribute, BasePointersStruct & BasePointer){
     if(attribute == "id"){
         BasePointer.setPointer(&ID);
+    }
+    else if(attribute == "group"){
+        for(string & group : groups){
+            BasePointer.setPointer(&group);
+        }
     }
     else if(attribute == "pos_x"){
         BasePointer.setPointer(&pos.x);
@@ -243,11 +250,11 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
         return;
     }
     if(LeftOperand == nullptr){
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
         return;
     }
     if(RightOperand == nullptr){
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return;
     }
     if(instruction == "=" || instruction == "clone"){
@@ -267,11 +274,11 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
             *LeftOperand = (*LeftOperand) / (*RightOperand);
         }
         else{
-            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot divide by zero.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot divide by zero.\n";
         }
     }
     else{
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << instruction << "\' is not a valid instruction.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << instruction << "\' is not a valid instruction.\n";
     }
 }
 template<typename LeftType>
@@ -301,7 +308,7 @@ void BaseVariableStruct::moveValue(LeftType * LeftOperand) const{
         *LeftOperand = vDouble;
     }
     else{
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
     }
 }
 string BaseVariableStruct::getString() const{
@@ -336,7 +343,7 @@ string BaseVariableStruct::getString() const{
         return doubleToStr(vDouble);
     }
     
-    std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
+    std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
     return "[invalid type]";
 }
 void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
@@ -345,7 +352,7 @@ void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
             *pString = RightOperand.getString();
         }
         else{
-            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign string type value to a non-string type variable.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot assign string type value to a non-string type variable.\n";
         }
     }
     else if(type == "bool"){
@@ -403,7 +410,7 @@ void BasePointersStruct::moveFromTemp(const RightType * RightOperand, string ins
         executeMoveTypeInstruction(pDouble, RightOperand, instruction);
     }
     else{
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
     }
 }
 void BasePointersStruct::move(const BasePointersStruct &RightOperand, string instruction){
@@ -416,11 +423,11 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, string ins
                 *pString += RightOperand.getString();
             }
             else{
-                std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+                std::cout << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
             }
         }
         else{
-            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
         }
     }
     else if(RightOperand.type == "bool"){
@@ -452,7 +459,7 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, string ins
         moveFromTemp((short*)nullptr, instruction);
     }
     else{
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
     }
 }
 void BasePointersStruct::move(const BaseVariableStruct & RightOperand, string instruction){
@@ -465,11 +472,11 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, string in
                 *pString += RightOperand.getString();
             }
             else{
-                std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+                std::cout << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
             }
         }
         else{
-            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
         }
     }
     else if(RightOperand.type == "bool"){
@@ -501,17 +508,17 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, string in
         moveFromTemp((short*)nullptr, instruction);
     }
     else{
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
     }
 }
 template<typename LeftType, typename RightType>
 LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, string instruction){
     if(LeftOperand == nullptr){
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
         return 0;
     }
     if(RightOperand == nullptr){
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return 0;
     }
     if(instruction == "+"){
@@ -528,11 +535,11 @@ LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightT
             return (*LeftOperand) / (*RightOperand);
         }
         else{
-            std::cout << "Error: In BasePointersStruct::tryArithmetics(): You cannot divide by zero.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot divide by zero.\n";
         }
     }
     else{
-        std::cout << "Error: In BasePointersStruct::tryArithmetics(): \'" << instruction << "\' is not a valid instruction.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << instruction << "\' is not a valid instruction.\n";
     }
     return 0;
 }
@@ -563,7 +570,7 @@ LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOpera
     else if(RightOperand.type == "double"){
         return tryArithmetics(LeftOperand, RightOperand.pDouble, instruction);
     }
-    std::cout << "Error: In BasePointersStruct::callTryArithmeticsForEveryType(): About the right operand: \'" << RightOperand.type << "\' is not a valid type.\n"; 
+    std::cout << "Error: In " << __FUNCTION__ << ": About the right operand: \'" << RightOperand.type << "\' is not a valid type.\n"; 
     return 0;
 }
 BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStruct &RightOperand, string instruction){
@@ -576,7 +583,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStru
         }
         else{
             type = "";
-            std::cout << "Error: In BasePointersStruct::executeArithmetics(): You cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
         }
     }
     else if(type == "bool"){
@@ -606,7 +613,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStru
     }
     else{
         type = "";
-        std::cout << "Error: In BasePointersStruct::executeArithmetics(): About the left operand: \'" << type << "\' is not a valid type.\n"; 
+        std::cout << "Error: In " << __FUNCTION__ << ": About the left operand: \'" << type << "\' is not a valid type.\n"; 
     }
     return result;
 }
@@ -649,7 +656,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStru
         }
         else{
             type = "";
-            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
         }
     }
     else if(type == "bool"){
@@ -678,7 +685,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStru
         result.vDouble = callTryArithmetics(pDouble, RightOperand, instruction);
     }
     else{
-        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": left operand's \'" << type << "\' type does not exist.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": left operand's \'" << type << "\' type does not exist.\n";
         result.type = "";
     }
 
@@ -723,7 +730,7 @@ void BasePointersStruct::setPointer(string * pointer){
 
 bool BasePointersStruct::areEqual(BasePointersStruct *OtherVariable){
     if(type != OtherVariable->type){
-        std::cout << "Error: Pointers of built-in types have different types.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ":Pointers of built-in types have different types.\n";
         return false;
     }
     if(type == "bool"){
@@ -754,45 +761,111 @@ bool BasePointersStruct::areEqual(BasePointersStruct *OtherVariable){
         return *pString == *OtherVariable->pString;
     }
     else{
-        std::cout << "Error: In BasePointersStruct::areEqual(): \'" << type << "\' is not a valid type.\n"; 
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
+    }
+    return false;
+}
+bool BasePointersStruct::areEqual(BaseVariableStruct *OtherVariable){
+    if(type != OtherVariable->type){
+        std::cout << "Error: In " << __FUNCTION__ << ": Pointers of built-in types have different types.\n";
+        return false;
+    }
+    if(type == "bool"){
+        return *pBool == OtherVariable->vBool;
+    }
+    else if(type == "char"){
+        return *pChar == OtherVariable->vChar;
+    }
+    else if(type == "short"){
+        return *pShort == OtherVariable->vShort;
+    }
+    else if(type == "unsigned_short"){
+        return *pUShort == OtherVariable->vUShort;
+    }
+    else if(type == "int"){
+        return *pInt == OtherVariable->vInt;
+    }
+    else if(type == "unsigned_int"){
+        return *pUInt == OtherVariable->vUInt;
+    }
+    else if(type == "float"){
+        return *pFloat == OtherVariable->vFloat;
+    }
+    else if(type == "double"){
+        return *pDouble == OtherVariable->vDouble;
+    }
+    else if(type == "string"){
+        return *pString == OtherVariable->vString;
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
     }
     return false;
 }
 
+bool BasePointersStruct::getBool() const{
+    if(type == "int"){
+        return *pInt;
+    }
+    else if(type == "unsigned_int"){
+        return *pUInt;
+    }
+    if(type == "bool"){
+        return *pBool;
+    }
+    else if(type == "char"){
+        return *pChar;
+    }
+    else if(type == "short"){
+        return *pShort;
+    }
+    else if(type == "unsigned_short"){
+        return *pUShort;
+    }
+    else if(type == "float"){
+        return *pFloat;
+    }
+    else if(type == "double"){
+        return *pDouble;
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": You can't access bool variable.\n";
+        return 0;
+    }
+}
 double BasePointersStruct::getDouble() const{
     if(type == "double"){
         return *pDouble;
     }
     if(type == "bool"){
-        std::cout << "Warning: In BasePointersStruct::getDouble(): No floating point.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pBool;
     }
     else if(type == "char"){
-        std::cout << "Warning: In BasePointersStruct::getDouble(): No floating point.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pChar;
     }
     else if(type == "short"){
-        std::cout << "Warning: In BasePointersStruct::getDouble(): No floating point.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pShort;
     }
     else if(type == "unsigned_short"){
-        std::cout << "Warning: In BasePointersStruct::getDouble(): No floating point.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pUShort;
     }
     else if(type == "int"){
-        std::cout << "Warning: In BasePointersStruct::getDouble(): No floating point.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pInt;
     }
     else if(type == "unsigned_int"){
-        std::cout << "Warning: In BasePointersStruct::getDouble(): No floating point.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pUInt;
     }
     else if(type == "float"){
-        std::cout << "Warning: In BasePointersStruct::getDouble(): No floating point.\n";
         return *pFloat;
     }
     else{
-        std::cout << "Error: In BasePointersStruct::getDouble(): You can't access numeric variable.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": You can't access numeric variable.\n";
         return 0.0;
     }
 }
@@ -801,35 +874,35 @@ int BasePointersStruct::getInt() const{
         return *pInt;
     }
     else if(type == "unsigned_int"){
-        std::cout << "Warning: In BasePointersStruct::getInt(): Conversion from unsigned int to int.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": Conversion from unsigned int to int.\n";
         return *pUInt;
     }
     if(type == "bool"){
-        std::cout << "Warning: In BasePointersStruct::getInt(): Conversion from bool to int.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": Conversion from bool to int.\n";
         return *pBool;
     }
     else if(type == "char"){
-        std::cout << "Warning: In BasePointersStruct::getInt(): Conversion from char to int.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": Conversion from char to int.\n";
         return *pChar;
     }
     else if(type == "short"){
-        std::cout << "Warning: In BasePointersStruct::getInt(): Conversion from short to int.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": Conversion from short to int.\n";
         return *pShort;
     }
     else if(type == "unsigned_short"){
-        std::cout << "Warning: In BasePointersStruct::getInt(): Conversion from unsigned short to int.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": Conversion from unsigned short to int.\n";
         return *pUShort;
     }
     else if(type == "float"){
-        std::cout << "Warning: In BasePointersStruct::getInt(): Floating point ignored.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": Floating point ignored.\n";
         return *pFloat;
     }
     else if(type == "double"){
-        std::cout << "Warning: In BasePointersStruct::getInt(): Floating point ignored.\n";
+        std::cout << "Warning: In " << __FUNCTION__ << ": Floating point ignored.\n";
         return *pDouble;
     }
     else{
-        std::cout << "Error: In BasePointersStruct::getInt(): You can't access numeric variable.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": You can't access numeric variable.\n";
         return 0;
     }
 }
@@ -865,6 +938,6 @@ string BasePointersStruct::getString() const{
         return doubleToStr(*pDouble);
     }
     
-    std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
+    std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
     return "[invalid type]";
 }
