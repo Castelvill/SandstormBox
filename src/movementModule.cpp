@@ -86,8 +86,8 @@ void ChainMovement::clearChain(){
 
 MovementModule::MovementModule(){
 }
-MovementModule::MovementModule(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+MovementModule::MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     movementType = 0;
     allowedJumps = 0;
     jumpsCount = 0;
@@ -123,7 +123,7 @@ MovementModule::MovementModule(string newID, vector<string> &listOfIDs, string n
     mouseButton = 0;
     moveOnMouseRelease = true;
 }
-MovementModule::MovementModule(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+MovementModule::MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     MovementModule(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
 void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
@@ -570,180 +570,182 @@ void MovementModule::bindKeys(short newUpKey, short newRightKey, short newDownKe
 void MovementModule::bindMouseButton(short newMouseButton){
     mouseButton = newMouseButton;
 }
-void MovementModule::getContext(string attribute, BasePointersStruct & BasePointer){
+void MovementModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.push_back(BasePointersStruct());
     if(attribute == "movement_type"){
-        BasePointer.setPointer(&movementType);
+        BasePointers.back().setPointer(&movementType);
     }
     else if(attribute == "input_type"){
-        BasePointer.setPointer(&inputType);
+        BasePointers.back().setPointer(&inputType);
     }
     else if(attribute == "allowed_jumps"){
-        BasePointer.setPointer(&allowedJumps);
+        BasePointers.back().setPointer(&allowedJumps);
     }
     else if(attribute == "jumps_count"){
-        BasePointer.setPointer(&jumpsCount);
+        BasePointers.back().setPointer(&jumpsCount);
     }
     else if(attribute == "jump_cooldown"){
-        BasePointer.setPointer(&jumpCooldown);
+        BasePointers.back().setPointer(&jumpCooldown);
     }
     else if(attribute == "jump_cooldown_duration"){
-        BasePointer.setPointer(&jumpCooldownDuration);
+        BasePointers.back().setPointer(&jumpCooldownDuration);
     }
     else if(attribute == "move_cooldown"){
-        BasePointer.setPointer(&moveCooldown);
+        BasePointers.back().setPointer(&moveCooldown);
     }
     else if(attribute == "move_cooldown_duration"){
-        BasePointer.setPointer(&moveCooldownDuration);
+        BasePointers.back().setPointer(&moveCooldownDuration);
     }
     else if(attribute == "can_move_diagonally"){
-        BasePointer.setPointer(&canMoveDiagonally);
+        BasePointers.back().setPointer(&canMoveDiagonally);
     }
     else if(attribute == "reset_momentum_when_jumping"){
-        BasePointer.setPointer(&resetMomentumWhenJumping);
+        BasePointers.back().setPointer(&resetMomentumWhenJumping);
     }
     else if(attribute == "is_move_planned"){
-        BasePointer.setPointer(&isMovePlanned);
+        BasePointers.back().setPointer(&isMovePlanned);
     }
     else if(attribute == "can_jump"){
-        BasePointer.setPointer(&canJump);
+        BasePointers.back().setPointer(&canJump);
     }
     else if(attribute == "body_mass"){
-        BasePointer.setPointer(&bodyMass);
+        BasePointers.back().setPointer(&bodyMass);
     }
     else if(attribute == "walking_speed"){
-        BasePointer.setPointer(&walkingSpeed);
+        BasePointers.back().setPointer(&walkingSpeed);
     }
     else if(attribute == "running_speed"){
-        BasePointer.setPointer(&runningSpeed);
+        BasePointers.back().setPointer(&runningSpeed);
     }
     else if(attribute == "jump_speed"){
-        BasePointer.setPointer(&jumpSpeed);
+        BasePointers.back().setPointer(&jumpSpeed);
     }
     else if(attribute == "gravitation"){
-        BasePointer.setPointer(&gravitation);
+        BasePointers.back().setPointer(&gravitation);
     }
     else if(attribute == "base_friction"){
-        BasePointer.setPointer(&baseFriction);
+        BasePointers.back().setPointer(&baseFriction);
     }
     else if(attribute == "momentum_x"){
-        BasePointer.setPointer(&momentum.x);
+        BasePointers.back().setPointer(&momentum.x);
     }
     else if(attribute == "momentum_y"){
-        BasePointer.setPointer(&momentum.y);
+        BasePointers.back().setPointer(&momentum.y);
     }
     else if(attribute == "max_momentum_x"){
-        BasePointer.setPointer(&maxMomentumX);
+        BasePointers.back().setPointer(&maxMomentumX);
     }
     else if(attribute == "min_momentum_y"){
-        BasePointer.setPointer(&minMomentumY);
+        BasePointers.back().setPointer(&minMomentumY);
     }
     else if(attribute == "max_momentum_y"){
-        BasePointer.setPointer(&maxMomentumY);
+        BasePointers.back().setPointer(&maxMomentumY);
     }
     else if(attribute == "destination_x"){
-        BasePointer.setPointer(&destination.x);
+        BasePointers.back().setPointer(&destination.x);
     }
     else if(attribute == "destination_y"){
-        BasePointer.setPointer(&destination.y);
+        BasePointers.back().setPointer(&destination.y);
     }
     else if(attribute == "direction_of_move_x"){
-        BasePointer.setPointer(&directionOfMove.x);
+        BasePointers.back().setPointer(&directionOfMove.x);
     }
     else if(attribute == "direction_of_move_y"){
-        BasePointer.setPointer(&directionOfMove.y);
+        BasePointers.back().setPointer(&directionOfMove.y);
     }
     else if(attribute == "mouse_button"){
-        BasePointer.setPointer(&mouseButton);
+        BasePointers.back().setPointer(&mouseButton);
     }
     else if(attribute == "move_on_mouse_release"){
-        BasePointer.setPointer(&moveOnMouseRelease);
+        BasePointers.back().setPointer(&moveOnMouseRelease);
     }
     else if(attribute == "reset_direction_after_collision"){
-        BasePointer.setPointer(&resetDirectionAfterCollision);
+        BasePointers.back().setPointer(&resetDirectionAfterCollision);
     }
     else if(attribute == "is_moving_up"){
-        BasePointer.setPointer(&isMovingUp);
+        BasePointers.back().setPointer(&isMovingUp);
     }
     else if(attribute == "is_moving_right"){
-        BasePointer.setPointer(&isMovingRight);
+        BasePointers.back().setPointer(&isMovingRight);
     }
     else if(attribute == "is_moving_down"){
-        BasePointer.setPointer(&isMovingDown);
+        BasePointers.back().setPointer(&isMovingDown);
     }
     else if(attribute == "is_moving_left"){
-        BasePointer.setPointer(&isMovingLeft);
+        BasePointers.back().setPointer(&isMovingLeft);
     }
     else if(attribute == "is_jumping"){
-        BasePointer.setPointer(&isJumping);
+        BasePointers.back().setPointer(&isJumping);
     }
     else if(attribute == "is_falling"){
-        BasePointer.setPointer(&isFalling);
+        BasePointers.back().setPointer(&isFalling);
     }
     else if(attribute == "is_running"){
-        BasePointer.setPointer(&isRunning);
+        BasePointers.back().setPointer(&isRunning);
     }
     else if(attribute == "up_key"){
-        BasePointer.setPointer(&upKey);
+        BasePointers.back().setPointer(&upKey);
     }
     else if(attribute == "right_key"){
-        BasePointer.setPointer(&rightKey);
+        BasePointers.back().setPointer(&rightKey);
     }
     else if(attribute == "down_key"){
-        BasePointer.setPointer(&downKey);
+        BasePointers.back().setPointer(&downKey);
     }
     else if(attribute == "left_key"){
-        BasePointer.setPointer(&leftKey);
+        BasePointers.back().setPointer(&leftKey);
     }
     else if(attribute == "jump_key"){
-        BasePointer.setPointer(&jumpKey);
+        BasePointers.back().setPointer(&jumpKey);
     }
     else if(attribute == "running_key"){
-        BasePointer.setPointer(&runningKey);
+        BasePointers.back().setPointer(&runningKey);
     }
     else if(attribute == "are_random_actions_enabled"){
-        BasePointer.setPointer(&areRandomActionsEnabled);
+        BasePointers.back().setPointer(&areRandomActionsEnabled);
     }
     else if(attribute == "time_when_action_persists"){
-        BasePointer.setPointer(&timeWhenActionPersists);
+        BasePointers.back().setPointer(&timeWhenActionPersists);
     }
     else if(attribute == "min_time_of_action"){
-        BasePointer.setPointer(&minTimeOfAction);
+        BasePointers.back().setPointer(&minTimeOfAction);
     }
     else if(attribute == "max_time_of_action"){
-        BasePointer.setPointer(&maxTimeOfAction);
+        BasePointers.back().setPointer(&maxTimeOfAction);
     }
     else if(attribute == "min_move_distance"){
-        BasePointer.setPointer(&minMoveDistance);
+        BasePointers.back().setPointer(&minMoveDistance);
     }
     else if(attribute == "max_move_distance"){
-        BasePointer.setPointer(&maxMoveDistance);
+        BasePointers.back().setPointer(&maxMoveDistance);
     }
     else if(attribute == "saved_action"){
-        BasePointer.setPointer(&savedAction);
+        BasePointers.back().setPointer(&savedAction);
     }
     else if(attribute == "saved_direction_x"){
-        BasePointer.setPointer(&savedDirection.x);
+        BasePointers.back().setPointer(&savedDirection.x);
     }
     else if(attribute == "saved_direction_y"){
-        BasePointer.setPointer(&savedDirection.y);
+        BasePointers.back().setPointer(&savedDirection.y);
     }
     else if(attribute == "chance_for_break"){
-        BasePointer.setPointer(&chanceForBreak);
+        BasePointers.back().setPointer(&chanceForBreak);
     }
     else if(attribute == "current_direction_x"){
-        BasePointer.setPointer(&currentDirection.x);
+        BasePointers.back().setPointer(&currentDirection.x);
     }
     else if(attribute == "current_direction_y"){
-        BasePointer.setPointer(&currentDirection.y);
+        BasePointers.back().setPointer(&currentDirection.y);
     }
     else if(attribute == "current_pos"){
-        BasePointer.setPointer(&currentPos);
+        BasePointers.back().setPointer(&currentPos);
     }
     else if(attribute == "loop_movement"){
-        BasePointer.setPointer(&loopMovement);
+        BasePointers.back().setPointer(&loopMovement);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointer);
+        BasePointers.pop_back();
+        bindPrimaryToVariable(attribute, BasePointers);
     }
 }
 

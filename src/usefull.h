@@ -11,6 +11,7 @@
 using std::string;
 
 const double FPS = 60.0;
+const vector<string> reservedIDs = {"KERNEL", "TERMINAL"}; 
 
 string shortToStr(short integer);
 string intToStr(int integer);
@@ -26,7 +27,7 @@ bool isCharInGroup(char ID, int count, ...);
 
 void addUniqueToStringVector(vector <string> & stringVec, string newString);
 void removeFromStringVector(vector <string> & stringVec, std::string selectedString);
-bool isStringInVector(vector <string> & stringVec, std::string findString);
+bool isStringInVector(const vector <string> & stringVec, std::string findString);
 
 string findNewUniqueID(vector <string> IDs, string newID);
 

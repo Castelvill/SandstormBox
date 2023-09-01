@@ -65,7 +65,7 @@ string VariableModule::getAnyValue(){
     }
     return "";
 }
-char VariableModule::getType(){
+char VariableModule::getType() const{
     return type;
 }
 string VariableModule::getFullTypeName(){
@@ -109,6 +109,19 @@ bool VariableModule::getBool() const{
     }
     return vBool;
 }
+bool VariableModule::getBoolUnsafe() const{
+    if(type == 'i'){
+        return vInt > 0;
+    }
+    else if(type == 'd'){
+        return vDouble > 0;
+    }
+    else if(type != 'b'){
+        std::cout << "Error [VariableModule]: You can't access boolean variable.\n";
+        return false;
+    }
+    return vBool;
+}
 int VariableModule::getInt() const{
     if(type == 'd'){
         std::cout << "Warning [VariableModule]: floating point ignored.\n";
@@ -120,6 +133,15 @@ int VariableModule::getInt() const{
     }
     return vInt;
 }
+int VariableModule::getIntUnsafe() const{
+    if(type == 'd'){
+        return vDouble;
+    }
+    else if(type != 'i'){
+        return 0;
+    }
+    return vInt;
+}
 double VariableModule::getDouble() const{
     if(type == 'i'){
         std::cout << "Warning [VariableModule]: no floating point.\n";
@@ -127,7 +149,16 @@ double VariableModule::getDouble() const{
     }
     else if(type != 'd'){
         std::cout << "Error [VariableModule]: You can't access double variable.\n";
-        return 0;
+        return 0.0;
+    }
+    return vDouble;
+}
+double VariableModule::getDoubleUnsafe() const{
+    if(type == 'i'){
+        return vInt;
+    }
+    else if(type != 'd'){
+        return 0.0;
     }
     return vDouble;
 }
@@ -151,7 +182,30 @@ string VariableModule::getString() const{
     std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
     return "[invalid type]";
 }
+string VariableModule::getStringUnsafe() const{
+    if(type == 's'){
+        return vString;
+    }
+    else if(type == 'b'){
+        if(vBool){
+            return "true";
+        }
+        return "false";
+    }
+    else if(type == 'i'){
+        return intToStr(vInt);
+    }
+    else if(type == 'd'){
+        return doubleToStr(vDouble);
+    }
+    
+    return "";
+}
 void VariableModule::setID(string newID, vector<string> * listOfIDs){
+    if(isStringInVector(reservedIDs, ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        return;
+    }
     if(listOfIDs != nullptr){
         removeFromStringVector(*listOfIDs, ID);
         ID = findNewUniqueID(*listOfIDs, newID);
@@ -308,38 +362,45 @@ void VariableModule::negate(){
         std::cout << "Error [VariableModule]: You can't negate the value of already not-initialized variable.\n";
     }
 }
-void VariableModule::getContext(string attribute, BasePointersStruct & BasePointer){
+void VariableModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.push_back(BasePointersStruct());
     if(attribute == "id"){
-        BasePointer.setPointer(&ID);
+        if(isStringInVector(reservedIDs, ID)){
+            std::cout << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
+            BasePointers.pop_back();
+            return;
+        }
+        BasePointers.back().setPointer(&ID);
     }
     else if(attribute == "type"){
-        BasePointer.setPointer(&type);
+        BasePointers.back().setPointer(&type);
     }
     else if(attribute == "bool"){
-        BasePointer.setPointer(&vBool);
+        BasePointers.back().setPointer(&vBool);
     }
     else if(attribute == "default_bool"){
-        BasePointer.setPointer(&defaultBool);
+        BasePointers.back().setPointer(&defaultBool);
     }
     else if(attribute == "int"){
-        BasePointer.setPointer(&vInt);
+        BasePointers.back().setPointer(&vInt);
     }
     else if(attribute == "default_int"){
-        BasePointer.setPointer(&defaultInt);
+        BasePointers.back().setPointer(&defaultInt);
     }
     else if(attribute == "double"){
-        BasePointer.setPointer(&vDouble);
+        BasePointers.back().setPointer(&vDouble);
     }
     else if(attribute == "default_double"){
-        BasePointer.setPointer(&defaultDouble);
+        BasePointers.back().setPointer(&defaultDouble);
     }
     else if(attribute == "string"){
-        BasePointer.setPointer(&vString);
+        BasePointers.back().setPointer(&vString);
     }
     else if(attribute == "default_string"){
-        BasePointer.setPointer(&defaultString);
+        BasePointers.back().setPointer(&defaultString);
     }
     else{
+        BasePointers.pop_back();
         std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     }
 }
@@ -888,6 +949,12 @@ void VariableModule::set(const BaseVariableStruct &BaseVariable){
 
 VariableModule VariableModule::newBool(bool val){
     VariableModule newVariable;
+    newVariable.setBool(val);
+    return newVariable;
+}
+VariableModule VariableModule::newBool(bool val, string newID){
+    VariableModule newVariable;
+    newVariable.ID = newID;
     newVariable.setBool(val);
     return newVariable;
 }

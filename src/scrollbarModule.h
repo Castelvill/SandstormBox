@@ -18,15 +18,15 @@ class ScrollbarModule : public PrimaryModule{
 public:
     void initScrollbar();
     ScrollbarModule();
-    ScrollbarModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    ScrollbarModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ScrollbarModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const ScrollbarModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera);
     bool startDragging(vec2d basePos, MouseClass Mouse, Camera2D * Camera);
     bool dragThumb(vec2d basePos, MouseClass Mouse);
     vec2d countScrollShift();
-    void getContext(string attribute, BasePointersStruct & BasePointer);
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     void setThumbPos(vec2d newValue);
     void setThumbSize(vec2d newValue);

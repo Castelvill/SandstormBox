@@ -20,7 +20,7 @@ const float MAX_ZOOM = 1.0;
 const int BUFFER_W = SCREEN_W * MAX_ZOOM;
 const int BUFFER_H = SCREEN_H * MAX_ZOOM;
 const bool printOutLogicalEvaluations = false;
-const bool printInstructions = false;
+const bool printInstructions = true;
 
 
 void loadFontsToContainer(vector <SingleFont> & FontContainer);
@@ -219,7 +219,7 @@ public:
     void aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
     void aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
     void aggregateObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers, vector <AncestorObject*> AggregatedObjects, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
-    void chooseRandomModule(OperaClass & Operation, PointerContainer & NewContext);
+    void chooseRandomModule(string source, PointerContainer & NewContext);
     template<class ModuleClass>
     void aggregateModuleContextFromVectors(
         vector<ModuleClass> & ModuleContainer, vector<ModuleClass*> AggregatedModules, OperaClass & Operation,
@@ -244,10 +244,10 @@ public:
     bool findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, vector <LayerClass> & Layers);
     void findContextInOneObject(ValueLocation & Location, PointerContainer & NewContext, AncestorObject * CurrentObject);
     void findContextInObjects(ValueLocation & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers);
-    void findContextInEnv(TriggerClass & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void findContextInEnv(ValueLocation & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void findContextInOneModule(string moduleType, string moduleID, string attribute, PointerContainer & NewContext, ModulesPointers & AggregatedModules);
     void findLowerContextInObjects(ValueLocation & Location, PointerContainer & NewContext, PointerContainer * OldContext);
-    void findLowerContext(TriggerClass & Location, PointerContainer & NewContext, PointerContainer * OldContext);
+    void findLowerContext(ValueLocation  & Location, PointerContainer & NewContext, PointerContainer * OldContext);
     //Method return true if a pair of contexts of the same type is found.
     bool getPairOfContexts(PointerContainer *& LeftOperand, PointerContainer *& RightOperand, vector<PointerContainer> & AllContexts, vector <string> contextIDs);
     bool getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs);
@@ -269,11 +269,15 @@ public:
     void generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void checkIfVectorContainsVector(OperaClass & Operation, vector<PointerContainer> &EventContext);
+    void createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    VariableModule findNextValueInMovementModule(TriggerClass & Condition, AncestorObject * CurrentObject);
-    VariableModule findNextValueAmongObjects(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
-    VariableModule findNextValue(TriggerClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
-    char evaluateConditionalChain(vector<TriggerClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
+    VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
+    VariableModule getValueFromObjectInCamera(AncestorObject * CurrentObject, vector <Camera2D> & Cameras, const string & attribute, const string & cameraID);
+    VariableModule getValueFromMouseClickingObject(AncestorObject * CurrentObject, const string & attribute, const short & button);
+    VariableModule getValueFromObjectInCollision(AncestorObject * CurrentObject, LayerClass * CurrentLayer, const ValueLocation & Location);
+    VariableModule findNextValueAmongObjects(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    VariableModule findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
+    char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
@@ -295,7 +299,7 @@ public:
     void updateCameraPosition(Camera2D & Cameras, AncestorObject * FollowedByCamera);
     void moveObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void moveParticles(vector <LayerClass> & Layers);
-    void moveSelectedObject(vector <EditableTextModule> & EditableTextContainer);
+    void moveSelectedObject();
     void triggerEvents(vector <LayerClass> & Layers, short eventsType);
     void updateEditableTextFields(vector <LayerClass> & Layers, vector <SingleBitmap> & BitmapContainer);
     void startTimer();

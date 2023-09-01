@@ -1,8 +1,8 @@
 #include "eventModule.h"
 
-TriggerClass::TriggerClass(unsigned int newID) : Literal(newID, nullptr, "", ""){}
-TriggerClass::TriggerClass(string newID) : Literal(newID, nullptr, "", ""){}
-TriggerClass::TriggerClass() : Literal(){}
+ConditionClass::ConditionClass(unsigned int newID) : Literal(newID, nullptr, "", ""){}
+ConditionClass::ConditionClass(string newID) : Literal(newID, nullptr, "", ""){}
+ConditionClass::ConditionClass() : Literal(){}
 
 OperaClass::OperaClass(){
     instruction = "";
@@ -17,12 +17,12 @@ void EveModule::clone(const EveModule &Original, vector<string> &listOfIDs, stri
 
 EveModule::EveModule(){
 }
-EveModule::EveModule(unsigned int eventModuleID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
+EveModule::EveModule(unsigned int eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(eventModuleID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-EveModule::EveModule(string eventModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
+EveModule::EveModule(string eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(eventModuleID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void EveModule::setUpNewInstance(){
@@ -49,145 +49,145 @@ bool EveModule::checkIfAllChildrenFinished(){
     return true;
 }
 void EveModule::controlAncestor(OperaClass & Operation, vec2d & objectPos, vec2d & objectSize){
-    if(Operation.affectedVariable == "position" && Operation.Literals.size() >= 2){
+    if(Operation.attribute == "position" && Operation.Literals.size() >= 2){
         objectPos.set(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
     }
-    if(Operation.affectedVariable == "size" && Operation.Literals.size() >= 2){
+    if(Operation.attribute == "size" && Operation.Literals.size() >= 2){
         objectSize.set(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
     }
 }
 void EveModule::controlText(OperaClass & Operation, TextModule & Text){
-    if(Operation.affectedVariable == "activate"){
+    if(Operation.attribute == "activate"){
         Text.activate();
     }
-    else if(Operation.affectedVariable == "deactivate"){
+    else if(Operation.attribute == "deactivate"){
         Text.deactivate();
     }
-    else if(Operation.affectedVariable == "position" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "position" && Operation.Literals.size() >= 2){
         Text.setPos(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "size" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "size" && Operation.Literals.size() >= 2){
         Text.setSize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "set_scale" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "set_scale" && Operation.Literals.size() >= 2){
         Text.setScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "add_scale" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "add_scale" && Operation.Literals.size() >= 2){
         Text.addScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "color" && Operation.Literals.size() >= 3){
+    else if(Operation.attribute == "color" && Operation.Literals.size() >= 3){
         Text.setColors(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble(), Operation.Literals[2].getDouble());
     }
-    else if(Operation.affectedVariable == "random_color"){
+    else if(Operation.attribute == "random_color"){
         Text.setRandomColors();
     }
-    else if(Operation.affectedVariable == "set_rotation" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_rotation" && Operation.Literals.size() >= 1){
         Text.setRotation(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "rotate" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "rotate" && Operation.Literals.size() >= 1){
         Text.addRotation(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "visibility" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "visibility" && Operation.Literals.size() >= 1){
         Text.setVisibility(Operation.Literals[0].getDouble());
     }
 }
 void EveModule::controlImage(OperaClass & Operation, ImageModule & Image){
-    if(Operation.affectedVariable == "position" && Operation.Literals.size() >= 2){
+    if(Operation.attribute == "position" && Operation.Literals.size() >= 2){
         Image.setPos(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "size" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "size" && Operation.Literals.size() >= 2){
         Image.setSize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "scale" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "scale" && Operation.Literals.size() >= 2){
         Image.setScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "resize" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "resize" && Operation.Literals.size() >= 2){
         Image.resize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "set_rotation" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_rotation" && Operation.Literals.size() >= 1){
         Image.setRotation(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "rotate" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "rotate" && Operation.Literals.size() >= 1){
         Image.addRotation(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "mirror" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "mirror" && Operation.Literals.size() >= 2){
         Image.setMirror(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
     }
-    else if(Operation.affectedVariable == "image_color" && Operation.Literals.size() >= 4){
+    else if(Operation.attribute == "image_color" && Operation.Literals.size() >= 4){
         float arr[] = {float(Operation.Literals[0].getDouble()), float(Operation.Literals[1].getDouble()), float(Operation.Literals[2].getDouble()), float(Operation.Literals[3].getDouble())};
         Image.setImageColor(arr);
     }
-    else if(Operation.affectedVariable == "light" && Operation.Literals.size() >= 4){
+    else if(Operation.attribute == "light" && Operation.Literals.size() >= 4){
         Image.setLightColor(vec3d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble(), Operation.Literals[2].getDouble()), Operation.Literals[3].getDouble());
     }
 }
 void EveModule::controlMovement(OperaClass & Operation, MovementModule & Movement){
-    if(Operation.affectedVariable == "move_up"){
+    if(Operation.attribute == "move_up"){
         Movement.setNextMove(true, false, false, false, false, false, false);
     }
-    else if(Operation.affectedVariable == "move_right"){
+    else if(Operation.attribute == "move_right"){
         Movement.setNextMove(false, true, false, false, false, false, false);
     }
-    else if(Operation.affectedVariable == "move_down"){
+    else if(Operation.attribute == "move_down"){
         Movement.setNextMove(false, false, true, false, false, false, false);
     }
-    else if(Operation.affectedVariable == "move_left"){
+    else if(Operation.attribute == "move_left"){
         Movement.setNextMove(false, false, false, true, false, false, false);
     }
-    else if(Operation.affectedVariable == "move_jump"){
+    else if(Operation.attribute == "move_jump"){
         Movement.setNextMove(false, false, false, false, true, false, false);
     }
-    else if(Operation.affectedVariable == "move_fall"){
+    else if(Operation.attribute == "move_fall"){
         Movement.setNextMove(false, false, false, false, false, true, false);
     }
-    else if(Operation.affectedVariable == "move_run"){
+    else if(Operation.attribute == "move_run"){
         Movement.setNextMove(false, false, false, false, false, false, true);
     }
-    else if(Operation.affectedVariable == "move" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "move" && Operation.Literals.size() >= 2){
         Movement.addMomentum(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
 }
 void EveModule::controlCollision(OperaClass & Operation, CollisionModule & Collision){
-    if(Operation.affectedVariable == "solid"){
+    if(Operation.attribute == "solid"){
         Collision.switchSolid();
     }
-    if(Operation.affectedVariable == "penetrate"){
+    if(Operation.attribute == "penetrate"){
         Collision.switchSolidPenetration();
     }
 }
 void EveModule::controlParticles(OperaClass & Operation, ParticleEffectModule & Particles){
-    if(Operation.affectedVariable == "environment" && Operation.Literals.size() >= 2){
+    if(Operation.attribute == "environment" && Operation.Literals.size() >= 2){
         Particles.setEnvironment(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "environment_speed" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "environment_speed" && Operation.Literals.size() >= 2){
         Particles.setEnvironmentSpeed(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
-    else if(Operation.affectedVariable == "shape" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "shape" && Operation.Literals.size() >= 1){
         Particles.setParticlesShape(Operation.Literals[0].getDouble());
     }
-    else if(Operation.affectedVariable == "image"){
+    else if(Operation.attribute == "image"){
         Particles.switchUseImageAsParticles();
     }
-    else if(Operation.affectedVariable == "spawn"){
+    else if(Operation.attribute == "spawn"){
         Particles.activeSpawn();
     }
-    else if(Operation.affectedVariable == "random_colors"){
+    else if(Operation.attribute == "random_colors"){
         Particles.switchUseRandomColors();
     }
-    else if(Operation.affectedVariable == "move"){
+    else if(Operation.attribute == "move"){
         Particles.switchAreParticlesMoving();
     }
 }
 void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variable){
-    if(Operation.affectedVariable == "toggle_bool"){
+    if(Operation.attribute == "toggle_bool"){
         Variable.toggleBool();
     }
-    else if(Operation.affectedVariable == "set_default_bool_random"){
+    else if(Operation.attribute == "set_default_bool_random"){
         if(rand() % 2 == 0){
             Variable.toggleDefaultBool();
         }
     }
-    else if(Operation.affectedVariable == "set_default_bool_probability" && Operation.Literals.size() >= 3){
+    else if(Operation.attribute == "set_default_bool_probability" && Operation.Literals.size() >= 3){
         bool setBool;
         if(Operation.Literals[0].getDouble() == 0){
             setBool = false;
@@ -203,7 +203,7 @@ void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variab
             Variable.setDefaultBool(setBool);
         }
     }
-    else if(Operation.affectedVariable == "set_default_bool_probability" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "set_default_bool_probability" && Operation.Literals.size() >= 2){
         bool setBool;
         if(Operation.Literals[0].getDouble() == 0){
             setBool = false;
@@ -219,7 +219,7 @@ void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variab
             Variable.setDefaultBool(setBool);
         }
     }
-    else if(Operation.affectedVariable == "set_default_bool" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_default_bool" && Operation.Literals.size() >= 1){
         if(Operation.Literals[0].getDouble() == 0){
             Variable.setDefaultBool(false);
         }
@@ -227,38 +227,38 @@ void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variab
             Variable.setDefaultBool(true);
         }
     }
-    else if(Operation.affectedVariable == "set_default_int" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_default_int" && Operation.Literals.size() >= 1){
         Variable.setDefaultInt(Operation.Literals[0].getInt());
     }
-    else if(Operation.affectedVariable == "set_default_int_interval" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "set_default_int_interval" && Operation.Literals.size() >= 2){
         Variable.setDefaultInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
     }
-    else if(Operation.affectedVariable == "set_default_int_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_default_int_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.setDefaultInt(Operation.Literals[dice].getInt());
     }
-    else if(Operation.affectedVariable == "set_default_double" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_default_double" && Operation.Literals.size() >= 1){
         Variable.setDefaultDouble(Operation.Literals[0].getDouble());;
     }
-    else if(Operation.affectedVariable == "set_default_double_interval" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "set_default_double_interval" && Operation.Literals.size() >= 2){
         Variable.setDefaultDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
     }
-    else if(Operation.affectedVariable == "set_default_double_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_default_double_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.setDefaultDouble(Operation.Literals[dice].getDouble());
     }
-    else if(Operation.affectedVariable == "set_default_string" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_default_string" && Operation.Literals.size() >= 1){
         Variable.setDefaultString(Operation.Literals[0].getString());
     }
-    else if(Operation.affectedVariable == "set_default_string_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_default_string_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.setDefaultString(Operation.Literals[dice].getString());
     }
-    else if(Operation.affectedVariable == "set_bool_random"){
+    else if(Operation.attribute == "set_bool_random"){
         if(rand() % 2 == 0)
         Variable.toggleBool();
     }
-    else if(Operation.affectedVariable == "set_bool_probability" && Operation.Literals.size() >= 3){
+    else if(Operation.attribute == "set_bool_probability" && Operation.Literals.size() >= 3){
         bool settingBool;
         if(Operation.Literals[0].getDouble() == 0){
             settingBool = false;
@@ -274,7 +274,7 @@ void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variab
             Variable.setBool(settingBool);
         }
     }
-    else if(Operation.affectedVariable == "set_bool_probability" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "set_bool_probability" && Operation.Literals.size() >= 2){
         bool settingBool;
         if(Operation.Literals[0].getDouble() == 0){
             settingBool = false;
@@ -290,7 +290,7 @@ void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variab
             Variable.setBool(settingBool);
         }
     }
-    else if(Operation.affectedVariable == "set_bool" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_bool" && Operation.Literals.size() >= 1){
         if(Operation.Literals[0].getDouble() == 0){
             Variable.setBool(false);
         }
@@ -298,93 +298,95 @@ void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variab
             Variable.setBool(true);
         }
     }
-    else if(Operation.affectedVariable == "set_int" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_int" && Operation.Literals.size() >= 1){
         Variable.setInt(Operation.Literals[0].getInt());
     }
-    else if(Operation.affectedVariable == "set_int_interval" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "set_int_interval" && Operation.Literals.size() >= 2){
         Variable.setInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
     }
-    else if(Operation.affectedVariable == "set_int_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_int_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.setInt(Operation.Literals[dice].getInt());
     }
-    else if(Operation.affectedVariable == "set_double" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_double" && Operation.Literals.size() >= 1){
         Variable.setDouble(Operation.Literals[0].getDouble());;
     }
-    else if(Operation.affectedVariable == "set_double_interval" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "set_double_interval" && Operation.Literals.size() >= 2){
         Variable.setDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
     }
-    else if(Operation.affectedVariable == "set_double_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_double_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.setDouble(Operation.Literals[dice].getDouble());
     }
-    else if(Operation.affectedVariable == "set_string" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_string" && Operation.Literals.size() >= 1){
         Variable.setString(Operation.Literals[0].getString());
     }
-    else if(Operation.affectedVariable == "set_string_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "set_string_random" && Operation.Literals.size() >= 1){
         std::cout << "hello ";
         unsigned int dice = rand() % Operation.Literals.size();
         std::cout << Variable.setString(Operation.Literals[dice].getString()) << " ";
         std::cout << Variable.getString() << "\n";
     }
-    else if(Operation.affectedVariable == "set_to_default"){
+    else if(Operation.attribute == "set_to_default"){
         Variable.resetValue();
     }
-    else if(Operation.affectedVariable == "add_default_int" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "add_default_int" && Operation.Literals.size() >= 1){
         Variable.addDefaultInt(Operation.Literals[0].getInt());
     }
-    else if(Operation.affectedVariable == "add_default_int_interval" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "add_default_int_interval" && Operation.Literals.size() >= 2){
         Variable.addDefaultInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
     }
-    else if(Operation.affectedVariable == "add_default_int_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "add_default_int_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.addDefaultInt(Operation.Literals[dice].getInt());
     }
-    else if(Operation.affectedVariable == "add_default_double" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "add_default_double" && Operation.Literals.size() >= 1){
         Variable.addDefaultDouble(Operation.Literals[0].getDouble());;
     }
-    else if(Operation.affectedVariable == "add_default_double_interval" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "add_default_double_interval" && Operation.Literals.size() >= 2){
         Variable.addDefaultDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
     }
-    else if(Operation.affectedVariable == "add_default_double_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "add_default_double_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.addDefaultDouble(Operation.Literals[dice].getDouble());
     }
-    else if(Operation.affectedVariable == "add_int" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "add_int" && Operation.Literals.size() >= 1){
         Variable.addInt(Operation.Literals[0].getInt());
     }
-    else if(Operation.affectedVariable == "add_int_interval" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "add_int_interval" && Operation.Literals.size() >= 2){
         Variable.addInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
     }
-    else if(Operation.affectedVariable == "add_int_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "add_int_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.addInt(Operation.Literals[dice].getInt());
     }
-    else if(Operation.affectedVariable == "add_double" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "add_double" && Operation.Literals.size() >= 1){
         Variable.addDouble(Operation.Literals[0].getDouble());;
     }
-    else if(Operation.affectedVariable == "add_double_interval" && Operation.Literals.size() >= 2){
+    else if(Operation.attribute == "add_double_interval" && Operation.Literals.size() >= 2){
         Variable.addDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
     }
-    else if(Operation.affectedVariable == "add_double_random" && Operation.Literals.size() >= 1){
+    else if(Operation.attribute == "add_double_random" && Operation.Literals.size() >= 1){
         unsigned int dice = rand() % Operation.Literals.size();
         Variable.addDouble(Operation.Literals[dice].getDouble());
     }
 }
 void EveModule::controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrollbar){
-    if(Operation.affectedVariable == "add_real_area" && Operation.Literals.size() >= 2){
+    if(Operation.attribute == "add_real_area" && Operation.Literals.size() >= 2){
         Scrollbar.addRealScrollingArea(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
     }
 }
-void EveModule::getContext(string attribute, BasePointersStruct & BasePointer){
+void EveModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
     if(attribute == "parent_id"){
-        BasePointer.setPointer(&parentID);
+        BasePointers.push_back(BasePointersStruct());
+        BasePointers.back().setPointer(&parentID);
     }
     else if(attribute == "else_child_id"){
-        BasePointer.setPointer(&elseChildID);
+        BasePointers.push_back(BasePointersStruct());
+        BasePointers.back().setPointer(&elseChildID);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointer);
+        bindPrimaryToVariable(attribute, BasePointers);
     }
 }
 
@@ -832,7 +834,6 @@ void EventModule::controlScrollbar(int operationID, ScrollbarModule & Scrollbar)
 }
 
 void ValueLocation::print(string dynamicID, string source){
-    std::cout << "find ";
     if(dynamicID != ""){
         std::cout << dynamicID << " ";
     }
@@ -865,5 +866,5 @@ void ValueLocation::print(string dynamicID, string source){
     if(spareID != ""){
         std::cout << "." << spareID;
     }
-    std::cout << "\n";
+    std::cout << " ";
 }

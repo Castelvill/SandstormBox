@@ -10,6 +10,9 @@ LayerClass::LayerClass(string newID, vector <string> & layersIDs, bool activate,
     pos.set(bufferPos);
     size.set(bufferSize);
 }
+LayerClass::LayerClass(string newID, vector <string> & layersIDs){
+    LayerClass(newID, layersIDs, false, vec2d(0.0, 0.0), vec2d(0.0, 0.0));
+}
 void LayerClass::clear(){
     Objects.clear();
     objectsIDs.clear();
@@ -39,6 +42,10 @@ bool LayerClass::isObjectsUniquenessViolated(){
 }
 
 void LayerClass::setID(string newID, vector <string> & layersIDs){
+    if(isStringInVector(reservedIDs, ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        return;
+    }
     removeFromStringVector(layersIDs, ID);
     ID = findNewUniqueID(layersIDs, newID);
     layersIDs.push_back(ID);
@@ -86,20 +93,20 @@ void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs){
         }
         for(EveModule & Event : Object.EveContainer){
             Event.setLayerID(getID());
-            for(TriggerClass & Trigger : Event.ConditionalChain){
+            for(ConditionClass & Trigger : Event.ConditionalChain){
                 if(Trigger.Location.layerID == Original.getID()){
                     Trigger.Location.layerID = getID();
                 }
             }
             for(OperaClass & Operation : Event.DependentOperations){
-                for(TriggerClass & Trigger : Operation.ConditionalChain){
+                for(ConditionClass & Trigger : Operation.ConditionalChain){
                     if(Trigger.Location.layerID == Original.getID()){
                         Trigger.Location.layerID = getID();
                     }
                 }
             }
             for(OperaClass & Operation : Event.PostOperations){
-                for(TriggerClass & Trigger : Operation.ConditionalChain){
+                for(ConditionClass & Trigger : Operation.ConditionalChain){
                     if(Trigger.Location.layerID == Original.getID()){
                         Trigger.Location.layerID = getID();
                     }

@@ -35,8 +35,8 @@ public:
 
     void setUpNewInstance();
     TextModule();
-    TextModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    TextModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    TextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const TextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     void fitSizeToText(std::vector <SingleFont> FontContainer);
     void addNewContent(string newContent);
@@ -57,12 +57,13 @@ public:
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign);
     void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, bool editingIsActive);
     void drawTextByLetters(ALLEGRO_FONT * font);
-    void getContext(string attribute, BasePointersStruct & BasePointer);
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     string getFontID();
     string getContent(unsigned int textID);
     unsigned short getColor(char whichColor);
     unsigned int getCurrentTextID();
     string getCurrentContent();
+    VariableModule getAttributeValue(const string &attribute, const string &detail);
 };
 
 
@@ -89,8 +90,8 @@ public:
 
     void setUpNewInstance();
     EditableTextModule();
-    EditableTextModule(unsigned EditableTextModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    EditableTextModule(string EditableTextModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    EditableTextModule(unsigned EditableTextModuleID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    EditableTextModule(string EditableTextModuleID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const EditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     void setCanBeEdited(bool newCanBeEdited);
     void setEditingIsActive(bool newEditingIsActive);
@@ -129,7 +130,8 @@ public:
     bool controlCollision(CollisionModule & Collision, vector <string> & listOfIDs);
     bool controlParticles(ParticleEffectModule & Particles, vector <string> & listOfIDs);
     bool controlVariable(VariableModule & Variable, vector <string> & listOfIDs);
-    void getContext(string attribute, BasePointersStruct & BasePointer);
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    VariableModule getAttributeValue(const string &attribute, const string &detail);
 };
 
 void printNotNumericalWarning();

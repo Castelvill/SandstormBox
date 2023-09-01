@@ -77,12 +77,12 @@ void ImageModule::setUpNewInstance(){
 }
 ImageModule::ImageModule(){
 }
-ImageModule::ImageModule(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+ImageModule::ImageModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-ImageModule::ImageModule(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+ImageModule::ImageModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID){
@@ -528,62 +528,64 @@ void ImageModule::chooseFrames(vec2i newCurrentFrame){
     else
         currentFrame.y = 0;
 }
-void ImageModule::getContext(string attribute, BasePointersStruct & BasePointer){
+void ImageModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.push_back(BasePointersStruct());
     if(attribute == "rot_pos_x"){
-        BasePointer.setPointer(&rotPos.x);
+        BasePointers.back().setPointer(&rotPos.x);
     }
     else if(attribute == "rot_pos_y"){
-        BasePointer.setPointer(&rotPos.y);
+        BasePointers.back().setPointer(&rotPos.y);
     }
     else if(attribute == "start_y"){
-        BasePointer.setPointer(&start.y);
+        BasePointers.back().setPointer(&start.y);
     }
     else if(attribute == "start_y"){
-        BasePointer.setPointer(&start.y);
+        BasePointers.back().setPointer(&start.y);
     }
     else if(attribute == "frame_size_y"){
-        BasePointer.setPointer(&frameSize.y);
+        BasePointers.back().setPointer(&frameSize.y);
     }
     else if(attribute == "frame_size_y"){
-        BasePointer.setPointer(&frameSize.y);
+        BasePointers.back().setPointer(&frameSize.y);
     }
     else if(attribute == "rotate_angle"){
-        BasePointer.setPointer(&rotateAngle);
+        BasePointers.back().setPointer(&rotateAngle);
     }
     else if(attribute == "mirror_x"){
-        BasePointer.setPointer(&mirrorX);
+        BasePointers.back().setPointer(&mirrorX);
     }
     else if(attribute == "mirror_y"){
-        BasePointer.setPointer(&mirrorY);
+        BasePointers.back().setPointer(&mirrorY);
     }
     else if(attribute == "image_color_r"){
-        BasePointer.setPointer(&imageColor[0]);
+        BasePointers.back().setPointer(&imageColor[0]);
     }
     else if(attribute == "image_color_g"){
-        BasePointer.setPointer(&imageColor[1]);
+        BasePointers.back().setPointer(&imageColor[1]);
     }
     else if(attribute == "image_color_b"){
-        BasePointer.setPointer(&imageColor[2]);
+        BasePointers.back().setPointer(&imageColor[2]);
     }
     else if(attribute == "image_color_a"){
-        BasePointer.setPointer(&imageColor[3]);
+        BasePointers.back().setPointer(&imageColor[3]);
     }
     else if(attribute == "light_level"){
-        BasePointer.setPointer(&lightLevel);
+        BasePointers.back().setPointer(&lightLevel);
     }
     else if(attribute == "light_color_r"){
-        BasePointer.setPointer(&lightColor[0]);
+        BasePointers.back().setPointer(&lightColor[0]);
     }
     else if(attribute == "light_color_g"){
-        BasePointer.setPointer(&lightColor[1]);
+        BasePointers.back().setPointer(&lightColor[1]);
     }
     else if(attribute == "light_color_b"){
-        BasePointer.setPointer(&lightColor[2]);
+        BasePointers.back().setPointer(&lightColor[2]);
     }
     else if(attribute == "used_bitmap_layer"){
-        BasePointer.setPointer(&usedBitmapLayer);
+        BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointer);
+        BasePointers.pop_back();
+        bindPrimaryToVariable(attribute, BasePointers);
     }
 }

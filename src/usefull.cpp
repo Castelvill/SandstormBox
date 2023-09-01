@@ -93,7 +93,7 @@ void removeFromStringVector(vector <string> & stringVec, std::string selectedStr
         stringVec.erase(foundString);
     }
 }
-bool isStringInVector(vector <string> & stringVec, std::string findString){
+bool isStringInVector(const vector <string> & stringVec, std::string findString){
     auto foundGroup = std::find(begin(stringVec), end(stringVec), findString);
     return foundGroup != std::end(stringVec);
 }

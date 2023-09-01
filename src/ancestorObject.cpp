@@ -338,31 +338,31 @@ string SuccessInstanceAdded(string module, string ID){
 }
 string AncestorObject::addModuleInstance(string module, string newID){
     if(module == "text"){
-        TextContainer.push_back(TextModule(newID, textContainerIDs, getLayerID(), getID()));
+        TextContainer.push_back(TextModule(newID, &textContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, TextContainer.back().getID());
     }
     if(module == "editable_text"){
-        EditableTextContainer.push_back(EditableTextModule(newID, editableTextContainerIDs, getLayerID(), getID()));
+        EditableTextContainer.push_back(EditableTextModule(newID, &editableTextContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, EditableTextContainer.back().getID());
     }
     if(module == "image"){
-        ImageContainer.push_back(ImageModule(newID, imageContainerIDs, getLayerID(), getID()));
+        ImageContainer.push_back(ImageModule(newID, &imageContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, ImageContainer.back().getID());
     }
     if(module == "movement"){
-        MovementContainer.push_back(MovementModule(newID, movementContainerIDs, getLayerID(), getID()));
+        MovementContainer.push_back(MovementModule(newID, &movementContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, MovementContainer.back().getID());
     }
     if(module == "collision"){
-        CollisionContainer.push_back(CollisionModule(newID, collisionContainerIDs, getLayerID(), getID()));
+        CollisionContainer.push_back(CollisionModule(newID, &collisionContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, CollisionContainer.back().getID());
     }
     if(module == "particles"){
-        ParticlesContainer.push_back(ParticleEffectModule(newID, particlesContainerIDs, getLayerID(), getID()));
+        ParticlesContainer.push_back(ParticleEffectModule(newID, &particlesContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, ParticlesContainer.back().getID());
     }
     if(module == "event"){
-        EveContainer.push_back(EveModule(newID, eveContainerIDs, getLayerID(), getID()));
+        EveContainer.push_back(EveModule(newID, &eveContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, EveContainer.back().getID());
     }
     if(module == "variable"){
@@ -370,7 +370,7 @@ string AncestorObject::addModuleInstance(string module, string newID){
         return SuccessInstanceAdded(module, VariablesContainer.back().getID());
     }
     if(module == "scrollbar"){
-        ScrollbarContainer.push_back(ScrollbarModule(newID, scrollbarContainerIDs, getLayerID(), getID()));
+        ScrollbarContainer.push_back(ScrollbarModule(newID, &scrollbarContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, ScrollbarContainer.back().getID());
     }
     return "Error: Module \'" + module + "\' does not exist!\n";
@@ -410,6 +410,43 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
         return tryRemovingModuleInstance(module, ScrollbarContainer, scrollbarContainerIDs, destroyID);
     }
     return "Error: " + module + "Module does not exist!\n";
+}
+
+VariableModule AncestorObject::getAttributeValue(const string &attribute, const string & detail){
+    VariableModule NewValue;
+
+    if(attribute == "is_active"){
+        NewValue.setBool(getIsActive());
+    }
+    else if(attribute == "id"){
+        NewValue.setString(getID());
+    }
+    else if(attribute == "in_group"){
+        NewValue.setBool(isInAGroup(detail));
+    }
+    else if(attribute == "pos_x"){
+        NewValue.setDouble(getPos(false).x);
+    }
+    else if(attribute == "pos_y"){
+        NewValue.setDouble(getPos(false).y);
+    }
+    else if(attribute == "size_x"){
+        NewValue.setDouble(getSize().x);
+    }
+    else if(attribute == "size_y"){
+        NewValue.setDouble(getSize().y);
+    }
+    else if(attribute == "scale_x"){
+        NewValue.setDouble(getSize().x);
+    }
+    else if(attribute == "scale_y"){
+        NewValue.setDouble(getSize().y);
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+        NewValue.setBool(false);
+    }
+    return NewValue;
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule(){

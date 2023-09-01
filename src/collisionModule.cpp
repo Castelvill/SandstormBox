@@ -25,19 +25,19 @@ bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2){
 
 CollisionModule::CollisionModule(){
 }
-CollisionModule::CollisionModule(string newID, vec2d size, vector<string> &listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+CollisionModule::CollisionModule(string newID, vec2d size, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     setSize(size);
     isSolid = true;
     canPenetrateSolids = false;
 }
-CollisionModule::CollisionModule(unsigned newID, vec2d size, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+CollisionModule::CollisionModule(unsigned newID, vec2d size, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     CollisionModule(intToStr(newID), size, listOfIDs, newLayerID, newObjectID);
 }
-CollisionModule::CollisionModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+CollisionModule::CollisionModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     CollisionModule(newID, vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
 }
-CollisionModule::CollisionModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+CollisionModule::CollisionModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     CollisionModule(intToStr(newID), vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
 }
 void CollisionModule::clone(const CollisionModule &Original, vector<string> & listOfIDs, string newLayerID, string newObjectID){
@@ -178,7 +178,7 @@ void CollisionModule::removeFromIgnoreList(string ignoring_type, string entity){
         removeFromStringVector(ignoredGroupsOfHitboxesList, entity);
     }
 }
-bool CollisionModule::ignores(string ignoring_type, string entity){
+bool CollisionModule::ignores(string ignoring_type, string entity) const{
     if(ignoring_type == "objects"){
         return isStringInVector(ignoredObjectsList, entity);
     }
@@ -252,22 +252,24 @@ void CollisionModule::removeImaginaryCollisions(){
         }
     }
 }
-void CollisionModule::getContext(string attribute, BasePointersStruct & BasePointer){
+void CollisionModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
     if(attribute == "is_solid"){
-        BasePointer.setPointer(&isSolid);
+        BasePointers.push_back(BasePointersStruct());
+        BasePointers.back().setPointer(&isSolid);
     }
     else if(attribute == "can_penetrate_solids"){
-        BasePointer.setPointer(&canPenetrateSolids);
+        BasePointers.push_back(BasePointersStruct());
+        BasePointers.back().setPointer(&canPenetrateSolids);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointer);
+        bindPrimaryToVariable(attribute, BasePointers);
     }
 }
 
-bool CollisionModule::getIsSolid(){
+bool CollisionModule::getIsSolid() const{
     return isSolid;
 }
-bool CollisionModule::getCanPenetrateSolids(){
+bool CollisionModule::getCanPenetrateSolids() const{
     return canPenetrateSolids;
 }
 

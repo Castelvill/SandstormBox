@@ -28,8 +28,8 @@ void TextModule::setUpNewInstance(){
     usedBitmapLayer = 0;
 }
 TextModule::TextModule(){}
-TextModule::TextModule(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+TextModule::TextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
@@ -38,8 +38,8 @@ void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, st
     ID = oldID;
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
 }
-TextModule::TextModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+TextModule::TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void TextModule::addNewContent(string newContent){
@@ -339,45 +339,46 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
         currentLength += al_get_text_width(font, temp.c_str());
     }
 }
-void TextModule::getContext(string attribute, BasePointersStruct & BasePointer){
+void TextModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.push_back(BasePointersStruct());
     if(attribute == "content"){
-        BasePointer.setPointer(&content[currentTextID]);
+        BasePointers.back().setPointer(&content[currentTextID]);
     }
     else if(attribute == "current_text_id"){
-        BasePointer.setPointer(&currentTextID);
+        BasePointers.back().setPointer(&currentTextID);
     }
     else if(attribute == "font_id"){
-        BasePointer.setPointer(&fontID);
+        BasePointers.back().setPointer(&fontID);
     }
     else if(attribute == "text_color_r"){
-        BasePointer.setPointer(&textColor[0]);
+        BasePointers.back().setPointer(&textColor[0]);
     }
     else if(attribute == "text_color_g"){
-        BasePointer.setPointer(&textColor[1]);
+        BasePointers.back().setPointer(&textColor[1]);
     }
     else if(attribute == "text_color_b"){
-        BasePointer.setPointer(&textColor[2]);
+        BasePointers.back().setPointer(&textColor[2]);
     }
     else if(attribute == "wrapped"){
-        BasePointer.setPointer(&wrapped);
+        BasePointers.back().setPointer(&wrapped);
     }
     else if(attribute == "horizontal_align"){
-        BasePointer.setPointer(&horizontalAlign);
+        BasePointers.back().setPointer(&horizontalAlign);
     }
     else if(attribute == "vertical_align"){
-        BasePointer.setPointer(&verticalAlign);
+        BasePointers.back().setPointer(&verticalAlign);
     }
     else if(attribute == "rotate_angle"){
-        BasePointer.setPointer(&rotateAngle);
+        BasePointers.back().setPointer(&rotateAngle);
     }
     else if(attribute == "visibility"){
-        BasePointer.setPointer(&visibility);
+        BasePointers.back().setPointer(&visibility);
     }
     else if(attribute == "used_bitmap_layer"){
-        BasePointer.setPointer(&usedBitmapLayer);
+        BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointer);
+        bindPrimaryToVariable(attribute, BasePointers);
     }
 }
 string TextModule::getFontID(){
@@ -406,7 +407,22 @@ unsigned int TextModule::getCurrentTextID(){
 string TextModule::getCurrentContent(){
     return getContent(getCurrentTextID());
 }
-
+VariableModule TextModule::getAttributeValue(const string &attribute, const string &detail){
+    if(attribute == "in_group"){
+        return VariableModule::newBool(isInAGroup(detail));
+    }
+    else if(attribute == "content"){
+        return VariableModule::newString(getCurrentContent());
+    }
+    else if(attribute == "rotation_angle"){
+        return VariableModule::newDouble(rotateAngle);
+    }
+    else if(attribute == "visibility"){
+        return VariableModule::newDouble(visibility);
+    }
+    std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    return VariableModule::newBool(false);
+}
 
 void EditableTextModule::setUpNewInstance(){
     isAttachedToCamera = true;
@@ -424,11 +440,11 @@ void EditableTextModule::setUpNewInstance(){
 }
 EditableTextModule::EditableTextModule(){
 }
-EditableTextModule::EditableTextModule(unsigned newID, vector<string> &listOfIDs, string newLayerID, string newObjectID)
+EditableTextModule::EditableTextModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID)
     : TextModule(newID, listOfIDs, newLayerID, newObjectID){
     setUpNewInstance();
 }
-EditableTextModule::EditableTextModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID)
+EditableTextModule::EditableTextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID)
     : TextModule(newID, listOfIDs, newLayerID, newObjectID){
     setUpNewInstance();
 }
@@ -1538,87 +1554,109 @@ void printNotNumericalWarning(){
 void printCommandDoesNotExistWarning(){
     std::cout << "Warning: Command doesn't exist!\n";
 }
-
-void EditableTextModule::getContext(string attribute, BasePointersStruct & BasePointer){
+void EditableTextModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.push_back(BasePointersStruct());
     if(attribute == "content"){
-        BasePointer.setPointer(&content[currentTextID]);
+        BasePointers.back().setPointer(&content[currentTextID]);
     }
     else if(attribute == "current_text_id"){
-        BasePointer.setPointer(&currentTextID);
+        BasePointers.back().setPointer(&currentTextID);
     }
     else if(attribute == "font_id"){
-        BasePointer.setPointer(&fontID);
+        BasePointers.back().setPointer(&fontID);
     }
     else if(attribute == "text_color_r"){
-        BasePointer.setPointer(&textColor[0]);
+        BasePointers.back().setPointer(&textColor[0]);
     }
     else if(attribute == "text_color_g"){
-        BasePointer.setPointer(&textColor[1]);
+        BasePointers.back().setPointer(&textColor[1]);
     }
     else if(attribute == "text_color_b"){
-        BasePointer.setPointer(&textColor[2]);
+        BasePointers.back().setPointer(&textColor[2]);
     }
     else if(attribute == "wrapped"){
-        BasePointer.setPointer(&wrapped);
+        BasePointers.back().setPointer(&wrapped);
     }
     else if(attribute == "horizontal_align"){
-        BasePointer.setPointer(&horizontalAlign);
+        BasePointers.back().setPointer(&horizontalAlign);
     }
     else if(attribute == "vertical_align"){
-        BasePointer.setPointer(&verticalAlign);
+        BasePointers.back().setPointer(&verticalAlign);
     }
     else if(attribute == "rotate_angle"){
-        BasePointer.setPointer(&rotateAngle);
+        BasePointers.back().setPointer(&rotateAngle);
     }
     else if(attribute == "visibility"){
-        BasePointer.setPointer(&visibility);
+        BasePointers.back().setPointer(&visibility);
     }
     else if(attribute == "used_bitmap_layer"){
-        BasePointer.setPointer(&usedBitmapLayer);
+        BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else if(attribute == "can_be_edited"){
-        BasePointer.setPointer(&canBeEdited);
+        BasePointers.back().setPointer(&canBeEdited);
     }
     else if(attribute == "editing_is_active"){
-        BasePointer.setPointer(&editingIsActive);
+        BasePointers.back().setPointer(&editingIsActive);
     }
     else if(attribute == "can_use_space"){
-        BasePointer.setPointer(&canUseSpace);
+        BasePointers.back().setPointer(&canUseSpace);
     }
     else if(attribute == "is_numerical"){
-        BasePointer.setPointer(&isNumerical);
+        BasePointers.back().setPointer(&isNumerical);
     }
     else if(attribute == "has_floating_point"){
-        BasePointer.setPointer(&hasFloatingPoint);
+        BasePointers.back().setPointer(&hasFloatingPoint);
     }
     else if(attribute == "can_clear_content_after_success"){
-        BasePointer.setPointer(&canClearContentAfterSuccess);
+        BasePointers.back().setPointer(&canClearContentAfterSuccess);
     }
     else if(attribute == "use_arrows_as_char"){
-        BasePointer.setPointer(&useArrowsAsChar);
+        BasePointers.back().setPointer(&useArrowsAsChar);
     }
     else if(attribute == "min_content_size"){
-        BasePointer.setPointer(&minContentSize);
+        BasePointers.back().setPointer(&minContentSize);
     }
     else if(attribute == "max_content_size"){
-        BasePointer.setPointer(&maxContentSize);
+        BasePointers.back().setPointer(&maxContentSize);
     }
     else if(attribute == "connected_object"){
-        BasePointer.setPointer(&connectedObject);
+        BasePointers.back().setPointer(&connectedObject);
     }
     else if(attribute == "connected_group"){
-        BasePointer.setPointer(&connectedGroup);
+        BasePointers.back().setPointer(&connectedGroup);
     }
     else if(attribute == "affected_module"){
-        BasePointer.setPointer(&affectedModule);
+        BasePointers.back().setPointer(&affectedModule);
     }
     else if(attribute == "connected_module_id"){
-        BasePointer.setPointer(&connectedModuleID);
+        BasePointers.back().setPointer(&connectedModuleID);
     }
     else if(attribute == "affected_variable"){
-        BasePointer.setPointer(&affectedVariable);
+        BasePointers.back().setPointer(&affectedVariable);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointer);
+        bindPrimaryToVariable(attribute, BasePointers);
     }
+}
+VariableModule EditableTextModule::getAttributeValue(const string &attribute, const string &detail){
+    if(attribute == "in_group"){
+        return VariableModule::newBool(isInAGroup(detail));
+    }
+    else if(attribute == "content"){
+        return VariableModule::newString(getCurrentContent());
+    }
+    else if(attribute == "rotation_angle"){
+        return VariableModule::newDouble(rotateAngle);
+    }
+    else if(attribute == "visibility"){
+        return VariableModule::newDouble(visibility);
+    }
+    else if(attribute == "can_be_edited"){
+        return VariableModule::newBool(getCanBeEdited());
+    }
+    else if(attribute == "editing"){
+        return VariableModule::newBool(getEditingIsActive());
+    }
+    std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    return VariableModule::newBool(false);
 }

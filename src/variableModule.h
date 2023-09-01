@@ -23,16 +23,20 @@ public:
     string getObjectID() const;
     string &getIDAddr();
     string getAnyValue();
-    char getType();
+    char getType() const;
     string getFullTypeName();
     bool getDefaultBool();
     int getDefaultInt();
     double getDefaultDouble();
     string getDefaultString();
     bool getBool() const;
+    bool getBoolUnsafe() const;
     int getInt() const;
+    int getIntUnsafe() const;
     double getDouble() const;
+    double getDoubleUnsafe() const;
     string getString() const;
+    string getStringUnsafe() const;
     void setID(string, vector<string> * listOfIDs);
     void setLayerID(string);
     void setObjectID(string);
@@ -55,7 +59,7 @@ public:
     bool addDouble(double);
     void resetValue();
     void negate();
-    void getContext(string attribute, BasePointersStruct & BasePointer);
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     template <typename condValueType>
     bool isConditionMet(condValueType condVal, string operatorType, char valType);
     bool isConditionMet(string condVal, string operatorType, char valType);
@@ -80,6 +84,7 @@ public:
     void setValueFromPointer(const BasePointersStruct & BasePointer);
     void set(const BaseVariableStruct & BaseVariable);
     static VariableModule newBool(bool);
+    static VariableModule newBool(bool val, string newID);
     static VariableModule newInt(int);
     static VariableModule newDouble(double);
     static VariableModule newString(string);

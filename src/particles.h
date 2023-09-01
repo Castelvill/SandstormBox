@@ -76,8 +76,8 @@ public:
     int usedBitmapLayer;
 
     ParticleEffectModule();
-    ParticleEffectModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    ParticleEffectModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    ParticleEffectModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ParticleEffectModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const ParticleEffectModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     void clearModule();
     void spawnParticles(vec2d objPos, vector <short> pressedKeys); //Particles spawn in a point or a rectangle.
@@ -105,7 +105,7 @@ public:
     void removeImage(string imageID);
     void removeImage(unsigned int id);
     void activeSpawn();
-    void getContext(string attribute, BasePointersStruct & BasePointer);
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     double getEnvironmentX();
     double getEnvironmentY();

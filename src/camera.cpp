@@ -1,6 +1,6 @@
 #include "camera.h"
 
-Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
+void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
     setID(newID, camerasIDs);
     isActive = newIsActive;
     relativePos = newPos;
@@ -27,10 +27,14 @@ Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive,
     isFollowingObject = false;
     isUsingKeyboardToMove = true;
     isUsingCursorPositionToMove = false;
+}
+Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
+    setUpInstance(newID, camerasIDs, newIsActive, newPos, newSize, newVisionShift);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
-    Camera2D(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(0.0, 0.0), vec2d(0.0, 0.0));
+    setUpInstance(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0));
+    bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs){
     string oldID = ID;
@@ -48,6 +52,10 @@ void Camera2D::clear(){
     clearAccessibleLayers();
 }
 void Camera2D::setID(string newID, vector <string> & camerasIDs){
+    if(isStringInVector(reservedIDs, ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        return;
+    }
     removeFromStringVector(camerasIDs, ID);
     ID = findNewUniqueID(camerasIDs, newID);
     camerasIDs.push_back(ID);

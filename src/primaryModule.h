@@ -103,8 +103,8 @@ class PrimaryModule{
     void addGroup(string newGroup);
     void removeGroup(string selectedGroup);
     void clearGroups();
-    bool isInAGroup(string findGroup);
-    vector <string> getGroups();
+    bool isInAGroup(string findGroup) const;
+    vector <string> getGroups() const;
     vector <string> & getGroupsAddr();
 
     void setPos(vec2d newPos);
@@ -144,7 +144,7 @@ class PrimaryModule{
     bool getIsAttachedToCamera();
     bool getCanBeSelected();
     bool getIsScrollable();
-    void bindPrimaryToVariable(string attribute, BasePointersStruct & BasePointer);
+    void bindPrimaryToVariable(string attribute, vector <BasePointersStruct> & BasePointers);
 };
 
 #endif // PRIMARYMODULE_H_INCLUDED

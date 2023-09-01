@@ -45,8 +45,8 @@ public:
 
     void setUpNewInstance();
     ImageModule();
-    ImageModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    ImageModule(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    ImageModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ImageModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void loadImage(string newID, string filePath);
@@ -82,7 +82,7 @@ public:
     void modifyFrames(vec2d newFrameSize);
     void chooseFrames(vec2i newCurrentFrame);
     void destroyBitmap();
-    void getContext(string attribute, BasePointersStruct & BasePointer);
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
 
 

@@ -11,12 +11,12 @@ void ScrollbarModule::initScrollbar(){
 }
 ScrollbarModule::ScrollbarModule(){
 }
-ScrollbarModule::ScrollbarModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+ScrollbarModule::ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     initScrollbar();
 }
-ScrollbarModule::ScrollbarModule(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+ScrollbarModule::ScrollbarModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     initScrollbar();
 }
 
@@ -119,48 +119,50 @@ vec2d ScrollbarModule::countScrollShift(){
     std::cout << scrollShift.x << " " << scrollShift.y << "\n";
     return scrollShift;
 }
-void ScrollbarModule::getContext(string attribute, BasePointersStruct & BasePointer){
+void ScrollbarModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.push_back(BasePointersStruct());
     if(attribute == "thumbPos_x"){
-        BasePointer.setPointer(&thumbPos.x);
+        BasePointers.back().setPointer(&thumbPos.x);
     }
     else if(attribute == "thumbPos_y"){
-        BasePointer.setPointer(&thumbPos.y);
+        BasePointers.back().setPointer(&thumbPos.y);
     }
     else if(attribute == "thumbSize_x"){
-        BasePointer.setPointer(&thumbSize.x);
+        BasePointers.back().setPointer(&thumbSize.x);
     }
     else if(attribute == "thumbSize_y"){
-        BasePointer.setPointer(&thumbSize.y);
+        BasePointers.back().setPointer(&thumbSize.y);
     }
     else if(attribute == "scrollingArea_x"){
-        BasePointer.setPointer(&scrollingArea.x);
+        BasePointers.back().setPointer(&scrollingArea.x);
     }
     else if(attribute == "scrollingArea_y"){
-        BasePointer.setPointer(&scrollingArea.y);
+        BasePointers.back().setPointer(&scrollingArea.y);
     }
     else if(attribute == "realScrollingArea_x"){
-        BasePointer.setPointer(&realScrollingArea.x);
+        BasePointers.back().setPointer(&realScrollingArea.x);
     }
     else if(attribute == "realScrollingArea_y"){
-        BasePointer.setPointer(&realScrollingArea.y);
+        BasePointers.back().setPointer(&realScrollingArea.y);
     }
     else if(attribute == "dragStartingPos_x"){
-        BasePointer.setPointer(&dragStartingPos.x);
+        BasePointers.back().setPointer(&dragStartingPos.x);
     }
     else if(attribute == "dragStartingPos_y"){
-        BasePointer.setPointer(&dragStartingPos.y);
+        BasePointers.back().setPointer(&dragStartingPos.y);
     }
     else if(attribute == "thumbImageID"){
-        BasePointer.setPointer(&thumbImageID);
+        BasePointers.back().setPointer(&thumbImageID);
     }
     else if(attribute == "trackImageID"){
-        BasePointer.setPointer(&trackImageID);
+        BasePointers.back().setPointer(&trackImageID);
     }
     else if(attribute == "usedBitmapLayer"){
-        BasePointer.setPointer(&usedBitmapLayer);
+        BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointer);
+        BasePointers.pop_back();
+        bindPrimaryToVariable(attribute, BasePointers);
     }
 }
 

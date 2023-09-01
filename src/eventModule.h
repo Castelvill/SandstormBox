@@ -8,6 +8,7 @@
 #include "scrollbarModule.h"
 
 struct ValueLocation{
+    string source; //second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, owner, object, pointer
     string cameraID;
     string layerID;
     string objectID;
@@ -18,24 +19,23 @@ struct ValueLocation{
     void print(string dynamicID, string source);
 };
 
-class TriggerClass{
+class ConditionClass{
 public:
-    string source; //second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, owner, object, pointer
     VariableModule Literal;
     ValueLocation Location;
     vector <string> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
-    TriggerClass(unsigned int newID);
-    TriggerClass(string newID);
-    TriggerClass();
+    ConditionClass(unsigned int newID);
+    ConditionClass(string newID);
+    ConditionClass();
 };
 
 class OperaClass{
 public:
-    vector <TriggerClass> ConditionalChain;
+    vector <ConditionClass> ConditionalChain;
     vector <VariableModule> Literals;
-    string affectedVariable;
+    string attribute;
     string instruction; //first, last, all, random, let, assigment, class method, run(), break, return
-    string searchedEntityType;
+    string source;
     vector <string> dynamicIDs;
     string newContextID;
     OperaClass();
@@ -48,7 +48,7 @@ struct ChildStruct{
 
 class EveModule: public PrimaryModule{
 public:
-	vector <TriggerClass> ConditionalChain;
+	vector <ConditionClass> ConditionalChain;
     vector <OperaClass> DependentOperations;
 	vector <OperaClass> PostOperations;
 	vector <ChildStruct> Children;
@@ -64,8 +64,8 @@ public:
     bool elseChildFinished;
 	bool werePostOperationsExecuted;
     EveModule();
-    EveModule(unsigned int textModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    EveModule(string textModuleID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    EveModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    EveModule(string textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     void clone(const EveModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void setUpNewInstance();
@@ -81,7 +81,7 @@ public:
     void controlParticles(OperaClass & Operation, ParticleEffectModule & Particles);
     void controlVariables(OperaClass & Operation, VariableModule & Variable);
     void controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrollbar);
-    void getContext(string attribute, BasePointersStruct & BasePointer);
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
 
 

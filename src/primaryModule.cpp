@@ -26,6 +26,10 @@ void PrimaryModule::clone(const PrimaryModule & Original, vector<string> & listO
 }
 
 void PrimaryModule::setID(string newID, vector<string> & listOfIDs){
+    if(isStringInVector(reservedIDs, ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        return;
+    }
     removeFromStringVector(listOfIDs, ID);
     ID = findNewUniqueID(listOfIDs, newID);
     listOfIDs.push_back(ID);
@@ -54,10 +58,10 @@ void PrimaryModule::removeGroup(string selectedGroup){
 void PrimaryModule::clearGroups(){
     groups.clear();
 }
-bool PrimaryModule::isInAGroup(string findGroup){
+bool PrimaryModule::isInAGroup(string findGroup) const{
     return isStringInVector(groups, findGroup);
 }
-vector <string> PrimaryModule::getGroups(){
+vector <string> PrimaryModule::getGroups() const{
     return groups;
 }
 vector <string> & PrimaryModule::getGroupsAddr(){
@@ -180,49 +184,58 @@ bool PrimaryModule::getCanBeSelected(){
 bool PrimaryModule::getIsScrollable(){
     return isScrollable;
 }
-void PrimaryModule::bindPrimaryToVariable(string attribute, BasePointersStruct & BasePointer){
+void PrimaryModule::bindPrimaryToVariable(string attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.push_back(BasePointersStruct());
     if(attribute == "id"){
-        BasePointer.setPointer(&ID);
+        if(isStringInVector(reservedIDs, ID)){
+            std::cout << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
+            BasePointers.pop_back();
+            return;
+        }
+        BasePointers.back().setPointer(&ID);
     }
     else if(attribute == "group"){
+        BasePointers.pop_back();
         for(string & group : groups){
-            BasePointer.setPointer(&group);
+            BasePointers.push_back(BasePointersStruct());
+            BasePointers.back().setPointer(&group);
         }
     }
     else if(attribute == "pos_x"){
-        BasePointer.setPointer(&pos.x);
+        BasePointers.back().setPointer(&pos.x);
     }
     else if(attribute == "pos_y"){
-        BasePointer.setPointer(&pos.y);
+        BasePointers.back().setPointer(&pos.y);
     }
     else if(attribute == "size_x"){
-        BasePointer.setPointer(&size.x);
+        BasePointers.back().setPointer(&size.x);
     }
     else if(attribute == "size_y"){
-        BasePointer.setPointer(&size.y);
+        BasePointers.back().setPointer(&size.y);
     }
     else if(attribute == "scale_x"){
-        BasePointer.setPointer(&scale.x);
+        BasePointers.back().setPointer(&scale.x);
     }
     else if(attribute == "scale_y"){
-        BasePointer.setPointer(&scale.y);
+        BasePointers.back().setPointer(&scale.y);
     }
     else if(attribute == "is_active"){
-        BasePointer.setPointer(&isActive);
+        BasePointers.back().setPointer(&isActive);
     }
     else if(attribute == "is_scaled_from_center"){
-        BasePointer.setPointer(&isScaledFromCenter);
+        BasePointers.back().setPointer(&isScaledFromCenter);
     }
     else if(attribute == "is_attached_to_camera"){
-        BasePointer.setPointer(&isAttachedToCamera);
+        BasePointers.back().setPointer(&isAttachedToCamera);
     }
     else if(attribute == "can_be_selected"){
-        BasePointer.setPointer(&canBeSelected);
+        BasePointers.back().setPointer(&canBeSelected);
     }
     else if(attribute == "is_scrollable"){
-        BasePointer.setPointer(&isScrollable);
+        BasePointers.back().setPointer(&isScrollable);
     }
     else{
+        BasePointers.pop_back();
         std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     }
 }

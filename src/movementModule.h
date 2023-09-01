@@ -68,8 +68,8 @@ private:
 
 public:
     MovementModule();
-    MovementModule(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    MovementModule(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const MovementModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void changeJumpParameters(double newJumpSpeed, short newAllowedJumps, double newJumpCooldownDuration, double newGravitation, double newMinMomentumY, double newMaxMomentumY, bool newResetMomentumWhenJumping);
@@ -93,7 +93,7 @@ public:
     void resetJump();
     void bindKeys(short newUpKey, short newRightKey, short newDownKey, short newLeftKey, short newJumpKey, short newRunningKey);
     void bindMouseButton(short newMouseButton);
-    void getContext(string attribute, BasePointersStruct & BasePointer);
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     short getMovementType();
     short getInputType();
