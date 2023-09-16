@@ -14,6 +14,9 @@ LayerClass::LayerClass(string newID, vector <string> & layersIDs){
     LayerClass(newID, layersIDs, false, vec2d(0.0, 0.0), vec2d(0.0, 0.0));
 }
 void LayerClass::clear(){
+    for(AncestorObject & Object : Objects){
+        Object.clearContainers();
+    }
     Objects.clear();
     objectsIDs.clear();
 }
@@ -66,7 +69,16 @@ bool* LayerClass::getIsActiveAddr(){
     return &isActive;
 }
 void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs){
+    if(isStringInVector(reservedIDs, Original.ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        return;
+    }
+    if(isStringInVector(reservedIDs, ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        return;
+    }
     string oldID = ID;
+    clear();
     *this = Original;
     ID = oldID;
     setID(Original.getID(), layersIDs);
@@ -139,4 +151,12 @@ vector <string> LayerClass::getGroups(){
 }
 vector<string> &LayerClass::getGroupsAddr(){
     return groups;
+}
+
+void LayerClass::nullifyAllPointers(){
+    for(AncestorObject & Object : Objects){
+        for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
+            Scrollbar.nullifyFocusedCameraPointer();
+        }
+    }
 }

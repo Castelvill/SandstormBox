@@ -34,6 +34,7 @@ public:
     bool isInAGroup(string findGroup);
     vector <string> getGroups();
     vector <string> & getGroupsAddr();
+    void nullifyAllPointers();
 };
 
 

@@ -37,6 +37,14 @@ Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs){
+    if(isStringInVector(reservedIDs, Original.ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        return;
+    }
+    if(isStringInVector(reservedIDs, ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        return;
+    }
     string oldID = ID;
     *this = Original;
     ID = oldID;
@@ -131,7 +139,6 @@ void Camera2D::setIsUsingCursorPositionToMove(bool isUsingCursor){
     isUsingCursorPositionToMove = isUsingCursor;
 }
 void Camera2D::update(vector <short> pressedKeys){
-
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
         if(pressedKeys[i] == upKey)
             visionShift.y += speed;

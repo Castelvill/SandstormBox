@@ -21,7 +21,7 @@ public:
     string ID;
     ALLEGRO_BITMAP * bitmap;
     SingleBitmap(unsigned int bitmapID);
-    void loadBitmap(string newID, string filePath);
+    void loadBitmap(string newID, string filePath, string EXE_PATH);
 };
 
 class ImageModule: public PrimaryModule {

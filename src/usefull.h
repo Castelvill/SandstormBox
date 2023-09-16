@@ -11,7 +11,7 @@
 using std::string;
 
 const double FPS = 60.0;
-const vector<string> reservedIDs = {"KERNEL", "TERMINAL"}; 
+const vector<string> reservedIDs = {"KERNEL", "TERMINAL"};
 
 string shortToStr(short integer);
 string intToStr(int integer);

@@ -1,0 +1,16 @@
+Silnik do gier przypominający system operacyjny
+
+Kamery to okna (access point for layers), więc:
+-powinny mieć funkcjonalną ramkę z minimalizacją, fullscreenem i X
+-ramką można ruszać:
+if mouse in (x,y,w,h) and mouse.left.pressed THEN 
+selected = true
+END
+If selected and mouse.left.pressed
+THEN
+pos=mouse.pos;
+END
+If selected and !mouse.left.pressed
+THEN
+pressed = false;
+END

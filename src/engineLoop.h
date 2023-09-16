@@ -19,8 +19,10 @@ const int SCREEN_H = 900*0.7;//1025/1.0;
 const float MAX_ZOOM = 1.0;
 const int BUFFER_W = SCREEN_W * MAX_ZOOM;
 const int BUFFER_H = SCREEN_H * MAX_ZOOM;
+const bool printOutBitmapDestruction = false;
 const bool printOutLogicalEvaluations = false;
 const bool printInstructions = true;
+const float RESERVATION_MULTIPLIER = 1.5;
 
 
 void loadFontsToContainer(vector <SingleFont> & FontContainer);
@@ -106,30 +108,37 @@ public:
 vector <short> getPressedKeys(unsigned char key[]);
 vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys);
 
+struct AncestorIndex{
+    unsigned layerIndex;
+    unsigned objectIndex;
+    AncestorObject * object(vector <LayerClass> & Layers);
+};
+
 //This struct consists of pointers to every object that has at least one event triggerable by the right source  
 struct EventsLookupTable{
-    vector <AncestorObject*> IterationTriggered; //If a trigger is negated or has else statements, in most cases interpreter puts its event into IterationTriggered events. 
-    vector <AncestorObject*> TimeTriggered;
-    vector <AncestorObject*> KeyPressedTriggered;
-    vector <AncestorObject*> KeyPressingTriggered;
-    vector <AncestorObject*> KeyReleasedTriggered;
-    vector <AncestorObject*> MouseMovedTriggered;
-    vector <AncestorObject*> MouseNotMovedTriggered;
-    vector <AncestorObject*> MousePressedTriggered;
-    vector <AncestorObject*> MousePressingTriggered;
-    vector <AncestorObject*> MouseReleasedTriggered;
-    vector <AncestorObject*> ObjectsTriggered;
-    vector <AncestorObject*> VariablesTriggered;
-    vector <AncestorObject*> CollisionTriggered;
-    vector <AncestorObject*> EditableTextTriggered;
-    vector <AncestorObject*> MovementTriggered;
-    vector <AncestorObject*> StillnessTriggered;
+    vector <AncestorIndex> IterationTriggered; //If a trigger is negated or has else statements, in most cases interpreter puts its event into IterationTriggered events. 
+    vector <AncestorIndex> TimeTriggered;
+    vector <AncestorIndex> KeyPressedTriggered;
+    vector <AncestorIndex> KeyPressingTriggered;
+    vector <AncestorIndex> KeyReleasedTriggered;
+    vector <AncestorIndex> MouseMovedTriggered;
+    vector <AncestorIndex> MouseNotMovedTriggered;
+    vector <AncestorIndex> MousePressedTriggered;
+    vector <AncestorIndex> MousePressingTriggered;
+    vector <AncestorIndex> MouseReleasedTriggered;
+    vector <AncestorIndex> ObjectsTriggered;
+    vector <AncestorIndex> VariablesTriggered;
+    vector <AncestorIndex> CollisionTriggered;
+    vector <AncestorIndex> EditableTextTriggered;
+    vector <AncestorIndex> MovementTriggered;
+    vector <AncestorIndex> StillnessTriggered;
     void clear();
 };
 
 struct PointerContainer{
     string ID;
     string type;
+    bool readOnly;
     vector <VariableModule> Variables; //Variables exist during the lifespan of Events' chain execution.
     vector <BasePointersStruct> BasePointers;
     ModulesPointers Modules;
@@ -165,6 +174,54 @@ struct PointerContainer{
     void setFirstModule(ScrollbarModule * Module);
 
     void leaveOneRandomBasePointer();
+};
+
+struct ModuleIndex{
+    unsigned layerIndex;
+    unsigned objectIndex;
+    unsigned moduleIndex;
+    AncestorObject & object(vector <LayerClass> & Layers);
+    template <class Module>
+    Module * module(vector <LayerClass> & Layers);
+    vector<EveModule>::iterator module(vector<LayerClass> &Layers);
+};
+
+struct MemoryStackStruct{
+    vector<EveModule>::iterator Event;
+    size_t contextSize;
+};
+
+struct PointerRecalculator{
+    vector<vector<unsigned>> CameraIndexes;
+    vector<vector<unsigned>> LayerIndexes;
+    vector<vector<AncestorIndex>> ObjectIndexes;
+    vector<vector<ModuleIndex>> ModuleIndexes;
+    vector<AncestorIndex> TriggeredObjectIndexes;
+    vector<ModuleIndex> PastEvents;
+
+    AncestorIndex OtherObjectIndexes[3];
+
+    unsigned selectedLayerIndex = 0;
+    unsigned selectedCameraIndex = 0;
+    ModuleIndex startingEventIndex = {0, 0, 0};
+    ModuleIndex eventIndex = {0, 0, 0};
+
+    void clear();
+    void findIndexesForCameras(vector<Camera2D> &Cameras, vector<PointerContainer> & EventContext, Camera2D *& SelectedCamera);
+    void findIndexesForLayers(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext);
+    void findIndexesForObjects(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext, AncestorObject *& Owner,
+        vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, AncestorObject *& EditorObject);
+    template <class Module>
+    ModuleIndex getIndex(Module *& Instance, vector<LayerClass> & Layers);
+    ModuleIndex getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers);
+    template <class Module>
+    void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers);
+    void findIndexesForModules(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
+    void updatePointersToCameras(vector<Camera2D> &Cameras, vector<PointerContainer> & EventContext, Camera2D *& SelectedCamera);
+    void updatePointersToLayers(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext);
+    void updatePointersToObjects(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext, AncestorObject *& Owner,
+        vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, AncestorObject *& EditorObject);
+    void updatePointersToModules(vector<LayerClass> &Layers, vector<PointerContainer> &EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
 };
 
 PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID, bool warning);
@@ -205,6 +262,7 @@ private:
     EventsLookupTable BaseOfTriggerableObjects;
 
 public:
+    string EXE_PATH;
     MouseClass Mouse;
     ALLEGRO_DISPLAY * window;
     bool bootGame, closeGame, closeEditor, isGameActive;
@@ -269,8 +327,14 @@ public:
     void generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void checkIfVectorContainsVector(OperaClass & Operation, vector<PointerContainer> &EventContext);
-    void createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
-    OperaClass executeOperations(vector<OperaClass> Operations, LayerClass * OwnerLayer, AncestorObject * Owner, vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
+        AncestorObject *& Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector <AncestorObject*> & TriggeredObjects,
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    );
+    OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
+        vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    );
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
     VariableModule getValueFromObjectInCamera(AncestorObject * CurrentObject, vector <Camera2D> & Cameras, const string & attribute, const string & cameraID);
     VariableModule getValueFromMouseClickingObject(AncestorObject * CurrentObject, const string & attribute, const short & button);

@@ -48,6 +48,7 @@ public:
     string getThumbImageID();
     string getTrackImageID();
     int getUsedBitmapLayer();
+    void nullifyFocusedCameraPointer();
 };
 
 

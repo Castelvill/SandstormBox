@@ -30,6 +30,7 @@ public:
 class BasePointersStruct{
 public:
     string type;
+    bool readOnly;
     bool * pBool;
     char * pChar;
     short * pShort;
@@ -139,7 +140,7 @@ class PrimaryModule{
     vec2d & getSizeAddr();
     vec2d getScale();
     vec2d getScaledSize();
-    bool getIsActive();
+    bool getIsActive() const;
     bool getIsScaledFromCenter();
     bool getIsAttachedToCamera();
     bool getCanBeSelected();

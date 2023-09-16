@@ -371,6 +371,7 @@ void VariableModule::getContext(string attribute, vector <BasePointersStruct> & 
             return;
         }
         BasePointers.back().setPointer(&ID);
+        BasePointers.back().readOnly = true;
     }
     else if(attribute == "type"){
         BasePointers.back().setPointer(&type);

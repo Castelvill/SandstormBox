@@ -806,7 +806,7 @@ double MovementModule::getBaseFriction(){
 vec2d MovementModule::getMomentum(){
     return momentum;
 }
-bool MovementModule::isMoving(){
+bool MovementModule::isMoving() const{
     if(momentum.x != 0 || momentum.y != 0){
         return true;
     }

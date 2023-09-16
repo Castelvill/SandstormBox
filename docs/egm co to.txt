@@ -1,0 +1,3 @@
+warstwy jako procesy
+proces: ID:KERNEL group:{} - jego ID pozwala na dostęp do wszystkich innych procesów  
+nowe warstwy: ID:xxx IDPermission={} group={WORKER} groupPermission={WORKER}

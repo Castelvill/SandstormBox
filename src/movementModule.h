@@ -114,7 +114,7 @@ public:
     double getGravitation();
     double getBaseFriction();
     vec2d getMomentum();
-    bool isMoving();
+    bool isMoving() const;
     bool isMovingInThisDirection(string direction);
     double getMaxMomentumX();
     double getMinMomentumY();

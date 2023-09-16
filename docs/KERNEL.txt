@@ -1,0 +1,79 @@
+End goal:
+
+procesy:
+KERNEL
+
+kamery:
+TERMINAL(camera): clear to black
+
+KERNEL:
+TERMINAL(object)
+
+TERMINAL(object):
+description: ramka, w środku czarny kolor, stary tekst i jeden edytowalny tekst
+Variables: prompt:"KERNEL: "
+Images: AktywnaRamka, NiektywnaRamka, MINIMALIZUJ, FULLSCREEN, X 
+Text: ID:"history" content: "Welcome in EGM kernel!"
+EditableText: enter:disabled ID:"COMMAND" content: var.prompt editableFrom: var.prompt.size() wrap:true
+Events:{
+if(pressed(~)){
+	Cameras.TERMINAL.toggle();
+	return;
+}
+if(!Cameras.TERMINAL.isActive()){
+	return;
+}
+if(pressed(ENTER) && pressed(SHIFT)){
+	let editable = Objects.TERMINAL.editable.COMMAND;
+	editable.content.add("\n");
+	if(editable.y + editable.height >= Objects.TERMINAL.var.frameHeight){
+		editable.y -= Objects.TERMINAL.var.fontHeight;
+		history.y -= Objects.TERMINAL.var.fontHeight;
+	}
+}
+else if(pressed(ENTER)){
+	let editable = Objects.TERMINAL.editable.COMMAND;
+	let prompt = Objects.TERMINAL.var.prompt;
+	let full = editable.content;
+	let code = full.substr(prompt, full.end());
+	let history = Objects.TERMINAL.Texts.history;
+	history.content.add(full);
+	editable.content = prompt;
+	editable.y += full.height;
+	if(editable.y >= Objects.TERMINAL.var.frameHeight){
+		editable.y -= Objects.TERMINAL.var.fontHeight;
+		history.y -= Objects.TERMINAL.var.fontHeight;
+	}
+	execute(code);
+}
+if(pressed(CTRL) && pressed(V)){
+	let editable = Objects.TERMINAL.editable.COMMAND;
+	let clipboard = Objects.TERMINAL.var.clipboard.getString();
+	editable.content.add(clipboard);
+	if(editable.y + editable.height >= Objects.TERMINAL.var.frameHeight){
+		let moveY = editable.y + editable.height - Objects.TERMINAL.var.frameHeight;
+		editable.y -= moveY;
+		history.y -= moveY;
+	}
+}
+if(pressed(CTRL) && pressed(C)){
+	let selected = "";
+	if(mouse.in(Objects.TERMINAL.Texts.history)){
+		let history = Objects.TERMINAL.Texts.history;
+		selected = history.mouseSelected.getString();
+	}
+	else if(mouse.in(Objects.TERMINAL.editable.COMMAND)){
+		let history = Objects.TERMINAL.editable.COMMAND;
+		selected = history.mouseSelected.getString();
+	}
+	Objects.TERMINAL.var.clipboard = selected;
+}
+else if(pressed(C)){
+	Objects.TERMINAL.Texts.history.content = "";
+}
+if(left.click(Objects.TERMINAL.button.exit)){
+	Cameras.TERMINAL.disable();
+	return;
+}
+}
+

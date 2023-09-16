@@ -12,6 +12,14 @@ AncestorObject::AncestorObject(unsigned newID, vector<string> &listOfIDs, string
     primaryConstructor(newID, listOfIDs, newLayerID, "");
 }
 void AncestorObject::clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID){
+    if(isStringInVector(reservedIDs, Original.ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        return;
+    }
+    if(isStringInVector(reservedIDs, ID)){
+        std::cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        return;
+    }
     clearVectorsOfIDs();
     clearContainers();
     PrimaryModule::clone(Original, listOfUniqueIDs, layerID, "");

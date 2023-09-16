@@ -35,17 +35,18 @@ SingleBitmap::SingleBitmap(unsigned int bitmapID){
     ID = intToStr(bitmapID);
     bitmap = nullptr;
 }
-void SingleBitmap::loadBitmap(string newID, string filePath){
+void SingleBitmap::loadBitmap(string newID, string filePath, string EXE_PATH){
     if(bitmap)
         al_destroy_bitmap(bitmap);
     ID = newID;
-    bitmap = al_load_bitmap(filePath.c_str());
+    bitmap = al_load_bitmap((EXE_PATH + filePath).c_str());
     if(!bitmap){
         std::cout << "Failed to load a bitmap! (id:" << ID << ")\n";
         //al_show_native_message_box(window, "Error", "", "Can't load an image.", NULL, ALLEGRO_MESSAGEBOX_ERROR);
-        bitmap = al_load_bitmap("images/error.png");
+
+        bitmap = al_load_bitmap((EXE_PATH + "images/error.png").c_str());
         if(!bitmap){
-            bitmap = al_load_bitmap("error.png");
+            bitmap = al_load_bitmap((EXE_PATH + "error.png").c_str());
         }
         if(!bitmap){
             std::cout << "You need to prepare 'error.png'! (id:" << ID << ")\n";
@@ -119,7 +120,7 @@ void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, st
         }
     }
     if(image || lightBitmap){
-        std::cout << "Copy has been made!\n";
+        //std::cout << "Copy has been made!\n";
     }
 }
 void ImageModule::destroyBitmap(){

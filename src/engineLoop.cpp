@@ -112,8 +112,15 @@ void EngineLoop::initAllegro(){
     al_set_window_title(window, windowTitle.c_str());
 
 
-
     mainBuffer = al_create_bitmap(BUFFER_W, BUFFER_H);
+
+    EXE_PATH = "";
+    ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
+    char buffer[1000] = { 0 };
+    sprintf(buffer, "%s", al_path_cstr(path, ALLEGRO_NATIVE_PATH_SEP));
+    EXE_PATH = string(buffer);
+    std::cout << EXE_PATH << "\n";
+
 
     //cursorBitmap = al_load_bitmap("images/cursor.png");
     if(cursorBitmap){
@@ -150,6 +157,7 @@ void EngineLoop::initAllegro(){
     SelectedCamera = nullptr;
     SelectedLayer = nullptr;
     SelectedObject = nullptr;
+    EditorObject = nullptr;
 }
 void EngineLoop::startTimer(){
     al_start_timer(timer);
@@ -345,59 +353,60 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 }
 void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     BaseOfTriggerableObjects.clear();
+
+    unsigned objectIndex;
     
-    for(LayerClass & Layer : Layers){
-        for(AncestorObject & Object : Layer.Objects){
-            for(EveModule Event : Object.EveContainer){
+    for(unsigned layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
+        for(objectIndex = 0; objectIndex < Layers[layerIndex].Objects.size(); objectIndex++){
+            for(EveModule Event : Layers[layerIndex].Objects[objectIndex].EveContainer){
                 for(string type : Event.primaryTriggerTypes){
                     if(type == "each_iteration"){
-                        BaseOfTriggerableObjects.IterationTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.IterationTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "second_passed"){
-                        BaseOfTriggerableObjects.TimeTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.TimeTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "key_pressed"){
-                        BaseOfTriggerableObjects.KeyPressedTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.KeyPressedTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "key_pressing"){
-                        std::cout << "Trigger from: " << Object.getLayerID() << ":" << Object.getID() << " " << Event.getLayerID() << "\n";
-                        BaseOfTriggerableObjects.KeyPressingTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.KeyPressingTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "key_released"){
-                        BaseOfTriggerableObjects.KeyReleasedTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.KeyReleasedTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "mouse_moved"){
-                        BaseOfTriggerableObjects.MouseMovedTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.MouseMovedTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "mouse_not_moved"){
-                        BaseOfTriggerableObjects.MouseNotMovedTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.MouseNotMovedTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "mouse_pressed"){
-                        BaseOfTriggerableObjects.MousePressedTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.MousePressedTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "mouse_pressing"){
-                        BaseOfTriggerableObjects.MousePressingTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.MousePressingTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "mouse_released"){
-                        BaseOfTriggerableObjects.MouseReleasedTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.MouseReleasedTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "objects"){
-                        BaseOfTriggerableObjects.ObjectsTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.ObjectsTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "variables"){
-                        BaseOfTriggerableObjects.VariablesTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.VariablesTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "collision"){
-                        BaseOfTriggerableObjects.CollisionTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.CollisionTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "editables"){
-                        BaseOfTriggerableObjects.EditableTextTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.EditableTextTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "movement"){
-                        BaseOfTriggerableObjects.MovementTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.MovementTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "stillness"){
-                        BaseOfTriggerableObjects.StillnessTriggered.push_back(&Object);
+                        BaseOfTriggerableObjects.StillnessTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                 }
             }
@@ -405,102 +414,115 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, ve
     }
 }
 void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects){
-    for(AncestorObject * Object : BaseOfTriggerableObjects.IterationTriggered){
-        if(Object->getIsActive()){
-            TriggeredObjects.push_back(Object);
+    AncestorObject * tempObject = nullptr;
+    for(AncestorIndex & Index : BaseOfTriggerableObjects.IterationTriggered){
+        tempObject = Index.object(Layers);
+        if(tempObject != nullptr && tempObject->getIsActive()){
+            TriggeredObjects.push_back(&(*tempObject));
         }
     }
     if(secondHasPassed()){ 
-        for(AncestorObject * Object : BaseOfTriggerableObjects.TimeTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.TimeTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
     if(firstPressedKeys.size() > 0){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyPressedTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressedTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
     if(pressedKeys.size() > 0){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyPressingTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressingTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
     if(releasedKeys.size() > 0){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.KeyReleasedTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyReleasedTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
     if(Mouse.didMouseMove){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseMovedTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseMovedTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
     if(!Mouse.didMouseMove){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseNotMovedTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseNotMovedTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
     if(Mouse.isFirstPressed()){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.MousePressedTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressedTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
     if(Mouse.isPressed()){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.MousePressingTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressingTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
     if(Mouse.isReleased()){
-        for(AncestorObject * Object : BaseOfTriggerableObjects.MouseReleasedTriggered){
-            if(Object->getIsActive()){
-                TriggeredObjects.push_back(Object);
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseReleasedTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
             }
         }
     }
-    for(AncestorObject * Object : BaseOfTriggerableObjects.MovementTriggered){
-        if(!Object->getIsActive()){
+    for(AncestorIndex & Index : BaseOfTriggerableObjects.MovementTriggered){
+        tempObject = Index.object(Layers);
+        if(tempObject == nullptr || !tempObject->getIsActive()){
             continue;
         }
-        for(MovementModule Movement : Object->MovementContainer){
+        for(const MovementModule & Movement : tempObject->MovementContainer){
             if(!Movement.getIsActive()){
                 continue;
             }
             if(Movement.isMoving()){
-                TriggeredObjects.push_back(Object);
+                TriggeredObjects.push_back(&(*tempObject));
                 break;
             }
         }
     }
     bool triggered;
-    for(AncestorObject * Object : BaseOfTriggerableObjects.StillnessTriggered){
-        if(!Object->getIsActive()){
+    for(AncestorIndex & Index : BaseOfTriggerableObjects.StillnessTriggered){
+        tempObject = Index.object(Layers);
+        if(tempObject == nullptr || !tempObject->getIsActive()){
             continue;
         }
         triggered = true;
-        for(MovementModule Movement : Object->MovementContainer){
+        for(const MovementModule & Movement : tempObject->MovementContainer){
             if(Movement.getIsActive() && Movement.isMoving()){
                 triggered = false;
                 break;
             }
         }
         if(triggered){
-            TriggeredObjects.push_back(Object);
+            TriggeredObjects.push_back(&(*tempObject));
         }
     }
 
@@ -551,6 +573,9 @@ string PointerContainer::getValue(){
         buffer = "[";
         for(const BasePointersStruct & Pointer: BasePointers){
             buffer += Pointer.getString();
+            if(Pointer.readOnly){
+                buffer += "(R)";
+            }
             buffer += ", ";
         }
         buffer += "]<";
@@ -598,10 +623,15 @@ string PointerContainer::getValue(){
         
         buffer += ">";
     }
+    if(readOnly){
+        buffer += "(R)";
+    }
     return buffer;
 }
 PointerContainer::PointerContainer(){
     ID = "";
+    type = "";
+    readOnly = false;
 }
 template<typename T>
 void PointerContainer::addBasePointer(T * pointer){
@@ -871,7 +901,7 @@ void EngineLoop::aggregateLayers(OperaClass & Operation, PointerContainer & NewC
 
     AncestorObject * TempObject = new AncestorObject();
     LayerClass * Layer;
-    unsigned i = 0, vector_end;
+    unsigned i = 0, vector_end = 0;
 
     if(AggregatedLayers.size() == 0){
         vector_end = Layers.size();
@@ -1338,6 +1368,7 @@ void EngineLoop::findLastContextInCamera(string attribute, PointerContainer & Ne
             return;
         }
         NewContext.setFirstBasePointer(&Camera->ID);
+        NewContext.readOnly = true;
     }
     else if(attribute == "pos_x"){
         NewContext.setFirstBasePointer(&Camera->pos.x);
@@ -1359,18 +1390,23 @@ void EngineLoop::findLastContextInCamera(string attribute, PointerContainer & Ne
     }
     else if(attribute == "size_x"){
         NewContext.setFirstBasePointer(&Camera->size.x);
+        NewContext.readOnly = true;
     }
     else if(attribute == "size_y"){
         NewContext.setFirstBasePointer(&Camera->size.y);
+        NewContext.readOnly = true;
     }
     else if(attribute == "zoom"){
         NewContext.setFirstBasePointer(&Camera->zoom);
+        NewContext.readOnly = true;
     }
     else if(attribute == "min_zoom"){
         NewContext.setFirstBasePointer(&Camera->minZoom);
+        NewContext.readOnly = true;
     }
     else if(attribute == "max_zoom"){
         NewContext.setFirstBasePointer(&Camera->maxZoom);
+        NewContext.readOnly = true;
     }
     else if(attribute == "speed"){
         NewContext.setFirstBasePointer(&Camera->speed);
@@ -1438,6 +1474,7 @@ void EngineLoop::findContextInCamera(string attribute, PointerContainer & NewCon
             return;
         }
         NewContext.addBasePointer(&Camera->ID);
+        NewContext.readOnly = true;
     }
     else if(attribute == "pos_x"){
         NewContext.addBasePointer(&Camera->pos.x);
@@ -1459,18 +1496,23 @@ void EngineLoop::findContextInCamera(string attribute, PointerContainer & NewCon
     }
     else if(attribute == "size_x"){
         NewContext.addBasePointer(&Camera->size.x);
+        NewContext.readOnly = true;
     }
     else if(attribute == "size_y"){
         NewContext.addBasePointer(&Camera->size.y);
+        NewContext.readOnly = true;
     }
     else if(attribute == "zoom"){
         NewContext.addBasePointer(&Camera->zoom);
+        NewContext.readOnly = true;
     }
     else if(attribute == "min_zoom"){
         NewContext.addBasePointer(&Camera->minZoom);
+        NewContext.readOnly = true;
     }
     else if(attribute == "max_zoom"){
         NewContext.addBasePointer(&Camera->maxZoom);
+        NewContext.readOnly = true;
     }
     else if(attribute == "speed"){
         NewContext.addBasePointer(&Camera->speed);
@@ -1552,6 +1594,7 @@ void EngineLoop::findLastContextInLayer(string attribute, PointerContainer & New
             return;
         }
         NewContext.setFirstBasePointer(Layer->getIDAddr());
+        NewContext.readOnly = true;
     }
     else if(attribute == "pos_x"){
         NewContext.setFirstBasePointer(&Layer->pos.x);
@@ -1591,6 +1634,7 @@ void EngineLoop::findContextInLayer(ValueLocation Location, PointerContainer & N
             return;
         }
         NewContext.addBasePointer(Layer->getIDAddr());
+        NewContext.readOnly = true;
     }
     else if(Location.attribute == "group"){
         for(string & group : Layer->getGroupsAddr()){
@@ -1670,11 +1714,10 @@ bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * O
         }
     }
     if(CurrentLayer == nullptr){
-        std::cout << "Error: In " << __FUNCTION__ << ": Layer does not exist.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": Layer \'" << Location.layerID << "\' does not exist.\n";
         return false;
     }
-    
-    if(CurrentLayer == OwnerLayer && Owner != nullptr && Location.objectID == Owner->getID()){
+    if(OwnerLayer != nullptr && CurrentLayer == OwnerLayer && Owner != nullptr && Location.objectID == Owner->getID()){
         CurrentObject = Owner;
     }
     else{
@@ -1685,6 +1728,7 @@ bool EngineLoop::findLayerAndObject(ValueLocation & Location, AncestorObject * O
             }
         }
     }
+    
     if(CurrentObject == nullptr){
         std::cout << "Error: In " << __FUNCTION__ << ": Object does not exist.\n";
         return false;
@@ -2183,6 +2227,9 @@ void EngineLoop::aggregateEntities(OperaClass & Operation, vector<PointerContain
             else if(Operation.source == "attribute"){
                 aggregateAttributes(Operation.instruction, NewContext, LeftOperand->BasePointers);
             }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": Source type \'" << Operation.source << "\' does not exist.\n";
+            }
         }
         else{
             std::cout << "Error: In " << __FUNCTION__ << ": Variable \'" << Operation.dynamicIDs.back() << "\' does not exist.\n";
@@ -2194,6 +2241,9 @@ void EngineLoop::aggregateEntities(OperaClass & Operation, vector<PointerContain
         }
         else if(Operation.source == "layer"){
             aggregateLayers(Operation, NewContext, vector<LayerClass*>(), Layers, Cameras, EventContext);
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Source type \'" << Operation.source << "\' does not exist in this context.\n";
         }
     }
 
@@ -2323,6 +2373,14 @@ void EngineLoop::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity
                 if(LeftOperand[i]->getObjectID() != Object.getID()){
                     continue;
                 }
+                if(isStringInVector(reservedIDs, RightOperand[j]->getID())){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Module with a reserved ID \'" << RightOperand[j]->getID() << "\' cannot be cloned.\n";
+                    return;
+                }
+                if(isStringInVector(reservedIDs, LeftOperand[i]->getID())){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Module with a reserved ID \'" << LeftOperand[i]->getID() << "\' cannot be changed.\n";
+                    return;
+                }
                 LeftOperand[i]->clone(*RightOperand[j], Object.imageContainerIDs, Layer.getID(), Object.getID());
                 break;
             }
@@ -2351,6 +2409,11 @@ void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &Ev
 
     if(printInstructions){
         std::cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+    }
+
+    if(LeftOperand->readOnly){
+        std::cout << "Error: In " << __FUNCTION__ << ": Left operand is read-only. Instruction \'" << Operation.instruction << "\' failed.\n";
+        return;
     }
 
     bool sameSize = false;
@@ -2418,6 +2481,11 @@ void EngineLoop::cloneEntities(vector<string> dynamicIDs, vector<PointerContaine
 
     if(printInstructions){
         std::cout << "clone " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+    }
+
+    if(LeftOperand->readOnly){
+        std::cout << "Error: In " << __FUNCTION__ << ": Left operand is read-only. Instruction \'clone\' failed.\n";
+        return;
     }
 
     if(LeftOperand->type != RightOperand->type){
@@ -2931,15 +2999,23 @@ void EngineLoop::checkIfVectorContainsVector(OperaClass & Operation, vector<Poin
     addNewContext(EventContext, NewContext, "value", Operation.newContextID);
 }
 template <class Module>
-void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const string & moduleType, const unsigned & i, const unsigned & newVectorSize, string & ID, string & layerID, string & objectID, string & contextType){
-    if(i == 0){
-        Container.reserve(Container.size() + newVectorSize);
-        contextType = moduleType;
+void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const string & moduleType, const unsigned & i, const unsigned & newVectorSize,
+    string & ID, string & layerID, string & objectID, string & contextType, PointerRecalculator & Recalculator, vector<LayerClass> & Layers, vector<PointerContainer> & EventContext,
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+){
+    if(i == 0 && Container.size() + newVectorSize > Container.capacity()){
+        Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+        Container.reserve((Container.size() + newVectorSize) * RESERVATION_MULTIPLIER);
+        Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
     }
+    contextType = moduleType;
     Container.push_back(Module(ID, &allIDs, layerID, objectID));
     Context.push_back(&Container.back());
 }
-void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
+void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
+    AncestorObject *& Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector <AncestorObject*> & TriggeredObjects,
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+){
     PointerContainer NewContext;
 
     unsigned newVectorSize = 0;
@@ -2995,12 +3071,22 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
     }
 
     if(Operation.source == "object" && CurrentLayer == nullptr){
-        std::cout << "Error: In: " << __FUNCTION__ << ": Layer does not exist.\n";
+        if(Operation.ConditionalChain.size() > 0){
+            std::cout << "Error: In: " << __FUNCTION__ << ": Layer \'" << Operation.ConditionalChain[0].Location.layerID << "\' does not exist.\n";
+        }
+        else{
+            std::cout << "Error: In: " << __FUNCTION__ << ": Layer does not exist.\n";
+        }
         return;
     }
 
     if(isStringInGroup(Operation.source, 9, "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar") && CurrentObject == nullptr){
-        std::cout << "Error: In: " << __FUNCTION__ << ": Object does not exist.\n";
+        if(Operation.ConditionalChain.size() > 0){
+            std::cout << "Error: In: " << __FUNCTION__ << ": Object \'" << Operation.ConditionalChain[0].Location.objectID << "\' does not exist.\n";
+        }
+        else{
+            std::cout << "Error: In: " << __FUNCTION__ << ": Object does not exist.\n";
+        }
         return;
     }
 
@@ -3018,66 +3104,106 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
         std::cout << "\n";
     }
 
+    PointerRecalculator Recalculator;
+
     for(unsigned i = 0; i < newVectorSize; i++){
+        Recalculator.clear();
         ID = "";
         if(i < newIDs.size()){
             ID = newIDs[i];
         }
         if(Operation.source == "camera"){
-            if(i == 0){
-                SelectedCamera = nullptr;
-                Cameras.reserve(Cameras.size() + newVectorSize);
-                NewContext.type = "camera";
+            if(i == 0 && Cameras.size() + newVectorSize > Cameras.capacity()){
+                for(LayerClass & Layer : Layers){
+                    Layer.nullifyAllPointers();
+                }
+                Recalculator.findIndexesForCameras(Cameras, EventContext, SelectedCamera);
+                Cameras.reserve((Cameras.size() + newVectorSize) * RESERVATION_MULTIPLIER);
+                Recalculator.updatePointersToCameras(Cameras, EventContext, SelectedCamera);
             }
+            NewContext.type = "camera";
             Cameras.push_back(Camera2D(ID, camerasIDs));
             NewContext.Cameras.push_back(&Cameras.back());
         }
         else if(Operation.source == "layer"){
-            if(i == 0){
-                SelectedLayer = nullptr;
-                SelectedObject = nullptr;
-                Layers.reserve(Layers.size() + newVectorSize);
-                NewContext.type = "layer";
+            if(i == 0 && Layers.size() + newVectorSize > Layers.capacity()){
+                Recalculator.findIndexesForLayers(Layers, EventContext);
+                Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
+                Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+                Layers.reserve((Layers.size() + newVectorSize) * RESERVATION_MULTIPLIER);
+                Recalculator.updatePointersToLayers(Layers, EventContext);
+                Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
+                Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
             }
+            NewContext.type = "layer";
             Layers.push_back(LayerClass(ID, layersIDs));
             NewContext.Layers.push_back(&Layers.back());
         }
         else if(Operation.source == "object"){
-            if(i == 0){
-                SelectedLayer = nullptr;
-                SelectedObject = nullptr;
-                CurrentLayer->Objects.reserve(CurrentLayer->Objects.size() + newVectorSize);
-                NewContext.type = "object";
+            if(i == 0 && CurrentLayer->Objects.size() + newVectorSize > CurrentLayer->Objects.capacity()){
+                Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
+                Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+                CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * RESERVATION_MULTIPLIER);
+                Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
+                Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
             }
+            NewContext.type = "object";
             CurrentLayer->Objects.push_back(AncestorObject(ID, CurrentLayer->objectsIDs, layerID));
             NewContext.Objects.push_back(&CurrentLayer->Objects.back());
         }
         else if(Operation.source == "text"){
-            createNewModule(CurrentObject->TextContainer, CurrentObject->textContainerIDs, NewContext.Modules.Texts, "text", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->TextContainer, CurrentObject->textContainerIDs, NewContext.Modules.Texts,
+                "text", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else if(Operation.source == "editable_text"){
-            createNewModule(CurrentObject->EditableTextContainer, CurrentObject->editableTextContainerIDs, NewContext.Modules.EditableTexts, "editable_text", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->EditableTextContainer, CurrentObject->editableTextContainerIDs, NewContext.Modules.EditableTexts,
+                "editable_text", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else if(Operation.source == "image"){
-            createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images, "image", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images,
+                "image", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else if(Operation.source == "movement"){
-            createNewModule(CurrentObject->MovementContainer, CurrentObject->movementContainerIDs, NewContext.Modules.Movements, "movement", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->MovementContainer, CurrentObject->movementContainerIDs, NewContext.Modules.Movements,
+                "movement", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else if(Operation.source == "collision"){
-            createNewModule(CurrentObject->CollisionContainer, CurrentObject->collisionContainerIDs, NewContext.Modules.Collisions, "collision", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->CollisionContainer, CurrentObject->collisionContainerIDs, NewContext.Modules.Collisions,
+                "collision", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else if(Operation.source == "particles"){
-            createNewModule(CurrentObject->ParticlesContainer, CurrentObject->particlesContainerIDs, NewContext.Modules.Particles, "particles", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->ParticlesContainer, CurrentObject->particlesContainerIDs, NewContext.Modules.Particles,
+                "particles", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else if(Operation.source == "event"){
-            createNewModule(CurrentObject->EveContainer, CurrentObject->eveContainerIDs, NewContext.Modules.Events, "event", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->EveContainer, CurrentObject->eveContainerIDs, NewContext.Modules.Events,
+                "event", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else if(Operation.source == "variable"){
-            createNewModule(CurrentObject->VariablesContainer, CurrentObject->variablesContainerIDs, NewContext.Modules.Variables, "variable", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->VariablesContainer, CurrentObject->variablesContainerIDs, NewContext.Modules.Variables,
+                "variable", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else if(Operation.source == "scrollbar"){
-            createNewModule(CurrentObject->ScrollbarContainer, CurrentObject->scrollbarContainerIDs, NewContext.Modules.Scrollbars, "scrollbar", i, newVectorSize, ID, layerID, objectID, NewContext.type);
+            createNewModule(CurrentObject->ScrollbarContainer, CurrentObject->scrollbarContainerIDs, NewContext.Modules.Scrollbars,
+                "scrollbar", i, newVectorSize, ID, layerID, objectID, NewContext.type, Recalculator, Layers, EventContext,
+                StartingEvent, Event, MemoryStack
+            );
         }
         else{
             std::cout << "Error: In: " << __FUNCTION__ << ": Entity type \'" << Operation.instruction << "\' does not exist.\n";
@@ -3091,7 +3217,10 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
     }
 }
-OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *OwnerLayer, AncestorObject *Owner, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
+OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
+    vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+){
     for(OperaClass & Operation : Operations){
         if(isStringInGroup(Operation.instruction, 3, "break", "return", "run")){
             return Operation;
@@ -3137,7 +3266,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             checkIfVectorContainsVector(Operation, EventContext);
         }
         else if(Operation.instruction == "new"){
-            createNewEntities(Operation, EventContext, Layers, Cameras);
+            createNewEntities(Operation, EventContext, OwnerLayer, Owner, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack);
         }
         if(printInstructions){
             std::cout << "Stack: ";
@@ -3821,14 +3950,13 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     //Remember to delete pointers to destroyed objects during the iteration
     
     vector<EveModule>::iterator StartingEvent, Event;
-    vector<std::pair<vector<EveModule>::iterator, vector <PointerContainer>>> MemoryStack;
-    vector <PointerContainer> Context; //All dynamic context created from instructions. It's inherited by the children of an event.
+    vector<MemoryStackStruct> MemoryStack;
+    vector<PointerContainer> Context; //All dynamic context created from instructions. It's inherited by the children of an event.
 
     bool noTriggerableEvents;
 
     LayerClass * TriggeredLayer;
     OperaClass Interrupt;
-
 
     for(AncestorObject * Triggered : TriggeredObjects){
         if(!Triggered->getIsActive()){
@@ -3889,33 +4017,32 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             if(Event->conditionalStatus == 't'){
                 if(!Event->areDependentOperationsDone){
-                    Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras);
+                    Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack);
                     Event->areDependentOperationsDone = true;
                 }
                 if(!Event->checkIfAllChildrenFinished()){
-                    MemoryStack.push_back(make_pair(Event, Context));
+                    MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                     Event = FindUnfinishedEvent(Triggered, Event);
                     continue;
                 }
             }
             else if(Event->conditionalStatus == 'f' && Event->elseChildID != "" && !Event->elseChildFinished){
-                MemoryStack.push_back(make_pair(Event, Context));
+                MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                 Event = FindElseEvent(Triggered, Event);
-                if(MemoryStack.back().first->elseChildFinished){ //True if else event has been found.
+                if(MemoryStack.back().Event->elseChildFinished){ //True if else event has been found.
                     continue;
                 }
                 MemoryStack.pop_back();
             }
-            Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras);
+            Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack);
             if(StartingEvent != Event){
-                Event = MemoryStack.back().first;
+                Event = MemoryStack.back().Event;
 
-                if(MemoryStack.back().second.size() <= Context.size()){
-                    Context.erase(Context.begin() + MemoryStack.back().second.size(), Context.end());
+                if(MemoryStack.back().contextSize <= Context.size()){
+                    Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
                 }
                 else{
-                    std::cout << "THIS SHOULD NOT HAPPENED YET\n";
-                    Context = MemoryStack.back().second;
+                    std::cout << "THIS SHOULD NOT HAPPENED\n";
                 }
                 
                 MemoryStack.pop_back();
@@ -5258,3 +5385,375 @@ void EngineLoop::prepareEditorWindowEditable(AncestorObject * EditorWindow, vect
     prepareEditorWindowObjectsList(9, EditorWindow, FontContainer, BitmapContainer, Arr);
 }
 
+AncestorObject *AncestorIndex::object(vector<LayerClass> &Layers){
+    if(Layers.size() <= layerIndex){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": layerIndex(" << layerIndex << ") goes out of scope of Layers<" << Layers.size() << ">.\n";
+        return nullptr;
+    }
+    if(Layers[layerIndex].Objects.size() <= objectIndex){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": objectIndex(" << objectIndex << ") goes out of scope of Layers[].Objects<" << Layers[layerIndex].Objects.size() << ">.\n";
+        return nullptr;
+    }
+    return &Layers[layerIndex].Objects[objectIndex];
+}
+template <class Module>
+Module * ModuleIndex::module(vector<LayerClass> &Layers){
+    if(Layers.size() <= layerIndex){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": layerIndex goes out of scope of Layers.\n";
+        return nullptr;
+    }
+    if(Layers[layerIndex].Objects.size() <= objectIndex){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": objectIndex goes out of scope of Layers[].Objects.\n";
+        return nullptr;
+    }
+    if constexpr (std::is_same<Module, TextModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].TextContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].TextContainer[moduleIndex];
+    }
+    else if constexpr (std::is_same<Module, EditableTextModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].EditableTextContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].EditableTextContainer[moduleIndex];
+    }
+    else if constexpr (std::is_same<Module, ImageModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].ImageContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].ImageContainer[moduleIndex];
+    }
+    else if constexpr (std::is_same<Module, MovementModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].MovementContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].MovementContainer[moduleIndex];
+    }
+    else if constexpr (std::is_same<Module, CollisionModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].CollisionContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].CollisionContainer[moduleIndex];
+    }
+    else if constexpr (std::is_same<Module, ParticleEffectModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].ParticlesContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].ParticlesContainer[moduleIndex];
+    }
+    else if constexpr (std::is_same<Module, EveModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].EveContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].EveContainer[moduleIndex];
+    }
+    else if constexpr (std::is_same<Module, VariableModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].VariablesContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].VariablesContainer[moduleIndex];
+    }
+    else{
+        if(Layers[layerIndex].Objects[objectIndex].ScrollbarContainer.size() <= moduleIndex){
+            std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].ScrollbarContainer[moduleIndex];
+    }
+}
+vector<EveModule>::iterator ModuleIndex::module(vector<LayerClass> &Layers){
+    if(Layers.size() <= layerIndex){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": layerIndex goes out of scope of Layers.\n";
+        return vector<EveModule>::iterator();
+    }
+    if(Layers[layerIndex].Objects.size() <= objectIndex){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": objectIndex goes out of scope of Layers[].Objects.\n";
+        return vector<EveModule>::iterator();
+    }
+    if(Layers[layerIndex].Objects[objectIndex].EveContainer.size() <= moduleIndex){
+        std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects[].EveContainer\n";
+        return vector<EveModule>::iterator();
+    }
+    return Layers[layerIndex].Objects[objectIndex].EveContainer.begin() + moduleIndex;
+}
+
+void PointerRecalculator::clear(){
+    ObjectIndexes.clear();
+    CameraIndexes.clear();
+    TriggeredObjectIndexes.clear();
+}
+void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, vector<PointerContainer> & EventContext, Camera2D *& SelectedCamera){ 
+    for(PointerContainer & Context : EventContext){
+        CameraIndexes.push_back(vector<unsigned>());
+        for(Camera2D * Camera : Context.Cameras){
+            CameraIndexes.back().push_back(Camera - &Cameras[0]);
+        }
+    }
+    if(SelectedCamera != nullptr){
+        selectedCameraIndex = SelectedCamera - &Cameras[0];
+    }
+}
+void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, vector<PointerContainer> &EventContext){
+    for(PointerContainer & Context : EventContext){
+        LayerIndexes.push_back(vector<unsigned>());
+        for(LayerClass * Layer : Context.Layers){
+            LayerIndexes.back().push_back(Layer - &Layers[0]);
+        }
+    }
+}
+void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext, AncestorObject *& Owner,
+    vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, AncestorObject *& EditorObject
+){
+    unsigned layerIndex;   
+    for(PointerContainer & Context : EventContext){
+        ObjectIndexes.push_back(vector<AncestorIndex>());
+        for(AncestorObject * Object : Context.Objects){
+            for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
+                if(Layers[layerIndex].getID() == Object->getLayerID()){
+                    ObjectIndexes.back().push_back(AncestorIndex(layerIndex, Object - &Layers[layerIndex].Objects[0]));
+                    break;
+                }
+            }
+        }
+    }
+    for(AncestorObject * Triggered : TriggeredObjects){
+        TriggeredObjectIndexes.push_back(AncestorIndex(0, 0));
+        for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
+            if(Layers[layerIndex].getID() == Triggered->getLayerID()){
+                TriggeredObjectIndexes.back() = AncestorIndex(layerIndex, Triggered - &Layers[layerIndex].Objects[0]);
+                break;
+            }
+        }
+    }
+    if(SelectedLayer != nullptr){
+        selectedLayerIndex = SelectedLayer - &Layers[0];
+    }
+    if(Owner != nullptr){
+        for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
+            if(Layers[layerIndex].getID() == Owner->getLayerID()){
+                OtherObjectIndexes[0] = AncestorIndex(layerIndex, Owner - &Layers[layerIndex].Objects[0]);
+                break;
+            }
+        }
+    }
+    if(SelectedObject != nullptr){
+        for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
+            if(Layers[layerIndex].getID() == SelectedObject->getLayerID()){
+                OtherObjectIndexes[1] = AncestorIndex(layerIndex, SelectedObject - &Layers[layerIndex].Objects[0]);
+                break;
+            }
+        }
+    }
+    if(EditorObject != nullptr){
+        for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
+            if(Layers[layerIndex].getID() == EditorObject->getLayerID()){
+                OtherObjectIndexes[2] = AncestorIndex(layerIndex, EditorObject - &Layers[layerIndex].Objects[0]);
+                break;
+            }
+        }
+    }
+}
+template <class Module>
+ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass> & Layers){
+    unsigned layer, object;
+    for(layer = 0; layer < Layers.size(); layer++){
+        if(Layers[layer].getID() != Instance->getLayerID()){
+            continue;
+        }
+        for(object = 0; object < Layers[layer].Objects.size(); object++){
+            if(Layers[layer].Objects[object].getID() != Instance->getObjectID()){
+                continue;
+            }
+            if constexpr (std::is_same<Module, TextModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].TextContainer[0]);
+            }
+            else if constexpr (std::is_same<Module, EditableTextModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].EditableTextContainer[0]);
+            }
+            else if constexpr (std::is_same<Module, ImageModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].ImageContainer[0]);
+            }
+            else if constexpr (std::is_same<Module, MovementModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].MovementContainer[0]);
+            }
+            else if constexpr (std::is_same<Module, CollisionModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].CollisionContainer[0]);
+            }
+            else if constexpr (std::is_same<Module, ParticleEffectModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].ParticlesContainer[0]);
+            }
+            else if constexpr (std::is_same<Module, EveModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].EveContainer[0]);
+            }
+            else if constexpr (std::is_same<Module, VariableModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].VariablesContainer[0]);
+            }
+            else if constexpr (std::is_same<Module, ScrollbarModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].ScrollbarContainer[0]);
+            }
+            break;
+        }
+        break;
+    }
+    return ModuleIndex(0, 0, 0);
+}
+template <class Module>
+void PointerRecalculator::findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers){
+    for(Module * Instance : Instances){
+        ModuleIndexes.back().push_back(getIndex(Instance, Layers));
+    }
+}
+ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers){
+    unsigned layer, object;
+    for(layer = 0; layer < Layers.size(); layer++){
+        if(Layers[layer].getID() != Instance->getLayerID()){
+            continue;
+        }
+        for(object = 0; object < Layers[layer].Objects.size(); object++){
+            if(Layers[layer].Objects[object].getID() == Instance->getObjectID()){
+                return ModuleIndex(layer, object, Instance - Layers[layer].Objects[object].EveContainer.begin());
+            }   
+        }
+        break;
+    }
+    return ModuleIndex(0, 0, 0);
+}
+void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & StartingEvent,
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+){
+    startingEventIndex = getIndex(StartingEvent, Layers);
+    eventIndex = getIndex(Event, Layers);
+    for(MemoryStackStruct & Memory : MemoryStack){
+        PastEvents.push_back(getIndex(Memory.Event, Layers));
+    }
+    for(PointerContainer & Context : EventContext){
+        ModuleIndexes.push_back(vector<ModuleIndex>());
+        if(Context.type == "text"){
+            findIndexesInModule(Context.Modules.Texts, Layers);
+        }
+        else if(Context.type == "editable_text"){
+            findIndexesInModule(Context.Modules.EditableTexts, Layers);
+        }
+        else if(Context.type == "image"){
+            findIndexesInModule(Context.Modules.Images, Layers);
+        }
+        else if(Context.type == "movement"){
+            findIndexesInModule(Context.Modules.Movements, Layers);
+        }
+        else if(Context.type == "collision"){
+            findIndexesInModule(Context.Modules.Collisions, Layers);
+        }
+        else if(Context.type == "particles"){
+            findIndexesInModule(Context.Modules.Particles, Layers);
+        }
+        else if(Context.type == "event"){
+            findIndexesInModule(Context.Modules.Events, Layers);
+        }
+        else if(Context.type == "variable"){
+            findIndexesInModule(Context.Modules.Variables, Layers);
+        }
+        else if(Context.type == "scrollbar"){
+            findIndexesInModule(Context.Modules.Scrollbars, Layers);
+        }
+    }
+}
+void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<PointerContainer> & EventContext, Camera2D *& SelectedCamera){
+    unsigned contextIndex, cameraIndex;
+    for(contextIndex = 0; contextIndex < CameraIndexes.size(); contextIndex++){
+        for(cameraIndex = 0; cameraIndex < CameraIndexes[contextIndex].size(); cameraIndex++){
+            EventContext[contextIndex].Cameras[cameraIndex] = &Cameras[CameraIndexes[contextIndex][cameraIndex]];
+        }
+    }
+    if(SelectedCamera != nullptr){
+        SelectedCamera = &Cameras[selectedCameraIndex];   
+    }
+}
+void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<PointerContainer> &EventContext){
+    unsigned context, layer;
+    for(context = 0; context < LayerIndexes.size(); context++){
+        for(layer = 0; layer < LayerIndexes[context].size(); layer++){
+            EventContext[context].Layers[layer] = &Layers[LayerIndexes[context][layer]];
+        }
+    }
+}
+void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, vector<PointerContainer> &EventContext, AncestorObject *&Owner,
+    vector<AncestorObject *> &TriggeredObjects, LayerClass *&SelectedLayer, AncestorObject *&SelectedObject, AncestorObject *&EditorObject)
+{
+    unsigned i;
+    for(i = 0; i < EventContext.size(); i++){
+        EventContext[i].Objects.clear();
+        for(AncestorIndex & Index: ObjectIndexes[i]){
+            EventContext[i].Objects.push_back(Index.object(Layers));
+        }
+    }
+    for(i = 0; i < TriggeredObjects.size(); i++){
+        TriggeredObjects[i] = TriggeredObjectIndexes[i].object(Layers);
+    }
+    if(SelectedLayer != nullptr){
+        SelectedLayer = &Layers[selectedLayerIndex];
+    }
+    if(Owner != nullptr){
+        Owner = OtherObjectIndexes[0].object(Layers);
+    }
+    if(SelectedObject != nullptr){
+        SelectedObject = OtherObjectIndexes[1].object(Layers);
+    }
+    if(EditorObject != nullptr){
+        std::cout << "EditorObject should be nullptr.\n";
+        EditorObject = OtherObjectIndexes[2].object(Layers);
+    }
+}
+void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & StartingEvent,
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+){
+    StartingEvent = startingEventIndex.module(Layers);
+    Event = eventIndex.module(Layers);
+    for(unsigned memory = 0; memory < MemoryStack.size(); memory++){
+        MemoryStack[memory].Event = PastEvents[memory].module(Layers);
+    }
+    unsigned context, module;
+    ModuleIndex Index;
+    AncestorObject * Object;
+    for(context = 0; context < ModuleIndexes.size(); context++){
+        for(module = 0; module < ModuleIndexes[context].size(); module++){
+            Index = ModuleIndexes[context][module];
+            Object = &Layers[Index.layerIndex].Objects[Index.objectIndex];
+            if(EventContext[context].type == "text"){
+                EventContext[context].Modules.Texts[module] = &(*Object).TextContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "editable_text"){
+                EventContext[context].Modules.EditableTexts[module] = &(*Object).EditableTextContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "image"){
+                EventContext[context].Modules.Images[module] = &(*Object).ImageContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "movement"){
+                EventContext[context].Modules.Movements[module] = &(*Object).MovementContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "collision"){
+                EventContext[context].Modules.Collisions[module] = &(*Object).CollisionContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "particles"){
+                EventContext[context].Modules.Particles[module] = &(*Object).ParticlesContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "event"){
+                EventContext[context].Modules.Events[module] = &(*Object).EveContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "variable"){
+                EventContext[context].Modules.Variables[module] = &(*Object).VariablesContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "scrollbar"){
+                EventContext[context].Modules.Scrollbars[module] = &(*Object).ScrollbarContainer[Index.moduleIndex];
+            }
+        }
+    }
+}

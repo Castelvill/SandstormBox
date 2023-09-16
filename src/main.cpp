@@ -4,9 +4,9 @@
 #include <filesystem>
 
 
-void loadFontsToContainer(vector <SingleFont> & FontContainer){
+void loadFontsToContainer(vector <SingleFont> & FontContainer, string EXE_PATH){
     std::ifstream fontListFile;
-    fontListFile.open("fonts/font_list.txt");
+    fontListFile.open(EXE_PATH+"fonts/font_list.txt");
 
     short fontSizes[] = {12, 24, 48, 72};
     unsigned short i;
@@ -17,7 +17,7 @@ void loadFontsToContainer(vector <SingleFont> & FontContainer){
             fontListFile.close();
             return;
         }
-        filePath = "fonts/" + fileName;
+        filePath = EXE_PATH+"fonts/" + fileName;
         std::cout << filePath << "\n";
         for(i = 0; i < (sizeof(fontSizes)/sizeof(*fontSizes)); i++){
             FontContainer.push_back(SingleFont());
@@ -38,126 +38,128 @@ void freeFontsFromContainer(vector <SingleFont> & FontContainer){
         std::cout << "\nAll fonts destroyed.\n";
 }
 
-void loadBitmapsToContainer(vector <SingleBitmap> & BitmapContainer){
+void loadBitmapsToContainer(vector <SingleBitmap> & BitmapContainer, string EXE_PATH){
     BitmapContainer.reserve(11);
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("background", "images/stars.jpg");
+    BitmapContainer.back().loadBitmap("background", "/images/stars.jpg", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("background1", "images/Ilulu.jpg");
+    BitmapContainer.back().loadBitmap("background1", "images/Ilulu.jpg", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("catSmall", "images/catSmall.jpg");
+    BitmapContainer.back().loadBitmap("catSmall", "images/catSmall.jpg", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("cat260", "images/cat260.png");
+    BitmapContainer.back().loadBitmap("cat260", "images/cat260.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("lel", "images/lel.png");
+    BitmapContainer.back().loadBitmap("lel", "images/lel.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("rocks1_300", "images/rocks1_300.png");
+    BitmapContainer.back().loadBitmap("rocks1_300", "images/rocks1_300.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("rocks2_300", "images/rocks2_300.png");
+    BitmapContainer.back().loadBitmap("rocks2_300", "images/rocks2_300.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("rocks2_200", "images/rocks2_200.png");
+    BitmapContainer.back().loadBitmap("rocks2_200", "images/rocks2_200.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("puss", "images/catgirl.png");
+    BitmapContainer.back().loadBitmap("puss", "images/catgirl.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("chad", "images/chad_doge.png");
+    BitmapContainer.back().loadBitmap("chad", "images/chad_doge.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("sword", "images/sword.png");
+    BitmapContainer.back().loadBitmap("sword", "images/sword.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("gin300", "images/gin300.png");
+    BitmapContainer.back().loadBitmap("gin300", "images/gin300.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("minion_1", "images/minion1.png");
+    BitmapContainer.back().loadBitmap("minion_1", "images/minion1.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("dragon_h3", "images/h3_dragon.png");
+    BitmapContainer.back().loadBitmap("dragon_h3", "images/h3_dragon.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("amongus_1", "images/amongus1.png");
+    BitmapContainer.back().loadBitmap("amongus_1", "images/amongus1.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("amongus_2", "images/amongus2.png");
+    BitmapContainer.back().loadBitmap("amongus_2", "images/amongus2.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("cobblestone", "images/cobblestone.png");
+    BitmapContainer.back().loadBitmap("cobblestone", "images/cobblestone.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("steve", "images/steve.png");
+    BitmapContainer.back().loadBitmap("steve", "images/steve.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("insanity1", "images/insanity1.png");
+    BitmapContainer.back().loadBitmap("insanity1", "images/insanity1.png", EXE_PATH);
 
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("gui_background", "gui/background.png");
+    BitmapContainer.back().loadBitmap("gui_background", "gui/background.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_general", "gui/icon_general.png");
+    BitmapContainer.back().loadBitmap("icon_general", "gui/icon_general.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_image", "gui/icon_image.png");
+    BitmapContainer.back().loadBitmap("icon_image", "gui/icon_image.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_text", "gui/icon_text.png");
+    BitmapContainer.back().loadBitmap("icon_text", "gui/icon_text.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_event", "gui/icon_event.png");
+    BitmapContainer.back().loadBitmap("icon_event", "gui/icon_event.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_movement", "gui/icon_movement.png");
+    BitmapContainer.back().loadBitmap("icon_movement", "gui/icon_movement.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_collision", "gui/icon_collision.png");
+    BitmapContainer.back().loadBitmap("icon_collision", "gui/icon_collision.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_particles", "gui/icon_particles.png");
+    BitmapContainer.back().loadBitmap("icon_particles", "gui/icon_particles.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_variables", "gui/icon_variables.png");
+    BitmapContainer.back().loadBitmap("icon_variables", "gui/icon_variables.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("icon_editable_text", "gui/icon_editable_text.png");
+    BitmapContainer.back().loadBitmap("icon_editable_text", "gui/icon_editable_text.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("text_field_1", "gui/text_field_1.png");
+    BitmapContainer.back().loadBitmap("text_field_1", "gui/text_field_1.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("text_field_2", "gui/text_field_2.png");
+    BitmapContainer.back().loadBitmap("text_field_2", "gui/text_field_2.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("arrow_1", "gui/arrow_h3.png");
+    BitmapContainer.back().loadBitmap("arrow_1", "gui/arrow_h3.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("plus_1", "gui/plus_h3.png");
+    BitmapContainer.back().loadBitmap("plus_1", "gui/plus_h3.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("minus_1", "gui/minus_h3.png");
+    BitmapContainer.back().loadBitmap("minus_1", "gui/minus_h3.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("thumb_1", "gui/thumb_h3.png");
+    BitmapContainer.back().loadBitmap("thumb_1", "gui/thumb_h3.png", EXE_PATH);
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
-    BitmapContainer.back().loadBitmap("thumb_track_1", "gui/thumb_track_h3.png");
+    BitmapContainer.back().loadBitmap("thumb_track_1", "gui/thumb_track_h3.png", EXE_PATH);
 }
 void freeBitmapsFromContainer(vector <SingleBitmap> & BitmapContainer){
     for(unsigned int i = 0; i < BitmapContainer.size(); i++){
         if(BitmapContainer[i].bitmap){
             al_destroy_bitmap(BitmapContainer[i].bitmap);
-            std::cout << "Bitmap '" << BitmapContainer[i].ID << "' destroyed. (by GeneralBitmapContainer)\n";
+            if(printOutBitmapDestruction){
+                std::cout << "Bitmap '" << BitmapContainer[i].ID << "' destroyed. (by GeneralBitmapContainer)\n";
+            }
         }
     }
     BitmapContainer.clear();
-    if(BitmapContainer.size() == 0)
+    if(BitmapContainer.size() == 0 && printOutBitmapDestruction)
         std::cout << "\nAll bitmaps in general image container destroyed.\n\n";
 }
 
@@ -287,15 +289,45 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().TextContainer.back().setColors(255, 0, 0);
 
     Objects.back().EveContainer.push_back(EveModule("create-new", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressing");
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
     Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass("a"));
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "key_pressing";
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "key_pressed";
     Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_Q);
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    //Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("image");
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
+    Objects.back().EveContainer.back().DependentOperations.back().source = "layer";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newString("new-object"));
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "ids";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "new";
-    Objects.back().EveContainer.back().DependentOperations.back().source = "camera";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(1));
+    Objects.back().EveContainer.back().DependentOperations.back().source = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(ConditionClass());
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.layerID = "L1";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(10));
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("ids");
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "new-objects";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "find";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(ConditionClass());
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.source = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.layerID = "L1";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.objectID = "Amongus";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "blueprint";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "clone";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("new-objects");
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("blueprint");
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
+    Objects.back().EveContainer.back().DependentOperations.back().source = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-layers";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
+    Objects.back().EveContainer.back().DependentOperations.back().source = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("all-layers");
+
 
     /*Objects.back().EveContainer.push_back(EveModule("rotate-init", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
     Objects.back().EveContainer.back().primaryTriggerTypes.push_back("each_iteration");
@@ -768,6 +800,7 @@ void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
     Cameras.back().addVisibleLayer("L1");
     Cameras.back().addVisibleLayer("L2");
     Cameras.back().addAccessibleLayer("L1");
+    Cameras.back().addAccessibleLayer("L2");
 
     Cameras.push_back(Camera2D("Cam1", camerasIDs, true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
@@ -799,12 +832,11 @@ Fps fps;
 
 int main(){
     srand(time(NULL));
-    egmCompiler Compiler;
-    Compiler.loadTestData();
-    Compiler.writeAllText();
+    //egmCompiler Compiler;
+    //Compiler.loadTestData();
+    //Compiler.writeAllText();
 
     vector <EngineLoop> Threads;
-    Threads.push_back(EngineLoop("EGM"));
     vector <SingleFont> FontContainer;
     vector <SingleBitmap> BitmapContainer;
     vector <LayerClass> Layers;
@@ -812,12 +844,11 @@ int main(){
 
     unsigned numberOfObjects = 0;
 
+    Threads.push_back(EngineLoop("EGM"));
     Threads.back().initAllegro();
-    loadFontsToContainer(FontContainer);
-    std::cout << FontContainer.size() << "\n";
+    loadFontsToContainer(FontContainer, Threads.back().EXE_PATH);
 
-    loadBitmapsToContainer(BitmapContainer);
-
+    loadBitmapsToContainer(BitmapContainer, Threads.back().EXE_PATH);
 
     createCameras(Cameras, Threads.back().camerasIDs);
     Threads.back().updateAllForestOfCameras(Cameras);
@@ -826,6 +857,11 @@ int main(){
     Cameras.back().clone(Cameras[1], Threads.back().camerasIDs);
     Cameras.back().setIsPinned(false);
     Cameras.back().setPos(vec2d(SCREEN_W/2.0, 300.0));
+
+    if(RESERVATION_MULTIPLIER < 1.0){
+        std::cout << "Error: RESERVATION_MULTIPLIER is lower than 1.\n";
+        goto invalidReservation;
+    }
 
     if(Threads.back().isCamerasUniquenessViolated(Cameras)){
         goto kernelGotLost;
@@ -844,12 +880,6 @@ int main(){
     Layers.push_back(LayerClass("L1", Threads.back().layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
     createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Threads.back().window);
     Layers.back().addGroup("kek");
-
-    std::cout << "Layer 1: " << Layers.back().getID() << "\n";
-    std::cout << "Object 1: " << Layers.back().Objects[0].getID() << " " << Layers.back().Objects[0].getLayerID() << "\n";
-
-    std::cout << "Layer 2: " << Layers.back().getID() << "\n";
-    std::cout << "Object 2: " << Layers.back().Objects[0].getID() << " " << Layers.back().Objects[0].getLayerID() << "\n";
     
     if(Threads.back().isLayersUniquenessViolated(Layers)){
         goto uniquenessViolated;
@@ -876,16 +906,19 @@ int main(){
 
     uniquenessViolated:
 
+    invalidReservation:
+
     kernelGotLost:
 
     vector <string> fileNames;
+    //TODO: change "D:/Programming/Easy Game Maker" to EXE_PATH
     #if _WIN32
         fileNames = getAllFilesNamesWithinFolder("D:/Programming/Easy Game Maker");
     #elif __linux__
         fileNames = getAllFilesNamesWithinFolder(".");
     #endif
-    for(auto name : fileNames)
-        std::cout << name << std::endl;
+    //for(auto name : fileNames)
+    //    std::cout << name << std::endl;
 
     Threads.back().exitAllegro();
 

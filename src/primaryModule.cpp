@@ -169,7 +169,7 @@ vec2d PrimaryModule::getScaledSize(){
     scaledSize.multiply(scale);
     return scaledSize;
 }
-bool PrimaryModule::getIsActive(){
+bool PrimaryModule::getIsActive() const{
     return isActive;
 }
 bool PrimaryModule::getIsScaledFromCenter(){
@@ -193,6 +193,7 @@ void PrimaryModule::bindPrimaryToVariable(string attribute, vector <BasePointers
             return;
         }
         BasePointers.back().setPointer(&ID);
+        BasePointers.back().readOnly = true;
     }
     else if(attribute == "group"){
         BasePointers.pop_back();
@@ -241,9 +242,11 @@ void PrimaryModule::bindPrimaryToVariable(string attribute, vector <BasePointers
 }
 BasePointersStruct::BasePointersStruct(){
     type = "";
+    readOnly = false;
 }
 void BasePointersStruct::clear(){
     type = "";
+    readOnly = false;
     pBool = nullptr;
     pShort = nullptr;
     pUShort = nullptr;
@@ -360,6 +363,10 @@ string BaseVariableStruct::getString() const{
     return "[invalid type]";
 }
 void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
+    if(readOnly){
+        std::cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
+        return;
+    }
     if(type == "string" || RightOperand.type == "string"){
         if(type == "string"){
             *pString = RightOperand.getString();
@@ -396,6 +403,10 @@ void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
 
 template<typename RightType>
 void BasePointersStruct::moveFromTemp(const RightType * RightOperand, string instruction){
+    if(readOnly){
+        std::cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
+        return;
+    }
     if(type == "bool"){
         short temp = *pBool;
         executeMoveTypeInstruction(&temp, RightOperand, instruction);
@@ -427,6 +438,10 @@ void BasePointersStruct::moveFromTemp(const RightType * RightOperand, string ins
     }
 }
 void BasePointersStruct::move(const BasePointersStruct &RightOperand, string instruction){
+    if(readOnly){
+        std::cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
+        return;
+    }
     if(type == "string" || RightOperand.type == "string"){
         if(type == "string"){
             if(instruction == "="){
@@ -476,6 +491,10 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, string ins
     }
 }
 void BasePointersStruct::move(const BaseVariableStruct & RightOperand, string instruction){
+    if(readOnly){
+        std::cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
+        return;
+    }
     if(type == "string" || RightOperand.type == "string"){
         if(type == "string"){
             if(instruction == "="){

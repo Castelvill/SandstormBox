@@ -224,3 +224,6 @@ string ScrollbarModule::getTrackImageID(){
 int ScrollbarModule::getUsedBitmapLayer(){
     return usedBitmapLayer;
 }
+void ScrollbarModule::nullifyFocusedCameraPointer(){
+    FocusedCamera = nullptr;
+}
