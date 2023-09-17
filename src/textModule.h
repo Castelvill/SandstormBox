@@ -45,7 +45,7 @@ public:
     void modifyContent(unsigned int textID, string modifiedContent);
     void modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer);
     void deleteContent(unsigned int textID);
-    void clearAllContent();
+    void clear();
     void setColors(unsigned short red, unsigned short green, unsigned short blue);
     void setRandomColors();
     void setRotation(double newAngle);

@@ -69,7 +69,7 @@ public:
     void clone(const EveModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
 
     void setUpNewInstance();
-    void clearModule();
+    void clear();
 	void resetStatus();
 	bool checkIfAllChildrenFinished();
 
@@ -126,7 +126,7 @@ public:
     void addOperation(string newItsBinderToTrigger, string newTypeOfTrigger, string newBindedToTrigger, string newConnectedObject, bool triggerItself, string newConnectedModule, string newConnectedModuleName,
                         string newConnectedVariable, vecXd newChoosenDoubles, vecXs newChoosenStrings);
     void resetOperations();
-    void clearModule();
+    void clear();
     bool isEventTriggered(int operationID, MouseClass mouse, vec2d objPos, VariableModule * EventVariable, VariableModule * ObjectVariable);
     void controlAncestor(int operationID, vec2d & objectPos, vec2d & objectSize);
     void controlText(int operationID, TextModule & Text);

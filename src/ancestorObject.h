@@ -14,7 +14,8 @@ struct ModulesPointers{
     vector <EveModule*> Events;
     vector <VariableModule*> Variables;
     vector <ScrollbarModule*> Scrollbars;
-    bool hasInstanceOfAnyModule();
+    bool hasInstanceOfAnyModule() const;
+    unsigned size() const;
 };
 
 /**
@@ -46,6 +47,7 @@ public:
     AncestorObject();
     AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID);
     AncestorObject(unsigned newID, vector<string> &listOfIDs, string newLayerID);
+    void deleteLater();
     void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID);
     void clearVectorsOfIDs();
     void clearContainers();

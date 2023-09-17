@@ -4,6 +4,7 @@
 #include "usefull.h"
 
 class VariableModule{
+    bool deleted;
     string ID;
     string layerID; //This ID is needed in events' trigger detection.
     string objectID;
@@ -16,6 +17,10 @@ public:
     VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule();
+    
+    void deleteLater();
+    bool getIsDeleted() const;
+    void clear();
     void clone(const VariableModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     string getID() const;

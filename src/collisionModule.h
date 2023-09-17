@@ -32,7 +32,7 @@ public:
     bool isCloseEnough(vec2d solidPos, string solidName, vec2d movingPos, vec2d movingMomentum, CollisionModule * movingColl);
     void detectOverlaping(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum);
     void detectCollision(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum);
-    void clearModule();
+    void clear();
     vec2d countMinimalDistanceBetween(vec2d sPos, vec2d sSize, vec2d mPos, vec2d mSize, double precision);
     void changeParameters(bool newIsSolid, bool newCanPenetrateSolids, vec2d newPos, vec2d newSize);
     void switchSolid();

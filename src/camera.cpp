@@ -3,6 +3,7 @@
 void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
     setID(newID, camerasIDs);
     isActive = newIsActive;
+    deleted = false;
     relativePos = newPos;
     pos = newPos;
     visionShift = newVisionShift;
@@ -77,7 +78,13 @@ void Camera2D::setIsActive(bool newValue){
 void Camera2D::activate(){
     isActive = true;
 }
-void Camera2D::deactivate(){
+void Camera2D::deleteLater()
+{
+    isActive = false;
+    deleted = true;
+}
+void Camera2D::deactivate()
+{
     isActive = false;
 }
 void Camera2D::toggleIsActive(){
@@ -86,7 +93,12 @@ void Camera2D::toggleIsActive(){
 bool Camera2D::getIsActive(){
     return isActive;
 }
-void Camera2D::setPos(vec2d newPos){
+bool Camera2D::getIsDeleted() const
+{
+    return deleted;
+}
+void Camera2D::setPos(vec2d newPos)
+{
     pos.set(newPos);
 }
 void Camera2D::setRelativePos(vec2d newPos){

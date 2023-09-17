@@ -1,6 +1,6 @@
 #include "scrollbarModule.h"
 
-void ScrollbarModule::initScrollbar(){
+void ScrollbarModule::clear(){
     thumbPos.set(0.0, 0.0);
     thumbSize.set(0.0, 0.0);
     scrollingArea.set(0.0, 0.0);
@@ -10,14 +10,15 @@ void ScrollbarModule::initScrollbar(){
     FocusedCamera = nullptr;
 }
 ScrollbarModule::ScrollbarModule(){
+    clear();
 }
 ScrollbarModule::ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
-    initScrollbar();
+    clear();
 }
 ScrollbarModule::ScrollbarModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
-    initScrollbar();
+    clear();
 }
 
 void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){

@@ -2,6 +2,8 @@
 #include <ctype.h>
 
 AncestorObject::AncestorObject(){
+    deleted = false;
+    isActive = false;
     //blank object
     //std::cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
@@ -11,7 +13,39 @@ AncestorObject::AncestorObject(string newID, vector<string> &listOfIDs, string n
 AncestorObject::AncestorObject(unsigned newID, vector<string> &listOfIDs, string newLayerID){
     primaryConstructor(newID, listOfIDs, newLayerID, "");
 }
-void AncestorObject::clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID){
+void AncestorObject::deleteLater(){
+    deleted = true;
+    deactivate();
+    for(TextModule & Text : TextContainer){
+        Text.deleteLater();
+    }
+    for(EditableTextModule & EditableText : EditableTextContainer){
+        EditableText.deleteLater();
+    }
+    for(ImageModule & Image : ImageContainer){
+        Image.deleteLater();
+    }
+    for(MovementModule & Movement : MovementContainer){
+        Movement.deleteLater();
+    }
+    for(CollisionModule & Collision : CollisionContainer){
+        Collision.deleteLater();
+    }
+    for(ParticleEffectModule & Particles : ParticlesContainer){
+        Particles.deleteLater();
+    }
+    for(EveModule & Event : EveContainer){
+        Event.deleteLater();
+    }
+    for(VariableModule & Variable : VariablesContainer){
+        Variable.deleteLater();
+    }
+    for(ScrollbarModule & Scrollbar : ScrollbarContainer){
+        Scrollbar.deleteLater();
+    }
+}
+void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, string newLayerID)
+{
     if(isStringInVector(reservedIDs, Original.ID)){
         std::cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
@@ -74,28 +108,28 @@ void AncestorObject::clearVectorsOfIDs(){
 }
 void AncestorObject::clearContainers(){
     for(auto & Text : TextContainer){
-        Text.clearAllContent();
+        Text.clear();
     }
     for(auto & Editable : EditableTextContainer){
-        Editable.clearAllContent();
+        Editable.clear();
     }
     for(auto & Image : ImageContainer){
-        Image.destroyBitmap();
+        Image.clear();
     }
     for(auto & Movement : MovementContainer){
-        Movement.clearChain();
+        Movement.clear();
     }
     for(auto & Collision : CollisionContainer){
-        Collision.clearModule();
+        Collision.clear();
     }
     for(auto & Particle : ParticlesContainer){
-        Particle.clearModule();
+        Particle.clear();
     }
     for(auto & Event : EventsContainer){
-        Event.clearModule();
+        Event.clear();
     }
     for(auto & Event : EveContainer){
-        Event.clearModule();
+        Event.clear();
     }
 
     clearVectorsOfIDs();
@@ -457,10 +491,15 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
     return NewValue;
 }
 
-bool ModulesPointers::hasInstanceOfAnyModule(){
+bool ModulesPointers::hasInstanceOfAnyModule() const{
     return Texts.size() > 0 || EditableTexts.size() > 0 || Images.size() > 0
         || Movements.size() > 0 || Collisions.size() > 0 || Particles.size() > 0
         || Events.size() > 0 || Variables.size() > 0 || Scrollbars.size() > 0;
+}
+unsigned ModulesPointers::size() const{
+    return Texts.size() + EditableTexts.size() + Images.size() +
+        Movements.size() + Collisions.size() + Particles.size() +
+        Events.size() + Variables.size() + Scrollbars.size();
 }
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){

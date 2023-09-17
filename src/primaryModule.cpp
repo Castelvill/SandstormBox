@@ -10,6 +10,7 @@ void PrimaryModule::primaryConstructor(string newID, vector<string> & listOfIDs,
     scale.set(0.0, 0.0);
 
     isActive = true;
+    deleted = false;
     isScaledFromCenter = false;
     isAttachedToCamera = false;
     canBeSelected = true;
@@ -119,7 +120,8 @@ void PrimaryModule::deactivate(){
 void PrimaryModule::toggleIsActive(){
     setIsActive(!getIsActive());
 }
-void PrimaryModule::setIsScaledFromCenter(bool newIsScaledFromCenter){
+void PrimaryModule::setIsScaledFromCenter(bool newIsScaledFromCenter)
+{
     isScaledFromCenter = newIsScaledFromCenter;
 }
 void PrimaryModule::setIsAttachedToCamera(bool newIsAttachedToCamera){
@@ -172,7 +174,12 @@ vec2d PrimaryModule::getScaledSize(){
 bool PrimaryModule::getIsActive() const{
     return isActive;
 }
-bool PrimaryModule::getIsScaledFromCenter(){
+bool PrimaryModule::getIsDeleted() const
+{
+    return deleted;
+}
+bool PrimaryModule::getIsScaledFromCenter()
+{
     return isScaledFromCenter;
 }
 bool PrimaryModule::getIsAttachedToCamera(){
@@ -184,7 +191,12 @@ bool PrimaryModule::getCanBeSelected(){
 bool PrimaryModule::getIsScrollable(){
     return isScrollable;
 }
-void PrimaryModule::bindPrimaryToVariable(string attribute, vector <BasePointersStruct> & BasePointers){
+void PrimaryModule::deleteLater(){
+    deleted = true;
+    deactivate();
+}
+void PrimaryModule::bindPrimaryToVariable(string attribute, vector<BasePointersStruct> &BasePointers)
+{
     BasePointers.push_back(BasePointersStruct());
     if(attribute == "id"){
         if(isStringInVector(reservedIDs, ID)){

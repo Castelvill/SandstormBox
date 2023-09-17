@@ -7,6 +7,7 @@ class Camera2D{
 public:
     string ID;
     bool isActive;
+    bool deleted;
     vec2d pos; //Actual position on the screen.
     vec2d relativePos; //Position on the screen if isPinnedCamera is false, otherwise position relative to pinned camera.
     vec2d visionShift;
@@ -39,9 +40,11 @@ public:
     string getID() const;
     void setIsActive(bool newValue);
     void activate();
+    void deleteLater();
     void deactivate();
     void toggleIsActive();
     bool getIsActive();
+    bool getIsDeleted() const;
     void setPos(vec2d newPos);
     void setRelativePos(vec2d newPos);
     void setVisionShift(vec2d newVisionShift);

@@ -123,7 +123,7 @@ void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, st
         //std::cout << "Copy has been made!\n";
     }
 }
-void ImageModule::destroyBitmap(){
+void ImageModule::clear(){
     if(image){
         if(!isBitmapFromContainer[0]){
             al_destroy_bitmap(image);

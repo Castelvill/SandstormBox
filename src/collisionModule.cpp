@@ -134,7 +134,7 @@ void CollisionModule::changeParameters(bool newIsSolid, bool newCanPenetrateSoli
     setSize(newSize);
     canPenetrateSolids = newCanPenetrateSolids;
 }
-void CollisionModule::clearModule(){
+void CollisionModule::clear(){
     ignoredObjectsList.clear();
     ignoredGroupsOfObjectsList.clear();
     ignoredHitboxesList.clear();

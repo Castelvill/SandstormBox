@@ -133,6 +133,11 @@ void MovementModule::clone(const MovementModule &Original, vector<string> &listO
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
 }
 
+void MovementModule::clear(){
+    clearStates();
+    clearChain();
+}
+
 void MovementModule::translateNumericalActionToState(short action){
     if(action == 0)
         return;

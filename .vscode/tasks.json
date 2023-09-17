@@ -52,7 +52,7 @@
         },
         {
             "type": "cppbuild",
-            "label": "Build for debugging",
+            "label": "Compile EGM for debugging",
             "command": "g++.exe",
             "args": [
                 "-fdiagnostics-color=always",

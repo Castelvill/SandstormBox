@@ -89,7 +89,7 @@ void TextModule::deleteContent(unsigned int textID){
     else
         std::cout << "Bad index in textModule \"" << ID << "\".\n";
 }
-void TextModule::clearAllContent(){
+void TextModule::clear(){
     content.clear();
     currentTextID = 0;
 }

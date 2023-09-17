@@ -86,6 +86,7 @@ class PrimaryModule{
     vec2d pos, scrollShift, size, scale;
 
     bool isActive; //deactivated object doesn't interact with the program, you can only activate it.
+    bool deleted;
     bool isScaledFromCenter;
     bool isAttachedToCamera;
     bool canBeSelected;
@@ -125,6 +126,7 @@ class PrimaryModule{
     void activate();
     void deactivate();
     void toggleIsActive();
+    void deleteLater();
     void setIsScaledFromCenter(bool newIsScaledFromCenter);
     void setIsAttachedToCamera(bool newIsAttachedToCamera);
     void setCanBeSelected(bool newValue);
@@ -141,6 +143,7 @@ class PrimaryModule{
     vec2d getScale();
     vec2d getScaledSize();
     bool getIsActive() const;
+    bool getIsDeleted() const;
     bool getIsScaledFromCenter();
     bool getIsAttachedToCamera();
     bool getCanBeSelected();

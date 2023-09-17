@@ -28,7 +28,7 @@ EveModule::EveModule(string eventModuleID, vector<string> *listOfIDs, string new
 void EveModule::setUpNewInstance(){
     std::cout << "Warning: In EventModule: In setUpNewInstance(): Nothing happens.\n";
 }
-void EveModule::clearModule(){
+void EveModule::clear(){
     ConditionalChain.clear();
     PostOperations.clear();
     Children.clear();
@@ -466,7 +466,7 @@ void EventModule::resetOperations(){
     }
     Operations.clear();
 }
-void EventModule::clearModule(){
+void EventModule::clear(){
     resetOperations();
 }
 bool EventModule::isEventTriggered(int operationID, MouseClass mouse, vec2d objPos, VariableModule * EventVariable, VariableModule * ObjectVariable){

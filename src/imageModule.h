@@ -81,7 +81,7 @@ public:
     void changeParameters(string newID, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors);
     void modifyFrames(vec2d newFrameSize);
     void chooseFrames(vec2i newCurrentFrame);
-    void destroyBitmap();
+    void clear();
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
 

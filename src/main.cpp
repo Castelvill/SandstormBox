@@ -296,16 +296,21 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
     Objects.back().EveContainer.back().DependentOperations.back().source = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-layers-before";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
     Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newString("new-object"));
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "ids";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(10));
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "vector-size";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "new";
     Objects.back().EveContainer.back().DependentOperations.back().source = "object";
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(ConditionClass());
     Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.layerID = "L1";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(10));
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("vector-size");
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("ids");
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "new-objects";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
@@ -321,12 +326,47 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("blueprint");
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("new-objects");
+    Objects.back().EveContainer.back().DependentOperations.back().source = "event";
+    Objects.back().EveContainer.back().DependentOperations.back().attribute = "is_active";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "--";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
     Objects.back().EveContainer.back().DependentOperations.back().source = "layer";
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-layers";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
     Objects.back().EveContainer.back().DependentOperations.back().source = "object";
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("all-layers");
+
+    Objects.back().EveContainer.push_back(EveModule("delete-last", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
+    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass("a"));
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "key_pressed";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_E);
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "find";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.push_back(ConditionClass());
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.source = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().ConditionalChain.back().Location.layerID = "L1";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "L1";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "last";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("L1");
+    Objects.back().EveContainer.back().DependentOperations.back().source = "object";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "delete";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
+    Objects.back().EveContainer.back().DependentOperations.back().source = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-layers";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
+    Objects.back().EveContainer.back().DependentOperations.back().source = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("all-layers");
+
+
 
 
     /*Objects.back().EveContainer.push_back(EveModule("rotate-init", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
@@ -895,7 +935,7 @@ int main(){
     }
     std::cout << "Number of objects: " << numberOfObjects << "\n";
 
-    Threads.back().updateBaseOfTriggerableObjects(Layers, Cameras);
+    Threads.back().updateBaseOfTriggerableObjects(Layers);
 
     Threads.back().startTimer();
     

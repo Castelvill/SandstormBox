@@ -114,6 +114,14 @@ struct AncestorIndex{
     AncestorObject * object(vector <LayerClass> & Layers);
 };
 
+struct ModuleIndex : AncestorIndex{
+    unsigned moduleIndex;
+    ModuleIndex(unsigned layer, unsigned object, unsigned module);
+    template <class Module>
+    Module * module(vector <LayerClass> & Layers);
+    vector<EveModule>::iterator module(vector<LayerClass> &Layers);
+};
+
 //This struct consists of pointers to every object that has at least one event triggerable by the right source  
 struct EventsLookupTable{
     vector <AncestorIndex> IterationTriggered; //If a trigger is negated or has else statements, in most cases interpreter puts its event into IterationTriggered events. 
@@ -174,17 +182,11 @@ struct PointerContainer{
     void setFirstModule(ScrollbarModule * Module);
 
     void leaveOneRandomBasePointer();
+
+    unsigned size() const;
 };
 
-struct ModuleIndex{
-    unsigned layerIndex;
-    unsigned objectIndex;
-    unsigned moduleIndex;
-    AncestorObject & object(vector <LayerClass> & Layers);
-    template <class Module>
-    Module * module(vector <LayerClass> & Layers);
-    vector<EveModule>::iterator module(vector<LayerClass> &Layers);
-};
+
 
 struct MemoryStackStruct{
     vector<EveModule>::iterator Event;
@@ -327,13 +329,18 @@ public:
     void generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void checkIfVectorContainsVector(OperaClass & Operation, vector<PointerContainer> &EventContext);
+    bool prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventContext, vector<string> dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs);
+    bool prepareDestinationForNew(OperaClass & Operation, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
     void createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector <AncestorObject*> & TriggeredObjects,
-        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasNewExecuted
+    );
+    void markEntitiesForDeletion(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, bool & wasDeleteExecuted
     );
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
-        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted
     );
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
     VariableModule getValueFromObjectInCamera(AncestorObject * CurrentObject, vector <Camera2D> & Cameras, const string & attribute, const string & cameraID);
@@ -344,6 +351,7 @@ public:
     char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
+    bool deleteEntities(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
     void updateAllForestOfCameras(vector <Camera2D> & Cameras);
@@ -374,7 +382,7 @@ public:
     void drawSelectionBorder(Camera2D Camera);
     void startScrollbarDragging(vector <LayerClass> & Layers);
     void dragScrollbars(vector <LayerClass> & Layers);
-    void updateBaseOfTriggerableObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void updateBaseOfTriggerableObjects(vector <LayerClass> & Layers);
     void detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects);
     bool secondHasPassed();
 

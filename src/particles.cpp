@@ -210,7 +210,7 @@ void ParticleEffectModule::clone(const ParticleEffectModule &Original, vector<st
     ID = oldID;
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
 }
-void ParticleEffectModule::clearModule(){
+void ParticleEffectModule::clear(){
     particleEffect.clear();
     colorIntervals.clear();
     basicColorsList.clear();

@@ -1,20 +1,25 @@
 #include "variableModule.h"
 
 VariableModule::VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    deleted = false;
     setAllIDs(newID, listOfIDs, newLayerID, newObjectID);
-    type = 'n';
-    vInt = 0;
-    defaultInt = 0;
-    vDouble = 0.0;
-    defaultDouble = 0.0;
-    vString = "";
-    defaultString = "";
+    clear();
 }
 VariableModule::VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     VariableModule(std::to_string(newID), listOfIDs, newLayerID, newObjectID);
 }
 VariableModule::VariableModule(){
+    deleted = false;
     ID = "";
+    clear();
+}
+void VariableModule::deleteLater(){
+    deleted = true;
+}
+bool VariableModule::getIsDeleted() const{
+    return deleted;
+}
+void VariableModule::clear(){
     type = 'n';
     vInt = 0;
     defaultInt = 0;
@@ -23,7 +28,8 @@ VariableModule::VariableModule(){
     vString = "";
     defaultString = "";
 }
-void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID)
+{
     string oldID = ID;
     *this = Original;
     ID = oldID;

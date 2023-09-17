@@ -16,7 +16,7 @@ class ScrollbarModule : public PrimaryModule{
     int usedBitmapLayer;
     Camera2D * FocusedCamera;
 public:
-    void initScrollbar();
+    void clear();
     ScrollbarModule();
     ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     ScrollbarModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);

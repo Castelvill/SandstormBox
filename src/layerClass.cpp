@@ -3,10 +3,12 @@
 LayerClass::LayerClass(){
     ID = "";
     isActive = false;
+    deleted = false;
 }
 LayerClass::LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2d bufferSize){
     setID(newID, layersIDs);
     isActive = activate;
+    deleted = false;
     pos.set(bufferPos);
     size.set(bufferSize);
 }
@@ -56,7 +58,15 @@ void LayerClass::setID(string newID, vector <string> & layersIDs){
 void LayerClass::setIsActive(bool newIsActive){
     isActive = newIsActive;
 }
-string LayerClass::getID() const{
+void LayerClass::deleteLater(){
+    deleted = true;
+    isActive = false;
+    for(AncestorObject & Object : Objects){
+        Object.deleteLater();
+    }
+}
+string LayerClass::getID() const
+{
     return ID;
 }
 string* LayerClass::getIDAddr(){
@@ -65,7 +75,12 @@ string* LayerClass::getIDAddr(){
 bool LayerClass::getIsActive(){
     return isActive;
 }
-bool* LayerClass::getIsActiveAddr(){
+bool LayerClass::getIsDeleted() const
+{
+    return deleted;
+}
+bool *LayerClass::getIsActiveAddr()
+{
     return &isActive;
 }
 void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs){

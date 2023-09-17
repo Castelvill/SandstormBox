@@ -8,6 +8,7 @@ private:
     string ID;
     vector <string> groups;
     bool isActive;
+    bool deleted;
 public:
     vector <AncestorObject> Objects;
     //Uniques of IDs is checked only for objects existing in the same layer - user should be able to copy entire layers
@@ -22,9 +23,11 @@ public:
 
     void setID(string newID, vector <string> & layersIDs);
     void setIsActive(bool newIsActive);
+    void deleteLater();
     string getID() const;
     string* getIDAddr();
     bool getIsActive();
+    bool getIsDeleted() const;
     bool* getIsActiveAddr();
     void clone(const LayerClass& Orginal, vector <string> & layersIDs);
 
