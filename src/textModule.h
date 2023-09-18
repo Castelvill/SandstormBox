@@ -59,11 +59,11 @@ public:
     void drawTextByLetters(ALLEGRO_FONT * font);
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     string getFontID();
-    string getContent(unsigned int textID);
+    string getContent(unsigned int textID) const;
     unsigned short getColor(char whichColor);
-    unsigned int getCurrentTextID();
-    string getCurrentContent();
-    VariableModule getAttributeValue(const string &attribute, const string &detail);
+    unsigned int getCurrentTextID() const;
+    string getCurrentContent() const;
+    VariableModule getAttributeValue(const string &attribute, const string &detail) const;
 };
 
 
@@ -107,8 +107,8 @@ public:
     void setConnectedObject(string objectID, string moduleType, string moduleID, string variableName);
     void setConnectedGroup(string groupName, string moduleType, string moduleID, string variableName);
     void setCanClearContentAfterSuccess(bool);
-    bool getCanBeEdited();
-    bool getEditingIsActive();
+    bool getCanBeEdited() const;
+    bool getEditingIsActive() const;
     bool getCanUseSpace();
     bool getIsNumerical();
     bool getHasFloatingPoint();
@@ -131,7 +131,7 @@ public:
     bool controlParticles(ParticleEffectModule & Particles, vector <string> & listOfIDs);
     bool controlVariable(VariableModule & Variable, vector <string> & listOfIDs);
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
-    VariableModule getAttributeValue(const string &attribute, const string &detail);
+    VariableModule getAttributeValue(const string &attribute, const string &detail) const;
 };
 
 void printNotNumericalWarning();

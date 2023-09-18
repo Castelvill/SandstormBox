@@ -26,7 +26,7 @@ public:
     void deleteLater();
     string getID() const;
     string* getIDAddr();
-    bool getIsActive();
+    bool getIsActive() const;
     bool getIsDeleted() const;
     bool* getIsActiveAddr();
     void clone(const LayerClass& Orginal, vector <string> & layersIDs);
@@ -34,7 +34,7 @@ public:
     void addGroup(string newGroup);
     void removeGroup(string selectedGroup);
     void clearGroups();
-    bool isInAGroup(string findGroup);
+    bool isInAGroup(string findGroup) const;
     vector <string> getGroups();
     vector <string> & getGroupsAddr();
     void nullifyAllPointers();

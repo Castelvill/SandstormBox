@@ -72,7 +72,7 @@ string LayerClass::getID() const
 string* LayerClass::getIDAddr(){
     return &ID;
 }
-bool LayerClass::getIsActive(){
+bool LayerClass::getIsActive() const{
     return isActive;
 }
 bool LayerClass::getIsDeleted() const
@@ -158,7 +158,7 @@ void LayerClass::removeGroup(string selectedGroup){
 void LayerClass::clearGroups(){
     groups.clear();
 }
-bool LayerClass::isInAGroup(string findGroup){
+bool LayerClass::isInAGroup(string findGroup) const{
     return isStringInVector(groups, findGroup);
 }
 vector <string> LayerClass::getGroups(){

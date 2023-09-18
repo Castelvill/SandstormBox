@@ -384,7 +384,7 @@ void TextModule::getContext(string attribute, vector <BasePointersStruct> & Base
 string TextModule::getFontID(){
     return fontID;
 }
-string TextModule::getContent(unsigned int textID){
+string TextModule::getContent(unsigned int textID) const{
     if(textID < content.size())
         return content[textID];
     else{
@@ -401,13 +401,13 @@ unsigned short TextModule::getColor(char whichColor){
         return textColor[2];
     return 0;
 }
-unsigned int TextModule::getCurrentTextID(){
+unsigned int TextModule::getCurrentTextID() const{
     return currentTextID;
 }
-string TextModule::getCurrentContent(){
+string TextModule::getCurrentContent() const{
     return getContent(getCurrentTextID());
 }
-VariableModule TextModule::getAttributeValue(const string &attribute, const string &detail){
+VariableModule TextModule::getAttributeValue(const string &attribute, const string &detail) const{
     if(attribute == "in_group"){
         return VariableModule::newBool(isInAGroup(detail));
     }
@@ -502,10 +502,10 @@ void EditableTextModule::setConnectedGroup(string groupName, string moduleType, 
     connectedModuleID = moduleID;
     affectedVariable = variableName;
 }
-bool EditableTextModule::getCanBeEdited(){
+bool EditableTextModule::getCanBeEdited() const{
     return canBeEdited;
 }
-bool EditableTextModule::getEditingIsActive(){
+bool EditableTextModule::getEditingIsActive() const{
     return editingIsActive;
 }
 bool EditableTextModule::getCanUseSpace(){
@@ -1638,7 +1638,7 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
         bindPrimaryToVariable(attribute, BasePointers);
     }
 }
-VariableModule EditableTextModule::getAttributeValue(const string &attribute, const string &detail){
+VariableModule EditableTextModule::getAttributeValue(const string &attribute, const string &detail) const{
     if(attribute == "in_group"){
         return VariableModule::newBool(isInAGroup(detail));
     }

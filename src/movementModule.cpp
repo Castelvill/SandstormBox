@@ -754,61 +754,61 @@ void MovementModule::getContext(string attribute, vector <BasePointersStruct> & 
     }
 }
 
-short MovementModule::getMovementType(){
+short MovementModule::getMovementType() const{
     return movementType;
 }
-short MovementModule::getInputType(){
+short MovementModule::getInputType() const{
     return inputType;
 }
-short MovementModule::getAllowedJumps(){
+short MovementModule::getAllowedJumps() const{
     return allowedJumps;
 }
-short MovementModule::getJumpsCount(){
+short MovementModule::getJumpsCount() const{
     return jumpsCount;
 }
-double MovementModule::getJumpCooldown(){
+double MovementModule::getJumpCooldown() const{
     return jumpCooldown;
 }
-double MovementModule::getJumpCooldownDuration(){
+double MovementModule::getJumpCooldownDuration() const{
     return jumpCooldownDuration;
 }
-double MovementModule::getMoveCooldown(){
+double MovementModule::getMoveCooldown() const{
     return moveCooldown;
 }
-double MovementModule::getMoveCooldownDuration(){
+double MovementModule::getMoveCooldownDuration() const{
     return moveCooldownDuration;
 }
-bool MovementModule::getCanMoveDiagonally(){
+bool MovementModule::getCanMoveDiagonally() const{
     return canMoveDiagonally;
 }
-bool MovementModule::getResetMomentumWhenJumping(){
+bool MovementModule::getResetMomentumWhenJumping() const{
     return resetMomentumWhenJumping;
 }
-bool MovementModule::getIsMovePlanned(){
+bool MovementModule::getIsMovePlanned() const{
     return isMovePlanned;
 }
-bool MovementModule::getCanJump(){
+bool MovementModule::getCanJump() const{
     return canJump;
 }
-double MovementModule::getBodyMass(){
+double MovementModule::getBodyMass() const{
     return bodyMass;
 }
-double MovementModule::getWalkingSpeed(){
+double MovementModule::getWalkingSpeed() const{
     return walkingSpeed;
 }
-double MovementModule::getRunningSpeed(){
+double MovementModule::getRunningSpeed() const{
     return runningSpeed;
 }
-double MovementModule::getJumpSpeed(){
+double MovementModule::getJumpSpeed() const{
     return jumpSpeed;
 }
-double MovementModule::getGravitation(){
+double MovementModule::getGravitation() const{
     return gravitation;
 }
-double MovementModule::getBaseFriction(){
+double MovementModule::getBaseFriction() const{
     return baseFriction;
 }
-vec2d MovementModule::getMomentum(){
+vec2d MovementModule::getMomentum() const{
     return momentum;
 }
 bool MovementModule::isMoving() const{
@@ -817,7 +817,7 @@ bool MovementModule::isMoving() const{
     }
     return false;
 }
-bool MovementModule::isMovingInThisDirection(string direction){
+bool MovementModule::isMovingInThisDirection(string direction) const{
     if(direction == "is_moving_up"){
         return isMovingUp;
     }
@@ -832,46 +832,46 @@ bool MovementModule::isMovingInThisDirection(string direction){
     }
     return false;
 }
-double MovementModule::getMaxMomentumX(){
+double MovementModule::getMaxMomentumX() const{
     return maxMomentumX;
 }
-double MovementModule::getMinMomentumY(){
+double MovementModule::getMinMomentumY() const{
     return minMomentumY;
 }
-double MovementModule::getMaxMomentumY(){
+double MovementModule::getMaxMomentumY() const{
     return maxMomentumY;
 }
-vec2d MovementModule::getDestination(){
+vec2d MovementModule::getDestination() const{
     return destination;
 }
-vec2d MovementModule::getDirectionOfMove(){
+vec2d MovementModule::getDirectionOfMove() const{
     return directionOfMove;
 }
-short MovementModule::getMouseButton(){
+short MovementModule::getMouseButton() const{
     return mouseButton;
 }
-bool MovementModule::getMoveOnMouseRelease(){
+bool MovementModule::getMoveOnMouseRelease() const{
     return moveOnMouseRelease;
 }
-bool MovementModule::getResetDirectionAfterCollision(){
+bool MovementModule::getResetDirectionAfterCollision() const{
     return resetDirectionAfterCollision;
 }
-short MovementModule::getUpKey(){
+short MovementModule::getUpKey() const{
     return upKey;
 }
-short MovementModule::getRightKey(){
+short MovementModule::getRightKey() const{
     return rightKey;
 }
-short MovementModule::getDownKey(){
+short MovementModule::getDownKey() const{
     return downKey;
 }
-short MovementModule::getLeftKey(){
+short MovementModule::getLeftKey() const{
     return leftKey;
 }
-short MovementModule::getJumpKey(){
+short MovementModule::getJumpKey() const{
     return jumpKey;
 }
-short MovementModule::getRunningKey(){
+short MovementModule::getRunningKey() const{
     return runningKey;
 }
 

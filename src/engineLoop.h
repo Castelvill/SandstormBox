@@ -228,6 +228,10 @@ struct PointerRecalculator{
 
 PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID, bool warning);
 void extractPointersFromModules(ModulesPointers & ContextModules, AncestorObject * Object, string moduleType);
+template<class Entity>
+Entity * lastNotDeletedInVector(vector<Entity> &Vector);
+template<class Entity>
+Entity * lastNotDeletedInVector(vector<Entity*> &Vector);
 
 class EngineLoop{
 private:

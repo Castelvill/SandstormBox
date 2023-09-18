@@ -59,7 +59,7 @@ public:
     void setIsUsingKeyboardToMove(bool isUsingKeyboard);
     void setIsUsingCursorPositionToMove(bool isUsingCursor);
     void update(vector <short> pressedKeys);
-    bool isObjectVisible(vec2d objPos, vec2d objSize);
+    bool isObjectVisible(vec2d objPos, vec2d objSize) const;
     bool isOnScreenWithRadius(vec2d objPos, vec2d objSize);
     vec2d translateWithZoom(vec2d objBasePos, vec2d objPosShift);
     vec2d translateWithZoom(vec2d objPos);
