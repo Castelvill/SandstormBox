@@ -2,7 +2,11 @@
 #include <allegro5/allegro_native_dialog.h>
 
 void draw_bitmap(ALLEGRO_BITMAP *bitmap, float sx, float sy, float sw, float sh, float red, float green, float blue, float alpha,
-float cx, float cy, float dx, float dy, float xscale, float yscale, float angle, int flags){
+    float cx, float cy, float dx, float dy, float xscale, float yscale, float angle, int flags
+){
+    if(bitmap == NULL || bitmap == nullptr){
+        return;
+    }
     double cx1 = cx + sw/2;
     double cy1 = cy + sh/2;
     double dx1 = dx+cx*xscale+sw/2+(xscale-1)*sw/2;
@@ -10,7 +14,11 @@ float cx, float cy, float dx, float dy, float xscale, float yscale, float angle,
     al_draw_tinted_scaled_rotated_bitmap_region(bitmap, sx, sy, sw, sh, al_map_rgba_f(red, green, blue, alpha), cx1, cy1, dx1, dy1, xscale, yscale, angle, flags);
 }
 void draw_bitmap(ALLEGRO_BITMAP *bitmap, float sx, float sy, float sw, float sh, float red, float green, float blue, float alpha,
-float cx, float cy, float dx, float dy, float xscale, float yscale, float angle, bool mirrorX, bool mirrorY){
+    float cx, float cy, float dx, float dy, float xscale, float yscale, float angle, bool mirrorX, bool mirrorY
+){
+    if(bitmap == NULL || bitmap == nullptr){
+        return;
+    }
     double cx1 = cx + sw/2;
     double cy1 = cy + sh/2;
     double dx1 = dx+cx*xscale+sw/2+(xscale-1)*sw/2;
@@ -250,7 +258,7 @@ void ImageModule::checkImage(ALLEGRO_DISPLAY * window){
     }
 }
 void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
-    if((!outSourcing && !getIsActive()) || image == NULL){
+    if((!outSourcing && !getIsActive()) || image == NULL || image == nullptr){
         return;
     }
     vec2d newScale(scale);
@@ -311,8 +319,9 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
     }
 }
 void ImageModule::drawFrame(vec2d base){
-    if(!getIsActive())
+    if(!getIsActive() || image == NULL || image == nullptr){
         return;
+    }
     double radians = (rotateAngle*M_PI)/180.0;
     vec2d start2, add;
     start2.set(currentFrame.x * frameSize.x, currentFrame.y * frameSize.y);

@@ -2267,6 +2267,7 @@ void EngineLoop::aggregateTwoSets(OperaClass & Operation, vector<PointerContaine
     }
     else{
         std::cout << "Error: In " << __FUNCTION__ << ": type \'" << LeftOperand->type << "\' does not exist.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
         return;
     }
 
@@ -2322,6 +2323,7 @@ void EngineLoop::aggregateEntities(OperaClass & Operation, vector<PointerContain
     }
     else{
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
 void EngineLoop::aggregateValues(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
@@ -2342,6 +2344,7 @@ void EngineLoop::aggregateValues(vector<PointerContainer> &EventContext, OperaCl
     }
     else{
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
 void EngineLoop::aggregateOnlyById(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
@@ -2383,6 +2386,7 @@ void EngineLoop::aggregateOnlyById(vector<PointerContainer> &EventContext, Opera
     }
     else{
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
 void PointerContainer::setID(vector<PointerContainer> &EventContext, string newID){
@@ -2775,6 +2779,7 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
     }
     else{
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
 void EngineLoop::createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation){
@@ -2797,6 +2802,7 @@ void EngineLoop::createLiteral(vector<PointerContainer> &EventContext, const Ope
     }
     else{
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
 void EngineLoop::generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation){
@@ -2893,6 +2899,7 @@ void EngineLoop::generateRandomVariable(vector<PointerContainer> &EventContext, 
     }
     else{
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 
     if(deletePointers){
@@ -3334,14 +3341,17 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
     }
     else{
         std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
 template <class T>
 void clearDeletedPointersFromVector(vector<T*> & Vector){
-    for(unsigned i = 0; i < Vector.size(); i++){
-        if(Vector[i]->getIsDeleted()){
-            Vector.erase(Vector.begin()+i);
-            i--;
+    for(auto Instance = Vector.begin(); Instance != Vector.end();){
+        if((*Instance)->getIsDeleted()){
+            Instance = Vector.erase(Instance);
+        }
+        else{
+            ++Instance;
         }
     }
 }
@@ -3383,7 +3393,12 @@ void EngineLoop::markEntitiesForDeletion(OperaClass & Operation, vector<PointerC
     else if(DeletedContext->type == "layer"){
         for(LayerClass * Layer : DeletedContext->Layers){
             if(Layer != nullptr){
-                Layer->deleteLater();
+                if(Layer->getID() == "KERNEL"){
+                    std::cout << "Error: In " << __FUNCTION__ << ": KERNEL cannot be deleted.\n";
+                }
+                else{
+                    Layer->deleteLater();
+                }
             }
         }
         if(OwnerLayer != nullptr && OwnerLayer->getIsDeleted()){
@@ -3488,7 +3503,7 @@ void EngineLoop::markEntitiesForDeletion(OperaClass & Operation, vector<PointerC
         }
     }
 
-    if(isStringInGroup(Operation.source, 11, "layer", "object", "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
+    if(isStringInGroup(DeletedContext->type, 11, "layer", "object", "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
         for(PointerContainer & Context : EventContext){
             if(Context.type == "text"){
                 clearDeletedPointersFromVector(Context.Modules.Texts);
@@ -4972,6 +4987,7 @@ void EngineLoop::triggerEvents(vector <LayerClass> & Layers, short eventsType){
 void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer){
     int numberOfDrawnObjects;
     unsigned int i;
+    int currentlyDrawnLayer;
 
     for(Camera2D & Camera : Cameras){
         if(!Camera.getIsActive()){
@@ -4987,18 +5003,21 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
             numberOfDrawnObjects = 0;
             foregroundOfObjects.clear();
 
-            for(int currentlyDrawnLayer = 0; currentlyDrawnLayer < totalNumberOfBitmapLayers; currentlyDrawnLayer++){
+            for(currentlyDrawnLayer = 0; currentlyDrawnLayer < totalNumberOfBitmapLayers; currentlyDrawnLayer++){
                 for(i = 0; i < Layer.Objects.size(); i++){
-                    if(Layer.Objects[i].getIsActive())
+                    if(Layer.Objects[i].getIsActive()){
                         drawModules(Layer.Objects[i], i, Camera, FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false);
+                    }
                 }
             }
             for(i = 0; i < foregroundOfObjects.size(); i++){
-                if(Layer.Objects[foregroundOfObjects[i]].getIsActive())
+                if(Layer.Objects[foregroundOfObjects[i]].getIsActive()){
                     drawModules(Layer.Objects[foregroundOfObjects[i]], i, Camera, FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true);
+                }
             }
-            if(SelectedLayer == &Layer)
+            if(SelectedLayer == &Layer){
                 drawSelectionBorder(Camera);
+            }
         }
         al_set_target_bitmap(al_get_backbuffer(window));
         al_draw_bitmap(Camera.bitmapBuffer, Camera.pos.x, Camera.pos.y, 0);
@@ -5006,10 +5025,12 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
         foregroundOfObjects.clear();
         //vector<unsigned int>().swap(foregroundOfObjects);
         //foregroundOfObjects.shrink_to_fit();
-        if(SelectedCamera != &Camera)
+        if(SelectedCamera != &Camera){
             al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(0, 155, 145), 6);
-        else
+        }
+        else{
             al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(62, 249, 239), 6);
+        }
     }
 }
 void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Camera, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,

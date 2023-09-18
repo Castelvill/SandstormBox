@@ -74,34 +74,36 @@ void SingleParticle::drawOneParticle(Camera2D Camera){
         finRadius *= Camera.zoom;
     }
 
+    ALLEGRO_COLOR color = al_map_rgba(red, green, blue, alpha);
+
     if(shape == 0){
         if(isDrawnWithDetails){
             for(int n = finRadius; n > 0; n-=3){
-                al_draw_filled_circle(finPos.x, finPos.y, n, al_map_rgba(red, green, blue, alpha));
+                al_draw_filled_circle(finPos.x, finPos.y, n, color);
             }
         }
         else{
-            al_draw_filled_circle(finPos.x, finPos.y, finRadius, al_map_rgba(red, green, blue, alpha));
+            al_draw_filled_circle(finPos.x, finPos.y, finRadius, color);
         }
     }
-    if(shape == 1){
+    else if(shape == 1){
         if(isDrawnWithDetails){
             for(int n = finRadius; n > 0; n-=3){
-                al_draw_circle(finPos.x, finPos.y, finRadius*0.5, al_map_rgba(red, green, blue, alpha), n*0.5);
+                al_draw_circle(finPos.x, finPos.y, finRadius*0.5, color, n*0.5);
             }
         }
         else{
-            al_draw_circle(finPos.x, finPos.y, finRadius, al_map_rgba(red, green, blue, alpha), finRadius/3);
+            al_draw_circle(finPos.x, finPos.y, finRadius, color, finRadius/3);
         }
     }
-    if(shape == 2){
+    else if(shape == 2){
         //vec2d rectVec1, rectVec2;
         //rectVec2.set(-finRadius/sqrt(2.0), -finRadius/sqrt(2.0));
         //rectVec2.rotate(shapeRotation);
         //rectVec1.set(rectVec2);
         //rectVec2.rotate(90.0);
         //for(int n = finRadius; n > 0; n-=3)
-        //    al_draw_filled_rectangle(finPos.x+rectVec1.x, finPos.y+rectVec1.y, finPos.x+rectVec2.x, finPos.y+rectVec2.y, al_map_rgba(red, green, blue, alpha));
+        //    al_draw_filled_rectangle(finPos.x+rectVec1.x, finPos.y+rectVec1.y, finPos.x+rectVec2.x, finPos.y+rectVec2.y, color);
         vec2d triVec1, triVec2, triVec3, triVec4;
         triVec4.set(-1.0, -1.0);
         triVec4.rotate(shapeRotation);
@@ -113,17 +115,17 @@ void SingleParticle::drawOneParticle(Camera2D Camera){
         triVec4.rotate(90.0);
         if(isDrawnWithDetails){
             for(int n = finRadius; n > 0; n-=3){
-                al_draw_filled_triangle(finPos.x+triVec1.x*n, finPos.y+triVec1.y*n, finPos.x+triVec2.x*n, finPos.y+triVec2.y*n, finPos.x+triVec3.x*n, finPos.y+triVec3.y*n, al_map_rgba(red, green, blue, alpha));
-                al_draw_filled_triangle(finPos.x+triVec3.x*n, finPos.y+triVec3.y*n, finPos.x+triVec4.x*n, finPos.y+triVec4.y*n, finPos.x+triVec1.x*n, finPos.y+triVec1.y*n, al_map_rgba(red, green, blue, alpha));
+                al_draw_filled_triangle(finPos.x+triVec1.x*n, finPos.y+triVec1.y*n, finPos.x+triVec2.x*n, finPos.y+triVec2.y*n, finPos.x+triVec3.x*n, finPos.y+triVec3.y*n, color);
+                al_draw_filled_triangle(finPos.x+triVec3.x*n, finPos.y+triVec3.y*n, finPos.x+triVec4.x*n, finPos.y+triVec4.y*n, finPos.x+triVec1.x*n, finPos.y+triVec1.y*n, color);
             }
         }
         else{
-            al_draw_filled_triangle(finPos.x+triVec1.x*finRadius, finPos.y+triVec1.y*finRadius, finPos.x+triVec2.x*finRadius, finPos.y+triVec2.y*finRadius, finPos.x+triVec3.x*finRadius, finPos.y+triVec3.y*finRadius, al_map_rgba(red, green, blue, alpha));
-            al_draw_filled_triangle(finPos.x+triVec3.x*finRadius, finPos.y+triVec3.y*finRadius, finPos.x+triVec4.x*finRadius, finPos.y+triVec4.y*finRadius, finPos.x+triVec1.x*finRadius, finPos.y+triVec1.y*finRadius, al_map_rgba(red, green, blue, alpha));
+            al_draw_filled_triangle(finPos.x+triVec1.x*finRadius, finPos.y+triVec1.y*finRadius, finPos.x+triVec2.x*finRadius, finPos.y+triVec2.y*finRadius, finPos.x+triVec3.x*finRadius, finPos.y+triVec3.y*finRadius, color);
+            al_draw_filled_triangle(finPos.x+triVec3.x*finRadius, finPos.y+triVec3.y*finRadius, finPos.x+triVec4.x*finRadius, finPos.y+triVec4.y*finRadius, finPos.x+triVec1.x*finRadius, finPos.y+triVec1.y*finRadius, color);
         }
 
     }
-    if(shape == 3){
+    else if(shape == 3){
         vec2d triVec1, triVec2, triVec3;
         triVec3.set(0.0, 1.0);
         triVec3.rotate(shapeRotation);
@@ -131,13 +133,14 @@ void SingleParticle::drawOneParticle(Camera2D Camera){
         triVec3.rotate(120.0);
         triVec2.set(triVec3);
         triVec3.rotate(120.0);
+        
         if(isDrawnWithDetails){
             for(int n = finRadius; n > 0; n-=3){
-                al_draw_filled_triangle(finPos.x-triVec1.x*n, finPos.y-triVec1.y*n, finPos.x-triVec2.x*n, finPos.y-triVec2.y*n, finPos.x-triVec3.x*n, finPos.y-triVec3.y*n, al_map_rgba(red, green, blue, alpha));
+                al_draw_filled_triangle(finPos.x-triVec1.x*n, finPos.y-triVec1.y*n, finPos.x-triVec2.x*n, finPos.y-triVec2.y*n, finPos.x-triVec3.x*n, finPos.y-triVec3.y*n, color);
             }
         }
         else{
-            al_draw_filled_triangle(finPos.x-triVec1.x*finRadius, finPos.y-triVec1.y*finRadius, finPos.x-triVec2.x*finRadius, finPos.y-triVec2.y*finRadius, finPos.x-triVec3.x*finRadius, finPos.y-triVec3.y*finRadius, al_map_rgba(red, green, blue, alpha));
+            al_draw_filled_triangle(finPos.x-triVec1.x*finRadius, finPos.y-triVec1.y*finRadius, finPos.x-triVec2.x*finRadius, finPos.y-triVec2.y*finRadius, finPos.x-triVec3.x*finRadius, finPos.y-triVec3.y*finRadius, color);
         }
     }
 }
@@ -338,6 +341,10 @@ void ParticleEffectModule::drawParticles(vector <ImageModule> ImageContainer, ve
                         break;
                     }
                 }
+            }
+
+            if(LastImage == nullptr){
+                continue;
             }
 
             LastImage->setRotation(Particle.shapeRotation);
