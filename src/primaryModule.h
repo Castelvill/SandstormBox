@@ -96,11 +96,11 @@ class PrimaryModule{
 
     void primaryConstructor(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
     void primaryConstructor(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    void clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void setID(string newID, vector<string> & listOfIDs);
     void setLayerID(string newLayerID);
     void setObjectID(string newOwnerID);
-    void setAllIDs(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void setAllIDs(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
     void addGroup(string newGroup);
     void removeGroup(string selectedGroup);

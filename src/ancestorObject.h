@@ -48,7 +48,7 @@ public:
     AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID);
     AncestorObject(unsigned newID, vector<string> &listOfIDs, string newLayerID);
     void deleteLater();
-    void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID);
+    void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID, const bool & changeOldID);
     void clearVectorsOfIDs();
     void clearContainers();
     void createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter);
@@ -123,6 +123,5 @@ template<class Module>
 struct activateModule {
     void operator()(Module& Object) { Object.activate();}
 };
-
 
 #endif // ALLOBJECTS_H_INCLUDED

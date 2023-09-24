@@ -94,8 +94,8 @@ ImageModule::ImageModule(unsigned int newID, vector<string> * listOfIDs, string 
     primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    PrimaryModule::clone(Image, listOfIDs, newLayerID, newObjectID);
+void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+    PrimaryModule::clone(Image, listOfIDs, newLayerID, newObjectID, changeOldID);
     rotPos = Image.rotPos;
     start = Image.start;
     frameSize = Image.frameSize;

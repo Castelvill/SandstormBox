@@ -126,11 +126,11 @@ MovementModule::MovementModule(string newID, vector<string> * listOfIDs, string 
 MovementModule::MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     MovementModule(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
-void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 
 void MovementModule::clear(){

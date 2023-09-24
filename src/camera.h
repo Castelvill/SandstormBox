@@ -34,7 +34,7 @@ public:
     void setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
     Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
     Camera2D(string newID, vector <string> & camerasIDs);
-    void clone(const Camera2D& Original, vector <string> & camerasIDs);
+    void clone(const Camera2D& Original, vector <string> & camerasIDs, bool changeOldID);
     void clear();
     void setID(string newID, vector <string> & camerasIDs);
     string getID() const;

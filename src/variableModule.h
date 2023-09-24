@@ -21,8 +21,8 @@ public:
     void deleteLater();
     bool getIsDeleted() const;
     void clear();
-    void clone(const VariableModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    void clone(const VariableModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     string getID() const;
     string getLayerID() const;
     string getObjectID() const;
@@ -36,6 +36,7 @@ public:
     string getDefaultString();
     bool getBool() const;
     bool getBoolUnsafe() const;
+    bool getBoolUnsafe(const bool & defaultValue) const;
     int getInt() const;
     int getIntUnsafe() const;
     double getDouble() const;

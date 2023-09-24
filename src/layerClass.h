@@ -29,7 +29,7 @@ public:
     bool getIsActive() const;
     bool getIsDeleted() const;
     bool* getIsActiveAddr();
-    void clone(const LayerClass& Orginal, vector <string> & layersIDs);
+    void clone(const LayerClass& Orginal, vector <string> & layersIDs, const bool & changeOldID);
 
     void addGroup(string newGroup);
     void removeGroup(string selectedGroup);

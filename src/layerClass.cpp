@@ -83,7 +83,7 @@ bool *LayerClass::getIsActiveAddr()
 {
     return &isActive;
 }
-void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs){
+void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs, const bool & changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
         std::cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
@@ -96,7 +96,9 @@ void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs){
     clear();
     *this = Original;
     ID = oldID;
-    setID(Original.getID(), layersIDs);
+    if(changeOldID){
+        setID(Original.getID(), layersIDs);
+    }
 
     for(AncestorObject & Object : Objects){
         Object.setLayerID(getID());

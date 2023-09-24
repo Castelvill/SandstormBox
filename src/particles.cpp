@@ -207,11 +207,11 @@ ParticleEffectModule::ParticleEffectModule(string newID, vector<string> * listOf
 ParticleEffectModule::ParticleEffectModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     ParticleEffectModule(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
-void ParticleEffectModule::clone(const ParticleEffectModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+void ParticleEffectModule::clone(const ParticleEffectModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 void ParticleEffectModule::clear(){
     particleEffect.clear();

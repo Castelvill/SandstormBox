@@ -44,8 +44,7 @@ void AncestorObject::deleteLater(){
         Scrollbar.deleteLater();
     }
 }
-void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, string newLayerID)
-{
+void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, string newLayerID, const bool & changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
         std::cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
@@ -56,42 +55,42 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     }
     clearVectorsOfIDs();
     clearContainers();
-    PrimaryModule::clone(Original, listOfUniqueIDs, layerID, "");
+    PrimaryModule::clone(Original, listOfUniqueIDs, layerID, "", changeOldID);
     for(const TextModule & Text : Original.TextContainer){
         TextContainer.push_back(TextModule());
-        TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID());
+        TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID(), true);
     }
     for(const EditableTextModule & Editable : Original.EditableTextContainer){
         EditableTextContainer.push_back(EditableTextModule());
-        EditableTextContainer.back().clone(Editable, editableTextContainerIDs, newLayerID, getID());
+        EditableTextContainer.back().clone(Editable, editableTextContainerIDs, newLayerID, getID(), true);
     }
     for(const ImageModule & Image : Original.ImageContainer){
         ImageContainer.push_back(ImageModule());
-        ImageContainer.back().clone(Image, imageContainerIDs, newLayerID, getID());
+        ImageContainer.back().clone(Image, imageContainerIDs, newLayerID, getID(), true);
     }
     for(const MovementModule & Movement : Original.MovementContainer){
         MovementContainer.push_back(MovementModule());
-        MovementContainer.back().clone(Movement, movementContainerIDs, newLayerID, getID());
+        MovementContainer.back().clone(Movement, movementContainerIDs, newLayerID, getID(), true);
     }
     for(const CollisionModule & Collision : Original.CollisionContainer){
         CollisionContainer.push_back(CollisionModule());
-        CollisionContainer.back().clone(Collision, collisionContainerIDs, newLayerID, getID());
+        CollisionContainer.back().clone(Collision, collisionContainerIDs, newLayerID, getID(), true);
     }
     for(const ParticleEffectModule & Particle : Original.ParticlesContainer){
         ParticlesContainer.push_back(ParticleEffectModule());
-        ParticlesContainer.back().clone(Particle, particlesContainerIDs, newLayerID, getID());
+        ParticlesContainer.back().clone(Particle, particlesContainerIDs, newLayerID, getID(), true);
     }
     for(const EveModule & Event : Original.EveContainer){
         EveContainer.push_back(EveModule());
-        EveContainer.back().clone(Event, eveContainerIDs, newLayerID, getID());
+        EveContainer.back().clone(Event, eveContainerIDs, newLayerID, getID(), true);
     }
     for(const VariableModule & Collision : Original.VariablesContainer){
         VariablesContainer.push_back(VariableModule());
-        VariablesContainer.back().clone(Collision, variablesContainerIDs, newLayerID, getID());
+        VariablesContainer.back().clone(Collision, variablesContainerIDs, newLayerID, getID(), true);
     }
     for(const ScrollbarModule & Scrollbar : Original.ScrollbarContainer){
         ScrollbarContainer.push_back(ScrollbarModule());
-        ScrollbarContainer.back().clone(Scrollbar, scrollbarContainerIDs, newLayerID, getID());
+        ScrollbarContainer.back().clone(Scrollbar, scrollbarContainerIDs, newLayerID, getID(), true);
     }
 }
 void AncestorObject::clearVectorsOfIDs(){

@@ -21,11 +21,11 @@ ScrollbarModule::ScrollbarModule(unsigned newID, vector<string> * listOfIDs, str
     clear();
 }
 
-void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID){
+void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 
 void ScrollbarModule::draw(vec2d basePos ,vector <ImageModule> & ImageContainer, Camera2D Camera){

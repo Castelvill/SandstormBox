@@ -16,7 +16,7 @@ struct ValueLocation{
     string moduleID;
     string attribute;
     string spareID; //used in detecting collision of two specific hitboxes
-    void print(string dynamicID, string source);
+    void print(string dynamicID);
 };
 
 class ConditionClass{
@@ -33,9 +33,8 @@ class OperaClass{
 public:
     vector <ConditionClass> ConditionalChain;
     vector <VariableModule> Literals;
-    string attribute;
+    ValueLocation Location;
     string instruction; //first, last, all, random, let, assigment, class method, run(), break, return
-    string source;
     vector <string> dynamicIDs;
     string newContextID;
     OperaClass();
@@ -66,7 +65,7 @@ public:
     EveModule();
     EveModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     EveModule(string textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
-    void clone(const EveModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const EveModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
     void setUpNewInstance();
     void clear();

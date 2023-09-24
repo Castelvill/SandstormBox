@@ -37,7 +37,7 @@ public:
     TextModule();
     TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     TextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    void clone(const TextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const TextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void fitSizeToText(std::vector <SingleFont> FontContainer);
     void addNewContent(string newContent);
     void addNewContentAndResize(string newContent, std::vector <SingleFont> FontContainer);
@@ -92,7 +92,7 @@ public:
     EditableTextModule();
     EditableTextModule(unsigned EditableTextModuleID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     EditableTextModule(string EditableTextModuleID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    void clone(const EditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const EditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void setCanBeEdited(bool newCanBeEdited);
     void setEditingIsActive(bool newEditingIsActive);
     void setCanUseSpace(bool newCanUseSpace);

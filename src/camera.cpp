@@ -37,7 +37,7 @@ Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
     setUpInstance(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0));
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
-void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs){
+void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs, bool changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
         std::cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
@@ -49,7 +49,9 @@ void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs){
     string oldID = ID;
     *this = Original;
     ID = oldID;
-    setID(Original.getID(), camerasIDs);
+    if(changeOldID){
+        setID(Original.getID(), camerasIDs);
+    }
     if(bitmapBuffer){
         bitmapBuffer = nullptr;
         bitmapBuffer = al_create_bitmap(size.x, size.y);

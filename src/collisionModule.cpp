@@ -40,11 +40,11 @@ CollisionModule::CollisionModule(string newID, vector<string> *listOfIDs, string
 CollisionModule::CollisionModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     CollisionModule(intToStr(newID), vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
 }
-void CollisionModule::clone(const CollisionModule &Original, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+void CollisionModule::clone(const CollisionModule &Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID);
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 
 void CollisionModule::detectOverlaping(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum){

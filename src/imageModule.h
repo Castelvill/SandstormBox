@@ -47,7 +47,7 @@ public:
     ImageModule();
     ImageModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     ImageModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
     void loadImage(string newID, string filePath);
     void connectBitmap(vector <SingleBitmap> & BitmapContainer, string bitmapName);

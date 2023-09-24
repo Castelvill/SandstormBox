@@ -2,7 +2,7 @@
 
 VariableModule::VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     deleted = false;
-    setAllIDs(newID, listOfIDs, newLayerID, newObjectID);
+    setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
     clear();
 }
 VariableModule::VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
@@ -28,15 +28,16 @@ void VariableModule::clear(){
     vString = "";
     defaultString = "";
 }
-void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID)
-{
+void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;
-    setAllIDs(Original.getID(), &listOfIDs, newLayerID, newObjectID);
+    setAllIDs(Original.getID(), &listOfIDs, newLayerID, newObjectID, changeOldID);
 }
-void VariableModule::setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    setID(newID, listOfIDs);
+void VariableModule::setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+    if(changeOldID){
+        setID(newID, listOfIDs);
+    }
     setLayerID(newLayerID);
     setObjectID(newObjectID);
 }
@@ -125,6 +126,18 @@ bool VariableModule::getBoolUnsafe() const{
     else if(type != 'b'){
         std::cout << "Error [VariableModule]: You can't access boolean variable.\n";
         return false;
+    }
+    return vBool;
+}
+bool VariableModule::getBoolUnsafe(const bool & defaultValue) const{
+    if(type == 'i'){
+        return vInt > 0;
+    }
+    else if(type == 'd'){
+        return vDouble > 0;
+    }
+    else if(type != 'b'){
+        return defaultValue;
     }
     return vBool;
 }

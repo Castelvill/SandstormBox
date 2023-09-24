@@ -70,7 +70,7 @@ public:
     MovementModule();
     MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    void clone(const MovementModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void clone(const MovementModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clear();
 
     void changeJumpParameters(double newJumpSpeed, short newAllowedJumps, double newJumpCooldownDuration, double newGravitation, double newMinMomentumY, double newMaxMomentumY, bool newResetMomentumWhenJumping);
