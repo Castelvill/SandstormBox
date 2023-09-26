@@ -16,6 +16,7 @@ void EveModule::clone(const EveModule &Original, vector<string> &listOfIDs, stri
 }
 
 EveModule::EveModule(){
+    setUpNewInstance();
 }
 EveModule::EveModule(unsigned int eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(eventModuleID, *listOfIDs, newLayerID, newObjectID);
@@ -26,7 +27,14 @@ EveModule::EveModule(string eventModuleID, vector<string> *listOfIDs, string new
     setUpNewInstance();
 }
 void EveModule::setUpNewInstance(){
-    std::cout << "Warning: In EventModule: In setUpNewInstance(): Nothing happens.\n";
+    conditionalStatus = 'n';
+    parentID = "";
+    elseChildID = "";
+    areDependentOperationsDone = false;
+    parentStatus = false;
+    elseChildFinished = false;
+    werePostOperationsExecuted = false;
+    loop = false;
 }
 void EveModule::clear(){
     ConditionalChain.clear();

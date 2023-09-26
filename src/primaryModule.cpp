@@ -271,11 +271,11 @@ void BasePointersStruct::clear(){
 template<typename LeftType, typename RightType>
 void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, const RightType * RightOperand, string instruction){
     if(instruction == "++"){
-        *LeftOperand = *LeftOperand + 1;
+        (*LeftOperand)++;
         return;
     }
     else if(instruction == "--"){
-        *LeftOperand = *LeftOperand - 1;
+        (*LeftOperand)--;
         return;
     }
     if(LeftOperand == nullptr){
@@ -290,17 +290,17 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
         *LeftOperand = *RightOperand;
     }
     else if(instruction == "+="){
-        *LeftOperand = (*LeftOperand + *RightOperand);
+        *LeftOperand += *RightOperand;
     }
     else if(instruction == "-="){
-        *LeftOperand = (*LeftOperand) - (*RightOperand);
+        *LeftOperand -= *RightOperand;
     }
     else if(instruction == "*="){
-        *LeftOperand = (*LeftOperand) * (*RightOperand);
+        *LeftOperand *= *RightOperand;
     }
     else if(instruction == "/="){
         if(*RightOperand != 0){
-            *LeftOperand = (*LeftOperand) / (*RightOperand);
+            *LeftOperand /= *RightOperand;
         }
         else{
             std::cout << "Error: In " << __FUNCTION__ << ": You cannot divide by zero.\n";
@@ -878,6 +878,12 @@ bool BasePointersStruct::getBool() const{
         return 0;
     }
 }
+bool BasePointersStruct::isInteger() const{
+    if(isStringInGroup(type, 4, "int", "unsigned_int", "short", "unsigned_short")){
+        return true;
+    }
+    return false;
+}
 double BasePointersStruct::getDouble() const{
     if(type == "double"){
         return *pDouble;
@@ -919,7 +925,7 @@ int BasePointersStruct::getInt() const{
         return *pInt;
     }
     else if(type == "unsigned_int"){
-        std::cout << "Warning: In " << __FUNCTION__ << ": Conversion from unsigned int to int.\n";
+        //std::cout << "Warning: In " << __FUNCTION__ << ": Conversion from unsigned int to int.\n";
         return *pUInt;
     }
     if(type == "bool"){

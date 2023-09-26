@@ -73,6 +73,7 @@ public:
     double getDouble() const;
     int getInt() const;
     string getString() const;
+    bool isInteger() const;
 };
 
 class PrimaryModule{

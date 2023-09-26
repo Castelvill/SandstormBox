@@ -1697,10 +1697,9 @@ void EngineLoop::findLowerContextById(ValueLocation & Location, PointerContainer
 }
 PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID, bool warning){
     for(PointerContainer & Context : AllContexts){
-        if(Context.ID != contextID){
-            continue;
+        if(Context.ID == contextID){
+            return &Context;
         }
-        return &Context;
     }
     if(warning){
         std::cout << "Warning: In " << __FUNCTION__ << ": Dynamic variable with id \'" << contextID << "\' does not exist.\n";
@@ -1747,20 +1746,43 @@ bool EngineLoop::getPairOfContexts(PointerContainer *& LeftOperand, PointerConta
 
     return true;
 }
-bool EngineLoop::getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs){
+bool EngineLoop::getOneContext(PointerContainer *& SelectedContext, vector<PointerContainer> & AllContexts, vector<string> contextIDs){
     if(AllContexts.size() == 0){
         std::cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
     }
 
     if(contextIDs.size() == 0){
-        LeftOperand = &AllContexts[AllContexts.size()-1];
+        SelectedContext = &AllContexts[AllContexts.size()-1];
     }
     else{
-        LeftOperand = getContextByID(AllContexts, contextIDs.back(), true);
+        SelectedContext = getContextByID(AllContexts, contextIDs.back(), true);
     }
 
-    if(LeftOperand == nullptr){
+    if(SelectedContext == nullptr){
         std::cout << "Error: In " << __FUNCTION__ << ": Left operand does not exist.\n";
+        return false;
+    }
+    
+    return true;
+}
+bool EngineLoop::getAllSelectedContexts(vector<PointerContainer*> & SelectedContexts, vector<PointerContainer> & AllContexts, const vector<string> & contextIDs){
+    if(contextIDs.size() == 0){
+        return false;
+    }
+    
+    if(AllContexts.size() == 0){
+        std::cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
+    }
+
+    for(const string & ID : contextIDs){
+        SelectedContexts.push_back(getContextByID(AllContexts, ID, true));
+        if(SelectedContexts.back() == nullptr){
+            SelectedContexts.pop_back();
+        }
+    }
+
+    if(SelectedContexts.size() == 0){
+        std::cout << "Error: In " << __FUNCTION__ << ": No contexts found.\n";
         return false;
     }
     
@@ -3195,6 +3217,609 @@ void EngineLoop::markEntitiesForDeletion(OperaClass & Operation, vector<PointerC
         }
     }
 }
+template <class Entity>
+void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggregated, string type, vector<Entity*> & NewVector, string & newType){
+    unsigned realIndex = 0;
+    for(unsigned index : indexes){
+        for(realIndex = 0; realIndex < Aggregated.size(); realIndex++){
+            if(Aggregated[realIndex].getIsDeleted()){
+                index++;
+            }
+            else if(index == realIndex){
+                NewVector.push_back(&Aggregated[index]);
+                newType = type;
+                break;
+            }
+        }
+    }
+}
+template <class Entity>
+void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggregated, string type, vector<Entity> & NewVector, string & newType){
+    if(type != "pointer" && type != "value"){
+        std::cout << "Error: In " << __FUNCTION__ << ": This function allows only entities of \'pointer\' and \'value\' types.\n";
+        return;
+    }
+    for(unsigned index : indexes){
+        if(index < Aggregated.size()){
+            NewVector.push_back(Aggregated[index]);
+            newType = type;
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Index is out of vector's scope.\n";
+        }
+    }
+}
+template <class Entity>
+void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity*> & Aggregated, string type, vector<Entity*> & NewVector, string & newType){
+    unsigned realIndex = 0;
+    for(unsigned index : indexes){
+        for(realIndex = 0; realIndex < Aggregated.size(); realIndex++){
+            if(Aggregated[realIndex]->getIsDeleted()){
+                index++;
+            }
+            else if(index == realIndex){
+                NewVector.push_back(Aggregated[index]);
+                newType = type;
+                break;
+            }
+        }
+    }
+}
+void EngineLoop::getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<PointerContainer> & EventContext){
+    for(const VariableModule & Variable : Literals){
+        if(Variable.getType() == 'i'){
+            indexes.push_back(Variable.getInt());
+        }
+        else{
+            indexes.push_back(0);
+            std::cout << "Warning: In " << __FUNCTION__ << ": Each literal should be of integer type.\n";
+        }
+    }
+
+    if(dynamicIDs.size() == 0){
+        return;
+    }
+
+    vector<PointerContainer*> IndexContexts;
+
+    if(getAllSelectedContexts(IndexContexts, EventContext, dynamicIDs)){
+        for(PointerContainer * Index : IndexContexts){
+            if(Index->type == "value"){
+                for(const VariableModule & Variable : Index->Variables){
+                    if(Variable.getType() == 'i'){
+                        indexes.push_back(Variable.getInt());
+                    }
+                    else{
+                        indexes.push_back(0);
+                        std::cout << "Warning: In " << __FUNCTION__ << ": Each variable should be of integer type.\n";
+                    }
+                }
+            }
+            else if(Index->type == "pointer"){
+                for(const BasePointersStruct & BasePointer : Index->BasePointers){
+                    if(BasePointer.isInteger()){
+                        indexes.push_back(BasePointer.getInt());
+                    }
+                    else{
+                        indexes.push_back(0);
+                        std::cout << "Warning: In " << __FUNCTION__ << ": Each pointer should be of integer type.\n";
+                    }
+                }
+            }
+            else{
+                std::cout << "Warning: In " << __FUNCTION__ << ": Context is not of numerical type.\n";
+            }
+        }
+    }
+
+    if(indexes.size() == 0){
+        indexes.push_back(0);
+    }
+}
+void EngineLoop::getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
+    PointerContainer * Context = nullptr, NewContext;
+    vector<unsigned> indexes;
+    unsigned realIndex = 0, entityIndex = 0;
+
+    if(Operation.Location.source != "" && Operation.Location.source != "context"){
+        getIndexes(Operation.Literals, Operation.dynamicIDs, indexes, EventContext);
+
+        if(indexes.size() == 0){
+            indexes.push_back(0);
+        }
+
+        if(printInstructions){
+            if(Operation.Location.attribute != ""){
+                std::cout << "index " << Operation.Location.source << " " << Operation.Location.attribute << " [";
+            }
+            else{
+                std::cout << "index " << Operation.Location.source << " [";
+            }
+            
+            for(const unsigned & i : indexes){
+                std::cout << i << ", ";
+            }
+            std::cout << "]\n";
+        }
+
+        if(Operation.Location.source == "camera"){
+            findInstanceInVectorByIndex(indexes, Cameras, "camera", NewContext.Cameras, NewContext.type);
+        }
+        else if(Operation.Location.source == "layer"){
+            if(Operation.Location.attribute == "layer" || Operation.Location.attribute == ""){
+                findInstanceInVectorByIndex(indexes, Layers, "layer", NewContext.Layers, NewContext.type);
+            }
+            else if(isStringInGroup(Operation.Location.attribute, 10, "object", "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar")){
+                if(indexes.size() < 2){
+                    std::cout << "Error: In " << __FUNCTION__ << ": In order to find an object by its index, you must provide at least 2 indexes.\n";
+                    return;
+                }
+                entityIndex = indexes[0];
+                LayerClass * Layer = nullptr;
+                for(realIndex = 0; realIndex < Layers.size(); realIndex++){
+                    if(Layers[realIndex].getIsDeleted()){
+                        entityIndex++;
+                    }
+                    else if(entityIndex == realIndex){
+                        Layer = &Layers[entityIndex];
+                        break;
+                    }
+                }
+                if(Layer == nullptr){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Index is out of layers vector's scope.\n";
+                    return;
+                }
+                if(Operation.Location.attribute == "object"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Layer->Objects, "object", NewContext.Objects, NewContext.type);
+                }
+                else{
+                    if(indexes.size() < 3){
+                        std::cout << "Error: In " << __FUNCTION__ << ": In order to find a module instance by its index, you must provide at least 3 indexes.\n";
+                        return;
+                    }
+                    entityIndex = indexes[1];
+                    AncestorObject * Object = nullptr;
+                    for(realIndex = 0; realIndex < Layer->Objects.size(); realIndex++){
+                        if(Layer->Objects[realIndex].getIsDeleted()){
+                            entityIndex++;
+                        }
+                        else if(entityIndex == realIndex){
+                            Object = &Layer->Objects[entityIndex];
+                            break;
+                        }
+                    }
+                    if(Object == nullptr){
+                        std::cout << "Error: In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
+                        return;
+                    }
+                    if(Operation.Location.attribute == "text"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->TextContainer, Operation.Location.attribute, NewContext.Modules.Texts, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "editable_text"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->EditableTextContainer, Operation.Location.attribute, NewContext.Modules.EditableTexts, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "image"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->ImageContainer, Operation.Location.attribute, NewContext.Modules.Images, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "movement"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->MovementContainer, Operation.Location.attribute, NewContext.Modules.Movements, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "collision"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->CollisionContainer, Operation.Location.attribute, NewContext.Modules.Collisions, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "particles"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->ParticlesContainer, Operation.Location.attribute, NewContext.Modules.Particles, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "event"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->EveContainer, Operation.Location.attribute, NewContext.Modules.Events, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "variable"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->VariablesContainer, Operation.Location.attribute, NewContext.Modules.Variables, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "scrollbar"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->ScrollbarContainer, Operation.Location.attribute, NewContext.Modules.Scrollbars, NewContext.type);
+                    }
+                    else{
+                        std::cout << "Error: In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
+                        return;
+                    }
+                }
+            }
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Source cannot have \'" << Operation.Location.source << "\' value.\n";
+            return;
+        }
+
+        if(NewContext.type == ""){
+            std::cout << "Error: In " << __FUNCTION__ << ": Index is out of vector's scope.\n";
+            return;
+        }
+    }
+    else{
+        if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+            std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            return;
+        }
+
+        getIndexes(Operation.Literals, vector<string>(Operation.dynamicIDs.begin()+1, Operation.dynamicIDs.end()), indexes, EventContext);
+        
+        if(indexes.size() == 0){
+            indexes.push_back(0);
+        }
+
+        if(printInstructions){
+            if(Operation.Location.attribute != ""){
+                std::cout << "index " << Context->type << " " << Operation.Location.attribute << " [";
+            }
+            else{
+                std::cout << "index " << Context->type << " [";
+            }
+            
+            for(const unsigned & i : indexes){
+                std::cout << i << ", ";
+            }
+            std::cout << "]\n";
+        }
+        
+        if(Context->type == "camera"){
+            findInstanceInVectorByIndex(indexes, Context->Cameras, "camera", NewContext.Cameras, NewContext.type);
+        }
+        else if(Context->type == "layer"){
+            if(Operation.Location.attribute == "layer"){
+                findInstanceInVectorByIndex(indexes, Context->Layers, "layer", NewContext.Layers, NewContext.type);
+            }
+            else{
+                if(indexes.size() < 2){
+                    std::cout << "Error: In " << __FUNCTION__ << ": In order to find an object by its index, you must provide at least 2 index.\n";
+                    return;
+                }
+                LayerClass * Layer = nullptr;
+                entityIndex = indexes[0];
+                for(realIndex = 0; realIndex < Context->Layers.size(); realIndex++){
+                    if(Context->Layers[realIndex]->getIsDeleted()){
+                        entityIndex++;
+                    }
+                    else if(entityIndex == realIndex){
+                        Layer = Context->Layers[entityIndex];
+                        break;
+                    }
+                }
+                
+                if(Layer == nullptr){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Index is out of layers vector's scope.\n";
+                    return;
+                }
+
+                if(Operation.Location.attribute == "object"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Layer->Objects, "object", NewContext.Objects, NewContext.type);
+                }
+                else{
+                    if(indexes.size() < 3){
+                        std::cout << "Error: In " << __FUNCTION__ << ": In order to find a module instance by its index, you must provide at least 3 indexes.\n";
+                        return;
+                    }
+                    entityIndex = indexes[1];
+                    AncestorObject * Object = nullptr;
+                    for(realIndex = 0; realIndex < Layer->Objects.size(); realIndex++){
+                        if(Layer->Objects[realIndex].getIsDeleted()){
+                            entityIndex++;
+                        }
+                        else if(entityIndex == realIndex){
+                            Object = &Layer->Objects[entityIndex];
+                            break;
+                        }
+                    }
+                    if(Object == nullptr){
+                        std::cout << "Error: In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
+                        return;
+                    }
+
+                    if(Operation.Location.attribute == "text"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->TextContainer, Operation.Location.attribute, NewContext.Modules.Texts, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "editable_text"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->EditableTextContainer, Operation.Location.attribute, NewContext.Modules.EditableTexts, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "image"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->ImageContainer, Operation.Location.attribute, NewContext.Modules.Images, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "movement"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->MovementContainer, Operation.Location.attribute, NewContext.Modules.Movements, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "collision"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->CollisionContainer, Operation.Location.attribute, NewContext.Modules.Collisions, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "particles"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->ParticlesContainer, Operation.Location.attribute, NewContext.Modules.Particles, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "event"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->EveContainer, Operation.Location.attribute, NewContext.Modules.Events, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "variable"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->VariablesContainer, Operation.Location.attribute, NewContext.Modules.Variables, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "scrollbar"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->ScrollbarContainer, Operation.Location.attribute, NewContext.Modules.Scrollbars, NewContext.type);
+                    }
+                    else{
+                        std::cout << "Error: In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
+                        return;
+                    }
+                }
+            }
+        }
+        else if(Context->type == "object"){
+            if(Operation.Location.attribute == "object"){
+                findInstanceInVectorByIndex(indexes, Context->Objects, "object", NewContext.Objects, NewContext.type);
+            }
+            else{
+                if(indexes.size() < 2){
+                    std::cout << "Error: In " << __FUNCTION__ << ": In order to find a module instance by its index, you must provide at least 2 indexes.\n";
+                    return;
+                }
+                unsigned entityIndex = indexes[0];
+                AncestorObject * Object = nullptr;
+                for(realIndex = 0; realIndex < Context->Objects.size(); realIndex++){
+                    if(Context->Objects[realIndex]->getIsDeleted()){
+                        entityIndex++;
+                    }
+                    else if(entityIndex == realIndex){
+                        Object = Context->Objects[entityIndex];
+                        break;
+                    }
+                }
+                if(Object == nullptr){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
+                    return;
+                }
+                
+                if(Operation.Location.attribute == "text"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->TextContainer, Operation.Location.attribute, NewContext.Modules.Texts, NewContext.type);
+                }
+                else if(Operation.Location.attribute == "editable_text"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->EditableTextContainer, Operation.Location.attribute, NewContext.Modules.EditableTexts, NewContext.type);
+                }
+                else if(Operation.Location.attribute == "image"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->ImageContainer, Operation.Location.attribute, NewContext.Modules.Images, NewContext.type);
+                }
+                else if(Operation.Location.attribute == "movement"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->MovementContainer, Operation.Location.attribute, NewContext.Modules.Movements, NewContext.type);
+                }
+                else if(Operation.Location.attribute == "collision"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->CollisionContainer, Operation.Location.attribute, NewContext.Modules.Collisions, NewContext.type);
+                }
+                else if(Operation.Location.attribute == "particles"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->ParticlesContainer, Operation.Location.attribute, NewContext.Modules.Particles, NewContext.type);
+                }
+                else if(Operation.Location.attribute == "event"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->EveContainer, Operation.Location.attribute, NewContext.Modules.Events, NewContext.type);
+                }
+                else if(Operation.Location.attribute == "variable"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->VariablesContainer, Operation.Location.attribute, NewContext.Modules.Variables, NewContext.type);
+                }
+                else if(Operation.Location.attribute == "scrollbar"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->ScrollbarContainer, Operation.Location.attribute, NewContext.Modules.Scrollbars, NewContext.type);
+                }
+                else{
+                    std::cout << "Error: In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
+                    return;
+                }
+            }
+        }
+        else if(Context->type == "text"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.Texts, Context->type, NewContext.Modules.Texts, NewContext.type);
+        }
+        else if(Context->type == "editable_text"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.EditableTexts, Context->type, NewContext.Modules.EditableTexts, NewContext.type);
+        }
+        else if(Context->type == "image"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.Images, Context->type, NewContext.Modules.Images, NewContext.type);
+        }
+        else if(Context->type == "movement"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.Movements, Context->type, NewContext.Modules.Movements, NewContext.type);
+        }
+        else if(Context->type == "collision"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.Collisions, Context->type, NewContext.Modules.Collisions, NewContext.type);
+        }
+        else if(Context->type == "particles"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.Particles, Context->type, NewContext.Modules.Particles, NewContext.type);
+        }
+        else if(Context->type == "event"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.Events, Context->type, NewContext.Modules.Events, NewContext.type);
+        }
+        else if(Context->type == "variable"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.Variables, Context->type, NewContext.Modules.Variables, NewContext.type);
+        }
+        else if(Context->type == "scrollbar"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.Scrollbars, Context->type, NewContext.Modules.Scrollbars, NewContext.type);
+        }
+        else if(Context->type == "pointer"){
+            findInstanceInVectorByIndex(indexes, Context->BasePointers, Context->type, NewContext.BasePointers, NewContext.type);
+        }
+        else if(Context->type == "value"){
+            findInstanceInVectorByIndex(indexes, Context->Variables, Context->type, NewContext.Variables, NewContext.type);
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Context of \'" << Context->type << "\' type is invalid.\n";
+            return;
+        }
+    }
+
+    if(NewContext.type != ""){
+        addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
+    }
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
+    }
+}
+vector <string> changeCodeIntoWords(string input){
+    std::regex word_regex("(\"*[\\w+\\.*]*\\w+\"*)|;|==|=|>|<|>=|<=|-=|\\+=|\\+|-|\\*|/|%|\\[|\\]", std::regex_constants::icase);
+    auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
+    auto words_end = std::sregex_iterator();
+
+    vector <string> output;
+    string match_str;
+
+    for(std::sregex_iterator i = words_begin; i != words_end; ++i) {
+        std::smatch match = *i;
+        match_str = match.str();
+        if (match_str.size() > 0){
+            output.push_back(match_str);
+        }
+    }
+    return output;
+}
+bool prepareNewInstruction(vector<string> words, EveModule & NewEvent, unsigned minLength){
+    if(words.size() < minLength){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least \'" << minLength << "\' parameters.\n";
+        return false;
+    }
+    NewEvent.DependentOperations.push_back(OperaClass());
+    NewEvent.DependentOperations.back().instruction = words[0];
+    if(words.size() >= 2){
+        NewEvent.DependentOperations.back().newContextID = words[1];
+    }
+    return true;
+}
+void EngineLoop::eventAssembler(vector<string> code, AncestorObject * Object){
+    vector<EveModule> * EventsContainer = &Object->EveContainer;
+    vector<string> words;
+    EveModule NewEvent = EveModule();
+    for(const string & line : code){
+        words.clear();
+        words = changeCodeIntoWords(line);
+        if(words.size() == 0){
+            continue;
+        }
+        if(words[0] == "event_start"){
+            if(words.size() < 2){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                return;
+            }
+            NewEvent = EveModule();
+            NewEvent.setID(words[1], Object->eveContainerIDs);
+            NewEvent.setLayerID(Object->getLayerID());
+            NewEvent.setObjectID(Object->getID());
+        }
+        else if(words[0] == "event_end"){
+            EventsContainer->push_back(NewEvent);
+            NewEvent = EveModule();
+        }
+        else if(words[0] == "event_loop"){
+            if(words.size() < 2){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                return;
+            }
+            if(words[1] == "true" || words[1] == "1"){
+                NewEvent.loop = true;
+            }
+            else{
+                NewEvent.loop = false;
+            }
+        }
+        else if(words[0] == "add_primary_trigger"){
+            if(words.size() < 2){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                return;
+            }
+            NewEvent.primaryTriggerTypes.push_back(words[1]);
+        }
+        else if(words[0] == "add_child"){
+            if(words.size() < 2){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                return;
+            }
+            NewEvent.Children.push_back(ChildStruct(words[1]));
+        }
+        else if(words[0] == "add_condition"){
+            if(words.size() > 1){
+                NewEvent.ConditionalChain.push_back(ConditionClass(words[1]));
+            }
+            else{
+                NewEvent.ConditionalChain.push_back(ConditionClass(""));
+            }
+        }
+        else if(words[0] == "condition"){
+            if(words.size() < 3){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 3 parameters.\n";
+                return;
+            }
+            if(NewEvent.ConditionalChain.size() == 0){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least one condition.\n";
+                return;
+            }
+            if(words[1] == "source"){
+                NewEvent.ConditionalChain.back().Location.source = words[2];
+            }
+            else if(words[1] == "cameraID"){
+                NewEvent.ConditionalChain.back().Location.cameraID = words[2];
+            }
+            else if(words[1] == "layerID"){
+                NewEvent.ConditionalChain.back().Location.layerID = words[2];
+            }
+            else if(words[1] == "objectID"){
+                NewEvent.ConditionalChain.back().Location.objectID = words[2];
+            }
+            else if(words[1] == "moduleType"){
+                NewEvent.ConditionalChain.back().Location.moduleType = words[2];
+            }
+            else if(words[1] == "moduleID"){
+                NewEvent.ConditionalChain.back().Location.moduleID = words[2];
+            }
+            else if(words[1] == "attribute"){
+                NewEvent.ConditionalChain.back().Location.attribute = words[2];
+            }
+            else if(words[1] == "spareID"){
+                NewEvent.ConditionalChain.back().Location.spareID = words[2];
+            }
+            else if(words[1] == "int" || words[1] == "i"){
+                NewEvent.ConditionalChain.back().Literal.setInt(stoi(words[2]));
+            }
+            else if(words[1] == "string" || words[1] == "s"){
+                NewEvent.ConditionalChain.back().Literal.setString(words[2]);
+            }
+            else if(words[1] == "bool" || words[1] == "b"){
+                if(words[2] == "true"){
+                    NewEvent.ConditionalChain.back().Literal.setBool(true);
+                }
+                else if(words[2] == "false"){
+                    NewEvent.ConditionalChain.back().Literal.setBool(false);
+                }
+                else{
+                    NewEvent.ConditionalChain.back().Literal.setBool(stoi(words[2]));
+                }
+            }
+            else if(words[1] == "op" || words[1] == "operator"){
+                NewEvent.ConditionalChain.back().operators.push_back(words[2]);
+            }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not have \'" << words[1] << "\' parameter.\n";
+            }
+        }
+        else if(words[0] == "break" || words[0] == "return"){
+            if(!prepareNewInstruction(words, NewEvent, 1)){
+                return;
+            }
+        }
+        else if(isStringInGroup(words[0], 4, "first", "last", "all", "random")){
+            if(!prepareNewInstruction(words, NewEvent, 3)){
+                return;
+            }
+            NewEvent.DependentOperations.back().Location.source = words[2];
+            if(words.size() < 4){
+                continue;
+            }
+            if(words[2] == "context"){
+
+            }
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
+        }
+    }
+}
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted
@@ -3206,6 +3831,9 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         //Aggregate entities and push them on the Variables Stack.
         else if(isStringInGroup(Operation.instruction, 4, "first", "last", "all", "random")){
             aggregateEntities(Operation, EventContext, Layers, Cameras);
+        }
+        else if(Operation.instruction == "index"){
+            getReferenceByIndex(Operation, EventContext, Layers, Cameras);
         }
         //Execute operations on sets.
         else if(isStringInGroup(Operation.instruction, 3, "sum", "intersection", "difference")){
@@ -3258,16 +3886,17 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             }
         }
         if(printInstructions){
-            std::cout << "Stack: ";
+            string buffor = "Stack: ";
             for(auto context : EventContext){
-                std::cout << context.ID << ":" << context.type << ":" << context.getValue() << ", ";
+                buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
             }
-            std::cout << "\n";
+            buffor += "\n";
+            printInColor(buffor, 11);
         }
     }
     return OperaClass();
 }
-VariableModule EngineLoop::findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject){
+VariableModule EngineLoop::findNextValueInMovementModule(ConditionClass &Condition, AncestorObject *CurrentObject){
     if(CurrentObject == nullptr){
         std::cout << "Error: In " << __FUNCTION__ << ": Object does not exist.\n";
         return VariableModule::newBool(false);
@@ -3810,8 +4439,8 @@ VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObj
                 return NewValue;
             }
             if(Context->Variables.size() != 1){
-                std::cout << "Warning: In " << __FUNCTION__ << ": There are several literals in the context. Program will proceed with the last added literal.\n";
             }
+                std::cout << "Warning: In " << __FUNCTION__ << ": There are several literals in the context. Program will proceed with the last added literal.\n";
             return Context->Variables.back();
         }
         if(Context->type == "pointer"){
@@ -4052,6 +4681,28 @@ bool EngineLoop::deleteEntities(vector <LayerClass> & Layers, vector <Camera2D> 
     }
     return layersWereModified;
 }
+void EngineLoop::resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered){
+    vector<vector<EveModule>::iterator*> EventsStack = {&Event};
+    vector<EveModule>::iterator * CurrentEvent;
+    while(EventsStack.size() > 0){
+        CurrentEvent = EventsStack.back();
+        EventsStack.pop_back();
+        for(ChildStruct & Child : (*CurrentEvent)->Children){
+            Child.finished = false;
+            for(vector<EveModule>::iterator ChildEvent = Triggered->EveContainer.begin();
+                ChildEvent != Triggered->EveContainer.end(); ChildEvent++
+            ){
+                if(ChildEvent->getID() == Child.ID){
+                    ChildEvent->conditionalStatus = 'n';
+                    ChildEvent->areDependentOperationsDone = false;
+                    ChildEvent->elseChildFinished = false;
+                    EventsStack.push_back(&ChildEvent);
+                    break;
+                }
+            }
+        }
+    }
+}
 void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
     //must wait with execution for the next iteration, unless run() command will be used.
@@ -4127,14 +4778,15 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         wasNewExecuted = false;
 
         do{
-            if(Event->conditionalStatus == 'n'){
+            if(Event->conditionalStatus == 'n' && Interrupt.instruction != "break"){
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Layers, Cameras, Context);
                 //std::cout << "Result: " << Event->conditionalStatus << "\n";
             }
-            if(Event->conditionalStatus == 't'){
+            if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){
                 if(!Event->areDependentOperationsDone){
                     Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted);
                     if(Interrupt.instruction == "return"){
+                        Interrupt.instruction = "";
                         break;
                     }
                     if(TriggeredLayer == nullptr || Triggered == nullptr){
@@ -4143,7 +4795,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     }
                     Event->areDependentOperationsDone = true;
                 }
-                if(!Event->checkIfAllChildrenFinished()){
+                if(!Event->checkIfAllChildrenFinished() && Interrupt.instruction != "break"){
                     MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                     Event = FindUnfinishedEvent(Triggered, Event);
                     continue;
@@ -4157,15 +4809,37 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 }
                 MemoryStack.pop_back();
             }
-            Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted);
+            if(Interrupt.instruction != "break"){
+                Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted);
+            }
             if(Interrupt.instruction == "return"){
+                Interrupt.instruction = "";
                 break;
             }
             if(TriggeredLayer == nullptr || Triggered == nullptr){
                 std::cout << "Aborting! The owner of the event has been deleted.\n";
                 break;
             }
+            if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){
+                Event->conditionalStatus = 'n';
+                Event->areDependentOperationsDone = false;
+                Event->elseChildFinished = false;
+                resetChildren(Event, Triggered);
+                
+                if(MemoryStack.size() > 0){
+                    for(ChildStruct & Child : MemoryStack.back().Event->Children){
+                        if(Child.ID == Event->getID()){
+                            Child.finished = false;
+                            break;
+                        }
+                    }
+                }
+                
+            }
             if(StartingEvent != Event){
+                if(Event->loop){
+                    Interrupt.instruction = "";
+                }
                 Event = MemoryStack.back().Event;
 
                 if(MemoryStack.back().contextSize <= Context.size()){
@@ -4183,6 +4857,14 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             Context.clear();
             MemoryStack.clear();
+
+            if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){
+                continue;
+            }
+
+            if(Event->loop){
+                Interrupt.instruction = "";
+            }
             
             do{
                 Event++;

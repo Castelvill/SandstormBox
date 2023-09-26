@@ -54,4 +54,9 @@ SearchModule * findByIDAndReturnPointer(vector <SearchModule> & Container, strin
 
 bool hasEnding(string const &fullString, string const &ending);
 
+//Function is windows-only.
+//Numbers of colors are in "windows colors.PNG" file.
+void printInColor(string text, short color);
+
+
 #endif // USEFULL_H_INCLUDED

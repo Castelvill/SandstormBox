@@ -3,6 +3,7 @@
 
 #include "layerClass.h"
 #include <memory>
+#include <regex>
 
 using std::unique_ptr;
 
@@ -230,6 +231,7 @@ template<class Entity>
 Entity * lastNotDeletedInVector(vector<Entity> &Vector);
 template<class Entity>
 Entity * lastNotDeletedInVector(vector<Entity*> &Vector);
+vector <string> changeCodeIntoWords(string input);
 
 class EngineLoop{
 private:
@@ -305,7 +307,8 @@ public:
     void findLowerContextById(ValueLocation  & Location, PointerContainer & NewContext, PointerContainer * OldContext);
     //Method return true if a pair of contexts of the same type is found.
     bool getPairOfContexts(PointerContainer *& LeftOperand, PointerContainer *& RightOperand, vector<PointerContainer> & AllContexts, vector <string> contextIDs);
-    bool getOneContext(PointerContainer *& LeftOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs);
+    bool getOneContext(PointerContainer *& SelectedContext, vector<PointerContainer> & AllContexts, vector<string> contextIDs);
+    bool getAllSelectedContexts(vector<PointerContainer*> & SelectedContexts, vector<PointerContainer> & AllContexts, const vector<string> & contextIDs);
     template<class Entity>
     void executeOperationsOnSets(string instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand);
     template<class Entity>
@@ -333,6 +336,9 @@ public:
     void markEntitiesForDeletion(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, bool & wasDeleteExecuted
     );
+    void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<PointerContainer> & EventContext);
+    void getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
+    void eventAssembler(vector<string> code, AncestorObject * Object);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted
@@ -347,6 +353,7 @@ public:
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     bool deleteEntities(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
+    void resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered);
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
     void updateAllForestOfCameras(vector <Camera2D> & Cameras);

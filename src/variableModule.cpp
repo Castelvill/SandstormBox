@@ -740,11 +740,11 @@ BaseVariableStruct VariableModule::getVariableStruct() const{
 template<typename LeftType, typename RightType>
 void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, string instruction){
     if(instruction == "++"){
-        *LeftOperand = *LeftOperand + *LeftOperand;
+        (*LeftOperand)++;
         return;
     }
     else if(instruction == "--"){
-        *LeftOperand = *LeftOperand - *LeftOperand;
+       (*LeftOperand)--;
         return;
     }
     if(LeftOperand == nullptr){
@@ -759,17 +759,17 @@ void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightTyp
         *LeftOperand = *RightOperand;
     }
     else if(instruction == "+="){
-        *LeftOperand = (*LeftOperand + *RightOperand);
+        *LeftOperand += *RightOperand;
     }
     else if(instruction == "-="){
-        *LeftOperand = (*LeftOperand) - (*RightOperand);
+        *LeftOperand -= *RightOperand;
     }
     else if(instruction == "*="){
-        *LeftOperand = (*LeftOperand) * (*RightOperand);
+        *LeftOperand *= *RightOperand;
     }
     else if(instruction == "/="){
         if(*RightOperand != 0){
-            *LeftOperand = (*LeftOperand) / (*RightOperand);
+            *LeftOperand /= *RightOperand;
         }
         else{
             std::cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot divide by zero.\n";

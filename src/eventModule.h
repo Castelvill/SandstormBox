@@ -36,13 +36,13 @@ public:
     ValueLocation Location;
     string instruction; //first, last, all, random, let, assigment, class method, run(), break, return
     vector <string> dynamicIDs;
-    string newContextID;
+    string newContextID; //Assign an id to the result of operation.
     OperaClass();
 };
 
 struct ChildStruct{
-	bool finished; //If true, ignore the child.
 	string ID;
+    bool finished; //If true, ignore the child.
 };
 
 class EveModule: public PrimaryModule{
@@ -62,6 +62,7 @@ public:
 	bool parentStatus;
     bool elseChildFinished;
 	bool werePostOperationsExecuted;
+    bool loop;
     EveModule();
     EveModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     EveModule(string textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);

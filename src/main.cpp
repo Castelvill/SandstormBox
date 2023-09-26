@@ -277,6 +277,8 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().VariablesContainer.push_back(VariableModule("bbb", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.push_back(VariableModule("rot_spd", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
     Objects.back().VariablesContainer.back().setInt(10);
+    Objects.back().VariablesContainer.push_back(VariableModule("xd", &Objects.back().variablesContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().VariablesContainer.back().setInt(0);
     Objects.back().CollisionContainer.push_back(CollisionModule(0, vec2d(50, 50), &Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
     Objects.back().CollisionContainer.push_back(CollisionModule(1, vec2d(50, 50), &Objects.back().collisionContainerIDs, layerID, Objects.back().getID()));
     Objects.back().CollisionContainer.back().setPos(50, 0);
@@ -287,6 +289,43 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().TextContainer.back().setUsedBitmapLayer(2);
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
+
+    Objects.back().EveContainer.push_back(EveModule("while-click", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
+    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass(""));
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "key_pressed";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_W);
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(0));
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "xd";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().Children.push_back(ChildStruct("while"));
+
+    Objects.back().EveContainer.push_back(EveModule("while", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
+    Objects.back().EveContainer.back().loop = true;
+    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass(""));
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "context";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("xd");
+    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass(""));
+    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "literal";
+    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(10);
+    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("<");
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "index";
+    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(1));
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("xd");
+    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "obj";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "first";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("obj");
+    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "id";
+    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "++";
+    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("xd");
+
 
     Objects.back().EveContainer.push_back(EveModule("create-new", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
     Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
@@ -313,11 +352,16 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("ids");
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "new-objects";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "first";
+    Objects.back().EveContainer.back().DependentOperations.back().instruction = "index";
+    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
+    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(1));
+    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(0));
+    /*Objects.back().EveContainer.back().DependentOperations.back().instruction = "first";
     Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
     Objects.back().EveContainer.back().DependentOperations.back().Location.layerID = "L1";
     Objects.back().EveContainer.back().DependentOperations.back().Location.objectID = "Amongus";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
+    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";*/
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "blueprint";
     Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "clone";
@@ -336,8 +380,6 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
     Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-layers";
     
-
-
     Objects.back().EveContainer.push_back(EveModule("delete-last", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
     Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
     Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass("a"));
@@ -371,8 +413,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
     Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("all-layers");
     Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
-
-
+    
 
 
     /*Objects.back().EveContainer.push_back(EveModule("rotate-init", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
@@ -877,6 +918,11 @@ void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
 Fps fps;
 
 int main(){
+    #if __WIN32__
+        HANDLE  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 15);
+    #endif
+
     srand(time(NULL));
     //egmCompiler Compiler;
     //Compiler.loadTestData();
