@@ -220,7 +220,8 @@ string VariableModule::getStringUnsafe() const{
     
     return "";
 }
-void VariableModule::setID(string newID, vector<string> * listOfIDs){
+void VariableModule::setID(string newID, vector<string> *listOfIDs)
+{
     if(isStringInVector(reservedIDs, ID)){
         std::cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;

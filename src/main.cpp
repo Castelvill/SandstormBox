@@ -170,7 +170,40 @@ vector<string> getAllFilesNamesWithinFolder(string folder){
     return names;
 }
 
-void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
+vector<string> split_string(const string & str, const string & delimiter){
+    vector<string> strings;
+
+    string::size_type pos = 0;
+    string::size_type prev = 0;
+    while ((pos = str.find(delimiter, prev)) != string::npos)
+    {
+        strings.push_back(str.substr(prev, pos - prev));
+        prev = pos + delimiter.size();
+    }
+
+    // To get the last substring (or only, if delimiter is not found)
+    strings.push_back(str.substr(prev));
+
+    return strings;
+}
+
+vector<string> readLines(const string& filename) {
+	std::ifstream File(filename);
+	vector<string> lines;
+
+	if(!File){
+		std::cerr << "Cannot open file: " << filename << "\n";
+	}
+    else{
+	    for(string line; std::getline(File, line);){
+			lines.push_back(line);
+		}
+	}
+
+	return lines;
+}
+
+void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window, EngineLoop & Engine){
     /*Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("king_arthur");
     Objects.back().setPos(vec2d(0.0, 0.0));
@@ -290,130 +323,25 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
 
-    Objects.back().EveContainer.push_back(EveModule("while-click", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass(""));
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "key_pressed";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_W);
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(0));
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "xd";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().Children.push_back(ChildStruct("while"));
 
-    Objects.back().EveContainer.push_back(EveModule("while", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
-    Objects.back().EveContainer.back().loop = true;
-    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass(""));
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "context";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setString("xd");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass(""));
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "literal";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(10);
-    Objects.back().EveContainer.back().ConditionalChain.back().operators.push_back("<");
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "index";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(1));
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("xd");
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "obj";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "first";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("obj");
-    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "id";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "++";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("xd");
+    /*string script =
+        "start while_click false\n"
+        "triggers [key_pressed]\n"
+        "if ([key_pressed 23])\n"
+        "literal int [0] xd\n"
+        "children [while]\n"
+        "end\n"
+        "start while true\n"
+        "if ([context xd] [int 10] <)\n"
+        "index layer [1] [xd] object obj\n"
+        "first _ [obj] _ _ _ _ id\n"
+        "++ xd\n"
+        "end";
+    vector <string> code = split_string(script, "\n");*/
 
 
-    Objects.back().EveContainer.push_back(EveModule("create-new", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass("a"));
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "key_pressed";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_Q);
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-layers-before";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newString("new-object"));
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "ids";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "literal";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(10));
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "vector-size";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "new";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "object";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.layerID = "L1";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("vector-size");
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("ids");
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "new-objects";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "index";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(1));
-    Objects.back().EveContainer.back().DependentOperations.back().Literals.push_back(VariableModule::newInt(0));
-    /*Objects.back().EveContainer.back().DependentOperations.back().instruction = "first";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.layerID = "L1";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.objectID = "Amongus";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";*/
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "blueprint";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "clone";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("new-objects");
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("blueprint");
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("new-objects");
-    Objects.back().EveContainer.back().DependentOperations.back().Location.moduleType = "event";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "is_active";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "--";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-layers";
-    
-    Objects.back().EveContainer.push_back(EveModule("delete-last", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
-    Objects.back().EveContainer.back().primaryTriggerTypes.push_back("key_pressed");
-    Objects.back().EveContainer.back().ConditionalChain.push_back(ConditionClass("a"));
-    Objects.back().EveContainer.back().ConditionalChain.back().Location.source = "key_pressed";
-    Objects.back().EveContainer.back().ConditionalChain.back().Literal.setInt(ALLEGRO_KEY_E);
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "first";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.layerID = "L1";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "L1";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "first";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.layerID = "KERNEL";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "KERNEL";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("L1");
-    Objects.back().EveContainer.back().DependentOperations.back().Location.moduleType = "image";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-image";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "last";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("all-image");
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "delete";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
-    Objects.back().EveContainer.back().DependentOperations.back().Location.source = "layer";
-    Objects.back().EveContainer.back().DependentOperations.back().newContextID = "all-layers";
-    Objects.back().EveContainer.back().DependentOperations.push_back(OperaClass());
-    Objects.back().EveContainer.back().DependentOperations.back().instruction = "all";
-    Objects.back().EveContainer.back().DependentOperations.back().dynamicIDs.push_back("all-layers");
-    Objects.back().EveContainer.back().DependentOperations.back().Location.attribute = "object";
-    
+    std::vector<std::string> code = readLines(Engine.EXE_PATH+"script.txt");
+    Engine.eventAssembler(code, Objects.back());
 
 
     /*Objects.back().EveContainer.push_back(EveModule("rotate-init", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
@@ -970,7 +898,7 @@ int main(){
     //createObjects0(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer, Threads.back().window);
 
     Layers.push_back(LayerClass("L1", Threads.back().layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
-    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Threads.back().window);
+    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Threads.back().window, Threads.back());
     Layers.back().addGroup("kek");
     
     if(Threads.back().isLayersUniquenessViolated(Layers)){

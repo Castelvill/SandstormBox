@@ -8,7 +8,7 @@
 #include "scrollbarModule.h"
 
 struct ValueLocation{
-    string source; //second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, owner, object, pointer
+    string source; //second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, variable, camera, layer, owner, object, pointer
     string cameraID;
     string layerID;
     string objectID;

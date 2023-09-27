@@ -845,31 +845,31 @@ void ValueLocation::print(string dynamicID){
     if(dynamicID != ""){
         std::cout << dynamicID;
     }
-    if(source != ""){
+    if(source != "" && source != "_"){
         if(dynamicID != ""){
             std::cout << ".";
         }
         std::cout << source;
     }
-    if(cameraID != ""){
+    if(cameraID != "" && cameraID != "_"){
         std::cout << "." << cameraID;
     }
-    if(layerID != ""){
+    if(layerID != "" && layerID != "_"){
         std::cout << "." << layerID;
     }
-    if(objectID != ""){
+    if(objectID != "" && objectID != "_"){
         std::cout << "." << objectID;
     }
-    if(moduleType != ""){
+    if(moduleType != "" && moduleType != "_"){
         std::cout << "." << moduleType;
     }
-    if(moduleID != ""){
+    if(moduleID != "" && moduleID != "_"){
         std::cout << "." << moduleID;
     }
-    if(attribute != ""){
+    if(attribute != "" && attribute != "_"){
         std::cout << "." << attribute;
     }
-    if(spareID != ""){
+    if(spareID != "" && spareID != "_"){
         std::cout << "." << spareID;
     }
     std::cout << " ";

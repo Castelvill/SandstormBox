@@ -21,7 +21,7 @@ const float MAX_ZOOM = 1.0;
 const int BUFFER_W = SCREEN_W * MAX_ZOOM;
 const int BUFFER_H = SCREEN_H * MAX_ZOOM;
 const bool printOutBitmapDestruction = false;
-const bool printOutLogicalEvaluations = false;
+const bool printOutLogicalEvaluations = true;
 const bool printInstructions = true;
 const float RESERVATION_MULTIPLIER = 1.5;
 
@@ -338,7 +338,7 @@ public:
     );
     void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<PointerContainer> & EventContext);
     void getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
-    void eventAssembler(vector<string> code, AncestorObject * Object);
+    void eventAssembler(vector<string> code, AncestorObject & Object);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted
@@ -346,7 +346,7 @@ public:
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
     VariableModule getValueFromObjectInCamera(AncestorObject * CurrentObject, vector <Camera2D> & Cameras, const string & attribute, const string & cameraID);
     VariableModule getValueFromMouseClickingObject(AncestorObject * CurrentObject, const string & attribute, const short & button);
-    VariableModule getValueFromObjectInCollision(AncestorObject * CurrentObject, LayerClass * CurrentLayer, const ValueLocation & Location);
+    VariableModule getValueFromObjectInCollision(ConditionClass &Condition, AncestorObject * CurrentObject, LayerClass * CurrentLayer);
     VariableModule findNextValueAmongObjects(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     VariableModule findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
     char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext);
