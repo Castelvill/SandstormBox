@@ -145,7 +145,7 @@ class PrimaryModule{
     bool getIsAttachedToCamera();
     bool getCanBeSelected();
     bool getIsScrollable();
-    void bindPrimaryToVariable(string attribute, vector <BasePointersStruct> & BasePointers);
+    void getPrimaryContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
 
 template<class SearchModule>

@@ -56,6 +56,7 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
 }
 
 void EventsLookupTable::clear(){
+    BootTriggered.clear();
     IterationTriggered.clear();
     TimeTriggered.clear();
     KeyPressedTriggered.clear();
@@ -78,9 +79,9 @@ EngineLoop::EngineLoop(std::string title){
     mainBuffer = NULL;
     cursorBitmap = NULL;
     windowTitle = title;
-    bootGame = false;
+    firstIteration = true;
     closeGame = false;
-    closeEditor = false;
+    closeProgram = false;
     isGameActive = false;
     drawTextFieldBorders = false;
     drawHitboxes = false;
@@ -246,6 +247,8 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 
                 triggerEve(Layers, Cameras);
 
+                firstIteration = false;
+
                 //END EVENT CONTROL SECTION
 
                 firstPressedKeys.clear();
@@ -255,7 +258,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 Mouse.resetFirstPressed();
                 
                 if(key[ALLEGRO_KEY_ESCAPE])
-                    closeEditor = true;
+                    closeProgram = true;
                 for(int i = 0; i < ALLEGRO_KEY_MAX; i++)
                     key[i] &= KEY_SEEN;
                 redraw = true;
@@ -303,7 +306,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 key[event.keyboard.keycode] &= KEY_RELEASED;
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
-                closeEditor = true;
+                closeProgram = true;
                 break;
         }
 
@@ -360,7 +363,10 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers){
         for(objectIndex = 0; objectIndex < Layers[layerIndex].Objects.size(); objectIndex++){
             for(const EveModule & Event : Layers[layerIndex].Objects[objectIndex].EveContainer){
                 for(const string & type : Event.primaryTriggerTypes){
-                    if(type == "each_iteration"){
+                    if(type == "on_boot"){
+                        BaseOfTriggerableObjects.BootTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
+                    }
+                    else if(type == "each_iteration"){
                         BaseOfTriggerableObjects.IterationTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "second_passed"){
@@ -415,6 +421,14 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers){
 }
 void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects){
     AncestorObject * tempObject = nullptr;
+    if(firstIteration){
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.BootTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
+            }
+        }
+    }
     for(AncestorIndex & Index : BaseOfTriggerableObjects.IterationTriggered){
         tempObject = Index.object(Layers);
         if(tempObject != nullptr && tempObject->getIsActive()){
@@ -1487,7 +1501,7 @@ void EngineLoop::findContextInObject(ValueLocation Location, PointerContainer & 
     }
     else{
         vector <BasePointersStruct> BasePointers;
-        Object->bindPrimaryToVariable(Location.attribute, BasePointers);
+        Object->getPrimaryContext(Location.attribute, BasePointers);
         if(BasePointers.size() > 0){
             NewContext.BasePointers.insert(NewContext.BasePointers.end(), BasePointers.begin(), BasePointers.end());
             NewContext.type = "pointer";
@@ -2447,7 +2461,7 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
             return;
         }
         for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
-            if(LeftOperand->Variables[i].getType() == 'd' || isStringInGroup(RightOperand->BasePointers[j].type, 4, "float", "double")){
+            if(LeftOperand->Variables[i].getType() == 'd' || isStringInGroup(RightOperand->BasePointers[j].type, 2, "float", "double")){
                 NewContext.Variables.push_back(VariableModule());
                 NewContext.Variables.back().setDouble(LeftOperand->Variables[i].floatingOperation(Operation.instruction, &RightOperand->BasePointers[j]));
             }
@@ -3660,12 +3674,277 @@ void EngineLoop::getReferenceByIndex(OperaClass & Operation, vector<PointerConta
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
+void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContainer> & EventContext){
+    if(Operation.dynamicIDs.size() == 0){
+        std::cout << "Error: In " << __FUNCTION__ << ": Bind requires at least one context.\n";
+        return;
+    }
+    if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
+        std::cout << "Error: In " << __FUNCTION__ << ": Bind requires at least one literal of string type.\n";
+        return;
+    }
+    if(isStringInGroup(Operation.Literals[0].getString(), 5, "literal", "l", "remove_literal", "rliteral", "rl")){
+        if(Operation.Literals.size() == 1){
+            std::cout << "Error: In " << __FUNCTION__ << ": Bind requires at least two literals of string type.\n";
+            return;
+        }
+        PointerContainer * ContextA;
+        if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
+            std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            return;
+        }
+        if(ContextA->Objects.size() == 0){
+            std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+            return;
+        }
+        if(printInstructions){
+            std::cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
+        }
+        for(AncestorObject * Object : ContextA->Objects){
+            for(const VariableModule & Variable : vector<VariableModule>(Operation.Literals.begin()+1, Operation.Literals.end())){
+                if(Variable.getType() != 's'){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
+                    continue;
+                }
+                if(printInstructions){
+                    std::cout << "\"" << Variable.getString() << "\", ";
+                }
+                if(isStringInGroup(Operation.Literals[0].getString(), 2, "literal", "l")){
+                    Object->bindedScripts.push_back(EXE_PATH + Variable.getString());
+                }
+                else{
+                    removeFromStringVector(Object->bindedScripts, EXE_PATH + Variable.getString());
+                }
+            }
+        }
+        if(printInstructions){
+            std::cout << "]\n";
+        }
+    }
+    else if(isStringInGroup(Operation.Literals[0].getString(), 5, "context", "c", "remove_context", "rcontext", "rc")){
+        PointerContainer * ContextObject, * ContextFiles;
+        if(!getPairOfContexts(ContextObject, ContextFiles, EventContext, Operation.dynamicIDs)){
+            std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            return;
+        }
+        if(ContextObject->Objects.size() == 0){
+            std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+            return;
+        }
+        if(ContextFiles->type == "pointer"){
+            if(ContextFiles->BasePointers.size() == 0){
+                std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
+                return;
+            }
+            if(printInstructions){
+                std::cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
+            }
+            for(AncestorObject * Object : ContextObject->Objects){
+                for(const BasePointersStruct & Pointer : ContextFiles->BasePointers){
+                    if(Pointer.type != "string"){
+                        std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only pointers of \'string'; type.\n";
+                        continue;
+                    }
+                    if(printInstructions){
+                        std::cout << "\"" << Pointer.getString() << "\", ";
+                    }
+                    if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
+                        Object->bindedScripts.push_back(EXE_PATH + Pointer.getString());
+                    }
+                    else{
+                        removeFromStringVector(Object->bindedScripts, EXE_PATH + Pointer.getString());
+                    }
+                }
+            }
+            if(printInstructions){
+                std::cout << "]\n";
+            }
+        }
+        else if(ContextFiles->type == "value"){
+            if(ContextFiles->Variables.size() == 0){
+                std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
+                return;
+            }
+            if(printInstructions){
+                std::cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
+            }
+            for(AncestorObject * Object : ContextObject->Objects){
+                for(const VariableModule & Variable : ContextFiles->Variables){
+                    if(Variable.getType() != 's'){
+                        std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
+                        continue;
+                    }
+                    if(printInstructions){
+                        std::cout << "\"" << Variable.getString() << "\", ";
+                    }
+                    if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
+                        Object->bindedScripts.push_back(EXE_PATH + Variable.getString());
+                    }
+                    else{
+                        removeFromStringVector(Object->bindedScripts, EXE_PATH + Variable.getString());
+                    }
+                }
+            }
+            if(printInstructions){
+                std::cout << "]\n";
+            }
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " only accepts file input of types: \'pointer\' and \'value\'.\n";
+            return;
+        }
+    }
+    else if(Operation.Literals[0].getString() == "reset" || Operation.Literals[0].getString() == "r"){
+        PointerContainer * ContextObject;
+        if(!getOneContext(ContextObject, EventContext, Operation.dynamicIDs)){
+            std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            return;
+        }
+        if(ContextObject->Objects.size() == 0){
+            std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+            return;
+        }
+        if(printInstructions){
+            std::cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << "\n";
+        }
+        for(AncestorObject * Object : ContextObject->Objects){
+            Object->bindedScripts.clear();
+        }
+    }
+}
+void EngineLoop::buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext, bool & wasBuildExecuted){
+    if(Operation.dynamicIDs.size() == 0){
+        std::cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
+        return;
+    }
+    PointerContainer * ContextA;
+    if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
+        std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        return;
+    }
+    if(ContextA->Objects.size() == 0){
+        std::cout << "Error: In " << __FUNCTION__ << ": Build requires at least one object.\n";
+        return;
+    }
+    bool canResetEvents = false;
+    if(Operation.Literals.size() > 0 && Operation.Literals[0].getType() == 'b'){
+        canResetEvents = Operation.Literals[0].getBool();
+    }
+    if(printInstructions){
+        if(canResetEvents){
+            std::cout << "build " << Operation.dynamicIDs[0] << " true\n";
+        }
+        else{
+            std::cout << "build " << Operation.dynamicIDs[0] << " false\n";
+        }
+    }
+    wasBuildExecuted = true;
+    for(AncestorObject * Object : ContextA->Objects){
+        Object->translateAllScripts(canResetEvents);
+    }
+}
+void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event){
+    if(Operation.dynamicIDs.size() == 0){
+        std::cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
+        return;
+    }
+
+    vector <VariableModule> VariableFromPointer;
+    vector <VariableModule> & Variables = Operation.Literals;
+    PointerContainer * Context = nullptr;
+    
+    if(Operation.Literals.size() > 0){
+        if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+            std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            return;
+        }
+    }
+    else if(Operation.dynamicIDs.size() > 1){
+        PointerContainer * ContextValues = nullptr;
+        
+        if(!getPairOfContexts(Context, ContextValues, EventContext, Operation.dynamicIDs)){
+            std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            return;
+        }
+        
+        if(ContextValues->type == "value"){
+            Variables = ContextValues->Variables;
+        }
+        else if(ContextValues->type == "pointer"){
+            for(const BasePointersStruct & Pointer : ContextValues->BasePointers){
+                VariableFromPointer.push_back(VariableModule());
+                VariableFromPointer.back().setValueFromPointer(Pointer);
+            }
+            Variables = VariableFromPointer;
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Second context must be of type: pointer or value.\n";
+        }
+    }
+
+    if(printInstructions){
+        std::cout << Operation.instruction << " " << Operation.dynamicIDs[0] << "." << Operation.Location.attribute << "()";
+        if(Variables.size() > 0){
+            std::cout << "[";
+            for(const VariableModule & Var : Variables){
+                std::cout << Var.getStringUnsafe() << ", ";
+            }
+            std::cout << "]<" << Variables.size() << ">\n";
+        }
+    }
+
+    if(Context->type == "text"){
+        for(TextModule * Text : Context->Modules.Texts){
+            Event->controlText(Text, Operation.Location.attribute, Variables);
+        }
+    }
+    else if(Context->type == "editable_text"){
+        for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
+            Event->controlText(EditableText, Operation.Location.attribute, Variables);
+        }
+    }
+    else if(Context->type == "image"){
+        for(ImageModule * Image : Context->Modules.Images){
+            Event->controlImage(Image, Operation.Location.attribute, Variables);
+        }
+    }
+    else if(Context->type == "movement"){
+        for(MovementModule * Movement : Context->Modules.Movements){
+            Event->controlMovement(Movement, Operation.Location.attribute, Variables);
+        }
+    }
+    else if(Context->type == "collision"){
+        for(CollisionModule * Collision : Context->Modules.Collisions){
+            Event->controlCollision(Collision, Operation.Location.attribute, Variables);
+        }
+    }
+    else if(Context->type == "particles"){
+        for(ParticleEffectModule * Particles : Context->Modules.Particles){
+            Event->controlParticles(Particles, Operation.Location.attribute, Variables);
+        }
+    }
+    else if(Context->type == "event"){
+        /*for(EveModule * Event : Context->Modules.Events){
+            Event->controlEvent(Event, Operation.Location.attribute, Variables);
+        }*/
+    }
+    else if(Context->type == "variable"){
+        for(VariableModule * Variable : Context->Modules.Variables){
+            Event->controlVariables(Variable, Operation.Location.attribute, Variables);
+        }
+    }
+    else if(Context->type == "scrollbar"){
+        for(ScrollbarModule * Scrollbar : Context->Modules.Scrollbars){
+            Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables);
+        }
+    }
+}
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted, bool & wasBuildExecuted
 ){
     for(OperaClass & Operation : Operations){
-        if(isStringInGroup(Operation.instruction, 3, "break", "return")){
+        if(isStringInGroup(Operation.instruction, 4, "break", "return", "reboot", "power_off")){
             return Operation;
         }
         //Aggregate entities and push them on the Variables Stack.
@@ -3724,6 +4003,15 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             if(OwnerLayer == nullptr || Owner == nullptr){
                 return OperaClass();
             }
+        }
+        else if(Operation.instruction == "bind"){
+            bindFilesToObjects(Operation, EventContext);
+        }
+        else if(Operation.instruction == "build"){
+            buildEventsInObjects(Operation, EventContext, wasBuildExecuted);
+        }
+        else if(Operation.instruction == "fun"){
+            executeFunction(Operation, EventContext, Event);
         }
         if(printInstructions){
             string buffor = "Stack: ";
@@ -4121,7 +4409,11 @@ VariableModule EngineLoop::findNextValueAmongObjects(ConditionClass & Condition,
 VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext){
     VariableModule NewValue(Condition.Location.source, nullptr, "", "");
     
-    if(Condition.Location.source == "second_passed"){
+    if(Condition.Location.source == "on_boot"){
+        NewValue.setBool(firstIteration);
+        return NewValue;
+    }
+    else if(Condition.Location.source == "second_passed"){
         NewValue.setBool(secondHasPassed());
         return NewValue;
     }
@@ -4412,10 +4704,10 @@ char EngineLoop::evaluateConditionalChain(vector<ConditionClass> & ConditionalCh
     }
     if(resultStack.size() == 1){
         if(resultStack.back().getType() == 's'){
-            if(isStringInGroup(resultStack.back().getString(), 2, "true", "t", "1")){
+            if(isStringInGroup(resultStack.back().getString(), 3, "true", "t", "1")){
                 return 't';
             }
-            else if(isStringInGroup(resultStack.back().getString(), 2, "false", "f", "0")){
+            else if(isStringInGroup(resultStack.back().getString(), 3, "false", "f", "0")){
                 return 'f';
             }
             else{
@@ -4541,7 +4833,11 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
     detectTriggeredEvents(Layers, Cameras, TriggeredObjects);
 
-    if(printInstructions && TriggeredObjects.size() > 0){
+    if(TriggeredObjects.size() == 0){
+        return;
+    }
+
+    if(printInstructions){
         std::cout << "\nTriggered "<< TriggeredObjects.size() << " objects:\n";
     }
 
@@ -4554,6 +4850,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     bool noTriggerableEvents = true;
     bool wasDeleteExecuted = false;
     bool wasNewExecuted = false;
+    bool wasBuildExecuted = false;
     
 
     LayerClass * TriggeredLayer;
@@ -4607,6 +4904,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
         wasDeleteExecuted = false;
         wasNewExecuted = false;
+        wasBuildExecuted = false;
 
         do{
             if(Event->conditionalStatus == 'n' && Interrupt.instruction != "break"){
@@ -4615,8 +4913,16 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){
                 if(!Event->areDependentOperationsDone){
-                    Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted);
-                    if(Interrupt.instruction == "return"){
+                    Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted);
+                    if(Interrupt.instruction == "power_off"){
+                        closeProgram = true;
+                        return;
+                    }
+                    else if(Interrupt.instruction == "reboot"){
+                        firstIteration = true;
+                        return;
+                    }
+                    else if(Interrupt.instruction == "return"){
                         Interrupt.instruction = "";
                         break;
                     }
@@ -4641,11 +4947,19 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 MemoryStack.pop_back();
             }
             if(Interrupt.instruction != "break"){
-                Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted);
-            }
-            if(Interrupt.instruction == "return"){
-                Interrupt.instruction = "";
-                break;
+                Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted);
+                if(Interrupt.instruction == "power_off"){
+                    closeProgram = true;
+                    return;
+                }
+                else if(Interrupt.instruction == "reboot"){
+                    firstIteration = true;
+                    return;
+                }
+                else if(Interrupt.instruction == "return"){
+                    Interrupt.instruction = "";
+                    break;
+                }
             }
             if(TriggeredLayer == nullptr || Triggered == nullptr){
                 std::cout << "Aborting! The owner of the event has been deleted.\n";
@@ -4713,7 +5027,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             updateBaseOfTriggerableObjects(Layers);
         }
 
-        if(wasNewExecuted){
+        if(wasNewExecuted || wasBuildExecuted){
             updateBaseOfTriggerableObjects(Layers);
         }
     }

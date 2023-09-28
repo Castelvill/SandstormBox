@@ -1,0 +1,68 @@
+start while_click false
+triggers [key_pressed]
+if ([key_pressed 23])
+literal int [0] xd
+run [while]
+end
+
+start while true
+if ([context xd] [int 10] <)
+index layer [1] [xd] object obj
+first _ [obj] _ _ _ _ id
+++ xd
+end
+
+start create_new false
+triggers [key_pressed]
+if ([key_pressed 17])
+all layer _ _ _ _ _ _ all_layers_before
+literal string [new_object] ids
+literal int [10] vector_size
+new object L1 _ vector_size ids new_objects
+index layer [1 0] _ object blueprint
+clone new_objects blueprint
+all _ [new_objects] _ _ event _ is_active
+--
+all layer _ _ _ _ object _ all_objects
+end
+
+start delete_last false
+triggers [key_pressed]
+if ([key_pressed 5])
+first layer L1 _ _ _ _ _ L1
+first layer KERNEL _ _ _ _ _ KERNEL
+all _ [L1] _ _ image _ _ _ all_images
+last _ [all_images]
+delete
+all layer _ _ _ _ object _ all_layers
+end
+
+start left false
+triggers [key_pressing]
+if ([key_pressing 1])
+index layer [1 0] _ object Amogus
+first _ [Amogus] _ _ _ _ pos_x _ pos_x
+literal int [20] speed
+-= pos_x speed
+end
+
+start right false
+triggers [key_pressing]
+if ([key_pressing 4])
+index layer [1 0] _ object Amogus
+first _ [Amogus] _ _ _ _ pos_x _ pos_x
+literal int [20] speed
++= pos_x speed
+end
+
+start color false
+triggers [key_pressed]
+if ([key_pressed 19])
+index layer [1 0 1] _ image image1
+literal int [0 0 0 0] low
+literal int [10 10 10 10] high
+random_int _ low high randomColor
+literal double [10] divide
+/= randomColor divide
+fun image1 color c randomColor
+end

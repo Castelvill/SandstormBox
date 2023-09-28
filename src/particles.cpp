@@ -623,7 +623,7 @@ void ParticleEffectModule::getContext(string attribute, vector <BasePointersStru
         BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointers);
+        getPrimaryContext(attribute, BasePointers);
     }
 }
 

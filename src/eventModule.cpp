@@ -28,12 +28,9 @@ EveModule::EveModule(string eventModuleID, vector<string> *listOfIDs, string new
 }
 void EveModule::setUpNewInstance(){
     conditionalStatus = 'n';
-    parentID = "";
     elseChildID = "";
     areDependentOperationsDone = false;
-    parentStatus = false;
     elseChildFinished = false;
-    werePostOperationsExecuted = false;
     loop = false;
 }
 void EveModule::clear(){
@@ -42,11 +39,9 @@ void EveModule::clear(){
     Children.clear();
 }
 void EveModule::resetStatus(){
-	parentStatus = false;
 	for(ChildStruct & Child : Children){
 		Child.finished = false;
 	}
-	werePostOperationsExecuted = false;
 }
 bool EveModule::checkIfAllChildrenFinished(){
     for(ChildStruct Child : Children){
@@ -56,345 +51,358 @@ bool EveModule::checkIfAllChildrenFinished(){
     }
     return true;
 }
-void EveModule::controlAncestor(OperaClass & Operation, vec2d & objectPos, vec2d & objectSize){
-    if(Operation.Location.attribute == "position" && Operation.Literals.size() >= 2){
-        objectPos.set(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
+void EveModule::controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values){
+    if(attribute == "activate"){
+        Text->activate();
     }
-    if(Operation.Location.attribute == "size" && Operation.Literals.size() >= 2){
-        objectSize.set(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
+    else if(attribute == "deactivate"){
+        Text->deactivate();
     }
-}
-void EveModule::controlText(OperaClass & Operation, TextModule & Text){
-    if(Operation.Location.attribute == "activate"){
-        Text.activate();
+    else if(attribute == "toggle"){
+        Text->toggleIsActive();
     }
-    else if(Operation.Location.attribute == "deactivate"){
-        Text.deactivate();
+    else if(attribute == "position" && Values.size() >= 2){
+        Text->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "position" && Operation.Literals.size() >= 2){
-        Text.setPos(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "size" && Values.size() >= 2){
+        Text->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "size" && Operation.Literals.size() >= 2){
-        Text.setSize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "set_scale" && Values.size() >= 2){
+        Text->setScale(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "set_scale" && Operation.Literals.size() >= 2){
-        Text.setScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "add_scale" && Values.size() >= 2){
+        Text->addScale(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "add_scale" && Operation.Literals.size() >= 2){
-        Text.addScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "color" && Values.size() >= 3){
+        Text->setColors(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "color" && Operation.Literals.size() >= 3){
-        Text.setColors(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble(), Operation.Literals[2].getDouble());
+    else if(attribute == "random_color"){
+        Text->setRandomColors();
     }
-    else if(Operation.Location.attribute == "random_color"){
-        Text.setRandomColors();
+    else if(attribute == "set_rotation" && Values.size() >= 1){
+        Text->setRotation(Values[0].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "set_rotation" && Operation.Literals.size() >= 1){
-        Text.setRotation(Operation.Literals[0].getDouble());
+    else if(attribute == "rotate" && Values.size() >= 1){
+        Text->addRotation(Values[0].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "rotate" && Operation.Literals.size() >= 1){
-        Text.addRotation(Operation.Literals[0].getDouble());
+    else if(attribute == "visibility" && Values.size() >= 1){
+        Text->setVisibility(Values[0].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "visibility" && Operation.Literals.size() >= 1){
-        Text.setVisibility(Operation.Literals[0].getDouble());
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
     }
 }
-void EveModule::controlImage(OperaClass & Operation, ImageModule & Image){
-    if(Operation.Location.attribute == "position" && Operation.Literals.size() >= 2){
-        Image.setPos(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+void EveModule::controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values){
+    if(attribute == "position" && Values.size() >= 2){
+        Image->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "size" && Operation.Literals.size() >= 2){
-        Image.setSize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "size" && Values.size() >= 2){
+        Image->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "scale" && Operation.Literals.size() >= 2){
-        Image.setScale(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "scale" && Values.size() >= 2){
+        Image->setScale(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "resize" && Operation.Literals.size() >= 2){
-        Image.resize(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "resize" && Values.size() >= 2){
+        Image->resize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "set_rotation" && Operation.Literals.size() >= 1){
-        Image.setRotation(Operation.Literals[0].getDouble());
+    else if(attribute == "set_rotation" && Values.size() >= 1){
+        Image->setRotation(Values[0].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "rotate" && Operation.Literals.size() >= 1){
-        Image.addRotation(Operation.Literals[0].getDouble());
+    else if(attribute == "rotate" && Values.size() >= 1){
+        Image->addRotation(Values[0].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "mirror" && Operation.Literals.size() >= 2){
-        Image.setMirror(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble());
+    else if(attribute == "mirror" && Values.size() >= 2){
+        Image->setMirror(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "image_color" && Operation.Literals.size() >= 4){
-        float arr[] = {float(Operation.Literals[0].getDouble()), float(Operation.Literals[1].getDouble()), float(Operation.Literals[2].getDouble()), float(Operation.Literals[3].getDouble())};
-        Image.setImageColor(arr);
+    else if(attribute == "color" && Values.size() >= 4){
+        float arr[] = {float(Values[0].getDoubleUnsafe()), float(Values[1].getDoubleUnsafe()), float(Values[2].getDoubleUnsafe()), float(Values[3].getDoubleUnsafe())};
+        Image->setImageColor(arr);
     }
-    else if(Operation.Location.attribute == "light" && Operation.Literals.size() >= 4){
-        Image.setLightColor(vec3d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble(), Operation.Literals[2].getDouble()), Operation.Literals[3].getDouble());
+    else if(attribute == "light" && Values.size() >= 4){
+        Image->setLightColor(vec3d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe()), Values[3].getDoubleUnsafe());
     }
-}
-void EveModule::controlMovement(OperaClass & Operation, MovementModule & Movement){
-    if(Operation.Location.attribute == "move_up"){
-        Movement.setNextMove(true, false, false, false, false, false, false);
-    }
-    else if(Operation.Location.attribute == "move_right"){
-        Movement.setNextMove(false, true, false, false, false, false, false);
-    }
-    else if(Operation.Location.attribute == "move_down"){
-        Movement.setNextMove(false, false, true, false, false, false, false);
-    }
-    else if(Operation.Location.attribute == "move_left"){
-        Movement.setNextMove(false, false, false, true, false, false, false);
-    }
-    else if(Operation.Location.attribute == "move_jump"){
-        Movement.setNextMove(false, false, false, false, true, false, false);
-    }
-    else if(Operation.Location.attribute == "move_fall"){
-        Movement.setNextMove(false, false, false, false, false, true, false);
-    }
-    else if(Operation.Location.attribute == "move_run"){
-        Movement.setNextMove(false, false, false, false, false, false, true);
-    }
-    else if(Operation.Location.attribute == "move" && Operation.Literals.size() >= 2){
-        Movement.addMomentum(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
     }
 }
-void EveModule::controlCollision(OperaClass & Operation, CollisionModule & Collision){
-    if(Operation.Location.attribute == "solid"){
-        Collision.switchSolid();
+void EveModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values){
+    if(attribute == "move_up"){
+        Movement->setNextMove(true, false, false, false, false, false, false);
     }
-    if(Operation.Location.attribute == "penetrate"){
-        Collision.switchSolidPenetration();
+    else if(attribute == "move_right"){
+        Movement->setNextMove(false, true, false, false, false, false, false);
     }
-}
-void EveModule::controlParticles(OperaClass & Operation, ParticleEffectModule & Particles){
-    if(Operation.Location.attribute == "environment" && Operation.Literals.size() >= 2){
-        Particles.setEnvironment(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "move_down"){
+        Movement->setNextMove(false, false, true, false, false, false, false);
     }
-    else if(Operation.Location.attribute == "environment_speed" && Operation.Literals.size() >= 2){
-        Particles.setEnvironmentSpeed(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else if(attribute == "move_left"){
+        Movement->setNextMove(false, false, false, true, false, false, false);
     }
-    else if(Operation.Location.attribute == "shape" && Operation.Literals.size() >= 1){
-        Particles.setParticlesShape(Operation.Literals[0].getDouble());
+    else if(attribute == "move_jump"){
+        Movement->setNextMove(false, false, false, false, true, false, false);
     }
-    else if(Operation.Location.attribute == "image"){
-        Particles.switchUseImageAsParticles();
+    else if(attribute == "move_fall"){
+        Movement->setNextMove(false, false, false, false, false, true, false);
     }
-    else if(Operation.Location.attribute == "spawn"){
-        Particles.activeSpawn();
+    else if(attribute == "move_run"){
+        Movement->setNextMove(false, false, false, false, false, false, true);
     }
-    else if(Operation.Location.attribute == "random_colors"){
-        Particles.switchUseRandomColors();
+    else if(attribute == "move" && Values.size() >= 2){
+        Movement->addMomentum(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(Operation.Location.attribute == "move"){
-        Particles.switchAreParticlesMoving();
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
     }
 }
-void EveModule::controlVariables(OperaClass & Operation, VariableModule & Variable){
-    if(Operation.Location.attribute == "toggle_bool"){
-        Variable.toggleBool();
+void EveModule::controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values){
+    if(attribute == "solid"){
+        Collision->switchSolid();
     }
-    else if(Operation.Location.attribute == "set_default_bool_random"){
+    if(attribute == "penetrate"){
+        Collision->switchSolidPenetration();
+    }
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+    }
+}
+void EveModule::controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values){
+    if(attribute == "environment" && Values.size() >= 2){
+        Particles->setEnvironment(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "environment_speed" && Values.size() >= 2){
+        Particles->setEnvironmentSpeed(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "shape" && Values.size() >= 1){
+        Particles->setParticlesShape(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "image"){
+        Particles->switchUseImageAsParticles();
+    }
+    else if(attribute == "spawn"){
+        Particles->activeSpawn();
+    }
+    else if(attribute == "random_colors"){
+        Particles->switchUseRandomColors();
+    }
+    else if(attribute == "move"){
+        Particles->switchAreParticlesMoving();
+    }
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+    }
+}
+void EveModule::controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values){
+    if(attribute == "toggle_bool"){
+        Variable->toggleBool();
+    }
+    else if(attribute == "set_default_bool_random"){
         if(rand() % 2 == 0){
-            Variable.toggleDefaultBool();
+            Variable->toggleDefaultBool();
         }
     }
-    else if(Operation.Location.attribute == "set_default_bool_probability" && Operation.Literals.size() >= 3){
+    else if(attribute == "set_default_bool_probability" && Values.size() >= 3){
         bool setBool;
-        if(Operation.Literals[0].getDouble() == 0){
+        if(Values[0].getDoubleUnsafe() == 0){
             setBool = false;
         }
-        else if(Operation.Literals[0].getDouble() == 1){
+        else if(Values[0].getDoubleUnsafe() == 1){
             setBool = true;
         }
         else{
             return;
         }
 
-        if(rand() % Operation.Literals[2].getInt() <= Operation.Literals[1].getInt()){
-            Variable.setDefaultBool(setBool);
+        if(rand() % Values[2].getIntUnsafe() <= Values[1].getIntUnsafe()){
+            Variable->setDefaultBool(setBool);
         }
     }
-    else if(Operation.Location.attribute == "set_default_bool_probability" && Operation.Literals.size() >= 2){
+    else if(attribute == "set_default_bool_probability" && Values.size() >= 2){
         bool setBool;
-        if(Operation.Literals[0].getDouble() == 0){
+        if(Values[0].getDoubleUnsafe() == 0){
             setBool = false;
         }
-        else if(Operation.Literals[0].getDouble() == 1){
+        else if(Values[0].getDoubleUnsafe() == 1){
             setBool = true;
         }
         else{
             return;
         }
 
-        if(rand() % 100 <= Operation.Literals[1].getDouble()){
-            Variable.setDefaultBool(setBool);
+        if(rand() % 100 <= Values[1].getDoubleUnsafe()){
+            Variable->setDefaultBool(setBool);
         }
     }
-    else if(Operation.Location.attribute == "set_default_bool" && Operation.Literals.size() >= 1){
-        if(Operation.Literals[0].getDouble() == 0){
-            Variable.setDefaultBool(false);
+    else if(attribute == "set_default_bool" && Values.size() >= 1){
+        if(Values[0].getDoubleUnsafe() == 0){
+            Variable->setDefaultBool(false);
         }
-        if(Operation.Literals[0].getDouble() == 1){
-            Variable.setDefaultBool(true);
+        if(Values[0].getDoubleUnsafe() == 1){
+            Variable->setDefaultBool(true);
         }
     }
-    else if(Operation.Location.attribute == "set_default_int" && Operation.Literals.size() >= 1){
-        Variable.setDefaultInt(Operation.Literals[0].getInt());
+    else if(attribute == "set_default_int" && Values.size() >= 1){
+        Variable->setDefaultInt(Values[0].getIntUnsafe());
     }
-    else if(Operation.Location.attribute == "set_default_int_interval" && Operation.Literals.size() >= 2){
-        Variable.setDefaultInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
+    else if(attribute == "set_default_int_interval" && Values.size() >= 2){
+        Variable->setDefaultInt(randomInt(Values[0].getIntUnsafe(), Values[1].getIntUnsafe()));
     }
-    else if(Operation.Location.attribute == "set_default_int_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.setDefaultInt(Operation.Literals[dice].getInt());
+    else if(attribute == "set_default_int_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->setDefaultInt(Values[dice].getIntUnsafe());
     }
-    else if(Operation.Location.attribute == "set_default_double" && Operation.Literals.size() >= 1){
-        Variable.setDefaultDouble(Operation.Literals[0].getDouble());;
+    else if(attribute == "set_default_double" && Values.size() >= 1){
+        Variable->setDefaultDouble(Values[0].getDoubleUnsafe());;
     }
-    else if(Operation.Location.attribute == "set_default_double_interval" && Operation.Literals.size() >= 2){
-        Variable.setDefaultDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
+    else if(attribute == "set_default_double_interval" && Values.size() >= 2){
+        Variable->setDefaultDouble(randomDouble(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));;
     }
-    else if(Operation.Location.attribute == "set_default_double_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.setDefaultDouble(Operation.Literals[dice].getDouble());
+    else if(attribute == "set_default_double_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->setDefaultDouble(Values[dice].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "set_default_string" && Operation.Literals.size() >= 1){
-        Variable.setDefaultString(Operation.Literals[0].getString());
+    else if(attribute == "set_default_string" && Values.size() >= 1){
+        Variable->setDefaultString(Values[0].getString());
     }
-    else if(Operation.Location.attribute == "set_default_string_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.setDefaultString(Operation.Literals[dice].getString());
+    else if(attribute == "set_default_string_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->setDefaultString(Values[dice].getString());
     }
-    else if(Operation.Location.attribute == "set_bool_random"){
+    else if(attribute == "set_bool_random"){
         if(rand() % 2 == 0)
-        Variable.toggleBool();
+        Variable->toggleBool();
     }
-    else if(Operation.Location.attribute == "set_bool_probability" && Operation.Literals.size() >= 3){
+    else if(attribute == "set_bool_probability" && Values.size() >= 3){
         bool settingBool;
-        if(Operation.Literals[0].getDouble() == 0){
+        if(Values[0].getDoubleUnsafe() == 0){
             settingBool = false;
         }
-        else if(Operation.Literals[0].getDouble() == 1){
+        else if(Values[0].getDoubleUnsafe() == 1){
             settingBool = true;
         }
         else{
             return;
         }
 
-        if(rand() % Operation.Literals[2].getInt() <= Operation.Literals[1].getInt()){
-            Variable.setBool(settingBool);
+        if(rand() % Values[2].getIntUnsafe() <= Values[1].getIntUnsafe()){
+            Variable->setBool(settingBool);
         }
     }
-    else if(Operation.Location.attribute == "set_bool_probability" && Operation.Literals.size() >= 2){
+    else if(attribute == "set_bool_probability" && Values.size() >= 2){
         bool settingBool;
-        if(Operation.Literals[0].getDouble() == 0){
+        if(Values[0].getDoubleUnsafe() == 0){
             settingBool = false;
         }
-        else if(Operation.Literals[0].getDouble() == 1){
+        else if(Values[0].getDoubleUnsafe() == 1){
             settingBool = true;
         }
         else{
             return;
         }
 
-        if(rand() % 100 <= Operation.Literals[1].getDouble()){
-            Variable.setBool(settingBool);
+        if(rand() % 100 <= Values[1].getDoubleUnsafe()){
+            Variable->setBool(settingBool);
         }
     }
-    else if(Operation.Location.attribute == "set_bool" && Operation.Literals.size() >= 1){
-        if(Operation.Literals[0].getDouble() == 0){
-            Variable.setBool(false);
+    else if(attribute == "set_bool" && Values.size() >= 1){
+        if(Values[0].getDoubleUnsafe() == 0){
+            Variable->setBool(false);
         }
-        if(Operation.Literals[0].getDouble() == 1){
-            Variable.setBool(true);
+        if(Values[0].getDoubleUnsafe() == 1){
+            Variable->setBool(true);
         }
     }
-    else if(Operation.Location.attribute == "set_int" && Operation.Literals.size() >= 1){
-        Variable.setInt(Operation.Literals[0].getInt());
+    else if(attribute == "set_int" && Values.size() >= 1){
+        Variable->setInt(Values[0].getIntUnsafe());
     }
-    else if(Operation.Location.attribute == "set_int_interval" && Operation.Literals.size() >= 2){
-        Variable.setInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
+    else if(attribute == "set_int_interval" && Values.size() >= 2){
+        Variable->setInt(randomInt(Values[0].getIntUnsafe(), Values[1].getIntUnsafe()));
     }
-    else if(Operation.Location.attribute == "set_int_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.setInt(Operation.Literals[dice].getInt());
+    else if(attribute == "set_int_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->setInt(Values[dice].getIntUnsafe());
     }
-    else if(Operation.Location.attribute == "set_double" && Operation.Literals.size() >= 1){
-        Variable.setDouble(Operation.Literals[0].getDouble());;
+    else if(attribute == "set_double" && Values.size() >= 1){
+        Variable->setDouble(Values[0].getDoubleUnsafe());;
     }
-    else if(Operation.Location.attribute == "set_double_interval" && Operation.Literals.size() >= 2){
-        Variable.setDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
+    else if(attribute == "set_double_interval" && Values.size() >= 2){
+        Variable->setDouble(randomDouble(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));;
     }
-    else if(Operation.Location.attribute == "set_double_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.setDouble(Operation.Literals[dice].getDouble());
+    else if(attribute == "set_double_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->setDouble(Values[dice].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "set_string" && Operation.Literals.size() >= 1){
-        Variable.setString(Operation.Literals[0].getString());
+    else if(attribute == "set_string" && Values.size() >= 1){
+        Variable->setString(Values[0].getString());
     }
-    else if(Operation.Location.attribute == "set_string_random" && Operation.Literals.size() >= 1){
+    else if(attribute == "set_string_random" && Values.size() >= 1){
         std::cout << "hello ";
-        unsigned int dice = rand() % Operation.Literals.size();
-        std::cout << Variable.setString(Operation.Literals[dice].getString()) << " ";
-        std::cout << Variable.getString() << "\n";
+        unsigned int dice = rand() % Values.size();
+        std::cout << Variable->setString(Values[dice].getString()) << " ";
+        std::cout << Variable->getString() << "\n";
     }
-    else if(Operation.Location.attribute == "set_to_default"){
-        Variable.resetValue();
+    else if(attribute == "set_to_default"){
+        Variable->resetValue();
     }
-    else if(Operation.Location.attribute == "add_default_int" && Operation.Literals.size() >= 1){
-        Variable.addDefaultInt(Operation.Literals[0].getInt());
+    else if(attribute == "add_default_int" && Values.size() >= 1){
+        Variable->addDefaultInt(Values[0].getIntUnsafe());
     }
-    else if(Operation.Location.attribute == "add_default_int_interval" && Operation.Literals.size() >= 2){
-        Variable.addDefaultInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
+    else if(attribute == "add_default_int_interval" && Values.size() >= 2){
+        Variable->addDefaultInt(randomInt(Values[0].getIntUnsafe(), Values[1].getIntUnsafe()));
     }
-    else if(Operation.Location.attribute == "add_default_int_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.addDefaultInt(Operation.Literals[dice].getInt());
+    else if(attribute == "add_default_int_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->addDefaultInt(Values[dice].getIntUnsafe());
     }
-    else if(Operation.Location.attribute == "add_default_double" && Operation.Literals.size() >= 1){
-        Variable.addDefaultDouble(Operation.Literals[0].getDouble());;
+    else if(attribute == "add_default_double" && Values.size() >= 1){
+        Variable->addDefaultDouble(Values[0].getDoubleUnsafe());;
     }
-    else if(Operation.Location.attribute == "add_default_double_interval" && Operation.Literals.size() >= 2){
-        Variable.addDefaultDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
+    else if(attribute == "add_default_double_interval" && Values.size() >= 2){
+        Variable->addDefaultDouble(randomDouble(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));;
     }
-    else if(Operation.Location.attribute == "add_default_double_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.addDefaultDouble(Operation.Literals[dice].getDouble());
+    else if(attribute == "add_default_double_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->addDefaultDouble(Values[dice].getDoubleUnsafe());
     }
-    else if(Operation.Location.attribute == "add_int" && Operation.Literals.size() >= 1){
-        Variable.addInt(Operation.Literals[0].getInt());
+    else if(attribute == "add_int" && Values.size() >= 1){
+        Variable->addInt(Values[0].getIntUnsafe());
     }
-    else if(Operation.Location.attribute == "add_int_interval" && Operation.Literals.size() >= 2){
-        Variable.addInt(randomInt(Operation.Literals[0].getInt(), Operation.Literals[1].getInt()));
+    else if(attribute == "add_int_interval" && Values.size() >= 2){
+        Variable->addInt(randomInt(Values[0].getIntUnsafe(), Values[1].getIntUnsafe()));
     }
-    else if(Operation.Location.attribute == "add_int_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.addInt(Operation.Literals[dice].getInt());
+    else if(attribute == "add_int_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->addInt(Values[dice].getIntUnsafe());
     }
-    else if(Operation.Location.attribute == "add_double" && Operation.Literals.size() >= 1){
-        Variable.addDouble(Operation.Literals[0].getDouble());;
+    else if(attribute == "add_double" && Values.size() >= 1){
+        Variable->addDouble(Values[0].getDoubleUnsafe());;
     }
-    else if(Operation.Location.attribute == "add_double_interval" && Operation.Literals.size() >= 2){
-        Variable.addDouble(randomDouble(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));;
+    else if(attribute == "add_double_interval" && Values.size() >= 2){
+        Variable->addDouble(randomDouble(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));;
     }
-    else if(Operation.Location.attribute == "add_double_random" && Operation.Literals.size() >= 1){
-        unsigned int dice = rand() % Operation.Literals.size();
-        Variable.addDouble(Operation.Literals[dice].getDouble());
+    else if(attribute == "add_double_random" && Values.size() >= 1){
+        unsigned int dice = rand() % Values.size();
+        Variable->addDouble(Values[dice].getDoubleUnsafe());
     }
-}
-void EveModule::controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrollbar){
-    if(Operation.Location.attribute == "add_real_area" && Operation.Literals.size() >= 2){
-        Scrollbar.addRealScrollingArea(vec2d(Operation.Literals[0].getDouble(), Operation.Literals[1].getDouble()));
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
     }
 }
+void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values){
+    if(attribute == "add_real_area" && Values.size() >= 2){
+        Scrollbar->addRealScrollingArea(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+    }
+}
+
 void EveModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    if(attribute == "parent_id"){
-        BasePointers.push_back(BasePointersStruct());
-        BasePointers.back().setPointer(&parentID);
-    }
-    else if(attribute == "else_child_id"){
+    if(attribute == "else_child_id"){
         BasePointers.push_back(BasePointersStruct());
         BasePointers.back().setPointer(&elseChildID);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointers);
+        getPrimaryContext(attribute, BasePointers);
     }
 }
 

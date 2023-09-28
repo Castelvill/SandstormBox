@@ -1,0 +1,16 @@
+start init false
+triggers [on_boot]
+if ([on_boot])
+index layer [1 0] _ object Amogus
+bind Amogus literal ["scripts/amogus.txt"]
+build Amogus true
+end
+
+start reset false
+triggers [key_pressed]
+if ([key_pressed 18])
+index layer [1 0] _ object Amogus
+bind Amogus rliteral ["scripts/amogus.txt"]
+bind Amogus literal ["scripts/amogus.txt"]
+build Amogus true
+end

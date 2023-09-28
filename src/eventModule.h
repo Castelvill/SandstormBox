@@ -3,7 +3,7 @@
 #include "textModule.h"
 
 struct ValueLocation{
-    string source; //second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, variable, camera, layer, owner, object, pointer
+    string source; //on_boot, second_passed, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, variable, camera, layer, owner, object, pointer
     string cameraID;
     string layerID;
     string objectID;
@@ -49,14 +49,10 @@ public:
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed by other events and a direct use of run() command.
     //Types: each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness.
     vector <string> primaryTriggerTypes;
-    char directive; //n - normal, a - atomic, u - unique, r - random
     char conditionalStatus; //n-null, t-true, f-false
-    string parentID;
     string elseChildID; //Ignore if empty.
     bool areDependentOperationsDone;
-	bool parentStatus;
     bool elseChildFinished;
-	bool werePostOperationsExecuted;
     bool loop;
     EveModule();
     EveModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
@@ -68,14 +64,14 @@ public:
 	void resetStatus();
 	bool checkIfAllChildrenFinished();
 
-    void controlAncestor(OperaClass & Operation, vec2d & objectPos, vec2d & objectSize);
-    void controlText(OperaClass & Operation, TextModule & Text);
-    void controlImage(OperaClass & Operation, ImageModule & Image);
-    void controlMovement(OperaClass & Operation, MovementModule & Movement);
-    void controlCollision(OperaClass & Operation, CollisionModule & Collision);
-    void controlParticles(OperaClass & Operation, ParticleEffectModule & Particles);
-    void controlVariables(OperaClass & Operation, VariableModule & Variable);
-    void controlScrollbar(OperaClass & Operation, ScrollbarModule & Scrollbar);
+    void controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values);
+    void controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values);
+    void controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values);
+    void controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values);
+    void controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values);
+    void controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values);
+    void controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values);
+
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
 

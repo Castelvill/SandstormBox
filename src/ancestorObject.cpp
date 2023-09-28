@@ -523,7 +523,7 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
 }
 
 vector <string> changeCodeIntoWords(string input){
-    std::regex word_regex("(\"*[\\w+\\.*]*\\w+\"*)|;|==|=|>|<|>=|<=|-=|\\+=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\)", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
@@ -538,6 +538,29 @@ vector <string> changeCodeIntoWords(string input){
         }
     }
     return output;
+}
+vector <string> mergeStrings(vector <string> code){
+    vector <string> merged;
+    string buffor = "";
+    for(unsigned i = 0; i < code.size(); i++){
+        buffor = code[i];
+        if(code[i][0] == '\"'){
+            buffor = "";
+            i++;
+            for(; i < code.size(); i++){
+                if(code[i][0] == '\"'){
+                    break;
+                }
+                if(i > 0 && buffor.size() > 0 && code[i-1][0] != '\\'
+                    && code[i-1][0] != '/' && code[i][0] != '\\' && code[i][0] != '/'){
+                    buffor += " ";
+                }
+                buffor += code[i];
+            }
+        }
+        merged.push_back(buffor);
+    }
+    return merged;
 }
 bool prepareNewInstruction(vector<string> words, EveModule & NewEvent, OperaClass *& Operation, bool postOperations, unsigned minLength){
     if(words.size() < minLength){
@@ -852,6 +875,37 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
     cursor++;
     return true;
 }
+bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<VariableModule> & Literals, const string & type){
+    if(type == "bool"){
+        if(!gatherLiterals(words, cursor, Literals, 'b')){
+            std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
+            return false;
+        }
+    }
+    else if(type == "int"){
+        if(!gatherLiterals(words, cursor, Literals, 'i')){
+            std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
+            return false;
+        }
+    }
+    else if(type == "double"){
+        if(!gatherLiterals(words, cursor, Literals, 'd')){
+            std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
+            return false;
+        }
+    }
+    else if(type == "string"){
+        if(!gatherLiterals(words, cursor, Literals, 's')){
+            std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
+            return false;
+        }
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' type does not exist.\n";
+        return false;
+    }
+    return true;
+}
 void AncestorObject::eventAssembler(vector<string> code){
     vector<string> words;
     EveModule NewEvent = EveModule();
@@ -861,6 +915,7 @@ void AncestorObject::eventAssembler(vector<string> code){
     for(const string & line : code){
         words.clear();
         words = changeCodeIntoWords(line);
+        words = mergeStrings(words);
         if(words.size() == 0){
             continue;
         }
@@ -900,7 +955,7 @@ void AncestorObject::eventAssembler(vector<string> code){
                 return;
             }
         }
-        else if(words[0] == "children"){
+        else if(words[0] == "run"){
             if(words.size() < 2){
                 std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
                 return;
@@ -982,7 +1037,7 @@ void AncestorObject::eventAssembler(vector<string> code){
             Operation->Location.source = words[1];
             cursor = 2;
             if(!gatherLiterals(words, cursor, Operation->Literals, 'i')){
-                std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                 return;
             }
             if(!gatherStringVector(words, cursor, Operation->dynamicIDs)){
@@ -1030,25 +1085,25 @@ void AncestorObject::eventAssembler(vector<string> code){
             cursor = 2;
             if(words[1] == "bool"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'b')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
             else if(words[1] == "int"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'i')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
             else if(words[1] == "double"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'd')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
             else if(words[1] == "string"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 's')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
@@ -1166,6 +1221,64 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
             cursor++;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "bind"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            Operation->Literals.push_back(VariableModule::newString(words[2]));
+            if(isStringInGroup(words[2], 5, "literal", "l", "remove_literal", "rliteral", "rl")){
+                cursor = 3;
+                if(!gatherLiterals(words, cursor, Operation->Literals, 's')){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    return;
+                }
+            }
+            else if(isStringInGroup(words[2], 5, "context", "c", "remove_context", "rcontext", "rc")){
+                Operation->dynamicIDs.push_back(words[3]);
+            }
+            else if(words[2] != "reset" && words[2] != "r"){
+                std::cout << "Error: In " << __FUNCTION__ << ": In bind instruction, type must be equal to one of these values: "
+                    "\"literal\", \"l\", \"remove_literal\", \"rliteral\", \"rl\", \"context\", \"c\", \"remove_context\", \"rcontext\", \"rc\", \"reset\", \"r\".\n";
+                return;
+            }
+        }
+        else if(words[0] == "build"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            if(words.size() > 2 && words[2] != "_"){
+                if(words[2] == "true"){
+                    Operation->Literals.push_back(VariableModule::newBool(true));
+                }
+                else if(words[2] == "false"){
+                    Operation->Literals.push_back(VariableModule::newBool(false));
+                }
+                else{
+                    Operation->Literals.push_back(VariableModule::newBool(stoi(words[2])));
+                }
+            }     
+        }
+        else if(words[0] == "fun"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            Operation->Location.attribute = words[2];
+            if(words.size() < 5){
+                continue;
+            }
+            if(words[3] == "context" || words[3] == "c"){
+                Operation->dynamicIDs.push_back(words[4]);
+            }
+            else{
+                cursor = 4;
+                if(!gatherLiterals(words, cursor, Operation->Literals, words[3])){
+                    return;
+                }
+            }
         }
         else{
             std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";

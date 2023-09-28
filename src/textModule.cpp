@@ -378,7 +378,7 @@ void TextModule::getContext(string attribute, vector <BasePointersStruct> & Base
         BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointers);
+        getPrimaryContext(attribute, BasePointers);
     }
 }
 string TextModule::getFontID(){
@@ -1635,7 +1635,7 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
         BasePointers.back().setPointer(&affectedVariable);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointers);
+        getPrimaryContext(attribute, BasePointers);
     }
 }
 VariableModule EditableTextModule::getAttributeValue(const string &attribute, const string &detail) const{

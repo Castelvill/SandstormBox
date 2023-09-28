@@ -286,8 +286,6 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().TextContainer.back().setUsedBitmapLayer(2);
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
-    Objects.back().bindedScripts.push_back(Engine.EXE_PATH + "script.txt");
-    Objects.back().translateAllScripts(true);
 
 
     /*Objects.back().EveContainer.push_back(EveModule("rotate-init", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
@@ -831,6 +829,10 @@ int main(){
     }
 
     Layers.push_back(LayerClass("KERNEL", Threads.back().layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
+    Layers.back().Objects.push_back(AncestorObject("KERNEL", Layers.back().objectsIDs, Layers.back().getID()));
+    Layers.back().Objects.back().bindedScripts.push_back(Threads.back().EXE_PATH + "scripts/KERNEL.txt");
+    Layers.back().Objects.back().translateAllScripts(true);
+
 
     if(Layers[0].getID() != "KERNEL"){
         std::cout << "Error: In main: Kernel got lost. Never came back.";
@@ -865,7 +867,7 @@ int main(){
     //Main loop
     do{
         Threads.back().windowLoop(Layers, Cameras, FontContainer, fps, BitmapContainer);
-    }while(!Threads.back().closeEditor);
+    }while(!Threads.back().closeProgram);
 
     uniquenessViolated:
 

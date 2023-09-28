@@ -261,7 +261,7 @@ void CollisionModule::getContext(string attribute, vector <BasePointersStruct> &
         BasePointers.back().setPointer(&canPenetrateSolids);
     }
     else{
-        bindPrimaryToVariable(attribute, BasePointers);
+        getPrimaryContext(attribute, BasePointers);
     }
 }
 

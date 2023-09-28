@@ -596,6 +596,6 @@ void ImageModule::getContext(string attribute, vector <BasePointersStruct> & Bas
     }
     else{
         BasePointers.pop_back();
-        bindPrimaryToVariable(attribute, BasePointers);
+        getPrimaryContext(attribute, BasePointers);
     }
 }

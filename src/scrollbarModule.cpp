@@ -163,7 +163,7 @@ void ScrollbarModule::getContext(string attribute, vector <BasePointersStruct> &
     }
     else{
         BasePointers.pop_back();
-        bindPrimaryToVariable(attribute, BasePointers);
+        getPrimaryContext(attribute, BasePointers);
     }
 }
 

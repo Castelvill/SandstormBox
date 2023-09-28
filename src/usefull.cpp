@@ -125,6 +125,10 @@ bool hasEnding(string const &fullString, string const &ending){
 
 
 void printInColor(string text, short color){
+    if(IsDebuggerPresent()){
+        std::cout << text;
+        return;
+    }
     #if __WIN32__
         HANDLE  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         CONSOLE_SCREEN_BUFFER_INFO Info;

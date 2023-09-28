@@ -123,6 +123,7 @@ struct ModuleIndex : AncestorIndex{
 
 //This struct consists of pointers to every object that has at least one event triggerable by the right source  
 struct EventsLookupTable{
+    vector <AncestorIndex> BootTriggered; //Triggeered only in the first iteration or in the first iteration after a reboot.
     vector <AncestorIndex> IterationTriggered; //If a trigger is negated or has else statements, in most cases interpreter puts its event into IterationTriggered events. 
     vector <AncestorIndex> TimeTriggered;
     vector <AncestorIndex> KeyPressedTriggered;
@@ -269,7 +270,7 @@ public:
     string EXE_PATH;
     MouseClass Mouse;
     ALLEGRO_DISPLAY * window;
-    bool bootGame, closeGame, closeEditor, isGameActive;
+    bool firstIteration, closeGame, closeProgram, isGameActive;
     vector <string> layersIDs;
     vector <string> camerasIDs;
     EngineLoop(string title);
@@ -336,9 +337,12 @@ public:
     );
     void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<PointerContainer> & EventContext);
     void getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
+    void bindFilesToObjects(OperaClass & Operation, vector<PointerContainer> & EventContext);
+    void buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext, bool & wasBuildExecuted);
+    void executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
-        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted, bool & wasBuildExecuted
     );
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
     VariableModule getValueFromObjectInCamera(AncestorObject * CurrentObject, vector <Camera2D> & Cameras, const string & attribute, const string & cameraID);

@@ -197,7 +197,7 @@ void PrimaryModule::deleteLater(){
     deleted = true;
     deactivate();
 }
-void PrimaryModule::bindPrimaryToVariable(string attribute, vector<BasePointersStruct> &BasePointers){
+void PrimaryModule::getPrimaryContext(string attribute, vector<BasePointersStruct> &BasePointers){
     BasePointers.push_back(BasePointersStruct());
     if(attribute == "id"){
         if(isStringInVector(reservedIDs, ID)){
