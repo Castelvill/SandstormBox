@@ -1,6 +1,7 @@
 #ifndef MOVEMENTMODULE_H_INCLUDED
 #define MOVEMENTMODULE_H_INCLUDED
 #include "collisionModule.h"
+#include <allegro5/allegro_primitives.h>
 
 class RandomAction{
 public:

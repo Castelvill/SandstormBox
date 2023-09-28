@@ -1,7 +1,7 @@
 #ifndef PARTICLES_H_INCLUDED
 #define PARTICLES_H_INCLUDED
 
-#include "imageModule.h"
+#include "scrollbarModule.h"
 
 class SingleParticle{
 public:

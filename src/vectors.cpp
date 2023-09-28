@@ -1,6 +1,4 @@
 #include "vectors.h"
-#include <math.h>
-#include <iostream>
 
 vecXd::vecXd(){}
 vecXd::vecXd(int count, ...){

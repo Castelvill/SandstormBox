@@ -2,6 +2,8 @@
 #define VECTORS_H_INCLUDED
 #include <vector>
 #include <string>
+#include <iostream>
+#include <math.h>
 #if _WIN32
     #include <windows.h>
     constexpr auto M_PI = 3.14159265358979323846;

@@ -2,11 +2,9 @@
 #define USEFULL_H_INCLUDED
 
 #define ALLEGRO_UNSTABLE
-
-#include "primaryModule.h"
-#include <allegro5/allegro.h>
 #include <algorithm>
 #include <iterator>
+#include "vectors.h"
 
 using std::string;
 
@@ -39,17 +37,6 @@ void for_each_if(Iterator begin, Iterator end, Pred p, OperationClass op) {
             op(*begin);
         }
     }
-}
-
-
-template<class SearchModule>
-SearchModule * findByIDAndReturnPointer(vector <SearchModule> & Container, string ID) {
-    for(SearchModule & Instance : Container) {
-        if (Instance.getID() == ID) {
-            return &Instance;
-        }
-    }
-    return nullptr;
 }
 
 bool hasEnding(string const &fullString, string const &ending);

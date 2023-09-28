@@ -2,10 +2,8 @@
 #define ENGINELOOP_H_INCLUDED
 
 #include "layerClass.h"
-#include <memory>
-#include <regex>
 
-using std::unique_ptr;
+
 
 #if __linux__
     #include <sys/time.h>
@@ -338,7 +336,6 @@ public:
     );
     void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<PointerContainer> & EventContext);
     void getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
-    void eventAssembler(vector<string> code, AncestorObject & Object);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted

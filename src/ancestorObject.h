@@ -1,7 +1,7 @@
 #ifndef ALLOBJECTS_H_INCLUDED
 #define ALLOBJECTS_H_INCLUDED
 #include "eventModule.h"
-#include "scrollbarModule.h"
+#include <fstream>
 
 //Struct of vectors
 struct ModulesPointers{
@@ -43,6 +43,7 @@ public:
     vector <string> eveContainerIDs;
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
+    vector <string> bindedScripts;
 
     AncestorObject();
     AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID);
@@ -60,6 +61,8 @@ public:
     string addModuleInstance(string module, string newID);
     string destroyModuleInstance(string module, string destroyID);
     VariableModule getAttributeValue(const string & attribute, const string & detail);
+    void eventAssembler(vector<string> code);
+    void translateAllScripts(bool clearEvents);
 };
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);

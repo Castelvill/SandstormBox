@@ -1,6 +1,6 @@
 #ifndef CAMERA_H_INCLUDED
 #define CAMERA_H_INCLUDED
-#include "usefull.h"
+#include "variableModule.h"
 #include <allegro5/allegro.h>
 
 class Camera2D{

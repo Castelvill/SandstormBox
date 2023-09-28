@@ -1,8 +1,5 @@
-#include "egmCompiler.h"
 #include "engineLoop.h"
-#include "gameWindow.h"
 #include <filesystem>
-
 
 void loadFontsToContainer(vector <SingleFont> & FontContainer, string EXE_PATH){
     std::ifstream fontListFile;
@@ -10,7 +7,7 @@ void loadFontsToContainer(vector <SingleFont> & FontContainer, string EXE_PATH){
 
     short fontSizes[] = {12, 24, 48, 72};
     unsigned short i;
-    std::string fileName, filePath;
+    string fileName, filePath;
     while(fontListFile >> fileName){
         if(fileName.substr(fileName.size()-4, fileName.size()) != ".ttf"){
             std::cout << "Wrong file extension! Aborting fonts loading.\n";
@@ -170,39 +167,6 @@ vector<string> getAllFilesNamesWithinFolder(string folder){
     return names;
 }
 
-vector<string> split_string(const string & str, const string & delimiter){
-    vector<string> strings;
-
-    string::size_type pos = 0;
-    string::size_type prev = 0;
-    while ((pos = str.find(delimiter, prev)) != string::npos)
-    {
-        strings.push_back(str.substr(prev, pos - prev));
-        prev = pos + delimiter.size();
-    }
-
-    // To get the last substring (or only, if delimiter is not found)
-    strings.push_back(str.substr(prev));
-
-    return strings;
-}
-
-vector<string> readLines(const string& filename) {
-	std::ifstream File(filename);
-	vector<string> lines;
-
-	if(!File){
-		std::cerr << "Cannot open file: " << filename << "\n";
-	}
-    else{
-	    for(string line; std::getline(File, line);){
-			lines.push_back(line);
-		}
-	}
-
-	return lines;
-}
-
 void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window, EngineLoop & Engine){
     /*Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("king_arthur");
@@ -322,26 +286,8 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().TextContainer.back().setUsedBitmapLayer(2);
     Objects.back().TextContainer.back().setPos(0.0, 0.0);
     Objects.back().TextContainer.back().setColors(255, 0, 0);
-
-
-    /*string script =
-        "start while_click false\n"
-        "triggers [key_pressed]\n"
-        "if ([key_pressed 23])\n"
-        "literal int [0] xd\n"
-        "children [while]\n"
-        "end\n"
-        "start while true\n"
-        "if ([context xd] [int 10] <)\n"
-        "index layer [1] [xd] object obj\n"
-        "first _ [obj] _ _ _ _ id\n"
-        "++ xd\n"
-        "end";
-    vector <string> code = split_string(script, "\n");*/
-
-
-    std::vector<std::string> code = readLines(Engine.EXE_PATH+"script.txt");
-    Engine.eventAssembler(code, Objects.back());
+    Objects.back().bindedScripts.push_back(Engine.EXE_PATH + "script.txt");
+    Objects.back().translateAllScripts(true);
 
 
     /*Objects.back().EveContainer.push_back(EveModule("rotate-init", &Objects.back().eveContainerIDs, layerID, Objects.back().getID()));
@@ -852,9 +798,6 @@ int main(){
     #endif
 
     srand(time(NULL));
-    //egmCompiler Compiler;
-    //Compiler.loadTestData();
-    //Compiler.writeAllText();
 
     vector <EngineLoop> Threads;
     vector <SingleFont> FontContainer;

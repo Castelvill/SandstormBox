@@ -1,7 +1,7 @@
 #ifndef VARIABLEMODULE_H_INCLUDED
 #define VARIABLEMODULE_H_INCLUDED
 
-#include "usefull.h"
+#include "movementModule.h"
 
 class VariableModule{
     bool deleted;

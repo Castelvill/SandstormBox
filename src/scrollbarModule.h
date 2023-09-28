@@ -2,7 +2,6 @@
 #define SCROLLBARMODULE_H_INCLUDED
 
 #include "imageModule.h"
-#include "mouse.h"
 
 class ScrollbarModule : public PrimaryModule{
     vec2d thumbPos;

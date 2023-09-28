@@ -1,12 +1,9 @@
 #ifndef IMAGEMODULE_H_INCLUDED
 #define IMAGEMODULE_H_INCLUDED
 
-
-#include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_color.h>
-#include <allegro5/allegro_primitives.h>
-#include "camera.h"
+#include "mouse.h"
 
 
 

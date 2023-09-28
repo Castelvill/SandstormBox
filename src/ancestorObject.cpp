@@ -1,5 +1,37 @@
 #include "ancestorObject.h"
-#include <ctype.h>
+#include <regex>
+
+vector<string> split_string(const string & str, const string & delimiter){
+    vector<string> strings;
+
+    string::size_type pos = 0;
+    string::size_type prev = 0;
+    while ((pos = str.find(delimiter, prev)) != string::npos)
+    {
+        strings.push_back(str.substr(prev, pos - prev));
+        prev = pos + delimiter.size();
+    }
+
+    // To get the last substring (or only, if delimiter is not found)
+    strings.push_back(str.substr(prev));
+
+    return strings;
+}
+vector<string> readLines(const string& filename) {
+	std::ifstream File(filename);
+	vector<string> lines;
+
+	if(!File){
+		std::cerr << "Cannot open file: " << filename << "\n";
+	}
+    else{
+	    for(string line; std::getline(File, line);){
+			lines.push_back(line);
+		}
+	}
+
+	return lines;
+}
 
 AncestorObject::AncestorObject(){
     deleted = false;
@@ -488,6 +520,679 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
         NewValue.setBool(false);
     }
     return NewValue;
+}
+
+vector <string> changeCodeIntoWords(string input){
+    std::regex word_regex("(\"*[\\w+\\.*]*\\w+\"*)|;|==|=|>|<|>=|<=|-=|\\+=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\)", std::regex_constants::icase);
+    auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
+    auto words_end = std::sregex_iterator();
+
+    vector <string> output;
+    string match_str;
+
+    for(std::sregex_iterator i = words_begin; i != words_end; ++i) {
+        std::smatch match = *i;
+        match_str = match.str();
+        if (match_str.size() > 0){
+            output.push_back(match_str);
+        }
+    }
+    return output;
+}
+bool prepareNewInstruction(vector<string> words, EveModule & NewEvent, OperaClass *& Operation, bool postOperations, unsigned minLength){
+    if(words.size() < minLength){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least \'" << minLength << "\' parameters.\n";
+        return false;
+    }
+    if(!postOperations){
+        NewEvent.DependentOperations.push_back(OperaClass());
+        NewEvent.DependentOperations.back().instruction = words[0];
+        Operation = &NewEvent.DependentOperations.back();
+    }
+    else{
+        NewEvent.PostOperations.push_back(OperaClass());
+        NewEvent.PostOperations.back().instruction = words[0];
+        Operation = &NewEvent.PostOperations.back();
+    }
+    
+    return true;
+}
+string optional(const string & word){
+    if(word != "_"){
+        return word;
+    }
+    return "";
+}
+bool optional(const vector<string> & words, unsigned & cursor, string & variable){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor] != "_"){
+        variable = words[cursor];
+    }
+    cursor++;
+    return false;
+}
+bool nextCond(const vector<string> & words, unsigned & cursor, string & variable){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor] != "_"){
+        variable = words[cursor];
+    }
+    if(words[cursor] != "]"){
+        cursor++;
+    }
+    return false;
+}
+bool nextCond(const vector<string> & words, unsigned & cursor, VariableModule & variable, const char & type){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor] != "_"){
+        if(type == 'b'){
+            if(words[cursor] == "true"){
+                variable.setBool(true);
+            }
+            else if(words[cursor] == "false"){
+                variable.setBool(false);
+            }
+            else{
+                variable.setBool(stoi(words[cursor]));
+            }
+        }
+        else if(type == 'i'){
+            variable.setInt(stoi(words[cursor]));
+        }
+        else if(type == 'd'){
+            variable.setInt(stod(words[cursor]));
+        }
+        else if(type == 's'){
+            variable.setString(words[cursor]);
+        }
+    }
+    if(words[cursor] != "]"){
+        cursor++;
+    }
+    return false;
+}
+bool nextCond(const vector<string> & words, unsigned & cursor, int & variable){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor] != "_"){
+        variable = stoi(words[cursor]);
+    }
+    if(words[cursor] != "]"){
+        cursor++;
+    }
+    return false;
+}
+bool nextCond(const vector<string> & words, unsigned & cursor, double & variable){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor] != "_"){
+        variable = stod(words[cursor]);
+    }
+    if(words[cursor] != "]"){
+        cursor++;
+    }
+    return false;
+}
+bool createExpression(const vector<string> & words, unsigned & cursor, vector<ConditionClass> & Expression){
+    if(cursor >= words.size()){
+        return true;
+    }
+    if(words[cursor] == "_"){
+        cursor++;
+        return true;
+    }
+    if(words[cursor] != "("){
+        std::cout << "Error: In " << __FUNCTION__ << ": Every expression must begin with a parentheses.\n";
+        return false;
+    }
+    cursor++;
+    if(cursor >= words.size()){
+        std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+        return false;
+    }
+    bool inCondition = false;
+    while(words[cursor] != ")"){
+        if(cursor >= words.size()){
+            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            return false;
+        }
+        if(words[cursor] == "["){
+            Expression.push_back(ConditionClass(""));
+            inCondition = true;
+            cursor++;
+        }
+        else if(words[cursor] == "]"){
+            inCondition = false;
+            cursor++;
+        }
+        else if(!inCondition){
+            if(Expression.size() == 0){
+                std::cout << "Error: In " << __FUNCTION__ << ": Operator cannot be added to an empty expression.\n";
+                return false;
+            }
+            Expression.back().operators.push_back(words[cursor]);
+            cursor++;
+        }
+        else{
+            if(nextCond(words, cursor, Expression.back().Location.source)){ continue; };
+            if(Expression.back().Location.source == "bool"){
+                if(Expression.back().Location.source == "bool"){
+                    Expression.back().Location.source = "literal";
+                }
+                if(nextCond(words, cursor, Expression.back().Literal, 'b')){ continue; };
+            }
+            else if(isStringInGroup(Expression.back().Location.source, 7, "int", "key_pressed", "key_pressing", "key_released", "mouse_pressed", "mouse_pressing", "mouse_released")){
+                if(Expression.back().Location.source == "int"){
+                    Expression.back().Location.source = "literal";
+                }
+                if(nextCond(words, cursor, Expression.back().Literal, 'i')){ continue; };
+            }
+            else if(Expression.back().Location.source == "double"){
+                if(Expression.back().Location.source == "double"){
+                    Expression.back().Location.source = "literal";
+                }
+                if(nextCond(words, cursor, Expression.back().Literal, 'd')){ continue; };
+            }
+            else if(Expression.back().Location.source == "string" || Expression.back().Location.source == "context"){
+                if(Expression.back().Location.source == "string"){
+                    Expression.back().Location.source = "literal";
+                }
+                if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+            }
+            else if(Expression.back().Location.source == "camera"){
+                if(nextCond(words, cursor, Expression.back().Location.cameraID)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+            }
+            else if(Expression.back().Location.source == "layer"){
+                if(nextCond(words, cursor, Expression.back().Location.layerID)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+                if(Expression.back().Location.attribute == "in_group"){
+                    if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+                }
+            }
+            else if(Expression.back().Location.source == "object"){
+                if(nextCond(words, cursor, Expression.back().Location.layerID)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.objectID)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.moduleType)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.moduleID)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+                if(isStringInGroup(Expression.back().Location.moduleType, 3, "ancestor", "text", "editable_text")){
+                    if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+                }
+                else if(Expression.back().Location.moduleType == "mouse"){
+                    if(nextCond(words, cursor, Expression.back().Literal, 'i')){ continue; };
+                }
+                else if(Expression.back().Location.moduleType == "collision"){
+                    if(nextCond(words, cursor, Expression.back().Literal, 'i')){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.spareID)){ continue; };
+                }
+            }
+            else if(Expression.back().Location.source == "variable"){
+                if(nextCond(words, cursor, Expression.back().Location.moduleID)){ continue; };
+            }
+            else{
+                cursor++;
+            }
+        }
+        if(cursor >= words.size()){
+            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            return false;
+        }
+    }
+    cursor++;
+    return true;
+}
+bool gatherStringVector(const vector<string> & words, unsigned & cursor, vector<string> & stringVector){
+    if(cursor >= words.size()){
+        return true;
+    }
+    if(words[cursor] == "_"){
+        cursor++;
+        return true;
+    }
+    if(words[cursor] != "["){
+        std::cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
+        return false;
+    }
+    cursor++;
+    if(cursor >= words.size()){
+        std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+        return false;
+    }
+    while(words[cursor] != "]"){
+        stringVector.push_back(words[cursor]);
+        cursor++;
+        if(cursor >= words.size()){
+            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            return false;
+        }
+    }
+    cursor++;
+    return true;
+}
+bool gatherChildEvents(const vector<string> & words, unsigned & cursor, vector<ChildStruct> & Children){
+    if(cursor >= words.size()){
+        return true;
+    }
+    if(words[cursor] == "_"){
+        cursor++;
+        return true;
+    }
+    if(words[cursor] != "["){
+        std::cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
+        return false;
+    }
+    cursor++;
+    if(cursor >= words.size()){
+        std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+        return false;
+    }
+    while(words[cursor] != "]"){
+        Children.push_back(ChildStruct(words[cursor]));
+        cursor++;
+        if(cursor >= words.size()){
+            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            return false;
+        }
+    }
+    cursor++;
+    return true;
+}
+bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<VariableModule> & Literals, char type){
+    if(cursor >= words.size()){
+        return true;
+    }
+    if(words[cursor] == "_"){
+        cursor++;
+        return true;
+    }
+    if(words[cursor] != "["){
+        std::cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
+        return false;
+    }
+    cursor++;
+    if(cursor >= words.size()){
+        std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+        return false;
+    }
+    while(words[cursor] != "]"){
+        if(type == 'b'){
+            if(words[cursor] == "true"){
+                Literals.push_back(VariableModule::newBool(true));
+            }
+            else if(words[cursor] == "false"){
+                Literals.push_back(VariableModule::newBool(false));
+            }
+            else{
+                Literals.push_back(VariableModule::newBool(stoi(words[cursor])));
+            }
+        }
+        else if(type == 'i'){
+            Literals.push_back(VariableModule::newInt(stoi(words[cursor])));
+        }
+        else if(type == 'd'){
+            Literals.push_back(VariableModule::newDouble(stod(words[cursor])));
+        }
+        else{
+            Literals.push_back(VariableModule::newString(words[cursor]));
+        }
+        cursor++;
+        if(cursor >= words.size()){
+            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            return false;
+        }
+    }
+    cursor++;
+    return true;
+}
+void AncestorObject::eventAssembler(vector<string> code){
+    vector<string> words;
+    EveModule NewEvent = EveModule();
+    unsigned cursor = 0;
+    OperaClass * Operation;
+    bool postOperations = false;
+    for(const string & line : code){
+        words.clear();
+        words = changeCodeIntoWords(line);
+        if(words.size() == 0){
+            continue;
+        }
+        cursor = 1;
+        if(words[0] == "start"){
+            if(words.size() < 3){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                return;
+            }
+            NewEvent = EveModule(words[1], &eveContainerIDs, getLayerID(), getID());
+            if(words[2] == "true"){
+                NewEvent.loop = true;
+            }
+            else if(words[2] == "false"){
+                NewEvent.loop = false;
+            }
+            else{
+                NewEvent.loop = stoi(words[2]);
+            }
+        }
+        else if(words[0] == "end"){
+            EveContainer.push_back(NewEvent);
+            NewEvent = EveModule();
+            postOperations = false;
+        }
+        else if(words[0] == "post"){
+            postOperations = true;
+        }
+        else if(words[0] == "triggers"){
+            if(words.size() < 2){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least 2 parameters.\n";
+                return;
+            }
+            cursor = 1;
+            if(!gatherStringVector(words, cursor, NewEvent.primaryTriggerTypes)){
+                std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                return;
+            }
+        }
+        else if(words[0] == "children"){
+            if(words.size() < 2){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                return;
+            }
+            cursor = 1;
+            if(!gatherChildEvents(words, cursor, NewEvent.Children)){
+                std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                return;
+            }
+        }
+        else if(words[0] == "if"){
+            cursor = 1;
+            if(!createExpression(words, cursor, NewEvent.ConditionalChain)){
+                std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                return;
+            }
+        }
+        else if(words[0] == "else"){
+            if(words.size() < 2){
+                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                return;
+            }
+            NewEvent.elseChildID = words[1];
+        }
+        else if(words[0] == "break" || words[0] == "return"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1)){
+                return;
+            }
+        }
+        else if(isStringInGroup(words[0], 4, "first", "last", "all", "random")){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+                return;
+            }
+            
+            Operation->Location.source = words[1];
+            cursor = 2;
+            if(words[1] == "camera"){
+                if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
+                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
+                if(!createExpression(words, cursor, Operation->ConditionalChain)){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    return;
+                }
+                if(optional(words, cursor, Operation->newContextID)){ continue; }
+            }
+            else if(words[1] == "layer"){
+                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+                if(optional(words, cursor, Operation->Location.objectID)){ continue; }
+                if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
+                if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
+                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
+                if(!createExpression(words, cursor, Operation->ConditionalChain)){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    return;
+                }
+                if(optional(words, cursor, Operation->newContextID)){ continue; }
+            }
+            else if(words[1] == "context" || words[1] == "_"){
+                if(!gatherStringVector(words, cursor, Operation->dynamicIDs)){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                    return;
+                }
+                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+                if(optional(words, cursor, Operation->Location.objectID)){ continue; }
+                if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
+                if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
+                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
+                if(!createExpression(words, cursor, Operation->ConditionalChain)){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    return;
+                }
+                if(optional(words, cursor, Operation->newContextID)){ continue; }
+            }
+        }
+        else if(words[0] == "index"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+                return;
+            }
+            Operation->Location.source = words[1];
+            cursor = 2;
+            if(!gatherLiterals(words, cursor, Operation->Literals, 'i')){
+                std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                return;
+            }
+            if(!gatherStringVector(words, cursor, Operation->dynamicIDs)){
+                std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                return;
+            }
+            if(optional(words, cursor, Operation->Location.attribute)){ continue; }
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(isStringInGroup(words[0], 13, "sum", "intersection", "difference", "+", "-", "*", "/", "=", "+=", "-=", "*=", "/=", "in")){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            Operation->dynamicIDs.push_back(words[2]);
+            cursor = 3;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "++" || words[0] == "--" || words[0] == "delete"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1)){
+                return;
+            }
+            if(words.size() <= 1){
+                continue;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            cursor = 2;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "value"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+                return;
+            }
+            cursor = 1;
+            if(!createExpression(words, cursor, Operation->ConditionalChain)){
+                std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                return;
+            }
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "literal"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+                return;
+            }
+            cursor = 2;
+            if(words[1] == "bool"){
+                if(!gatherLiterals(words, cursor, Operation->Literals, 'b')){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    return;
+                }
+            }
+            else if(words[1] == "int"){
+                if(!gatherLiterals(words, cursor, Operation->Literals, 'i')){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    return;
+                }
+            }
+            else if(words[1] == "double"){
+                if(!gatherLiterals(words, cursor, Operation->Literals, 'd')){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    return;
+                }
+            }
+            else if(words[1] == "string"){
+                if(!gatherLiterals(words, cursor, Operation->Literals, 's')){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    return;
+                }
+            }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": Literal type is required.\n";
+                return;
+            }
+            
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "random_int"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4)){
+                return;
+            }
+            if(words[1] == "literal"){
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[3])));
+            }
+            else{
+                Operation->dynamicIDs.push_back(words[2]);
+                Operation->dynamicIDs.push_back(words[3]);
+            }
+            cursor = 4;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "find_by_id"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+                return;
+            }
+            Operation->Location.source = words[1];
+            cursor = 2;
+            if(words[1] == "camera"){
+                if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
+                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
+                if(optional(words, cursor, Operation->newContextID)){ continue; }
+            }
+            else if(words[1] == "layer"){
+                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+                if(optional(words, cursor, Operation->Location.objectID)){ continue; }
+                if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
+                if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
+                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
+                if(optional(words, cursor, Operation->newContextID)){ continue; }
+            }
+            else if(words[1] == "context" || words[1] == "_"){
+                if(!gatherStringVector(words, cursor, Operation->dynamicIDs)){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                    return;
+                }
+                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+                if(optional(words, cursor, Operation->Location.objectID)){ continue; }
+                if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
+                if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
+                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
+                if(optional(words, cursor, Operation->newContextID)){ continue; }
+            }
+        }
+        else if(words[0] == "let"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            Operation->newContextID = words[2];
+        }
+        else if(words[0] == "clone"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            Operation->dynamicIDs.push_back(words[2]);
+            if(words.size() >= 4){
+                if(words[3] == "true"){
+                    Operation->Literals.push_back(VariableModule::newBool(true));
+                }
+                else if(words[3] == "false"){
+                    Operation->Literals.push_back(VariableModule::newBool(false));
+                }
+                else{
+                    Operation->Literals.push_back(VariableModule::newBool(stoi(words[3])));
+                }
+            }
+        }
+        else if(words[0] == "new"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+                return;
+            }
+            Operation->Location.source = words[1];
+            cursor = 2;
+            if(Operation->Location.source == "object"){
+                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+            }
+            else if(Operation->Location.source != "camera" && Operation->Location.source != "layer"){
+                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+                if(optional(words, cursor, Operation->Location.objectID)){ continue; }
+            }
+            if(words.size() <= cursor){
+                continue;
+            }
+            if(words[cursor] != "_"){
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[cursor])));
+            }
+            cursor++;
+            if(words.size() <= cursor){
+                continue;
+            }
+            if(words[cursor] != "_"){
+                Operation->dynamicIDs.push_back(words[cursor]);
+            }
+            cursor++;
+            if(words.size() <= cursor){
+                continue;
+            }
+            if(words[cursor] != "_"){
+                Operation->dynamicIDs.push_back(words[cursor]);
+            }
+            cursor++;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
+        }
+    }
+    if(words.size() > 0){
+        if(words[0] != "end"){
+            std::cout << "Error: In " << __FUNCTION__ << ": Every event must end with \"end\" instruction.\n";
+        }
+    }
+}
+void AncestorObject::translateAllScripts(bool clearEvents){
+    if(clearEvents){
+        for(auto & Event : EveContainer){
+            Event.clear();
+        }
+        EveContainer.clear();
+        eveContainerIDs.clear();
+    }
+
+    vector<string> code;
+    
+    for(string fileName : bindedScripts){
+        code = readLines(fileName);
+        eventAssembler(code);
+        code.clear();
+    }
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule() const{

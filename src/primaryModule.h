@@ -1,10 +1,6 @@
 #ifndef PRIMARYMODULE_H_INCLUDED
 #define PRIMARYMODULE_H_INCLUDED
-#include <iostream>
-#include <string>
 #include <cstdio>
-#include <math.h>
-#include "vectors.h"
 #include "usefull.h"
 
 using std::string;
@@ -151,5 +147,15 @@ class PrimaryModule{
     bool getIsScrollable();
     void bindPrimaryToVariable(string attribute, vector <BasePointersStruct> & BasePointers);
 };
+
+template<class SearchModule>
+SearchModule * findByIDAndReturnPointer(vector <SearchModule> & Container, string ID) {
+    for(SearchModule & Instance : Container) {
+        if (Instance.getID() == ID) {
+            return &Instance;
+        }
+    }
+    return nullptr;
+}
 
 #endif // PRIMARYMODULE_H_INCLUDED

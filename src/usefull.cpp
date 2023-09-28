@@ -47,14 +47,14 @@ short translateToAllegroKey(char key){
     if(short(key) == 32)
         return short(key)+43;
     if(short(key) == 24)
-        return ALLEGRO_KEY_UP;
+        return 84;
     if(short(key) == 26)
-        return ALLEGRO_KEY_RIGHT;
+        return 83;
     if(short(key) == 25)
-        return ALLEGRO_KEY_DOWN;
+        return 85;
     if(short(key) == 27)
-        return ALLEGRO_KEY_LEFT;
-    return ALLEGRO_KEY_UNKNOWN;
+        return 82;
+    return 128;
 }
 
 bool isStringInGroup(string ID, int count, ...){

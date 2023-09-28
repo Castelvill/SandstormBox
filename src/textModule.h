@@ -1,12 +1,8 @@
 #ifndef TEXTMODULE_H_INCLUDED
 #define TEXTMODULE_H_INCLUDED
 
-#include "camera.h"
 #include <allegro5/allegro_ttf.h>
-#include <allegro5/allegro_primitives.h>
-#include "movementModule.h"
 #include "particles.h"
-#include "variableModule.h"
 
 class SingleFont{
 public:

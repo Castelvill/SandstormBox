@@ -1,8 +1,7 @@
 #ifndef COLLISIONMODULE_H_INCLUDED
 #define COLLISIONMODULE_H_INCLUDED
-#include "usefull.h"
 
-#include <allegro5/allegro_primitives.h>
+#include "primaryModule.h"
 
 bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2);
 
