@@ -5,15 +5,16 @@ LayerClass::LayerClass(){
     isActive = false;
     deleted = false;
 }
-LayerClass::LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2d bufferSize){
+LayerClass::LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2i bufferSize){
     setID(newID, layersIDs);
     isActive = activate;
     deleted = false;
     pos.set(bufferPos);
-    size.set(bufferSize);
+    size.x = bufferSize.x;
+    size.y = bufferSize.y;
 }
 LayerClass::LayerClass(string newID, vector <string> & layersIDs){
-    LayerClass(newID, layersIDs, false, vec2d(0.0, 0.0), vec2d(0.0, 0.0));
+    LayerClass(newID, layersIDs, false, vec2d(0.0, 0.0), vec2i(0, 0));
 }
 void LayerClass::clear(){
     for(AncestorObject & Object : Objects){

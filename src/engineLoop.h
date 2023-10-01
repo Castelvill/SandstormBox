@@ -13,17 +13,6 @@
 #define KEY_SEEN     1
 #define KEY_RELEASED 2
 
-const int SCREEN_W = 1680*0.7;//1920/1.0;
-const int SCREEN_H = 900*0.7;//1025/1.0;
-const float MAX_ZOOM = 1.0;
-const int BUFFER_W = SCREEN_W * MAX_ZOOM;
-const int BUFFER_H = SCREEN_H * MAX_ZOOM;
-const bool printOutBitmapDestruction = false;
-const bool printOutLogicalEvaluations = true;
-const bool printInstructions = true;
-const float RESERVATION_MULTIPLIER = 1.5;
-
-
 void loadFontsToContainer(vector <SingleFont> & FontContainer);
 void freeFontsFromContainer(vector <SingleFont> & FontContainer);
 
@@ -155,7 +144,7 @@ struct PointerContainer{
     vector <Camera2D*> Cameras;
     PointerContainer();
     void clear();
-    void setID(vector<PointerContainer> &EventContext, string newID);
+    void setID(vector<PointerContainer> &EventContext, string newID, const bool & printOutInstructions);
     string getValue();
     template<typename T>
     void addBasePointer(T * pointer);
@@ -234,6 +223,8 @@ vector <string> changeCodeIntoWords(string input);
 
 class EngineLoop{
 private:
+    MouseClass Mouse;
+    ALLEGRO_DISPLAY * window;
     ALLEGRO_BITMAP * mainBuffer;
     ALLEGRO_BITMAP * cursorBitmap;
     ALLEGRO_MOUSE_CURSOR * mouseCursor;
@@ -242,19 +233,10 @@ private:
     ALLEGRO_EVENT_QUEUE * eventQueue;
     ALLEGRO_EVENT event;
     unsigned char key[ALLEGRO_KEY_MAX];
-    string windowTitle;
-    bool drawTextFieldBorders;
-    bool drawHitboxes;
-    bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
-    bool ignoreDistantObjects;
-    bool drawOnlyVisibleObjects; //If true, engine will not attempt to draw objects outside the camera view. (Allegro 5 is using similar mechanism.)
     bool wasMousePressedInSelectedObject;
     vector <short> pressedKeys;
     vector <short> firstPressedKeys;
     vector <short> releasedKeys;
-    long timeToInterruptMovement;
-    long timeToInterruptParticles;
-    int totalNumberOfBitmapLayers;
     string selectedObjectLayerID;
     string selectedObjectID;
     Camera2D * SelectedCamera;
@@ -265,17 +247,39 @@ private:
     vec2d dragCameraStaringPos;
     vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
+    bool firstIteration, closeProgram;
 
+    string windowTitle;
+    int screenW;
+    int screenH;
+    bool fullscreen;
+    bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
+    
+    bool drawTextFieldBorders;
+    bool drawHitboxes; 
+    bool ignoreDistantObjects;
+    bool drawOnlyVisibleObjects; //If true, engine will not attempt to draw objects outside the camera view. (Allegro 5 is using similar mechanism.)
+    int totalNumberOfBitmapLayers;
+    bool printOutLogicalEvaluations;
+    bool printOutInstructions;
+    float reservationMultiplier;
+
+    long timeToInterruptMovement;
+    long timeToInterruptParticles;
+    
 public:
     string EXE_PATH;
-    MouseClass Mouse;
-    ALLEGRO_DISPLAY * window;
-    bool firstIteration, closeGame, closeProgram, isGameActive;
     vector <string> layersIDs;
     vector <string> camerasIDs;
+
     EngineLoop(string title);
+    void createDisplay();
     void initAllegro();
     void exitAllegro();
+    bool isRunning() const;
+    int getScreenW() const;
+    int getScreenH() const;
+    vec2i getScreenSize() const;
     bool isLayersUniquenessViolated(vector <LayerClass> Layers);
     bool isCamerasUniquenessViolated(vector <Camera2D> Cameras);
     void windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer, Fps & fps, vector <SingleBitmap> & BitmapContainer);
@@ -340,6 +344,7 @@ public:
     void bindFilesToObjects(OperaClass & Operation, vector<PointerContainer> & EventContext);
     void buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext, bool & wasBuildExecuted);
     void executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event);
+    void changeEngineVariables(OperaClass & Operation);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted, bool & wasBuildExecuted

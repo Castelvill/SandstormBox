@@ -143,7 +143,7 @@ bool VariableModule::getBoolUnsafe(const bool & defaultValue) const{
 }
 int VariableModule::getInt() const{
     if(type == 'd'){
-        std::cout << "Warning [VariableModule]: floating point ignored.\n";
+        //std::cout << "Warning [VariableModule]: floating point ignored.\n";
         return vDouble;
     }
     else if(type != 'i'){
@@ -993,4 +993,8 @@ VariableModule VariableModule::newString(string val){
     VariableModule newVariable;
     newVariable.setString(val);
     return newVariable;
+}
+
+bool VariableModule::isNumeric() const{
+    return type == 'b' || type == 'i' || type == 'd';
 }

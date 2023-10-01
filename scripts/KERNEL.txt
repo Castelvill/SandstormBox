@@ -4,6 +4,8 @@ if ([on_boot])
 index layer [1 0] _ object Amogus
 bind Amogus literal ["scripts/amogus.txt"]
 build Amogus true
+env window_size 1920 1080
+env draw_hitboxes 0
 end
 
 start reset false
@@ -13,4 +15,22 @@ index layer [1 0] _ object Amogus
 bind Amogus rliteral ["scripts/amogus.txt"]
 bind Amogus literal ["scripts/amogus.txt"]
 build Amogus true
+end
+
+
+start fs_click false
+triggers [key_pressed]
+if ([key_pressed 58])
+literal int [1] xd
+run [fs]
+end
+
+start fs false
+if ([fullscreen] !)
+env fullscreen 1
+else fs_else
+end
+
+start fs_else false
+env fullscreen 0
 end

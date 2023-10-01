@@ -945,11 +945,11 @@ int BasePointersStruct::getInt() const{
         return *pUShort;
     }
     else if(type == "float"){
-        std::cout << "Warning: In " << __FUNCTION__ << ": Floating point ignored.\n";
+        //std::cout << "Warning: In " << __FUNCTION__ << ": Floating point ignored.\n";
         return *pFloat;
     }
     else if(type == "double"){
-        std::cout << "Warning: In " << __FUNCTION__ << ": Floating point ignored.\n";
+       // std::cout << "Warning: In " << __FUNCTION__ << ": Floating point ignored.\n";
         return *pDouble;
     }
     else{

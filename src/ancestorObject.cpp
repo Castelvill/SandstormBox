@@ -523,7 +523,7 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
 }
 
 vector <string> changeCodeIntoWords(string input){
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"|!", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
@@ -759,9 +759,6 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
             }
             else if(Expression.back().Location.source == "variable"){
                 if(nextCond(words, cursor, Expression.back().Location.moduleID)){ continue; };
-            }
-            else{
-                cursor++;
             }
         }
         if(cursor >= words.size()){
@@ -1278,6 +1275,30 @@ void AncestorObject::eventAssembler(vector<string> code){
                 if(!gatherLiterals(words, cursor, Operation->Literals, words[3])){
                     return;
                 }
+            }
+        }
+        else if(words[0] == "env"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1] == "window_title"){
+                Operation->Literals.push_back(VariableModule::newString(words[2]));
+            }
+            else if(words[1] == "reservation_multiplier"){
+                Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
+            }
+            else if(words[1] == "window_size"){
+                if(words.size() < 4){
+                    std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
+                        "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of numeric type.\n";
+                    return;
+                }
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[3])));
+            }
+            else{
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
             }
         }
         else{

@@ -34,7 +34,7 @@ first layer KERNEL _ _ _ _ _ KERNEL
 all _ [L1] _ _ image _ _ _ all_images
 last _ [all_images]
 delete
-all layer _ _ _ _ object _ all_layers
+all layer _ _ _ _ object _ all_objects
 end
 
 start left false
@@ -56,13 +56,23 @@ literal int [20] speed
 end
 
 start color false
-triggers [key_pressed]
-if ([key_pressed 19])
-index layer [1 0 1] _ image image1
-literal int [0 0 0 0] low
-literal int [10 10 10 10] high
+triggers [key_pressing]
+if ([key_pressing 19])
+literal int [0] index
+run [colors]
+end
+
+start colors true
+if ([context index] [int 38] <)
+index layer [1] [index] object obj
+index context [0 0] [obj] image image1
+literal double [0 0 0 0] low
+literal double [10 10 10 10] high
 random_int _ low high randomColor
+literal double [0 0 0 0] dColors
+= dColors randomColor
 literal double [10] divide
-/= randomColor divide
-fun image1 color c randomColor
+/= dColors divide
+fun image1 color c dColors
+++ index
 end

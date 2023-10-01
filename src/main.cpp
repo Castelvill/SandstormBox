@@ -150,14 +150,13 @@ void freeBitmapsFromContainer(vector <SingleBitmap> & BitmapContainer){
     for(unsigned int i = 0; i < BitmapContainer.size(); i++){
         if(BitmapContainer[i].bitmap){
             al_destroy_bitmap(BitmapContainer[i].bitmap);
-            if(printOutBitmapDestruction){
-                std::cout << "Bitmap '" << BitmapContainer[i].ID << "' destroyed. (by GeneralBitmapContainer)\n";
-            }
+            //std::cout << "Bitmap '" << BitmapContainer[i].ID << "' destroyed. (by GeneralBitmapContainer)\n";
         }
     }
     BitmapContainer.clear();
-    if(BitmapContainer.size() == 0 && printOutBitmapDestruction)
-        std::cout << "\nAll bitmaps in general image container destroyed.\n\n";
+    if(BitmapContainer.size() == 0){
+        //std::cout << "\nAll bitmaps in general image container destroyed.\n\n";
+    }
 }
 
 vector<string> getAllFilesNamesWithinFolder(string folder){
@@ -167,7 +166,9 @@ vector<string> getAllFilesNamesWithinFolder(string folder){
     return names;
 }
 
-void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window, EngineLoop & Engine){
+void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer,
+    vector <SingleBitmap> & BitmapContainer, EngineLoop & Engine)
+{
     /*Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("king_arthur");
     Objects.back().setPos(vec2d(0.0, 0.0));
@@ -646,7 +647,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     }
 }
 
-void createObjects(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
+void createObjects(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer){
     /*Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("Smok");
     Objects.back().setPos(vec2d(100, 100));
@@ -725,7 +726,7 @@ void createObjects(vector <AncestorObject> & Objects, string layerID, vector <st
     }*/
 }
 
-void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <string> & objectsIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window){
+void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <string> & objectsIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, int SCREEN_W, int SCREEN_H){
     Objects.push_back(AncestorObject("", objectsIDs, layerID));
     Objects.back().setCanBeSelected(false );
     Objects.back().TextContainer.push_back(TextModule("", &Objects.back().textContainerIDs, layerID, Objects.back().getID()));
@@ -746,7 +747,7 @@ void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().deactivate();
 }
 
-void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs){
+void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs, int SCREEN_W, int SCREEN_H){
     Cameras.push_back(Camera2D("Cam0", camerasIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W/2.0, SCREEN_H), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
@@ -811,24 +812,19 @@ int main(){
 
     loadBitmapsToContainer(BitmapContainer, Threads.back().EXE_PATH);
 
-    createCameras(Cameras, Threads.back().camerasIDs);
+    createCameras(Cameras, Threads.back().camerasIDs, Threads.back().getScreenW(), Threads.back().getScreenH());
     Threads.back().updateAllForestOfCameras(Cameras);
 
     Cameras.push_back(Camera2D("", Threads.back().camerasIDs));
     Cameras.back().clone(Cameras[1], Threads.back().camerasIDs, true);
     Cameras.back().setIsPinned(false);
-    Cameras.back().setPos(vec2d(SCREEN_W/2.0, 300.0));
-
-    if(RESERVATION_MULTIPLIER < 1.0){
-        std::cout << "Error: RESERVATION_MULTIPLIER is lower than 1.\n";
-        goto invalidReservation;
-    }
+    Cameras.back().setPos(vec2d(Threads.back().getScreenW()/2.0, 300.0));
 
     if(Threads.back().isCamerasUniquenessViolated(Cameras)){
         goto kernelGotLost;
     }
 
-    Layers.push_back(LayerClass("KERNEL", Threads.back().layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
+    Layers.push_back(LayerClass("KERNEL", Threads.back().layersIDs, true, vec2d(0.0, 0.0), Threads.back().getScreenSize()));
     Layers.back().Objects.push_back(AncestorObject("KERNEL", Layers.back().objectsIDs, Layers.back().getID()));
     Layers.back().Objects.back().bindedScripts.push_back(Threads.back().EXE_PATH + "scripts/KERNEL.txt");
     Layers.back().Objects.back().translateAllScripts(true);
@@ -840,10 +836,10 @@ int main(){
     }
 
     //Layers[0].Objects[0].deactivate();
-    //createObjects0(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer, Threads.back().window);
+    //createObjects0(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer);
 
-    Layers.push_back(LayerClass("L1", Threads.back().layersIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H)));
-    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Threads.back().window, Threads.back());
+    Layers.push_back(LayerClass("L1", Threads.back().layersIDs, true, vec2d(0.0, 0.0), Threads.back().getScreenSize()));
+    createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Threads.back());
     Layers.back().addGroup("kek");
     
     if(Threads.back().isLayersUniquenessViolated(Layers)){
@@ -867,11 +863,9 @@ int main(){
     //Main loop
     do{
         Threads.back().windowLoop(Layers, Cameras, FontContainer, fps, BitmapContainer);
-    }while(!Threads.back().closeProgram);
+    }while(Threads.back().isRunning());
 
     uniquenessViolated:
-
-    invalidReservation:
 
     kernelGotLost:
 

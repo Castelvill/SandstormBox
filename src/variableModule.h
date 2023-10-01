@@ -94,6 +94,7 @@ public:
     static VariableModule newInt(int);
     static VariableModule newDouble(double);
     static VariableModule newString(string);
+    bool isNumeric() const;
 };
 
 

@@ -80,9 +80,7 @@ EngineLoop::EngineLoop(std::string title){
     cursorBitmap = NULL;
     windowTitle = title;
     firstIteration = true;
-    closeGame = false;
     closeProgram = false;
-    isGameActive = false;
     drawTextFieldBorders = false;
     drawHitboxes = false;
     isPixelArt = true;
@@ -94,6 +92,17 @@ EngineLoop::EngineLoop(std::string title){
     totalNumberOfBitmapLayers = 3;
     selectedObjectLayerID = "";
     selectedObjectID = "";
+
+    screenW = 1680*0.7;//1920/1.0;
+    screenH = 900*0.7;//1025/1.0;
+    fullscreen = false;
+    printOutLogicalEvaluations = false;
+    printOutInstructions = false;
+    reservationMultiplier = 1.5;
+
+    if(reservationMultiplier < 1.0){
+        std::cout << "Error: RESERVATION_MULTIPLIER is lower than 1.\n";
+    }
 }
 void EngineLoop::initAllegro(){
     al_init();
@@ -109,11 +118,11 @@ void EngineLoop::initAllegro(){
     al_set_new_display_option(ALLEGRO_SAMPLES, 4, ALLEGRO_SUGGEST); //antialias stuff
     //al_set_new_bitmap_samples(4);
 
-    window = al_create_display(SCREEN_W, SCREEN_H);
+    window = al_create_display(screenW, screenH);
     al_set_window_title(window, windowTitle.c_str());
 
 
-    mainBuffer = al_create_bitmap(BUFFER_W, BUFFER_H);
+    mainBuffer = al_create_bitmap(screenW, screenH);
 
     EXE_PATH = "";
     ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
@@ -890,7 +899,21 @@ bool EngineLoop::chooseRandomModule(PointerContainer & NewContext){
     }
     return true;
 }
-void EngineLoop::aggregateCameras(OperaClass &Operation, PointerContainer &NewContext, vector<Camera2D *> AggregatedCameras, vector<Camera2D> &Cameras, vector<PointerContainer> &EventContext){
+bool EngineLoop::isRunning() const{
+    return !closeProgram;
+}
+int EngineLoop::getScreenW() const{
+    return screenW;
+}
+int EngineLoop::getScreenH() const{
+    return screenH;
+}
+vec2i EngineLoop::getScreenSize() const{
+    return vec2i(screenW, screenH);
+}
+
+void EngineLoop::aggregateCameras(OperaClass &Operation, PointerContainer &NewContext, vector<Camera2D *> AggregatedCameras, vector<Camera2D> &Cameras, vector<PointerContainer> &EventContext)
+{
     Camera2D * Camera = nullptr;
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
         if(AggregatedCameras.size() > 0){
@@ -1877,7 +1900,7 @@ void EngineLoop::executeOperationsOnSets(string instruction, vector<Entity> & Ne
 void EngineLoop::addNewContext(vector<PointerContainer> & EventContext, const PointerContainer & NewContext, string type, string newID){
     EventContext.push_back(NewContext);
     EventContext.back().type = type;
-    EventContext.back().setID(EventContext, newID);
+    EventContext.back().setID(EventContext, newID, printOutInstructions);
 }
 void EngineLoop::aggregateTwoSets(OperaClass & Operation, vector<PointerContainer> & EventContext){
     PointerContainer NewContext;
@@ -1888,7 +1911,7 @@ void EngineLoop::aggregateTwoSets(OperaClass & Operation, vector<PointerContaine
         return;
     }
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
@@ -1954,7 +1977,7 @@ void EngineLoop::aggregateEntities(OperaClass & Operation, vector<PointerContain
     PointerContainer NewContext;
 
     if(Operation.Location.source == "layer" || Operation.Location.source == "camera"){
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << Operation.instruction << " ";
             Operation.Location.print("");
             std::cout << "\n";
@@ -1976,7 +1999,7 @@ void EngineLoop::aggregateEntities(OperaClass & Operation, vector<PointerContain
                 std::cout << "Error: In " << __FUNCTION__ << ": Context \'" << contextID << "\' does not exist.\n";
                 continue;
             }
-            if(printInstructions){
+            if(printOutInstructions){
                 std::cout << Operation.instruction << " ";
                 Operation.Location.print(contextID);
                 std::cout << "\n";
@@ -2028,7 +2051,7 @@ void EngineLoop::aggregateEntities(OperaClass & Operation, vector<PointerContain
 void EngineLoop::aggregateValues(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras){
     PointerContainer NewContext;
     for(ConditionClass & ValueLocation : Operation.ConditionalChain){
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "inner_find ";
             ValueLocation.Location.print("");
             std::cout << "\n";
@@ -2036,7 +2059,7 @@ void EngineLoop::aggregateValues(vector<PointerContainer> &EventContext, OperaCl
         NewContext.Variables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Layers, Cameras, EventContext));
     }
     if(NewContext.Variables.size() > 0){
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << Operation.instruction << " " << NewContext.getValue() << "\n";
         }
         addNewContext(EventContext, NewContext, "value", Operation.newContextID);
@@ -2051,10 +2074,10 @@ void EngineLoop::aggregateOnlyById(vector<PointerContainer> &EventContext, Opera
     PointerContainer * LeftOperand = nullptr;
 
     if(Operation.Location.source == "layer" || Operation.Location.source == "camera"){
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "find_by_id (in environment)\n";
         }
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "inner_find ";
             Operation.Location.print("");
             std::cout << "\n";
@@ -2062,7 +2085,7 @@ void EngineLoop::aggregateOnlyById(vector<PointerContainer> &EventContext, Opera
         aggregateCamerasAndLayersById(Operation.Location, NewContext, Owner, OwnerLayer, Layers, Cameras);
     }
     else if(Operation.dynamicIDs.size() > 0){
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "find_by_id (context)<" << Operation.dynamicIDs.size() << ">\n";
         }
         for(string dynamicID : Operation.dynamicIDs){
@@ -2070,7 +2093,7 @@ void EngineLoop::aggregateOnlyById(vector<PointerContainer> &EventContext, Opera
             if(LeftOperand == nullptr){
                 continue;
             }
-            if(printInstructions){
+            if(printOutInstructions){
                 std::cout << "inner_find ";
                 Operation.Location.print(dynamicID);
                 std::cout << "\n";
@@ -2080,7 +2103,7 @@ void EngineLoop::aggregateOnlyById(vector<PointerContainer> &EventContext, Opera
     }
 
     if(NewContext.type != ""){
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "found: " << NewContext.getValue() << "\n";
         }
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
@@ -2090,7 +2113,7 @@ void EngineLoop::aggregateOnlyById(vector<PointerContainer> &EventContext, Opera
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void PointerContainer::setID(vector<PointerContainer> &EventContext, string newID){
+void PointerContainer::setID(vector<PointerContainer> &EventContext, string newID, const bool & printOutInstructions){
     if(newID == ""){
         return;
     }
@@ -2098,7 +2121,7 @@ void PointerContainer::setID(vector<PointerContainer> &EventContext, string newI
     PointerContainer * OldVariable = getContextByID(EventContext, newID, false);
 
     if(OldVariable != nullptr){
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "free "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue() << "\n";
             std::cout << "let " << newID << " " << ID << ":" << type << ":" << getValue() << "\n";
         }
@@ -2106,7 +2129,7 @@ void PointerContainer::setID(vector<PointerContainer> &EventContext, string newI
         OldVariable->ID = newID;
     }
     else{
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "let " << newID << " " << ID << ":" << type << ":" << getValue() << "\n";
         }
         ID = newID;
@@ -2120,7 +2143,7 @@ void EngineLoop::nameVariable(vector<PointerContainer> & EventContext, OperaClas
         return;
     }
 
-    LeftOperand->setID(EventContext, Operation.newContextID);
+    LeftOperand->setID(EventContext, Operation.newContextID, printOutInstructions);
 }
 bool checkForVectorSize(size_t leftSize, size_t rightSize, bool & sameSize, string functionName){
     if(leftSize == rightSize){
@@ -2182,7 +2205,7 @@ void EngineLoop::moveValues(OperaClass & Operation, vector<PointerContainer> &Ev
         return;
     }
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
@@ -2254,7 +2277,7 @@ void EngineLoop::cloneEntities(vector<string> dynamicIDs, bool changeOldID, vect
     unsigned i = 0, j = 0;
     bool sameSize = false;
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << "clone " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
@@ -2388,7 +2411,7 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
     unsigned i = 0, j = 0;
     bool sameSize = false;
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
@@ -2485,7 +2508,7 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
 }
 void EngineLoop::createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation){
     PointerContainer NewContext;
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << "literal {";
         for(const VariableModule & Literal : Operation.Literals){
             std::cout << Literal.getString() << ", ";
@@ -2532,7 +2555,7 @@ void EngineLoop::generateRandomVariable(vector<PointerContainer> &EventContext, 
     unsigned i = 0, j = 0;
     bool sameSize = false;
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
@@ -2593,7 +2616,7 @@ void EngineLoop::generateRandomVariable(vector<PointerContainer> &EventContext, 
     }
 
     if(NewContext.Variables.size() > 0){
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << Operation.instruction << " " << NewContext.getValue() << "\n";
         }
         addNewContext(EventContext, NewContext, "value", Operation.newContextID);
@@ -2634,7 +2657,7 @@ void EngineLoop::checkIfVectorContainsVector(OperaClass & Operation, vector<Poin
     bool result = false;
     unsigned i = 0, j = 0;
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << "in " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
@@ -2779,12 +2802,12 @@ void EngineLoop::checkIfVectorContainsVector(OperaClass & Operation, vector<Poin
 template <class Module>
 void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const unsigned & newVectorSize,
     const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, vector<PointerContainer> & EventContext,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, double reservationMultiplier
 ){
     if(Container.size() + newVectorSize > Container.capacity()){
         PointerRecalculator Recalculator;
         Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
-        Container.reserve((Container.size() + newVectorSize) * RESERVATION_MULTIPLIER);
+        Container.reserve((Container.size() + newVectorSize) * reservationMultiplier);
         Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
     }
     string ID = "";
@@ -2917,7 +2940,7 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
         return;
     }
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << "new " << newVectorSize << " ";
         Operation.Location.print("");
         if(newIDs.size() > 0){
@@ -2941,7 +2964,7 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
             }
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForCameras(Cameras, EventContext, SelectedCamera);
-            Cameras.reserve((Cameras.size() + newVectorSize) * RESERVATION_MULTIPLIER);
+            Cameras.reserve((Cameras.size() + newVectorSize) * reservationMultiplier);
             Recalculator.updatePointersToCameras(Cameras, EventContext, SelectedCamera);
         }
         for(unsigned i = 0; i < newVectorSize; i++){
@@ -2958,7 +2981,7 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
             Recalculator.findIndexesForLayers(Layers, EventContext);
             Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
             Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
-            Layers.reserve((Layers.size() + newVectorSize) * RESERVATION_MULTIPLIER);
+            Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
             Recalculator.updatePointersToLayers(Layers, EventContext);
             Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
             Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
@@ -2976,7 +2999,7 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
             Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
-            CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * RESERVATION_MULTIPLIER);
+            CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
             Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
             Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
         }
@@ -2990,47 +3013,47 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
     }
     else if(Operation.Location.source == "text"){
         createNewModule(CurrentObject->TextContainer, CurrentObject->textContainerIDs, NewContext.Modules.Texts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else if(Operation.Location.source == "editable_text"){
         createNewModule(CurrentObject->EditableTextContainer, CurrentObject->editableTextContainerIDs, NewContext.Modules.EditableTexts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else if(Operation.Location.source == "image"){
         createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else if(Operation.Location.source == "movement"){
         createNewModule(CurrentObject->MovementContainer, CurrentObject->movementContainerIDs, NewContext.Modules.Movements,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else if(Operation.Location.source == "collision"){
         createNewModule(CurrentObject->CollisionContainer, CurrentObject->collisionContainerIDs, NewContext.Modules.Collisions,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else if(Operation.Location.source == "particles"){
         createNewModule(CurrentObject->ParticlesContainer, CurrentObject->particlesContainerIDs, NewContext.Modules.Particles,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else if(Operation.Location.source == "event"){
         createNewModule(CurrentObject->EveContainer, CurrentObject->eveContainerIDs, NewContext.Modules.Events,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else if(Operation.Location.source == "variable"){
         createNewModule(CurrentObject->VariablesContainer, CurrentObject->variablesContainerIDs, NewContext.Modules.Variables,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else if(Operation.Location.source == "scrollbar"){
         createNewModule(CurrentObject->ScrollbarContainer, CurrentObject->scrollbarContainerIDs, NewContext.Modules.Scrollbars,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
     }
     else{
@@ -3071,7 +3094,7 @@ void EngineLoop::markEntitiesForDeletion(OperaClass & Operation, vector<PointerC
         return;
     }
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << "delete " << DeletedContext->getValue() << "\n";
     }
 
@@ -3348,7 +3371,7 @@ void EngineLoop::getReferenceByIndex(OperaClass & Operation, vector<PointerConta
             indexes.push_back(0);
         }
 
-        if(printInstructions){
+        if(printOutInstructions){
             if(Operation.Location.attribute != ""){
                 std::cout << "index " << Operation.Location.source << " " << Operation.Location.attribute << " [";
             }
@@ -3468,7 +3491,7 @@ void EngineLoop::getReferenceByIndex(OperaClass & Operation, vector<PointerConta
             indexes.push_back(0);
         }
 
-        if(printInstructions){
+        if(printOutInstructions){
             if(Operation.Location.attribute != ""){
                 std::cout << "index " << Context->type << " " << Operation.Location.attribute << " [";
             }
@@ -3697,7 +3720,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
             std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
             return;
         }
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
         }
         for(AncestorObject * Object : ContextA->Objects){
@@ -3706,7 +3729,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
                     std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
                     continue;
                 }
-                if(printInstructions){
+                if(printOutInstructions){
                     std::cout << "\"" << Variable.getString() << "\", ";
                 }
                 if(isStringInGroup(Operation.Literals[0].getString(), 2, "literal", "l")){
@@ -3717,7 +3740,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
                 }
             }
         }
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "]\n";
         }
     }
@@ -3736,7 +3759,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
                 std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
                 return;
             }
-            if(printInstructions){
+            if(printOutInstructions){
                 std::cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
             }
             for(AncestorObject * Object : ContextObject->Objects){
@@ -3745,7 +3768,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
                         std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only pointers of \'string'; type.\n";
                         continue;
                     }
-                    if(printInstructions){
+                    if(printOutInstructions){
                         std::cout << "\"" << Pointer.getString() << "\", ";
                     }
                     if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
@@ -3756,7 +3779,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
                     }
                 }
             }
-            if(printInstructions){
+            if(printOutInstructions){
                 std::cout << "]\n";
             }
         }
@@ -3765,7 +3788,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
                 std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
                 return;
             }
-            if(printInstructions){
+            if(printOutInstructions){
                 std::cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
             }
             for(AncestorObject * Object : ContextObject->Objects){
@@ -3774,7 +3797,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
                         std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
                         continue;
                     }
-                    if(printInstructions){
+                    if(printOutInstructions){
                         std::cout << "\"" << Variable.getString() << "\", ";
                     }
                     if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
@@ -3785,7 +3808,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
                     }
                 }
             }
-            if(printInstructions){
+            if(printOutInstructions){
                 std::cout << "]\n";
             }
         }
@@ -3804,7 +3827,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
             std::cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
             return;
         }
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << "\n";
         }
         for(AncestorObject * Object : ContextObject->Objects){
@@ -3830,7 +3853,7 @@ void EngineLoop::buildEventsInObjects(OperaClass & Operation, vector<PointerCont
     if(Operation.Literals.size() > 0 && Operation.Literals[0].getType() == 'b'){
         canResetEvents = Operation.Literals[0].getBool();
     }
-    if(printInstructions){
+    if(printOutInstructions){
         if(canResetEvents){
             std::cout << "build " << Operation.dynamicIDs[0] << " true\n";
         }
@@ -3882,7 +3905,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
         }
     }
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << Operation.instruction << " " << Operation.dynamicIDs[0] << "." << Operation.Location.attribute << "()";
         if(Variables.size() > 0){
             std::cout << "[";
@@ -3937,6 +3960,96 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
         for(ScrollbarModule * Scrollbar : Context->Modules.Scrollbars){
             Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables);
         }
+    }
+}
+void EngineLoop::changeEngineVariables(OperaClass & Operation){
+    if(Operation.Literals.size() < 2){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least two literals.\n";
+        return;
+    }
+    if(Operation.Literals[0].getType() != 's'){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires first literal being of a string type.\n";
+        return;
+    }
+    if(printOutInstructions){
+        std::cout << Operation.instruction << " " << Operation.Literals[0].getString() << " ";
+        for(unsigned i = 1; i < Operation.Literals.size(); i++){
+            std::cout << Operation.Literals[i].getStringUnsafe() << " ";
+        }
+        std::cout << "\n";
+    }
+    if(Operation.Literals[0].getString() == "window_title"){
+        if(windowTitle == Operation.Literals[1].getStringUnsafe()){
+            return;
+        }
+        windowTitle = Operation.Literals[1].getStringUnsafe();
+        al_set_window_title(window, windowTitle.c_str());
+    }
+    else if(Operation.Literals[0].getString() == "window_size"){
+        if(Operation.Literals.size() < 3){
+            std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
+            return;
+        }
+        if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()){
+            std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
+            return;
+        }
+        screenW = Operation.Literals[1].getInt();
+        screenH = Operation.Literals[2].getInt();
+        al_resize_display(window, screenW, screenH);
+        if(mainBuffer){
+            al_destroy_bitmap(mainBuffer);
+        }
+        mainBuffer = al_create_bitmap(screenW, screenH);
+    }
+    else if(Operation.Literals[0].getString() == "fullscreen"){
+        if(Operation.Literals[1].getBool() == fullscreen){
+            return;
+        }
+        fullscreen = Operation.Literals[1].getBool();
+        al_set_display_flag(window, ALLEGRO_FULLSCREEN_WINDOW, !(al_get_display_flags(window) & ALLEGRO_FULLSCREEN_WINDOW));
+        al_set_display_flag(window, ALLEGRO_MAXIMIZED, !(al_get_display_flags(window) & ALLEGRO_MAXIMIZED));
+    }
+    else if(Operation.Literals[0].getString() == "pixel_art"){
+        if(Operation.Literals[1].getBool() == isPixelArt){
+            return;
+        }
+        isPixelArt = Operation.Literals[1].getBool();
+        if(!isPixelArt){
+            al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+        }
+        else{
+            al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR);
+        }   
+    }
+    else if(Operation.Literals[0].getString() == "draw_text_borders"){
+        drawTextFieldBorders = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "draw_hitboxes"){
+        drawHitboxes = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "ignore_distant"){
+        ignoreDistantObjects = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "draw_only_visible"){
+        drawOnlyVisibleObjects = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "bitmap_layers_number"){
+        totalNumberOfBitmapLayers = Operation.Literals[1].getInt(); 
+    }
+    else if(Operation.Literals[0].getString() == "print_logical_evaluations"){
+        printOutLogicalEvaluations = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "print_instructions"){
+        printOutInstructions = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "reservation_multiplier"){
+        printOutInstructions = Operation.Literals[1].getDouble(); 
+    }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
     }
 }
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
@@ -4013,7 +4126,10 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         else if(Operation.instruction == "fun"){
             executeFunction(Operation, EventContext, Event);
         }
-        if(printInstructions){
+        else if(Operation.instruction == "env"){
+            changeEngineVariables(Operation);
+        }
+        if(printOutInstructions){
             string buffor = "Stack: ";
             for(auto context : EventContext){
                 buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
@@ -4411,6 +4527,10 @@ VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObj
     
     if(Condition.Location.source == "on_boot"){
         NewValue.setBool(firstIteration);
+        return NewValue;
+    }
+    else if(Condition.Location.source == "fullscreen"){
+        NewValue.setBool(fullscreen);
         return NewValue;
     }
     else if(Condition.Location.source == "second_passed"){
@@ -4837,7 +4957,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         return;
     }
 
-    if(printInstructions){
+    if(printOutInstructions){
         std::cout << "\nTriggered "<< TriggeredObjects.size() << " objects:\n";
     }
 
@@ -4898,7 +5018,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         
         StartingEvent = Event;
 
-        if(printInstructions){
+        if(printOutInstructions){
             std::cout << "Starting with: " << StartingEvent->getID() << "\n";
         }
 
@@ -5726,7 +5846,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         if(ParticleEffect.usedBitmapLayer != currentlyDrawnLayer)
             continue;
         
-        ParticleEffect.drawParticles(Object.ImageContainer, vec2i(SCREEN_W, SCREEN_H), Camera);
+        ParticleEffect.drawParticles(Object.ImageContainer, vec2i(screenW, screenH), Camera);
         numberOfDrawnObjects++;
     }
 }
@@ -5997,6 +6117,7 @@ void removeListsInEditorWindow(AncestorObject * EditorWindow){
 }
 
 void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector<string> &listOfIDs, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer){
+    int SCREEN_W = 1600, SCREEN_H = 900;
     EditorWindowArrangement Arr;
     Arr.labelHeight = getFontHeight(FontContainer, Arr.labelFontID);
     Arr.attributeSize.y = getFontHeight(FontContainer, Arr.attributeFontID);
