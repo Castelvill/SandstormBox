@@ -748,7 +748,7 @@ void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <s
 }
 
 void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs, int SCREEN_W, int SCREEN_H){
-    Cameras.push_back(Camera2D("Cam0", camerasIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W/2.0, SCREEN_H), vec2d(0.0, 0.0)));
+    Cameras.push_back(Camera2D("Cam0", camerasIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
@@ -762,7 +762,7 @@ void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs, in
     Cameras.back().addAccessibleLayer("L1");
     Cameras.back().addAccessibleLayer("L2");
 
-    Cameras.push_back(Camera2D("Cam1", camerasIDs, true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
+    /*Cameras.push_back(Camera2D("Cam1", camerasIDs, true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
     Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
     Cameras.back().setSpeed(5.0);
     Cameras.back().setFollowedObjectID("par");
@@ -785,7 +785,7 @@ void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs, in
     Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
     Cameras.back().addVisibleLayer("Editor");
     Cameras.back().addVisibleLayer("L1");
-    Cameras.back().pinToCamera("Cam1");
+    Cameras.back().pinToCamera("Cam1");*/
 }
 
 Fps fps;
@@ -812,13 +812,9 @@ int main(){
 
     loadBitmapsToContainer(BitmapContainer, Threads.back().EXE_PATH);
 
-    createCameras(Cameras, Threads.back().camerasIDs, Threads.back().getScreenW(), Threads.back().getScreenH());
+    createCameras(Cameras, Threads.back().camerasIDs, Threads.back().getWindowW(), Threads.back().getWindowH());
     Threads.back().updateAllForestOfCameras(Cameras);
 
-    Cameras.push_back(Camera2D("", Threads.back().camerasIDs));
-    Cameras.back().clone(Cameras[1], Threads.back().camerasIDs, true);
-    Cameras.back().setIsPinned(false);
-    Cameras.back().setPos(vec2d(Threads.back().getScreenW()/2.0, 300.0));
 
     if(Threads.back().isCamerasUniquenessViolated(Cameras)){
         goto kernelGotLost;
@@ -854,7 +850,7 @@ int main(){
             goto uniquenessViolated;
         numberOfObjects += layer.Objects.size();
     }
-    std::cout << "Number of objects: " << numberOfObjects << "\n";
+    std::cout << "\n\nNumber of objects: " << numberOfObjects << "\n\n";
 
     Threads.back().updateBaseOfTriggerableObjects(Layers);
 

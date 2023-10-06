@@ -428,10 +428,6 @@ void VariableModule::getContext(string attribute, vector <BasePointersStruct> & 
 
 template <typename condValueType>
 bool VariableModule::isConditionMet(condValueType condVal, string operatorType, char valType){
-    if(type != valType){
-        std::cout << "Error [VariableModule]: Comparison of two different variable types.\n";
-        return false;
-    }
     if(operatorType == "||"){
         if(valType == 'b'){
             return vBool || condVal;
@@ -548,41 +544,42 @@ bool VariableModule::isConditionMet(string condVal, string operatorType, char va
     return false;
 }
 bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherVariable){
-    if(type != OtherVariable->getType()){
-        std::cout << "Error [VariableModule]: Comparison of two different variable types.\n";
-        return false;
+    if(isNumeric() && OtherVariable->isNumeric()){
+        if(OtherVariable->getType() == 'b'){
+            return isConditionMet(OtherVariable->getBool(), operatorType, OtherVariable->getType());
+        }
+        else if(OtherVariable->getType() == 'i'){
+            return isConditionMet(OtherVariable->getInt(), operatorType, OtherVariable->getType());
+        }
+        else if(OtherVariable->getType() == 'd'){
+            return isConditionMet(OtherVariable->getDouble(), operatorType, OtherVariable->getType());
+        }
     }
-    if(OtherVariable->getType() == 'b'){
-        return isConditionMet(OtherVariable->getBool(), operatorType, OtherVariable->getType());
-    }
-    else if(OtherVariable->getType() == 'i'){
-        return isConditionMet(OtherVariable->getInt(), operatorType, OtherVariable->getType());
-    }
-    else if(OtherVariable->getType() == 'd'){
-        return isConditionMet(OtherVariable->getDouble(), operatorType, OtherVariable->getType());
-    }
-    else if(OtherVariable->getType() == 's'){
+    else if(OtherVariable->getType() == 's' && type == 's'){
         return isConditionMet(OtherVariable->getString(), operatorType, OtherVariable->getType());
     }
+    
+    std::cout << "Error [VariableModule]: Invalid types.\n";
     
     return false;
 }
 bool VariableModule::isConditionMet(string operatorType, const BasePointersStruct & OtherVariable){
-    if(OtherVariable.type == "bool" && type == 'b'){
-        return isConditionMet(OtherVariable.getBool(), operatorType, type);
+    if(OtherVariable.isNumeric() && isNumeric()){
+        if(type == 'b'){
+            return isConditionMet(OtherVariable.getBool(), operatorType, type);
+        }
+        else if(type == 'i'){
+            return isConditionMet(OtherVariable.getInt(), operatorType, type);
+        }
+        else{
+            return isConditionMet(OtherVariable.getDouble(), operatorType, type);
+        }
     }
-    else if(isStringInGroup(OtherVariable.type, 5, "char", "short", "unsigned_short", "int", "unsigned_int") && type == 'i'){
-        return isConditionMet(OtherVariable.getInt(), operatorType, type);
-    }
-    else if(isStringInGroup(OtherVariable.type, 2, "float", "double") && type == 'd'){
-        return isConditionMet(OtherVariable.getDouble(), operatorType, type);
-    }
-    else if(OtherVariable.type == "string" && type == 's'){
+    else if(type == 's' && (OtherVariable.type == "string" || OtherVariable.type == "char")){
         return isConditionMet(OtherVariable.getString(), operatorType, type);
     }
-    else{
-        std::cout << "Error: " << __FUNCTION__ << ": Comparison of two different variable types.\n";
-    }
+    
+    std::cout << "Error: " << __FUNCTION__ << ": Invalid types.\n";
     
     return false;
 }
@@ -996,5 +993,5 @@ VariableModule VariableModule::newString(string val){
 }
 
 bool VariableModule::isNumeric() const{
-    return type == 'b' || type == 'i' || type == 'd';
+    return type != 's';
 }

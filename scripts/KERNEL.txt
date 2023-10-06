@@ -4,8 +4,8 @@ if ([on_boot])
 index layer [1 0] _ object Amogus
 bind Amogus literal ["scripts/amogus.txt"]
 build Amogus true
-env window_size 1920 1080
 env draw_hitboxes 0
+env print_instructions 0
 end
 
 start reset false

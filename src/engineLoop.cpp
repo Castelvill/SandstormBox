@@ -76,7 +76,6 @@ void EventsLookupTable::clear(){
 }
 
 EngineLoop::EngineLoop(std::string title){
-    mainBuffer = NULL;
     cursorBitmap = NULL;
     windowTitle = title;
     firstIteration = true;
@@ -93,8 +92,8 @@ EngineLoop::EngineLoop(std::string title){
     selectedObjectLayerID = "";
     selectedObjectID = "";
 
-    screenW = 1680*0.7;//1920/1.0;
-    screenH = 900*0.7;//1025/1.0;
+    windowW = 1680;//1920/1.0;
+    windowH = 900;//1025/1.0;
     fullscreen = false;
     printOutLogicalEvaluations = false;
     printOutInstructions = false;
@@ -103,6 +102,13 @@ EngineLoop::EngineLoop(std::string title){
     if(reservationMultiplier < 1.0){
         std::cout << "Error: RESERVATION_MULTIPLIER is lower than 1.\n";
     }
+}
+void getDesktopResolution(int adapter, int *w, int *h){
+    ALLEGRO_MONITOR_INFO info;
+    al_get_monitor_info(adapter, &info);
+
+    *w = info.x2 - info.x1;
+    *h = info.y2 - info.y1;
 }
 void EngineLoop::initAllegro(){
     al_init();
@@ -113,16 +119,27 @@ void EngineLoop::initAllegro(){
     al_init_font_addon();
     al_init_ttf_addon();
 
-    al_set_new_display_flags(ALLEGRO_OPENGL | ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
+    if(fullscreen){
+        al_set_new_display_flags(ALLEGRO_OPENGL | ALLEGRO_FULLSCREEN_WINDOW | ALLEGRO_RESIZABLE | ALLEGRO_NOFRAME);
+    }
+    else{
+        al_set_new_display_flags(ALLEGRO_OPENGL | ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
+    }
+    
     al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 2, ALLEGRO_SUGGEST); //antialias stuff
     al_set_new_display_option(ALLEGRO_SAMPLES, 4, ALLEGRO_SUGGEST); //antialias stuff
+    al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
     //al_set_new_bitmap_samples(4);
 
-    window = al_create_display(screenW, screenH);
+
+    int SCREEN_W;
+    int SCREEN_H;
+    getDesktopResolution(0, &SCREEN_W, &SCREEN_H);
+
+    window = al_create_display(SCREEN_W, SCREEN_H);
     al_set_window_title(window, windowTitle.c_str());
-
-
-    mainBuffer = al_create_bitmap(screenW, screenH);
+    al_set_window_position(window, 0, 0);
+    al_resize_display(window, windowW, windowH);
 
     EXE_PATH = "";
     ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
@@ -173,7 +190,6 @@ void EngineLoop::startTimer(){
     al_start_timer(timer);
 }
 void EngineLoop::exitAllegro(){
-    al_destroy_bitmap(mainBuffer);
     al_destroy_display(window);
     if(cursorBitmap){
         al_destroy_bitmap(cursorBitmap);
@@ -274,7 +290,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 Mouse.resetReleased();
                 break;
             case ALLEGRO_EVENT_MOUSE_AXES:
-                Mouse.updateAxes(event);
+                Mouse.updateAxes(event, fullscreen);
                 if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
                     Mouse.updateZoomPos(*SelectedCamera);
                 }
@@ -317,6 +333,10 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                 closeProgram = true;
                 break;
+            case ALLEGRO_EVENT_DISPLAY_RESIZE:
+                al_acknowledge_resize(window);
+                getDesktopResolution(0, &windowW, &windowH);
+                break;
         }
 
         if(Mouse.isPressed() || releasedKeys.size() != 0 || pressedKeys.size() != 0){
@@ -344,7 +364,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
         timeToInterruptParticles = 500;
 
-        al_set_target_bitmap(al_get_backbuffer(window));
+        //al_set_target_bitmap(al_get_backbuffer(window));
         
         drawObjects(Layers, Cameras, FontContainer);
 
@@ -902,14 +922,14 @@ bool EngineLoop::chooseRandomModule(PointerContainer & NewContext){
 bool EngineLoop::isRunning() const{
     return !closeProgram;
 }
-int EngineLoop::getScreenW() const{
-    return screenW;
+int EngineLoop::getWindowW() const{
+    return windowW;
 }
-int EngineLoop::getScreenH() const{
-    return screenH;
+int EngineLoop::getWindowH() const{
+    return windowH;
 }
 vec2i EngineLoop::getScreenSize() const{
-    return vec2i(screenW, screenH);
+    return vec2i(windowW, windowH);
 }
 
 void EngineLoop::aggregateCameras(OperaClass &Operation, PointerContainer &NewContext, vector<Camera2D *> AggregatedCameras, vector<Camera2D> &Cameras, vector<PointerContainer> &EventContext)
@@ -3961,6 +3981,9 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables);
         }
     }
+    else{
+        std::cout << "Error: In " << __FUNCTION__ << ": type \'" << Context->type << "\' does not exist.\n";
+    }
 }
 void EngineLoop::changeEngineVariables(OperaClass & Operation){
     if(Operation.Literals.size() < 2){
@@ -3996,13 +4019,9 @@ void EngineLoop::changeEngineVariables(OperaClass & Operation){
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
             return;
         }
-        screenW = Operation.Literals[1].getInt();
-        screenH = Operation.Literals[2].getInt();
-        al_resize_display(window, screenW, screenH);
-        if(mainBuffer){
-            al_destroy_bitmap(mainBuffer);
-        }
-        mainBuffer = al_create_bitmap(screenW, screenH);
+        windowW = Operation.Literals[1].getInt();
+        windowH = Operation.Literals[2].getInt();
+        al_resize_display(window, windowW, windowH);
     }
     else if(Operation.Literals[0].getString() == "fullscreen"){
         if(Operation.Literals[1].getBool() == fullscreen){
@@ -4011,6 +4030,8 @@ void EngineLoop::changeEngineVariables(OperaClass & Operation){
         fullscreen = Operation.Literals[1].getBool();
         al_set_display_flag(window, ALLEGRO_FULLSCREEN_WINDOW, !(al_get_display_flags(window) & ALLEGRO_FULLSCREEN_WINDOW));
         al_set_display_flag(window, ALLEGRO_MAXIMIZED, !(al_get_display_flags(window) & ALLEGRO_MAXIMIZED));
+        //al_set_display_flag(window, ALLEGRO_NOFRAME, !(al_get_display_flags(window) & ALLEGRO_NOFRAME));
+        
     }
     else if(Operation.Literals[0].getString() == "pixel_art"){
         if(Operation.Literals[1].getBool() == isPixelArt){
@@ -4635,7 +4656,7 @@ VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObj
                 return NewValue;
             }
             else if(Condition.Location.attribute == "objects_count"){
-                NewValue.setDouble(Layer.Objects.size());
+                NewValue.setInt(Layer.Objects.size());
                 return NewValue;
             }
             else if(Condition.Location.attribute == "is_active"){
@@ -4971,6 +4992,8 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     bool wasDeleteExecuted = false;
     bool wasNewExecuted = false;
     bool wasBuildExecuted = false;
+
+    unsigned i = 0;
     
 
     LayerClass * TriggeredLayer;
@@ -5025,6 +5048,21 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         wasDeleteExecuted = false;
         wasNewExecuted = false;
         wasBuildExecuted = false;
+
+        for(auto _ : Context){
+            _.clear();
+        }
+        Context.clear();
+        MemoryStack.clear();
+
+        Context.push_back(PointerContainer());
+        Context.back().type = "object";
+        Context.back().Objects.push_back(Triggered);
+        Context.back().ID = "me";
+        Context.push_back(PointerContainer());
+        Context.back().type = "layer";
+        Context.back().Layers.push_back(TriggeredLayer);
+        Context.back().ID = "my_layer";
 
         do{
             if(Event->conditionalStatus == 'n' && Interrupt.instruction != "break"){
@@ -5117,10 +5155,10 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 MemoryStack.pop_back();
                 continue;
             }
-            for(auto _ : Context){
-                _.clear();
+            for(i = 2; i < Context.size(); i++){
+                Context[i].clear();
             }
-            Context.clear();
+            Context.erase(Context.begin() + 2, Context.end());
             MemoryStack.clear();
 
             if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){
@@ -5194,6 +5232,7 @@ void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
 void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
     if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && isKeyPressed(ALLEGRO_KEY_LSHIFT) && Mouse.isPressed(0)){
         SelectedCamera->relativePos = Mouse.getPos();
+        SelectedCamera->relativePos.translate(-50.0, -50.0);
         SelectedCamera->pos = SelectedCamera->relativePos;
         for(Camera2D & Camera : Cameras){
             if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
@@ -5846,7 +5885,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         if(ParticleEffect.usedBitmapLayer != currentlyDrawnLayer)
             continue;
         
-        ParticleEffect.drawParticles(Object.ImageContainer, vec2i(screenW, screenH), Camera);
+        ParticleEffect.drawParticles(Object.ImageContainer, vec2i(windowW, windowH), Camera);
         numberOfDrawnObjects++;
     }
 }

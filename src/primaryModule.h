@@ -70,6 +70,7 @@ public:
     int getInt() const;
     string getString() const;
     bool isInteger() const;
+    bool isNumeric() const;
 };
 
 class PrimaryModule{

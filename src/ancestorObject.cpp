@@ -1,9 +1,8 @@
 #include "ancestorObject.h"
 #include <regex>
 
-vector<string> split_string(const string & str, const string & delimiter){
+vector<string> splitSpringReturnVector(const string & str, const string & delimiter, bool reAdd){
     vector<string> strings;
-
     string::size_type pos = 0;
     string::size_type prev = 0;
     while ((pos = str.find(delimiter, prev)) != string::npos)
@@ -11,11 +10,73 @@ vector<string> split_string(const string & str, const string & delimiter){
         strings.push_back(str.substr(prev, pos - prev));
         prev = pos + delimiter.size();
     }
-
-    // To get the last substring (or only, if delimiter is not found)
-    strings.push_back(str.substr(prev));
-
+    if(reAdd){
+        strings.push_back(delimiter + str.substr(prev));
+    }
+    else{
+        strings.push_back(str.substr(prev));
+    }
     return strings;
+}
+auto splitStringReturnPair(const string & str, const string & delimiter, bool reAdd){
+    struct result{
+        string left;
+        string right;
+    };
+    string::size_type pos = 0;
+    string::size_type prev = 0;
+    string left, right;
+    while ((pos = str.find(delimiter, prev)) != string::npos){
+        left += str.substr(prev, pos - prev);
+        prev = pos + delimiter.size();
+    }
+    if(reAdd && prev != 0){
+        right = delimiter + str.substr(prev);
+    }
+    else{
+        right = str.substr(prev);
+    }
+    return result{left, right};
+}
+vector<string> removeComments(const vector<string> & lines){
+    vector<string> newLines;
+    unsigned cursor;
+    bool commentSection = false;
+    unsigned lineNumber = 1;
+    for(const string & line : lines){
+        newLines.push_back("");
+        for(cursor = 0; cursor < line.size(); cursor++){
+            if(line[cursor] == '/' && cursor < line.size() + 2){
+                if(line[cursor + 1] == '/'){
+                    break;
+                }
+                else if(line[cursor + 1] == '*'){
+                    commentSection = true;
+                    cursor++;
+                    continue;
+                }
+            }
+            if(line[cursor] == '*' && cursor < line.size() + 2 && line[cursor + 1] == '/'){
+                if(!commentSection){
+                    std::cout << "Syntax error. (in line: " << lineNumber << ")\n";
+                    return newLines;
+                }
+                commentSection = false;
+                cursor++;
+                continue;
+            }
+            if(commentSection){
+               continue;
+            }
+            newLines.back() += line[cursor];
+        }
+        if(newLines.back().size() == 0){
+            newLines.pop_back();
+        }
+        lineNumber++;
+    }
+    
+    return newLines;
 }
 vector<string> readLines(const string& filename) {
 	std::ifstream File(filename);
@@ -26,9 +87,11 @@ vector<string> readLines(const string& filename) {
 	}
     else{
 	    for(string line; std::getline(File, line);){
-			lines.push_back(line);
+            lines.push_back(line);
 		}
 	}
+
+    lines = removeComments(lines);
 
 	return lines;
 }
@@ -873,25 +936,25 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
     return true;
 }
 bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<VariableModule> & Literals, const string & type){
-    if(type == "bool"){
+    if(type == "bool" || type == "b"){
         if(!gatherLiterals(words, cursor, Literals, 'b')){
             std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
             return false;
         }
     }
-    else if(type == "int"){
+    else if(type == "int" || type == "i"){
         if(!gatherLiterals(words, cursor, Literals, 'i')){
             std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
             return false;
         }
     }
-    else if(type == "double"){
+    else if(type == "double" || type == "d"){
         if(!gatherLiterals(words, cursor, Literals, 'd')){
             std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
             return false;
         }
     }
-    else if(type == "string"){
+    else if(type == "string" || type == "s"){
         if(!gatherLiterals(words, cursor, Literals, 's')){
             std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
             return false;

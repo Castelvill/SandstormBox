@@ -225,7 +225,6 @@ class EngineLoop{
 private:
     MouseClass Mouse;
     ALLEGRO_DISPLAY * window;
-    ALLEGRO_BITMAP * mainBuffer;
     ALLEGRO_BITMAP * cursorBitmap;
     ALLEGRO_MOUSE_CURSOR * mouseCursor;
     ALLEGRO_MOUSE_STATE mouseState;
@@ -250,8 +249,8 @@ private:
     bool firstIteration, closeProgram;
 
     string windowTitle;
-    int screenW;
-    int screenH;
+    int windowW;
+    int windowH;
     bool fullscreen;
     bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
     
@@ -277,8 +276,8 @@ public:
     void initAllegro();
     void exitAllegro();
     bool isRunning() const;
-    int getScreenW() const;
-    int getScreenH() const;
+    int getWindowW() const;
+    int getWindowH() const;
     vec2i getScreenSize() const;
     bool isLayersUniquenessViolated(vector <LayerClass> Layers);
     bool isCamerasUniquenessViolated(vector <Camera2D> Cameras);

@@ -47,11 +47,11 @@ void MouseClass::updateZoomPos(Camera2D Camera){
     zoomPos.divide(Camera.zoom);
     zoomPos.set(Camera.size.x/2-zoomPos.x, Camera.size.y/2-zoomPos.y);
 }
-void MouseClass::updateAxes(ALLEGRO_EVENT event){
+void MouseClass::updateAxes(ALLEGRO_EVENT event, bool fullscreen){
     didMouseMove = true;
 
     vec2d lastPos(pos);
-    pos.set(event.mouse.x, event.mouse.y);
+    pos.set(event.mouse.x, event.mouse.y /*+ !fullscreen * 22*/);
 
     scrollPos = event.mouse.z;
 }

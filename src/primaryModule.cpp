@@ -884,6 +884,9 @@ bool BasePointersStruct::isInteger() const{
     }
     return false;
 }
+bool BasePointersStruct::isNumeric() const{
+    return type != "char" && type != "string";
+}
 double BasePointersStruct::getDouble() const{
     if(type == "double"){
         return *pDouble;

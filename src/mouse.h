@@ -30,7 +30,7 @@ public:
     vec2d getPressedPos();
     vec2d getZoomPressedPos();
     void updateZoomPos(Camera2D Camera);
-    void updateAxes(ALLEGRO_EVENT event);
+    void updateAxes(ALLEGRO_EVENT event, bool fullscreen);
     void updateZoomForCamera(Camera2D * Camera);
     void updateButtonsPressed(ALLEGRO_EVENT event);
     void updateButtonsReleased(ALLEGRO_EVENT event);
