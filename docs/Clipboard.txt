@@ -1,0 +1,4 @@
+Clipboard
+al_get_clipboard_text
+al_set_clipboard_text
+al_clipboard_has_text

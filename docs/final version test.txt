@@ -1,0 +1,48 @@
+if(KEY_W){
+	let xd = 0;
+	while(xd < 10){
+		print(Layers[1].Objects[xd].id)
+		xd++;
+	}
+}
+
+if(KEY_Q){
+	let all_layers_before = Layers.all();
+	let ids = "new_object";
+	let new_objects = Layers["L1"].new(10);
+	new_objects.clone(Layers[1].Objects[0]);
+	new_objects.all().is_active--;
+	let all_objects = Layers.all().Objects.all();
+	print(all_objects);
+}
+
+if(KEY_E){
+	let KERNEL = Layers["KERNEL"];
+	let all_images = Layers["L1"].image.all();
+	all_images.last().delete();
+	let all_objects = Layers.all().Objects.all();
+	print(all_objects);
+}
+
+if(KEY_A){
+	let Amogus = Layers[1].Objects[0];
+	Amogus.first().pos.x -= 20;
+}
+
+if(KEY_D){
+	let Amogus = Layers[1].Objects[0];
+	Amogus.first().pos.x += 20;
+}
+
+if(KEY_S){
+	let index = 0;
+	while(index < 48){
+		let low = [0, 0, 0, 0];
+		let high = [10, 10, 10, 10];
+		let randomColor = [random_int(0, 10)]*4;
+		let dColors = double(randomColor);
+		dColors /= 10;
+		Layers[1].Objects[index].Images[0].set_color(dColors);
+		index++;
+	}
+}
