@@ -51,20 +51,15 @@ bool EveModule::checkIfAllChildrenFinished(){
     }
     return true;
 }
-void EveModule::controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values){
-    if(attribute == "activate"){
-        Text->activate();
+
+void EveModule::controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+    if(attribute == "set_ID" && Values.size() > 0){
+        Text->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "deactivate"){
-        Text->deactivate();
-    }
-    else if(attribute == "toggle"){
-        Text->toggleIsActive();
-    }
-    else if(attribute == "position" && Values.size() >= 2){
+    else if(attribute == "set_position" && Values.size() >= 2){
         Text->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(attribute == "size" && Values.size() >= 2){
+    else if(attribute == "set_size" && Values.size() >= 2){
         Text->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else if(attribute == "set_scale" && Values.size() >= 2){
@@ -73,10 +68,10 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "add_scale" && Values.size() >= 2){
         Text->addScale(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(attribute == "color" && Values.size() >= 3){
+    else if(attribute == "set_color" && Values.size() >= 3){
         Text->setColors(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe());
     }
-    else if(attribute == "random_color"){
+    else if(attribute == "set_random_color"){
         Text->setRandomColors();
     }
     else if(attribute == "set_rotation" && Values.size() >= 1){
@@ -85,21 +80,28 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "rotate" && Values.size() >= 1){
         Text->addRotation(Values[0].getDoubleUnsafe());
     }
-    else if(attribute == "visibility" && Values.size() >= 1){
+    else if(attribute == "set_visibility" && Values.size() >= 1){
         Text->setVisibility(Values[0].getDoubleUnsafe());
     }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+        bool temp = false;
+        if(Values.size() > 0){
+            temp = Values[0].getBoolUnsafe();
+        }
+        Text->control(attribute, temp);
     }
 }
-void EveModule::controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values){
-    if(attribute == "position" && Values.size() >= 2){
+void EveModule::controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer){
+    if(attribute == "set_ID" && Values.size() > 0){
+        Image->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "set_position" && Values.size() >= 2){
         Image->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(attribute == "size" && Values.size() >= 2){
+    else if(attribute == "set_size" && Values.size() >= 2){
         Image->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(attribute == "scale" && Values.size() >= 2){
+    else if(attribute == "set_scale" && Values.size() >= 2){
         Image->setScale(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else if(attribute == "resize" && Values.size() >= 2){
@@ -111,22 +113,35 @@ void EveModule::controlImage(ImageModule * Image, string attribute, const vector
     else if(attribute == "rotate" && Values.size() >= 1){
         Image->addRotation(Values[0].getDoubleUnsafe());
     }
-    else if(attribute == "mirror" && Values.size() >= 2){
+    else if(attribute == "set_mirror" && Values.size() >= 2){
         Image->setMirror(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
-    else if(attribute == "color" && Values.size() >= 4){
+    else if(attribute == "set_color" && Values.size() >= 4){
         float arr[] = {float(Values[0].getDoubleUnsafe()), float(Values[1].getDoubleUnsafe()), float(Values[2].getDoubleUnsafe()), float(Values[3].getDoubleUnsafe())};
         Image->setImageColor(arr);
     }
-    else if(attribute == "light" && Values.size() >= 4){
+    else if(attribute == "set_light" && Values.size() >= 4){
         Image->setLightColor(vec3d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe()), Values[3].getDoubleUnsafe());
     }
+    else if(attribute == "connect_bitmap" && Values.size() > 0){
+        Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe());
+    }
+    else if(attribute == "set_used_bitmap_layer" && Values.size() > 0){
+        Image->setUsedBitmapLayer(Values[0].getIntUnsafe());
+    }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+        bool temp = false;
+        if(Values.size() > 0){
+            temp = Values[0].getBoolUnsafe();
+        }
+        Image->control(attribute, temp);
     }
 }
-void EveModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values){
-    if(attribute == "move_up"){
+void EveModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+    if(attribute == "set_ID" && Values.size() > 0){
+        Movement->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "move_up"){
         Movement->setNextMove(true, false, false, false, false, false, false);
     }
     else if(attribute == "move_right"){
@@ -151,48 +166,69 @@ void EveModule::controlMovement(MovementModule * Movement, string attribute, con
         Movement->addMomentum(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+        bool temp = false;
+        if(Values.size() > 0){
+            temp = Values[0].getBoolUnsafe();
+        }
+        Movement->control(attribute, temp);
     }
 }
-void EveModule::controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values){
-    if(attribute == "solid"){
+void EveModule::controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+    if(attribute == "set_ID" && Values.size() > 0){
+        Collision->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "set_solid"){
         Collision->switchSolid();
     }
-    if(attribute == "penetrate"){
+    if(attribute == "set_penetration"){
         Collision->switchSolidPenetration();
     }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+        bool temp = false;
+        if(Values.size() > 0){
+            temp = Values[0].getBoolUnsafe();
+        }
+        Collision->control(attribute, temp);
     }
 }
-void EveModule::controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values){
-    if(attribute == "environment" && Values.size() >= 2){
+void EveModule::controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+    if(attribute == "set_ID" && Values.size() > 0){
+        Particles->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "set_environment" && Values.size() >= 2){
         Particles->setEnvironment(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(attribute == "environment_speed" && Values.size() >= 2){
+    else if(attribute == "set_environment_speed" && Values.size() >= 2){
         Particles->setEnvironmentSpeed(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(attribute == "shape" && Values.size() >= 1){
+    else if(attribute == "set_shape" && Values.size() >= 1){
         Particles->setParticlesShape(Values[0].getDoubleUnsafe());
     }
-    else if(attribute == "image"){
+    else if(attribute == "toggle_source"){
         Particles->switchUseImageAsParticles();
     }
-    else if(attribute == "spawn"){
-        Particles->activeSpawn();
+    else if(attribute == "allow_spawning"){
+        Particles->allowSpawning();
     }
-    else if(attribute == "random_colors"){
+    else if(attribute == "toggle_random_colors"){
         Particles->switchUseRandomColors();
     }
-    else if(attribute == "move"){
+    else if(attribute == "allow_movement"){
         Particles->switchAreParticlesMoving();
     }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+        bool temp = false;
+        if(Values.size() > 0){
+            temp = Values[0].getBoolUnsafe();
+        }
+        Particles->control(attribute, temp);
     }
 }
-void EveModule::controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values){
-    if(attribute == "toggle_bool"){
+void EveModule::controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+    if(attribute == "set_ID" && Values.size() > 0){
+        Variable->setID(Values[0].getStringUnsafe(), &IDs);
+    }
+    else if(attribute == "toggle_bool"){
         Variable->toggleBool();
     }
     else if(attribute == "set_default_bool_random"){
@@ -387,12 +423,19 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
         std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
     }
 }
-void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values){
-    if(attribute == "add_real_area" && Values.size() >= 2){
+void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+    if(attribute == "set_ID" && Values.size() > 0){
+        Scrollbar->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "add_real_area" && Values.size() >= 2){
         Scrollbar->addRealScrollingArea(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+        bool temp = false;
+        if(Values.size() > 0){
+            temp = Values[0].getBoolUnsafe();
+        }
+        Scrollbar->control(attribute, temp);
     }
 }
 
@@ -641,7 +684,7 @@ void EventModule::controlParticles(int operationID, ParticleEffectModule & Parti
         Particles.switchUseImageAsParticles();
     }
     else if(Operations[operationID].affectedVariable == "spawn"){
-        Particles.activeSpawn();
+        Particles.allowSpawning();
     }
     else if(Operations[operationID].affectedVariable == "random_colors"){
         Particles.switchUseRandomColors();

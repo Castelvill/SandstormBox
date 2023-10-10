@@ -104,7 +104,7 @@ public:
     void addImage(string newImageID);
     void removeImage(string imageID);
     void removeImage(unsigned int id);
-    void activeSpawn();
+    void allowSpawning();
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     double getEnvironmentX();

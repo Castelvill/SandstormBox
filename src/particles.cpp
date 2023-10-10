@@ -430,16 +430,10 @@ void ParticleEffectModule::setUsedBitmapLayer(int newLayer){
     usedBitmapLayer = newLayer;
 }
 void ParticleEffectModule::switchUseImageAsParticles(){
-    if(useImageAsParticles)
-        useImageAsParticles = false;
-    else
-        useImageAsParticles = true;
+    useImageAsParticles = !useImageAsParticles;
 }
 void ParticleEffectModule::switchUseRandomColors(){
-    if(useRandomColors)
-        useRandomColors = false;
-    else
-        useRandomColors = true;
+    useRandomColors = !useRandomColors;
 }
 void ParticleEffectModule::switchAreParticlesMoving(){
     areParticlesMoving = !areParticlesMoving;
@@ -488,7 +482,7 @@ void ParticleEffectModule::removeImage(unsigned int id){
         return;
     usedImagesList.erase(usedImagesList.begin() + id);
 }
-void ParticleEffectModule::activeSpawn(){
+void ParticleEffectModule::allowSpawning(){
     canParticlesSpawn = true;
 }
 void ParticleEffectModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){

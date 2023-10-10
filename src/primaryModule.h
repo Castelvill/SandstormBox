@@ -107,6 +107,8 @@ class PrimaryModule{
     vector <string> getGroups() const;
     vector <string> & getGroupsAddr();
 
+    void control(const string &attribute, const bool &value);
+
     void setPos(vec2d newPos);
     void setScrollShift(vec2d newValue);
     void setPos(double x, double y);

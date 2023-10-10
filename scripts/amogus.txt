@@ -72,6 +72,6 @@ literal double [0 0 0 0] dColors
 = dColors randomColor
 literal double [10] divide
 /= dColors divide
-fun image1 color c dColors
+fun image1 set_color c dColors
 ++ index
 end

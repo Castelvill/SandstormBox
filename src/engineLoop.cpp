@@ -270,7 +270,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
                 //START EVENT CONTROL SECTION
                 
-                triggerEve(Layers, Cameras);
+                triggerEve(Layers, Cameras, BitmapContainer);
 
                 firstIteration = false;
 
@@ -3886,7 +3886,28 @@ void EngineLoop::buildEventsInObjects(OperaClass & Operation, vector<PointerCont
         Object->translateAllScripts(canResetEvents);
     }
 }
-void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event){
+bool findObjectForFunction(AncestorObject *& ModuleObject, vector<LayerClass> &Layers, const string & objectID, const string & layerID){
+    if(ModuleObject == nullptr || ModuleObject->getID() != objectID){
+        for(LayerClass & Layer : Layers){
+            if(Layer.getID() != layerID){
+                continue;
+            }
+            for(AncestorObject & Object : Layer.Objects){
+                if(Object.getID() != objectID){
+                    continue;
+                }
+                ModuleObject = &Object;
+                return true;
+            }
+            return false;
+        }
+    }
+    if(ModuleObject == nullptr){
+        return false;
+    }
+    return true;
+}
+void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer){
     if(Operation.dynamicIDs.size() == 0){
         std::cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
         return;
@@ -3896,7 +3917,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
     vector <VariableModule> & Variables = Operation.Literals;
     PointerContainer * Context = nullptr;
     
-    if(Operation.Literals.size() > 0){
+    if(Operation.Literals.size() > 0 || Operation.dynamicIDs.size() == 1){
         if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
             std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
             return;
@@ -3936,49 +3957,199 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
         }
     }
 
-    if(Context->type == "text"){
+    AncestorObject * ModulesObject = nullptr;
+    vector<string> emptyString;
+
+    
+    if(Context->type == "camera"){
+        for(Camera2D * Camera : Context->Cameras){
+            if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
+                Camera->setID(Variables[0].getStringUnsafe(), camerasIDs);
+            }
+        }
+        /*
+        id
+        size
+        size_x
+        size_y
+        zoom
+        min_zoom
+        max_zoom
+        */
+    }
+    else if(Context->type == "layer"){
+        for(LayerClass * Layer : Context->Layers){
+            if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
+                Layer->setID(Variables[0].getStringUnsafe(), layersIDs);
+            }
+        }
+    }
+    else if(Context->type == "object"){
+        if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
+            LayerClass * ObjectsLayer = nullptr;
+            for(AncestorObject * Object : Context->Objects){
+                if(ObjectsLayer == nullptr || ObjectsLayer->getID() != Object->getLayerID()){
+                    for(LayerClass & Layer : Layers){
+                        if(Layer.getID() == Object->getLayerID()){
+                            ObjectsLayer = &Layer;
+                            break;
+                        }    
+                    }
+                }
+                if(ObjectsLayer == nullptr){
+                    continue;
+                }
+                Object->setID(Variables[0].getStringUnsafe(), ObjectsLayer->objectsIDs);
+            }
+            return;
+        }
+        for(AncestorObject * Object : Context->Objects){
+            if(Operation.Location.attribute == "activate"){
+                Object->activate();
+            }
+            else if(Operation.Location.attribute == "deactivate"){
+                Object->deactivate();
+            }
+            else if(Operation.Location.attribute == "toggle"){
+                Object->toggleIsActive();
+            }
+            else if(Operation.Location.attribute == "set_pos" && Variables.size() > 1){
+                Object->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+            }
+            else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
+                Object->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+            }
+            else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
+                Object->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+            }
+            else if(Operation.Location.attribute == "add_group" && Variables.size() > 0){
+                Object->addGroup(Variables[0].getStringUnsafe());
+            }
+            else if(Operation.Location.attribute == "remove_group" && Variables.size() > 0){
+                Object->removeGroup(Variables[0].getStringUnsafe());
+            }
+            else if(Operation.Location.attribute == "remove_group"){
+                Object->clearGroups();
+            }
+        }
+        
+    }
+    else if(Context->type == "text"){
+        if(Operation.Location.attribute == "set_id"){
+            for(TextModule * Text : Context->Modules.Texts){
+                if(!findObjectForFunction(ModulesObject, Layers, Text->getObjectID(), Text->getLayerID())){
+                    continue;
+                }
+                Event->controlText(Text, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs);
+            }
+        }
         for(TextModule * Text : Context->Modules.Texts){
-            Event->controlText(Text, Operation.Location.attribute, Variables);
+            Event->controlText(Text, Operation.Location.attribute, Variables, emptyString);
         }
     }
     else if(Context->type == "editable_text"){
+        if(Operation.Location.attribute == "set_id"){
+            for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
+                if(!findObjectForFunction(ModulesObject, Layers, EditableText->getObjectID(), EditableText->getLayerID())){
+                    continue;
+                }
+                Event->controlText(EditableText, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs);
+            }
+        }
         for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
-            Event->controlText(EditableText, Operation.Location.attribute, Variables);
+            Event->controlText(EditableText, Operation.Location.attribute, Variables, emptyString);
         }
     }
     else if(Context->type == "image"){
+        if(Operation.Location.attribute == "set_id"){
+            for(ImageModule * Image : Context->Modules.Images){
+                if(!findObjectForFunction(ModulesObject, Layers, Image->getObjectID(), Image->getLayerID())){
+                    continue;
+                }
+                Event->controlImage(Image, Operation.Location.attribute, Variables, ModulesObject->imageContainerIDs, BitmapContainer);
+            }
+        }
         for(ImageModule * Image : Context->Modules.Images){
-            Event->controlImage(Image, Operation.Location.attribute, Variables);
+            Event->controlImage(Image, Operation.Location.attribute, Variables, emptyString, BitmapContainer);
         }
     }
     else if(Context->type == "movement"){
+        if(Operation.Location.attribute == "set_id"){
+            for(MovementModule * Movement : Context->Modules.Movements){
+                if(!findObjectForFunction(ModulesObject, Layers, Movement->getObjectID(), Movement->getLayerID())){
+                    continue;
+                }
+                Event->controlMovement(Movement, Operation.Location.attribute, Variables, ModulesObject->movementContainerIDs);
+            }
+        }
         for(MovementModule * Movement : Context->Modules.Movements){
-            Event->controlMovement(Movement, Operation.Location.attribute, Variables);
+            Event->controlMovement(Movement, Operation.Location.attribute, Variables, emptyString);
         }
     }
     else if(Context->type == "collision"){
+        if(Operation.Location.attribute == "set_id"){
+            for(CollisionModule * Collision : Context->Modules.Collisions){
+                if(!findObjectForFunction(ModulesObject, Layers, Collision->getObjectID(), Collision->getLayerID())){
+                    continue;
+                }
+                Event->controlCollision(Collision, Operation.Location.attribute, Variables, ModulesObject->collisionContainerIDs);
+            }
+        }
         for(CollisionModule * Collision : Context->Modules.Collisions){
-            Event->controlCollision(Collision, Operation.Location.attribute, Variables);
+            Event->controlCollision(Collision, Operation.Location.attribute, Variables, emptyString);
         }
     }
     else if(Context->type == "particles"){
+        if(Operation.Location.attribute == "set_id"){
+            for(ParticleEffectModule * Particles : Context->Modules.Particles){
+                if(!findObjectForFunction(ModulesObject, Layers, Particles->getObjectID(), Particles->getLayerID())){
+                    continue;
+                }
+                Event->controlParticles(Particles, Operation.Location.attribute, Variables, ModulesObject->particlesContainerIDs);
+            }
+        }
         for(ParticleEffectModule * Particles : Context->Modules.Particles){
-            Event->controlParticles(Particles, Operation.Location.attribute, Variables);
+            Event->controlParticles(Particles, Operation.Location.attribute, Variables, emptyString);
         }
     }
     else if(Context->type == "event"){
-        /*for(EveModule * Event : Context->Modules.Events){
-            Event->controlEvent(Event, Operation.Location.attribute, Variables);
+        /*
+        if(Operation.Location.attribute == "set_id"){
+            for(EveModule * Event : Context->Modules.Events){
+                if(!findObjectForFunction(ModuleObject, Layers, EditableText->getObjectID(), EditableText->getLayerID())){
+                    continue;
+                }
+                Event->controlEvent(Event, Operation.Location.attribute, Variables);
+            }
+        }
+        for(EveModule * Event : Context->Modules.Events){
+            Event->controlEvent(Event, Operation.Location.attribute, Variables, emptyString);
         }*/
     }
     else if(Context->type == "variable"){
+        if(Operation.Location.attribute == "set_id"){
+            for(VariableModule * Variable : Context->Modules.Variables){
+                if(!findObjectForFunction(ModulesObject, Layers, Variable->getObjectID(), Variable->getLayerID())){
+                    continue;
+                }
+                Event->controlVariables(Variable, Operation.Location.attribute, Variables, ModulesObject->variablesContainerIDs);
+            }
+        }
         for(VariableModule * Variable : Context->Modules.Variables){
-            Event->controlVariables(Variable, Operation.Location.attribute, Variables);
+            Event->controlVariables(Variable, Operation.Location.attribute, Variables, emptyString);
         }
     }
     else if(Context->type == "scrollbar"){
+        if(Operation.Location.attribute == "set_id"){
+            for(ScrollbarModule * Scrollbar : Context->Modules.Scrollbars){
+                if(!findObjectForFunction(ModulesObject, Layers, Scrollbar->getObjectID(), Scrollbar->getLayerID())){
+                    continue;
+                }
+                Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables, ModulesObject->scrollbarContainerIDs);
+            }
+        }
         for(ScrollbarModule * Scrollbar : Context->Modules.Scrollbars){
-            Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables);
+            Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables, emptyString);
         }
     }
     else{
@@ -4075,7 +4246,8 @@ void EngineLoop::changeEngineVariables(OperaClass & Operation){
 }
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted, bool & wasNewExecuted, bool & wasBuildExecuted
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,
+    bool & wasNewExecuted, bool & wasBuildExecuted, vector<SingleBitmap> & BitmapContainer
 ){
     for(OperaClass & Operation : Operations){
         if(isStringInGroup(Operation.instruction, 4, "break", "return", "reboot", "power_off")){
@@ -4145,7 +4317,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             buildEventsInObjects(Operation, EventContext, wasBuildExecuted);
         }
         else if(Operation.instruction == "fun"){
-            executeFunction(Operation, EventContext, Event);
+            executeFunction(Operation, EventContext, Event, Layers, Cameras, BitmapContainer);
         }
         else if(Operation.instruction == "env"){
             changeEngineVariables(Operation);
@@ -4967,7 +5139,7 @@ void EngineLoop::resetChildren(vector<EveModule>::iterator & Event, AncestorObje
         }
     }
 }
-void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
+void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<SingleBitmap> & BitmapContainer){
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
     //must wait with execution for the next iteration, unless run() command will be used.
     vector <AncestorObject*> TriggeredObjects;
@@ -5071,7 +5243,9 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){
                 if(!Event->areDependentOperationsDone){
-                    Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted);
+                    Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
+                        StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer
+                    );
                     if(Interrupt.instruction == "power_off"){
                         closeProgram = true;
                         return;
@@ -5105,7 +5279,9 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 MemoryStack.pop_back();
             }
             if(Interrupt.instruction != "break"){
-                Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted);
+                Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
+                    StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer
+                );
                 if(Interrupt.instruction == "power_off"){
                     closeProgram = true;
                     return;

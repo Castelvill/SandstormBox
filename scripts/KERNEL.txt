@@ -1,6 +1,20 @@
 start init false
 triggers [on_boot]
 if ([on_boot])
+
+
+new object L1 1 _ _ NewAmo
+fun NewAmo set_id string [Amonguss]
+fun NewAmo set_position double [100, 400]
+fun NewAmo detach_from_camera
+new image L1 Amonguss 1 _ _ redAstronaut
+fun redAstronaut set_id string [amongus]
+fun redAstronaut connect_bitmap string [amongus_2]
+fun redAstronaut do_not_scale_from_center
+fun redAstronaut detach_from_camera
+fun redAstronaut set_used_bitmap_layer int [1]
+fun redAstronaut set_scale double [0.5 0.5]
+
 index layer [1 0] _ object Amogus
 bind Amogus literal ["scripts/amogus.txt"]
 build Amogus true

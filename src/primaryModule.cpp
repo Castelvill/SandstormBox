@@ -122,11 +122,61 @@ void PrimaryModule::deactivate(){
 void PrimaryModule::toggleIsActive(){
     setIsActive(!getIsActive());
 }
-void PrimaryModule::setIsScaledFromCenter(bool newIsScaledFromCenter)
-{
+void PrimaryModule::setIsScaledFromCenter(bool newIsScaledFromCenter){
     isScaledFromCenter = newIsScaledFromCenter;
 }
-void PrimaryModule::setIsAttachedToCamera(bool newIsAttachedToCamera){
+void PrimaryModule::control(const string &attribute, const bool &value){
+    if(attribute == "activate"){
+        activate();
+    }
+    else if(attribute == "deactivate"){
+        deactivate();
+    }
+    else if(attribute == "toggle"){
+        toggleIsActive();
+    }
+    else if(attribute == "scale_from_center"){
+        isScaledFromCenter = true;
+    }
+    else if(attribute == "do_not_scale_from_center"){
+        isScaledFromCenter = false;
+    }
+    else if(attribute == "set_scale_from_center"){
+        isScaledFromCenter = value;
+    }
+    else if(attribute == "attach_to_camera"){
+        isAttachedToCamera = true;
+    }
+    else if(attribute == "detach_from_camera"){
+        isAttachedToCamera = false;
+    }
+    else if(attribute == "set_camera_attachment"){
+        isAttachedToCamera = value;
+    }
+    else if(attribute == "allow_selection"){
+        canBeSelected = true;
+    }
+    else if(attribute == "forbid_selection"){
+        canBeSelected = false;
+    }
+    else if(attribute == "set_can_be_selected"){
+        canBeSelected = value;
+    }
+    else if(attribute == "allow_scrolling"){
+        isScrollable = true;
+    }
+    else if(attribute == "forbid_scrolling"){
+        isScrollable = false;
+    }
+    else if(attribute == "set_is_scrollable"){
+        isScrollable = value;
+    }
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist.\n";
+    }
+}
+void PrimaryModule::setIsAttachedToCamera(bool newIsAttachedToCamera)
+{
     isAttachedToCamera = newIsAttachedToCamera;
 }
 void PrimaryModule::setCanBeSelected(bool newValue){

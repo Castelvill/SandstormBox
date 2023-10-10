@@ -64,13 +64,13 @@ public:
 	void resetStatus();
 	bool checkIfAllChildrenFinished();
 
-    void controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values);
-    void controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values);
-    void controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values);
-    void controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values);
-    void controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values);
-    void controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values);
-    void controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values);
+    void controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
+    void controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer);
+    void controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
+    void controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
+    void controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
+    void controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
+    void controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
 
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
