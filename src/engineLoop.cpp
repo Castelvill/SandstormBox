@@ -92,8 +92,8 @@ EngineLoop::EngineLoop(std::string title){
     selectedObjectLayerID = "";
     selectedObjectID = "";
 
-    windowW = 1680;//1920/1.0;
-    windowH = 900;//1025/1.0;
+    windowW = 1280;//1920/1.0;
+    windowH = 720;//1025/1.0;
     fullscreen = false;
     printOutLogicalEvaluations = false;
     printOutInstructions = false;

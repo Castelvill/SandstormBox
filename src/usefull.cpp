@@ -125,17 +125,15 @@ bool hasEnding(string const &fullString, string const &ending){
 
 
 void printInColor(string text, short color){
-    if(IsDebuggerPresent()){
-        std::cout << text;
-        return;
-    }
     #if __WIN32__
         HANDLE  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         CONSOLE_SCREEN_BUFFER_INFO Info;
         GetConsoleScreenBufferInfo(hConsole, &Info);
         SetConsoleTextAttribute(hConsole, color);
-    #elif
-        std::cout << "This is windows only function!\n";
+        if(IsDebuggerPresent()){
+            std::cout << text;
+            return;
+        }
     #endif
     std::cout << text;
     #if __WIN32__

@@ -92,6 +92,12 @@
                     "${config:src}variableModule.cpp",
                     "-o",
                     "${workspaceFolder}${pathSeparator}EGM.exe",
+                    "-lallegro",
+                    "-lallegro_font",
+                    "-lallegro_ttf",
+                    "-lallegro_image",
+                    "-lallegro_primitives",
+                    "-lallegro_dialog",
                 ],
             },
             "options": {
