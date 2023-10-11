@@ -27,7 +27,9 @@ void TextModule::setUpNewInstance(){
     visibility = 1.0;
     usedBitmapLayer = 0;
 }
-TextModule::TextModule(){}
+TextModule::TextModule(){
+    setUpNewInstance();
+}
 TextModule::TextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
@@ -439,13 +441,14 @@ void EditableTextModule::setUpNewInstance(){
     maxContentSize = 20;
 }
 EditableTextModule::EditableTextModule(){
-}
-EditableTextModule::EditableTextModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID)
-    : TextModule(newID, listOfIDs, newLayerID, newObjectID){
     setUpNewInstance();
 }
-EditableTextModule::EditableTextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID)
-    : TextModule(newID, listOfIDs, newLayerID, newObjectID){
+EditableTextModule::EditableTextModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    setUpNewInstance();
+}
+EditableTextModule::EditableTextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void EditableTextModule::clone(const EditableTextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){

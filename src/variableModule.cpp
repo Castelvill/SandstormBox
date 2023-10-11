@@ -6,7 +6,9 @@ VariableModule::VariableModule(string newID, vector<string> *listOfIDs, string n
     clear();
 }
 VariableModule::VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    VariableModule(std::to_string(newID), listOfIDs, newLayerID, newObjectID);
+    deleted = false;
+    setAllIDs(std::to_string(newID), listOfIDs, newLayerID, newObjectID, true);
+    clear();
 }
 VariableModule::VariableModule(){
     deleted = false;

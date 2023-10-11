@@ -2145,8 +2145,9 @@ void PointerContainer::setID(vector<PointerContainer> &EventContext, string newI
             std::cout << "free "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue() << "\n";
             std::cout << "let " << newID << " " << ID << ":" << type << ":" << getValue() << "\n";
         }
-        OldVariable = this;
+        *OldVariable = *this;
         OldVariable->ID = newID;
+        EventContext.pop_back();
     }
     else{
         if(printOutInstructions){
@@ -4013,7 +4014,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             else if(Operation.Location.attribute == "toggle"){
                 Object->toggleIsActive();
             }
-            else if(Operation.Location.attribute == "set_pos" && Variables.size() > 1){
+            else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
                 Object->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
             }
             else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
@@ -4031,8 +4032,14 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             else if(Operation.Location.attribute == "remove_group"){
                 Object->clearGroups();
             }
+            else{
+                bool temp = false;
+                if(Variables.size() > 0){
+                    temp = Variables[0].getBoolUnsafe();
+                }
+                Object->control(Operation.Location.attribute, temp);
+            }
         }
-        
     }
     else if(Context->type == "text"){
         if(Operation.Location.attribute == "set_id"){
@@ -4042,6 +4049,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 }
                 Event->controlText(Text, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs);
             }
+            return;
         }
         for(TextModule * Text : Context->Modules.Texts){
             Event->controlText(Text, Operation.Location.attribute, Variables, emptyString);
@@ -4055,19 +4063,24 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 }
                 Event->controlText(EditableText, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs);
             }
+            return;
         }
         for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
             Event->controlText(EditableText, Operation.Location.attribute, Variables, emptyString);
         }
     }
     else if(Context->type == "image"){
-        if(Operation.Location.attribute == "set_id"){
+        if(isStringInGroup(Operation.Location.attribute, 4, "set_id", "set_position", "set_size", "set_scale", "resize", "connect_bitmap")){
             for(ImageModule * Image : Context->Modules.Images){
                 if(!findObjectForFunction(ModulesObject, Layers, Image->getObjectID(), Image->getLayerID())){
                     continue;
                 }
                 Event->controlImage(Image, Operation.Location.attribute, Variables, ModulesObject->imageContainerIDs, BitmapContainer);
+                if(Operation.Location.attribute != "set_id"){
+                    ModulesObject->refreshCoordinates();
+                }
             }
+            return;
         }
         for(ImageModule * Image : Context->Modules.Images){
             Event->controlImage(Image, Operation.Location.attribute, Variables, emptyString, BitmapContainer);
@@ -4081,6 +4094,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 }
                 Event->controlMovement(Movement, Operation.Location.attribute, Variables, ModulesObject->movementContainerIDs);
             }
+            return;
         }
         for(MovementModule * Movement : Context->Modules.Movements){
             Event->controlMovement(Movement, Operation.Location.attribute, Variables, emptyString);
@@ -4094,6 +4108,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 }
                 Event->controlCollision(Collision, Operation.Location.attribute, Variables, ModulesObject->collisionContainerIDs);
             }
+            return;
         }
         for(CollisionModule * Collision : Context->Modules.Collisions){
             Event->controlCollision(Collision, Operation.Location.attribute, Variables, emptyString);
@@ -4107,6 +4122,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 }
                 Event->controlParticles(Particles, Operation.Location.attribute, Variables, ModulesObject->particlesContainerIDs);
             }
+            return;
         }
         for(ParticleEffectModule * Particles : Context->Modules.Particles){
             Event->controlParticles(Particles, Operation.Location.attribute, Variables, emptyString);
@@ -4122,6 +4138,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 Event->controlEvent(Event, Operation.Location.attribute, Variables);
             }
         }
+        return;
         for(EveModule * Event : Context->Modules.Events){
             Event->controlEvent(Event, Operation.Location.attribute, Variables, emptyString);
         }*/
@@ -4134,6 +4151,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 }
                 Event->controlVariables(Variable, Operation.Location.attribute, Variables, ModulesObject->variablesContainerIDs);
             }
+            return;
         }
         for(VariableModule * Variable : Context->Modules.Variables){
             Event->controlVariables(Variable, Operation.Location.attribute, Variables, emptyString);
@@ -4147,6 +4165,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 }
                 Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables, ModulesObject->scrollbarContainerIDs);
             }
+            return;
         }
         for(ScrollbarModule * Scrollbar : Context->Modules.Scrollbars){
             Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables, emptyString);

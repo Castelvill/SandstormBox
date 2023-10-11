@@ -75,6 +75,7 @@ private:
 public:
     int usedBitmapLayer;
 
+    void setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID);
     ParticleEffectModule();
     ParticleEffectModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     ParticleEffectModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);

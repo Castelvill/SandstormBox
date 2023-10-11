@@ -53,7 +53,7 @@ bool EveModule::checkIfAllChildrenFinished(){
 }
 
 void EveModule::controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
-    if(attribute == "set_ID" && Values.size() > 0){
+    if(attribute == "set_id" && Values.size() > 0){
         Text->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "set_position" && Values.size() >= 2){
@@ -92,7 +92,7 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     }
 }
 void EveModule::controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer){
-    if(attribute == "set_ID" && Values.size() > 0){
+    if(attribute == "set_id" && Values.size() > 0){
         Image->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "set_position" && Values.size() >= 2){
@@ -138,7 +138,7 @@ void EveModule::controlImage(ImageModule * Image, string attribute, const vector
     }
 }
 void EveModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
-    if(attribute == "set_ID" && Values.size() > 0){
+    if(attribute == "set_id" && Values.size() > 0){
         Movement->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "move_up"){
@@ -174,7 +174,7 @@ void EveModule::controlMovement(MovementModule * Movement, string attribute, con
     }
 }
 void EveModule::controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
-    if(attribute == "set_ID" && Values.size() > 0){
+    if(attribute == "set_id" && Values.size() > 0){
         Collision->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "set_solid"){
@@ -192,7 +192,7 @@ void EveModule::controlCollision(CollisionModule * Collision, string attribute, 
     }
 }
 void EveModule::controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
-    if(attribute == "set_ID" && Values.size() > 0){
+    if(attribute == "set_id" && Values.size() > 0){
         Particles->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "set_environment" && Values.size() >= 2){
@@ -225,7 +225,7 @@ void EveModule::controlParticles(ParticleEffectModule * Particles, string attrib
     }
 }
 void EveModule::controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
-    if(attribute == "set_ID" && Values.size() > 0){
+    if(attribute == "set_id" && Values.size() > 0){
         Variable->setID(Values[0].getStringUnsafe(), &IDs);
     }
     else if(attribute == "toggle_bool"){
@@ -424,7 +424,7 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
     }
 }
 void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
-    if(attribute == "set_ID" && Values.size() > 0){
+    if(attribute == "set_id" && Values.size() > 0){
         Scrollbar->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "add_real_area" && Values.size() >= 2){

@@ -22,6 +22,7 @@ private:
     vector <string> ignoredGroupsOfHitboxesList;
 public:
     vector <DetectedCollision> Detected;
+    void setUpNewInstance(const string & newID, const vec2d & size, vector<string> *listOfIDs, const string & newLayerID, const string & newObjectID);
     CollisionModule();
     CollisionModule(string newID, vec2d size, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     CollisionModule(unsigned newID, vec2d size, vector<string> * listOfIDs, string newLayerID, string newObjectID);

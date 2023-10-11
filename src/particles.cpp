@@ -159,8 +159,7 @@ double SingleParticle::getRadius(){
     return radius;
 }
 
-ParticleEffectModule::ParticleEffectModule(){}
-ParticleEffectModule::ParticleEffectModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+void ParticleEffectModule::setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID){
     primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     environment.set(0.0, 0.0);
     environmentSpeed.set(0.0, 0.0);
@@ -204,8 +203,14 @@ ParticleEffectModule::ParticleEffectModule(string newID, vector<string> * listOf
     spawnOnKeyRelease = false;
     usedBitmapLayer = 0;
 }
+ParticleEffectModule::ParticleEffectModule(){
+    setUpNewInstance("", nullptr, "", "");
+}
+ParticleEffectModule::ParticleEffectModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    setUpNewInstance(newID, listOfIDs, newLayerID, newObjectID);
+}
 ParticleEffectModule::ParticleEffectModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    ParticleEffectModule(intToStr(newID), listOfIDs, newLayerID, newObjectID);
+    setUpNewInstance(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
 void ParticleEffectModule::clone(const ParticleEffectModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;

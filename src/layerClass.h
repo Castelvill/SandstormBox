@@ -15,6 +15,7 @@ public:
     //without worring about providing unique IDs for every object, ex. testing or branching.
     vector <string> objectsIDs;
     vec2d pos, size;
+    void setUpNewInstance(const string & newID, vector <string> & layersIDs, const bool & activate, const vec2d & bufferPos, const vec2i & bufferSize);
     LayerClass();
     LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2i bufferSize);
     LayerClass(string newID, vector <string> & layersIDs);

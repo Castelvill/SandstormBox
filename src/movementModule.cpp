@@ -84,9 +84,7 @@ void ChainMovement::clearChain(){
     posChain.clear();
 }
 
-MovementModule::MovementModule(){
-}
-MovementModule::MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+void MovementModule::setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID){
     primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
     movementType = 0;
     allowedJumps = 0;
@@ -123,8 +121,14 @@ MovementModule::MovementModule(string newID, vector<string> * listOfIDs, string 
     mouseButton = 0;
     moveOnMouseRelease = true;
 }
+MovementModule::MovementModule(){
+    setUpNewInstance("", nullptr, "", "");
+}
+MovementModule::MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    setUpNewInstance(newID, listOfIDs, newLayerID, newObjectID);
+}
 MovementModule::MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    MovementModule(intToStr(newID), listOfIDs, newLayerID, newObjectID);
+    setUpNewInstance(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
 void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;

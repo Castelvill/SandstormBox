@@ -68,6 +68,7 @@ private:
     short upKey, rightKey, downKey, leftKey, jumpKey, runningKey;
 
 public:
+    void setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID);
     MovementModule();
     MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
