@@ -92,8 +92,8 @@ class PrimaryModule{
 
     public:
 
-    void primaryConstructor(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
-    void primaryConstructor(unsigned int newID, vector<string> & listOfIDs, string newLayerID, string newObjectID);
+    void primaryConstructor(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    void primaryConstructor(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void setID(string newID, vector<string> & listOfIDs);
     void setLayerID(string newLayerID);

@@ -85,7 +85,7 @@ void ChainMovement::clearChain(){
 }
 
 void MovementModule::setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     movementType = 0;
     allowedJumps = 0;
     jumpsCount = 0;

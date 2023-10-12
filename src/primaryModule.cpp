@@ -1,8 +1,13 @@
 #include "primaryModule.h"
 
 
-void PrimaryModule::primaryConstructor(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
-    setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
+void PrimaryModule::primaryConstructor(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    if(listOfIDs != nullptr){
+        setAllIDs(newID, *listOfIDs, newLayerID, newObjectID, true);
+    }
+    else{
+        ID = newID;
+    }
     
     pos.set(0.0, 0.0);
     scrollShift.set(0.0, 0.0);
@@ -16,7 +21,7 @@ void PrimaryModule::primaryConstructor(string newID, vector<string> & listOfIDs,
     canBeSelected = true;
     isScrollable = false;
 }
-void PrimaryModule::primaryConstructor(unsigned newID, vector<string> & listOfIDs, string newLayerID, string newObjectID){
+void PrimaryModule::primaryConstructor(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
 void PrimaryModule::clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
@@ -44,7 +49,7 @@ void PrimaryModule::setObjectID(string newOwnerID){
     objectID = newOwnerID;
 }
 
-void PrimaryModule::setAllIDs(string newID, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+void PrimaryModule::setAllIDs(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     if(changeOldID){
         setID(newID, listOfIDs);
     }

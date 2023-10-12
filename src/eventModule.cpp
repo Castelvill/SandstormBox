@@ -19,11 +19,11 @@ EveModule::EveModule(){
     setUpNewInstance();
 }
 EveModule::EveModule(unsigned int eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(eventModuleID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 EveModule::EveModule(string eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(eventModuleID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void EveModule::setUpNewInstance(){
@@ -52,7 +52,7 @@ bool EveModule::checkIfAllChildrenFinished(){
     return true;
 }
 
-void EveModule::controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EveModule::controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer){
     if(attribute == "set_id" && Values.size() > 0){
         Text->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -82,6 +82,39 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     }
     else if(attribute == "set_visibility" && Values.size() >= 1){
         Text->setVisibility(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_font" && Values.size() > 0){
+        Text->setFontID(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "add" && Values.size() > 0){
+        Text->addNewContent(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "add_and_update" && Values.size() > 0){
+        Text->addNewContentAndResize(Values[0].getStringUnsafe(), FontContainer);
+    }
+    else if(attribute == "update_size" && Values.size() > 0){
+        Text->fitSizeToText(FontContainer);
+    }
+    else if(attribute == "select" && Values.size() > 0){
+        Text->chooseContent(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "delete" && Values.size() > 0){
+        Text->deleteContent(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "update_text" && Values.size() > 1){
+        Text->modifyContentAndResize(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(), FontContainer);
+    }
+    else if(attribute == "select_layer" && Values.size() > 0){
+        Text->setUsedBitmapLayer(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_wrapping" && Values.size() > 0){
+        Text->setWrapping(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_horizontal_align" && Values.size() > 0){
+        Text->setHorizontalAlign(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_vertical_align" && Values.size() > 0){
+        Text->setVerticalAlign(Values[0].getIntUnsafe());
     }
     else{
         bool temp = false;
@@ -126,7 +159,7 @@ void EveModule::controlImage(ImageModule * Image, string attribute, const vector
     else if(attribute == "connect_bitmap" && Values.size() > 0){
         Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe());
     }
-    else if(attribute == "set_used_bitmap_layer" && Values.size() > 0){
+    else if(attribute == "select_layer" && Values.size() > 0){
         Image->setUsedBitmapLayer(Values[0].getIntUnsafe());
     }
     else{
@@ -177,11 +210,44 @@ void EveModule::controlCollision(CollisionModule * Collision, string attribute, 
     if(attribute == "set_id" && Values.size() > 0){
         Collision->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "set_solid"){
+    else if(attribute == "set_position" && Values.size() >= 2){
+        Collision->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "set_size" && Values.size() >= 2){
+        Collision->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "set_solid" && Values.size() > 0){
+        Collision->setIsSolid(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "toggle_solid"){
         Collision->switchSolid();
     }
-    if(attribute == "set_penetration"){
+    else if(attribute == "set_penetration" && Values.size() > 0){
+        Collision->setCanPenetrateSolids(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "toggle_penetration"){
         Collision->switchSolidPenetration();
+    }
+    else if(attribute == "ignore" && Values.size() > 1){
+        Collision->addToIgnoreList(Values[0].getStringUnsafe(), Values[1].getStringUnsafe());
+    }
+    else if(attribute == "stop_ignoring" && Values.size() > 1){
+        Collision->addToIgnoreList(Values[0].getStringUnsafe(), Values[1].getStringUnsafe());
+    }
+    else if(attribute == "clear_ignoring" && Values.size() > 0){
+        Collision->clearIgnoreList(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "ignore_object" && Values.size() > 0){
+        Collision->addToIgnoreList("objects", Values[0].getStringUnsafe());
+    }
+    else if(attribute == "ignore_group_of_objects" && Values.size() > 0){
+        Collision->addToIgnoreList("groups_of_objects", Values[0].getStringUnsafe());
+    }
+    else if(attribute == "ignore_hitbox" && Values.size() > 0){
+        Collision->addToIgnoreList("hitboxes", Values[0].getStringUnsafe());
+    }
+    else if(attribute == "ignore_group_of_hitboxes" && Values.size() > 0){
+        Collision->addToIgnoreList("groups_of_hitboxes", Values[0].getStringUnsafe());
     }
     else{
         bool temp = false;
@@ -480,7 +546,7 @@ EventModule::EventModule(){
 EventModule::EventModule(int moduleID)
 {
     vector <string> temp;
-    primaryConstructor(moduleID, temp, "", "");
+    primaryConstructor(moduleID, &temp, "", "");
     /*
     Here, fill it with all variables. Go ahead.
     */

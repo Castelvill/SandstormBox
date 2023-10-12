@@ -34,9 +34,9 @@ public:
     TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     TextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const TextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
-    void fitSizeToText(std::vector <SingleFont> FontContainer);
+    void fitSizeToText(vector <SingleFont> FontContainer);
     void addNewContent(string newContent);
-    void addNewContentAndResize(string newContent, std::vector <SingleFont> FontContainer);
+    void addNewContentAndResize(string newContent, vector <SingleFont> FontContainer);
     void chooseContent(unsigned int textID);
     void modifyContent(unsigned int textID, string modifiedContent);
     void modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer);
@@ -49,6 +49,9 @@ public:
     void addRotation(double newAngle);
     void setVisibility(double newVisibility);
     void setFontID(string);
+    void setWrapping(short newValue);
+    void setHorizontalAlign(short newValue);
+    void setVerticalAlign(short newValue);
     void changeParameters(string newID, vector<string> & listOfIDs, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign);
     void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, bool editingIsActive);

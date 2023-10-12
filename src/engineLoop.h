@@ -329,8 +329,8 @@ public:
     void generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation);
     void checkIfVectorContainsVector(OperaClass & Operation, vector<PointerContainer> &EventContext);
-    bool prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventContext, vector<string> dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs);
-    bool prepareDestinationForNew(OperaClass & Operation, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
+    bool prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs);
+    bool prepareDestinationForNew(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
     void createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasNewExecuted
@@ -342,12 +342,14 @@ public:
     void getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
     void bindFilesToObjects(OperaClass & Operation, vector<PointerContainer> & EventContext);
     void buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext, bool & wasBuildExecuted);
-    void executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer);
+    void executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers,
+        vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
+    );
     void changeEngineVariables(OperaClass & Operation);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,
-        bool & wasNewExecuted, bool & wasBuildExecuted, vector<SingleBitmap> & BitmapContainer
+        bool & wasNewExecuted, bool & wasBuildExecuted, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
     );
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
     VariableModule getValueFromObjectInCamera(AncestorObject * CurrentObject, vector <Camera2D> & Cameras, const string & attribute, const string & cameraID);
@@ -360,7 +362,7 @@ public:
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     bool deleteEntities(vector <LayerClass> & Layers, vector <Camera2D> & Cameras);
     void resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered);
-    void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<SingleBitmap> & BitmapContainer);
+    void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer);
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
     void updateAllForestOfCameras(vector <Camera2D> & Cameras);
     void updateCamerasPositions(vector <Camera2D> & Cameras);

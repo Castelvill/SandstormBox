@@ -23,7 +23,7 @@ bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2){
 }
 
 void CollisionModule::setUpNewInstance(const string & newID, const vec2d & size, vector<string> *listOfIDs, const string & newLayerID, const string & newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setSize(size);
     isSolid = true;
     canPenetrateSolids = false;
@@ -157,13 +157,13 @@ void CollisionModule::addToIgnoreList(string ignoring_type, string entity){
     if(ignoring_type == "objects"){
         addUniqueToStringVector(ignoredObjectsList, entity);
     }
-    if(ignoring_type == "groups_of_objects"){
+    else if(ignoring_type == "groups_of_objects"){
         addUniqueToStringVector(ignoredGroupsOfObjectsList, entity);
     }
-    if(ignoring_type == "hitboxes"){
+    else if(ignoring_type == "hitboxes"){
         addUniqueToStringVector(ignoredHitboxesList, entity);
     }
-    if(ignoring_type == "groups_of_hitboxes"){
+    else if(ignoring_type == "groups_of_hitboxes"){
         addUniqueToStringVector(ignoredGroupsOfHitboxesList, entity);
     }
 }
@@ -171,14 +171,28 @@ void CollisionModule::removeFromIgnoreList(string ignoring_type, string entity){
     if(ignoring_type == "objects"){
         removeFromStringVector(ignoredObjectsList, entity);
     }
-    if(ignoring_type == "groups_of_objects"){
+    else if(ignoring_type == "groups_of_objects"){
         removeFromStringVector(ignoredGroupsOfObjectsList, entity);
     }
-    if(ignoring_type == "hitboxes"){
+    else if(ignoring_type == "hitboxes"){
         removeFromStringVector(ignoredHitboxesList, entity);
     }
-    if(ignoring_type == "groups_of_hitboxes"){
+    else if(ignoring_type == "groups_of_hitboxes"){
         removeFromStringVector(ignoredGroupsOfHitboxesList, entity);
+    }
+}
+void CollisionModule::clearIgnoreList(string ignoring_type){
+    if(ignoring_type == "objects"){
+        ignoredObjectsList.clear();
+    }
+    else if(ignoring_type == "groups_of_objects"){
+        ignoredGroupsOfObjectsList.clear();
+    }
+    else if(ignoring_type == "hitboxes"){
+        ignoredHitboxesList.clear();
+    }
+    else if(ignoring_type == "groups_of_hitboxes"){
+        ignoredGroupsOfHitboxesList.clear();
     }
 }
 bool CollisionModule::ignores(string ignoring_type, string entity) const{

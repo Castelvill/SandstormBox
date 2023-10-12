@@ -31,7 +31,7 @@ TextModule::TextModule(){
     setUpNewInstance();
 }
 TextModule::TextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
@@ -41,7 +41,7 @@ void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, st
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 TextModule::TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void TextModule::addNewContent(string newContent){
@@ -64,23 +64,26 @@ void TextModule::addNewContentAndResize(string newContent, vector <SingleFont> F
 void TextModule::chooseContent(unsigned int textID){
     if(textID < content.size())
         currentTextID = textID;
-    else
+    else{
         std::cout << "Bad index in textModule \"" << ID << "\".\n";
+    } 
 }
 void TextModule::modifyContent(unsigned int textID, string modifiedContent){
     if(textID < content.size()){
         content[textID] = modifiedContent;
     }
-    else
+    else{
         std::cout << "Bad index in textModule \"" << ID << "\".\n";
+    } 
 }
 void TextModule::modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer){
     if(textID < content.size()){
         content[textID] = modifiedContent;
         fitSizeToText(FontContainer);
     }
-    else
+    else{
         std::cout << "Bad index in textModule \"" << ID << "\".\n";
+    } 
 }
 void TextModule::deleteContent(unsigned int textID){
     if(textID < content.size()){
@@ -88,8 +91,9 @@ void TextModule::deleteContent(unsigned int textID){
         if(currentTextID >= textID && currentTextID > 0)
             currentTextID--;
     }
-    else
+    else{
         std::cout << "Bad index in textModule \"" << ID << "\".\n";
+    } 
 }
 void TextModule::clear(){
     content.clear();
@@ -116,6 +120,15 @@ void TextModule::addRotation(double newAngle){
 }
 void TextModule::setFontID(string newValue){
     fontID = newValue;
+}
+void TextModule::setWrapping(short newValue){
+    wrapped = newValue;
+}
+void TextModule::setHorizontalAlign(short newValue){
+    horizontalAlign = newValue;
+}
+void TextModule::setVerticalAlign(short newValue){
+    verticalAlign = newValue;
 }
 void TextModule::setVisibility(double newVisibility){
     visibility = newVisibility;
@@ -444,11 +457,11 @@ EditableTextModule::EditableTextModule(){
     setUpNewInstance();
 }
 EditableTextModule::EditableTextModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 EditableTextModule::EditableTextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void EditableTextModule::clone(const EditableTextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){

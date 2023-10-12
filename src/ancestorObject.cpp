@@ -103,10 +103,10 @@ AncestorObject::AncestorObject(){
     //std::cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
 AncestorObject::AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID){
-    primaryConstructor(newID, listOfIDs, newLayerID, "");
+    primaryConstructor(newID, &listOfIDs, newLayerID, "");
 }
 AncestorObject::AncestorObject(unsigned newID, vector<string> &listOfIDs, string newLayerID){
-    primaryConstructor(newID, listOfIDs, newLayerID, "");
+    primaryConstructor(newID, &listOfIDs, newLayerID, "");
 }
 void AncestorObject::deleteLater(){
     deleted = true;
@@ -1247,18 +1247,30 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
         }
         else if(words[0] == "new"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4)){
                 return;
             }
             Operation->Location.source = words[1];
-            cursor = 2;
-            if(Operation->Location.source == "object"){
-                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+            Operation->Literals.push_back(VariableModule::newString(words[2]));
+            
+            cursor = 3;
+            if(words[2] == "context" || words[2] == "c"){
+                Operation->dynamicIDs.push_back(words[cursor]);
+                cursor++;
             }
-            else if(Operation->Location.source != "camera" && Operation->Location.source != "layer"){
-                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
-                if(optional(words, cursor, Operation->Location.objectID)){ continue; }
+            else if(words[2] == "location" || words[2] == "l"){
+                if(Operation->Location.source == "object"){
+                    if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+                }
+                else if(Operation->Location.source != "camera" && Operation->Location.source != "layer"){
+                    if(optional(words, cursor, Operation->Location.layerID)){ continue; }
+                    if(optional(words, cursor, Operation->Location.objectID)){ continue; }
+                }
             }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": destination type \'" << words[2] << "\' does not exist.\n";
+            }
+            
             if(words.size() <= cursor){
                 continue;
             }
@@ -1327,16 +1339,18 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
             Operation->dynamicIDs.push_back(words[1]);
             Operation->Location.attribute = words[2];
-            if(words.size() < 5){
-                continue;
-            }
-            if(words[3] == "context" || words[3] == "c"){
-                Operation->dynamicIDs.push_back(words[4]);
-            }
-            else{
-                cursor = 4;
-                if(!gatherLiterals(words, cursor, Operation->Literals, words[3])){
-                    return;
+            cursor = 3;
+            while(words.size() > cursor + 1){
+                if(words[cursor] == "context" || words[cursor] == "c"){
+                    cursor++;
+                    Operation->dynamicIDs.push_back(words[cursor]);
+                    cursor++;
+                }
+                else{
+                    cursor++;
+                    if(!gatherLiterals(words, cursor, Operation->Literals, words[cursor - 1])){
+                        return;
+                    }
                 }
             }
         }

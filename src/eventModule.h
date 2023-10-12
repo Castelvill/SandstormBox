@@ -64,7 +64,7 @@ public:
 	void resetStatus();
 	bool checkIfAllChildrenFinished();
 
-    void controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
+    void controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer);
     void controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer);
     void controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
     void controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);

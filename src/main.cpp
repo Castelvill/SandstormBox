@@ -36,7 +36,7 @@ void freeFontsFromContainer(vector <SingleFont> & FontContainer){
 }
 
 void loadBitmapsToContainer(vector <SingleBitmap> & BitmapContainer, string EXE_PATH){
-    BitmapContainer.reserve(11);
+    //BitmapContainer.reserve(11);
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
     BitmapContainer.back().loadBitmap("background", "/images/stars.jpg", EXE_PATH);
 
@@ -93,6 +93,9 @@ void loadBitmapsToContainer(vector <SingleBitmap> & BitmapContainer, string EXE_
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
     BitmapContainer.back().loadBitmap("insanity1", "images/insanity1.png", EXE_PATH);
+
+    BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
+    BitmapContainer.back().loadBitmap("vaporeon", "images/vaporeon.png", EXE_PATH);
 
 
     BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
@@ -564,7 +567,7 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().EventsContainer[0].addOperation(0, 0, "Butty", "image", "0", "rotate", vecXd(1, 4.0));
     Objects.back().EventsContainer[0].addOperation(0, 0, "Butty", "image", "1", "rotate", vecXd(1, 4.0));*/
 
-    unsigned int vam = 10*1, bam = 10*1;
+    /*unsigned int vam = 10*1, bam = 10*1;
     for(unsigned int i = 0; i < vam; i++){
         for(unsigned int j = 0; j < bam; j++){
             if(i>0 && j>0 && i<vam-1 && j<bam-1)
@@ -581,11 +584,11 @@ void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <s
             Objects.back().ImageContainer[0].connectBitmap(BitmapContainer, "cobblestone");
             Objects.back().ImageContainer[0].changeParameters("rocks", Objects.back().imageContainerIDs, vec6d(0.0, 0.0, 400.0, 400.0, 0.0, 0.0), 0.0, vec2d(0.5, 0.5), false, false, vec4d(1.0, 1.0, 1.0, 1.0));
         }
-    }
+    }*/
 
     vec2d scaleFDS(1.0, 1.0);
 
-    unsigned int vam1 = 0, bam1 = 0;
+    unsigned int vam1 = 2, bam1 = 2;
     for(unsigned int i = 0; i < vam1; i++){
         for(unsigned int j = 0; j < bam1; j++){
             if(i>0 && j>0 && i<vam1-1 && j<bam1-1)

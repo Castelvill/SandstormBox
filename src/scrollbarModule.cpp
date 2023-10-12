@@ -13,11 +13,11 @@ ScrollbarModule::ScrollbarModule(){
     clear();
 }
 ScrollbarModule::ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     clear();
 }
 ScrollbarModule::ScrollbarModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     clear();
 }
 

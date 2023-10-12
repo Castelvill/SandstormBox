@@ -88,11 +88,11 @@ ImageModule::ImageModule(){
     setUpNewInstance();
 }
 ImageModule::ImageModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 ImageModule::ImageModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){

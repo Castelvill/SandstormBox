@@ -270,7 +270,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
                 //START EVENT CONTROL SECTION
                 
-                triggerEve(Layers, Cameras, BitmapContainer);
+                triggerEve(Layers, Cameras, BitmapContainer, FontContainer);
 
                 firstIteration = false;
 
@@ -1775,11 +1775,11 @@ bool EngineLoop::getPairOfContexts(PointerContainer *& LeftOperand, PointerConta
         LeftOperand = getContextByID(AllContexts, contextIDs[0], true);
         RightOperand = &AllContexts.back();
     }
-    else if(contextIDs.size() == 2 && contextIDs[0] == "" && contextIDs[1] != ""){
+    else if(contextIDs.size() > 1 && contextIDs[0] == "" && contextIDs[1] != ""){
         LeftOperand = &AllContexts.back();
         RightOperand = getContextByID(AllContexts, contextIDs[1], true);
     }
-    else if(contextIDs.size() == 2 && contextIDs[0] != "" && contextIDs[1] != ""){
+    else if(contextIDs.size() > 1 && contextIDs[0] != "" && contextIDs[1] != ""){
         LeftOperand = getContextByID(AllContexts, contextIDs[0], true);
         RightOperand = getContextByID(AllContexts, contextIDs[1], true);
     }
@@ -1812,7 +1812,7 @@ bool EngineLoop::getOneContext(PointerContainer *& SelectedContext, vector<Point
         SelectedContext = &AllContexts[AllContexts.size()-1];
     }
     else{
-        SelectedContext = getContextByID(AllContexts, contextIDs.back(), true);
+        SelectedContext = getContextByID(AllContexts, contextIDs[0], true);
     }
 
     if(SelectedContext == nullptr){
@@ -2840,10 +2840,15 @@ void createNewModule(vector <Module> & Container, vector <string> & allIDs, vect
         Context.push_back(&Container.back());
     }
 }
-bool EngineLoop::prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventContext, vector<string> dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs){
+bool EngineLoop::prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs){
+    if(Literals.size() == 0 || Literals[0].getType() != 's'){
+        std::cout << "Error: In: " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
+        return false;
+    }
+    
     PointerContainer * SizeContext = nullptr;
     PointerContainer * IdContext = nullptr;
-    if(Literals.size() > 0 && Literals.back().getType() == 'i'){
+    if(Literals.size() > 1 && Literals.back().getType() == 'i'){
         newVectorSize = Literals.back().getInt();
         if(dynamicIDs.size() > 0){
             if(!getOneContext(IdContext, EventContext, dynamicIDs)){
@@ -2892,11 +2897,17 @@ bool EngineLoop::prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventC
     }
     return true;
 }
-bool EngineLoop::prepareDestinationForNew(OperaClass & Operation, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers){
+bool EngineLoop::prepareDestinationForNew(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers){
+    if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
+        std::cout << "Error: In: " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
+        return false;
+    }
+    
     if(Operation.Location.source == "camera" || Operation.Location.source == "layer"){
         return true;
     }
-    if(Operation.Location.layerID != ""){
+
+    if((Operation.Literals[0].getString() == "location" || Operation.Literals[0].getString() == "l") && Operation.Location.layerID != ""){
         for(LayerClass & Layer : Layers){
             if(Layer.getID() != Operation.Location.layerID){
                 continue;
@@ -2923,6 +2934,37 @@ bool EngineLoop::prepareDestinationForNew(OperaClass & Operation, LayerClass *& 
             }
         }   
     }
+    else if(Operation.Literals[0].getString() == "context" || Operation.Literals[0].getString() == "c"){
+        PointerContainer * Context;
+        if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+            std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            return false;
+        }
+        if(Context->type == "layer" && Operation.Location.source == "object"){
+            if(Context->Layers.size() == 0){
+                std::cout << "Error: In " << __FUNCTION__ << ": Context has no layers.\n";
+                return false;
+            }
+            CurrentLayer = Context->Layers.back();
+            return true;
+        }
+        else if(Context->type == "object" && Operation.Location.source != "object"){
+            if(Context->Objects.size() == 0){
+                std::cout << "Error: In " << __FUNCTION__ << ": Context has no objects.\n";
+                return false;
+            }
+            CurrentObject = Context->Objects.back();
+            return true;
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": You cannot create an entity of \'" << Operation.Location.source << "\' type in a context of \'" << Context->type << "\' type.\n";
+            return false;
+        }
+    }
+    else{
+        std::cout << "Error: In: " << __FUNCTION__ << ": wrong destination type in the \'new\' instruction.\n";
+        return false;
+    }
 
     if(CurrentLayer == nullptr){
         std::cout << "Error: In: " << __FUNCTION__ << ": Layer \'" << Operation.Location.layerID << "\' does not exist.\n";
@@ -2940,10 +2982,27 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
     AncestorObject *& Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector <AncestorObject*> & TriggeredObjects,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasNewExecuted
 ){
+    LayerClass * CurrentLayer = nullptr;
+    AncestorObject * CurrentObject = nullptr;
+    string layerID = "", objectID = "";
+
+    if(!prepareDestinationForNew(Operation, EventContext, CurrentLayer, CurrentObject, layerID, objectID, Layers)){
+        return;
+    }
+    
     unsigned newVectorSize = 0;
     vector <string> newIDs;
 
-    if(!prepareVectorSizeAndIDsForNew(EventContext, Operation.dynamicIDs, Operation.Literals, newVectorSize, newIDs)){
+    vector <string> contextIDs;
+
+    if(Operation.Literals[0].getString() == "context" || Operation.Literals[0].getString() == "c"){
+        contextIDs = vector<string>(Operation.dynamicIDs.begin()+1, Operation.dynamicIDs.end());
+    }
+    else{
+        contextIDs = Operation.dynamicIDs;
+    }
+
+    if(!prepareVectorSizeAndIDsForNew(EventContext, contextIDs, Operation.Literals, newVectorSize, newIDs)){
         return;
     }
 
@@ -2953,13 +3012,6 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
     }
 
     string ID = "";
-    LayerClass * CurrentLayer = nullptr;
-    AncestorObject * CurrentObject = nullptr;
-    string layerID = "", objectID = "";
-
-    if(!prepareDestinationForNew(Operation, CurrentLayer, CurrentObject, layerID, objectID, Layers)){
-        return;
-    }
 
     if(printOutInstructions){
         std::cout << "new " << newVectorSize << " ";
@@ -3908,13 +3960,14 @@ bool findObjectForFunction(AncestorObject *& ModuleObject, vector<LayerClass> &L
     }
     return true;
 }
-void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer){
+void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers,
+    vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
+){
     if(Operation.dynamicIDs.size() == 0){
         std::cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
         return;
     }
 
-    vector <VariableModule> VariableFromPointer;
     vector <VariableModule> & Variables = Operation.Literals;
     PointerContainer * Context = nullptr;
     
@@ -3925,25 +3978,31 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
         }
     }
     else if(Operation.dynamicIDs.size() > 1){
-        PointerContainer * ContextValues = nullptr;
-        
-        if(!getPairOfContexts(Context, ContextValues, EventContext, Operation.dynamicIDs)){
+        if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
             std::cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
             return;
         }
-        
-        if(ContextValues->type == "value"){
-            Variables = ContextValues->Variables;
-        }
-        else if(ContextValues->type == "pointer"){
-            for(const BasePointersStruct & Pointer : ContextValues->BasePointers){
-                VariableFromPointer.push_back(VariableModule());
-                VariableFromPointer.back().setValueFromPointer(Pointer);
+
+        PointerContainer * ContextValues = nullptr;
+
+        for(unsigned i = 1; i < Operation.dynamicIDs.size(); i++){
+            ContextValues = getContextByID(EventContext, Operation.dynamicIDs[i], true);
+            if(ContextValues == nullptr){
+                std::cout << "Error: In " << __FUNCTION__ << ": There is no context with id: \'" << Operation.dynamicIDs[i] << "\'.\n";
+                continue;
             }
-            Variables = VariableFromPointer;
-        }
-        else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Second context must be of type: pointer or value.\n";
+            if(ContextValues->type == "value"){
+                Variables.insert(Variables.end(), ContextValues->Variables.begin(), ContextValues->Variables.end());
+            }
+            else if(ContextValues->type == "pointer"){
+                for(const BasePointersStruct & Pointer : ContextValues->BasePointers){
+                    Variables.push_back(VariableModule());
+                    Variables.back().setValueFromPointer(Pointer);
+                }
+            }
+            else{
+                std::cout << "Error: In " << __FUNCTION__ << ": Second context must be of type: pointer or value.\n";
+            }
         }
     }
 
@@ -4047,12 +4106,12 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 if(!findObjectForFunction(ModulesObject, Layers, Text->getObjectID(), Text->getLayerID())){
                     continue;
                 }
-                Event->controlText(Text, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs);
+                Event->controlText(Text, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs, FontContainer);
             }
             return;
         }
         for(TextModule * Text : Context->Modules.Texts){
-            Event->controlText(Text, Operation.Location.attribute, Variables, emptyString);
+            Event->controlText(Text, Operation.Location.attribute, Variables, emptyString, FontContainer);
         }
     }
     else if(Context->type == "editable_text"){
@@ -4061,12 +4120,12 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 if(!findObjectForFunction(ModulesObject, Layers, EditableText->getObjectID(), EditableText->getLayerID())){
                     continue;
                 }
-                Event->controlText(EditableText, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs);
+                Event->controlText(EditableText, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs, FontContainer);
             }
             return;
         }
         for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
-            Event->controlText(EditableText, Operation.Location.attribute, Variables, emptyString);
+            Event->controlText(EditableText, Operation.Location.attribute, Variables, emptyString, FontContainer);
         }
     }
     else if(Context->type == "image"){
@@ -4266,7 +4325,7 @@ void EngineLoop::changeEngineVariables(OperaClass & Operation){
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,
-    bool & wasNewExecuted, bool & wasBuildExecuted, vector<SingleBitmap> & BitmapContainer
+    bool & wasNewExecuted, bool & wasBuildExecuted, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
 ){
     for(OperaClass & Operation : Operations){
         if(isStringInGroup(Operation.instruction, 4, "break", "return", "reboot", "power_off")){
@@ -4336,7 +4395,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             buildEventsInObjects(Operation, EventContext, wasBuildExecuted);
         }
         else if(Operation.instruction == "fun"){
-            executeFunction(Operation, EventContext, Event, Layers, Cameras, BitmapContainer);
+            executeFunction(Operation, EventContext, Event, Layers, Cameras, BitmapContainer, FontContainer);
         }
         else if(Operation.instruction == "env"){
             changeEngineVariables(Operation);
@@ -5158,7 +5217,7 @@ void EngineLoop::resetChildren(vector<EveModule>::iterator & Event, AncestorObje
         }
     }
 }
-void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<SingleBitmap> & BitmapContainer){
+void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer){
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
     //must wait with execution for the next iteration, unless run() command will be used.
     vector <AncestorObject*> TriggeredObjects;
@@ -5263,7 +5322,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){
                 if(!Event->areDependentOperationsDone){
                     Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
-                        StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer
+                        StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer, FontContainer
                     );
                     if(Interrupt.instruction == "power_off"){
                         closeProgram = true;
@@ -5299,7 +5358,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             if(Interrupt.instruction != "break"){
                 Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
-                    StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer
+                    StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer, FontContainer
                 );
                 if(Interrupt.instruction == "power_off"){
                     closeProgram = true;

@@ -160,7 +160,7 @@ double SingleParticle::getRadius(){
 }
 
 void ParticleEffectModule::setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID){
-    primaryConstructor(newID, *listOfIDs, newLayerID, newObjectID);
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     environment.set(0.0, 0.0);
     environmentSpeed.set(0.0, 0.0);
     minSpeed = 0.0;

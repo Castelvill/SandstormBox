@@ -41,6 +41,7 @@ public:
     void addToIgnoreList(string ignoring_type, string entity);
     //ignoring_type = ["objects", "groups_of_objects", "hitboxes", "groups_of_hitboxes"]
     void removeFromIgnoreList(string ignoring_type, string entity);
+    void clearIgnoreList(string ignoring_type);
     //ignoring_type = ["objects", "groups_of_objects", "hitboxes", "groups_of_hitboxes"]
     bool ignores(string ignoring_type, string entity) const;
     void removeImaginaryCollisions();
