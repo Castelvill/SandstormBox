@@ -3,63 +3,84 @@ triggers [on_boot]
 if ([on_boot])
 
 new object l L1 1 _ _ NewAmo
-fun NewAmo set_id string [Amonguss]
+fun NewAmo set_id string [Amongus]
 fun NewAmo set_position double [100, 400]
-new image l L1 Amonguss 1 _ _ redAstronaut
+new image l L1 Amongus 1 _ _ redAstronaut
 fun redAstronaut set_id string [amongus]
 fun redAstronaut connect_bitmap string [minion_1]
 fun redAstronaut select_layer int [1]
 fun redAstronaut set_scale double [0.7 0.7]
-new image l L1 Amonguss 1 _ _ insanity
+new image l L1 Amongus 1 _ _ insanity
 fun insanity set_id string [insanity]
 fun insanity connect_bitmap string [insanity1]
 fun insanity set_position double [100, 300]
 fun insanity select_layer int [2]
 fun insanity set_scale double [0.1 0.1]
-new variable l L1 Amonguss 1 _ _ var
+new variable l L1 Amongus 1 _ _ var
 fun var set_id string [timer]
 fun var set_double double [0.0]
-new variable l L1 Amonguss 1 _ _ var
+new variable l L1 Amongus 1 _ _ var
 fun var set_id string [rot_spd]
 fun var set_int int [10]
-new variable l L1 Amonguss 1 _ _ var
+new variable l L1 Amongus 1 _ _ var
 fun var set_id string [xd]
 fun var set_int int [0]
-new collision l L1 Amonguss 1 _ _ col
+new collision l L1 Amongus 1 _ _ col
 fun col set_size double [50 50]
-new collision l L1 Amonguss 1 _ _ col
+new collision l L1 Amongus 1 _ _ col
 fun col set_size double [50 50]
 fun col set_position double [50 0]
-new text l L1 Amonguss 1 _ _ text
+new text l L1 Amongus 1 _ _ text
 fun text set_font string [Minecraft24]
 fun text add_and_update string ["Hey guys, did you know that in terms of male human and female Pokémon breeding, Vaporeon is the most compatible Pokémon for humans? Not only are they in the field egg group, which is mostly comprised of mammals, Vaporeon are an average of 3”03’ tall and 63.9 pounds, this means they’re large enough to be able handle human dicks, and with their impressive Base Stats for HP and access to Acid Armor, you can be rough with one. Due to their mostly water based biology, there’s no doubt in my mind that an aroused Vaporeon would be incredibly wet, so wet that you could easily have sex with one for hours without getting sore. They can also learn the moves Attract, Baby-Doll Eyes, Captivate, Charm, and Tail Whip, along with not having fur to hide nipples, so it’d be incredibly easy for one to get you in the mood. With their abilities Water Absorb and Hydration, they can easily recover from fatigue with enough water. No other Pokémon comes close to this level of compatibility. Also, fun fact, if you pull out enough, you can make your Vaporeon turn white. Vaporeon is literally built for human dick. Ungodly defense stat+high HP pool+Acid Armor means it can take cock all day, all shapes and sizes and still come for more"]
 fun text set_color int [255 0 255]
 fun text set_wrapping int [2]
 fun text set_size int [600 500]
-index layer [1 0] _ object Amogus
+index layer [1 1] _ object Amogus
 bind Amogus literal ["scripts/amogus.txt"]
 build Amogus true
 env draw_hitboxes 0
-env print_instructions 1
+env print_instructions 0
+env print_logical_evaluations 0
 
-literal int [10] vam
+index camera [0] _ camera cam
+fun cam set_size int [1920 1080]
+
+literal int [20] vam
 literal int [10] bam
+literal int [19] vam_l
+literal int [9] bam_l
 literal int [0] i
 literal int [0] j
 literal int [200] size
 literal int [40] const1
 literal int [50] const2
-run [cobblestone_generator]
+literal int [0] zero
+literal int [3] break_loop
+literal int [0] cat_i
+run [cobblestone_generator_1, spawn_cats]
 end
 
-start cobblestone_generator true
+start cobblestone_generator_1 true
 if ([context i] [context vam] <)
+= j zero
+run [cobblestone_generator_2]
+end
+
+start cobblestone_generator_2 true
+if ([context j] [context bam] <)
+run [remove_inside]
+post
+++ i
+end
+
+start remove_inside false
+if ([context i] [int 0] == [context j] [int 0] == || [context i] [context vam_l] == || [context j] [context bam_l] == ||)
 new object l L1 1 _ _ newCobble
 fun newCobble set_id string [22b]
 fun newCobble add_group string [cobblestone]
 fun newCobble add_group string [wall]
 fun newCobble add_group string [hello]
-
 * i size pos_x
 += pos_x const1
 * j size pos_y
@@ -68,9 +89,50 @@ fun newCobble set_position context pos_x context pos_y
 new image c newCobble 1 _ _ cobbleImage
 fun cobbleImage connect_bitmap string [cobblestone]
 fun cobbleImage set_scale double [0.5 0.5]
-
-++ i
+new collision c newCobble 1 _ _ coll
+fun coll set_size int [200 200]
 ++ j
+else break_if_else
+end
+
+start break_if_else false
+++ j
+end
+
+start spawn_cats true
+if ([context cat_i] [int 50] <)
+new object l L1 1 _ _ newCat
+fun newCat set_position int [800 300]
+new image c newCat 1 _ _ newImage
+fun newImage connect_bitmap string [cat260]
+fun newImage set_scale double [0.5 0.5]
+new collision c newCat 1 _ _ coll
+fun coll set_size int [130 130]
+
+new movement c newCat 1 _ _ newMovement
+fun newMovement set_movement_type int [0]
+fun newMovement set_input_type int [1]
+fun newMovement set_mass double [0.5]
+fun newMovement set_walking_speed double [5.0]
+fun newMovement set_running_speed double [5.0]
+fun newMovement set_friction double [5.0]
+fun newMovement set_max_momentum_x double [5.0]
+fun newMovement set_move_cooldown double [0.0]
+fun newMovement set_diagonal_movement bool [true]
+
+fun newMovement set_jump_speed double [30]
+fun newMovement set_allowed_jumps int [2]
+fun newMovement set_jump_cooldown double [0.5]
+fun newMovement set_gravity double [3.0]
+fun newMovement set_momentum_y double [30 20]
+fun newMovement set_reset_momentum_when_jumping bool [true]
+
+fun newMovement set_random_actions bool [true]
+fun newMovement set_action_time double [0.5 2.0]
+fun newMovement set_move_distance double [40.0 70.0]
+fun newMovement set_breaks_allowed bool [true]
+fun newMovement set_break_chance double [0.1]
+++ cat_i
 end
 
 start reset false

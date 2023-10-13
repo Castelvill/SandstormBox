@@ -47,9 +47,12 @@ public:
     bool getIsActive();
     bool getIsDeleted() const;
     void setPos(vec2d newPos);
+    void setPos(double x, double y);
     void setRelativePos(vec2d newPos);
+    void setRelativePos(double x, double y);
     void setVisionShift(vec2d newVisionShift);
     void setSize(vec2d newSize);
+    void setSize(double x, double y);
     void setZoom(double newZoom, double newZoomIncrease, double newMinZoom, double newMaxZoom);
     void setSpeed(double newSpeed);
     void setKeyBinds(short newZoomInKey, short newZoomOutKey, short newZoomResetKey, short newUpKey, short newRightKey, short newDownKey, short newLeftKey);

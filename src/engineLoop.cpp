@@ -2946,6 +2946,7 @@ bool EngineLoop::prepareDestinationForNew(OperaClass & Operation, vector<Pointer
                 return false;
             }
             CurrentLayer = Context->Layers.back();
+            layerID = CurrentLayer->getID();
             return true;
         }
         else if(Context->type == "object" && Operation.Location.source != "object"){
@@ -2954,6 +2955,8 @@ bool EngineLoop::prepareDestinationForNew(OperaClass & Operation, vector<Pointer
                 return false;
             }
             CurrentObject = Context->Objects.back();
+            objectID = CurrentObject->getID();
+            layerID = CurrentObject->getLayerID();
             return true;
         }
         else{
@@ -4026,6 +4029,118 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
                 Camera->setID(Variables[0].getStringUnsafe(), camerasIDs);
             }
+            else if(Operation.Location.attribute == "set_active" && Variables.size() > 0){
+                Camera->setIsActive(Variables[0].getBoolUnsafe());
+            }
+            else if(Operation.Location.attribute == "activate"){
+                Camera->activate();
+            }
+            else if(Operation.Location.attribute == "deactivate"){
+                Camera->deactivate();
+            }
+            else if(Operation.Location.attribute == "toggle"){
+                Camera->toggleIsActive();
+            }
+            else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
+                Camera->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+            }
+            else if(Operation.Location.attribute == "set_relative_position" && Variables.size() > 1){
+                Camera->setRelativePos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+            }
+            else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
+                Camera->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+            }
+            else if(Operation.Location.attribute == "set_zoom" && Variables.size() > 0){
+                Camera->zoom = Variables[0].getDoubleUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_zoom_increase" && Variables.size() > 0){
+                Camera->zoomIncrease = Variables[0].getDoubleUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_min_zoom" && Variables.size() > 0){
+                Camera->minZoom = Variables[0].getDoubleUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_min_zoom" && Variables.size() > 0){
+                Camera->minZoom = Variables[0].getDoubleUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_speed" && Variables.size() > 0){
+                Camera->setSpeed(Variables[0].getDoubleUnsafe());
+            }
+            else if(Operation.Location.attribute == "bind_keys" && Variables.size() > 6){
+                Camera->setKeyBinds(Variables[0].getIntUnsafe(), Variables[1].getIntUnsafe(), Variables[2].getIntUnsafe(),
+                    Variables[3].getIntUnsafe(), Variables[4].getIntUnsafe(), Variables[5].getIntUnsafe(), Variables[6].getIntUnsafe());
+            }
+            else if(Operation.Location.attribute == "set_key_zoom_in" && Variables.size() > 0){
+                Camera->zoomInKey = Variables[0].getIntUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_zoom_out" && Variables.size() > 0){
+                Camera->zoomOutKey = Variables[0].getIntUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_key_zoom_reset" && Variables.size() > 0){
+                Camera->zoomResetKey = Variables[0].getIntUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_key_up" && Variables.size() > 0){
+                Camera->upKey = Variables[0].getIntUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_key_right" && Variables.size() > 0){
+                Camera->rightKey = Variables[0].getIntUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_key_down" && Variables.size() > 0){
+                Camera->downKey = Variables[0].getIntUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_key_left" && Variables.size() > 0){
+                Camera->leftKey = Variables[0].getIntUnsafe();
+            }
+            else if(Operation.Location.attribute == "pin_to_camera" && Variables.size() > 0){
+                Camera->pinnedCameraID = Variables[0].getStringUnsafe();
+            }
+            else if(Operation.Location.attribute == "follow_layer" && Variables.size() > 0){
+                Camera->followedLayerID = Variables[0].getStringUnsafe();
+            }
+            else if(Operation.Location.attribute == "follow_object" && Variables.size() > 0){
+                Camera->followedObjectID = Variables[0].getStringUnsafe();
+            }
+            else if(Operation.Location.attribute == "follow_image" && Variables.size() > 0){
+                Camera->followedImageID = Variables[0].getStringUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_is_pinned_to_camera" && Variables.size() > 0){
+                Camera->isPinnedToCamera = Variables[0].getBoolUnsafe();
+            }
+            else if(Operation.Location.attribute == "activate_pin"){
+                Camera->activatePin();
+            }
+            else if(Operation.Location.attribute == "deactivate_pin"){
+                Camera->deactivatePin();
+            }
+            else if(Operation.Location.attribute == "toggle_pin"){
+                Camera->togglePin();
+            }
+            else if(Operation.Location.attribute == "set_is_following_object" && Variables.size() > 0){
+                Camera->isFollowingObject = Variables[0].getBoolUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_is_using_keyboard" && Variables.size() > 0){
+                Camera->isUsingKeyboardToMove = Variables[0].getBoolUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_is_using_cursor" && Variables.size() > 0){
+                Camera->isUsingCursorPositionToMove = Variables[0].getBoolUnsafe();
+            }
+            else if(Operation.Location.attribute == "add_visible_layer" && Variables.size() > 0){
+                Camera->addVisibleLayer(Variables[0].getStringUnsafe());
+            }
+            else if(Operation.Location.attribute == "add_accessible_layer" && Variables.size() > 0){
+                Camera->addAccessibleLayer(Variables[0].getStringUnsafe());
+            }
+            else if(Operation.Location.attribute == "remove_visible_layer" && Variables.size() > 0){
+                Camera->removeVisibleLayer(Variables[0].getStringUnsafe());
+            }
+            else if(Operation.Location.attribute == "remove_accessible_layer" && Variables.size() > 0){
+                Camera->removeAccessibleLayer(Variables[0].getStringUnsafe());
+            }
+            else if(Operation.Location.attribute == "clear_visible_layers"){
+                Camera->clearVisibleLayers();
+            }
+            else if(Operation.Location.attribute == "clear_accessible_layers"){
+                Camera->clearAccessibleLayers();
+            }
         }
         /*
         id
@@ -4064,7 +4179,10 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             return;
         }
         for(AncestorObject * Object : Context->Objects){
-            if(Operation.Location.attribute == "activate"){
+            if(Operation.Location.attribute == "set_active" && Variables.size() > 0){
+                Object->setIsActive(Variables[0].getBoolUnsafe());
+            }
+            else if(Operation.Location.attribute == "activate"){
                 Object->activate();
             }
             else if(Operation.Location.attribute == "deactivate"){
@@ -4075,9 +4193,6 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             }
             else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
                 Object->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
-            }
-            else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
-                Object->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
             }
             else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
                 Object->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
@@ -4129,7 +4244,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
         }
     }
     else if(Context->type == "image"){
-        if(isStringInGroup(Operation.Location.attribute, 4, "set_id", "set_position", "set_size", "set_scale", "resize", "connect_bitmap")){
+        if(isStringInGroup(Operation.Location.attribute, 6, "set_id", "set_position", "set_size", "set_scale", "resize", "connect_bitmap")){
             for(ImageModule * Image : Context->Modules.Images){
                 if(!findObjectForFunction(ModulesObject, Layers, Image->getObjectID(), Image->getLayerID())){
                     continue;
@@ -4328,7 +4443,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
     bool & wasNewExecuted, bool & wasBuildExecuted, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
 ){
     for(OperaClass & Operation : Operations){
-        if(isStringInGroup(Operation.instruction, 4, "break", "return", "reboot", "power_off")){
+        if(isStringInGroup(Operation.instruction, 5, "continue", "break", "return", "reboot", "power_off")){
             return Operation;
         }
         //Aggregate entities and push them on the Variables Stack.
@@ -5196,21 +5311,32 @@ bool EngineLoop::deleteEntities(vector <LayerClass> & Layers, vector <Camera2D> 
     return layersWereModified;
 }
 void EngineLoop::resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered){
-    vector<vector<EveModule>::iterator*> EventsStack = {&Event};
-    vector<EveModule>::iterator * CurrentEvent;
-    while(EventsStack.size() > 0){
-        CurrentEvent = EventsStack.back();
-        EventsStack.pop_back();
-        for(ChildStruct & Child : (*CurrentEvent)->Children){
+    vector<EveModule*> StackOfEvents = {&(*Event)};
+    EveModule * CurrentEvent;
+    while(StackOfEvents.size() > 0){
+        CurrentEvent = StackOfEvents.back();
+        StackOfEvents.pop_back();
+
+        for(ChildStruct & Child : CurrentEvent->Children){
             Child.finished = false;
-            for(vector<EveModule>::iterator ChildEvent = Triggered->EveContainer.begin();
-                ChildEvent != Triggered->EveContainer.end(); ChildEvent++
-            ){
-                if(ChildEvent->getID() == Child.ID){
-                    ChildEvent->conditionalStatus = 'n';
-                    ChildEvent->areDependentOperationsDone = false;
-                    ChildEvent->elseChildFinished = false;
-                    EventsStack.push_back(&ChildEvent);
+            for(EveModule & ChildEvent: Triggered->EveContainer){
+                if(ChildEvent.getID() == Child.ID){
+                    ChildEvent.conditionalStatus = 'n';
+                    ChildEvent.areDependentOperationsDone = false;
+                    ChildEvent.elseChildFinished = false;
+                    StackOfEvents.push_back(&ChildEvent);
+                    break;
+                }
+            }
+        }
+
+        if(CurrentEvent->elseChildID != ""){
+            for(EveModule & ChildEvent: Triggered->EveContainer){
+                if(ChildEvent.getID() == CurrentEvent->elseChildID){
+                    ChildEvent.conditionalStatus = 'n';
+                    ChildEvent.areDependentOperationsDone = false;
+                    ChildEvent.elseChildFinished = false;
+                    StackOfEvents.push_back(&ChildEvent);
                     break;
                 }
             }
@@ -5244,7 +5370,6 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     bool wasBuildExecuted = false;
 
     unsigned i = 0;
-    
 
     LayerClass * TriggeredLayer;
     OperaClass Interrupt;
@@ -5319,7 +5444,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Layers, Cameras, Context);
                 //std::cout << "Result: " << Event->conditionalStatus << "\n";
             }
-            if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){
+            if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){ //if true
                 if(!Event->areDependentOperationsDone){
                     Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
                         StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer, FontContainer
@@ -5348,7 +5473,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     continue;
                 }
             }
-            else if(Event->conditionalStatus == 'f' && Event->elseChildID != "" && !Event->elseChildFinished){
+            else if(Event->conditionalStatus == 'f' && Interrupt.instruction != "break" && Event->elseChildID != "" && !Event->elseChildFinished){ //else
                 MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                 Event = FindElseEvent(Triggered, Event);
                 if(MemoryStack.back().Event->elseChildFinished){ //True if else event has been found.
@@ -5356,7 +5481,38 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 }
                 MemoryStack.pop_back();
             }
-            if(Interrupt.instruction != "break"){
+
+            if(MemoryStack.size() > 0){
+                if(MemoryStack.size() > 0 && MemoryStack.back().contextSize <= Context.size()){
+                    Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
+                }
+                else{
+                    std::cout << "THIS SHOULD NOT HAPPENED\n";
+                }
+            }
+            
+
+            if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){ //loop back
+                Event->conditionalStatus = 'n';
+                Event->areDependentOperationsDone = false;
+                Event->elseChildFinished = false;
+                resetChildren(Event, Triggered);
+                
+                /*if(MemoryStack.size() > 0){
+                    for(ChildStruct & Child : MemoryStack.back().Event->Children){
+                        if(Child.ID == Event->getID()){
+                            Child.finished = false;
+                            break;
+                        }
+                    }
+                }*/
+
+                continue;
+            }
+            if(Event->loop){
+                Interrupt.instruction = "";
+            }
+            if(Interrupt.instruction != "break"){ //operations after loop/if
                 Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
                     StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer, FontContainer
                 );
@@ -5372,31 +5528,12 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     Interrupt.instruction = "";
                     break;
                 }
-            }
-            if(TriggeredLayer == nullptr || Triggered == nullptr){
-                std::cout << "Aborting! The owner of the event has been deleted.\n";
-                break;
-            }
-            if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){
-                Event->conditionalStatus = 'n';
-                Event->areDependentOperationsDone = false;
-                Event->elseChildFinished = false;
-                resetChildren(Event, Triggered);
-                
-                if(MemoryStack.size() > 0){
-                    for(ChildStruct & Child : MemoryStack.back().Event->Children){
-                        if(Child.ID == Event->getID()){
-                            Child.finished = false;
-                            break;
-                        }
-                    }
+                if(TriggeredLayer == nullptr || Triggered == nullptr){
+                    std::cout << "Aborting! The owner of the event has been deleted.\n";
+                    break;
                 }
-                
             }
-            if(StartingEvent != Event){
-                if(Event->loop){
-                    Interrupt.instruction = "";
-                }
+            if(StartingEvent != Event){ //jump back in event stack
                 Event = MemoryStack.back().Event;
 
                 if(MemoryStack.back().contextSize <= Context.size()){
@@ -5414,14 +5551,6 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             Context.erase(Context.begin() + 2, Context.end());
             MemoryStack.clear();
-
-            if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){
-                continue;
-            }
-
-            if(Event->loop){
-                Interrupt.instruction = "";
-            }
             
             do{
                 Event++;

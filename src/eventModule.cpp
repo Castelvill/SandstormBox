@@ -171,8 +171,8 @@ void EveModule::controlImage(ImageModule * Image, string attribute, const vector
     }
 }
 void EveModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
-    if(attribute == "set_id" && Values.size() > 0){
-        Movement->setID(Values[0].getStringUnsafe(), IDs);
+    if(attribute == "move" && Values.size() >= 2){
+        Movement->addMomentum(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else if(attribute == "move_up"){
         Movement->setNextMove(true, false, false, false, false, false, false);
@@ -195,8 +195,119 @@ void EveModule::controlMovement(MovementModule * Movement, string attribute, con
     else if(attribute == "move_run"){
         Movement->setNextMove(false, false, false, false, false, false, true);
     }
-    else if(attribute == "move" && Values.size() >= 2){
-        Movement->addMomentum(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    else if(attribute == "set_id" && Values.size() > 0){
+        Movement->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "set_movement_type" && Values.size() > 0){
+        Movement->setMovementType(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_input_type" && Values.size() > 0){
+        Movement->setInputType(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_allowed_jumps" && Values.size() > 0){
+        Movement->setAllowedJumps(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_jump_cooldown" && Values.size() > 0){
+        Movement->setJumpCooldownDuration(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_move_cooldown" && Values.size() > 0){
+        Movement->setMoveCooldownDuration(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_diagonal_movement" && Values.size() > 0){
+        Movement->setCanMoveDiagonally(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_reset_momentum_when_jumping" && Values.size() > 0){
+        Movement->setResetMomentumWhenJumping(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_mass" && Values.size() > 0){
+        Movement->setBodyMass(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_walking_speed" && Values.size() > 0){
+        Movement->setWalkingSpeed(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_running_speed" && Values.size() > 0){
+        Movement->setRunningSpeed(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_jump_speed" && Values.size() > 0){
+        Movement->setJumpSpeed(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_gravity" && Values.size() > 0){
+        Movement->setGravitation(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_friction" && Values.size() > 0){
+        Movement->setBaseFriction(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_max_momentum_x" && Values.size() > 0){
+        Movement->setMaxMomentumX(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_momentum_y" && Values.size() > 1){
+        Movement->setMinMomentumY(Values[0].getDoubleUnsafe());
+        Movement->setMaxMomentumY(Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_min_momentum_y" && Values.size() > 0){
+        Movement->setMinMomentumY(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_max_momentum_y" && Values.size() > 0){
+        Movement->setMaxMomentumY(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_mouse_movement_button" && Values.size() > 0){
+        Movement->setMouseButton(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_move_on_mouse_release" && Values.size() > 0){
+        Movement->setMoveOnMouseRelease(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_direction_reset_after_collision" && Values.size() > 0){
+        Movement->setResetDirectionAfterCollision(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_moving_keys" && Values.size() > 5){
+        Movement->bindKeys(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(), Values[2].getIntUnsafe(), Values[3].getIntUnsafe(), Values[4].getIntUnsafe(), Values[5].getIntUnsafe());
+    }
+    else if(attribute == "set_key_up" && Values.size() > 0){
+        Movement->setUpKey(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_key_right" && Values.size() > 0){
+        Movement->setRightKey(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_key_down" && Values.size() > 0){
+        Movement->setDownKey(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_key_left" && Values.size() > 0){
+        Movement->setLeftKey(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_key_jump" && Values.size() > 0){
+        Movement->setJumpKey(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_key_running" && Values.size() > 0){
+        Movement->setRunningKey(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_random_actions" && Values.size() > 0){
+        Movement->areRandomActionsEnabled = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_action_time" && Values.size() > 1){
+        Movement->minTimeOfAction = Values[0].getDoubleUnsafe();
+        Movement->maxTimeOfAction = Values[1].getDoubleUnsafe();
+    }
+    else if(attribute == "set_min_action_time" && Values.size() > 0){
+        Movement->minTimeOfAction = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_max_action_time" && Values.size() > 0){
+        Movement->maxTimeOfAction = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_move_distance" && Values.size() > 1){
+        Movement->minMoveDistance = Values[0].getDoubleUnsafe();
+        Movement->maxMoveDistance = Values[1].getDoubleUnsafe();
+    }
+    else if(attribute == "set_min_move_distance" && Values.size() > 0){
+        Movement->minMoveDistance = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_max_move_distance" && Values.size() > 0){
+        Movement->maxMoveDistance = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_breaks_allowed" && Values.size() > 0){
+        Movement->areBreaksAllowed = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_break_chance" && Values.size() > 0){
+        Movement->chanceForBreak = Values[0].getDoubleUnsafe();
     }
     else{
         bool temp = false;

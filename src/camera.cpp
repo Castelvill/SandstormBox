@@ -99,18 +99,32 @@ bool Camera2D::getIsDeleted() const
 {
     return deleted;
 }
-void Camera2D::setPos(vec2d newPos)
-{
+void Camera2D::setPos(vec2d newPos){
     pos.set(newPos);
+}
+void Camera2D::setPos(double x, double y){
+    pos.x = x;
+    pos.y = y;
 }
 void Camera2D::setRelativePos(vec2d newPos){
     relativePos.set(newPos);
 }
-void Camera2D::setVisionShift(vec2d newVisionShift){
+void Camera2D::setRelativePos(double x, double y){
+    relativePos.x = x;
+    relativePos.y = y;
+}
+void Camera2D::setVisionShift(vec2d newVisionShift)
+{
     visionShift.set(newVisionShift);
 }
 void Camera2D::setSize(vec2d newSize){
     size.set(newSize);
+    al_destroy_bitmap(bitmapBuffer);
+    bitmapBuffer = al_create_bitmap(size.x, size.y);
+}
+void Camera2D::setSize(double x, double y){
+    size.x = x;
+    size.y = y;
     al_destroy_bitmap(bitmapBuffer);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }

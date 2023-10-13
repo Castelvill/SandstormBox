@@ -586,7 +586,7 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
 }
 
 vector <string> changeCodeIntoWords(string input){
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"|!", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"|!=|!|\\|\\||&&", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
