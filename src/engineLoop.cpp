@@ -4059,8 +4059,8 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             else if(Operation.Location.attribute == "set_min_zoom" && Variables.size() > 0){
                 Camera->minZoom = Variables[0].getDoubleUnsafe();
             }
-            else if(Operation.Location.attribute == "set_min_zoom" && Variables.size() > 0){
-                Camera->minZoom = Variables[0].getDoubleUnsafe();
+            else if(Operation.Location.attribute == "set_max_zoom" && Variables.size() > 0){
+                Camera->maxZoom = Variables[0].getDoubleUnsafe();
             }
             else if(Operation.Location.attribute == "set_speed" && Variables.size() > 0){
                 Camera->setSpeed(Variables[0].getDoubleUnsafe());
@@ -4072,7 +4072,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             else if(Operation.Location.attribute == "set_key_zoom_in" && Variables.size() > 0){
                 Camera->zoomInKey = Variables[0].getIntUnsafe();
             }
-            else if(Operation.Location.attribute == "set_zoom_out" && Variables.size() > 0){
+            else if(Operation.Location.attribute == "set_key_zoom_out" && Variables.size() > 0){
                 Camera->zoomOutKey = Variables[0].getIntUnsafe();
             }
             else if(Operation.Location.attribute == "set_key_zoom_reset" && Variables.size() > 0){
@@ -4142,15 +4142,10 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 Camera->clearAccessibleLayers();
             }
         }
-        /*
-        id
-        size
-        size_x
-        size_y
-        zoom
-        min_zoom
-        max_zoom
-        */
+
+        if(Operation.Location.attribute == "pin_to_camera"){
+            updateAllForestOfCameras(Cameras);
+        }
     }
     else if(Context->type == "layer"){
         for(LayerClass * Layer : Context->Layers){

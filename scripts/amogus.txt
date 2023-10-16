@@ -56,7 +56,7 @@ end
 
 start color false
 triggers [key_pressing]
-if ([key_pressing 19])
+if ([key_pressing 26])
 literal int [0] index
 run [colors]
 end

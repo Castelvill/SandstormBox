@@ -251,47 +251,6 @@ void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <s
     Objects.back().deactivate();
 }
 
-void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs, int SCREEN_W, int SCREEN_H){
-    Cameras.push_back(Camera2D("Cam0", camerasIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H), vec2d(0.0, 0.0)));
-    Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
-    Cameras.back().setSpeed(5.0);
-    Cameras.back().setFollowedObjectID("par");
-    Cameras.back().setFollowedLayerID("L1");
-    Cameras.back().setFollowedImageID("");
-    Cameras.back().setIsFollowingObject(false);
-    Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
-    Cameras.back().addVisibleLayer("Editor");
-    Cameras.back().addVisibleLayer("L1");
-    Cameras.back().addVisibleLayer("L2");
-    Cameras.back().addAccessibleLayer("L1");
-    Cameras.back().addAccessibleLayer("L2");
-
-    /*Cameras.push_back(Camera2D("Cam1", camerasIDs, true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
-    Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
-    Cameras.back().setSpeed(5.0);
-    Cameras.back().setFollowedObjectID("par");
-    Cameras.back().setFollowedLayerID("L2");
-    Cameras.back().setFollowedImageID("");
-    Cameras.back().setIsFollowingObject(false);
-    Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
-    Cameras.back().addVisibleLayer("Editor");
-    Cameras.back().addVisibleLayer("L2");
-    Cameras.back().addAccessibleLayer("L2");
-    Cameras.back().pinToCamera("Cam0");
-    
-    Cameras.push_back(Camera2D("Cam2", camerasIDs, true, vec2d(300.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
-    Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
-    Cameras.back().setSpeed(5.0);
-    Cameras.back().setFollowedObjectID("par");
-    Cameras.back().setFollowedLayerID("L1");
-    Cameras.back().setFollowedImageID("");
-    Cameras.back().setIsFollowingObject(false);
-    Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
-    Cameras.back().addVisibleLayer("Editor");
-    Cameras.back().addVisibleLayer("L1");
-    Cameras.back().pinToCamera("Cam1");*/
-}
-
 Fps fps;
 
 int main(){
@@ -308,21 +267,11 @@ int main(){
     vector <LayerClass> Layers;
     vector <Camera2D> Cameras;
 
-    unsigned numberOfObjects = 0;
-
     Threads.push_back(EngineLoop("EGM"));
     Threads.back().initAllegro();
     loadFontsToContainer(FontContainer, Threads.back().EXE_PATH);
 
     loadBitmapsToContainer(BitmapContainer, Threads.back().EXE_PATH);
-
-    createCameras(Cameras, Threads.back().camerasIDs, Threads.back().getWindowW(), Threads.back().getWindowH());
-    Threads.back().updateAllForestOfCameras(Cameras);
-
-
-    if(Threads.back().isCamerasUniquenessViolated(Cameras)){
-        goto kernelGotLost;
-    }
 
     Layers.push_back(LayerClass("KERNEL", Threads.back().layersIDs, true, vec2d(0.0, 0.0), Threads.back().getScreenSize()));
     Layers.back().Objects.push_back(AncestorObject("KERNEL", Layers.back().objectsIDs, Layers.back().getID()));
@@ -334,9 +283,6 @@ int main(){
         std::cout << "Error: In main: Kernel got lost. Never came back.";
         return -1;
     }
-
-    //Layers[0].Objects[0].deactivate();
-    //createObjects0(Layers[0].Objects, Layers[0].getID(), Layers[0].objectsIDs, FontContainer, BitmapContainer);
 
     Layers.push_back(LayerClass("L1", Threads.back().layersIDs, true, vec2d(0.0, 0.0), Threads.back().getScreenSize()));
     createObjects1(Layers[1].Objects, Layers[1].getID(), Layers[1].objectsIDs, FontContainer, BitmapContainer, Threads.back());
@@ -352,9 +298,7 @@ int main(){
         }
         if(layer.isObjectsUniquenessViolated())
             goto uniquenessViolated;
-        numberOfObjects += layer.Objects.size();
     }
-    std::cout << "\n\nNumber of objects: " << numberOfObjects << "\n\n";
 
     Threads.back().updateBaseOfTriggerableObjects(Layers);
 
@@ -366,8 +310,6 @@ int main(){
     }while(Threads.back().isRunning());
 
     uniquenessViolated:
-
-    kernelGotLost:
 
     vector <string> fileNames;
     //TODO: change "D:/Programming/Easy Game Maker" to EXE_PATH

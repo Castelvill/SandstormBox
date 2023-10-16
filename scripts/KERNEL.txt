@@ -32,7 +32,7 @@ fun col set_size double [50 50]
 fun col set_position double [50 0]
 new text l L1 Amongus 1 _ _ text
 fun text set_font string [Minecraft24]
-fun text add_and_update string ["Hey guys, did you know that in terms of male human and female Pokémon breeding, Vaporeon is the most compatible Pokémon for humans? Not only are they in the field egg group, which is mostly comprised of mammals, Vaporeon are an average of 3”03’ tall and 63.9 pounds, this means they’re large enough to be able handle human dicks, and with their impressive Base Stats for HP and access to Acid Armor, you can be rough with one. Due to their mostly water based biology, there’s no doubt in my mind that an aroused Vaporeon would be incredibly wet, so wet that you could easily have sex with one for hours without getting sore. They can also learn the moves Attract, Baby-Doll Eyes, Captivate, Charm, and Tail Whip, along with not having fur to hide nipples, so it’d be incredibly easy for one to get you in the mood. With their abilities Water Absorb and Hydration, they can easily recover from fatigue with enough water. No other Pokémon comes close to this level of compatibility. Also, fun fact, if you pull out enough, you can make your Vaporeon turn white. Vaporeon is literally built for human dick. Ungodly defense stat+high HP pool+Acid Armor means it can take cock all day, all shapes and sizes and still come for more"]
+fun text add_and_update string ["xD"]
 fun text set_color int [255 0 255]
 fun text set_wrapping int [2]
 fun text set_size int [600 500]
@@ -43,8 +43,23 @@ env draw_hitboxes 0
 env print_instructions 0
 env print_logical_evaluations 0
 
-index camera [0] _ camera cam
-fun cam set_size int [1920 1080]
+new camera l 1 _ _ cam
+//index camera [0] _ camera cam
+fun cam set_active bool [true]
+fun cam set_size int [1360 768]
+fun cam set_zoom double [0.3]
+fun cam set_speed double [20]
+fun cam set_key_zoom_in int [15]
+fun cam set_key_zoom_out int [21]
+fun cam set_zoom_increase double [0.01]
+fun cam set_is_following_object bool [false]
+fun cam follow_layer string [L1]
+fun cam follow_object string [par]
+fun cam bind_keys int [15 21 13 9 12 11 10]
+fun cam add_visible_layer string [L1]
+fun cam add_accessible_layer string [L1]
+fun cam add_visible_layer string [L2]
+fun cam add_accessible_layer string [L2]
 
 literal int [20] vam
 literal int [10] bam
@@ -58,6 +73,7 @@ literal int [50] const2
 literal int [0] zero
 literal int [3] break_loop
 literal int [0] cat_i
+literal int [10] catsNum
 run [cobblestone_generator_1, spawn_cats]
 end
 
@@ -100,7 +116,7 @@ start break_if_else false
 end
 
 start spawn_cats true
-if ([context cat_i] [int 50] <)
+if ([context cat_i] [context catsNum] <)
 new object l L1 1 _ _ newCat
 fun newCat set_position int [800 300]
 new image c newCat 1 _ _ newImage
