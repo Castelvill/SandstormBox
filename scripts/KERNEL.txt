@@ -2,6 +2,75 @@ start init false
 triggers [on_boot]
 if ([on_boot])
 
+load_bitmap "images/amongus1.png" amongus_1
+load_bitmap "images/amongus2.png" amongus_2
+load_bitmap "images/cobblestone.png" cobblestone
+load_bitmap "images/steve.png" steve
+load_bitmap "images/arch.jpg" i_m_using_arch_by_the_way
+load_bitmap "images/insanity1.png" insanity1
+load_bitmap "images/minion1.png" minion_1
+load_bitmap "images/vaporeon.png" vaporeon
+load_bitmap "images/h3_dragon.png" dragon_h3
+load_bitmap "images/sword.png" sword
+load_bitmap "images/chad_doge.png" chad
+load_bitmap "images/catgirl.png" puss
+load_bitmap "images/rocks2_200.png" rocks2_200
+load_bitmap "images/rocks2_300.png" rocks2_300
+load_bitmap "images/rocks1_300.png" rocks1_300
+load_bitmap "images/lel.png" lel
+load_bitmap "images/cat260.png" cat260
+load_bitmap "images/catSmall.jpg" catSmall
+load_bitmap "images/stars.jpg" background
+load_bitmap "images/Ilulu.jpg" background1
+load_bitmap "images/background2.png" background2
+load_bitmap "images/background3.png" background3
+
+load_bitmap "gui/background.png" gui_background
+load_bitmap "gui/icon_general.png" icon_general
+load_bitmap "gui/icon_image.png" icon_image
+load_bitmap "gui/icon_text.png" icon_text
+load_bitmap "gui/icon_event.png" icon_event
+load_bitmap "gui/icon_movement.png" icon_movement
+load_bitmap "gui/icon_collision.png" icon_collision
+load_bitmap "gui/icon_particles.png" icon_particles
+load_bitmap "gui/icon_variables.png" icon_variables
+load_bitmap "gui/icon_editable_text.png" icon_editable_text
+load_bitmap "gui/text_field_1.png" text_field_1
+load_bitmap "gui/text_field_2.png" text_field_2
+load_bitmap "gui/arrow_h3.png" arrow_1
+load_bitmap "gui/plus_h3.png" plus_1
+load_bitmap "gui/minus_h3.png" minus_1
+load_bitmap "gui/thumb_h3.png" thumb_1
+load_bitmap "gui/thumb_track_h3.png" thumb_track_1
+
+mkdir "projects"
+mkdir "projects/test"
+//rename "projects/test" "projects/kaczki"
+//remove_all "projects"
+
+index layer [0 0] _ object Arch
+new image c Arch 1 _ _ archImg
+fun archImg connect_bitmap string [i_m_using_arch_by_the_way]
+fun archImg attach_to_camera
+value ([window_w]) ww
+value ([window_h]) wh
+fun archImg resize c ww c wh
+new text c Arch 1 _ _ FPS_text
+fun FPS_text set_id string ["king"]
+fun FPS_text set_position int [10 10]
+fun FPS_text set_size int [400 300]
+fun FPS_text set_font string [Minecraft24]
+fun FPS_text add_and_update string ["FPS: "]
+fun FPS_text set_color int [255 0 0]
+fun FPS_text set_wrapping int [2]
+fun FPS_text attach_to_camera
+fun FPS_text select_layer int [-1]
+
+new layer l 1 _ _ L1
+fun L1 set_id string [L1]
+fun L1 add_group string [kek]
+fun L1 activate
+
 new object l L1 1 _ _ NewAmo
 fun NewAmo set_id string [Amongus]
 fun NewAmo set_position double [100, 400]
@@ -36,17 +105,62 @@ fun text add_and_update string ["xD"]
 fun text set_color int [255 0 255]
 fun text set_wrapping int [2]
 fun text set_size int [600 500]
-index layer [1 1] _ object Amogus
+index layer [1 0] _ object Amogus
 bind Amogus literal ["scripts/amogus.txt"]
 build Amogus true
 env draw_hitboxes 0
 env print_instructions 0
 env print_logical_evaluations 0
+env draw_camera_borders 1
+
+new object l L1 1 _ _ ObjPar
+fun ObjPar set_id string [ObjPar]
+fun ObjPar set_position double [600, 500]
+new image c ObjPar 1 _ _ steveImg
+fun steveImg set_id string [lel]
+fun steveImg connect_bitmap string [steve]
+fun steveImg select_layer int [1]
+new image c ObjPar 1 _ _ insaneImg
+fun insaneImg set_id string [insane]
+fun insaneImg connect_bitmap string [insanity1]
+fun insaneImg select_layer int [2]
+fun insaneImg set_scale double [0.1 0.1]
+fun insaneImg deactivate
+
+new particles c ObjPar 1 _ _ Particles
+fun Particles set_block_spawning bool [true]
+fun Particles spawn_on_key_release bool [true]
+fun Particles set_spawn_rate int [100 100]
+fun Particles set_spawn_cap int [100]
+fun Particles set_max_time_to_spawn double [0.05]
+
+fun Particles set_basic_speed double [0.1 10.0]
+fun Particles set_speed double [0.1 10.0]
+fun Particles set_environment double [0.0 0.0]
+fun Particles set_environment_speed double [0.0 0.0]
+fun Particles set_acceleration double [0.0 0.0]
+fun Particles set_mass double [0.4 0.7]
+fun Particles set_directional_degree double [0.0 360.0]
+fun Particles set_rotation_speed double [0.0 0.0]
+fun Particles set_time_to_negate_rotation double [0.0 0.0]
+
+fun Particles set_radius double [50.0 70.0]
+fun Particles set_time_to_death double [3.0 10.0]
+fun Particles set_color_intensity double [0.8 1.0]
+fun Particles set_shape_rotation_speed double [-2.0 2.0]
+fun Particles set_shape int [0]
+fun Particles set_use_images bool [true]
+fun Particles set_drawing_details bool [false]
+fun Particles set_is_static bool [false]
+
+fun Particles bind_key string [p]
+fun Particles add_image string [insane]
+
 
 new camera l 1 _ _ cam
 //index camera [0] _ camera cam
 fun cam set_active bool [true]
-fun cam set_size int [1360 768]
+fun cam resize c ww c wh//[1360 768][1920 1080]
 fun cam set_zoom double [0.3]
 fun cam set_speed double [20]
 fun cam set_key_zoom_in int [15]
@@ -56,24 +170,27 @@ fun cam set_is_following_object bool [false]
 fun cam follow_layer string [L1]
 fun cam follow_object string [par]
 fun cam bind_keys int [15 21 13 9 12 11 10]
+fun cam add_visible_layer string [KERNEL]
 fun cam add_visible_layer string [L1]
 fun cam add_accessible_layer string [L1]
 fun cam add_visible_layer string [L2]
 fun cam add_accessible_layer string [L2]
+fun cam set_tint double [1.0 1.0 1.0 1.0]
+fun cam set_drawing_borders int [0]
 
-literal int [20] vam
-literal int [10] bam
-literal int [19] vam_l
-literal int [9] bam_l
-literal int [0] i
-literal int [0] j
-literal int [200] size
-literal int [40] const1
-literal int [50] const2
-literal int [0] zero
-literal int [3] break_loop
-literal int [0] cat_i
-literal int [10] catsNum
+int [20] vam
+int [10] bam
+int [19] vam_l
+int [9] bam_l
+int [0] i
+int [0] j
+int [200] size
+int [40] const1
+int [50] const2
+int [0] zero
+int [3] break_loop
+int [0] cat_i
+int [10] catsNum
 run [cobblestone_generator_1, spawn_cats]
 end
 
@@ -120,8 +237,8 @@ if ([context cat_i] [context catsNum] <)
 new object l L1 1 _ _ newCat
 fun newCat set_position int [800 300]
 new image c newCat 1 _ _ newImage
-fun newImage connect_bitmap string [cat260]
-fun newImage set_scale double [0.5 0.5]
+fun newImage connect_bitmap string [steve]
+fun newImage resize int [130 130]
 new collision c newCat 1 _ _ coll
 fun coll set_size int [130 130]
 
@@ -164,7 +281,7 @@ end
 start fs_click false
 triggers [key_pressed]
 if ([key_pressed 58])
-literal int [1] xd
+int [1] xd
 run [fs]
 end
 
@@ -176,4 +293,15 @@ end
 
 start fs_else false
 env fullscreen 0
+end
+
+start refresh false
+triggers[on_display_resize]
+if([on_display_resize])
+value ([window_w]) w
+value ([window_h]) h
+index layer [0 0 0] _ image Arch
+fun Arch resize c w c h
+index camera [0] _ camera Cam0
+fun Cam0 resize c w c h
 end

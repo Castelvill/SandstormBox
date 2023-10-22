@@ -586,7 +586,7 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
 }
 
 vector <string> changeCodeIntoWords(string input){
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"|!=|!|\\|\\||&&", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"|!=|!|\\|\\||&&", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
@@ -889,6 +889,7 @@ bool gatherChildEvents(const vector<string> & words, unsigned & cursor, vector<C
     return true;
 }
 bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<VariableModule> & Literals, char type){
+    bool negate = false;
     if(cursor >= words.size()){
         return true;
     }
@@ -906,7 +907,11 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
         return false;
     }
     while(words[cursor] != "]"){
-        if(type == 'b'){
+        negate = false;
+        if(words[cursor] == "-" && type != 's'){
+            negate = true;
+        }
+        else if(type == 'b'){
             if(words[cursor] == "true"){
                 Literals.push_back(VariableModule::newBool(true));
             }
@@ -916,12 +921,25 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
             else{
                 Literals.push_back(VariableModule::newBool(stoi(words[cursor])));
             }
+            if(negate){
+                Literals.back().toggleBool();
+            }
         }
         else if(type == 'i'){
-            Literals.push_back(VariableModule::newInt(stoi(words[cursor])));
+            if(negate){
+                Literals.push_back(VariableModule::newInt(-stoi(words[cursor])));
+            }
+            else{
+                Literals.push_back(VariableModule::newInt(stoi(words[cursor])));
+            }
         }
         else if(type == 'd'){
-            Literals.push_back(VariableModule::newDouble(stod(words[cursor])));
+            if(negate){
+                Literals.push_back(VariableModule::newDouble(-stod(words[cursor])));
+            }
+            else{
+                Literals.push_back(VariableModule::newDouble(stod(words[cursor])));
+            }
         }
         else{
             Literals.push_back(VariableModule::newString(words[cursor]));
@@ -1138,30 +1156,30 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "literal"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+        else if(isStringInGroup(words[0], 4, "bool", "int", "double", "string")){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
                 return;
             }
-            cursor = 2;
-            if(words[1] == "bool"){
+            cursor = 1;
+            if(words[0] == "bool"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'b')){
                     std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[1] == "int"){
+            else if(words[0] == "int"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'i')){
                     std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[1] == "double"){
+            else if(words[0] == "double"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'd')){
                     std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[1] == "string"){
+            else if(words[0] == "string"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 's')){
                     std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
@@ -1377,6 +1395,26 @@ void AncestorObject::eventAssembler(vector<string> code){
             else{
                 Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
             }
+        }
+        else if(words[0] == "load_bitmap"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            Operation->Literals.push_back(VariableModule::newString(words[2]));
+        }
+        else if(words[0] == "mkdir" || words[0] == "remove" || words[0] == "remove_all"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+        }
+        else if(words[0] == "rename"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            Operation->Literals.push_back(VariableModule::newString(words[2]));
         }
         else{
             std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";

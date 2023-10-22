@@ -129,6 +129,7 @@ struct EventsLookupTable{
     vector <AncestorIndex> EditableTextTriggered;
     vector <AncestorIndex> MovementTriggered;
     vector <AncestorIndex> StillnessTriggered;
+    vector <AncestorIndex> ResizeTriggered;
     void clear();
 };
 
@@ -226,6 +227,7 @@ private:
     MouseClass Mouse;
     ALLEGRO_DISPLAY * window;
     ALLEGRO_BITMAP * cursorBitmap;
+    ALLEGRO_BITMAP * iconBitmap;
     ALLEGRO_MOUSE_CURSOR * mouseCursor;
     ALLEGRO_MOUSE_STATE mouseState;
     ALLEGRO_TIMER * timer;
@@ -246,7 +248,7 @@ private:
     vec2d dragCameraStaringPos;
     vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
-    bool firstIteration, closeProgram;
+    bool firstIteration, closeProgram, displayResized;
 
     string windowTitle;
     int windowW;
@@ -254,6 +256,7 @@ private:
     bool fullscreen;
     bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
     
+    bool drawCameraBorders;
     bool drawTextFieldBorders;
     bool drawHitboxes; 
     bool ignoreDistantObjects;
@@ -272,10 +275,10 @@ public:
     vector <string> camerasIDs;
 
     EngineLoop(string title);
-    void createDisplay();
     void initAllegro();
     void exitAllegro();
     bool isRunning() const;
+    ALLEGRO_DISPLAY * getWindow();
     int getWindowW() const;
     int getWindowH() const;
     vec2i getScreenSize() const;
@@ -346,6 +349,11 @@ public:
         vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
     );
     void changeEngineVariables(OperaClass & Operation);
+    void loadBitmap(OperaClass & Operation, vector<SingleBitmap> & BitmapContainer);
+    void createDirectory(OperaClass & Operation);
+    void removeFileOrDirectory(OperaClass & Operation);
+    void removeRecursivelyFileOrDirectory(OperaClass & Operation);
+    void renameFileOrDirectory(OperaClass & Operation);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,

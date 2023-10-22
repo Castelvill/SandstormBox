@@ -1,7 +1,7 @@
 start while_click false
 triggers [key_pressed]
 if ([key_pressed 23])
-literal int [0] xd
+int [0] xd
 run [while]
 end
 
@@ -16,8 +16,8 @@ start create_new false
 triggers [key_pressed]
 if ([key_pressed 17])
 all layer _ _ _ _ _ _ all_layers_before
-literal string [new_object] ids
-literal int [10] vector_size
+string [new_object] ids
+int [10] vector_size
 new object l L1 _ vector_size ids new_objects
 clone new_objects me
 all _ [new_objects] _ _ event _ is_active
@@ -41,7 +41,7 @@ triggers [key_pressing]
 if ([key_pressing 1])
 index layer [1 0] _ object Amogus
 first _ [Amogus] _ _ _ _ pos_x _ pos_x
-literal int [20] speed
+int [20] speed
 -= pos_x speed
 end
 
@@ -50,14 +50,14 @@ triggers [key_pressing]
 if ([key_pressing 4])
 index layer [1 0] _ object Amogus
 first _ [Amogus] _ _ _ _ pos_x _ pos_x
-literal int [20] speed
+int [20] speed
 += pos_x speed
 end
 
 start color false
 triggers [key_pressing]
 if ([key_pressing 26])
-literal int [0] index
+int [0] index
 run [colors]
 end
 
@@ -65,12 +65,12 @@ start colors true
 if ([context index] [layer L1 objects_count] <)
 index layer [1] [index] object obj
 index context [0 0] [obj] image image1
-literal double [0 0 0 0] low
-literal double [10 10 10 10] high
+double [0 0 0 0] low
+double [10 10 10 10] high
 random_int _ low high randomColor
-literal double [0 0 0 0] dColors
+double [0 0 0 0] dColors
 = dColors randomColor
-literal double [10] divide
+double [10] divide
 /= dColors divide
 fun image1 set_color c dColors
 ++ index

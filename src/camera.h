@@ -27,6 +27,9 @@ public:
     bool isFollowingObject; //Camera's position on screen won't change by following an object.
     bool isUsingKeyboardToMove;
     bool isUsingCursorPositionToMove;
+    bool allowsDrawingBorders;
+
+    float tint[4];
 
     vector <string> visibleLayersIDs;
     vector <string> accessibleLayersIDs; //User can interact with those Layers through this Camera;
@@ -62,6 +65,7 @@ public:
     void setIsFollowingObject(bool newIsFollowingObject);
     void setIsUsingKeyboardToMove(bool isUsingKeyboard);
     void setIsUsingCursorPositionToMove(bool isUsingCursor);
+    void setTint(float r, float g, float b, float a);
     void update(vector <short> pressedKeys);
     bool isObjectVisible(vec2d objPos, vec2d objSize) const;
     bool isOnScreenWithRadius(vec2d objPos, vec2d objSize);

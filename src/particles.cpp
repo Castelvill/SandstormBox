@@ -794,11 +794,19 @@ void ParticleEffectModule::setEnvironmentSpeedX(double newValue){
 void ParticleEffectModule::setEnvironmentSpeedY(double newValue){
     environmentSpeed.y = newValue;
 }
+void ParticleEffectModule::setSpeed(double minValue, double maxValue){
+    minSpeed = minValue;
+    maxSpeed = maxValue;
+}
 void ParticleEffectModule::setMinSpeed(double newValue){
     minSpeed = newValue;
 }
 void ParticleEffectModule::setMaxSpeed(double newValue){
     maxSpeed = newValue;
+}
+void ParticleEffectModule::setBasicSpeed(double minValue, double maxValue){
+    minBasicSpeed = minValue;
+    maxBasicSpeed = maxValue;
 }
 void ParticleEffectModule::setMinBasicSpeed(double newValue){
     minBasicSpeed = newValue;
@@ -806,11 +814,19 @@ void ParticleEffectModule::setMinBasicSpeed(double newValue){
 void ParticleEffectModule::setMaxBasicSpeed(double newValue){
     maxBasicSpeed = newValue;
 }
+void ParticleEffectModule::setAcceleration(double minValue, double maxValue){
+    minAcceleration = minValue;
+    maxAcceleration = maxValue;
+}
 void ParticleEffectModule::setMinAcceleration(double newValue){
     minAcceleration = newValue;
 }
 void ParticleEffectModule::setMaxAcceleration(double newValue){
     maxAcceleration = newValue;
+}
+void ParticleEffectModule::setParticleMass(double minValue, double maxValue){
+    minParticleMass = minValue;
+    maxParticleMass = maxValue;
 }
 void ParticleEffectModule::setMinParticleMass(double newValue){
     minParticleMass = newValue;
@@ -818,17 +834,29 @@ void ParticleEffectModule::setMinParticleMass(double newValue){
 void ParticleEffectModule::setMaxParticleMass(double newValue){
     maxParticleMass = newValue;
 }
+void ParticleEffectModule::setDirectionDegree(double minValue, double maxValue){
+    minDirectionDegree = minValue;
+    maxDirectionDegree = maxValue;
+}
 void ParticleEffectModule::setMinDirectionDegree(double newValue){
     minDirectionDegree = newValue;
 }
 void ParticleEffectModule::setMaxDirectionDegree(double newValue){
     maxDirectionDegree = newValue;
 }
+void ParticleEffectModule::setRotationSpeed(double minValue, double maxValue){
+    minRotationSpeed = minValue;
+    maxRotationSpeed = maxValue;
+}
 void ParticleEffectModule::setMinRotationSpeed(double newValue){
     minRotationSpeed = newValue;
 }
 void ParticleEffectModule::setMaxRotationSpeed(double newValue){
     maxRotationSpeed = newValue;
+}
+void ParticleEffectModule::setTimeToNegateRotation(double minValue, double maxValue){
+    minTimeToNegateRotation = minValue;
+    maxTimeToNegateRotation = maxValue;
 }
 void ParticleEffectModule::setMinTimeToNegateRotation(double newValue){
     minTimeToNegateRotation = newValue;
@@ -842,11 +870,19 @@ void ParticleEffectModule::setAreParticlesMoving(bool newValue){
 void ParticleEffectModule::setIsEnvironmentSynchronized(bool newValue){
     isEnvironmentSynchronized = newValue;
 }
+void ParticleEffectModule::setParticleRadius(double minValue, double maxValue){
+    minParticleRadius = minValue;
+    maxParticleRadius = maxValue;
+}
 void ParticleEffectModule::setMinParticleRadius(double newValue){
     minParticleRadius = newValue;
 }
 void ParticleEffectModule::setMaxParticleRadius(double newValue){
     maxParticleRadius = newValue;
+}
+void ParticleEffectModule::setTimeToDeath(double minValue, double maxValue){
+    minTimeToDeath = minValue;
+    maxTimeToDeath = maxValue;
 }
 void ParticleEffectModule::setMinTimeToDeath(double newValue){
     minTimeToDeath = newValue;
@@ -854,11 +890,19 @@ void ParticleEffectModule::setMinTimeToDeath(double newValue){
 void ParticleEffectModule::setMaxTimeToDeath(double newValue){
     maxTimeToDeath = newValue;
 }
+void ParticleEffectModule::setShapeRotationSpeed(double minValue, double maxValue){
+    minShapeRotationSpeed = minValue;
+    maxShapeRotationSpeed = maxValue;
+}
 void ParticleEffectModule::setMinShapeRotationSpeed(double newValue){
     minShapeRotationSpeed = newValue;
 }
 void ParticleEffectModule::setMaxShapeRotationSpeed(double newValue){
     maxShapeRotationSpeed = newValue;
+}
+void ParticleEffectModule::setColorIntensity(double minValue, double maxValue){
+    minColorIntensity = minValue;
+    maxColorIntensity = maxValue;
 }
 void ParticleEffectModule::setMinColorIntensity(double newValue){
     minColorIntensity = newValue;
@@ -884,6 +928,14 @@ void ParticleEffectModule::setIsDrawingWithDetails(bool newValue){
 void ParticleEffectModule::setBlockParticlesSpawn(bool newValue){
     blockParticlesSpawn = newValue;
 }
+void ParticleEffectModule::setCanParticlesSpawn(bool newValue){
+    canParticlesSpawn = newValue;
+}
+void ParticleEffectModule::setParticlesPerSpawn(unsigned minValue, unsigned maxValue)
+{
+    minParticlesPerSpawn = minValue;
+    maxParticlesPerSpawn = maxValue;
+}
 void ParticleEffectModule::setMinParticlesPerSpawn(unsigned int newValue){
     minParticlesPerSpawn = newValue;
 }
@@ -895,6 +947,7 @@ void ParticleEffectModule::setMaxParticlesCount(unsigned int newValue){
 }
 void ParticleEffectModule::setMaxTimeToSpawn(double newValue){
     maxTimeToSpawn = newValue;
+    timeToSpawn = maxTimeToSpawn;
 }
 void ParticleEffectModule::setSpawnKeyBindShort(short newValue){
     spawnKeyBind = newValue;

@@ -130,7 +130,7 @@ void PrimaryModule::toggleIsActive(){
 void PrimaryModule::setIsScaledFromCenter(bool newIsScaledFromCenter){
     isScaledFromCenter = newIsScaledFromCenter;
 }
-void PrimaryModule::control(const string &attribute, const bool &value){
+void PrimaryModule::control(string attribute, bool value, unsigned paramCount){
     if(attribute == "activate"){
         activate();
     }
@@ -177,11 +177,10 @@ void PrimaryModule::control(const string &attribute, const bool &value){
         isScrollable = value;
     }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist.\n";
+        std::cout << "Error: In: " << __FUNCTION__ << ": function " << attribute << "<" << paramCount << "> does not exist.\n";
     }
 }
-void PrimaryModule::setIsAttachedToCamera(bool newIsAttachedToCamera)
-{
+void PrimaryModule::setIsAttachedToCamera(bool newIsAttachedToCamera){
     isAttachedToCamera = newIsAttachedToCamera;
 }
 void PrimaryModule::setCanBeSelected(bool newValue){

@@ -73,6 +73,7 @@ void EventsLookupTable::clear(){
     EditableTextTriggered.clear();
     MovementTriggered.clear();
     StillnessTriggered.clear();
+    ResizeTriggered.clear();
 }
 
 EngineLoop::EngineLoop(std::string title){
@@ -80,6 +81,8 @@ EngineLoop::EngineLoop(std::string title){
     windowTitle = title;
     firstIteration = true;
     closeProgram = false;
+    displayResized = false;
+    drawCameraBorders = true;
     drawTextFieldBorders = false;
     drawHitboxes = false;
     isPixelArt = true;
@@ -185,6 +188,11 @@ void EngineLoop::initAllegro(){
     SelectedLayer = nullptr;
     SelectedObject = nullptr;
     EditorObject = nullptr;
+
+    iconBitmap = al_load_bitmap((EXE_PATH + "icon.png").c_str());
+    if(iconBitmap){
+        al_set_display_icon(window, iconBitmap);
+    }
 }
 void EngineLoop::startTimer(){
     al_start_timer(timer);
@@ -194,6 +202,9 @@ void EngineLoop::exitAllegro(){
     if(cursorBitmap){
         al_destroy_bitmap(cursorBitmap);
         al_destroy_mouse_cursor(mouseCursor);
+    }
+    if(iconBitmap){
+        al_destroy_bitmap(iconBitmap);
     }
     al_destroy_timer(timer);
     al_destroy_event_queue(eventQueue);
@@ -274,6 +285,8 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
                 firstIteration = false;
 
+                displayResized = false;
+
                 //END EVENT CONTROL SECTION
 
                 firstPressedKeys.clear();
@@ -335,7 +348,9 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 break;
             case ALLEGRO_EVENT_DISPLAY_RESIZE:
                 al_acknowledge_resize(window);
-                getDesktopResolution(0, &windowW, &windowH);
+                windowW = al_get_display_width(window);
+                windowH = al_get_display_height(window);
+                displayResized = true;
                 break;
         }
 
@@ -378,9 +393,9 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         fps.update();
         string updatedFpsLabel = "FPS: " + intToStr(fps.get());
 
-        if(Layers[0].Objects.size() >= 2)
-            if(Layers[0].Objects[1].TextContainer.size() > 0)
-                Layers[0].Objects[1].TextContainer[0].modifyContent(0, updatedFpsLabel);
+        if(Layers[0].Objects.size() > 0)
+            if(Layers[0].Objects[0].TextContainer.size() > 0)
+                Layers[0].Objects[0].TextContainer[0].modifyContentAndResize(0, updatedFpsLabel, FontContainer);
     }
 }
 void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers){
@@ -442,6 +457,9 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers){
                     }
                     else if(type == "stillness"){
                         BaseOfTriggerableObjects.StillnessTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
+                    }
+                    else if(type == "on_display_resize"){
+                        BaseOfTriggerableObjects.ResizeTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                 }
             }
@@ -536,6 +554,15 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
             }
         }
     }
+    if(displayResized){
+        for(AncestorIndex & Index : BaseOfTriggerableObjects.ResizeTriggered){
+            tempObject = Index.object(Layers);
+            if(tempObject != nullptr && tempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*tempObject));
+            }
+        }
+    }
+    
     for(AncestorIndex & Index : BaseOfTriggerableObjects.MovementTriggered){
         tempObject = Index.object(Layers);
         if(tempObject == nullptr || !tempObject->getIsActive()){
@@ -928,7 +955,11 @@ int EngineLoop::getWindowW() const{
 int EngineLoop::getWindowH() const{
     return windowH;
 }
-vec2i EngineLoop::getScreenSize() const{
+ALLEGRO_DISPLAY *EngineLoop::getWindow(){
+    return window;
+}
+vec2i EngineLoop::getScreenSize() const
+{
     return vec2i(windowW, windowH);
 }
 
@@ -2530,7 +2561,7 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
 void EngineLoop::createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation){
     PointerContainer NewContext;
     if(printOutInstructions){
-        std::cout << "literal {";
+        std::cout << Operation.instruction << " {";
         for(const VariableModule & Literal : Operation.Literals){
             std::cout << Literal.getString() << ", ";
             NewContext.Variables.push_back(Literal);
@@ -4047,7 +4078,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             else if(Operation.Location.attribute == "set_relative_position" && Variables.size() > 1){
                 Camera->setRelativePos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
             }
-            else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
+            else if(Operation.Location.attribute == "resize" && Variables.size() > 1){
                 Camera->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
             }
             else if(Operation.Location.attribute == "set_zoom" && Variables.size() > 0){
@@ -4141,6 +4172,15 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             else if(Operation.Location.attribute == "clear_accessible_layers"){
                 Camera->clearAccessibleLayers();
             }
+            else if(Operation.Location.attribute == "set_tint" && Variables.size() > 3){
+                Camera->setTint(Variables[0].getIntUnsafe(), Variables[1].getIntUnsafe(), Variables[2].getIntUnsafe(), Variables[3].getIntUnsafe());
+            }
+            else if(Operation.Location.attribute == "set_drawing_borders" && Variables.size() > 0){
+                Camera->allowsDrawingBorders = Variables[0].getIntUnsafe();
+            }
+            else{
+                std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
+            }
         }
 
         if(Operation.Location.attribute == "pin_to_camera"){
@@ -4151,6 +4191,35 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
         for(LayerClass * Layer : Context->Layers){
             if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
                 Layer->setID(Variables[0].getStringUnsafe(), layersIDs);
+            }
+            else if(Operation.Location.attribute == "set_is_active" && Variables.size() > 0){
+                Layer->setIsActive(Variables[0].getBoolUnsafe());
+            }
+            else if(Operation.Location.attribute == "activate"){
+                Layer->setIsActive(true);
+            }
+            else if(Operation.Location.attribute == "deactivate"){
+                Layer->setIsActive(false);
+            }
+            else if(Operation.Location.attribute == "toggle"){
+                Layer->setIsActive(!Layer->getIsActive());
+            }
+            else if(Operation.Location.attribute == "add_group" && Variables.size() > 0){
+                Layer->addGroup(Variables[0].getStringUnsafe());
+            }
+            else if(Operation.Location.attribute == "remove_group" && Variables.size() > 0){
+                Layer->removeGroup(Variables[0].getStringUnsafe());
+            }
+            else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
+                Layer->pos.x = Variables[0].getDoubleUnsafe();
+                Layer->pos.y = Variables[1].getDoubleUnsafe();
+            }
+            else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
+                Layer->size.x = Variables[0].getDoubleUnsafe();
+                Layer->size.y = Variables[1].getDoubleUnsafe();
+            }
+            else{
+                std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
             }
         }
     }
@@ -4206,7 +4275,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 if(Variables.size() > 0){
                     temp = Variables[0].getBoolUnsafe();
                 }
-                Object->control(Operation.Location.attribute, temp);
+                Object->control(Operation.Location.attribute, temp, Variables.size());
             }
         }
     }
@@ -4404,6 +4473,9 @@ void EngineLoop::changeEngineVariables(OperaClass & Operation){
             al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR);
         }   
     }
+    else if(Operation.Literals[0].getString() == "draw_camera_borders"){
+        drawCameraBorders = Operation.Literals[1].getBool(); 
+    }
     else if(Operation.Literals[0].getString() == "draw_text_borders"){
         drawTextFieldBorders = Operation.Literals[1].getBool(); 
     }
@@ -4432,6 +4504,92 @@ void EngineLoop::changeEngineVariables(OperaClass & Operation){
         std::cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
     }
 }
+void EngineLoop::loadBitmap(OperaClass & Operation, vector<SingleBitmap> & BitmapContainer){
+    if(Operation.Literals.size() < 2 || Operation.Literals[0].getType() != 's' || Operation.Literals[1].getType() != 's'){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires two strings.\n";
+        return;
+    }
+    if(printOutInstructions){
+        std::cout << Operation.instruction << " " << Operation.Literals[0].getString() << " " << Operation.Literals[1].getString() << "\n";
+    }
+    BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
+    BitmapContainer.back().loadBitmap(Operation.Literals[1].getString(), Operation.Literals[0].getString(), EXE_PATH);
+}
+void EngineLoop::createDirectory(OperaClass & Operation){
+    if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to the new directory).\n";
+        return;
+    }
+    if(printOutInstructions){
+        std::cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
+    }
+    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
+        std::cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+    }
+    try{
+        std::filesystem::create_directory(EXE_PATH + Operation.Literals[0].getString());
+    }
+    catch(std::filesystem::filesystem_error const& ex){
+        std::cout << "In " << __FUNCTION__ << ": No such directory \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n";
+    }
+}
+void EngineLoop::removeFileOrDirectory(OperaClass & Operation){
+    if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to the new directory).\n";
+        return;
+    }
+    if(printOutInstructions){
+        std::cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
+    }
+    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
+        std::cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+    }
+    try{
+        std::filesystem::remove(EXE_PATH + Operation.Literals[0].getString());
+    }
+    catch(std::filesystem::filesystem_error const& ex){
+        std::cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
+    }
+}
+void EngineLoop::removeRecursivelyFileOrDirectory(OperaClass & Operation){
+    if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to the new directory).\n";
+        return;
+    }
+    if(printOutInstructions){
+        std::cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
+    }
+    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
+        std::cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+    }
+    try{
+        std::filesystem::remove_all(EXE_PATH + Operation.Literals[0].getString());
+    }
+    catch(std::filesystem::filesystem_error const& ex){
+        std::cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
+    }
+}
+void EngineLoop::renameFileOrDirectory(OperaClass & Operation){
+    if(Operation.Literals.size() < 2 || Operation.Literals[0].getType() != 's' || Operation.Literals[1].getType() != 's'){
+        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires two strings (two paths to files or directories).\n";
+        return;
+    }
+    if(printOutInstructions){
+        std::cout << Operation.instruction << " " << Operation.Literals[0].getString() << " " << Operation.Literals[1].getString() << "\n";
+    }
+    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
+        std::cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+    }
+    if(Operation.Literals[1].getString() == "" || Operation.Literals[1].getString()[0] == ' '){
+        std::cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[1].getString() << "\'.\n"; 
+    }
+    try{
+        std::filesystem::rename(EXE_PATH + Operation.Literals[0].getString(), EXE_PATH + Operation.Literals[1].getString());
+    }
+    catch(std::filesystem::filesystem_error const& ex){
+        std::cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
+    }
+}
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,
@@ -4457,7 +4615,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             aggregateValues(EventContext, Operation, OwnerLayer, Owner, Layers, Cameras);
         }
         //Get literals prepared in the event.
-        else if(Operation.instruction == "literal"){
+        else if(isStringInGroup(Operation.instruction, 4, "bool", "int", "double", "string")){
             createLiteral(EventContext, Operation);
         }
         //Generate random int value between  
@@ -4509,6 +4667,21 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         }
         else if(Operation.instruction == "env"){
             changeEngineVariables(Operation);
+        }
+        else if(Operation.instruction == "load_bitmap"){
+            loadBitmap(Operation, BitmapContainer);
+        }
+        else if(Operation.instruction == "mkdir"){
+            createDirectory(Operation);
+        }
+        else if(Operation.instruction == "remove"){
+            removeFileOrDirectory(Operation);
+        }
+        else if(Operation.instruction == "remove_all"){
+            removeRecursivelyFileOrDirectory(Operation);
+        }
+        else if(Operation.instruction == "rename"){
+            renameFileOrDirectory(Operation);
         }
         if(printOutInstructions){
             string buffor = "Stack: ";
@@ -4914,6 +5087,10 @@ VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObj
         NewValue.setBool(fullscreen);
         return NewValue;
     }
+    else if(Condition.Location.source == "on_display_resize"){
+        NewValue.setBool(displayResized);
+        return NewValue;
+    }
     else if(Condition.Location.source == "second_passed"){
         NewValue.setBool(secondHasPassed());
         return NewValue;
@@ -4956,6 +5133,14 @@ VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObj
     }
     else if(Condition.Location.source == "mouse_released"){
         NewValue.setBool(Mouse.isReleased(Condition.Literal.getInt()));
+        return NewValue;
+    }
+    else if(Condition.Location.source == "window_w"){
+        NewValue.setInt(windowW);
+        return NewValue;
+    }
+    else if(Condition.Location.source == "window_h"){
+        NewValue.setInt(windowH);
         return NewValue;
     }
     else if(Condition.Location.source == "camera"){
@@ -6056,16 +6241,22 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
             }
         }
         al_set_target_bitmap(al_get_backbuffer(window));
-        al_draw_bitmap(Camera.bitmapBuffer, Camera.pos.x, Camera.pos.y, 0);
+        //al_draw_bitmap(Camera.bitmapBuffer, Camera.pos.x, Camera.pos.y, 0);
+
+        al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+        al_draw_tinted_bitmap(Camera.bitmapBuffer, al_map_rgba_f(Camera.tint[0], Camera.tint[1], Camera.tint[2], Camera.tint[3]), Camera.pos.x, Camera.pos.y, 0);
+        al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 
         foregroundOfObjects.clear();
         //vector<unsigned int>().swap(foregroundOfObjects);
         //foregroundOfObjects.shrink_to_fit();
-        if(SelectedCamera != &Camera){
-            al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(0, 155, 145), 6);
-        }
-        else{
-            al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(62, 249, 239), 6);
+        if(drawCameraBorders && Camera.allowsDrawingBorders){
+            if(SelectedCamera != &Camera){
+                al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(0, 155, 145), 6);
+            }
+            else{
+                al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(62, 249, 239), 6);
+            }
         }
     }
 }

@@ -28,6 +28,9 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     isFollowingObject = false;
     isUsingKeyboardToMove = true;
     isUsingCursorPositionToMove = false;
+    allowsDrawingBorders = true;
+
+    std::fill_n(tint, 4, 1);
 }
 Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
     setUpInstance(newID, camerasIDs, newIsActive, newPos, newSize, newVisionShift);
@@ -80,13 +83,11 @@ void Camera2D::setIsActive(bool newValue){
 void Camera2D::activate(){
     isActive = true;
 }
-void Camera2D::deleteLater()
-{
+void Camera2D::deleteLater(){
     isActive = false;
     deleted = true;
 }
-void Camera2D::deactivate()
-{
+void Camera2D::deactivate(){
     isActive = false;
 }
 void Camera2D::toggleIsActive(){
@@ -95,8 +96,7 @@ void Camera2D::toggleIsActive(){
 bool Camera2D::getIsActive(){
     return isActive;
 }
-bool Camera2D::getIsDeleted() const
-{
+bool Camera2D::getIsDeleted() const{
     return deleted;
 }
 void Camera2D::setPos(vec2d newPos){
@@ -113,8 +113,7 @@ void Camera2D::setRelativePos(double x, double y){
     relativePos.x = x;
     relativePos.y = y;
 }
-void Camera2D::setVisionShift(vec2d newVisionShift)
-{
+void Camera2D::setVisionShift(vec2d newVisionShift){
     visionShift.set(newVisionShift);
 }
 void Camera2D::setSize(vec2d newSize){
@@ -166,7 +165,14 @@ void Camera2D::setIsUsingKeyboardToMove(bool isUsingKeyboard){
 void Camera2D::setIsUsingCursorPositionToMove(bool isUsingCursor){
     isUsingCursorPositionToMove = isUsingCursor;
 }
-void Camera2D::update(vector <short> pressedKeys){
+void Camera2D::setTint(float r, float g, float b, float a){
+    tint[0] = r;
+    tint[1] = g;
+    tint[2] = b;
+    tint[3] = a;
+}
+void Camera2D::update(vector<short> pressedKeys)
+{
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
         if(pressedKeys[i] == upKey)
             visionShift.y += speed;

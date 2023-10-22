@@ -38,8 +38,6 @@ double randomDouble(double minValue, double maxValue){
     //return minValue + ((double)rand() / (double)RAND_MAX) * (maxValue - minValue);
 }
 short translateToAllegroKey(char key){
-    std::cout << short(key-'a'+1) << "\n";
-    std::cout << short(key) << "\n\n";
     if(short(key) >= 97 && short(key) <= 122)
         return short(key-'a'+1);
     if(short(key) >= 48 && short(key) <= 57)

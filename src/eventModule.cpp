@@ -121,7 +121,7 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
         if(Values.size() > 0){
             temp = Values[0].getBoolUnsafe();
         }
-        Text->control(attribute, temp);
+        Text->control(attribute, temp, Values.size());
     }
 }
 void EveModule::controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer){
@@ -167,7 +167,7 @@ void EveModule::controlImage(ImageModule * Image, string attribute, const vector
         if(Values.size() > 0){
             temp = Values[0].getBoolUnsafe();
         }
-        Image->control(attribute, temp);
+        Image->control(attribute, temp, Values.size());
     }
 }
 void EveModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
@@ -314,7 +314,7 @@ void EveModule::controlMovement(MovementModule * Movement, string attribute, con
         if(Values.size() > 0){
             temp = Values[0].getBoolUnsafe();
         }
-        Movement->control(attribute, temp);
+        Movement->control(attribute, temp, Values.size());
     }
 }
 void EveModule::controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
@@ -365,7 +365,7 @@ void EveModule::controlCollision(CollisionModule * Collision, string attribute, 
         if(Values.size() > 0){
             temp = Values[0].getBoolUnsafe();
         }
-        Collision->control(attribute, temp);
+        Collision->control(attribute, temp, Values.size());
     }
 }
 void EveModule::controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
@@ -378,27 +378,129 @@ void EveModule::controlParticles(ParticleEffectModule * Particles, string attrib
     else if(attribute == "set_environment_speed" && Values.size() >= 2){
         Particles->setEnvironmentSpeed(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
-    else if(attribute == "set_shape" && Values.size() >= 1){
-        Particles->setParticlesShape(Values[0].getDoubleUnsafe());
+    else if(attribute == "set_speed" && Values.size() > 1){
+        Particles->setSpeed(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_basic_speed" && Values.size() > 1){
+        Particles->setBasicSpeed(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_acceleration" && Values.size() > 1){
+        Particles->setAcceleration(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_mass" && Values.size() > 1){
+        Particles->setParticleMass(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_directional_degree" && Values.size() > 1){
+        Particles->setDirectionDegree(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_rotation_speed" && Values.size() > 1){
+        Particles->setRotationSpeed(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_time_to_negate_rotation" && Values.size() > 1){
+        Particles->setTimeToNegateRotation(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_are_particles_moving" && Values.size() > 0){
+        Particles->setAreParticlesMoving(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "allow_movement"){
+        Particles->switchAreParticlesMoving();
+    }
+    else if(attribute == "set_is_env_sync" && Values.size() > 0){
+        Particles->setIsEnvironmentSynchronized(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_radius" && Values.size() > 1){
+        Particles->setParticleRadius(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_time_to_death" && Values.size() > 1){
+        Particles->setTimeToDeath(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_shape_rotation_speed" && Values.size() > 1){
+        Particles->setShapeRotationSpeed(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_color_intensity" && Values.size() > 1){
+        Particles->setColorIntensity(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "add_color_interval" && Values.size() > 3){
+        Particles->addColorInterval(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(), Values[2].getIntUnsafe(), Values[3].getIntUnsafe());
+    }
+    else if(attribute == "add_color_interval_in_hex" && Values.size() > 0){
+        Particles->addColorIntervalInHex(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "remove_color_interval" && Values.size() > 0){
+        Particles->removeColorInterval(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "add_color" && Values.size() > 2){
+        Particles->addColor(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(), Values[2].getIntUnsafe());
+    }
+    else if(attribute == "add_color_in_hex" && Values.size() > 0){
+        Particles->addColorInHex(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "remove_color" && Values.size() > 0){
+        Particles->removeColor(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "add_image" && Values.size() > 0){
+        Particles->addImage(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "remove_image" && Values.size() > 0){
+        Particles->removeImage(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "remove_image_by_index" && Values.size() > 0){
+        Particles->removeImage(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_shape" && Values.size() > 0){
+        Particles->setParticlesShape(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_use_images" && Values.size() > 0){
+        Particles->setUseImageAsParticles(Values[0].getBoolUnsafe());
     }
     else if(attribute == "toggle_source"){
         Particles->switchUseImageAsParticles();
     }
-    else if(attribute == "allow_spawning"){
-        Particles->allowSpawning();
+    else if(attribute == "set_use_random_colors" && Values.size() > 0){
+        Particles->setUseRandomColors(Values[0].getBoolUnsafe());
     }
     else if(attribute == "toggle_random_colors"){
         Particles->switchUseRandomColors();
     }
-    else if(attribute == "allow_movement"){
-        Particles->switchAreParticlesMoving();
+    else if(attribute == "set_is_static" && Values.size() > 0){
+        Particles->setIsModuleStatic(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_drawing_details" && Values.size() > 0){
+        Particles->setIsDrawingWithDetails(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_block_spawning" && Values.size() > 0){
+        Particles->setBlockParticlesSpawn(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_spawning" && Values.size() > 0){
+        Particles->setCanParticlesSpawn(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "allow_spawning"){
+        Particles->allowSpawning();
+    }
+    else if(attribute == "set_spawn_rate" && Values.size() > 1){
+        Particles->setParticlesPerSpawn(Values[0].getIntUnsafe(), Values[1].getIntUnsafe());
+    }
+    else if(attribute == "set_spawn_cap" && Values.size() > 0){
+        Particles->setMaxParticlesCount(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_max_time_to_spawn" && Values.size() > 0){
+        Particles->setMaxTimeToSpawn(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "bind_key" && Values.size() > 0){
+        Particles->setSpawnKeyBind(Values[0].getStringUnsafe()[0]);
+    }
+    else if(attribute == "bind_key_by_int" && Values.size() > 0){
+        Particles->setSpawnKeyBindShort(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "spawn_on_key_release" && Values.size() > 0){
+        Particles->setSpawnOnKeyRelease(Values[0].getBoolUnsafe());
     }
     else{
         bool temp = false;
         if(Values.size() > 0){
             temp = Values[0].getBoolUnsafe();
         }
-        Particles->control(attribute, temp);
+        Particles->control(attribute, temp, Values.size());
     }
 }
 void EveModule::controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
@@ -597,7 +699,7 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
         Variable->addDouble(Values[dice].getDoubleUnsafe());
     }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": attribute \'" << attribute << "\' does not exist for this module\n";
+        std::cout << "Error: In: " << __FUNCTION__ << ": function " << attribute << "<" << Values.size() << "> does not exist.\n";
     }
 }
 void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
@@ -612,7 +714,7 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
         if(Values.size() > 0){
             temp = Values[0].getBoolUnsafe();
         }
-        Scrollbar->control(attribute, temp);
+        Scrollbar->control(attribute, temp, Values.size());
     }
 }
 

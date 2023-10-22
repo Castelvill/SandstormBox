@@ -4,6 +4,7 @@
 #define ALLEGRO_UNSTABLE
 #include <algorithm>
 #include <iterator>
+#include <filesystem>
 #include "vectors.h"
 
 using std::string;

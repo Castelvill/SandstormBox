@@ -181,6 +181,7 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
         }
     }
     if(!bitmapExists){
+        std::cout << "In connectBitmap: "<< "Bitmap \'" << bitmapID << "\' does not exist.\n";
         return;
     }
 
