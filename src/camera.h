@@ -30,6 +30,8 @@ public:
     bool isUsingCursorPositionToMove;
     bool allowsDrawingBorders;
 
+    vec2d grabbingAreaPos, grabbingAreaSize;
+
     float tint[4];
 
     vector <string> visibleLayersIDs;
@@ -86,6 +88,8 @@ public:
     void activatePin();
     void deactivatePin();
     void togglePin();
+    void setGrabbingAreaPos(vec2d newValue);
+    void setGrabbingAreaSize(vec2d newValue);
 };
 
 

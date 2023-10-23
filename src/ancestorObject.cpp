@@ -907,7 +907,6 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
         return false;
     }
     while(words[cursor] != "]"){
-        negate = false;
         if(words[cursor] == "-" && type != 's'){
             negate = true;
         }
@@ -922,11 +921,13 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
                 Literals.push_back(VariableModule::newBool(stoi(words[cursor])));
             }
             if(negate){
+                negate = false;
                 Literals.back().toggleBool();
             }
         }
         else if(type == 'i'){
             if(negate){
+                negate = false;
                 Literals.push_back(VariableModule::newInt(-stoi(words[cursor])));
             }
             else{
@@ -935,6 +936,7 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
         }
         else if(type == 'd'){
             if(negate){
+                negate = false;
                 Literals.push_back(VariableModule::newDouble(-stod(words[cursor])));
             }
             else{

@@ -89,6 +89,7 @@ EngineLoop::EngineLoop(std::string title){
     ignoreDistantObjects = false;
     drawOnlyVisibleObjects = false;
     wasMousePressedInSelectedObject = false;
+    wasMousePressedInSelectedCamera = 0;
     timeToInterruptMovement = 1;
     timeToInterruptParticles = 1;
     totalNumberOfBitmapLayers = 3;
@@ -264,6 +265,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         switch(event.type){
             case ALLEGRO_EVENT_TIMER:
                 //Keyboard input is gathered here
+                changeCursor();
                 releasedKeys.clear();
                 releasedKeys = getReleasedKeys(key, pressedKeys);
                 pressedKeys.clear();
@@ -326,6 +328,8 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 selectCamera(Cameras, false);
 
                 selectObject(Layers, BitmapContainer, FontContainer);
+
+                detectStartPosOfDraggingCamera();
 
                 detectStartPosOfDraggingObjects();
 
@@ -3997,6 +4001,282 @@ bool findObjectForFunction(AncestorObject *& ModuleObject, vector<LayerClass> &L
     }
     return true;
 }
+void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext, vector<Camera2D> &Cameras){
+    for(Camera2D * Camera : CamerasFromContext){
+        if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
+            Camera->setID(Variables[0].getStringUnsafe(), camerasIDs);
+        }
+        else if(Operation.Location.attribute == "set_active" && Variables.size() > 0){
+            Camera->setIsActive(Variables[0].getBoolUnsafe());
+        }
+        else if(Operation.Location.attribute == "activate"){
+            Camera->activate();
+        }
+        else if(Operation.Location.attribute == "deactivate"){
+            Camera->deactivate();
+        }
+        else if(Operation.Location.attribute == "toggle"){
+            Camera->toggleIsActive();
+        }
+        else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
+            Camera->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+            updateTreeOfCamerasFromSelectedRoot(Cameras, Camera);
+            for(Camera2D & Pin : Cameras){
+                if(Pin.getID() == Camera->pinnedCameraID){
+                    updateTreeOfCamerasFromSelectedRoot(Cameras, &Pin);
+                    break;
+                }
+            }
+        }
+        else if(Operation.Location.attribute == "set_relative_position" && Variables.size() > 1){
+            Camera->setRelativePos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+            updateTreeOfCamerasFromSelectedRoot(Cameras, Camera);
+            for(Camera2D & Pin : Cameras){
+                if(Pin.getID() == Camera->pinnedCameraID){
+                    updateTreeOfCamerasFromSelectedRoot(Cameras, &Pin);
+                    break;
+                }
+            }
+        }
+        else if(Operation.Location.attribute == "resize" && Variables.size() > 1){
+            Camera->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+        }
+        else if(Operation.Location.attribute == "set_zoom" && Variables.size() > 0){
+            Camera->zoom = Variables[0].getDoubleUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_zoom_increase" && Variables.size() > 0){
+            Camera->zoomIncrease = Variables[0].getDoubleUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_min_zoom" && Variables.size() > 0){
+            Camera->minZoom = Variables[0].getDoubleUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_max_zoom" && Variables.size() > 0){
+            Camera->maxZoom = Variables[0].getDoubleUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_speed" && Variables.size() > 0){
+            Camera->setSpeed(Variables[0].getDoubleUnsafe());
+        }
+        else if(Operation.Location.attribute == "bind_keys" && Variables.size() > 6){
+            Camera->setKeyBinds(Variables[0].getIntUnsafe(), Variables[1].getIntUnsafe(), Variables[2].getIntUnsafe(),
+                Variables[3].getIntUnsafe(), Variables[4].getIntUnsafe(), Variables[5].getIntUnsafe(), Variables[6].getIntUnsafe());
+        }
+        else if(Operation.Location.attribute == "set_key_zoom_in" && Variables.size() > 0){
+            Camera->zoomInKey = Variables[0].getIntUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_key_zoom_out" && Variables.size() > 0){
+            Camera->zoomOutKey = Variables[0].getIntUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_key_zoom_reset" && Variables.size() > 0){
+            Camera->zoomResetKey = Variables[0].getIntUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_key_up" && Variables.size() > 0){
+            Camera->upKey = Variables[0].getIntUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_key_right" && Variables.size() > 0){
+            Camera->rightKey = Variables[0].getIntUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_key_down" && Variables.size() > 0){
+            Camera->downKey = Variables[0].getIntUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_key_left" && Variables.size() > 0){
+            Camera->leftKey = Variables[0].getIntUnsafe();
+        }
+        else if(Operation.Location.attribute == "pin_to_camera" && Variables.size() > 0){
+            Camera->pinnedCameraID = Variables[0].getStringUnsafe();
+        }
+        else if(Operation.Location.attribute == "follow_layer" && Variables.size() > 0){
+            Camera->followedLayerID = Variables[0].getStringUnsafe();
+        }
+        else if(Operation.Location.attribute == "follow_object" && Variables.size() > 0){
+            Camera->followedObjectID = Variables[0].getStringUnsafe();
+        }
+        else if(Operation.Location.attribute == "follow_image" && Variables.size() > 0){
+            Camera->followedImageID = Variables[0].getStringUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_is_pinned_to_camera" && Variables.size() > 0){
+            Camera->isPinnedToCamera = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_is_forcefully_pinned" && Variables.size() > 0){
+            Camera->setIsForcefullyPinned(Variables[0].getBoolUnsafe());
+        }
+        else if(Operation.Location.attribute == "activate_pin"){
+            Camera->activatePin();
+        }
+        else if(Operation.Location.attribute == "deactivate_pin"){
+            Camera->deactivatePin();
+        }
+        else if(Operation.Location.attribute == "toggle_pin"){
+            Camera->togglePin();
+        }
+        else if(Operation.Location.attribute == "set_is_following_object" && Variables.size() > 0){
+            Camera->isFollowingObject = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_is_using_keyboard" && Variables.size() > 0){
+            Camera->isUsingKeyboardToMove = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_is_using_mouse" && Variables.size() > 0){
+            Camera->isUsingCursorPositionToMove = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "add_visible_layer" && Variables.size() > 0){
+            Camera->addVisibleLayer(Variables[0].getStringUnsafe());
+        }
+        else if(Operation.Location.attribute == "add_accessible_layer" && Variables.size() > 0){
+            Camera->addAccessibleLayer(Variables[0].getStringUnsafe());
+        }
+        else if(Operation.Location.attribute == "remove_visible_layer" && Variables.size() > 0){
+            Camera->removeVisibleLayer(Variables[0].getStringUnsafe());
+        }
+        else if(Operation.Location.attribute == "remove_accessible_layer" && Variables.size() > 0){
+            Camera->removeAccessibleLayer(Variables[0].getStringUnsafe());
+        }
+        else if(Operation.Location.attribute == "clear_visible_layers"){
+            Camera->clearVisibleLayers();
+        }
+        else if(Operation.Location.attribute == "clear_accessible_layers"){
+            Camera->clearAccessibleLayers();
+        }
+        else if(Operation.Location.attribute == "set_tint" && Variables.size() > 3){
+            Camera->setTint(Variables[0].getIntUnsafe(), Variables[1].getIntUnsafe(), Variables[2].getIntUnsafe(), Variables[3].getIntUnsafe());
+        }
+        else if(Operation.Location.attribute == "set_drawing_borders" && Variables.size() > 0){
+            Camera->allowsDrawingBorders = Variables[0].getIntUnsafe();
+        }
+        else if(Operation.Location.attribute == "minimize"){
+            unsigned cameraIndex = 0;
+            for(;cameraIndex < Cameras.size(); cameraIndex++){
+                if(Cameras[cameraIndex].getID() == Camera->getID()){
+                    break;
+                }
+            }
+            for(unsigned i = 0; i < camerasOrder.size(); i++){
+                if(camerasOrder[i] == cameraIndex){
+                    auto it = camerasOrder.rbegin() + camerasOrder.size() - 1 - i;
+                    std::rotate(it, it + 1, camerasOrder.rend());
+                    break;
+                }
+            }
+        }
+        else if(Operation.Location.attribute == "bring_forward"){
+            unsigned cameraIndex = 0;
+            for(;cameraIndex < Cameras.size(); cameraIndex++){
+                if(Cameras[cameraIndex].getID() == Camera->getID()){
+                    break;
+                }
+            }
+            for(unsigned xd = 0; xd < camerasOrder.size(); xd++){
+                if(camerasOrder[xd] == cameraIndex){
+                    bringCameraForward(xd, Camera, Cameras);
+                    break;
+                }
+            }
+        }
+        else if(Operation.Location.attribute == "set_grabbing_area_position" && Variables.size() > 1){
+            Camera->setGrabbingAreaPos(vec2d(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe()));
+        }
+        else if(Operation.Location.attribute == "set_grabbing_area_size" && Variables.size() > 1){
+            Camera->setGrabbingAreaSize(vec2d(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe()));
+        }
+        else{
+            std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
+        }
+    }
+
+    if(Operation.Location.attribute == "pin_to_camera"){
+        updateAllForestOfCameras(Cameras);
+    }
+}
+void EngineLoop::executeFunctionForLayers(OperaClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers){
+    for(LayerClass * Layer : Layers){
+        if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
+            Layer->setID(Variables[0].getStringUnsafe(), layersIDs);
+        }
+        else if(Operation.Location.attribute == "set_is_active" && Variables.size() > 0){
+            Layer->setIsActive(Variables[0].getBoolUnsafe());
+        }
+        else if(Operation.Location.attribute == "activate"){
+            Layer->setIsActive(true);
+        }
+        else if(Operation.Location.attribute == "deactivate"){
+            Layer->setIsActive(false);
+        }
+        else if(Operation.Location.attribute == "toggle"){
+            Layer->setIsActive(!Layer->getIsActive());
+        }
+        else if(Operation.Location.attribute == "add_group" && Variables.size() > 0){
+            Layer->addGroup(Variables[0].getStringUnsafe());
+        }
+        else if(Operation.Location.attribute == "remove_group" && Variables.size() > 0){
+            Layer->removeGroup(Variables[0].getStringUnsafe());
+        }
+        else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
+            Layer->pos.x = Variables[0].getDoubleUnsafe();
+            Layer->pos.y = Variables[1].getDoubleUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
+            Layer->size.x = Variables[0].getDoubleUnsafe();
+            Layer->size.y = Variables[1].getDoubleUnsafe();
+        }
+        else{
+            std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
+        }
+    }
+}
+void EngineLoop::executeFunctionForObjects(OperaClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects, vector<LayerClass> & Layers){
+    if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
+        LayerClass * ObjectsLayer = nullptr;
+        for(AncestorObject * Object : Objects){
+            if(ObjectsLayer == nullptr || ObjectsLayer->getID() != Object->getLayerID()){
+                for(LayerClass & Layer : Layers){
+                    if(Layer.getID() == Object->getLayerID()){
+                        ObjectsLayer = &Layer;
+                        break;
+                    }    
+                }
+            }
+            if(ObjectsLayer == nullptr){
+                continue;
+            }
+            Object->setID(Variables[0].getStringUnsafe(), ObjectsLayer->objectsIDs);
+        }
+        return;
+    }
+    for(AncestorObject * Object : Objects){
+        if(Operation.Location.attribute == "set_active" && Variables.size() > 0){
+            Object->setIsActive(Variables[0].getBoolUnsafe());
+        }
+        else if(Operation.Location.attribute == "activate"){
+            Object->activate();
+        }
+        else if(Operation.Location.attribute == "deactivate"){
+            Object->deactivate();
+        }
+        else if(Operation.Location.attribute == "toggle"){
+            Object->toggleIsActive();
+        }
+        else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
+            Object->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+        }
+        else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
+            Object->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+        }
+        else if(Operation.Location.attribute == "add_group" && Variables.size() > 0){
+            Object->addGroup(Variables[0].getStringUnsafe());
+        }
+        else if(Operation.Location.attribute == "remove_group" && Variables.size() > 0){
+            Object->removeGroup(Variables[0].getStringUnsafe());
+        }
+        else if(Operation.Location.attribute == "remove_group"){
+            Object->clearGroups();
+        }
+        else{
+            bool temp = false;
+            if(Variables.size() > 0){
+                temp = Variables[0].getBoolUnsafe();
+            }
+            Object->control(Operation.Location.attribute, temp, Variables.size());
+        }
+    }
+}
 void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers,
     vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
 ){
@@ -4059,261 +4339,13 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
 
     
     if(Context->type == "camera"){
-        for(Camera2D * Camera : Context->Cameras){
-            if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
-                Camera->setID(Variables[0].getStringUnsafe(), camerasIDs);
-            }
-            else if(Operation.Location.attribute == "set_active" && Variables.size() > 0){
-                Camera->setIsActive(Variables[0].getBoolUnsafe());
-            }
-            else if(Operation.Location.attribute == "activate"){
-                Camera->activate();
-            }
-            else if(Operation.Location.attribute == "deactivate"){
-                Camera->deactivate();
-            }
-            else if(Operation.Location.attribute == "toggle"){
-                Camera->toggleIsActive();
-            }
-            else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
-                Camera->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
-                updateTreeOfCamerasFromSelectedRoot(Cameras, Camera);
-                for(Camera2D & Pin : Cameras){
-                    if(Pin.getID() == Camera->pinnedCameraID){
-                        updateTreeOfCamerasFromSelectedRoot(Cameras, &Pin);
-                        break;
-                    }
-                }
-            }
-            else if(Operation.Location.attribute == "set_relative_position" && Variables.size() > 1){
-                Camera->setRelativePos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
-                updateTreeOfCamerasFromSelectedRoot(Cameras, Camera);
-                for(Camera2D & Pin : Cameras){
-                    if(Pin.getID() == Camera->pinnedCameraID){
-                        updateTreeOfCamerasFromSelectedRoot(Cameras, &Pin);
-                        break;
-                    }
-                }
-            }
-            else if(Operation.Location.attribute == "resize" && Variables.size() > 1){
-                Camera->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
-            }
-            else if(Operation.Location.attribute == "set_zoom" && Variables.size() > 0){
-                Camera->zoom = Variables[0].getDoubleUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_zoom_increase" && Variables.size() > 0){
-                Camera->zoomIncrease = Variables[0].getDoubleUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_min_zoom" && Variables.size() > 0){
-                Camera->minZoom = Variables[0].getDoubleUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_max_zoom" && Variables.size() > 0){
-                Camera->maxZoom = Variables[0].getDoubleUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_speed" && Variables.size() > 0){
-                Camera->setSpeed(Variables[0].getDoubleUnsafe());
-            }
-            else if(Operation.Location.attribute == "bind_keys" && Variables.size() > 6){
-                Camera->setKeyBinds(Variables[0].getIntUnsafe(), Variables[1].getIntUnsafe(), Variables[2].getIntUnsafe(),
-                    Variables[3].getIntUnsafe(), Variables[4].getIntUnsafe(), Variables[5].getIntUnsafe(), Variables[6].getIntUnsafe());
-            }
-            else if(Operation.Location.attribute == "set_key_zoom_in" && Variables.size() > 0){
-                Camera->zoomInKey = Variables[0].getIntUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_key_zoom_out" && Variables.size() > 0){
-                Camera->zoomOutKey = Variables[0].getIntUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_key_zoom_reset" && Variables.size() > 0){
-                Camera->zoomResetKey = Variables[0].getIntUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_key_up" && Variables.size() > 0){
-                Camera->upKey = Variables[0].getIntUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_key_right" && Variables.size() > 0){
-                Camera->rightKey = Variables[0].getIntUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_key_down" && Variables.size() > 0){
-                Camera->downKey = Variables[0].getIntUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_key_left" && Variables.size() > 0){
-                Camera->leftKey = Variables[0].getIntUnsafe();
-            }
-            else if(Operation.Location.attribute == "pin_to_camera" && Variables.size() > 0){
-                Camera->pinnedCameraID = Variables[0].getStringUnsafe();
-            }
-            else if(Operation.Location.attribute == "follow_layer" && Variables.size() > 0){
-                Camera->followedLayerID = Variables[0].getStringUnsafe();
-            }
-            else if(Operation.Location.attribute == "follow_object" && Variables.size() > 0){
-                Camera->followedObjectID = Variables[0].getStringUnsafe();
-            }
-            else if(Operation.Location.attribute == "follow_image" && Variables.size() > 0){
-                Camera->followedImageID = Variables[0].getStringUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_is_pinned_to_camera" && Variables.size() > 0){
-                Camera->isPinnedToCamera = Variables[0].getBoolUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_is_forcefully_pinned" && Variables.size() > 0){
-                Camera->setIsForcefullyPinned(Variables[0].getBoolUnsafe());
-            }
-            else if(Operation.Location.attribute == "activate_pin"){
-                Camera->activatePin();
-            }
-            else if(Operation.Location.attribute == "deactivate_pin"){
-                Camera->deactivatePin();
-            }
-            else if(Operation.Location.attribute == "toggle_pin"){
-                Camera->togglePin();
-            }
-            else if(Operation.Location.attribute == "set_is_following_object" && Variables.size() > 0){
-                Camera->isFollowingObject = Variables[0].getBoolUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_is_using_keyboard" && Variables.size() > 0){
-                Camera->isUsingKeyboardToMove = Variables[0].getBoolUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_is_using_mouse" && Variables.size() > 0){
-                Camera->isUsingCursorPositionToMove = Variables[0].getBoolUnsafe();
-            }
-            else if(Operation.Location.attribute == "add_visible_layer" && Variables.size() > 0){
-                Camera->addVisibleLayer(Variables[0].getStringUnsafe());
-            }
-            else if(Operation.Location.attribute == "add_accessible_layer" && Variables.size() > 0){
-                Camera->addAccessibleLayer(Variables[0].getStringUnsafe());
-            }
-            else if(Operation.Location.attribute == "remove_visible_layer" && Variables.size() > 0){
-                Camera->removeVisibleLayer(Variables[0].getStringUnsafe());
-            }
-            else if(Operation.Location.attribute == "remove_accessible_layer" && Variables.size() > 0){
-                Camera->removeAccessibleLayer(Variables[0].getStringUnsafe());
-            }
-            else if(Operation.Location.attribute == "clear_visible_layers"){
-                Camera->clearVisibleLayers();
-            }
-            else if(Operation.Location.attribute == "clear_accessible_layers"){
-                Camera->clearAccessibleLayers();
-            }
-            else if(Operation.Location.attribute == "set_tint" && Variables.size() > 3){
-                Camera->setTint(Variables[0].getIntUnsafe(), Variables[1].getIntUnsafe(), Variables[2].getIntUnsafe(), Variables[3].getIntUnsafe());
-            }
-            else if(Operation.Location.attribute == "set_drawing_borders" && Variables.size() > 0){
-                Camera->allowsDrawingBorders = Variables[0].getIntUnsafe();
-            }
-            else if(Operation.Location.attribute == "minimize"){
-                int cameraIndex = 0;
-                for(;cameraIndex < Cameras.size(); cameraIndex++){
-                    if(Cameras[cameraIndex].getID() == Camera->getID()){
-                        break;
-                    }
-                }
-                for(unsigned xd = 0; xd < camerasOrder.size(); xd++){
-                    if(camerasOrder[xd] == cameraIndex){
-                        auto it = camerasOrder.rbegin() + camerasOrder.size() - 1 - xd;
-                        std::rotate(it, it + 1, camerasOrder.rend());
-                        break;
-                    }
-                }
-                
-            }
-            else{
-                std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
-            }
-        }
-
-        if(Operation.Location.attribute == "pin_to_camera"){
-            updateAllForestOfCameras(Cameras);
-        }
+        executeFunctionForCameras(Operation, Variables, Context->Cameras, Cameras);
     }
     else if(Context->type == "layer"){
-        for(LayerClass * Layer : Context->Layers){
-            if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
-                Layer->setID(Variables[0].getStringUnsafe(), layersIDs);
-            }
-            else if(Operation.Location.attribute == "set_is_active" && Variables.size() > 0){
-                Layer->setIsActive(Variables[0].getBoolUnsafe());
-            }
-            else if(Operation.Location.attribute == "activate"){
-                Layer->setIsActive(true);
-            }
-            else if(Operation.Location.attribute == "deactivate"){
-                Layer->setIsActive(false);
-            }
-            else if(Operation.Location.attribute == "toggle"){
-                Layer->setIsActive(!Layer->getIsActive());
-            }
-            else if(Operation.Location.attribute == "add_group" && Variables.size() > 0){
-                Layer->addGroup(Variables[0].getStringUnsafe());
-            }
-            else if(Operation.Location.attribute == "remove_group" && Variables.size() > 0){
-                Layer->removeGroup(Variables[0].getStringUnsafe());
-            }
-            else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
-                Layer->pos.x = Variables[0].getDoubleUnsafe();
-                Layer->pos.y = Variables[1].getDoubleUnsafe();
-            }
-            else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
-                Layer->size.x = Variables[0].getDoubleUnsafe();
-                Layer->size.y = Variables[1].getDoubleUnsafe();
-            }
-            else{
-                std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
-            }
-        }
+        executeFunctionForLayers(Operation, Variables, Context->Layers);
     }
     else if(Context->type == "object"){
-        if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
-            LayerClass * ObjectsLayer = nullptr;
-            for(AncestorObject * Object : Context->Objects){
-                if(ObjectsLayer == nullptr || ObjectsLayer->getID() != Object->getLayerID()){
-                    for(LayerClass & Layer : Layers){
-                        if(Layer.getID() == Object->getLayerID()){
-                            ObjectsLayer = &Layer;
-                            break;
-                        }    
-                    }
-                }
-                if(ObjectsLayer == nullptr){
-                    continue;
-                }
-                Object->setID(Variables[0].getStringUnsafe(), ObjectsLayer->objectsIDs);
-            }
-            return;
-        }
-        for(AncestorObject * Object : Context->Objects){
-            if(Operation.Location.attribute == "set_active" && Variables.size() > 0){
-                Object->setIsActive(Variables[0].getBoolUnsafe());
-            }
-            else if(Operation.Location.attribute == "activate"){
-                Object->activate();
-            }
-            else if(Operation.Location.attribute == "deactivate"){
-                Object->deactivate();
-            }
-            else if(Operation.Location.attribute == "toggle"){
-                Object->toggleIsActive();
-            }
-            else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
-                Object->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
-            }
-            else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
-                Object->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
-            }
-            else if(Operation.Location.attribute == "add_group" && Variables.size() > 0){
-                Object->addGroup(Variables[0].getStringUnsafe());
-            }
-            else if(Operation.Location.attribute == "remove_group" && Variables.size() > 0){
-                Object->removeGroup(Variables[0].getStringUnsafe());
-            }
-            else if(Operation.Location.attribute == "remove_group"){
-                Object->clearGroups();
-            }
-            else{
-                bool temp = false;
-                if(Variables.size() > 0){
-                    temp = Variables[0].getBoolUnsafe();
-                }
-                Object->control(Operation.Location.attribute, temp, Variables.size());
-            }
-        }
+        executeFunctionForObjects(Operation, Variables, Context->Objects, Layers);
     }
     else if(Context->type == "text"){
         if(Operation.Location.attribute == "set_id"){
@@ -5831,20 +5863,54 @@ void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
     }
 }
 void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
-    if(SelectedCamera != nullptr && SelectedCamera->getIsActive()
-        && SelectedCamera->isUsingCursorPositionToMove &&
-        isKeyPressed(ALLEGRO_KEY_LSHIFT) && Mouse.isPressed(0)
-    ){
-        SelectedCamera->relativePos = Mouse.getPos();
-        SelectedCamera->relativePos.translate(-50.0, -50.0);
-        SelectedCamera->pos = SelectedCamera->relativePos;
-        for(Camera2D & Camera : Cameras){
-            if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
-                SelectedCamera->relativePos -= Camera.pos;
-                break;
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+        return;
+    }
+    if(Mouse.isPressed(0) && wasMousePressedInSelectedCamera != 0){
+        if(wasMousePressedInSelectedCamera == CAMERA_N){
+            
+        }
+        else if(wasMousePressedInSelectedCamera == CAMERA_NE){
+            
+        }
+        else if(wasMousePressedInSelectedCamera == CAMERA_E){
+            SelectedCamera->setSize(vec2d(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y));
+            if(SelectedCamera->size.x < 50){
+                SelectedCamera->setSize(vec2d(50, SelectedCamera->size.y));
             }
         }
-        updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
+        else if(wasMousePressedInSelectedCamera == CAMERA_SE){
+            
+        }
+        else if(wasMousePressedInSelectedCamera == CAMERA_S){
+            SelectedCamera->setSize(vec2d(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y));
+            if(SelectedCamera->size.y < 50){
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, 50));
+            }
+        }
+        else if(wasMousePressedInSelectedCamera == CAMERA_SW){
+            
+        }
+        else if(wasMousePressedInSelectedCamera == CAMERA_W){
+            
+        }
+        else if(wasMousePressedInSelectedCamera == CAMERA_NW){
+            
+        }
+        else if(wasMousePressedInSelectedCamera == 1 && SelectedCamera->isUsingCursorPositionToMove){
+            SelectedCamera->relativePos = Mouse.getPos() - dragStartingPos;
+            SelectedCamera->pos = SelectedCamera->relativePos;
+            for(Camera2D & Camera : Cameras){
+                if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
+                    SelectedCamera->relativePos -= Camera.pos;
+                    break;
+                }
+            }
+            updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
+        }
+        else{
+            al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+        }
     }
 }
 bool isALeaf(string leafID, string rootID, const vector <Camera2D> & Cameras){
@@ -5866,7 +5932,56 @@ bool isALeaf(string leafID, string rootID, const vector <Camera2D> & Cameras){
     }
     return isALeaf(Leaf->pinnedCameraID, rootID, Cameras);
 }
+void EngineLoop::bringCameraForward(unsigned index, Camera2D * ChosenCamera, vector <Camera2D> & Cameras){
+    auto it = camerasOrder.begin() + index;
+    std::rotate(it, it + 1, camerasOrder.end());
+
+    if(index == camerasOrder.size() - 1){
+        return;
+    }
+
+    unsigned treshold = index;
+
+    index = camerasOrder.size() - 1;
+    
+    for(unsigned j = 0; j < index;){
+        if(camerasOrder[j] >= Cameras.size()){
+            std::cout << "Error: Index of camera is out of scope!\n";
+            j++;
+            continue;
+        }
+        if(j >= treshold && isALeaf(Cameras[camerasOrder[j]].getID(), ChosenCamera->getID(), Cameras)){
+            index--;
+            auto it = camerasOrder.begin() + j;
+            std::rotate(it, it + 1, camerasOrder.end());
+            j = 0;
+            continue;
+        }
+        j++;
+    }
+
+    if(!ChosenCamera->isForcefullyPinned){
+        return;
+    }
+
+    for(int j = camerasOrder.size() - 1; j >= 0; j--){
+        if(!Cameras[camerasOrder[j]].isForcefullyPinned){
+            continue;
+        }
+        for(int k = j - 1; k >= 0; k--){
+            if(Cameras[camerasOrder[j]].pinnedCameraID == Cameras[camerasOrder[k]].getID()){
+                for(int l = k; l < j - 1; l++){
+                    std::swap(camerasOrder[l], camerasOrder[l + 1]);
+                }
+                break;
+            }
+        }
+    }
+}
 void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
+    if(Cameras.size() == 0){
+        return;
+    }
     if(isKeyReleased(ALLEGRO_KEY_TAB) && fromAltTab){
         if(camerasOrder[0] >= Cameras.size()){
             std::cout << "Error: Index of camera is out of scope!\n";
@@ -5891,9 +6006,6 @@ void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
                 j = -1;
             }
         }
-
-        
-
         return;
     }
 
@@ -5903,7 +6015,7 @@ void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
 
     Camera2D * Camera = nullptr;
 
-    for(int i = camerasOrder.size() - 1; i >= 0 ; i--){
+    for(unsigned i = camerasOrder.size() - 1; i >= 0 ; i--){
         if(camerasOrder[i] >= Cameras.size()){
             std::cout << "Error: Index of camera is out of scope!\n";
             continue;
@@ -5916,45 +6028,7 @@ void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
             SelectedCamera = Camera;
             Mouse.updateZoomPos(*SelectedCamera);
 
-            auto it = camerasOrder.begin() + i;
-            std::rotate(it, it + 1, camerasOrder.end());
-
-            if(i == camerasOrder.size() - 1){
-                return;
-            }
-
-            i = camerasOrder.size() - 1;
-            
-            for(int j = 0; j < i; j++){
-                if(camerasOrder[j] >= Cameras.size()){
-                    std::cout << "Error: Index of camera is out of scope!\n";
-                    continue;
-                }
-                if(isALeaf(Cameras[camerasOrder[j]].getID(), Camera->getID(), Cameras)){
-                    i--;
-                    auto it = camerasOrder.begin() + j;
-                    std::rotate(it, it + 1, camerasOrder.end());
-                    j = -1;
-                }
-            }
-
-            if(!SelectedCamera->isForcefullyPinned){
-                return;
-            }
-
-            for(int j = camerasOrder.size() - 1; j >= 0; j--){
-                if(!Cameras[camerasOrder[j]].isForcefullyPinned){
-                    continue;
-                }
-                for(int k = j - 1; k >= 0; k--){
-                    if(Cameras[camerasOrder[j]].pinnedCameraID == Cameras[camerasOrder[k]].getID()){
-                        for(int xd = k; xd < j - 1; xd++){
-                            std::swap(camerasOrder[xd], camerasOrder[xd + 1]);
-                        }
-                        break;
-                    }
-                }
-            }
+            bringCameraForward(i, Camera, Cameras);
 
             return;
         }
@@ -5987,8 +6061,8 @@ bool EngineLoop::isKeyReleased(short key){
 void EngineLoop::detectStartPosOfDraggingObjects(){
     wasMousePressedInSelectedObject = false;
 
-    if(
-        SelectedCamera != nullptr && SelectedCamera->getIsActive()
+    if(wasMousePressedInSelectedCamera == 0
+        && SelectedCamera != nullptr && SelectedCamera->getIsActive()
         && SelectedLayer != nullptr && SelectedObject != nullptr
         && Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true)
         && SelectedCamera->isLayerVisible(SelectedLayer->getID())
@@ -6006,6 +6080,115 @@ void EngineLoop::detectStartPosOfDraggingObjects(){
                 dragStartingPos.set(Mouse.getZoomPos()-SelectedObject->getPos(false)-SelectedCamera->visionShift);
             }
         }
+    }
+}
+void EngineLoop::changeCursor(){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || wasMousePressedInSelectedCamera != 0){
+        return;
+    }
+    al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+    if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_N);
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NE);
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_E);
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SE);
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_S);
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SW);
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_W);
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NW);
+    }
+}
+void EngineLoop::detectStartPosOfDraggingCamera(){
+    wasMousePressedInSelectedCamera = 0;
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+        return;
+    }
+    
+    if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_N);
+        if(Mouse.isPressed(0)){
+            wasMousePressedInSelectedCamera = CAMERA_N;
+            wasMousePressedInSelectedObject = false;
+            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
+        }
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NE);
+        if(Mouse.isPressed(0)){
+            wasMousePressedInSelectedCamera = CAMERA_NE;
+            wasMousePressedInSelectedObject = false;
+            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
+        }
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_E);
+        if(Mouse.isPressed(0)){
+            wasMousePressedInSelectedCamera = CAMERA_E;
+            wasMousePressedInSelectedObject = false;
+            dragStartingPos.set(Mouse.getPos().x-SelectedCamera->size.x, Mouse.getPos().y);
+        }
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SE);
+        if(Mouse.isPressed(0)){
+            wasMousePressedInSelectedCamera = CAMERA_SE;
+            wasMousePressedInSelectedObject = false;
+            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
+        }
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_S);
+        if(Mouse.isPressed(0)){
+            wasMousePressedInSelectedCamera = CAMERA_S;
+            wasMousePressedInSelectedObject = false;
+            dragStartingPos.set(Mouse.getPos().x, Mouse.getPos().y-SelectedCamera->size.y);
+        }
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SW);
+        if(Mouse.isPressed(0)){
+            wasMousePressedInSelectedCamera = CAMERA_SW;
+            wasMousePressedInSelectedObject = false;
+            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
+        }
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_W);
+        if(Mouse.isPressed(0)){
+            wasMousePressedInSelectedCamera = CAMERA_W;
+            wasMousePressedInSelectedObject = false;
+            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
+        }
+    }
+    else if(Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), false)){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NW);
+        if(Mouse.isPressed(0)){
+            wasMousePressedInSelectedCamera = CAMERA_NW;
+            wasMousePressedInSelectedObject = false;
+            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
+        }
+    }
+    else if(SelectedCamera->isUsingCursorPositionToMove
+        && Mouse.pressedInRectangle(SelectedCamera->pos + SelectedCamera->grabbingAreaPos, SelectedCamera->grabbingAreaSize, 0, false)
+    ){
+        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_MOVE);
+        wasMousePressedInSelectedCamera = 1;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
     }
 }
 void EngineLoop::startScrollbarDragging(vector <LayerClass> & Layers){

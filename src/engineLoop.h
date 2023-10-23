@@ -13,6 +13,15 @@
 #define KEY_SEEN     1
 #define KEY_RELEASED 2
 
+#define CAMERA_N 2
+#define CAMERA_NE 3
+#define CAMERA_E 4
+#define CAMERA_SE 5
+#define CAMERA_S 6
+#define CAMERA_SW 7
+#define CAMERA_W 8
+#define CAMERA_NW 9
+
 void loadFontsToContainer(vector <SingleFont> & FontContainer);
 void freeFontsFromContainer(vector <SingleFont> & FontContainer);
 
@@ -232,6 +241,7 @@ private:
     ALLEGRO_EVENT event;
     unsigned char key[ALLEGRO_KEY_MAX];
     bool wasMousePressedInSelectedObject;
+    short wasMousePressedInSelectedCamera;
     vector <short> pressedKeys;
     vector <short> firstPressedKeys;
     vector <short> releasedKeys;
@@ -343,6 +353,9 @@ public:
     void getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<LayerClass> &Layers, vector<Camera2D> &Cameras);
     void bindFilesToObjects(OperaClass & Operation, vector<PointerContainer> & EventContext);
     void buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext, bool & wasBuildExecuted);
+    void executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext, vector<Camera2D> &Cameras);
+    void executeFunctionForLayers(OperaClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
+    void executeFunctionForObjects(OperaClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects, vector<LayerClass> & Layers);
     void executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers,
         vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
     );
@@ -372,11 +385,14 @@ public:
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
     void updateAllForestOfCameras(vector <Camera2D> & Cameras);
     void updateCamerasPositions(vector <Camera2D> & Cameras);
+    void bringCameraForward(unsigned index, Camera2D * ChosenCamera, vector <Camera2D> & Cameras);
     void selectCamera(vector <Camera2D> & Cameras, bool fromAltTab);
     bool isKeyFirstPressed(short key);
     bool isKeyPressed(short key);
     bool isKeyReleased(short key);
     void detectStartPosOfDraggingObjects();
+    void changeCursor();
+    void detectStartPosOfDraggingCamera();
     void drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer);
     void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Cameras, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
                      vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground);

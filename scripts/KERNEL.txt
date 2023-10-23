@@ -6,7 +6,7 @@ load_bitmap "images/amongus1.png" amongus_1
 load_bitmap "images/amongus2.png" amongus_2
 load_bitmap "images/cobblestone.png" cobblestone
 load_bitmap "images/steve.png" steve
-load_bitmap "images/arch.jpg" i_m_using_arch_by_the_way
+load_bitmap "images/arch.jpg" i_use_arch_btw
 load_bitmap "images/insanity1.png" insanity1
 load_bitmap "images/minion1.png" minion_1
 load_bitmap "images/vaporeon.png" vaporeon
@@ -43,6 +43,11 @@ load_bitmap "gui/minus_h3.png" minus_1
 load_bitmap "gui/thumb_h3.png" thumb_1
 load_bitmap "gui/thumb_track_h3.png" thumb_track_1
 
+env draw_hitboxes 0
+env print_instructions 0
+env print_logical_evaluations 0
+env draw_camera_borders 1
+
 mkdir "projects"
 mkdir "projects/test"
 //rename "projects/test" "projects/kaczki"
@@ -50,7 +55,7 @@ mkdir "projects/test"
 
 index layer [0 0] _ object Arch
 new image c Arch 1 _ _ archImg
-fun archImg connect_bitmap string [i_m_using_arch_by_the_way]
+fun archImg connect_bitmap string [i_use_arch_btw]
 fun archImg attach_to_camera
 value ([window_w]) ww
 value ([window_h]) wh
@@ -82,7 +87,7 @@ fun redAstronaut set_scale double [0.7 0.7]
 new image l L1 Amongus 1 _ _ insanity
 fun insanity set_id string [insanity]
 fun insanity connect_bitmap string [insanity1]
-fun insanity set_position double [100, 300]
+fun insanity set_position double [100 300]
 fun insanity select_layer int [2]
 fun insanity set_scale double [0.1 0.1]
 new variable l L1 Amongus 1 _ _ var
@@ -108,10 +113,6 @@ fun text set_size int [600 500]
 index layer [1 0] _ object Amogus
 bind Amogus literal ["scripts/amogus.txt"]
 build Amogus true
-env draw_hitboxes 0
-env print_instructions 0
-env print_logical_evaluations 0
-env draw_camera_borders 1
 
 new object l L1 1 _ _ ObjPar
 fun ObjPar set_id string [ObjPar]
@@ -202,7 +203,7 @@ fun cam set_drawing_borders int [1]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
 fun cam set_is_using_mouse bool [true]
-fun cam minimize
+//fun cam minimize
 
 
 new camera l 1 _ _ cam
@@ -229,6 +230,8 @@ fun cam set_drawing_borders int [1]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
 fun cam set_is_using_mouse bool [true]
+//fun cam minimize
+//fun cam bring_forward
 
 new camera l 1 _ _ cam
 fun cam set_active bool [true]
@@ -253,7 +256,7 @@ fun cam pin_to_camera string [okienko]
 fun cam activate_pin
 fun cam set_is_forcefully_pinned bool [true]
 fun cam set_relative_position int [100 100]
-fun cam minimize
+//fun cam minimize
 
 new camera l 1 _ _ cam
 fun cam set_position int [300 300]
@@ -276,7 +279,10 @@ fun cam add_accessible_layer string [L2]
 fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders int [1]
 fun cam set_is_using_mouse bool [true]
-fun cam minimize
+//fun cam minimize
+//fun cam bring_forward
+fun cam set_grabbing_area_position int [0 10]
+fun cam set_grabbing_area_size int [350 20]
 
 
 int [20] vam

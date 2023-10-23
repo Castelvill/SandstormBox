@@ -31,6 +31,9 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     isUsingCursorPositionToMove = false;
     allowsDrawingBorders = true;
 
+    grabbingAreaPos.set(0.0, 0.0);
+    grabbingAreaSize.set(50.0, 50.0);
+
     std::fill_n(tint, 4, 1);
 }
 Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
@@ -276,4 +279,10 @@ void Camera2D::deactivatePin(){
 }
 void Camera2D::togglePin(){
     isPinnedToCamera = !isPinnedToCamera;
+}
+void Camera2D::setGrabbingAreaPos(vec2d newValue){
+    grabbingAreaPos = newValue;
+}
+void Camera2D::setGrabbingAreaSize(vec2d newValue){
+    grabbingAreaSize = newValue;
 }
