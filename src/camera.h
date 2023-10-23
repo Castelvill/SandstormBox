@@ -24,6 +24,7 @@ public:
     string followedObjectID;
     string followedImageID;
     bool isPinnedToCamera; //Camera's position on screen will change relatively to pinnedCameraID. 
+    bool isForcefullyPinned; //If true, camera will be always on top of the chosen camera.
     bool isFollowingObject; //Camera's position on screen won't change by following an object.
     bool isUsingKeyboardToMove;
     bool isUsingCursorPositionToMove;
@@ -81,6 +82,7 @@ public:
     bool isLayerAccessible(string findLayer);
     void pinToCamera(string cameraID);
     void setIsPinned(bool isPinned);
+    void setIsForcefullyPinned(bool newValue);
     void activatePin();
     void deactivatePin();
     void togglePin();

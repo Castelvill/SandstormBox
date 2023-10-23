@@ -25,6 +25,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     followedObjectID = "";
     followedImageID = "";
     isPinnedToCamera = false;
+    isForcefullyPinned = false;
     isFollowingObject = false;
     isUsingKeyboardToMove = true;
     isUsingCursorPositionToMove = false;
@@ -264,8 +265,11 @@ void Camera2D::pinToCamera(string cameraID){
 void Camera2D::setIsPinned(bool isPinned){
     isPinnedToCamera = isPinned;
 }
+void Camera2D::setIsForcefullyPinned(bool newValue){
+    isForcefullyPinned = newValue;
+}
 void Camera2D::activatePin(){
-    isPinnedToCamera = true;   
+    isPinnedToCamera = true;
 }
 void Camera2D::deactivatePin(){
     isPinnedToCamera = false;

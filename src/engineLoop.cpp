@@ -4077,9 +4077,23 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             }
             else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
                 Camera->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+                updateTreeOfCamerasFromSelectedRoot(Cameras, Camera);
+                for(Camera2D & Pin : Cameras){
+                    if(Pin.getID() == Camera->pinnedCameraID){
+                        updateTreeOfCamerasFromSelectedRoot(Cameras, &Pin);
+                        break;
+                    }
+                }
             }
             else if(Operation.Location.attribute == "set_relative_position" && Variables.size() > 1){
                 Camera->setRelativePos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+                updateTreeOfCamerasFromSelectedRoot(Cameras, Camera);
+                for(Camera2D & Pin : Cameras){
+                    if(Pin.getID() == Camera->pinnedCameraID){
+                        updateTreeOfCamerasFromSelectedRoot(Cameras, &Pin);
+                        break;
+                    }
+                }
             }
             else if(Operation.Location.attribute == "resize" && Variables.size() > 1){
                 Camera->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
@@ -4139,6 +4153,9 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             else if(Operation.Location.attribute == "set_is_pinned_to_camera" && Variables.size() > 0){
                 Camera->isPinnedToCamera = Variables[0].getBoolUnsafe();
             }
+            else if(Operation.Location.attribute == "set_is_forcefully_pinned" && Variables.size() > 0){
+                Camera->setIsForcefullyPinned(Variables[0].getBoolUnsafe());
+            }
             else if(Operation.Location.attribute == "activate_pin"){
                 Camera->activatePin();
             }
@@ -4154,7 +4171,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             else if(Operation.Location.attribute == "set_is_using_keyboard" && Variables.size() > 0){
                 Camera->isUsingKeyboardToMove = Variables[0].getBoolUnsafe();
             }
-            else if(Operation.Location.attribute == "set_is_using_cursor" && Variables.size() > 0){
+            else if(Operation.Location.attribute == "set_is_using_mouse" && Variables.size() > 0){
                 Camera->isUsingCursorPositionToMove = Variables[0].getBoolUnsafe();
             }
             else if(Operation.Location.attribute == "add_visible_layer" && Variables.size() > 0){
@@ -4180,6 +4197,22 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             }
             else if(Operation.Location.attribute == "set_drawing_borders" && Variables.size() > 0){
                 Camera->allowsDrawingBorders = Variables[0].getIntUnsafe();
+            }
+            else if(Operation.Location.attribute == "minimize"){
+                int cameraIndex = 0;
+                for(;cameraIndex < Cameras.size(); cameraIndex++){
+                    if(Cameras[cameraIndex].getID() == Camera->getID()){
+                        break;
+                    }
+                }
+                for(unsigned xd = 0; xd < camerasOrder.size(); xd++){
+                    if(camerasOrder[xd] == cameraIndex){
+                        auto it = camerasOrder.rbegin() + camerasOrder.size() - 1 - xd;
+                        std::rotate(it, it + 1, camerasOrder.rend());
+                        break;
+                    }
+                }
+                
             }
             else{
                 std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
@@ -5798,7 +5831,10 @@ void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
     }
 }
 void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
-    if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && isKeyPressed(ALLEGRO_KEY_LSHIFT) && Mouse.isPressed(0)){
+    if(SelectedCamera != nullptr && SelectedCamera->getIsActive()
+        && SelectedCamera->isUsingCursorPositionToMove &&
+        isKeyPressed(ALLEGRO_KEY_LSHIFT) && Mouse.isPressed(0)
+    ){
         SelectedCamera->relativePos = Mouse.getPos();
         SelectedCamera->relativePos.translate(-50.0, -50.0);
         SelectedCamera->pos = SelectedCamera->relativePos;
@@ -5839,6 +5875,25 @@ void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
         SelectedCamera = &Cameras[camerasOrder[0]];
         auto it = camerasOrder.begin();
         std::rotate(it, it + 1, camerasOrder.end());
+
+        int i = camerasOrder.size() - 1;
+            
+        for(int j = 0; j < i; j++){
+            if(camerasOrder[j] >= Cameras.size()){
+                std::cout << "Error: Index of camera is out of scope!\n";
+                continue;
+            }
+            if(Cameras[camerasOrder[j]].isForcefullyPinned &&
+                Cameras[camerasOrder[j]].pinnedCameraID == SelectedCamera->getID()){
+                i--;
+                auto it = camerasOrder.begin() + j;
+                std::rotate(it, it + 1, camerasOrder.end());
+                j = -1;
+            }
+        }
+
+        
+
         return;
     }
 
@@ -5880,6 +5935,24 @@ void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
                     auto it = camerasOrder.begin() + j;
                     std::rotate(it, it + 1, camerasOrder.end());
                     j = -1;
+                }
+            }
+
+            if(!SelectedCamera->isForcefullyPinned){
+                return;
+            }
+
+            for(int j = camerasOrder.size() - 1; j >= 0; j--){
+                if(!Cameras[camerasOrder[j]].isForcefullyPinned){
+                    continue;
+                }
+                for(int k = j - 1; k >= 0; k--){
+                    if(Cameras[camerasOrder[j]].pinnedCameraID == Cameras[camerasOrder[k]].getID()){
+                        for(int xd = k; xd < j - 1; xd++){
+                            std::swap(camerasOrder[xd], camerasOrder[xd + 1]);
+                        }
+                        break;
+                    }
                 }
             }
 
