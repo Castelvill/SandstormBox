@@ -27,6 +27,13 @@ bool isCharInGroup(char ID, int count, ...);
 void addUniqueToStringVector(vector <string> & stringVec, string newString);
 void removeFromStringVector(vector <string> & stringVec, std::string selectedString);
 bool isStringInVector(const vector <string> & stringVec, std::string findString);
+template <typename T>
+void removeFromVector(vector <T> & Vec, T selectedValue){
+    auto foundValue = std::find(begin(Vec), end(Vec), selectedValue);
+    if(foundValue != std::end(Vec)){
+        Vec.erase(foundValue);
+    }
+}
 
 string findNewUniqueID(vector <string> IDs, string newID);
 

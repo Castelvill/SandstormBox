@@ -52,13 +52,10 @@ struct EditorWindowArrangement{
     EditorWindowArrangement();
 };
 
-void createObjects0(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window);
-void createObjects(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer, vector <SingleBitmap> & BitmapContainer, ALLEGRO_DISPLAY * window);
 void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector<string> &listOfIDs, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer);
 void prepareEditorWindowGeneral(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
 void removeListsInEditorWindow(AncestorObject * EditorWindow);
 char getActiveEditorWindowCategory(AncestorObject * EditorWindow);
-void activeEditorWindowCategory(AncestorObject * EditorWindow, char lastActiveID);
 
 class Interval{
 private:
@@ -273,6 +270,7 @@ public:
     string EXE_PATH;
     vector <string> layersIDs;
     vector <string> camerasIDs;
+    vector <unsigned> camerasOrder;
 
     EngineLoop(string title);
     void initAllegro();
@@ -374,7 +372,7 @@ public:
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
     void updateAllForestOfCameras(vector <Camera2D> & Cameras);
     void updateCamerasPositions(vector <Camera2D> & Cameras);
-    void focusOnCamera(vector <Camera2D> & Cameras);
+    void selectCamera(vector <Camera2D> & Cameras, bool fromAltTab);
     bool isKeyFirstPressed(short key);
     bool isKeyPressed(short key);
     bool isKeyReleased(short key);

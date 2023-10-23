@@ -85,16 +85,17 @@ void addUniqueToStringVector(vector <string> & stringVec, string newString){
         stringVec.push_back(newString);
     }
 }
-void removeFromStringVector(vector <string> & stringVec, std::string selectedString){
+void removeFromStringVector(vector <string> & stringVec, string selectedString){
     auto foundString = std::find(begin(stringVec), end(stringVec), selectedString);
     if(foundString != std::end(stringVec)){
         stringVec.erase(foundString);
     }
 }
-bool isStringInVector(const vector <string> & stringVec, std::string findString){
+bool isStringInVector(const vector <string> & stringVec, string findString){
     auto foundGroup = std::find(begin(stringVec), end(stringVec), findString);
     return foundGroup != std::end(stringVec);
 }
+
 
 string findNewUniqueID(vector <string> uniqueIDs, string newID){
     if(newID == ""){

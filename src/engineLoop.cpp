@@ -269,6 +269,8 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 pressedKeys.clear();
                 pressedKeys = getPressedKeys(key);
 
+                selectCamera(Cameras, true);
+
                 updateCamerasPositions(Cameras);
                 
                 moveObjects(Layers, Cameras);
@@ -321,7 +323,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                 Mouse.updateButtonsPressed(event);
 
-                focusOnCamera(Cameras);
+                selectCamera(Cameras, false);
 
                 selectObject(Layers, BitmapContainer, FontContainer);
 
@@ -3080,6 +3082,7 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
             }
             Cameras.push_back(Camera2D(ID, camerasIDs));
             NewContext.Cameras.push_back(&Cameras.back());
+            camerasOrder.push_back(camerasOrder.size());
         }
     }
     else if(Operation.Location.source == "layer"){
@@ -5450,10 +5453,12 @@ void deleteModuleInstance(vector<Module> & Container, bool & layersWereModified)
 }
 bool EngineLoop::deleteEntities(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     bool layersWereModified = false;
-    for(auto Camera = Cameras.begin(); Camera != Cameras.end();){
+    unsigned cameraIndex = 0;
+    for(auto Camera = Cameras.begin(); Camera != Cameras.end(); cameraIndex++){
         if(Camera->getIsDeleted()){
             Camera->clear();
             Camera = Cameras.erase(Camera);
+            removeFromVector(camerasOrder, cameraIndex);
         }
         else{
             ++Camera;
@@ -5806,15 +5811,79 @@ void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
         updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
     }
 }
-void EngineLoop::focusOnCamera(vector <Camera2D> & Cameras){
-    for(Camera2D & Camera : Cameras){
-        if(!Camera.getIsActive()){
+bool isALeaf(string leafID, string rootID, const vector <Camera2D> & Cameras){
+    if(leafID == "" || rootID == ""){
+        return false;
+    }
+    const Camera2D * Leaf = nullptr;
+    for(const Camera2D & Camera : Cameras){
+        if(Camera.getID() == leafID){
+            Leaf = &Camera;
+            break;
+        }
+    }
+    if(Leaf == nullptr || Leaf->pinnedCameraID == "" || !Leaf->isPinnedToCamera){
+        return false;
+    }
+    if(Leaf->pinnedCameraID == rootID || Leaf->getID() == rootID){
+        return true;
+    }
+    return isALeaf(Leaf->pinnedCameraID, rootID, Cameras);
+}
+void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
+    if(isKeyReleased(ALLEGRO_KEY_TAB) && fromAltTab){
+        if(camerasOrder[0] >= Cameras.size()){
+            std::cout << "Error: Index of camera is out of scope!\n";
+            return;
+        }
+        SelectedCamera = &Cameras[camerasOrder[0]];
+        auto it = camerasOrder.begin();
+        std::rotate(it, it + 1, camerasOrder.end());
+        return;
+    }
+
+    if(fromAltTab){
+        return;
+    }
+
+    Camera2D * Camera = nullptr;
+
+    for(int i = camerasOrder.size() - 1; i >= 0 ; i--){
+        if(camerasOrder[i] >= Cameras.size()){
+            std::cout << "Error: Index of camera is out of scope!\n";
             continue;
         }
-        if(Mouse.inRectangle(Camera.pos, Camera.size, true)){
-            SelectedCamera = &Camera;
+        Camera = &Cameras[camerasOrder[i]];
+        if(!Camera->getIsActive()){
+            continue;
+        }
+        if(Mouse.inRectangle(Camera->pos, Camera->size, true)){
+            SelectedCamera = Camera;
             Mouse.updateZoomPos(*SelectedCamera);
-            break;
+
+            auto it = camerasOrder.begin() + i;
+            std::rotate(it, it + 1, camerasOrder.end());
+
+            if(i == camerasOrder.size() - 1){
+                return;
+            }
+
+            i = camerasOrder.size() - 1;
+            
+            for(int j = 0; j < i; j++){
+                if(camerasOrder[j] >= Cameras.size()){
+                    std::cout << "Error: Index of camera is out of scope!\n";
+                    continue;
+                }
+                if(isALeaf(Cameras[camerasOrder[j]].getID(), Camera->getID(), Cameras)){
+                    i--;
+                    auto it = camerasOrder.begin() + j;
+                    std::rotate(it, it + 1, camerasOrder.end());
+                    j = -1;
+                }
+            }
+
+            return;
         }
     }
 }
@@ -6209,15 +6278,21 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
     int numberOfDrawnObjects;
     unsigned int i;
     int currentlyDrawnLayer;
+    Camera2D * Camera;
 
-    for(Camera2D & Camera : Cameras){
-        if(!Camera.getIsActive()){
+    for(const unsigned & cameraIndex : camerasOrder){
+        if(cameraIndex >= Cameras.size()){
+            std::cout << "Error: Index of camera is out of scope!\n";
             continue;
         }
-        al_set_target_bitmap(Camera.bitmapBuffer);
+        Camera = &Cameras[cameraIndex];
+        if(!Camera->getIsActive()){
+            continue;
+        }
+        al_set_target_bitmap(Camera->bitmapBuffer);
         al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
         for(LayerClass & Layer : Layers){
-            if(!Layer.getIsActive() || !Camera.isLayerVisible(Layer.getID())){
+            if(!Layer.getIsActive() || !Camera->isLayerVisible(Layer.getID())){
                 continue;
             }
             
@@ -6227,35 +6302,35 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
             for(currentlyDrawnLayer = 0; currentlyDrawnLayer < totalNumberOfBitmapLayers; currentlyDrawnLayer++){
                 for(i = 0; i < Layer.Objects.size(); i++){
                     if(Layer.Objects[i].getIsActive()){
-                        drawModules(Layer.Objects[i], i, Camera, FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false);
+                        drawModules(Layer.Objects[i], i, *Camera, FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false);
                     }
                 }
             }
             for(i = 0; i < foregroundOfObjects.size(); i++){
                 if(Layer.Objects[foregroundOfObjects[i]].getIsActive()){
-                    drawModules(Layer.Objects[foregroundOfObjects[i]], i, Camera, FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true);
+                    drawModules(Layer.Objects[foregroundOfObjects[i]], i, *Camera, FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true);
                 }
             }
             if(SelectedLayer == &Layer){
-                drawSelectionBorder(Camera);
+                drawSelectionBorder(*Camera);
             }
         }
         al_set_target_bitmap(al_get_backbuffer(window));
-        //al_draw_bitmap(Camera.bitmapBuffer, Camera.pos.x, Camera.pos.y, 0);
+        //al_draw_bitmap(Camera->bitmapBuffer, Camera->pos.x, Camera->pos.y, 0);
 
         al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
-        al_draw_tinted_bitmap(Camera.bitmapBuffer, al_map_rgba_f(Camera.tint[0], Camera.tint[1], Camera.tint[2], Camera.tint[3]), Camera.pos.x, Camera.pos.y, 0);
+        al_draw_tinted_bitmap(Camera->bitmapBuffer, al_map_rgba_f(Camera->tint[0], Camera->tint[1], Camera->tint[2], Camera->tint[3]), Camera->pos.x, Camera->pos.y, 0);
         al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 
         foregroundOfObjects.clear();
         //vector<unsigned int>().swap(foregroundOfObjects);
         //foregroundOfObjects.shrink_to_fit();
-        if(drawCameraBorders && Camera.allowsDrawingBorders){
-            if(SelectedCamera != &Camera){
-                al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(0, 155, 145), 6);
+        if(drawCameraBorders && Camera->allowsDrawingBorders){
+            if(SelectedCamera != Camera){
+                al_draw_rectangle(Camera->pos.x, Camera->pos.y, Camera->pos.x + Camera->size.x, Camera->pos.y + Camera->size.y, al_map_rgb(0, 155, 145), 6);
             }
             else{
-                al_draw_rectangle(Camera.pos.x, Camera.pos.y, Camera.pos.x + Camera.size.x, Camera.pos.y + Camera.size.y, al_map_rgb(62, 249, 239), 6);
+                al_draw_rectangle(Camera->pos.x, Camera->pos.y, Camera->pos.x + Camera->size.x, Camera->pos.y + Camera->size.y, al_map_rgb(62, 249, 239), 6);
             }
         }
     }
