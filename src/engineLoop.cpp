@@ -272,7 +272,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
                 selectCamera(Cameras, true);
 
-                changeCursor();
+                
 
                 updateCamerasPositions(Cameras);
                 
@@ -312,6 +312,8 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
                     Mouse.updateZoomPos(*SelectedCamera);
                 }
+
+                changeCursor();
 
                 moveSelectedObject();
                 dragScrollbars(Layers);
