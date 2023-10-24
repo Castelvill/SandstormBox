@@ -132,7 +132,7 @@ new particles c ObjPar 1 _ _ Particles
 fun Particles set_block_spawning bool [true]
 fun Particles spawn_on_key_release bool [true]
 fun Particles set_spawn_rate int [100 100]
-fun Particles set_spawn_cap int [100]
+fun Particles set_spawn_cap int [500]
 fun Particles set_max_time_to_spawn double [0.05]
 
 fun Particles set_basic_speed double [0.1 10.0]
@@ -159,7 +159,6 @@ fun Particles add_image string [insane]
 
 
 new camera l 1 _ _ cam
-//index camera [0] _ camera cam
 fun cam set_id string [Desktop]
 fun cam set_active bool [true]
 fun cam resize c ww c wh//[1360 768][1920 1080]
@@ -167,10 +166,10 @@ fun cam set_zoom double [0.3]
 fun cam set_speed double [20]
 fun cam set_key_zoom_in int [15]
 fun cam set_key_zoom_out int [21]
-fun cam set_zoom_increase double [0.01]
+fun cam set_zoom_increase double [0.02]
 fun cam set_is_following_object bool [false]
-fun cam follow_layer string [L1]
-fun cam follow_object string [par]
+//fun cam follow_layer string [L1]
+//fun cam follow_object string [par]
 fun cam bind_keys int [15 21 13 9 12 11 10]
 fun cam add_visible_layer string [KERNEL]
 fun cam add_visible_layer string [L1]
@@ -178,7 +177,8 @@ fun cam add_accessible_layer string [L1]
 fun cam add_visible_layer string [L2]
 fun cam add_accessible_layer string [L2]
 fun cam set_tint double [1.0 1.0 1.0 1.0]
-fun cam set_drawing_borders int [0]
+fun cam set_drawing_borders bool [true]
+fun cam set_can_interact_with_mouse bool [true]
 
 new camera l 1 _ _ cam
 fun cam set_relative_position int [100 100]
@@ -202,8 +202,9 @@ fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders int [1]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
-fun cam set_is_using_mouse bool [true]
+fun cam set_can_interact_with_mouse bool [true]
 //fun cam minimize
+fun cam set_min_size int [200 200]
 
 
 new camera l 1 _ _ cam
@@ -229,7 +230,7 @@ fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders int [1]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
-fun cam set_is_using_mouse bool [true]
+fun cam set_can_interact_with_mouse bool [true]
 //fun cam minimize
 //fun cam bring_forward
 
@@ -259,7 +260,7 @@ fun cam set_relative_position int [100 100]
 //fun cam minimize
 
 new camera l 1 _ _ cam
-fun cam set_position int [300 300]
+fun cam set_position int [300 50]
 fun cam set_active bool [true]
 fun cam resize int [400 500]
 fun cam set_zoom double [1.0]
@@ -278,7 +279,7 @@ fun cam add_visible_layer string [L2]
 fun cam add_accessible_layer string [L2]
 fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders int [1]
-fun cam set_is_using_mouse bool [true]
+fun cam set_can_interact_with_mouse bool [true]
 //fun cam minimize
 //fun cam bring_forward
 fun cam set_grabbing_area_position int [0 10]

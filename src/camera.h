@@ -12,7 +12,7 @@ public:
     vec2d pos; //Actual position on the screen.
     vec2d relativePos; //Position on the screen if isPinnedCamera is false, otherwise position relative to pinned camera.
     vec2d visionShift;
-    vec2d size; //Size of the program's window
+    vec2d size, minSize; //Size of the program's window
     double zoom;
     double zoomIncrease;
     double minZoom;
@@ -27,7 +27,7 @@ public:
     bool isForcefullyPinned; //If true, camera will be always on top of the chosen camera.
     bool isFollowingObject; //Camera's position on screen won't change by following an object.
     bool isUsingKeyboardToMove;
-    bool isUsingCursorPositionToMove;
+    bool canInteractWithMouse;
     bool allowsDrawingBorders;
 
     vec2d grabbingAreaPos, grabbingAreaSize;
@@ -59,6 +59,8 @@ public:
     void setVisionShift(vec2d newVisionShift);
     void setSize(vec2d newSize);
     void setSize(double x, double y);
+    void setMinSize(vec2d newSize);
+    void setMinSize(double x, double y);
     void setZoom(double newZoom, double newZoomIncrease, double newMinZoom, double newMaxZoom);
     void setSpeed(double newSpeed);
     void setKeyBinds(short newZoomInKey, short newZoomOutKey, short newZoomResetKey, short newUpKey, short newRightKey, short newDownKey, short newLeftKey);
@@ -67,7 +69,7 @@ public:
     void setFollowedImageID(string);
     void setIsFollowingObject(bool newIsFollowingObject);
     void setIsUsingKeyboardToMove(bool isUsingKeyboard);
-    void setIsUsingCursorPositionToMove(bool isUsingCursor);
+    void setCanInteractWithMouse(bool newValue);
     void setTint(float r, float g, float b, float a);
     void update(vector <short> pressedKeys);
     bool isObjectVisible(vec2d objPos, vec2d objSize) const;

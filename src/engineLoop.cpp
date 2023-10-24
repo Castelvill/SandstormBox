@@ -89,7 +89,7 @@ EngineLoop::EngineLoop(std::string title){
     ignoreDistantObjects = false;
     drawOnlyVisibleObjects = false;
     wasMousePressedInSelectedObject = false;
-    wasMousePressedInSelectedCamera = 0;
+    activeCameraMoveType = NONE;
     timeToInterruptMovement = 1;
     timeToInterruptParticles = 1;
     totalNumberOfBitmapLayers = 3;
@@ -265,13 +265,14 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         switch(event.type){
             case ALLEGRO_EVENT_TIMER:
                 //Keyboard input is gathered here
-                changeCursor();
                 releasedKeys.clear();
                 releasedKeys = getReleasedKeys(key, pressedKeys);
                 pressedKeys.clear();
                 pressedKeys = getPressedKeys(key);
 
                 selectCamera(Cameras, true);
+
+                changeCursor();
 
                 updateCamerasPositions(Cameras);
                 
@@ -399,9 +400,11 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         fps.update();
         string updatedFpsLabel = "FPS: " + intToStr(fps.get());
 
-        if(Layers[0].Objects.size() > 0)
-            if(Layers[0].Objects[0].TextContainer.size() > 0)
+        if(Layers[0].Objects.size() > 0){
+            if(Layers[0].Objects[0].TextContainer.size() > 0){
                 Layers[0].Objects[0].TextContainer[0].modifyContentAndResize(0, updatedFpsLabel, FontContainer);
+            }
+        }
     }
 }
 void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers){
@@ -1472,7 +1475,7 @@ void EngineLoop::findContextInCamera(string attribute, PointerContainer & NewCon
         NewContext.addBasePointer(&Camera->isUsingKeyboardToMove);
     }
     else if(attribute == "is_using_cursor_position_to_move"){
-        NewContext.addBasePointer(&Camera->isUsingCursorPositionToMove);
+        NewContext.addBasePointer(&Camera->canInteractWithMouse);
     }
     else{
         std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
@@ -4041,6 +4044,9 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
         else if(Operation.Location.attribute == "resize" && Variables.size() > 1){
             Camera->setSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
         }
+        else if(Operation.Location.attribute == "set_min_size" && Variables.size() > 1){
+            Camera->setMinSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
+        }
         else if(Operation.Location.attribute == "set_zoom" && Variables.size() > 0){
             Camera->zoom = Variables[0].getDoubleUnsafe();
         }
@@ -4114,8 +4120,8 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
         else if(Operation.Location.attribute == "set_is_using_keyboard" && Variables.size() > 0){
             Camera->isUsingKeyboardToMove = Variables[0].getBoolUnsafe();
         }
-        else if(Operation.Location.attribute == "set_is_using_mouse" && Variables.size() > 0){
-            Camera->isUsingCursorPositionToMove = Variables[0].getBoolUnsafe();
+        else if(Operation.Location.attribute == "set_can_interact_with_mouse" && Variables.size() > 0){
+            Camera->canInteractWithMouse = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "add_visible_layer" && Variables.size() > 0){
             Camera->addVisibleLayer(Variables[0].getStringUnsafe());
@@ -5862,55 +5868,115 @@ void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
         }
     }
 }
+void EngineLoop::adjustPositionOfAllCameras(vector <Camera2D> & Cameras){
+    SelectedCamera->pos = SelectedCamera->relativePos;
+    for(Camera2D & Camera : Cameras){
+        if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
+            SelectedCamera->relativePos -= Camera.pos;
+            break;
+        }
+    }
+    updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
+}
 void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
         return;
     }
-    if(Mouse.isPressed(0) && wasMousePressedInSelectedCamera != 0){
-        if(wasMousePressedInSelectedCamera == CAMERA_N){
-            
-        }
-        else if(wasMousePressedInSelectedCamera == CAMERA_NE){
-            
-        }
-        else if(wasMousePressedInSelectedCamera == CAMERA_E){
-            SelectedCamera->setSize(vec2d(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y));
-            if(SelectedCamera->size.x < 50){
-                SelectedCamera->setSize(vec2d(50, SelectedCamera->size.y));
-            }
-        }
-        else if(wasMousePressedInSelectedCamera == CAMERA_SE){
-            
-        }
-        else if(wasMousePressedInSelectedCamera == CAMERA_S){
-            SelectedCamera->setSize(vec2d(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y));
-            if(SelectedCamera->size.y < 50){
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, 50));
-            }
-        }
-        else if(wasMousePressedInSelectedCamera == CAMERA_SW){
-            
-        }
-        else if(wasMousePressedInSelectedCamera == CAMERA_W){
-            
-        }
-        else if(wasMousePressedInSelectedCamera == CAMERA_NW){
-            
-        }
-        else if(wasMousePressedInSelectedCamera == 1 && SelectedCamera->isUsingCursorPositionToMove){
+    if(!Mouse.isPressed(0) || activeCameraMoveType == NONE){
+        return;
+    }
+    switch(activeCameraMoveType){
+        case CAMERA_FULL:
             SelectedCamera->relativePos = Mouse.getPos() - dragStartingPos;
-            SelectedCamera->pos = SelectedCamera->relativePos;
-            for(Camera2D & Camera : Cameras){
-                if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
-                    SelectedCamera->relativePos -= Camera.pos;
-                    break;
-                }
+            adjustPositionOfAllCameras(Cameras);
+            break;
+        case CAMERA_N:
+            if(Mouse.getPos().y <= dragLimit.y){
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
+                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
             }
-            updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
-        }
-        else{
+            else{
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
+                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+            }
+            adjustPositionOfAllCameras(Cameras);
+            break;
+        case CAMERA_NE:
+            if(Mouse.getPos().x <= dragLimit.x){
+                SelectedCamera->setSize(vec2d(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y));
+            }
+            else{
+                SelectedCamera->setSize(vec2d(dragLimit.x - dragStartingPos.x, SelectedCamera->size.y));
+            }
+            if(Mouse.getPos().y <= dragLimit.y){
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
+                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+            }
+            else{
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
+                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+            }
+            adjustPositionOfAllCameras(Cameras);
+            break;
+        case CAMERA_E:
+            SelectedCamera->setSize(vec2d(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y));
+            break;
+        case CAMERA_SE:
+            SelectedCamera->setSize(vec2d(Mouse.getPos().x - dragStartingPos.x, Mouse.getPos().y - dragStartingPos.y));
+            break;
+        case CAMERA_S:
+            SelectedCamera->setSize(vec2d(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y));
+            break;
+        case CAMERA_SW:
+            if(Mouse.getPos().x <= dragLimit.x){
+                SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+            }
+            else{
+                SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+            }
+            if(Mouse.getPos().y <= dragLimit.y){
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y));
+            }
+            else{
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, dragLimit.y - dragStartingPos.y));
+            }
+            adjustPositionOfAllCameras(Cameras);
+            break;
+        case CAMERA_W:
+            if(Mouse.getPos().x <= dragLimit.x){
+                SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+            }
+            else{
+                SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+            }
+            adjustPositionOfAllCameras(Cameras);
+            break;
+        case CAMERA_NW:
+            if(Mouse.getPos().x <= dragLimit.x){
+                SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+            }
+            else{
+                SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+            }
+            if(Mouse.getPos().y <= dragLimit.y){
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
+                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+            }
+            else{
+                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
+                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+            }
+            adjustPositionOfAllCameras(Cameras);
+            break;
+        default:
             al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
-        }
+            break;
     }
 }
 bool isALeaf(string leafID, string rootID, const vector <Camera2D> & Cameras){
@@ -6015,7 +6081,7 @@ void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
 
     Camera2D * Camera = nullptr;
 
-    for(unsigned i = camerasOrder.size() - 1; i >= 0 ; i--){
+    for(int i = camerasOrder.size() - 1; i >= 0 ; i--){
         if(camerasOrder[i] >= Cameras.size()){
             std::cout << "Error: Index of camera is out of scope!\n";
             continue;
@@ -6061,7 +6127,7 @@ bool EngineLoop::isKeyReleased(short key){
 void EngineLoop::detectStartPosOfDraggingObjects(){
     wasMousePressedInSelectedObject = false;
 
-    if(wasMousePressedInSelectedCamera == 0
+    if(activeCameraMoveType == NONE
         && SelectedCamera != nullptr && SelectedCamera->getIsActive()
         && SelectedLayer != nullptr && SelectedObject != nullptr
         && Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true)
@@ -6083,10 +6149,13 @@ void EngineLoop::detectStartPosOfDraggingObjects(){
     }
 }
 void EngineLoop::changeCursor(){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || wasMousePressedInSelectedCamera != 0){
+    if(Mouse.isPressed(0)){
         return;
     }
     al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+        return;
+    }
     if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_N);
     }
@@ -6113,80 +6182,74 @@ void EngineLoop::changeCursor(){
     }
 }
 void EngineLoop::detectStartPosOfDraggingCamera(){
-    wasMousePressedInSelectedCamera = 0;
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+    activeCameraMoveType = NONE;
+    if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
         return;
     }
     
-    if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
+    if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), 0, false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_N);
-        if(Mouse.isPressed(0)){
-            wasMousePressedInSelectedCamera = CAMERA_N;
-            wasMousePressedInSelectedObject = false;
-            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
-        }
+        activeCameraMoveType = CAMERA_N;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos().x, Mouse.getPos().y+SelectedCamera->size.y);
+        dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
+        dragLimit.set(Mouse.getPos().x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), false)){
+    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), 0, false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NE);
-        if(Mouse.isPressed(0)){
-            wasMousePressedInSelectedCamera = CAMERA_NE;
-            wasMousePressedInSelectedObject = false;
-            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
-        }
+        activeCameraMoveType = CAMERA_NE;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos().x-SelectedCamera->size.x, Mouse.getPos().y+SelectedCamera->size.y);
+        dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
+        dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), false)){
+    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), 0, false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_E);
-        if(Mouse.isPressed(0)){
-            wasMousePressedInSelectedCamera = CAMERA_E;
-            wasMousePressedInSelectedObject = false;
-            dragStartingPos.set(Mouse.getPos().x-SelectedCamera->size.x, Mouse.getPos().y);
-        }
+        activeCameraMoveType = CAMERA_E;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos().x-SelectedCamera->size.x, Mouse.getPos().y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), false)){
+    else if(Mouse.pressedInRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), 0, false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SE);
-        if(Mouse.isPressed(0)){
-            wasMousePressedInSelectedCamera = CAMERA_SE;
-            wasMousePressedInSelectedObject = false;
-            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
-        }
+        activeCameraMoveType = CAMERA_SE;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos().x-SelectedCamera->size.x, Mouse.getPos().y-SelectedCamera->size.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
+    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), 0, false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_S);
-        if(Mouse.isPressed(0)){
-            wasMousePressedInSelectedCamera = CAMERA_S;
-            wasMousePressedInSelectedObject = false;
-            dragStartingPos.set(Mouse.getPos().x, Mouse.getPos().y-SelectedCamera->size.y);
-        }
+        activeCameraMoveType = CAMERA_S;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos().x, Mouse.getPos().y-SelectedCamera->size.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), false)){
+    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), 0, false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SW);
-        if(Mouse.isPressed(0)){
-            wasMousePressedInSelectedCamera = CAMERA_SW;
-            wasMousePressedInSelectedObject = false;
-            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
-        }
+        activeCameraMoveType = CAMERA_SW;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos().x + SelectedCamera->size.x, Mouse.getPos().y - SelectedCamera->size.y);
+        dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
+        dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), false)){
+    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), 0, false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_W);
-        if(Mouse.isPressed(0)){
-            wasMousePressedInSelectedCamera = CAMERA_W;
-            wasMousePressedInSelectedObject = false;
-            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
-        }
+        activeCameraMoveType = CAMERA_W;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos().x + SelectedCamera->size.x, Mouse.getPos().y);
+        dragStartingPos2.set(Mouse.getPos() - SelectedCamera->pos);
+        dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), false)){
+    else if(Mouse.pressedInRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), 0, false)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NW);
-        if(Mouse.isPressed(0)){
-            wasMousePressedInSelectedCamera = CAMERA_NW;
-            wasMousePressedInSelectedObject = false;
-            dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
-        }
+        activeCameraMoveType = CAMERA_NW;
+        wasMousePressedInSelectedObject = false;
+        dragStartingPos.set(Mouse.getPos().x + SelectedCamera->size.x, Mouse.getPos().y + SelectedCamera->size.y);
+        dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
+        dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(SelectedCamera->isUsingCursorPositionToMove
+    else if(SelectedCamera->canInteractWithMouse
         && Mouse.pressedInRectangle(SelectedCamera->pos + SelectedCamera->grabbingAreaPos, SelectedCamera->grabbingAreaSize, 0, false)
     ){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_MOVE);
-        wasMousePressedInSelectedCamera = 1;
+        activeCameraMoveType = CAMERA_FULL;
         wasMousePressedInSelectedObject = false;
         dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
     }

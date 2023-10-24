@@ -13,16 +13,8 @@
 #define KEY_SEEN     1
 #define KEY_RELEASED 2
 
-#define CAMERA_N 2
-#define CAMERA_NE 3
-#define CAMERA_E 4
-#define CAMERA_SE 5
-#define CAMERA_S 6
-#define CAMERA_SW 7
-#define CAMERA_W 8
-#define CAMERA_NW 9
+enum CAMERA_MOVE: unsigned char{NONE, CAMERA_FULL, CAMERA_N, CAMERA_NE, CAMERA_E, CAMERA_SE, CAMERA_S, CAMERA_SW, CAMERA_W, CAMERA_NW};
 
-void loadFontsToContainer(vector <SingleFont> & FontContainer);
 void freeFontsFromContainer(vector <SingleFont> & FontContainer);
 
 vector<string> getAllFilesNamesWithinFolder(string folder);
@@ -241,7 +233,7 @@ private:
     ALLEGRO_EVENT event;
     unsigned char key[ALLEGRO_KEY_MAX];
     bool wasMousePressedInSelectedObject;
-    short wasMousePressedInSelectedCamera;
+    CAMERA_MOVE activeCameraMoveType;
     vector <short> pressedKeys;
     vector <short> firstPressedKeys;
     vector <short> releasedKeys;
@@ -251,7 +243,7 @@ private:
     LayerClass * SelectedLayer;
     AncestorObject * SelectedObject;
     AncestorObject * EditorObject;
-    vec2d dragStartingPos;
+    vec2d dragStartingPos, dragStartingPos2, dragLimit;
     vec2d dragCameraStaringPos;
     vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
@@ -384,6 +376,7 @@ public:
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer);
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
     void updateAllForestOfCameras(vector <Camera2D> & Cameras);
+    void adjustPositionOfAllCameras(vector <Camera2D> & Cameras);
     void updateCamerasPositions(vector <Camera2D> & Cameras);
     void bringCameraForward(unsigned index, Camera2D * ChosenCamera, vector <Camera2D> & Cameras);
     void selectCamera(vector <Camera2D> & Cameras, bool fromAltTab);

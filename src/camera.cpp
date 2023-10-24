@@ -8,6 +8,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     pos = newPos;
     visionShift = newVisionShift;
     size = newSize;
+    minSize.set(50.0, 50.0);
     zoom = 1.0;
     zoomIncrease = 0.01;
     minZoom = 0.01;
@@ -28,7 +29,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     isForcefullyPinned = false;
     isFollowingObject = false;
     isUsingKeyboardToMove = true;
-    isUsingCursorPositionToMove = false;
+    canInteractWithMouse = false;
     allowsDrawingBorders = true;
 
     grabbingAreaPos.set(0.0, 0.0);
@@ -122,14 +123,44 @@ void Camera2D::setVisionShift(vec2d newVisionShift){
 }
 void Camera2D::setSize(vec2d newSize){
     size.set(newSize);
+    if(size.x < minSize.x){
+        size.x = minSize.x;
+    }
+    if(size.y < minSize.y){
+        size.y = minSize.y;
+    }
     al_destroy_bitmap(bitmapBuffer);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 void Camera2D::setSize(double x, double y){
     size.x = x;
     size.y = y;
+    if(size.x < minSize.x){
+        size.x = minSize.x;
+    }
+    if(size.y < minSize.y){
+        size.y = minSize.y;
+    }
     al_destroy_bitmap(bitmapBuffer);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
+}
+void Camera2D::setMinSize(vec2d newSize){
+    minSize = newSize;
+    if(size.x < 5){
+        size.x = 5;
+    }
+    if(size.y < 5){
+        size.y = 5;
+    }
+}
+void Camera2D::setMinSize(double x, double y){
+    minSize.set(x, y);
+    if(size.x < 5){
+        size.x = 5;
+    }
+    if(size.y < 5){
+        size.y = 5;
+    }
 }
 void Camera2D::setZoom(double newZoom, double newZoomIncrease, double newMinZoom, double newMaxZoom){
     zoom = newZoom;
@@ -166,8 +197,8 @@ void Camera2D::setIsFollowingObject(bool newIsFollowingObject){
 void Camera2D::setIsUsingKeyboardToMove(bool isUsingKeyboard){
     isUsingKeyboardToMove = isUsingKeyboard;
 }
-void Camera2D::setIsUsingCursorPositionToMove(bool isUsingCursor){
-    isUsingCursorPositionToMove = isUsingCursor;
+void Camera2D::setCanInteractWithMouse(bool newValue){
+    canInteractWithMouse = newValue;
 }
 void Camera2D::setTint(float r, float g, float b, float a){
     tint[0] = r;
