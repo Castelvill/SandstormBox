@@ -5871,13 +5871,16 @@ void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
     }
 }
 void EngineLoop::adjustPositionOfAllCameras(vector <Camera2D> & Cameras){
-    SelectedCamera->pos = SelectedCamera->relativePos;
-    for(Camera2D & Camera : Cameras){
-        if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
-            SelectedCamera->relativePos -= Camera.pos;
-            break;
+    if(SelectedCamera->isPinnedToCamera){
+        SelectedCamera->pos = SelectedCamera->relativePos;
+        for(Camera2D & Camera : Cameras){
+            if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
+                SelectedCamera->relativePos -= Camera.pos;
+                break;
+            }
         }
     }
+    
     updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
 }
 void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
@@ -5892,14 +5895,64 @@ void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
             SelectedCamera->relativePos = Mouse.getPos() - dragStartingPos;
             adjustPositionOfAllCameras(Cameras);
             break;
+        case CAMERA_NW:
+            if(SelectedCamera->isPinnedToCamera){
+                if(Mouse.getPos().x <= dragLimit.x){
+                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                }
+                if(Mouse.getPos().y <= dragLimit.y){
+                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
+                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
+                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+                }
+            }
+            else{
+                if(Mouse.getPos().x <= dragLimit.x){
+                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->pos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->pos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
+                }
+                if(Mouse.getPos().y <= dragLimit.y){
+                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
+                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
+                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
+                }
+            }
+            adjustPositionOfAllCameras(Cameras);
+            break;
         case CAMERA_N:
             if(Mouse.getPos().y <= dragLimit.y){
                 SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
-                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+                if(SelectedCamera->isPinnedToCamera){
+                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+                }
+                else{
+                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
+                }
             }
             else{
                 SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
-                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+                if(SelectedCamera->isPinnedToCamera){
+                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+                }
+                else{
+                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
+                }
+                
             }
             adjustPositionOfAllCameras(Cameras);
             break;
@@ -5910,14 +5963,27 @@ void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
             else{
                 SelectedCamera->setSize(vec2d(dragLimit.x - dragStartingPos.x, SelectedCamera->size.y));
             }
-            if(Mouse.getPos().y <= dragLimit.y){
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
-                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+            if(SelectedCamera->isPinnedToCamera){
+                if(Mouse.getPos().y <= dragLimit.y){
+                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
+                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
+                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+                }
             }
             else{
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
-                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+                if(Mouse.getPos().y <= dragLimit.y){
+                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
+                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
+                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
+                }
             }
+            
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_E:
@@ -5930,14 +5996,27 @@ void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
             SelectedCamera->setSize(vec2d(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y));
             break;
         case CAMERA_SW:
-            if(Mouse.getPos().x <= dragLimit.x){
-                SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+            if(SelectedCamera->isPinnedToCamera){
+                if(Mouse.getPos().x <= dragLimit.x){
+                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                }
             }
             else{
-                SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                if(Mouse.getPos().x <= dragLimit.x){
+                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->pos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->pos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
+                }
             }
+            
             if(Mouse.getPos().y <= dragLimit.y){
                 SelectedCamera->setSize(vec2d(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y));
             }
@@ -5947,34 +6026,29 @@ void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_W:
-            if(Mouse.getPos().x <= dragLimit.x){
-                SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+            if(SelectedCamera->isPinnedToCamera){
+                if(Mouse.getPos().x <= dragLimit.x){
+                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                }
+                adjustPositionOfAllCameras(Cameras);
             }
             else{
-                SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                if(Mouse.getPos().x <= dragLimit.x){
+                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->pos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
+                }
+                else{
+                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
+                    SelectedCamera->pos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
+                }
+                adjustPositionOfAllCameras(Cameras);
             }
-            adjustPositionOfAllCameras(Cameras);
-            break;
-        case CAMERA_NW:
-            if(Mouse.getPos().x <= dragLimit.x){
-                SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
-            }
-            else{
-                SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
-            }
-            if(Mouse.getPos().y <= dragLimit.y){
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
-                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
-            }
-            else{
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
-                SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
-            }
-            adjustPositionOfAllCameras(Cameras);
+            
             break;
         default:
             al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
