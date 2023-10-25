@@ -29,6 +29,8 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     isForcefullyPinned = false;
     isFollowingObject = false;
     isUsingKeyboardToMove = true;
+    canMoveWithMouse = true;
+    canZoomWithMouse = true;
     canInteractWithMouse = false;
     allowsDrawingBorders = true;
 
@@ -206,8 +208,7 @@ void Camera2D::setTint(float r, float g, float b, float a){
     tint[2] = b;
     tint[3] = a;
 }
-void Camera2D::update(vector<short> pressedKeys)
-{
+void Camera2D::update(vector<short> pressedKeys){
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
         if(pressedKeys[i] == upKey)
             visionShift.y += speed;
@@ -316,4 +317,10 @@ void Camera2D::setGrabbingAreaPos(vec2d newValue){
 }
 void Camera2D::setGrabbingAreaSize(vec2d newValue){
     grabbingAreaSize = newValue;
+}
+void Camera2D::setGrabbingAreaPos(double x, double y){
+    grabbingAreaPos.set(x, y);
+}
+void Camera2D::setGrabbingAreaSize(double x, double y){
+    grabbingAreaSize.set(x, y);
 }

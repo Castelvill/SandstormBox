@@ -153,9 +153,11 @@ public:
     void setShape(short newShape);
     void setUsedBitmapLayer(int newLayer);
     void setEnvironment(vec2d newEnvironment);
+    void setEnvironment(double x, double y);
     void setEnvironmentX(double);
     void setEnvironmentY(double);
     void setEnvironmentSpeed(vec2d newEnvironmentSpeed);
+    void setEnvironmentSpeed(double x, double y);
     void setEnvironmentSpeedX(double);
     void setEnvironmentSpeedY(double);
     void setSpeed(double, double);

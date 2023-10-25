@@ -57,16 +57,16 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
         Text->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "set_position" && Values.size() >= 2){
-        Text->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Text->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_size" && Values.size() >= 2){
-        Text->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Text->setSize(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_scale" && Values.size() >= 2){
-        Text->setScale(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Text->setScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "add_scale" && Values.size() >= 2){
-        Text->addScale(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Text->addScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_color" && Values.size() >= 3){
         Text->setColors(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe());
@@ -124,21 +124,21 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
         Text->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer){
+void EveModule::controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer, string EXE_PATH){
     if(attribute == "set_id" && Values.size() > 0){
         Image->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "set_position" && Values.size() >= 2){
-        Image->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Image->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_size" && Values.size() >= 2){
-        Image->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Image->setSize(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_scale" && Values.size() >= 2){
-        Image->setScale(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Image->setScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "resize" && Values.size() >= 2){
-        Image->resize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Image->resize(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_rotation" && Values.size() >= 1){
         Image->setRotation(Values[0].getDoubleUnsafe());
@@ -157,7 +157,18 @@ void EveModule::controlImage(ImageModule * Image, string attribute, const vector
         Image->setLightColor(vec3d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe()), Values[3].getDoubleUnsafe());
     }
     else if(attribute == "connect_bitmap" && Values.size() > 0){
-        Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe());
+        if(Values.size() == 1){
+            Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), "", EXE_PATH);
+        }
+        else{
+            Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), Values[1].getStringUnsafe(), EXE_PATH);
+        }   
+    }
+    else if(attribute == "connect_bitmap_via_path" && Values.size() > 0){
+        Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), "", EXE_PATH);  
+    }
+    else if(attribute == "connect_bitmap_via_alias" && Values.size() > 0){
+        Image->connectBitmap(BitmapContainer, "", Values[0].getStringUnsafe(), EXE_PATH);  
     }
     else if(attribute == "select_layer" && Values.size() > 0){
         Image->setUsedBitmapLayer(Values[0].getIntUnsafe());
@@ -172,7 +183,7 @@ void EveModule::controlImage(ImageModule * Image, string attribute, const vector
 }
 void EveModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
     if(attribute == "move" && Values.size() >= 2){
-        Movement->addMomentum(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Movement->addMomentum(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "move_up"){
         Movement->setNextMove(true, false, false, false, false, false, false);
@@ -322,10 +333,10 @@ void EveModule::controlCollision(CollisionModule * Collision, string attribute, 
         Collision->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "set_position" && Values.size() >= 2){
-        Collision->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Collision->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_size" && Values.size() >= 2){
-        Collision->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Collision->setSize(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_solid" && Values.size() > 0){
         Collision->setIsSolid(Values[0].getBoolUnsafe());
@@ -373,10 +384,10 @@ void EveModule::controlParticles(ParticleEffectModule * Particles, string attrib
         Particles->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "set_environment" && Values.size() >= 2){
-        Particles->setEnvironment(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Particles->setEnvironment(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_environment_speed" && Values.size() >= 2){
-        Particles->setEnvironmentSpeed(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Particles->setEnvironmentSpeed(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_speed" && Values.size() > 1){
         Particles->setSpeed(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
@@ -707,7 +718,7 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
         Scrollbar->setID(Values[0].getStringUnsafe(), IDs);
     }
     else if(attribute == "add_real_area" && Values.size() >= 2){
-        Scrollbar->addRealScrollingArea(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+        Scrollbar->addRealScrollingArea(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else{
         bool temp = false;
@@ -858,16 +869,16 @@ void EventModule::controlText(int operationID, TextModule & Text){
         Text.deactivate();
     }
     else if(Operations[operationID].affectedVariable == "position" && Operations[operationID].choosenDoubles.size() >= 2){
-        Text.setPos(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Text.setPos(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "size" && Operations[operationID].choosenDoubles.size() >= 2){
-        Text.setSize(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Text.setSize(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "set_scale" && Operations[operationID].choosenDoubles.size() >= 2){
-        Text.setScale(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Text.setScale(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "add_scale" && Operations[operationID].choosenDoubles.size() >= 2){
-        Text.addScale(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Text.addScale(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "color" && Operations[operationID].choosenDoubles.size() >= 3){
         Text.setColors(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1], Operations[operationID].choosenDoubles[2]);
@@ -887,16 +898,16 @@ void EventModule::controlText(int operationID, TextModule & Text){
 }
 void EventModule::controlImage(int operationID, ImageModule & Image){
     if(Operations[operationID].affectedVariable == "position" && Operations[operationID].choosenDoubles.size() >= 2){
-        Image.setPos(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Image.setPos(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "size" && Operations[operationID].choosenDoubles.size() >= 2){
-        Image.setSize(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Image.setSize(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "scale" && Operations[operationID].choosenDoubles.size() >= 2){
-        Image.setScale(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Image.setScale(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "resize" && Operations[operationID].choosenDoubles.size() >= 2){
-        Image.resize(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Image.resize(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "set_rotation" && Operations[operationID].choosenDoubles.size() >= 1){
         Image.setRotation(Operations[operationID].choosenDoubles[0]);
@@ -938,7 +949,7 @@ void EventModule::controlMovement(int operationID, MovementModule & Movement){
         Movement.setNextMove(false, false, false, false, false, false, true);
     }
     else if(Operations[operationID].affectedVariable == "move" && Operations[operationID].choosenDoubles.size() >= 2){
-        Movement.addMomentum(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Movement.addMomentum(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
 }
 void EventModule::controlCollision(int operationID, CollisionModule & Collision){
@@ -951,10 +962,10 @@ void EventModule::controlCollision(int operationID, CollisionModule & Collision)
 }
 void EventModule::controlParticles(int operationID, ParticleEffectModule & Particles){
     if(Operations[operationID].affectedVariable == "environment" && Operations[operationID].choosenDoubles.size() >= 2){
-        Particles.setEnvironment(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Particles.setEnvironment(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "environment_speed" && Operations[operationID].choosenDoubles.size() >= 2){
-        Particles.setEnvironmentSpeed(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Particles.setEnvironmentSpeed(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
     else if(Operations[operationID].affectedVariable == "shape" && Operations[operationID].choosenDoubles.size() >= 1){
         Particles.setParticlesShape(Operations[operationID].choosenDoubles[0]);
@@ -1167,7 +1178,7 @@ void EventModule::controlVariables(int operationID, VariableModule & Variable){
 }
 void EventModule::controlScrollbar(int operationID, ScrollbarModule & Scrollbar){
     if(Operations[operationID].affectedVariable == "add_real_area" && Operations[operationID].choosenDoubles.size() >= 2){
-        Scrollbar.addRealScrollingArea(vec2d(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]));
+        Scrollbar.addRealScrollingArea(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
 }
 

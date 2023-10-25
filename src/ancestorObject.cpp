@@ -343,7 +343,7 @@ void AncestorObject::operateEvent(int sourceID, int event, int operationID, vect
         }
     }
 }
-void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs){
+void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string EXE_PATH){
     for(AncestorObject & Object : Objects){
         if(EditableText.connectedObject == Object.getID()
            || Object.isInAGroup(EditableText.connectedGroup)){
@@ -361,7 +361,7 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
             else if(EditableText.affectedModule == "image"){
                 for(auto & Image : Object.ImageContainer){
                     if(EditableText.connectedModuleID == Image.getID()){
-                        success = EditableText.controlImage(Image, BitmapContainer, Object.imageContainerIDs);
+                        success = EditableText.controlImage(Image, BitmapContainer, Object.imageContainerIDs, EXE_PATH);
                     }
                 }
             }
@@ -992,6 +992,7 @@ void AncestorObject::eventAssembler(vector<string> code){
     unsigned cursor = 0;
     OperaClass * Operation;
     bool postOperations = false;
+    
     for(const string & line : code){
         words.clear();
         words = changeCodeIntoWords(line);
@@ -1060,7 +1061,7 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
             NewEvent.elseChildID = words[1];
         }
-        else if(words[0] == "break" || words[0] == "return"){
+        else if(isStringInGroup(words[0], 5, "continue", "break", "return", "reboot", "power_off")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1)){
                 return;
             }

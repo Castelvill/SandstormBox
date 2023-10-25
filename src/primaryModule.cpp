@@ -103,6 +103,9 @@ void PrimaryModule::setScale(double x, double y){
 void PrimaryModule::addScale(vec2d newScale){
     scale.translate(newScale);
 }
+void PrimaryModule::addScale(double x, double y){
+    scale.translate(x, y);
+}
 void PrimaryModule::resize(vec2d newSize){
     scale.set(newSize.x/size.x, newSize.y/size.y);
 }

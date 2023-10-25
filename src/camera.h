@@ -27,6 +27,8 @@ public:
     bool isForcefullyPinned; //If true, camera will be always on top of the chosen camera.
     bool isFollowingObject; //Camera's position on screen won't change by following an object.
     bool isUsingKeyboardToMove;
+    bool canMoveWithMouse;
+    bool canZoomWithMouse;
     bool canInteractWithMouse;
     bool allowsDrawingBorders;
 
@@ -92,6 +94,8 @@ public:
     void togglePin();
     void setGrabbingAreaPos(vec2d newValue);
     void setGrabbingAreaSize(vec2d newValue);
+    void setGrabbingAreaPos(double x, double y);
+    void setGrabbingAreaSize(double x, double y);
 };
 
 

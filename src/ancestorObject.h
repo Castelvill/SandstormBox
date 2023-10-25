@@ -54,7 +54,7 @@ public:
     void clearContainers();
     void createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter);
     void operateEvent(int sourceID, int event, int operationID, vector <AncestorObject> & Objects);
-    void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs);
+    void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string EXE_PATH);
     void refreshCoordinates();
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);

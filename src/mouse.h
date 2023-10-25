@@ -41,15 +41,15 @@ public:
     bool isFirstPressed(short button);
     bool isPressed(short button);
     bool isReleased(short button);
-    bool inRectangle(vec2d rPos, vec2d rSize, bool isObjectAttachedToCamera);
-    bool firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
-    bool pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
-    bool firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
-    bool releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera);
-    bool inRadius(vec2d rPos, double radius, bool isObjectAttachedToCamera);
-    bool firstPressedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera);
-    bool pressedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera);
-    bool releasedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera);
+    bool inRectangle(vec2d rPos, vec2d rSize, bool isCameraOrAttachedToCamera);
+    bool firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera);
+    bool pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera);
+    bool firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera);
+    bool releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera);
+    bool inRadius(vec2d rPos, double radius, bool isCameraOrAttachedToCamera);
+    bool firstPressedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera);
+    bool pressedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera);
+    bool releasedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera);
 };
 
 

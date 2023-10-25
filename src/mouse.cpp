@@ -59,14 +59,18 @@ void MouseClass::updateZoomForCamera(Camera2D * Camera){
     if(lastScrollPos == scrollPos){
         return;
     }
-    if(lastScrollPos < scrollPos)
+    if(lastScrollPos < scrollPos){
         Camera->zoom += Camera->zoomIncrease;
-    else
+    }   
+    else{
         Camera->zoom -= Camera->zoomIncrease;
-    if(Camera->zoom > Camera->maxZoom)
+    }
+    if(Camera->zoom > Camera->maxZoom){
         Camera->zoom = Camera->maxZoom;
-    if(Camera->zoom < Camera->minZoom)
+    }
+    if(Camera->zoom < Camera->minZoom){
         Camera->zoom = Camera->minZoom;
+    }
     lastScrollPos = scrollPos;
 }
 void MouseClass::updateButtonsPressed(ALLEGRO_EVENT event){
@@ -126,8 +130,8 @@ void MouseClass::updateButtonsReleased(ALLEGRO_EVENT event){
         pressed[4] = false;
     }
 }
-bool MouseClass::inRectangle(vec2d rPos, vec2d rSize, bool isObjectAttachedToCamera){
-    if(isObjectAttachedToCamera){
+bool MouseClass::inRectangle(vec2d rPos, vec2d rSize, bool isCameraOrAttachedToCamera){
+    if(isCameraOrAttachedToCamera){
         if(pos.x >= rPos.x && pos.x <= rPos.x + rSize.x && pos.y >= rPos.y && pos.y <= rPos.y + rSize.y){
             return true;
         }
@@ -186,30 +190,30 @@ bool MouseClass::isReleased(short button){
     }
     return released[button];
 }
-bool MouseClass::firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
+bool MouseClass::firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera){
     if(!doesButtonExist(button)){
         return false;
     }
     if(firstPressed[button]){
-        return inRectangle(rPos, rSize, isObjectAttachedToCamera);
+        return inRectangle(rPos, rSize, isCameraOrAttachedToCamera);
     }
     return false;
 }
-bool MouseClass::pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
+bool MouseClass::pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera){
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        return inRectangle(rPos, rSize, isObjectAttachedToCamera);
+        return inRectangle(rPos, rSize, isCameraOrAttachedToCamera);
     }
     return false;
 }
-bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
+bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera){
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        if(isObjectAttachedToCamera){
+        if(isCameraOrAttachedToCamera){
             if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
                 return true;
             }
@@ -222,12 +226,12 @@ bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button,
     }
     return false;
 }
-bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isObjectAttachedToCamera){
+bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera){
     if(!doesButtonExist(button)){
         return false;
     }
     if(released[button]){
-        if(isObjectAttachedToCamera){
+        if(isCameraOrAttachedToCamera){
             if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
                 if(pos.x >= rPos.x && pos.x <= rPos.x + rSize.x && pos.y >= rPos.y && pos.y <= rPos.y + rSize.y){
                     return true;
@@ -244,8 +248,8 @@ bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool
     }
     return false;
 }
-bool MouseClass::inRadius(vec2d rPos, double radius, bool isObjectAttachedToCamera){
-    if(isObjectAttachedToCamera){
+bool MouseClass::inRadius(vec2d rPos, double radius, bool isCameraOrAttachedToCamera){
+    if(isCameraOrAttachedToCamera){
         if(countDistance2(pos.x, pos.y, rPos.x, rPos.y) <= radius){
             return true;
         }
@@ -258,30 +262,30 @@ bool MouseClass::inRadius(vec2d rPos, double radius, bool isObjectAttachedToCame
 
     return false;
 }
-bool MouseClass::firstPressedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera){
+bool MouseClass::firstPressedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera){
     if(!doesButtonExist(button)){
         return false;
     }
     if(firstPressed[button]){
-        return inRadius(rPos, radius, isObjectAttachedToCamera);
+        return inRadius(rPos, radius, isCameraOrAttachedToCamera);
     }
     return false;
 }
-bool MouseClass::pressedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera){
+bool MouseClass::pressedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera){
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        return inRadius(rPos, radius, isObjectAttachedToCamera);
+        return inRadius(rPos, radius, isCameraOrAttachedToCamera);
     }
     return false;
 }
-bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool isObjectAttachedToCamera){
+bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera){
     if(!doesButtonExist(button)){
         return false;
     }
     if(released[button]){
-        if(isObjectAttachedToCamera){
+        if(isCameraOrAttachedToCamera){
             if(countDistance2(pressedPos.x, pressedPos.y, rPos.x, rPos.y) <= radius){
                 if(countDistance2(pos.x, pos.y, rPos.x, rPos.y) <= radius){
                     return true;

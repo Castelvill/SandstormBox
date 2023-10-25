@@ -136,8 +136,8 @@ void TextModule::setVisibility(double newVisibility){
 void TextModule::changeParameters(string newID, vector<string> & listOfIDs, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign){
     setID(newID, listOfIDs);
-    setPos(vec2d(posSize.val[0], posSize.val[1]));
-    setSize(vec2d(posSize.val[2], posSize.val[3]));
+    setPos(posSize.val[0], posSize.val[1]);
+    setSize(posSize.val[2], posSize.val[3]);
     setScale(newScale);
     textColor[0] = (unsigned short)fontColor.val[0];
     textColor[1] = (unsigned short)fontColor.val[1];
@@ -829,22 +829,22 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     double dValue = std::stod(cContent);
 
     if(affectedVariable == "position_x"){
-        Text.setPos(vec2d(dValue, Text.getPos(false).y));
+        Text.setPos(dValue, Text.getPos(false).y);
     }
     else if(affectedVariable == "position_y"){
-        Text.setPos(vec2d(Text.getPos(false).x, dValue));
+        Text.setPos(Text.getPos(false).x, dValue);
     }
     else if(affectedVariable == "size_x"){
-        Text.setSize(vec2d(dValue, Text.getSize().y));
+        Text.setSize(dValue, Text.getSize().y);
     }
     else if(affectedVariable == "size_y"){
-        Text.setSize(vec2d(Text.getSize().x, dValue));
+        Text.setSize(Text.getSize().x, dValue);
     }
     else if(affectedVariable == "scale_x"){
-        Text.setScale(vec2d(dValue, Text.getSize().y));
+        Text.setScale(dValue, Text.getSize().y);
     }
     else if(affectedVariable == "scale_y"){
-        Text.setScale(vec2d(Text.getSize().x, dValue));
+        Text.setScale(Text.getSize().x, dValue);
     }
     else if(affectedVariable == "resize_x"){
         Text.resizeX(dValue);
@@ -919,12 +919,16 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
 
     return success;
 }
-bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfIDs){
+bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfIDs, string EXE_PATH){
     bool success = false;
 
     string cContent = getContent(0);
-    if(affectedVariable == "connect_bitmap"){
-        Image.connectBitmap(BitmapContainer, cContent);
+    if(affectedVariable == "connect_bitmap_via_path"){
+        Image.connectBitmap(BitmapContainer, cContent, "", EXE_PATH);
+        success = true;
+    }
+    else if(affectedVariable == "connect_bitmap_via_alias"){
+        Image.connectBitmap(BitmapContainer, "", cContent, EXE_PATH);
         success = true;
     }
 
@@ -972,22 +976,22 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
     double dValue = std::stod(cContent);
 
     if(affectedVariable == "position_x"){
-        Image.setPos(vec2d(dValue, Image.getPos(false).y));
+        Image.setPos(dValue, Image.getPos(false).y);
     }
     else if(affectedVariable == "position_y"){
-        Image.setPos(vec2d(Image.getPos(false).x, dValue));
+        Image.setPos(Image.getPos(false).x, dValue);
     }
     else if(affectedVariable == "size_x"){
-        Image.setSize(vec2d(dValue, Image.getSize().y));
+        Image.setSize(dValue, Image.getSize().y);
     }
     else if(affectedVariable == "size_y"){
-        Image.setSize(vec2d(Image.getSize().x, dValue));
+        Image.setSize(Image.getSize().x, dValue);
     }
     else if(affectedVariable == "scale_x"){
-        Image.setScale(vec2d(dValue, Image.getScale().y));
+        Image.setScale(dValue, Image.getScale().y);
     }
     else if(affectedVariable == "scale_y"){
-        Image.setScale(vec2d(Image.getScale().x, dValue));
+        Image.setScale(Image.getScale().x, dValue);
     }
     else if(affectedVariable == "resize_x"){
         Image.resizeX(dValue);

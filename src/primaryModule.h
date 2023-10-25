@@ -118,6 +118,7 @@ class PrimaryModule{
     void setScale(vec2d newScale);
     void setScale(double x, double y);
     void addScale(vec2d newScale);
+    void addScale(double x, double y);
     void resize(vec2d newSize); //calculate a new scale vector according to new dimensions
     void resize(double newSizeX, double newSizeY);
     void resizeX(double newSizeX); //calculate scale on X axis according to new length

@@ -80,6 +80,7 @@ EngineLoop::EngineLoop(std::string title){
     cursorBitmap = NULL;
     windowTitle = title;
     firstIteration = true;
+    rebooted = false;
     closeProgram = false;
     displayResized = false;
     drawCameraBorders = true;
@@ -272,8 +273,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
                 selectCamera(Cameras, true);
 
-                
-
                 updateCamerasPositions(Cameras);
                 
                 moveObjects(Layers, Cameras);
@@ -290,7 +289,10 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
                 firstIteration = false;
 
-                displayResized = false;
+                if(rebooted){
+                    rebooted = false;
+                    firstIteration = true;
+                }
 
                 //END EVENT CONTROL SECTION
 
@@ -318,10 +320,10 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 moveSelectedObject();
                 dragScrollbars(Layers);
 
-                if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
-                    if(Mouse.firstPositionInRectangle(SelectedCamera->pos, SelectedCamera->size, 2, true)){
+                if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && SelectedCamera->canMoveWithMouse
+                    && Mouse.firstPositionInRectangle(SelectedCamera->pos, SelectedCamera->size, 2, true)
+                ){
                         SelectedCamera->visionShift = Mouse.getZoomPos() - dragCameraStaringPos;
-                    }
                 }
 
                 break;
@@ -375,13 +377,14 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             updateEditableTextFields(Layers, BitmapContainer);
         }
 
-        if(Mouse.didMouseMove && SelectedCamera != nullptr && SelectedCamera->getIsActive()){
-            if(Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true)){
-                Mouse.updateZoomForCamera(SelectedCamera);
-                Mouse.updateZoomPos(*SelectedCamera);
-            }
+        if(Mouse.didMouseMove && SelectedCamera != nullptr && SelectedCamera->getIsActive()
+            && SelectedCamera->canZoomWithMouse && Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true)
+        ){
+            Mouse.updateZoomForCamera(SelectedCamera);
+            Mouse.updateZoomPos(*SelectedCamera);
         }
-    } while (!al_is_event_queue_empty(eventQueue));
+
+    }while(!al_is_event_queue_empty(eventQueue));
 
     if(redraw){
         timeToInterruptMovement = 20000;
@@ -572,6 +575,7 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
                 TriggeredObjects.push_back(&(*tempObject));
             }
         }
+        displayResized = false;
     }
     
     for(AncestorIndex & Index : BaseOfTriggerableObjects.MovementTriggered){
@@ -4122,6 +4126,12 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
         else if(Operation.Location.attribute == "set_is_using_keyboard" && Variables.size() > 0){
             Camera->isUsingKeyboardToMove = Variables[0].getBoolUnsafe();
         }
+        else if(Operation.Location.attribute == "set_can_move_with_mouse" && Variables.size() > 0){
+            Camera->canMoveWithMouse = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_can_zoom_with_mouse" && Variables.size() > 0){
+            Camera->canZoomWithMouse = Variables[0].getBoolUnsafe();
+        }
         else if(Operation.Location.attribute == "set_can_interact_with_mouse" && Variables.size() > 0){
             Camera->canInteractWithMouse = Variables[0].getBoolUnsafe();
         }
@@ -4179,10 +4189,10 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
             }
         }
         else if(Operation.Location.attribute == "set_grabbing_area_position" && Variables.size() > 1){
-            Camera->setGrabbingAreaPos(vec2d(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe()));
+            Camera->setGrabbingAreaPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
         }
         else if(Operation.Location.attribute == "set_grabbing_area_size" && Variables.size() > 1){
-            Camera->setGrabbingAreaSize(vec2d(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe()));
+            Camera->setGrabbingAreaSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
         }
         else{
             std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
@@ -4389,7 +4399,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
                 if(!findObjectForFunction(ModulesObject, Layers, Image->getObjectID(), Image->getLayerID())){
                     continue;
                 }
-                Event->controlImage(Image, Operation.Location.attribute, Variables, ModulesObject->imageContainerIDs, BitmapContainer);
+                Event->controlImage(Image, Operation.Location.attribute, Variables, ModulesObject->imageContainerIDs, BitmapContainer, EXE_PATH);
                 if(Operation.Location.attribute != "set_id"){
                     ModulesObject->refreshCoordinates();
                 }
@@ -4397,7 +4407,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
             return;
         }
         for(ImageModule * Image : Context->Modules.Images){
-            Event->controlImage(Image, Operation.Location.attribute, Variables, emptyString, BitmapContainer);
+            Event->controlImage(Image, Operation.Location.attribute, Variables, emptyString, BitmapContainer, EXE_PATH);
         }
     }
     else if(Context->type == "movement"){
@@ -4588,7 +4598,7 @@ void EngineLoop::loadBitmap(OperaClass & Operation, vector<SingleBitmap> & Bitma
     if(printOutInstructions){
         std::cout << Operation.instruction << " " << Operation.Literals[0].getString() << " " << Operation.Literals[1].getString() << "\n";
     }
-    BitmapContainer.push_back(SingleBitmap(BitmapContainer.size()));
+    BitmapContainer.push_back(SingleBitmap());
     BitmapContainer.back().loadBitmap(Operation.Literals[1].getString(), Operation.Literals[0].getString(), EXE_PATH);
 }
 void EngineLoop::createDirectory(OperaClass & Operation){
@@ -4673,6 +4683,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
 ){
     for(OperaClass & Operation : Operations){
         if(isStringInGroup(Operation.instruction, 5, "continue", "break", "return", "reboot", "power_off")){
+            std::cout << Operation.instruction << "\n";
             return Operation;
         }
         //Aggregate entities and push them on the Variables Stack.
@@ -4758,6 +4769,9 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         }
         else if(Operation.instruction == "rename"){
             renameFileOrDirectory(Operation);
+        }
+        else if(Operation.instruction == "print"){
+
         }
         if(printOutInstructions){
             string buffor = "Stack: ";
@@ -5674,10 +5688,6 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         
         StartingEvent = Event;
 
-        if(printOutInstructions){
-            std::cout << "Starting with: " << StartingEvent->getID() << "\n";
-        }
-
         wasDeleteExecuted = false;
         wasNewExecuted = false;
         wasBuildExecuted = false;
@@ -5698,6 +5708,9 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         Context.back().ID = "my_layer";
 
         do{
+            if(printOutInstructions){
+                printInColor("Current event: " + Event->getID() + "\n", 14);
+            }
             if(Event->conditionalStatus == 'n' && Interrupt.instruction != "break"){
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Layers, Cameras, Context);
                 //std::cout << "Result: " << Event->conditionalStatus << "\n";
@@ -5712,7 +5725,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                         return;
                     }
                     else if(Interrupt.instruction == "reboot"){
-                        firstIteration = true;
+                        rebooted = true;
                         return;
                     }
                     else if(Interrupt.instruction == "return"){
@@ -5779,7 +5792,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     return;
                 }
                 else if(Interrupt.instruction == "reboot"){
-                    firstIteration = true;
+                    rebooted = true;
                     return;
                 }
                 else if(Interrupt.instruction == "return"){
@@ -5873,14 +5886,13 @@ void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
 void EngineLoop::adjustPositionOfAllCameras(vector <Camera2D> & Cameras){
     if(SelectedCamera->isPinnedToCamera){
         SelectedCamera->pos = SelectedCamera->relativePos;
-        /*for(Camera2D & Camera : Cameras){
+        for(Camera2D & Camera : Cameras){
             if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
                 SelectedCamera->relativePos -= Camera.pos;
                 break;
             }
-        }*/
+        }
     }
-    
     updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
 }
 void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
@@ -5892,65 +5904,31 @@ void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
     }
     switch(activeCameraMoveType){
         case CAMERA_FULL:
-            SelectedCamera->relativePos = Mouse.getPos() - dragStartingPos;
-            adjustPositionOfAllCameras(Cameras);
-            break;
-        case CAMERA_NW:
             if(SelectedCamera->isPinnedToCamera){
-                if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
-                }
-                else{
-                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
-                }
-                if(Mouse.getPos().y <= dragLimit.y){
-                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
-                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
-                }
-                else{
-                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
-                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
-                }
+                SelectedCamera->relativePos = Mouse.getPos() - dragStartingPos;
             }
             else{
-                if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->pos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
-                }
-                else{
-                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->pos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
-                }
-                if(Mouse.getPos().y <= dragLimit.y){
-                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
-                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
-                }
-                else{
-                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
-                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
-                }
+                SelectedCamera->pos = Mouse.getPos() - dragStartingPos;
             }
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_N:
             if(Mouse.getPos().y <= dragLimit.y){
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
+                SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
                 if(SelectedCamera->isPinnedToCamera){
-                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+                    SelectedCamera->relativePos.set(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
                 }
                 else{
-                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
+                    SelectedCamera->pos.set(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
                 }
             }
             else{
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
+                SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
                 if(SelectedCamera->isPinnedToCamera){
-                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+                    SelectedCamera->relativePos.set(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
                 }
                 else{
-                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
+                    SelectedCamera->pos.set(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
                 }
                 
             }
@@ -5958,97 +5936,133 @@ void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
             break;
         case CAMERA_NE:
             if(Mouse.getPos().x <= dragLimit.x){
-                SelectedCamera->setSize(vec2d(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y));
+                SelectedCamera->setSize(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y);
             }
             else{
-                SelectedCamera->setSize(vec2d(dragLimit.x - dragStartingPos.x, SelectedCamera->size.y));
+                SelectedCamera->setSize(dragLimit.x - dragStartingPos.x, SelectedCamera->size.y);
             }
             if(SelectedCamera->isPinnedToCamera){
                 if(Mouse.getPos().y <= dragLimit.y){
-                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
-                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+                    SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
+                    SelectedCamera->relativePos.set(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
                 }
                 else{
-                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
-                    SelectedCamera->relativePos = vec2d(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+                    SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
+                    SelectedCamera->relativePos.set(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
                 }
             }
             else{
                 if(Mouse.getPos().y <= dragLimit.y){
-                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y));
-                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
+                    SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
+                    SelectedCamera->pos.set(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
                 }
                 else{
-                    SelectedCamera->setSize(vec2d(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y));
-                    SelectedCamera->pos = vec2d(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
+                    SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
+                    SelectedCamera->pos.set(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
                 }
             }
-            
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_E:
-            SelectedCamera->setSize(vec2d(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y));
+            SelectedCamera->setSize(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y);
             break;
         case CAMERA_SE:
-            SelectedCamera->setSize(vec2d(Mouse.getPos().x - dragStartingPos.x, Mouse.getPos().y - dragStartingPos.y));
+            SelectedCamera->setSize(Mouse.getPos().x - dragStartingPos.x, Mouse.getPos().y - dragStartingPos.y);
             break;
         case CAMERA_S:
-            SelectedCamera->setSize(vec2d(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y));
+            SelectedCamera->setSize(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y);
             break;
         case CAMERA_SW:
             if(SelectedCamera->isPinnedToCamera){
                 if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->relativePos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
                 }
                 else{
-                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->relativePos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
                 }
             }
             else{
                 if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->pos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
+                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->pos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
                 }
                 else{
-                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->pos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
+                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->pos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
                 }
             }
-            
             if(Mouse.getPos().y <= dragLimit.y){
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y));
+                SelectedCamera->setSize(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y);
             }
             else{
-                SelectedCamera->setSize(vec2d(SelectedCamera->size.x, dragLimit.y - dragStartingPos.y));
+                SelectedCamera->setSize(SelectedCamera->size.x, dragLimit.y - dragStartingPos.y);
             }
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_W:
             if(SelectedCamera->isPinnedToCamera){
                 if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->relativePos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->relativePos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
                 }
                 else{
-                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->relativePos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->relativePos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
                 }
                 adjustPositionOfAllCameras(Cameras);
             }
             else{
                 if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(vec2d(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->pos = vec2d(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
+                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->pos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
                 }
                 else{
-                    SelectedCamera->setSize(vec2d(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y));
-                    SelectedCamera->pos = vec2d(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
+                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->pos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
                 }
                 adjustPositionOfAllCameras(Cameras);
             }
-            
+            break;
+        case CAMERA_NW:
+            if(SelectedCamera->isPinnedToCamera){
+                if(Mouse.getPos().x <= dragLimit.x){
+                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->relativePos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                }
+                else{
+                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->relativePos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
+                }
+                if(Mouse.getPos().y <= dragLimit.y){
+                    SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
+                    SelectedCamera->relativePos.set(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
+                }
+                else{
+                    SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
+                    SelectedCamera->relativePos.set(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
+                }
+            }
+            else{
+                if(Mouse.getPos().x <= dragLimit.x){
+                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->pos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
+                }
+                else{
+                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
+                    SelectedCamera->pos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
+                }
+                if(Mouse.getPos().y <= dragLimit.y){
+                    SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
+                    SelectedCamera->pos.set(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
+                }
+                else{
+                    SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
+                    SelectedCamera->pos.set(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
+                }
+            }
+            adjustPositionOfAllCameras(Cameras);
             break;
         default:
             al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
@@ -6229,75 +6243,76 @@ void EngineLoop::changeCursor(){
         return;
     }
     al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
         return;
     }
-    if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
+    if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_N);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NE);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_E);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SE);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_S);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SW);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_W);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NW);
     }
 }
 void EngineLoop::detectStartPosOfDraggingCamera(){
     activeCameraMoveType = NONE;
-    if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+    if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
         return;
     }
     
-    if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), 0, false)){
+    
+    if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_N);
         activeCameraMoveType = CAMERA_N;
         wasMousePressedInSelectedObject = false;
-        dragStartingPos.set(Mouse.getPos().x, Mouse.getPos().y+SelectedCamera->size.y);
-        dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
-        dragLimit.set(Mouse.getPos().x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
+        dragStartingPos.set(Mouse.getPos().x + SelectedCamera->size.x, Mouse.getPos().y + SelectedCamera->size.y);
+        dragStartingPos2.set(Mouse.getPos() - SelectedCamera->pos);
+        dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), 0, false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NE);
         activeCameraMoveType = CAMERA_NE;
         wasMousePressedInSelectedObject = false;
-        dragStartingPos.set(Mouse.getPos().x-SelectedCamera->size.x, Mouse.getPos().y+SelectedCamera->size.y);
+        dragStartingPos.set(Mouse.getPos().x - SelectedCamera->size.x, Mouse.getPos().y + SelectedCamera->size.y);
         dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
         dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), 0, false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_E);
         activeCameraMoveType = CAMERA_E;
         wasMousePressedInSelectedObject = false;
-        dragStartingPos.set(Mouse.getPos().x-SelectedCamera->size.x, Mouse.getPos().y);
+        dragStartingPos.set(Mouse.getPos().x - SelectedCamera->size.x, Mouse.getPos().y);
     }
-    else if(Mouse.pressedInRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), 0, false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SE);
         activeCameraMoveType = CAMERA_SE;
         wasMousePressedInSelectedObject = false;
-        dragStartingPos.set(Mouse.getPos().x-SelectedCamera->size.x, Mouse.getPos().y-SelectedCamera->size.y);
+        dragStartingPos.set(Mouse.getPos().x - SelectedCamera->size.x, Mouse.getPos().y - SelectedCamera->size.y);
     }
-    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), 0, false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_S);
         activeCameraMoveType = CAMERA_S;
         wasMousePressedInSelectedObject = false;
         dragStartingPos.set(Mouse.getPos().x, Mouse.getPos().y-SelectedCamera->size.y);
     }
-    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), 0, false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SW);
         activeCameraMoveType = CAMERA_SW;
         wasMousePressedInSelectedObject = false;
@@ -6305,15 +6320,15 @@ void EngineLoop::detectStartPosOfDraggingCamera(){
         dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
         dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.pressedInRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), 0, false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_W);
         activeCameraMoveType = CAMERA_W;
         wasMousePressedInSelectedObject = false;
-        dragStartingPos.set(Mouse.getPos().x + SelectedCamera->size.x, Mouse.getPos().y);
+        dragStartingPos.set(Mouse.getPos().x + SelectedCamera->size.x, Mouse.getPos().y + SelectedCamera->size.y);
         dragStartingPos2.set(Mouse.getPos() - SelectedCamera->pos);
-        dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y);
+        dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.pressedInRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), 0, false)){
+    else if(Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NW);
         activeCameraMoveType = CAMERA_NW;
         wasMousePressedInSelectedObject = false;
@@ -6321,9 +6336,7 @@ void EngineLoop::detectStartPosOfDraggingCamera(){
         dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
         dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(SelectedCamera->canInteractWithMouse
-        && Mouse.pressedInRectangle(SelectedCamera->pos + SelectedCamera->grabbingAreaPos, SelectedCamera->grabbingAreaSize, 0, false)
-    ){
+    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->grabbingAreaPos, SelectedCamera->grabbingAreaSize, true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_MOVE);
         activeCameraMoveType = CAMERA_FULL;
         wasMousePressedInSelectedObject = false;
@@ -6967,7 +6980,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                         }
                     }
                     if(TextField.getEditingIsActive() == true){
-                        Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs);
+                        Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs, EXE_PATH);
                     }
                     TextField.setEditingIsActive(false);
                     if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
@@ -6996,7 +7009,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                             TextField.editText(releasedKeys, pressedKeys);
 
                             if(TextField.getUpdateConnectedVariable() == true){
-                                Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs);
+                                Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs, EXE_PATH);
                                 TextField.setUpdateConnectedVariable(false);
 
                                 if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
@@ -7194,6 +7207,7 @@ void removeListsInEditorWindow(AncestorObject * EditorWindow){
     }
 }
 
+/*
 void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector<string> &listOfIDs, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer){
     int SCREEN_W = 1600, SCREEN_H = 900;
     EditorWindowArrangement Arr;
@@ -7296,6 +7310,7 @@ void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vect
 
     std::cout << "Editor Window:\n-Text: " << EditorWindow->TextContainer.size() << "\n-Image: " << EditorWindow->ImageContainer.size() << "\n-Editable: " << EditorWindow->EditableTextContainer.size() << "\n-Events: " << EditorWindow->EventsContainer.size() << "\n";
 }
+
 void prepareEditorWindowGeneral(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
     unsigned int labelIndex = EditorWindow->TextContainer.size();
     unsigned int attrIndex = EditorWindow->EditableTextContainer.size();
@@ -7533,7 +7548,7 @@ void EngineLoop::prepareEditorWindowObjectsList(int categoryIndex, AncestorObjec
         EditorWindow->EditableTextContainer[attrIndex].setConnectedObject("", "ancestor", "", "id");
         EditorWindow->TextContainer[labelIndex+1].addNewContentAndResize("Position X:", FontContainer);
         EditorWindow->EditableTextContainer[attrIndex+1].setConnectedObject("", "ancestor", "", "position_x");
-        /*EditorWindow->TextContainer[labelIndex+2].addNewContentAndResize("Position Y:", FontContainer);
+        EditorWindow->TextContainer[labelIndex+2].addNewContentAndResize("Position Y:", FontContainer);
         EditorWindow->EditableTextContainer[attrIndex+2].setConnectedObject("", "ancestor", "", "position_y");
         EditorWindow->TextContainer[labelIndex+3].addNewContentAndResize("Size X:", FontContainer);
         EditorWindow->EditableTextContainer[attrIndex+3].setConnectedObject("", "ancestor", "", "size_x");
@@ -7542,9 +7557,10 @@ void EngineLoop::prepareEditorWindowObjectsList(int categoryIndex, AncestorObjec
         EditorWindow->TextContainer[labelIndex+5].addNewContentAndResize("Scaled from center:", FontContainer);
         EditorWindow->EditableTextContainer[attrIndex+5].setConnectedObject("", "ancestor", "", "is_scaled_from_center");
         EditorWindow->TextContainer[labelIndex+6].addNewContentAndResize("Attached to camera:", FontContainer);
-        EditorWindow->EditableTextContainer[attrIndex+6].setConnectedObject("", "ancestor", "", "is_attached_to_camera");*/
+        EditorWindow->EditableTextContainer[attrIndex+6].setConnectedObject("", "ancestor", "", "is_attached_to_camera");
     }
-}
+}*/
+/*
 void EngineLoop::prepareEditorWindowImage(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
     prepareEditorWindowObjectsList(2, EditorWindow, FontContainer, BitmapContainer, Arr);
 }
@@ -7569,6 +7585,7 @@ void EngineLoop::prepareEditorWindowVariables(AncestorObject * EditorWindow, vec
 void EngineLoop::prepareEditorWindowEditable(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
     prepareEditorWindowObjectsList(9, EditorWindow, FontContainer, BitmapContainer, Arr);
 }
+*/
 
 AncestorObject *AncestorIndex::object(vector<LayerClass> &Layers){
     if(Layers.size() <= layerIndex){

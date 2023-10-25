@@ -247,7 +247,7 @@ private:
     vec2d dragCameraStaringPos;
     vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
-    bool firstIteration, closeProgram, displayResized;
+    bool firstIteration, rebooted, closeProgram, displayResized;
 
     string windowTitle;
     int windowW;

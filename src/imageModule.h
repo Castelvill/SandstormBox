@@ -15,10 +15,10 @@ float cx, float cy, float dx, float dy, float xscale, float yscale, float angle,
 
 class SingleBitmap{
 public:
-    string ID;
+    string filePath, alias;
     ALLEGRO_BITMAP * bitmap;
-    SingleBitmap(unsigned int bitmapID);
-    void loadBitmap(string newID, string filePath, string EXE_PATH);
+    SingleBitmap();
+    void loadBitmap(string newAlias, string newFilePath, string EXE_PATH);
 };
 
 class ImageModule: public PrimaryModule {
@@ -30,6 +30,8 @@ private:
     ALLEGRO_BITMAP * image;
     ALLEGRO_BITMAP * lightBitmap;
     bool isBitmapFromContainer[2];
+    string imageFilePath, imageAlias;
+    string lightFilePath, lightAlias;
     double rotateAngle;
     bool mirrorX, mirrorY;
     float imageColor[4];
@@ -42,15 +44,15 @@ public:
 
     void setUpNewInstance();
     ImageModule();
-    ImageModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    ImageModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ImageModule(string newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ImageModule(unsigned int newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
-    void loadImage(string newID, string filePath);
-    void connectBitmap(vector <SingleBitmap> & BitmapContainer, string bitmapName);
-    void loadLight(string filePath);
-    void connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string bitmapName);
-    void checkImage(ALLEGRO_DISPLAY * window);
+    void loadImage(string newFilePath, string newAlias, string EXE_PATH);
+    void connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newAlias, string EXE_PATH);
+    void loadLight(string newFilePath, string newAlias, string EXE_PATH);
+    void connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newAlias, string EXE_PATH);
+    void checkImage(ALLEGRO_DISPLAY * window, string EXE_PATH);
     void drawImage(vec2d base, Camera2D Camera, bool outSourcing);
     void drawFrame(vec2d base);
     void setRotPos(vec2d newRotPos);
@@ -75,7 +77,7 @@ public:
     void setLightColor(vec3d newLightColor, float newLightLevel);
     void setLightColor(float newLightColor, char whichLight);
     void setUsedBitmapLayer(int newLayer);
-    void changeParameters(string newID, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors);
+    void changeParameters(string newAlias, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors);
     void modifyFrames(vec2d newFrameSize);
     void chooseFrames(vec2i newCurrentFrame);
     void clear();

@@ -489,6 +489,10 @@ void MovementModule::addMomentum(vec2d newMomentum){
     momentum.x += newMomentum.x;
     momentum.y += newMomentum.y;
 }
+void MovementModule::addMomentum(double x, double y){
+    momentum.x += x;
+    momentum.y += y;
+}
 void MovementModule::clearStates(){
     isMovingUp = false;
     isMovingRight = false;
@@ -524,7 +528,7 @@ void MovementModule::translateMouseToVector(bool pressedMouse[5], bool releasedM
         directionOfMove.set(0.0, 0.0);
         destination.set(0.0, 0.0);
     }
-    else if(!directionOfMove.isEqual(vec2d(0.0, 0.0))){
+    else if(!directionOfMove.isEqual(0.0, 0.0)){
         directionOfMove.set(objectPos.x, objectPos.y, destination.x, destination.y);
         directionOfMove.normalize();
     }

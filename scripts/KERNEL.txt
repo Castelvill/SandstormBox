@@ -1,6 +1,19 @@
+/*start print_test false
+triggers [on_boot]
+env print_instructions 1
+int [2] 2
++ 2 2
+reboot
+end*/
+
 start init false
 triggers [on_boot]
 if ([on_boot])
+
+env print_instructions 1
+env draw_hitboxes 0
+env print_logical_evaluations 0
+env draw_camera_borders 1
 
 load_bitmap "images/amongus1.png" amongus_1
 load_bitmap "images/amongus2.png" amongus_2
@@ -43,11 +56,6 @@ load_bitmap "gui/minus_h3.png" minus_1
 load_bitmap "gui/thumb_h3.png" thumb_1
 load_bitmap "gui/thumb_track_h3.png" thumb_track_1
 
-env draw_hitboxes 0
-env print_instructions 0
-env print_logical_evaluations 0
-env draw_camera_borders 1
-
 mkdir "projects"
 mkdir "projects/test"
 //rename "projects/test" "projects/kaczki"
@@ -55,7 +63,7 @@ mkdir "projects/test"
 
 index layer [0 0] _ object Arch
 new image c Arch 1 _ _ archImg
-fun archImg connect_bitmap string [i_use_arch_btw]
+fun archImg connect_bitmap_via_alias string [i_use_arch_btw]
 fun archImg attach_to_camera
 value ([window_w]) ww
 value ([window_h]) wh
@@ -81,12 +89,12 @@ fun NewAmo set_id string [Amongus]
 fun NewAmo set_position double [100, 400]
 new image l L1 Amongus 1 _ _ redAstronaut
 fun redAstronaut set_id string [amongus]
-fun redAstronaut connect_bitmap string [minion_1]
+fun redAstronaut connect_bitmap_via_alias string [minion_1]
 fun redAstronaut select_layer int [1]
 fun redAstronaut set_scale double [0.7 0.7]
 new image l L1 Amongus 1 _ _ insanity
 fun insanity set_id string [insanity]
-fun insanity connect_bitmap string [insanity1]
+fun insanity connect_bitmap_via_alias string [insanity1]
 fun insanity set_position double [100 300]
 fun insanity select_layer int [2]
 fun insanity set_scale double [0.1 0.1]
@@ -119,11 +127,11 @@ fun ObjPar set_id string [ObjPar]
 fun ObjPar set_position double [600, 500]
 new image c ObjPar 1 _ _ steveImg
 fun steveImg set_id string [lel]
-fun steveImg connect_bitmap string [steve]
+fun steveImg connect_bitmap_via_alias string [steve]
 fun steveImg select_layer int [1]
 new image c ObjPar 1 _ _ insaneImg
 fun insaneImg set_id string [insane]
-fun insaneImg connect_bitmap string [insanity1]
+fun insaneImg connect_bitmap_via_alias string [insanity1]
 fun insaneImg select_layer int [2]
 fun insaneImg set_scale double [0.1 0.1]
 fun insaneImg deactivate
@@ -159,7 +167,7 @@ fun Particles add_image string [insane]
 
 
 new camera l 1 _ _ cam
-fun cam set_position int [100 100]
+//fun cam set_position int [100 100]
 fun cam set_id string [Desktop]
 fun cam set_active bool [true]
 fun cam resize c ww c wh//[1360 768][1920 1080]
@@ -179,7 +187,9 @@ fun cam add_accessible_layer string [L1]
 fun cam add_accessible_layer string [L2]
 fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders bool [true]
-fun cam set_can_interact_with_mouse bool [true]
+fun cam set_can_interact_with_mouse bool [false]
+fun cam set_can_move_with_mouse bool [0]
+fun cam set_can_zoom_with_mouse bool [0]
 
 new camera l 1 _ _ cam
 fun cam set_relative_position int [100 100]
@@ -329,7 +339,7 @@ fun newCobble add_group string [hello]
 += pos_y const2
 fun newCobble set_position context pos_x context pos_y
 new image c newCobble 1 _ _ cobbleImage
-fun cobbleImage connect_bitmap string [cobblestone]
+fun cobbleImage connect_bitmap_via_alias string [cobblestone]
 fun cobbleImage set_scale double [0.5 0.5]
 new collision c newCobble 1 _ _ coll
 fun coll set_size int [200 200]
@@ -346,7 +356,7 @@ if ([context cat_i] [context catsNum] <)
 new object l L1 1 _ _ newCat
 fun newCat set_position int [800 300]
 new image c newCat 1 _ _ newImage
-fun newImage connect_bitmap string [steve]
+fun newImage connect_bitmap_via_alias string [steve]
 fun newImage resize int [130 130]
 new collision c newCat 1 _ _ coll
 fun coll set_size int [130 130]

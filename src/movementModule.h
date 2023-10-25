@@ -80,6 +80,7 @@ public:
     void changeVectorMoveParameters(short newMouseButton, bool newMoveOnMouseRelease, bool newResetDirectionAfterCollision);
     void setNextMove(bool up, bool right, bool down, bool left, bool jump, bool fall, bool run);
     void addMomentum(vec2d newMomentum);
+    void addMomentum(double x, double y);
     void updateMomentum(vec2d objectPos);
     void stopMovementAfterCollision(short collisionType);
     void updateMomentumAfterCollisionBetter(vec2d pos, vector <CollisionModule> movingCollisions);

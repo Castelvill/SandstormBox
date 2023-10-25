@@ -353,7 +353,7 @@ void ParticleEffectModule::drawParticles(vector <ImageModule> ImageContainer, ve
             }
 
             LastImage->setRotation(Particle.shapeRotation);
-            LastImage->resize(vec2d(Particle.radius*2, Particle.radius*2));
+            LastImage->resize(Particle.radius*2, Particle.radius*2);
             LastImage->setImageColor(vec4d(
                 (Particle.particleColor[0] * Particle.colorIntensity) / 255.0,
                 (Particle.particleColor[1] * Particle.colorIntensity) / 255.0,
@@ -428,8 +428,14 @@ void ParticleEffectModule::changeMotionParameters(double newMinBasicSpeed, doubl
 void ParticleEffectModule::setEnvironment(vec2d newEnvironment){
     environment.set(newEnvironment);
 }
+void ParticleEffectModule::setEnvironment(double x, double y){
+    environment.set(x, y);
+}
 void ParticleEffectModule::setEnvironmentSpeed(vec2d newEnvironmentSpeed){
     environmentSpeed.set(newEnvironmentSpeed);
+}
+void ParticleEffectModule::setEnvironmentSpeed(double x, double y){
+    environmentSpeed.set(x, y);
 }
 void ParticleEffectModule::setUsedBitmapLayer(int newLayer){
     usedBitmapLayer = newLayer;

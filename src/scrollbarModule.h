@@ -32,6 +32,7 @@ public:
     void setScrollingArea(vec2d newValue);
     void setRealScrollingArea(vec2d newValue);
     void addRealScrollingArea(vec2d newValue);
+    void addRealScrollingArea(double x, double y);
     void setDragStaringPos(vec2d newValue);
     void setMousePressed(bool newValue);
     void setThumbImageID(string newValue);

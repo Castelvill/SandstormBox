@@ -124,7 +124,7 @@ public:
     bool tryUpdatingID(vector <string> & listOfIDs, string & currentID, string newID);
     bool controlAncestor(PrimaryModule & Primary, vector <string> & listOfAncestorIDs);
     bool controlText(TextModule & Text, vector <string> & listOfIDs);
-    bool controlImage(ImageModule & Image, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfIDs);
+    bool controlImage(ImageModule & Image, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfIDs, string EXE_PATH);
     bool controlMovement(MovementModule & Movement, vector <string> & listOfIDs);
     bool controlCollision(CollisionModule & Collision, vector <string> & listOfIDs);
     bool controlParticles(ParticleEffectModule & Particles, vector <string> & listOfIDs);

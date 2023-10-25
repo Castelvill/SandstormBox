@@ -182,6 +182,9 @@ void ScrollbarModule::setRealScrollingArea(vec2d newValue){
 void ScrollbarModule::addRealScrollingArea(vec2d newValue){
     realScrollingArea.translate(newValue);
 }
+void ScrollbarModule::addRealScrollingArea(double x, double y){
+    realScrollingArea.translate(x, y);
+}
 void ScrollbarModule::setDragStaringPos(vec2d newValue){
     dragStartingPos = newValue;
 }
