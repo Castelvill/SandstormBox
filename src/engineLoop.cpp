@@ -5873,12 +5873,12 @@ void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
 void EngineLoop::adjustPositionOfAllCameras(vector <Camera2D> & Cameras){
     if(SelectedCamera->isPinnedToCamera){
         SelectedCamera->pos = SelectedCamera->relativePos;
-        for(Camera2D & Camera : Cameras){
+        /*for(Camera2D & Camera : Cameras){
             if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
                 SelectedCamera->relativePos -= Camera.pos;
                 break;
             }
-        }
+        }*/
     }
     
     updateTreeOfCamerasFromSelectedRoot(Cameras, SelectedCamera);
