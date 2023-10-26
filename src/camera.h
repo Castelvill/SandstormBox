@@ -31,6 +31,10 @@ public:
     bool canZoomWithMouse;
     bool canInteractWithMouse;
     bool allowsDrawingBorders;
+    bool canDrawOnCamera;
+    bool canClearBitmap;
+    bool drawOneFrame;
+    bool clearBitmap;
 
     vec2d grabbingAreaPos, grabbingAreaSize;
 

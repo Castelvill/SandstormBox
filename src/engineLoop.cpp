@@ -102,6 +102,7 @@ EngineLoop::EngineLoop(std::string title){
     fullscreen = false;
     printOutLogicalEvaluations = false;
     printOutInstructions = false;
+    printOutStackAutomatically = false;
     reservationMultiplier = 1.5;
 
     if(reservationMultiplier < 1.0){
@@ -264,6 +265,12 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     do {
         al_wait_for_event(eventQueue , &event);
         switch(event.type){
+            case ALLEGRO_EVENT_DISPLAY_RESIZE:
+                al_acknowledge_resize(window);
+                windowW = al_get_display_width(window);
+                windowH = al_get_display_height(window);
+                displayResized = true;
+                break;
             case ALLEGRO_EVENT_TIMER:
                 //Keyboard input is gathered here
                 releasedKeys.clear();
@@ -293,6 +300,8 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                     rebooted = false;
                     firstIteration = true;
                 }
+
+                displayResized = false;
 
                 //END EVENT CONTROL SECTION
 
@@ -357,12 +366,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                 closeProgram = true;
                 break;
-            case ALLEGRO_EVENT_DISPLAY_RESIZE:
-                al_acknowledge_resize(window);
-                windowW = al_get_display_width(window);
-                windowH = al_get_display_height(window);
-                displayResized = true;
-                break;
         }
 
         if(Mouse.isPressed() || releasedKeys.size() != 0 || pressedKeys.size() != 0){
@@ -393,7 +396,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
         //al_set_target_bitmap(al_get_backbuffer(window));
         
-        drawObjects(Layers, Cameras, FontContainer);
+        drawEverything(Layers, Cameras, FontContainer);
 
         //al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
 
@@ -575,7 +578,6 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
                 TriggeredObjects.push_back(&(*tempObject));
             }
         }
-        displayResized = false;
     }
     
     for(AncestorIndex & Index : BaseOfTriggerableObjects.MovementTriggered){
@@ -4011,9 +4013,16 @@ bool findObjectForFunction(AncestorObject *& ModuleObject, vector<LayerClass> &L
     return true;
 }
 void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext, vector<Camera2D> &Cameras){
+    unsigned cameraIndex = 0;
     for(Camera2D * Camera : CamerasFromContext){
         if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
             Camera->setID(Variables[0].getStringUnsafe(), camerasIDs);
+        }
+        else if(Operation.Location.attribute == "draw_one_frame" && Variables.size() > 0){
+            Camera->drawOneFrame = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "clear_bitmap" && Variables.size() > 0){
+            Camera->clearBitmap = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "set_active" && Variables.size() > 0){
             Camera->setIsActive(Variables[0].getBoolUnsafe());
@@ -4160,7 +4169,7 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
             Camera->allowsDrawingBorders = Variables[0].getIntUnsafe();
         }
         else if(Operation.Location.attribute == "minimize"){
-            unsigned cameraIndex = 0;
+            Camera->deactivate();
             for(;cameraIndex < Cameras.size(); cameraIndex++){
                 if(Cameras[cameraIndex].getID() == Camera->getID()){
                     break;
@@ -4175,7 +4184,7 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
             }
         }
         else if(Operation.Location.attribute == "bring_forward"){
-            unsigned cameraIndex = 0;
+            Camera->activate();
             for(;cameraIndex < Cameras.size(); cameraIndex++){
                 if(Cameras[cameraIndex].getID() == Camera->getID()){
                     break;
@@ -4194,13 +4203,19 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
         else if(Operation.Location.attribute == "set_grabbing_area_size" && Variables.size() > 1){
             Camera->setGrabbingAreaSize(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
         }
+        else if(Operation.Location.attribute == "set_can_draw_on_camera" && Variables.size() > 0){
+            Camera->canDrawOnCamera = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_can_clear_bitmap" && Variables.size() > 0){
+            Camera->canClearBitmap = Variables[0].getBoolUnsafe();
+        }
         else{
             std::cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
     }
 
     if(Operation.Location.attribute == "pin_to_camera"){
-        updateAllForestOfCameras(Cameras);
+        updateWholeForestOfCameras(Cameras);
     }
 }
 void EngineLoop::executeFunctionForLayers(OperaClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers){
@@ -4299,7 +4314,7 @@ void EngineLoop::executeFunction(OperaClass & Operation, vector<PointerContainer
     vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
 ){
     if(Operation.dynamicIDs.size() == 0){
-        std::cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
+        std::cout << "Error: In " << __FUNCTION__ << ": Function requires at least one context.\n";
         return;
     }
 
@@ -4583,8 +4598,11 @@ void EngineLoop::changeEngineVariables(OperaClass & Operation){
     else if(Operation.Literals[0].getString() == "print_instructions"){
         printOutInstructions = Operation.Literals[1].getBool(); 
     }
+    else if(Operation.Literals[0].getString() == "auto_print_stack"){
+        printOutStackAutomatically = Operation.Literals[1].getBool(); 
+    }
     else if(Operation.Literals[0].getString() == "reservation_multiplier"){
-        printOutInstructions = Operation.Literals[1].getDouble(); 
+        reservationMultiplier = Operation.Literals[1].getDouble(); 
     }
     else{
         std::cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
@@ -4676,6 +4694,54 @@ void EngineLoop::renameFileOrDirectory(OperaClass & Operation){
         std::cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
     }
 }
+void EngineLoop::executePrint(OperaClass & Operation, vector<PointerContainer> & EventContext){
+    string delimeter = "";
+
+    if(Operation.Literals.size() > 0){
+        delimeter = Operation.Literals[0].getStringUnsafe();
+    }
+
+    if(printOutInstructions){
+        std::cout << "print ";
+        if(delimeter != ""){
+            std::cout << "delimeter=\'" << delimeter << "\' ";
+        }
+        if(Operation.Literals.size() > 1){
+            std::cout << "literals_c=\'" << Operation.Literals.size()-1 << "\' ";
+        }
+        if(Operation.dynamicIDs.size() > 0){
+            std::cout << "literals_c=\'" << Operation.dynamicIDs.size() << "\' ";
+        }
+        std::cout << "\n";
+    }
+    
+    for(const VariableModule & Variable : Operation.Literals){
+        std::cout << Variable.getStringUnsafe() << delimeter;
+    }
+
+    PointerContainer * ContextValues = nullptr;
+
+    for(string contextID : Operation.dynamicIDs){
+        ContextValues = getContextByID(EventContext, contextID, true);
+        if(ContextValues == nullptr){
+            std::cout << "Error: In " << __FUNCTION__ << ": There is no context with id: \'" << contextID << "\'.\n";
+            continue;
+        }
+        if(ContextValues->type == "value"){
+            for(const VariableModule & Variable : ContextValues->Variables){
+                std::cout << Variable.getStringUnsafe() << delimeter;
+            }
+        }
+        else if(ContextValues->type == "pointer"){
+            for(const BasePointersStruct & Pointer : ContextValues->BasePointers){
+                std::cout << Pointer.getString() << delimeter;
+            }
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": Second context must be of type: pointer or value.\n";
+        }
+    }
+}
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,
@@ -4683,7 +4749,9 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
 ){
     for(OperaClass & Operation : Operations){
         if(isStringInGroup(Operation.instruction, 5, "continue", "break", "return", "reboot", "power_off")){
-            std::cout << Operation.instruction << "\n";
+            if(printOutInstructions){
+                std::cout << Operation.instruction << "\n";
+            }
             return Operation;
         }
         //Aggregate entities and push them on the Variables Stack.
@@ -4771,9 +4839,9 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             renameFileOrDirectory(Operation);
         }
         else if(Operation.instruction == "print"){
-
+            executePrint(Operation, EventContext);
         }
-        if(printOutInstructions){
+        if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";
             for(auto context : EventContext){
                 buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
@@ -5863,7 +5931,7 @@ void EngineLoop::updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras
                 somethingChanged = true;
                 tokensOfChanges[i] = 2;
                 for(j = 0; j < Cameras.size(); j++){
-                    if(!Cameras[j].isActive || i == j || tokensOfChanges[j] > 0){
+                    if(i == j || tokensOfChanges[j] > 0){
                         continue;
                     }
                     if(Cameras[j].isPinnedToCamera && Cameras[j].pinnedCameraID == Cameras[i].ID){
@@ -5875,10 +5943,10 @@ void EngineLoop::updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras
         }
     }while(somethingChanged);
 }
-void EngineLoop::updateAllForestOfCameras(vector <Camera2D> & Cameras){
+void EngineLoop::updateWholeForestOfCameras(vector <Camera2D> & Cameras){
     //Find all roots of Cameras' graph forest and update each tree.
     for(Camera2D & Camera : Cameras){
-        if((Camera.isActive && !Camera.isPinnedToCamera) || (Camera.isPinnedToCamera && Camera.pinnedCameraID == "")){
+        if((!Camera.isPinnedToCamera) || (Camera.isPinnedToCamera && Camera.pinnedCameraID == "")){
             updateTreeOfCamerasFromSelectedRoot(Cameras, &Camera);
         }
     }
@@ -5887,7 +5955,7 @@ void EngineLoop::adjustPositionOfAllCameras(vector <Camera2D> & Cameras){
     if(SelectedCamera->isPinnedToCamera){
         SelectedCamera->pos = SelectedCamera->relativePos;
         for(Camera2D & Camera : Cameras){
-            if(Camera.isActive && SelectedCamera->pinnedCameraID == Camera.ID){
+            if(SelectedCamera->pinnedCameraID == Camera.ID){
                 SelectedCamera->relativePos -= Camera.pos;
                 break;
             }
@@ -6146,6 +6214,8 @@ void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
         SelectedCamera = &Cameras[camerasOrder[0]];
         auto it = camerasOrder.begin();
         std::rotate(it, it + 1, camerasOrder.end());
+
+        SelectedCamera->activate();
 
         int i = camerasOrder.size() - 1;
             
@@ -6682,7 +6752,7 @@ void EngineLoop::triggerEvents(vector <LayerClass> & Layers, short eventsType){
         }
     }
 }
-void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer){
+void EngineLoop::drawEverything(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer){
     int numberOfDrawnObjects;
     unsigned int i;
     int currentlyDrawnLayer;
@@ -6694,11 +6764,14 @@ void EngineLoop::drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & C
             continue;
         }
         Camera = &Cameras[cameraIndex];
-        if(!Camera->getIsActive()){
+        if(!Camera->getIsActive() || (!Camera->canDrawOnCamera && !Camera->drawOneFrame)){
             continue;
         }
+        Camera->drawOneFrame = false;
         al_set_target_bitmap(Camera->bitmapBuffer);
-        al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
+        if(Camera->canClearBitmap || Camera->clearBitmap){
+            al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
+        }
         for(LayerClass & Layer : Layers){
             if(!Layer.getIsActive() || !Camera->isLayerVisible(Layer.getID())){
                 continue;

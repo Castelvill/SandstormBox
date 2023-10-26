@@ -585,8 +585,29 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
     return NewValue;
 }
 
+string preprocessString(string input){
+    //Merge string parts into special characters.
+    string output = "";
+    for(unsigned i = 0; i < input.size(); i++){
+        if(input[i] == '\\' && i + 1 < input.size()){
+            if(input[i + 1] == 'n'){
+                output += '\n';
+                i++;
+                continue;
+            }
+            else if(input[i + 1] == 't'){
+                output += '\t';
+                i++;
+                continue;
+            }
+        }
+        output += input[i];
+    }
+
+    return output;
+}
 vector <string> changeCodeIntoWords(string input){
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"|!=|!|\\|\\||&&", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
@@ -600,7 +621,42 @@ vector <string> changeCodeIntoWords(string input){
             output.push_back(match_str);
         }
     }
-    return output;
+
+    vector<string> stringSectors;
+    bool isInsideStringSector = false;
+    for(char chara : input){
+        if(chara == '\"'){
+            if(!isInsideStringSector){
+                stringSectors.push_back("");
+            }
+            isInsideStringSector = !isInsideStringSector;
+            continue;
+        }
+        if(isInsideStringSector){
+            stringSectors.back() += chara;
+        }
+    }
+
+    vector <string> mergedOutput;
+    isInsideStringSector = false;
+    unsigned sector = 0;
+    for(unsigned i = 0; i < output.size(); i++){
+        if(output[i][0] == '\"' && !isInsideStringSector){
+            isInsideStringSector = true;
+            mergedOutput.push_back(stringSectors[sector]);
+            sector++;
+            continue;
+        }
+        if(isInsideStringSector){
+            if(output[i][0] == '\"'){
+                isInsideStringSector = false;
+            }
+            continue;
+        }
+        mergedOutput.push_back(output[i]);
+    }
+
+    return mergedOutput;
 }
 vector <string> mergeStrings(vector <string> code){
     vector <string> merged;
@@ -614,8 +670,20 @@ vector <string> mergeStrings(vector <string> code){
                 if(code[i][0] == '\"'){
                     break;
                 }
-                if(i > 0 && buffor.size() > 0 && code[i-1][0] != '\\'
-                    && code[i-1][0] != '/' && code[i][0] != '\\' && code[i][0] != '/'){
+                /*if(i > 0 && buffor.size() > 0 && code[i-1][0] != '\\' &&
+                    code[i-1][0] != '/' && code[i][0] != '\\' && code[i][0] != '/'
+                    && code[i][0] != ',' && code[i][0] != '.' && code[i-1].back() != '\n'
+                    && code[i-1].back() != '\t' &&  code[i-1].back() != '@' && code[i-1].back() != '%'
+                    && code[i-1].back() != '*' && code[i-1].back() != '-'  && code[i-1].back() != '+'
+                    && code[i-1].back() != ':' && code[i-1].back() != '='
+                    && code[i-1].back() != '#' && code[i-1].back() != '.'
+                ){
+                    buffor += " ";
+                }*/
+                if(i > 0 && buffor.size() > 0 && code[i-1][0] != '\\' &&
+                    code[i-1][0] != '/' && code[i][0] != '\\' && code[i][0] != '/'
+                    && code[i-1].back() != '\n' && code[i-1].back() != '\t'
+                ){
                     buffor += " ";
                 }
                 buffor += code[i];
@@ -992,11 +1060,33 @@ void AncestorObject::eventAssembler(vector<string> code){
     unsigned cursor = 0;
     OperaClass * Operation;
     bool postOperations = false;
+
+    bool stringSection = false;
+
+    vector<string> code2 = {""};
+
+    for(unsigned line = 0; line < code.size(); line++){
+        for(unsigned ch = 0; ch < code[line].size(); ch++){
+            if(code[line][ch] == '\"'){
+                stringSection = !stringSection;
+            }
+        }
+        code2.back() += code[line];
+        if(!stringSection){
+            code2.push_back("");
+        }
+        else{
+            code2.back() += '\n';
+        }
+    }
+
+    code = code2;
     
-    for(const string & line : code){
+    for(string line : code){
         words.clear();
+        line = preprocessString(line);
         words = changeCodeIntoWords(line);
-        words = mergeStrings(words);
+        //words = mergeStrings(words);
         if(words.size() == 0){
             continue;
         }
@@ -1418,6 +1508,32 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
             Operation->Literals.push_back(VariableModule::newString(words[1]));
             Operation->Literals.push_back(VariableModule::newString(words[2]));
+        }
+        else if(words[0] == "print"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2)){
+                return;
+            }
+            if(words[1] != "_"){
+                Operation->Literals.push_back(VariableModule::newString(words[1]));
+            }
+            else{
+                Operation->Literals.push_back(VariableModule::newString(""));
+            }
+            
+            cursor = 2;
+            while(words.size() > cursor + 1){
+                if(words[cursor] == "context" || words[cursor] == "c"){
+                    cursor++;
+                    Operation->dynamicIDs.push_back(words[cursor]);
+                    cursor++;
+                }
+                else{
+                    cursor++;
+                    if(!gatherLiterals(words, cursor, Operation->Literals, words[cursor - 1])){
+                        return;
+                    }
+                }
+            }
         }
         else{
             std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";

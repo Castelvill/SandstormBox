@@ -1,4 +1,5 @@
-print <type> <values> [delimiter] - print instruction will print out the list of values
+print <delimiter> [<literal_type> <values> ... ] [<contextID> ...] - print instruction will print out the list of values
 print context <contextIDs> [delimiter] -> print context [id1, id2, id3] ","
 print literal <values> [delimiter] -> print int [1 2 3] ","
 print literal <values> [delimiter] -> print string ["Hello world" "Hello python"] "!"
+

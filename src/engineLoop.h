@@ -263,6 +263,7 @@ private:
     int totalNumberOfBitmapLayers;
     bool printOutLogicalEvaluations;
     bool printOutInstructions;
+    bool printOutStackAutomatically;
     float reservationMultiplier;
 
     long timeToInterruptMovement;
@@ -357,6 +358,7 @@ public:
     void removeFileOrDirectory(OperaClass & Operation);
     void removeRecursivelyFileOrDirectory(OperaClass & Operation);
     void renameFileOrDirectory(OperaClass & Operation);
+    void executePrint(OperaClass & Operation, vector<PointerContainer> & EventContext);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,
@@ -375,7 +377,7 @@ public:
     void resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered);
     void triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer);
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
-    void updateAllForestOfCameras(vector <Camera2D> & Cameras);
+    void updateWholeForestOfCameras(vector <Camera2D> & Cameras);
     void adjustPositionOfAllCameras(vector <Camera2D> & Cameras);
     void updateCamerasPositions(vector <Camera2D> & Cameras);
     void bringCameraForward(unsigned index, Camera2D * ChosenCamera, vector <Camera2D> & Cameras);
@@ -386,7 +388,7 @@ public:
     void detectStartPosOfDraggingObjects();
     void changeCursor();
     void detectStartPosOfDraggingCamera();
-    void drawObjects(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer);
+    void drawEverything(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <SingleFont> & FontContainer);
     void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Cameras, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
                      vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground);
     void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, vec2d momentum);

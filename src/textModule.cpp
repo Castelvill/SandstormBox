@@ -161,20 +161,19 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         text = content[currentTextID];
     }
     else{
-        //text = "error";
         return;
     }
 
-    if(cursorPos > text.size()){
-        cursorPos = 0;
+    if(editingIsActive){
+        if(cursorPos > text.size()){
+            cursorPos = 0;
+        }
+        for(unsigned int letter = 0; letter < cursorPos; letter++){
+            temp.clear();
+            temp = text.substr(letter, 1);
+            cursorRealPos += al_get_text_width(font, temp.c_str());
+        }
     }
-
-    for(unsigned int letter = 0; letter < cursorPos; letter++){
-        temp.clear();
-        temp = text.substr(letter, 1);
-        cursorRealPos += al_get_text_width(font, temp.c_str());
-    }
-
 
     for(unsigned int letter = 0; letter < text.size(); letter++){
         temp.clear();
@@ -182,8 +181,9 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         if(temp == "\n"){ //enter handling
             currentLength = 0;
             currentHeight += al_get_font_line_height(font);
-            if(currentHeight + al_get_font_line_height(font) > size.y)
+            if(currentHeight + al_get_font_line_height(font) > size.y){
                 break;
+            }
             textLines.push_back(string());
             continue;
         }
@@ -207,17 +207,20 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                     break;
                 }
             }
-            if(success)
+            if(success){
                 continue;
+            }
         }
         if(currentLength + al_get_text_width(font, temp.c_str()) > size.x){ //cropping text according to its dimensions and wrapping text when possible
-            if(wrapped == 0)
+            if(wrapped == 0){
                 break;
+            }
             currentLength = 0;
             currentHeight += al_get_font_line_height(font);
             textLines.push_back(string());
-            if(currentHeight + al_get_font_line_height(font) > size.y)
+            if(currentHeight + al_get_font_line_height(font) > size.y){
                 break;
+            }
         }
         if(temp != " " || currentLength != 0){
             textLines[textLines.size()-1] = textLines[textLines.size()-1] + temp;
@@ -227,15 +230,22 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     }
     realHeight += al_get_font_line_height(font);
     int alignHeight = 0;
-    if(verticalAlign == 1)
+    if(verticalAlign == 1){
         alignHeight = size.y/2-realHeight/2;
-    else if(verticalAlign == 2)
+    }
+    else if(verticalAlign == 2){
         alignHeight = size.y-realHeight;
+    }
+        
 
-    if(visibility < 0.0)
+    if(visibility < 0.0){
         visibility = 0.0;
-    if(visibility > 1.0)
+    }
+        
+    if(visibility > 1.0){
         visibility = 1.0;
+    }
+        
 
     vec2d newScale(scale);
     vec2d finalPos(base);
@@ -259,40 +269,41 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     al_translate_transform(&t, finalPos.x, finalPos.y);
     al_use_transform(&t);
 
-    for(unsigned int i = 0; i < textLines.size(); i++){
-        if(horizontalAlign == 0){
-            al_draw_textf(font, al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility),
-                          finalPos.x, finalPos.y+alignHeight+i*al_get_font_line_height(font), 0, textLines[i].c_str());
-            if(editingIsActive)
-                al_draw_textf(font, al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility),
-                              finalPos.x+cursorRealPos, finalPos.y+alignHeight+i*al_get_font_line_height(font), 0, "|");
-        }
-        else if(horizontalAlign == 1){
-            al_draw_textf(font, al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility),
-                          finalPos.x+size.x/2, finalPos.y+alignHeight+i*al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, textLines[i].c_str());
-            if(editingIsActive)
-                al_draw_textf(font, al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility),
-                              finalPos.x+size.x/2+cursorRealPos, finalPos.y+alignHeight+i*al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, "|");
-        }
-        else if(horizontalAlign == 2){
-            al_draw_textf(font, al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility),
-                          finalPos.x+size.x, finalPos.y+alignHeight+i*al_get_font_line_height(font), ALLEGRO_ALIGN_RIGHT, textLines[i].c_str());
-            if(editingIsActive)
-                al_draw_textf(font, al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility),
-                          finalPos.x+size.x+cursorRealPos, finalPos.y+alignHeight+i*al_get_font_line_height(font), ALLEGRO_ALIGN_RIGHT, "|");
-        }
+    ALLEGRO_COLOR color = al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility);
 
+    if(horizontalAlign == 0){
+        for(unsigned int i = 0; i < textLines.size(); i++){
+            al_draw_text(font, color, finalPos.x, finalPos.y+alignHeight+i*al_get_font_line_height(font), 0, textLines[i].c_str());
+        }
+        if(editingIsActive){
+            al_draw_text(font, color, finalPos.x+cursorRealPos, finalPos.y+alignHeight+(textLines.size() - 1)*al_get_font_line_height(font), 0, "|");
+        }
+    }
+    else if(horizontalAlign == 1){
+        for(unsigned int i = 0; i < textLines.size(); i++){
+            al_draw_text(font, color, finalPos.x+size.x/2, finalPos.y+alignHeight+i*al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, textLines[i].c_str());
+        }
+        if(editingIsActive){
+            al_draw_text(font, color, finalPos.x+size.x/2+cursorRealPos, finalPos.y+alignHeight+(textLines.size() - 1)*al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, "|");
+        }
+    }
+    else if(horizontalAlign == 2){
+        for(unsigned int i = 0; i < textLines.size(); i++){
+            al_draw_text(font, color, finalPos.x+size.x, finalPos.y+alignHeight+i*al_get_font_line_height(font), ALLEGRO_ALIGN_RIGHT, textLines[i].c_str());
+        }
+        if(editingIsActive){
+            al_draw_text(font, color,finalPos.x+size.x+cursorRealPos, finalPos.y+alignHeight+(textLines.size() - 1)*al_get_font_line_height(font), ALLEGRO_ALIGN_RIGHT, "|");
+        }
     }
 
     if(drawBorders){
-        al_draw_rectangle(finalPos.x, finalPos.y, finalPos.x+size.x, finalPos.y+size.y, al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility), 1);
+        al_draw_rectangle(finalPos.x, finalPos.y, finalPos.x+size.x, finalPos.y+size.y, color, 1);
     }
 
     textLines.clear();
 
     al_identity_transform(&t);
     al_use_transform(&t);
-
 }
 void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
     if(!getIsActive()){
@@ -350,7 +361,7 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
                 return;
         }
 
-        al_draw_textf(font, al_map_rgb(textColor[0], textColor[1], textColor[2]), pos.x+currentLength, pos.y+currentHigh, 0, temp.c_str());
+        al_draw_text(font, al_map_rgb(textColor[0], textColor[1], textColor[2]), pos.x+currentLength, pos.y+currentHigh, 0, temp.c_str());
         currentLength += al_get_text_width(font, temp.c_str());
     }
 }
