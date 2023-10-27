@@ -37,6 +37,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     drawOneFrame = false;
     canClearBitmap = true;
     clearBitmap = false;
+    keepInsideScreen = false;
 
     grabbingAreaPos.set(0.0, 0.0);
     grabbingAreaSize.set(50.0, 50.0);

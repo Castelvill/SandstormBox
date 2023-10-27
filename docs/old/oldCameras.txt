@@ -1,0 +1,40 @@
+void createCameras(vector <Camera2D> & Cameras, vector <string> & camerasIDs, int SCREEN_W, int SCREEN_H){
+    /*Cameras.push_back(Camera2D("Cam0", camerasIDs, true, vec2d(0.0, 0.0), vec2d(SCREEN_W, SCREEN_H), vec2d(0.0, 0.0)));
+    Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
+    Cameras.back().setSpeed(5.0);
+    Cameras.back().setFollowedObjectID("par");
+    Cameras.back().setFollowedLayerID("L1");
+    Cameras.back().setFollowedImageID("");
+    Cameras.back().setIsFollowingObject(false);
+    Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
+    Cameras.back().addVisibleLayer("Editor");
+    Cameras.back().addVisibleLayer("L1");
+    Cameras.back().addVisibleLayer("L2");
+    Cameras.back().addAccessibleLayer("L1");
+    Cameras.back().addAccessibleLayer("L2");*/
+
+    /*Cameras.push_back(Camera2D("Cam1", camerasIDs, true, vec2d(SCREEN_W/2.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
+    Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
+    Cameras.back().setSpeed(5.0);
+    Cameras.back().setFollowedObjectID("par");
+    Cameras.back().setFollowedLayerID("L2");
+    Cameras.back().setFollowedImageID("");
+    Cameras.back().setIsFollowingObject(false);
+    Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
+    Cameras.back().addVisibleLayer("Editor");
+    Cameras.back().addVisibleLayer("L2");
+    Cameras.back().addAccessibleLayer("L2");
+    Cameras.back().pinToCamera("Cam0");
+    
+    Cameras.push_back(Camera2D("Cam2", camerasIDs, true, vec2d(300.0, 0.0), vec2d(300.0, 300.0), vec2d(0.0, 0.0)));
+    Cameras.back().setZoom(1.0, 0.05, 0.01, 10.0);
+    Cameras.back().setSpeed(5.0);
+    Cameras.back().setFollowedObjectID("par");
+    Cameras.back().setFollowedLayerID("L1");
+    Cameras.back().setFollowedImageID("");
+    Cameras.back().setIsFollowingObject(false);
+    Cameras.back().setKeyBinds(ALLEGRO_KEY_PAD_1, ALLEGRO_KEY_PAD_2, ALLEGRO_KEY_PAD_3, ALLEGRO_KEY_I, ALLEGRO_KEY_L, ALLEGRO_KEY_K, ALLEGRO_KEY_J);
+    Cameras.back().addVisibleLayer("Editor");
+    Cameras.back().addVisibleLayer("L1");
+    Cameras.back().pinToCamera("Cam1");*/
+}

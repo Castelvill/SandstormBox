@@ -68,20 +68,41 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "add_scale" && Values.size() >= 2){
         Text->addScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
-    else if(attribute == "set_color" && Values.size() >= 3){
-        Text->setColors(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe());
+    else if(attribute == "set_color" && Values.size() >= 4){
+        Text->setColors(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe());
+    }
+    else if(attribute == "set_color_r" && Values.size() >= 1){
+        Text->color.r = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_color_g" && Values.size() >= 1){
+        Text->color.g = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_color_b" && Values.size() >= 1){
+        Text->color.b = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_color_a" && Values.size() >= 1){
+        Text->color.a = Values[0].getDoubleUnsafe();
     }
     else if(attribute == "set_random_color"){
         Text->setRandomColors();
     }
+    else if(attribute == "increment_random_color"){
+        Text->incrementRandomColor();
+    }
     else if(attribute == "set_rotation" && Values.size() >= 1){
         Text->setRotation(Values[0].getDoubleUnsafe());
     }
+    else if(attribute == "set_random_change_speed" && Values.size() >= 1){
+        Text->randomChangeSpeed = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_min_color" && Values.size() >= 1){
+        Text->minColorValue = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_max_color" && Values.size() >= 1){
+        Text->maxColorValue = Values[0].getDoubleUnsafe();
+    }
     else if(attribute == "rotate" && Values.size() >= 1){
         Text->addRotation(Values[0].getDoubleUnsafe());
-    }
-    else if(attribute == "set_visibility" && Values.size() >= 1){
-        Text->setVisibility(Values[0].getDoubleUnsafe());
     }
     else if(attribute == "set_font" && Values.size() > 0){
         Text->setFontID(Values[0].getStringUnsafe());
@@ -729,8 +750,17 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
     }
 }
 void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
-    if(attribute == "set_id" && Values.size() > 0){
+    if(attribute == "update_with_size"){
+        Primitives->updateWithSize();
+    }
+    else if(attribute == "set_id" && Values.size() > 0){
         Primitives->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "set_position" && Values.size() >= 2){
+        Primitives->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "set_size" && Values.size() >= 2){
+        Primitives->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else if(attribute == "set_type" && Values.size() >= 1){
         Primitives->type = getPrimitiveType(Values[0].getStringUnsafe());
@@ -746,6 +776,9 @@ void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribut
     }
     else if(attribute == "set_radius" && Values.size() >= 1){
         Primitives->radius = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_samples" && Values.size() >= 1){
+        Primitives->samples = Values[0].getIntUnsafe();
     }
     else if(attribute == "select_layer" && Values.size() >= 1){
         Primitives->usedBitmapLayer = Values[0].getIntUnsafe();
@@ -910,8 +943,10 @@ void EventModule::controlText(int operationID, TextModule & Text){
     else if(Operations[operationID].affectedVariable == "add_scale" && Operations[operationID].choosenDoubles.size() >= 2){
         Text.addScale(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1]);
     }
-    else if(Operations[operationID].affectedVariable == "color" && Operations[operationID].choosenDoubles.size() >= 3){
-        Text.setColors(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1], Operations[operationID].choosenDoubles[2]);
+    else if(Operations[operationID].affectedVariable == "color" && Operations[operationID].choosenDoubles.size() >= 4){
+        Text.setColors(Operations[operationID].choosenDoubles[0], Operations[operationID].choosenDoubles[1],
+            Operations[operationID].choosenDoubles[2], Operations[operationID].choosenDoubles[3]
+        );
     }
     else if(Operations[operationID].affectedVariable == "random_color"){
         Text.setRandomColors();
@@ -922,8 +957,8 @@ void EventModule::controlText(int operationID, TextModule & Text){
     else if(Operations[operationID].affectedVariable == "rotate" && Operations[operationID].choosenDoubles.size() >= 1){
         Text.addRotation(Operations[operationID].choosenDoubles[0]);
     }
-    else if(Operations[operationID].affectedVariable == "visibility" && Operations[operationID].choosenDoubles.size() >= 1){
-        Text.setVisibility(Operations[operationID].choosenDoubles[0]);
+    else if(Operations[operationID].affectedVariable == "alpha" && Operations[operationID].choosenDoubles.size() >= 1){
+        Text.setAlpha(Operations[operationID].choosenDoubles[0]);
     }
 }
 void EventModule::controlImage(int operationID, ImageModule & Image){

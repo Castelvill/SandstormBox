@@ -14,18 +14,18 @@ double getFontHeight(vector <SingleFont> FontContainer, string fontID){
 }
 
 void TextModule::setUpNewInstance(){
-    textColor[0] = 255;
-    textColor[1] = 255;
-    textColor[2] = 255;
+    color = al_map_rgba_f(0.0, 0.0, 0.0, 0.0);
     fontID = -1;
     wrapped = false;
     horizontalAlign = 0;
     verticalAlign = 0;
-    rotateAngle = 0.0;
+    rotation = 0.0;
     scale.set(1.0, 1.0);
     currentTextID = 0;
-    visibility = 1.0;
     usedBitmapLayer = 0;
+    randomChangeSpeed = 0.001;
+    minColorValue = 0.0f;
+    maxColorValue = 1.0f;
 }
 TextModule::TextModule(){
     setUpNewInstance();
@@ -99,24 +99,48 @@ void TextModule::clear(){
     content.clear();
     currentTextID = 0;
 }
-void TextModule::setColors(unsigned short red, unsigned short green, unsigned short blue){
-    textColor[0] = red;
-    textColor[1] = green;
-    textColor[2] = blue;
+void TextModule::setColors(float r, float g, float b, float a){
+    color = al_map_rgba_f(r, g, b, a);
 }
 void TextModule::setRandomColors(){
-    textColor[0] = rand()%255;
-    textColor[1] = rand()%255;
-    textColor[2] = rand()%255;
+    color = al_map_rgba_f(
+        randomFloat(0.0, 1.0),
+        randomFloat(0.0, 1.0),
+        randomFloat(0.0, 1.0),
+        color.a
+    );
+}
+void TextModule::incrementRandomColor(){
+    char choice = rand() % 6;
+    switch(choice){
+        case 0:
+            color.r = std::min(color.r + randomChangeSpeed, maxColorValue);
+            break;
+        case 1:
+            color.r = std::max(color.r - randomChangeSpeed, minColorValue);
+            break;
+        case 2:
+            color.g = std::min(color.g + randomChangeSpeed, maxColorValue);
+            break;
+        case 3:
+            color.g = std::max(color.g - randomChangeSpeed, minColorValue);
+            break;
+        case 4:
+            color.b = std::min(color.b + randomChangeSpeed, maxColorValue);
+            break;
+        case 5:
+            color.b = std::max(color.b - randomChangeSpeed, minColorValue);
+            break;
+    }
 }
 void TextModule::setRotation(double newAngle){
-    rotateAngle = newAngle;
+    rotation = newAngle;
 }
 void TextModule::setUsedBitmapLayer(int newLayer){
     usedBitmapLayer = newLayer;
 }
 void TextModule::addRotation(double newAngle){
-    rotateAngle += newAngle;
+    rotation += newAngle;
 }
 void TextModule::setFontID(string newValue){
     fontID = newValue;
@@ -130,8 +154,8 @@ void TextModule::setHorizontalAlign(short newValue){
 void TextModule::setVerticalAlign(short newValue){
     verticalAlign = newValue;
 }
-void TextModule::setVisibility(double newVisibility){
-    visibility = newVisibility;
+void TextModule::setAlpha(float newValue){
+    color.a = newValue;
 }
 void TextModule::changeParameters(string newID, vector<string> & listOfIDs, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign){
@@ -139,11 +163,9 @@ void TextModule::changeParameters(string newID, vector<string> & listOfIDs, vec4
     setPos(posSize.val[0], posSize.val[1]);
     setSize(posSize.val[2], posSize.val[3]);
     setScale(newScale);
-    textColor[0] = (unsigned short)fontColor.val[0];
-    textColor[1] = (unsigned short)fontColor.val[1];
-    textColor[2] = (unsigned short)fontColor.val[2];
+    color = al_map_rgba_f(fontColor.val[0], fontColor.val[1], fontColor.val[2], 1.0);
     fontID = newFontID;
-    rotateAngle = newRotateAngle;
+    rotation = newRotateAngle;
     wrapped = newWrapped;
     horizontalAlign = newHorizontalAlign;
     verticalAlign = newVerticalAlign;
@@ -235,17 +257,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     }
     else if(verticalAlign == 2){
         alignHeight = size.y-realHeight;
-    }
-        
-
-    if(visibility < 0.0){
-        visibility = 0.0;
-    }
-        
-    if(visibility > 1.0){
-        visibility = 1.0;
-    }
-        
+    }   
 
     vec2d newScale(scale);
     vec2d finalPos(base);
@@ -264,12 +276,10 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     ALLEGRO_TRANSFORM t;
     al_identity_transform(&t);
     al_translate_transform(&t, -finalPos.x, -finalPos.y);
-    al_rotate_transform(&t, (rotateAngle*M_PI)/180.0);
+    al_rotate_transform(&t, (rotation*M_PI)/180.0);
     al_scale_transform(&t, newScale.x, newScale.y);
     al_translate_transform(&t, finalPos.x, finalPos.y);
     al_use_transform(&t);
-
-    ALLEGRO_COLOR color = al_map_rgba(textColor[0]*visibility, textColor[1]*visibility, textColor[2]*visibility, 255*visibility);
 
     if(horizontalAlign == 0){
         for(unsigned int i = 0; i < textLines.size(); i++){
@@ -361,7 +371,7 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
                 return;
         }
 
-        al_draw_text(font, al_map_rgb(textColor[0], textColor[1], textColor[2]), pos.x+currentLength, pos.y+currentHigh, 0, temp.c_str());
+        al_draw_text(font, color, pos.x+currentLength, pos.y+currentHigh, 0, temp.c_str());
         currentLength += al_get_text_width(font, temp.c_str());
     }
 }
@@ -377,13 +387,16 @@ void TextModule::getContext(string attribute, vector <BasePointersStruct> & Base
         BasePointers.back().setPointer(&fontID);
     }
     else if(attribute == "text_color_r"){
-        BasePointers.back().setPointer(&textColor[0]);
+        BasePointers.back().setPointer(&color.r);
     }
     else if(attribute == "text_color_g"){
-        BasePointers.back().setPointer(&textColor[1]);
+        BasePointers.back().setPointer(&color.g);
     }
     else if(attribute == "text_color_b"){
-        BasePointers.back().setPointer(&textColor[2]);
+        BasePointers.back().setPointer(&color.b);
+    }
+    else if(attribute == "text_color_a"){
+        BasePointers.back().setPointer(&color.a);
     }
     else if(attribute == "wrapped"){
         BasePointers.back().setPointer(&wrapped);
@@ -395,10 +408,7 @@ void TextModule::getContext(string attribute, vector <BasePointersStruct> & Base
         BasePointers.back().setPointer(&verticalAlign);
     }
     else if(attribute == "rotate_angle"){
-        BasePointers.back().setPointer(&rotateAngle);
-    }
-    else if(attribute == "visibility"){
-        BasePointers.back().setPointer(&visibility);
+        BasePointers.back().setPointer(&rotation);
     }
     else if(attribute == "used_bitmap_layer"){
         BasePointers.back().setPointer(&usedBitmapLayer);
@@ -418,14 +428,20 @@ string TextModule::getContent(unsigned int textID) const{
         return "no";
     }
 }
-unsigned short TextModule::getColor(char whichColor){
-    if(whichColor == 'r')
-        return textColor[0];
-    if(whichColor == 'g')
-        return textColor[1];
-    if(whichColor == 'b')
-        return textColor[2];
-    return 0;
+float TextModule::getColor(char whichColor){
+    if(whichColor == 'r'){
+        return color.r;
+    }
+    if(whichColor == 'g'){
+        return color.g;
+    }
+    if(whichColor == 'b'){
+        return color.b;
+    }
+    if(whichColor == 'a'){
+        return color.b;
+    }
+    return 0.0;
 }
 unsigned int TextModule::getCurrentTextID() const{
     return currentTextID;
@@ -440,11 +456,35 @@ VariableModule TextModule::getAttributeValue(const string &attribute, const stri
     else if(attribute == "content"){
         return VariableModule::newString(getCurrentContent());
     }
-    else if(attribute == "rotation_angle"){
-        return VariableModule::newDouble(rotateAngle);
+    else if(attribute == "current_text_id"){
+        return VariableModule::newInt(currentTextID);
     }
-    else if(attribute == "visibility"){
-        return VariableModule::newDouble(visibility);
+    else if(attribute == "font_id"){
+        return VariableModule::newString(getCurrentContent());
+    }
+    else if(attribute == "color_r"){
+        return VariableModule::newDouble(color.r);
+    }
+    else if(attribute == "color_g"){
+        return VariableModule::newDouble(color.g);
+    }
+    else if(attribute == "color_b"){
+        return VariableModule::newDouble(color.b);
+    }
+    else if(attribute == "color_a"){
+        return VariableModule::newDouble(color.a);
+    }
+    else if(attribute == "wrapped"){
+        return VariableModule::newInt(wrapped);
+    }
+    else if(attribute == "horizontal_align"){
+        return VariableModule::newInt(horizontalAlign);
+    }
+    else if(attribute == "vertical_align"){
+        return VariableModule::newInt(verticalAlign);
+    }
+    else if(attribute == "rotation"){
+        return VariableModule::newDouble(rotation);
     }
     cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     return VariableModule::newBool(false);
@@ -866,8 +906,17 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     else if(affectedVariable == "rotation"){
         Text.setRotation(dValue);
     }
-    else if(affectedVariable == "visibility"){
-        Text.setVisibility(dValue);
+    if(affectedVariable == "color_r"){
+        Text.setColors(dValue, Text.color.g, Text.color.b, Text.color.a);
+    }
+    else if(affectedVariable == "color_g"){
+        Text.setColors(Text.color.r, dValue, Text.color.b, Text.color.a);
+    }
+    else if(affectedVariable == "color_b"){
+        Text.setColors(Text.color.r, Text.color.g, dValue, Text.color.a);
+    }
+    else if(affectedVariable == "color_a"){
+        Text.setColors(Text.color.r, Text.color.g, Text.color.b, dValue);
     }
     else{
         success = false;
@@ -907,22 +956,9 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
         success = false;
     }
 
-    if(success || shValue > 255 || shValue < 0)
+    if(success)
         return success;
-    success = true;
-
-    if(affectedVariable == "color_r"){
-        Text.setColors(shValue, Text.getColor('g'), Text.getColor('b'));
-    }
-    else if(affectedVariable == "color_g"){
-        Text.setColors(Text.getColor('r'), shValue, Text.getColor('b'));
-    }
-    else if(affectedVariable == "color_b"){
-        Text.setColors(Text.getColor('r'), Text.getColor('g'), shValue);
-    }
-    else{
-        success = false;
-    }
+    success = false;
 
     if(!success){
         printCommandDoesNotExistWarning();
@@ -1596,14 +1632,17 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
     else if(attribute == "font_id"){
         BasePointers.back().setPointer(&fontID);
     }
-    else if(attribute == "text_color_r"){
-        BasePointers.back().setPointer(&textColor[0]);
+    else if(attribute == "color_r"){
+        BasePointers.back().setPointer(&color.r);
     }
-    else if(attribute == "text_color_g"){
-        BasePointers.back().setPointer(&textColor[1]);
+    else if(attribute == "color_g"){
+        BasePointers.back().setPointer(&color.g);
     }
-    else if(attribute == "text_color_b"){
-        BasePointers.back().setPointer(&textColor[2]);
+    else if(attribute == "color_b"){
+        BasePointers.back().setPointer(&color.b);
+    }
+    else if(attribute == "color_a"){
+        BasePointers.back().setPointer(&color.a);
     }
     else if(attribute == "wrapped"){
         BasePointers.back().setPointer(&wrapped);
@@ -1614,11 +1653,8 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
     else if(attribute == "vertical_align"){
         BasePointers.back().setPointer(&verticalAlign);
     }
-    else if(attribute == "rotate_angle"){
-        BasePointers.back().setPointer(&rotateAngle);
-    }
-    else if(attribute == "visibility"){
-        BasePointers.back().setPointer(&visibility);
+    else if(attribute == "rotation"){
+        BasePointers.back().setPointer(&rotation);
     }
     else if(attribute == "used_bitmap_layer"){
         BasePointers.back().setPointer(&usedBitmapLayer);
@@ -1676,11 +1712,35 @@ VariableModule EditableTextModule::getAttributeValue(const string &attribute, co
     else if(attribute == "content"){
         return VariableModule::newString(getCurrentContent());
     }
-    else if(attribute == "rotation_angle"){
-        return VariableModule::newDouble(rotateAngle);
+    else if(attribute == "current_text_id"){
+        return VariableModule::newInt(currentTextID);
     }
-    else if(attribute == "visibility"){
-        return VariableModule::newDouble(visibility);
+    else if(attribute == "font_id"){
+        return VariableModule::newString(getCurrentContent());
+    }
+    else if(attribute == "color_r"){
+        return VariableModule::newDouble(color.r);
+    }
+    else if(attribute == "color_g"){
+        return VariableModule::newDouble(color.g);
+    }
+    else if(attribute == "color_b"){
+        return VariableModule::newDouble(color.b);
+    }
+    else if(attribute == "color_a"){
+        return VariableModule::newDouble(color.a);
+    }
+    else if(attribute == "wrapped"){
+        return VariableModule::newInt(wrapped);
+    }
+    else if(attribute == "horizontal_align"){
+        return VariableModule::newInt(horizontalAlign);
+    }
+    else if(attribute == "vertical_align"){
+        return VariableModule::newInt(verticalAlign);
+    }
+    else if(attribute == "rotation"){
+        return VariableModule::newDouble(rotation);
     }
     else if(attribute == "can_be_edited"){
         return VariableModule::newBool(getCanBeEdited());
@@ -1688,6 +1748,7 @@ VariableModule EditableTextModule::getAttributeValue(const string &attribute, co
     else if(attribute == "editing"){
         return VariableModule::newBool(getEditingIsActive());
     }
+
     cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     return VariableModule::newBool(false);
 }

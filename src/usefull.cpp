@@ -33,6 +33,10 @@ int randomInt(int minValue, int maxValue){
     return minValue + (rand() % (maxValue - minValue + 1));
     //return minValue + ((double)rand() / (double)RAND_MAX) * (maxValue - minValue);
 }
+float randomFloat(float minValue, float maxValue){
+    return minValue + ((rand() % 10001) / 10000.0) * (maxValue - minValue);
+    //return minValue + ((double)rand() / (double)RAND_MAX) * (maxValue - minValue);
+}
 double randomDouble(double minValue, double maxValue){
     return minValue + ((rand() % 10001) / 10000.0) * (maxValue - minValue);
     //return minValue + ((double)rand() / (double)RAND_MAX) * (maxValue - minValue);

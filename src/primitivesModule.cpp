@@ -5,6 +5,7 @@ void PrimitivesModule::setUpNewInstance(){
     color = al_map_rgba_f(0.0, 0.0, 0.0, 0.0);
     thickness = 1.0;
     radius = 1.0;
+    samples = 0;
 }
 
 PrimitivesModule::PrimitivesModule(){
@@ -74,7 +75,17 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
                 cout << "Error: In: " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
                 return;
             }
-            al_draw_filled_rounded_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color);
+            if(samples <= 0){
+                al_draw_filled_rounded_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color);
+            }
+            else{
+                ALLEGRO_COLOR sampledColor = color;
+                sampledColor.a = color.a / samples;
+                for(int i = 0; i <= samples; i++){
+                    al_draw_filled_rounded_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x + i, points[2].y + i, sampledColor);
+                }
+            }
+            
             break;
         case prim_circle:
             if(points.size() < 1){
@@ -110,7 +121,7 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
     }
 }
 
-void PrimitivesModule::calculateBasedOnSize(){
+void PrimitivesModule::updateWithSize(){
     if(points.size() == 0){
         return;
     }

@@ -351,7 +351,7 @@ public:
     void executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext, vector<Camera2D> &Cameras);
     void executeFunctionForLayers(OperaClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
     void executeFunctionForObjects(OperaClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects, vector<LayerClass> & Layers);
-    void executeFunction(OperaClass & Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers,
+    void executeFunction(OperaClass Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, vector<LayerClass> &Layers,
         vector<Camera2D> &Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
     );
     void changeEngineVariables(OperaClass & Operation);
@@ -381,6 +381,7 @@ public:
     void updateTreeOfCamerasFromSelectedRoot(vector <Camera2D> & Cameras, Camera2D * Selected);
     void updateWholeForestOfCameras(vector <Camera2D> & Cameras);
     void adjustPositionOfAllCameras(vector <Camera2D> & Cameras);
+    void keepPositionInsideScreen(vec2d & pos, vec2d & size);
     void updateCamerasPositions(vector <Camera2D> & Cameras);
     void bringCameraForward(unsigned index, Camera2D * ChosenCamera, vector <Camera2D> & Cameras);
     void selectCamera(vector <Camera2D> & Cameras, bool fromAltTab);

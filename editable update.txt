@@ -1,0 +1,7 @@
+EditableText should:
+1. have all-directional cursor
+2. let you write like in a windows' notepad
+3. have saved old state - in case of error automatically revert to old state
+4. create signal - it should either update value or signal the event
+5. have possibility of saving post-edited contents and when enabled, up-down arrows should circle through all contents
+

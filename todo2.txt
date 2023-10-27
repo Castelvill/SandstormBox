@@ -1,5 +1,0 @@
--Connect curved filled rectangles with cameras and creat script that resizes them automatically.
--Create SuperTextModule - instead of using a vector of strings, use Letter vector. Letter( char ch; AllegroColor color; bool bold; bool italic; bool crossed; bool rainbow;). This basically creats multi-color, all-purpouse text printer.
--Creat EditableSuperTextModule.
--Rewrite TextModule.
--Rewrite EditableTextModule.

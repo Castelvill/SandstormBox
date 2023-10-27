@@ -20,12 +20,13 @@ public:
     vector <string> content;
     unsigned int currentTextID; //indexes of content vector
     string fontID;
-    unsigned short textColor[3];
+    ALLEGRO_COLOR color;
     short wrapped; //0-single line, 1-wrapped, 2-smart wrap
     short horizontalAlign; //0-left-aligned, 1-center-aligned, 2-right-aligned
     short verticalAlign; //0-up, 1-center, 2-down
-    double rotateAngle;
-    double visibility;
+    double rotation;
+    float randomChangeSpeed;
+    float minColorValue, maxColorValue;
 
     short usedBitmapLayer;  //Text fields with numbers higher or equal to zero are drawn in ascending order. If the value is -1, text will be drawn on top of everything else.
 
@@ -42,12 +43,13 @@ public:
     void modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer);
     void deleteContent(unsigned int textID);
     void clear();
-    void setColors(unsigned short red, unsigned short green, unsigned short blue);
+    void setColors(float r, float g, float b, float a);
     void setRandomColors();
+    void incrementRandomColor();
     void setRotation(double newAngle);
     void setUsedBitmapLayer(int newLayer);
     void addRotation(double newAngle);
-    void setVisibility(double newVisibility);
+    void setAlpha(float newValue);
     void setFontID(string);
     void setWrapping(short newValue);
     void setHorizontalAlign(short newValue);
@@ -59,7 +61,7 @@ public:
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     string getFontID();
     string getContent(unsigned int textID) const;
-    unsigned short getColor(char whichColor);
+    float getColor(char whichColor);
     unsigned int getCurrentTextID() const;
     string getCurrentContent() const;
     VariableModule getAttributeValue(const string &attribute, const string &detail) const;

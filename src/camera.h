@@ -35,6 +35,7 @@ public:
     bool canClearBitmap;
     bool drawOneFrame;
     bool clearBitmap;
+    bool keepInsideScreen;
 
     vec2d grabbingAreaPos, grabbingAreaSize;
 

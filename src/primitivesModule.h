@@ -20,7 +20,9 @@ class PrimitivesModule : public PrimaryModule{
     ALLEGRO_COLOR color;
     float thickness;
     float radius;
+    int samples;
     int usedBitmapLayer;
+
 
     void setUpNewInstance();
     PrimitivesModule();
@@ -28,7 +30,7 @@ class PrimitivesModule : public PrimaryModule{
     void clear();
     void clone(const PrimitivesModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, bool changeOldID);
     void draw(vec2d base, Camera2D Camera, bool outSourcing);
-    void calculateBasedOnSize();
+    void updateWithSize();
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     int getUsedBitmapLayer() const;
 };
