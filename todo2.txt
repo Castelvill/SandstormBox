@@ -1,4 +1,5 @@
--Minimizing by tab and by the instruction should also deactivate the camera. The same applies to bringing them forward.
--Add bool and instruction "updateCamera" to cameras. False bool does not allow to draw any layer on to camera's bitmap. Instruction draws only one frame and stops drawing.
--Add bool and instruction "clearCamera" to cameras. False bool does not allow engine to clear_to_color bitmap from the camera and the instruction cleans it as soon as possible.
--Update EditableText
+-Connect curved filled rectangles with cameras and creat script that resizes them automatically.
+-Create SuperTextModule - instead of using a vector of strings, use Letter vector. Letter( char ch; AllegroColor color; bool bold; bool italic; bool crossed; bool rainbow;). This basically creats multi-color, all-purpouse text printer.
+-Creat EditableSuperTextModule.
+-Rewrite TextModule.
+-Rewrite EditableTextModule.
