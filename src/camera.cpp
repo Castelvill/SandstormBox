@@ -53,11 +53,11 @@ Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
 }
 void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs, bool changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
-        std::cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
     }
     if(isStringInVector(reservedIDs, ID)){
-        std::cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     string oldID = ID;
@@ -78,7 +78,7 @@ void Camera2D::clear(){
 }
 void Camera2D::setID(string newID, vector <string> & camerasIDs){
     if(isStringInVector(reservedIDs, ID)){
-        std::cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     removeFromStringVector(camerasIDs, ID);
@@ -188,11 +188,11 @@ void Camera2D::setKeyBinds(short newZoomInKey, short newZoomOutKey, short newZoo
 }
 void Camera2D::setFollowedLayerID(string ID){
     followedLayerID = ID;
-    std::cout << "Camera is following: " << ID << "\n";
+    cout << "Camera is following: " << ID << "\n";
 }
 void Camera2D::setFollowedObjectID(string ID){
     followedObjectID = ID;
-    std::cout << "Camera is following: " << ID << "\n";
+    cout << "Camera is following: " << ID << "\n";
 }
 void Camera2D::setFollowedImageID(string ID){
     followedImageID = ID;

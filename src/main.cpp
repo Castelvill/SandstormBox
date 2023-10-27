@@ -9,12 +9,12 @@ void loadFontsToContainer(vector <SingleFont> & FontContainer, string EXE_PATH){
     string fileName, filePath;
     while(fontListFile >> fileName){
         if(fileName.substr(fileName.size()-4, fileName.size()) != ".ttf"){
-            std::cout << "Wrong file extension! Aborting fonts loading.\n";
+            cout << "Wrong file extension! Aborting fonts loading.\n";
             fontListFile.close();
             return;
         }
         filePath = EXE_PATH+"fonts/" + fileName;
-        std::cout << filePath << "\n";
+        //cout << filePath << "\n";
         for(i = 0; i < (sizeof(fontSizes)/sizeof(*fontSizes)); i++){
             FontContainer.push_back(SingleFont());
             FontContainer.back().font = al_load_ttf_font(filePath.c_str(), fontSizes[i], 2);
@@ -23,26 +23,27 @@ void loadFontsToContainer(vector <SingleFont> & FontContainer, string EXE_PATH){
         }
     }
     fontListFile.close();
-    std::cout << FontContainer.size() << " fonts loaded\n";
+    //cout << FontContainer.size() << " fonts loaded\n";
 }
 void freeFontsFromContainer(vector <SingleFont> & FontContainer){
     for(unsigned int i = 0; i < FontContainer.size(); i++){
         al_destroy_font(FontContainer[i].font);
     }
     FontContainer.clear();
-    if(FontContainer.size() == 0)
-        std::cout << "\nAll fonts destroyed.\n";
+    if(FontContainer.size() == 0){
+        //cout << "\nAll fonts destroyed.\n";
+    }
 }
 void freeBitmapsFromContainer(vector <SingleBitmap> & BitmapContainer){
     for(unsigned int i = 0; i < BitmapContainer.size(); i++){
         if(BitmapContainer[i].bitmap){
             al_destroy_bitmap(BitmapContainer[i].bitmap);
-            //std::cout << "Bitmap '" << BitmapContainer[i].ID << "' destroyed. (by GeneralBitmapContainer)\n";
+            //cout << "Bitmap '" << BitmapContainer[i].ID << "' destroyed. (by GeneralBitmapContainer)\n";
         }
     }
     BitmapContainer.clear();
     if(BitmapContainer.size() == 0){
-        //std::cout << "\nAll bitmaps in general image container destroyed.\n\n";
+        //cout << "\nAll bitmaps in general image container destroyed.\n\n";
     }
 }
 
@@ -110,7 +111,7 @@ int main(){
         fileNames = getAllFilesNamesWithinFolder(".");
     #endif
     //for(auto name : fileNames)
-    //    std::cout << name << std::endl;
+    //    cout << name << std::endl;
 
     Threads.back().exitAllegro();
 

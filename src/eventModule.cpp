@@ -661,10 +661,10 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
         Variable->setString(Values[0].getString());
     }
     else if(attribute == "set_string_random" && Values.size() >= 1){
-        std::cout << "hello ";
+        cout << "hello ";
         unsigned int dice = rand() % Values.size();
-        std::cout << Variable->setString(Values[dice].getString()) << " ";
-        std::cout << Variable->getString() << "\n";
+        cout << Variable->setString(Values[dice].getString()) << " ";
+        cout << Variable->getString() << "\n";
     }
     else if(attribute == "set_to_default"){
         Variable->resetValue();
@@ -710,7 +710,7 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
         Variable->addDouble(Values[dice].getDoubleUnsafe());
     }
     else{
-        std::cout << "Error: In: " << __FUNCTION__ << ": function " << attribute << "<" << Values.size() << "> does not exist.\n";
+        cout << "Error: In: " << __FUNCTION__ << ": function " << attribute << "<" << Values.size() << "> does not exist.\n";
     }
 }
 void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
@@ -726,6 +726,36 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
             temp = Values[0].getBoolUnsafe();
         }
         Scrollbar->control(attribute, temp, Values.size());
+    }
+}
+void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+    if(attribute == "set_id" && Values.size() > 0){
+        Primitives->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "set_type" && Values.size() >= 1){
+        Primitives->type = getPrimitiveType(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "add_point" && Values.size() >= 2){
+        Primitives->points.push_back(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "set_color" && Values.size() >= 4){
+        Primitives->color = al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe());
+    }
+    else if(attribute == "set_thickness" && Values.size() >= 1){
+        Primitives->thickness = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_radius" && Values.size() >= 1){
+        Primitives->radius = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "select_layer" && Values.size() >= 1){
+        Primitives->usedBitmapLayer = Values[0].getIntUnsafe();
+    }
+    else{
+        bool temp = false;
+        if(Values.size() > 0){
+            temp = Values[0].getBoolUnsafe();
+        }
+        Primitives->control(attribute, temp, Values.size());
     }
 }
 
@@ -831,7 +861,7 @@ bool EventModule::isEventTriggered(int operationID, MouseClass mouse, vec2d objP
     }
     else if(Operations[operationID].typeOfTrigger == "mouse_release"){
         if(mouse.releasedInRectangle(pos+objPos, size, Operations[operationID].getBindedMouseButton(), isAttachedToCamera)){
-            std::cout << getID() << " ";
+            cout << getID() << " ";
             return true;
         }
     }
@@ -1127,10 +1157,10 @@ void EventModule::controlVariables(int operationID, VariableModule & Variable){
         Variable.setString(Operations[operationID].choosenStrings[0]);
     }
     else if(Operations[operationID].affectedVariable == "set_string_random" && Operations[operationID].choosenStrings.size() >= 1){
-        std::cout << "hello ";
+        cout << "hello ";
         unsigned int dice = rand() % Operations[operationID].choosenStrings.size();
-        std::cout << Variable.setString(Operations[operationID].choosenStrings[dice]) << " ";
-        std::cout << Variable.getString() << "\n";
+        cout << Variable.setString(Operations[operationID].choosenStrings[dice]) << " ";
+        cout << Variable.getString() << "\n";
     }
     else if(Operations[operationID].affectedVariable == "set_to_default"){
         Variable.resetValue();
@@ -1184,34 +1214,34 @@ void EventModule::controlScrollbar(int operationID, ScrollbarModule & Scrollbar)
 
 void ValueLocation::print(string dynamicID){
     if(dynamicID != ""){
-        std::cout << dynamicID;
+        cout << dynamicID;
     }
     if(source != "" && source != "_"){
         if(dynamicID != ""){
-            std::cout << ".";
+            cout << ".";
         }
-        std::cout << source;
+        cout << source;
     }
     if(cameraID != "" && cameraID != "_"){
-        std::cout << "." << cameraID;
+        cout << "." << cameraID;
     }
     if(layerID != "" && layerID != "_"){
-        std::cout << "." << layerID;
+        cout << "." << layerID;
     }
     if(objectID != "" && objectID != "_"){
-        std::cout << "." << objectID;
+        cout << "." << objectID;
     }
     if(moduleType != "" && moduleType != "_"){
-        std::cout << "." << moduleType;
+        cout << "." << moduleType;
     }
     if(moduleID != "" && moduleID != "_"){
-        std::cout << "." << moduleID;
+        cout << "." << moduleID;
     }
     if(attribute != "" && attribute != "_"){
-        std::cout << "." << attribute;
+        cout << "." << attribute;
     }
     if(spareID != "" && spareID != "_"){
-        std::cout << "." << spareID;
+        cout << "." << spareID;
     }
-    std::cout << " ";
+    cout << " ";
 }

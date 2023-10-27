@@ -158,6 +158,7 @@ struct PointerContainer{
     void addModule(EveModule * Module);
     void addModule(VariableModule * Module);
     void addModule(ScrollbarModule * Module);
+    void addModule(PrimitivesModule * Module);
 
     void setFirstModule(TextModule * Module);
     void setFirstModule(EditableTextModule * Module);
@@ -168,6 +169,7 @@ struct PointerContainer{
     void setFirstModule(EveModule * Module);
     void setFirstModule(VariableModule * Module);
     void setFirstModule(ScrollbarModule * Module);
+    void setFirstModule(PrimitivesModule * Module);
 
     void leaveOneRandomBasePointer();
 

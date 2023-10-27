@@ -58,7 +58,7 @@ vector<string> removeComments(const vector<string> & lines){
             }
             if(line[cursor] == '*' && cursor < line.size() + 2 && line[cursor + 1] == '/'){
                 if(!commentSection){
-                    std::cout << "Syntax error. (in line: " << lineNumber << ")\n";
+                    cout << "Syntax error. (in line: " << lineNumber << ")\n";
                     return newLines;
                 }
                 commentSection = false;
@@ -100,7 +100,7 @@ AncestorObject::AncestorObject(){
     deleted = false;
     isActive = false;
     //blank object
-    //std::cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
+    //cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
 AncestorObject::AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID){
     primaryConstructor(newID, &listOfIDs, newLayerID, "");
@@ -138,14 +138,17 @@ void AncestorObject::deleteLater(){
     for(ScrollbarModule & Scrollbar : ScrollbarContainer){
         Scrollbar.deleteLater();
     }
+    for(PrimitivesModule & Primitives : PrimitivesContainer){
+        Primitives.deleteLater();
+    }
 }
 void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, string newLayerID, const bool & changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
-        std::cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
     }
     if(isStringInVector(reservedIDs, ID)){
-        std::cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     clearVectorsOfIDs();
@@ -187,6 +190,10 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         ScrollbarContainer.push_back(ScrollbarModule());
         ScrollbarContainer.back().clone(Scrollbar, scrollbarContainerIDs, newLayerID, getID(), true);
     }
+    for(const PrimitivesModule & Primitives : Original.PrimitivesContainer){
+        PrimitivesContainer.push_back(PrimitivesModule());
+        PrimitivesContainer.back().clone(Primitives, primitivesContainerIDs, newLayerID, getID(), true);
+    }
 }
 void AncestorObject::clearVectorsOfIDs(){
     textContainerIDs.clear();
@@ -199,6 +206,7 @@ void AncestorObject::clearVectorsOfIDs(){
     eveContainerIDs.clear();
     variablesContainerIDs.clear();
     scrollbarContainerIDs.clear();
+    primitivesContainerIDs.clear();
 }
 void AncestorObject::clearContainers(){
     for(auto & Text : TextContainer){
@@ -237,6 +245,7 @@ void AncestorObject::clearContainers(){
     EventsContainer.clear();
     VariablesContainer.clear();
     ScrollbarContainer.clear();
+    PrimitivesContainer.clear();
 }
 /*void AncestorObject::createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter){
     setID(bID);
@@ -430,35 +439,38 @@ void AncestorObject::refreshCoordinates(){
 }
 void AncestorObject::createVectorsOfIds(){
     clearVectorsOfIDs();
-    for(TextModule content : TextContainer){
+    for(const TextModule & content : TextContainer){
         textContainerIDs.push_back(content.getID());
     }
-    for(EditableTextModule content : EditableTextContainer){
+    for(const EditableTextModule & content : EditableTextContainer){
         editableTextContainerIDs.push_back(content.getID());
     }
-    for(ImageModule content : ImageContainer){
+    for(const ImageModule & content : ImageContainer){
         imageContainerIDs.push_back(content.getID());
     }
-    for(MovementModule content : MovementContainer){
+    for(const MovementModule & content : MovementContainer){
         movementContainerIDs.push_back(content.getID());
     }
-    for(CollisionModule content : CollisionContainer){
+    for(const CollisionModule & content : CollisionContainer){
         collisionContainerIDs.push_back(content.getID());
     }
-    for(ParticleEffectModule content : ParticlesContainer){
+    for(const ParticleEffectModule & content : ParticlesContainer){
         particlesContainerIDs.push_back(content.getID());
     }
-    for(EventModule content : EventsContainer){
+    for(const EventModule & content : EventsContainer){
         eventsContainerIDs.push_back(content.getID());
     }
-    for(EveModule content : EveContainer){
+    for(const EveModule & content : EveContainer){
         eveContainerIDs.push_back(content.getID());
     }
-    for(VariableModule content : VariablesContainer){
+    for(const VariableModule & content : VariablesContainer){
         variablesContainerIDs.push_back(content.getID());
     }
-    for(ScrollbarModule content : ScrollbarContainer){
+    for(const ScrollbarModule & content : ScrollbarContainer){
         scrollbarContainerIDs.push_back(content.getID());
+    }
+    for(const PrimitivesModule & content : PrimitivesContainer){
+        primitivesContainerIDs.push_back(content.getID());
     }
 }
 vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
@@ -509,6 +521,10 @@ string AncestorObject::addModuleInstance(string module, string newID){
         ScrollbarContainer.push_back(ScrollbarModule(newID, &scrollbarContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, ScrollbarContainer.back().getID());
     }
+    if(module == "primitives"){
+        PrimitivesContainer.push_back(PrimitivesModule(newID, &primitivesContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, PrimitivesContainer.back().getID());
+    }
     return "Error: Module \'" + module + "\' does not exist!\n";
 }
 string ErrorNoInstance(string module, string ID){
@@ -545,6 +561,9 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
     if(module == "scrollbar"){
         return tryRemovingModuleInstance(module, ScrollbarContainer, scrollbarContainerIDs, destroyID);
     }
+    if(module == "primitives"){
+        return tryRemovingModuleInstance(module, PrimitivesContainer, primitivesContainerIDs, destroyID);
+    }
     return "Error: " + module + "Module does not exist!\n";
 }
 
@@ -579,7 +598,7 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
         NewValue.setDouble(getSize().y);
     }
     else{
-        std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+        cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
         NewValue.setBool(false);
     }
     return NewValue;
@@ -695,7 +714,7 @@ vector <string> mergeStrings(vector <string> code){
 }
 bool prepareNewInstruction(vector<string> words, EveModule & NewEvent, OperaClass *& Operation, bool postOperations, unsigned minLength){
     if(words.size() < minLength){
-        std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least \'" << minLength << "\' parameters.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least \'" << minLength << "\' parameters.\n";
         return false;
     }
     if(!postOperations){
@@ -803,18 +822,18 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
         return true;
     }
     if(words[cursor] != "("){
-        std::cout << "Error: In " << __FUNCTION__ << ": Every expression must begin with a parentheses.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Every expression must begin with a parentheses.\n";
         return false;
     }
     cursor++;
     if(cursor >= words.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
     bool inCondition = false;
     while(words[cursor] != ")"){
         if(cursor >= words.size()){
-            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
         if(words[cursor] == "["){
@@ -828,7 +847,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
         }
         else if(!inCondition){
             if(Expression.size() == 0){
-                std::cout << "Error: In " << __FUNCTION__ << ": Operator cannot be added to an empty expression.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Operator cannot be added to an empty expression.\n";
                 return false;
             }
             Expression.back().operators.push_back(words[cursor]);
@@ -893,7 +912,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
             }
         }
         if(cursor >= words.size()){
-            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
     }
@@ -909,19 +928,19 @@ bool gatherStringVector(const vector<string> & words, unsigned & cursor, vector<
         return true;
     }
     if(words[cursor] != "["){
-        std::cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
         return false;
     }
     cursor++;
     if(cursor >= words.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
     while(words[cursor] != "]"){
         stringVector.push_back(words[cursor]);
         cursor++;
         if(cursor >= words.size()){
-            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
     }
@@ -937,19 +956,19 @@ bool gatherChildEvents(const vector<string> & words, unsigned & cursor, vector<C
         return true;
     }
     if(words[cursor] != "["){
-        std::cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
         return false;
     }
     cursor++;
     if(cursor >= words.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
     while(words[cursor] != "]"){
         Children.push_back(ChildStruct(words[cursor]));
         cursor++;
         if(cursor >= words.size()){
-            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
     }
@@ -966,12 +985,12 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
         return true;
     }
     if(words[cursor] != "["){
-        std::cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Every context list must begin with a square bracket.\n";
         return false;
     }
     cursor++;
     if(cursor >= words.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
     while(words[cursor] != "]"){
@@ -1016,7 +1035,7 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
         }
         cursor++;
         if(cursor >= words.size()){
-            std::cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
     }
@@ -1026,30 +1045,30 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
 bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<VariableModule> & Literals, const string & type){
     if(type == "bool" || type == "b"){
         if(!gatherLiterals(words, cursor, Literals, 'b')){
-            std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
+            cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
             return false;
         }
     }
     else if(type == "int" || type == "i"){
         if(!gatherLiterals(words, cursor, Literals, 'i')){
-            std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
+            cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
             return false;
         }
     }
     else if(type == "double" || type == "d"){
         if(!gatherLiterals(words, cursor, Literals, 'd')){
-            std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
+            cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
             return false;
         }
     }
     else if(type == "string" || type == "s"){
         if(!gatherLiterals(words, cursor, Literals, 's')){
-            std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
+            cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
             return false;
         }
     }
     else{
-        std::cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' type does not exist.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' type does not exist.\n";
         return false;
     }
     return true;
@@ -1093,7 +1112,7 @@ void AncestorObject::eventAssembler(vector<string> code){
         cursor = 1;
         if(words[0] == "start"){
             if(words.size() < 3){
-                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
                 return;
             }
             NewEvent = EveModule(words[1], &eveContainerIDs, getLayerID(), getID());
@@ -1117,36 +1136,36 @@ void AncestorObject::eventAssembler(vector<string> code){
         }
         else if(words[0] == "triggers"){
             if(words.size() < 2){
-                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least 2 parameters.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least 2 parameters.\n";
                 return;
             }
             cursor = 1;
             if(!gatherStringVector(words, cursor, NewEvent.primaryTriggerTypes)){
-                std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
                 return;
             }
         }
         else if(words[0] == "run"){
             if(words.size() < 2){
-                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
                 return;
             }
             cursor = 1;
             if(!gatherChildEvents(words, cursor, NewEvent.Children)){
-                std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
                 return;
             }
         }
         else if(words[0] == "if"){
             cursor = 1;
             if(!createExpression(words, cursor, NewEvent.ConditionalChain)){
-                std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
                 return;
             }
         }
         else if(words[0] == "else"){
             if(words.size() < 2){
-                std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
                 return;
             }
             NewEvent.elseChildID = words[1];
@@ -1167,7 +1186,7 @@ void AncestorObject::eventAssembler(vector<string> code){
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(!createExpression(words, cursor, Operation->ConditionalChain)){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
@@ -1179,14 +1198,14 @@ void AncestorObject::eventAssembler(vector<string> code){
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(!createExpression(words, cursor, Operation->ConditionalChain)){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
             else if(words[1] == "context" || words[1] == "_"){
                 if(!gatherStringVector(words, cursor, Operation->dynamicIDs)){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
                     return;
                 }
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
@@ -1195,7 +1214,7 @@ void AncestorObject::eventAssembler(vector<string> code){
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(!createExpression(words, cursor, Operation->ConditionalChain)){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
@@ -1208,11 +1227,11 @@ void AncestorObject::eventAssembler(vector<string> code){
             Operation->Location.source = words[1];
             cursor = 2;
             if(!gatherLiterals(words, cursor, Operation->Literals, 'i')){
-                std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                 return;
             }
             if(!gatherStringVector(words, cursor, Operation->dynamicIDs)){
-                std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
                 return;
             }
             if(optional(words, cursor, Operation->Location.attribute)){ continue; }
@@ -1244,7 +1263,7 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
             cursor = 1;
             if(!createExpression(words, cursor, Operation->ConditionalChain)){
-                std::cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Expression creation failed.\n";
                 return;
             }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
@@ -1256,30 +1275,30 @@ void AncestorObject::eventAssembler(vector<string> code){
             cursor = 1;
             if(words[0] == "bool"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'b')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
             else if(words[0] == "int"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'i')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
             else if(words[0] == "double"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'd')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
             else if(words[0] == "string"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 's')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
             else{
-                std::cout << "Error: In " << __FUNCTION__ << ": Literal type is required.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Literal type is required.\n";
                 return;
             }
             
@@ -1321,7 +1340,7 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
             else if(words[1] == "context" || words[1] == "_"){
                 if(!gatherStringVector(words, cursor, Operation->dynamicIDs)){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Context gather failed.\n";
                     return;
                 }
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
@@ -1379,7 +1398,7 @@ void AncestorObject::eventAssembler(vector<string> code){
                 }
             }
             else{
-                std::cout << "Error: In " << __FUNCTION__ << ": destination type \'" << words[2] << "\' does not exist.\n";
+                cout << "Error: In " << __FUNCTION__ << ": destination type \'" << words[2] << "\' does not exist.\n";
             }
             
             if(words.size() <= cursor){
@@ -1414,7 +1433,7 @@ void AncestorObject::eventAssembler(vector<string> code){
             if(isStringInGroup(words[2], 5, "literal", "l", "remove_literal", "rliteral", "rl")){
                 cursor = 3;
                 if(!gatherLiterals(words, cursor, Operation->Literals, 's')){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
@@ -1422,7 +1441,7 @@ void AncestorObject::eventAssembler(vector<string> code){
                 Operation->dynamicIDs.push_back(words[3]);
             }
             else if(words[2] != "reset" && words[2] != "r"){
-                std::cout << "Error: In " << __FUNCTION__ << ": In bind instruction, type must be equal to one of these values: "
+                cout << "Error: In " << __FUNCTION__ << ": In bind instruction, type must be equal to one of these values: "
                     "\"literal\", \"l\", \"remove_literal\", \"rliteral\", \"rl\", \"context\", \"c\", \"remove_context\", \"rcontext\", \"rc\", \"reset\", \"r\".\n";
                 return;
             }
@@ -1478,7 +1497,7 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
             else if(words[1] == "window_size"){
                 if(words.size() < 4){
-                    std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
+                    cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of numeric type.\n";
                     return;
                 }
@@ -1536,12 +1555,12 @@ void AncestorObject::eventAssembler(vector<string> code){
             }
         }
         else{
-            std::cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
         }
     }
     if(words.size() > 0){
         if(words[0] != "end"){
-            std::cout << "Error: In " << __FUNCTION__ << ": Every event must end with \"end\" instruction.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Every event must end with \"end\" instruction.\n";
         }
     }
 }
@@ -1566,12 +1585,14 @@ void AncestorObject::translateAllScripts(bool clearEvents){
 bool ModulesPointers::hasInstanceOfAnyModule() const{
     return Texts.size() > 0 || EditableTexts.size() > 0 || Images.size() > 0
         || Movements.size() > 0 || Collisions.size() > 0 || Particles.size() > 0
-        || Events.size() > 0 || Variables.size() > 0 || Scrollbars.size() > 0;
+        || Events.size() > 0 || Variables.size() > 0 || Scrollbars.size() > 0
+        || Primitives.size() > 0;
 }
 unsigned ModulesPointers::size() const{
     return Texts.size() + EditableTexts.size() + Images.size() +
         Movements.size() + Collisions.size() + Particles.size() +
-        Events.size() + Variables.size() + Scrollbars.size();
+        Events.size() + Variables.size() + Scrollbars.size()
+        + Primitives.size();
 }
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){

@@ -12,6 +12,7 @@
 #endif
 
 using std::vector;
+using std::cout;
 
 template <typename type>
 class vecX{

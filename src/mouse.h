@@ -1,7 +1,7 @@
 #ifndef MOUSE_H_INCLUDED
 #define MOUSE_H_INCLUDED
 
-#include "camera.h"
+#include "primitivesModule.h"
 
 #define MOUSE_BUTTONS_NUM_MAX 5
 

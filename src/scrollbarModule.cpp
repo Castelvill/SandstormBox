@@ -117,7 +117,7 @@ vec2d ScrollbarModule::countScrollShift(){
     if(scrollingArea.y-thumbSize.y != 0){
         scrollShift.y = (thumbPos.y/(scrollingArea.y-thumbSize.y))*realScrollingArea.y;
     }
-    std::cout << scrollShift.x << " " << scrollShift.y << "\n";
+    cout << scrollShift.x << " " << scrollShift.y << "\n";
     return scrollShift;
 }
 void ScrollbarModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){

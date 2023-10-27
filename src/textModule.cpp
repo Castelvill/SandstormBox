@@ -65,7 +65,7 @@ void TextModule::chooseContent(unsigned int textID){
     if(textID < content.size())
         currentTextID = textID;
     else{
-        std::cout << "Bad index in textModule \"" << ID << "\".\n";
+        cout << "Bad index in textModule \"" << ID << "\".\n";
     } 
 }
 void TextModule::modifyContent(unsigned int textID, string modifiedContent){
@@ -73,7 +73,7 @@ void TextModule::modifyContent(unsigned int textID, string modifiedContent){
         content[textID] = modifiedContent;
     }
     else{
-        std::cout << "Bad index in textModule \"" << ID << "\".\n";
+        cout << "Bad index in textModule \"" << ID << "\".\n";
     } 
 }
 void TextModule::modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer){
@@ -82,7 +82,7 @@ void TextModule::modifyContentAndResize(unsigned int textID, string modifiedCont
         fitSizeToText(FontContainer);
     }
     else{
-        std::cout << "Bad index in textModule \"" << ID << "\".\n";
+        cout << "Bad index in textModule \"" << ID << "\".\n";
     } 
 }
 void TextModule::deleteContent(unsigned int textID){
@@ -92,7 +92,7 @@ void TextModule::deleteContent(unsigned int textID){
             currentTextID--;
     }
     else{
-        std::cout << "Bad index in textModule \"" << ID << "\".\n";
+        cout << "Bad index in textModule \"" << ID << "\".\n";
     } 
 }
 void TextModule::clear(){
@@ -414,7 +414,7 @@ string TextModule::getContent(unsigned int textID) const{
     if(textID < content.size())
         return content[textID];
     else{
-        std::cout << "Bad index in textModule \"" << ID << "\".\n";
+        cout << "Bad index in textModule \"" << ID << "\".\n";
         return "no";
     }
 }
@@ -446,7 +446,7 @@ VariableModule TextModule::getAttributeValue(const string &attribute, const stri
     else if(attribute == "visibility"){
         return VariableModule::newDouble(visibility);
     }
-    std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     return VariableModule::newBool(false);
 }
 
@@ -673,8 +673,8 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
         modifyContent(0, new_content);
         cursorPos += 1;
 
-        //std::cout << int(character) << " ";
-        //std::cout << character << " (" << int(character) << ") " << " ";
+        //cout << int(character) << " ";
+        //cout << character << " (" << int(character) << ") " << " ";
     }
 }
 bool EditableTextModule::canConvertContentToNumber(){
@@ -1580,10 +1580,10 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
     return false;
 }
 void printNotNumericalWarning(){
-    std::cout << "Warning: You can't use text to change numerical variable!\n";
+    cout << "Warning: You can't use text to change numerical variable!\n";
 }
 void printCommandDoesNotExistWarning(){
-    std::cout << "Warning: Command doesn't exist!\n";
+    cout << "Warning: Command doesn't exist!\n";
 }
 void EditableTextModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
     BasePointers.push_back(BasePointersStruct());
@@ -1688,6 +1688,6 @@ VariableModule EditableTextModule::getAttributeValue(const string &attribute, co
     else if(attribute == "editing"){
         return VariableModule::newBool(getEditingIsActive());
     }
-    std::cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     return VariableModule::newBool(false);
 }

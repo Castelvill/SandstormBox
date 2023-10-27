@@ -64,16 +64,16 @@ vector <string> sytaxOutput(string input){
     vector <string> output;
     string match_str;
 
-    //std::cout << "Words (" << amountOfWords <<"):\n";
+    //cout << "Words (" << amountOfWords <<"):\n";
     for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
         std::smatch match = *i;
         match_str = match.str();
         if (match_str.size() > 0){
             output.push_back(match_str);
-            std::cout << output.back() << ", ";
+            cout << output.back() << ", ";
         }
     }
-    std::cout << "\n";
+    cout << "\n";
     return output;
 }
 
@@ -83,7 +83,7 @@ int main()
     file.open("mario.cpp");
     if(!file)
     {
-        std::cout << "File opening failed\n";
+        cout << "File opening failed\n";
         return -1;
     }
 
@@ -92,10 +92,10 @@ int main()
     char inputChar;
     vector <Scope> localMem;
     localMem.push_back(Scope());
-    std::cout << "Scope " << localMem.size()-1 << ":\n";
+    cout << "Scope " << localMem.size()-1 << ":\n";
 
     while(file.get(inputChar)){
-        std::cout << ".";
+        cout << ".";
         input += inputChar;
 
         if(localMem.back().type != ""){
@@ -107,15 +107,15 @@ int main()
                     continue;
                 }
                 if(words[1] != "="){
-                    std::cout << "Syntax error: no equals sign!\n";
+                    cout << "Syntax error: no equals sign!\n";
                     return -1;
                 }
                 if(words[2] == ";"){
-                    std::cout << "Syntax error: cannot create empty variable!\n";
+                    cout << "Syntax error: cannot create empty variable!\n";
                     return -1;
                 }
                 if(words.back() != ";"){
-                    std::cout << "Syntax error: no semicolon!\n";
+                    cout << "Syntax error: no semicolon!\n";
                     return -1;
                 }
 
@@ -125,7 +125,7 @@ int main()
                 input = "";
                 localMem.back().type = "";
                 words.clear();
-                std::cout << "Variable added!\n";
+                cout << "Variable added!\n";
 
             }
             continue;
@@ -138,17 +138,17 @@ int main()
         if(isOneOfSubjects(input)){
             if(startsNewScope(input)){
                 localMem.push_back(Scope());
-                std::cout << "Scope " << localMem.size()-1 << ":\n";
+                cout << "Scope " << localMem.size()-1 << ":\n";
             }
             localMem.back().type = input;
-            std::cout << "Type: " << localMem.back().type << "\n";
+            cout << "Type: " << localMem.back().type << "\n";
             input = "";
             continue;
         }
 
     }
 
-    //std::cout << input;
+    //cout << input;
 
     file.close();
     return 0;

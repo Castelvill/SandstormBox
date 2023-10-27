@@ -38,23 +38,23 @@ bool LayerClass::isObjectsUniquenessViolated(){
                 continue;
             }
             if(!violated){
-                std::cout << "\n\n";
+                cout << "\n\n";
             }
-            std::cout << "Uniqueness has been violated in: Layer[" << ID << "]=" << ID
+            cout << "Uniqueness has been violated in: Layer[" << ID << "]=" << ID
                 << " by Object[" << j << "]=" << Objects[j].getID() << "\n";
             violated = true;
         }
     }
 
     if(violated){
-        std::cout << "\n";
+        cout << "\n";
     }
     return violated;
 }
 
 void LayerClass::setID(string newID, vector <string> & layersIDs){
     if(isStringInVector(reservedIDs, ID)){
-        std::cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     removeFromStringVector(layersIDs, ID);
@@ -91,11 +91,11 @@ bool *LayerClass::getIsActiveAddr()
 }
 void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs, const bool & changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
-        std::cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
     }
     if(isStringInVector(reservedIDs, ID)){
-        std::cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     string oldID = ID;

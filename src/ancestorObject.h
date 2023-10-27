@@ -14,6 +14,7 @@ struct ModulesPointers{
     vector <EveModule*> Events;
     vector <VariableModule*> Variables;
     vector <ScrollbarModule*> Scrollbars;
+    vector <PrimitivesModule*> Primitives;
     bool hasInstanceOfAnyModule() const;
     unsigned size() const;
 };
@@ -33,6 +34,7 @@ public:
     vector <EveModule> EveContainer;
     vector <VariableModule> VariablesContainer;
     vector <ScrollbarModule> ScrollbarContainer;
+    vector <PrimitivesModule> PrimitivesContainer;
     vector <string> textContainerIDs;
     vector <string> editableTextContainerIDs;
     vector <string> imageContainerIDs;
@@ -43,6 +45,7 @@ public:
     vector <string> eveContainerIDs;
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
+    vector <string> primitivesContainerIDs;
     vector <string> bindedScripts;
 
     AncestorObject();

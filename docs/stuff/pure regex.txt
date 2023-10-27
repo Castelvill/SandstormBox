@@ -16,13 +16,13 @@ vector <string> sytaxOutput(string input, string regex){
     
     vector <string> output;
 
-    std::cout << "Words (" << amountOfWords <<"):\n";
+    cout << "Words (" << amountOfWords <<"):\n";
     for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
         std::smatch match = *i;
         output.push_back(match.str());
         
         if (output.back().size() > 0) {
-            std::cout << "  " << output.back() << '\n';
+            cout << "  " << output.back() << '\n';
         }
     }
     return output;
@@ -47,12 +47,12 @@ int main()
     }
     
     if(numberOfBrackets != 0){
-        std::cout << "Syntax error: brackets are missing!\n";
+        cout << "Syntax error: brackets are missing!\n";
         return -1;
     }
     
     if(numberOfCurlyBracket != 0){
-        std::cout << "Syntax error: curly brackets are missing!\n";
+        cout << "Syntax error: curly brackets are missing!\n";
         return -1;
     }
     

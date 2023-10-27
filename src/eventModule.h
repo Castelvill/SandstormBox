@@ -71,6 +71,7 @@ public:
     void controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
     void controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
     void controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
+    void controlPrimitives(PrimitivesModule * Primitives, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
 
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
