@@ -30,49 +30,49 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
     switch(type){
         case prim_line:
             if(points.size() < 2){
-                cout << "Error: In: " << __FUNCTION__ << ": Line primitive requires 2 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Line primitive requires 2 points.\n";
                 return;
             }
             al_draw_line(base.x + points[0].x, points[0].y, points[1].x, points[1].y, color, thickness);
             break;
         case prim_triangle:
             if(points.size() < 3){
-                cout << "Error: In: " << __FUNCTION__ << ": Triangle primitive requires 3 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Triangle primitive requires 3 points.\n";
                 return;
             }
             al_draw_triangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color, thickness);
             break;
         case prim_filled_triangle:
             if(points.size() < 3){
-                cout << "Error: In: " << __FUNCTION__ << ": Triangle primitive requires two points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Triangle primitive requires two points.\n";
                 return;
             }
             al_draw_filled_triangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color);
             break;
         case prim_rectangle:
             if(points.size() < 2){
-                cout << "Error: In: " << __FUNCTION__ << ": Rectangle primitive requires 2 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Rectangle primitive requires 2 points.\n";
                 return;
             }
             al_draw_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, color, thickness);
             break;
         case prim_filled_rectangle:
             if(points.size() < 2){
-                cout << "Error: In: " << __FUNCTION__ << ": Rectangle primitive requires 2 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Rectangle primitive requires 2 points.\n";
                 return;
             }
             al_draw_filled_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, color);
             break;
         case prim_rounded_rectangle:
             if(points.size() < 3){
-                cout << "Error: In: " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
                 return;
             }
             al_draw_rounded_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color, thickness);
             break;
         case prim_filled_rounded_rectangle:
             if(points.size() < 3){
-                cout << "Error: In: " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
                 return;
             }
             if(samples <= 0){
@@ -89,34 +89,34 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
             break;
         case prim_circle:
             if(points.size() < 1){
-                cout << "Error: In: " << __FUNCTION__ << ": Circle primitive requires 1 point.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Circle primitive requires 1 point.\n";
                 return;
             }
             al_draw_circle(points[0].x, points[0].y, radius, color, thickness);
             break;
         case prim_filled_circle:
             if(points.size() < 1){
-                cout << "Error: In: " << __FUNCTION__ << ": Circle primitive requires 1 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Circle primitive requires 1 points.\n";
                 return;
             }
             al_draw_filled_circle(points[0].x, points[0].y, radius, color);
             break;
         case prim_ellipse:
             if(points.size() < 2){
-                cout << "Error: In: " << __FUNCTION__ << ": Ellipse primitive requires 2 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Ellipse primitive requires 2 points.\n";
                 return;
             }
             al_draw_ellipse(points[0].x, points[0].y, points[1].x, points[1].y, color, thickness);
             break;
         case prim_filled_ellipse:
             if(points.size() < 2){
-                cout << "Error: In: " << __FUNCTION__ << ": Ellipse primitive requires 2 points.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Ellipse primitive requires 2 points.\n";
                 return;
             }
             al_draw_filled_ellipse(points[0].x, points[0].y, points[1].x, points[1].y, color);
             break;
         default:
-            cout << "Error: In: " << __FUNCTION__ << ": Cannot draw primitive.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Cannot draw primitive.\n";
             break;
     }
 }
@@ -153,7 +153,7 @@ void PrimitivesModule::updateWithSize(){
         points[1].y = size.y / 2;
     }
     else if(type == prim_triangle || type == prim_filled_triangle){
-        cout << "Error: In: " << __FUNCTION__ << ": Cannot calculate points of triangle primitive.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Cannot calculate points of triangle primitive.\n";
     }
 }
 

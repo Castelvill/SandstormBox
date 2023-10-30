@@ -522,7 +522,7 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
 }
 bool VariableModule::isConditionMet(string condVal, string operatorType, char valType){
     if(type != valType || valType != 's'){
-        cout << "Error [VariableModule]: Comparison of two different variable types.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Comparison of two different variable types.\n";
         return false;
     }
     if(operatorType == "=="){
@@ -561,7 +561,8 @@ bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherV
         return isConditionMet(OtherVariable->getString(), operatorType, OtherVariable->getType());
     }
     
-    cout << "Error [VariableModule]: Invalid types.\n";
+    cout << "Error: In " << __FUNCTION__ << ": Invalid comparison: " << ID << ":" << type << ":" << getAnyValue()
+        << " " << operatorType << " " << OtherVariable->getID() << ":" << OtherVariable->getType() << ":" << OtherVariable->getAnyValue() << "\n";
     
     return false;
 }

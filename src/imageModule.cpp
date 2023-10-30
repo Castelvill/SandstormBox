@@ -166,7 +166,7 @@ void ImageModule::loadImage(string newFilePath, string newAlias, string EXE_PATH
     imageFilePath = newFilePath;
     image = al_load_bitmap((EXE_PATH + imageFilePath).c_str());
     if(!image){
-        cout << "Error: In: " << __FUNCTION__ << ": Loading image failed: File \'" << imageFilePath << "\' does not exist.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Loading image failed: File \'" << imageFilePath << "\' does not exist.\n";
         return;
     }
     size.set(al_get_bitmap_width(image), al_get_bitmap_height(image));
@@ -199,13 +199,13 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     
     if(!bitmapExists){
         if(newAlias != ""){
-            cout << "Error: In: " << __FUNCTION__ << ": Bitmap \'" << newAlias << "\' not found.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newAlias << "\' not found.\n";
         }
         else if(newFilePath != ""){
-            cout << "Error: In: " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
+            cout << "Error: In " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
         }
         else{
-            cout << "Error: In: " << __FUNCTION__ << ": Path to the file and the alias of the bitmap were not provided.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Path to the file and the alias of the bitmap were not provided.\n";
         }
         return;
     }
@@ -234,10 +234,10 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     if(!image){
         image = al_create_bitmap(100, 100);
         if(imageAlias != ""){
-            cout << "Error: In: " << __FUNCTION__ << ": Bitmap \'" << imageAlias << "\' not found.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << imageAlias << "\' not found.\n";
         }
         else{
-            cout << "Error: In: " << __FUNCTION__ << ": File \'" << imageFilePath << "\' not loaded into memory.\n";
+            cout << "Error: In " << __FUNCTION__ << ": File \'" << imageFilePath << "\' not loaded into memory.\n";
         }
         return;
     }
@@ -260,7 +260,7 @@ void ImageModule::loadLight(string newFilePath, string newAlias, string EXE_PATH
     isBitmapFromContainer[1] = false;
     lightBitmap = al_load_bitmap((EXE_PATH + lightFilePath).c_str());
     if(!lightBitmap){
-        cout << "Error: In: " << __FUNCTION__ << ": Loading image failed: File \'" << imageFilePath << "\' does not exist.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Loading image failed: File \'" << imageFilePath << "\' does not exist.\n";
         return;
     }
 }
@@ -288,13 +288,13 @@ void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, st
     
     if(!bitmapExists){
         if(newAlias != ""){
-            cout << "Error: In: " << __FUNCTION__ << ": Bitmap \'" << newAlias << "\' not found.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newAlias << "\' not found.\n";
         }
         else if(newFilePath != ""){
-            cout << "Error: In: " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
+            cout << "Error: In " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
         }
         else{
-            cout << "Error: In: " << __FUNCTION__ << ": Path to the file and the alias of the bitmap were not provided.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Path to the file and the alias of the bitmap were not provided.\n";
         }
         return;
     }
@@ -318,10 +318,10 @@ void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, st
     if(!lightBitmap){
         lightBitmap = al_create_bitmap(100, 100);
         if(lightAlias != ""){
-            cout << "Error: In: " << __FUNCTION__ << ": Bitmap \'" << lightAlias << "\' not found.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << lightAlias << "\' not found.\n";
         }
         else{
-            cout << "Error: In: " << __FUNCTION__ << ": File \'" << lightFilePath << "\' not loaded into memory.\n";
+            cout << "Error: In " << __FUNCTION__ << ": File \'" << lightFilePath << "\' not loaded into memory.\n";
         }
         return;
     }

@@ -731,7 +731,7 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
         Variable->addDouble(Values[dice].getDoubleUnsafe());
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": function " << attribute << "<" << Values.size() << "> does not exist.\n";
+        cout << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << Values.size() << "> does not exist.\n";
     }
 }
 void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){

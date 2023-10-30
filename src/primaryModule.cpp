@@ -180,7 +180,7 @@ void PrimaryModule::control(string attribute, bool value, unsigned paramCount){
         isScrollable = value;
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": function " << attribute << "<" << paramCount << "> does not exist.\n";
+        cout << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << paramCount << "> does not exist.\n";
     }
 }
 void PrimaryModule::setIsAttachedToCamera(bool newIsAttachedToCamera){

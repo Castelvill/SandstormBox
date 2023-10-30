@@ -64,7 +64,7 @@ public:
     string addModuleInstance(string module, string newID);
     string destroyModuleInstance(string module, string destroyID);
     VariableModule getAttributeValue(const string & attribute, const string & detail);
-    void eventAssembler(vector<string> code);
+    void eventAssembler(vector<string> code, string scriptName);
     void translateAllScripts(bool clearEvents);
 };
 

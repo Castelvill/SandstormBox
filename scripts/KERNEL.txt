@@ -44,7 +44,7 @@ load_bitmap "images/Ilulu.jpg" background1
 load_bitmap "images/background2.png" background2
 load_bitmap "images/background3.png" background3
 
-load_bitmap "gui/background.png" gui_background
+/*load_bitmap "gui/background.png" gui_background
 load_bitmap "gui/icon_general.png" icon_general
 load_bitmap "gui/icon_image.png" icon_image
 load_bitmap "gui/icon_text.png" icon_text
@@ -60,7 +60,7 @@ load_bitmap "gui/arrow_h3.png" arrow_1
 load_bitmap "gui/plus_h3.png" plus_1
 load_bitmap "gui/minus_h3.png" minus_1
 load_bitmap "gui/thumb_h3.png" thumb_1
-load_bitmap "gui/thumb_track_h3.png" thumb_track_1
+load_bitmap "gui/thumb_track_h3.png" thumb_track_1*/
 
 mkdir "projects"
 mkdir "projects/test"
@@ -240,6 +240,12 @@ fun PrimiFun set_size int [400 700]
 fun PrimiFun update_with_size
 new variable c Back 1 _ _ Var
 fun Var set_int int [0]
+new variable c Back 1 _ _ input
+fun input set_id string ["input"]
+fun input set_string string [""]
+bind Back literal ["scripts/terminal.txt"]
+build Back true
+
 
 new camera l 1 _ _ cam
 //fun cam set_position int [100 100]
@@ -286,7 +292,7 @@ fun cam set_grabbing_area_size int [600 30]
 fun cam set_keep_inside_screen bool [true]
 
 
-/*new camera l 1 _ _ cam
+new camera l 1 _ _ cam
 fun cam set_id string [okienko]
 fun cam set_relative_position int [600 100]
 fun cam set_active bool [true]
@@ -308,7 +314,8 @@ fun cam set_drawing_borders int [1]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
 fun cam set_can_interact_with_mouse bool [true]
-fun cam minimize
+fun cam set_keep_inside_screen bool [true]
+//fun cam minimize
 //fun cam bring_forward
 
 new camera l 1 _ _ cam
@@ -332,9 +339,9 @@ fun cam pin_to_camera string [okienko]
 fun cam activate_pin
 fun cam set_is_forcefully_pinned bool [true]
 fun cam set_relative_position int [100 100]
-fun cam minimize
+//fun cam minimize
 
-new camera l 1 _ _ cam
+/*new camera l 1 _ _ cam
 fun cam set_position int [300 50]
 fun cam set_active bool [true]
 fun cam resize int [400 500]
@@ -455,7 +462,12 @@ if ([key_pressed 18])
 index layer [1 0] _ object Amogus
 bind Amogus rliteral ["scripts/amogus.txt"]
 bind Amogus literal ["scripts/amogus.txt"]
-build Amogus true
+index layer [2 0] _ object Terminal
+bind Terminal rliteral ["scripts/terminal.txt"]
+bind Terminal literal ["scripts/terminal.txt"]
+index context [0 1] [Terminal] variable input
+fun input set_string string ["get_input"]
+build Terminal true
 end
 
 

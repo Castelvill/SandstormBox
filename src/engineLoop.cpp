@@ -664,7 +664,7 @@ void PointerContainer::clear(){
 string PointerContainer::getValue(){
     string buffer = "";
     if(type == ""){
-        cout << "Error: In: " << __FUNCTION__ << ": Context does not have type.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Context does not have type.\n";
     }
     else if(type == "value"){
         buffer = "[";
@@ -1289,7 +1289,7 @@ void EngineLoop::getContextFromModuleVectorById(string moduleType, string module
                 NewContext.type = "pointer";
             }
             else{
-                cout << "Error: In: " << __FUNCTION__ << ": No type.\n";
+                cout << "Error: In " << __FUNCTION__ << ": No type.\n";
             }
         }
 
@@ -2164,7 +2164,7 @@ void EngineLoop::aggregateEntities(OperaClass & Operation, vector<PointerContain
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -2186,7 +2186,7 @@ void EngineLoop::aggregateValues(vector<PointerContainer> &EventContext, OperaCl
         addNewContext(EventContext, NewContext, "value", Operation.newContextID);
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -2230,7 +2230,7 @@ void EngineLoop::aggregateOnlyById(vector<PointerContainer> &EventContext, Opera
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -2745,7 +2745,7 @@ void EngineLoop::executeArithmetics(OperaClass & Operation, vector<PointerContai
         addNewContext(EventContext, NewContext, "value", Operation.newContextID);
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -2768,7 +2768,7 @@ void EngineLoop::createLiteral(vector<PointerContainer> &EventContext, const Ope
         addNewContext(EventContext, NewContext, "value", Operation.newContextID);
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -2905,7 +2905,7 @@ void EngineLoop::generateRandomVariable(vector<PointerContainer> &EventContext, 
         addNewContext(EventContext, NewContext, "value", Operation.newContextID);
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 
@@ -3109,7 +3109,7 @@ void EngineLoop::checkIfVectorContainsVector(OperaClass & Operation, vector<Poin
             result = containsTheSameModule(LeftOperand->Modules.Primitives, RightOperand->Modules.Primitives);
         }
         else{
-            cout << "Error: In: " << __FUNCTION__ << ": \'" << LeftOperand->type << "\' type does not exist.\n";
+            cout << "Error: In " << __FUNCTION__ << ": \'" << LeftOperand->type << "\' type does not exist.\n";
         }
     }
 
@@ -3139,7 +3139,7 @@ void createNewModule(vector <Module> & Container, vector <string> & allIDs, vect
 }
 bool EngineLoop::prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs){
     if(Literals.size() == 0 || Literals[0].getType() != 's'){
-        cout << "Error: In: " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
         return false;
     }
     
@@ -3204,7 +3204,7 @@ bool EngineLoop::prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventC
 }
 bool EngineLoop::prepareDestinationForNew(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers){
     if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In: " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
         return false;
     }
     
@@ -3270,17 +3270,17 @@ bool EngineLoop::prepareDestinationForNew(OperaClass & Operation, vector<Pointer
         }
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": wrong destination type in the \'new\' instruction.\n";
+        cout << "Error: In " << __FUNCTION__ << ": wrong destination type in the \'new\' instruction.\n";
         return false;
     }
 
     if(CurrentLayer == nullptr){
-        cout << "Error: In: " << __FUNCTION__ << ": Layer \'" << Operation.Location.layerID << "\' does not exist.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Layer \'" << Operation.Location.layerID << "\' does not exist.\n";
         return false;
     }
 
     if(CurrentObject == nullptr){
-        cout << "Error: In: " << __FUNCTION__ << ": Object \'" << Operation.Location.objectID << "\' does not exist.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Object \'" << Operation.Location.objectID << "\' does not exist.\n";
         return false;
     }
 
@@ -3315,7 +3315,7 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
     }
 
     if(newVectorSize == 0){
-        cout << "Warning: In: " << __FUNCTION__ << ": No new entity will be created - the count of new entities is zero.\n";
+        cout << "Warning: In " << __FUNCTION__ << ": No new entity will be created - the count of new entities is zero.\n";
         return;
     }
 
@@ -3444,7 +3444,7 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
         );
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Entity type \'" << Operation.instruction << "\' does not exist.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Entity type \'" << Operation.instruction << "\' does not exist.\n";
     }
 
     if(NewContext.type != ""){
@@ -3452,7 +3452,7 @@ void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContain
         wasNewExecuted = true;
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -3772,7 +3772,7 @@ void EngineLoop::getReferenceByIndex(OperaClass & Operation, vector<PointerConta
     vector<unsigned> indexes;
     unsigned realIndex = 0, entityIndex = 0;
 
-    if(Operation.Location.source != "" && Operation.Location.source != "context"){
+    if(Operation.Location.source != "" && Operation.Location.source != "context" && Operation.Location.source != "c"){
         getIndexes(Operation.Literals, Operation.dynamicIDs, indexes, EventContext);
 
         if(indexes.size() == 0){
@@ -4113,7 +4113,7 @@ void EngineLoop::getReferenceByIndex(OperaClass & Operation, vector<PointerConta
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
     }
     else{
-        cout << "Error: In: " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -4537,7 +4537,7 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
             Camera->keepInsideScreen = Variables[0].getBoolUnsafe();
         }
         else{
-            cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
+            cout << "Error: In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
     }
 
@@ -4577,7 +4577,7 @@ void EngineLoop::executeFunctionForLayers(OperaClass & Operation, vector <Variab
             Layer->size.y = Variables[1].getDoubleUnsafe();
         }
         else{
-            cout << "Error: In: " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
+            cout << "Error: In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
     }
 }
@@ -5546,6 +5546,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(ConditionClass & Condition,
                 return Variable;
             }
         }
+        cout << "Error: In " << __FUNCTION__ << ": There is no variable with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else if(Condition.Location.moduleType == "ancestor"){
         return CurrentObject->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
@@ -5568,6 +5569,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(ConditionClass & Condition,
                 return Text.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
             }
         }
+        cout << "Error: In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else if(Condition.Location.moduleType == "editable_text"){
         for(const EditableTextModule & EditableText : CurrentObject->EditableTextContainer){
@@ -5578,6 +5580,7 @@ VariableModule EngineLoop::findNextValueAmongObjects(ConditionClass & Condition,
                 return EditableText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
             }
         }
+        cout << "Error: In " << __FUNCTION__ << ": There is no editable text with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else if(Condition.Location.moduleType == "collision"){
         return getValueFromObjectInCollision(Condition, CurrentObject, CurrentLayer);
@@ -5588,7 +5591,6 @@ VariableModule EngineLoop::findNextValueAmongObjects(ConditionClass & Condition,
 }
 VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<PointerContainer> &EventContext){
     VariableModule NewValue(Condition.Location.source, nullptr, "", "");
-    
     if(Condition.Location.source == "on_boot"){
         NewValue.setBool(firstIteration);
         return NewValue;
@@ -5743,7 +5745,7 @@ VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObj
     else if(Condition.Location.source == "object"){
         return findNextValueAmongObjects(Condition, Owner, OwnerLayer, Layers, Cameras);
     }
-    else if(Condition.Location.source == "context"){
+    else if(Condition.Location.source == "context" || Condition.Location.source == "c"){
         PointerContainer * Context;
         vector<string> dynamicIDs = {Condition.Literal.getStringUnsafe()};
         if(!getOneContext(Context, EventContext, dynamicIDs)){
@@ -5785,6 +5787,19 @@ VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObj
             }
             return *Context->Modules.Variables.back();
         }
+        if(Context->type == "object"){
+            if(Context->Objects.size() == 0){
+                cout << "Error: In " << __FUNCTION__ << ": There are no variables in the context.\n";
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Context->Objects.size() != 1){
+                cout << "Warning: In " << __FUNCTION__ << ": There are several objects in the context. Program will proceed with the last added object.\n";
+            }
+            Condition.Location.layerID = Context->Objects.back()->getLayerID();
+            Condition.Location.objectID = Context->Objects.back()->getObjectID();
+            return findNextValueAmongObjects(Condition, Owner, OwnerLayer, Layers, Cameras);
+        }
         cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
     }
     else if(Condition.Location.source == "literal"){
@@ -5799,6 +5814,7 @@ VariableModule EngineLoop::findNextValue(ConditionClass & Condition, AncestorObj
                 return Variable;
             }
         }
+        cout << "Error: In " << __FUNCTION__ << ": There is no variable with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else{
         cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
@@ -5860,7 +5876,7 @@ char EngineLoop::evaluateConditionalChain(vector<ConditionClass> & ConditionalCh
             else if(resultStack.size() >= 2){
 
                 if(!isStringInGroup(op, 14, "&&", "||", "==", "!=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%", "**")){
-                    cout << "Error: In: " << __FUNCTION__ << ": Unrecognized operator in the if statement.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Unrecognized operator in the if statement.\n";
                     continue;
                 }
 
@@ -5918,7 +5934,7 @@ char EngineLoop::evaluateConditionalChain(vector<ConditionClass> & ConditionalCh
                 return 'f';
             }
             else{
-                cout << "Error: In: " << __FUNCTION__ << ": String is not a valid booleon value.\n";
+                cout << "Error: In " << __FUNCTION__ << ": String is not a valid booleon value.\n";
             }
         }
         else if(resultStack.back().getBool()){
@@ -6333,24 +6349,10 @@ void EngineLoop::keepPositionInsideScreen(vec2d & pos, vec2d & size){
     }
     size.x = std::min(size.x, double(windowW));
     size.y = std::min(size.y, double(windowH));
-    //pos.x = std::max(pos.x, 0.0);
-    //pos.y = std::max(pos.y, 0.0);
-    //pos.x = std::min(pos.x + size.x, double(windowW) - size.x);
-    //pos.y = std::min(pos.y + size.y, double(windowH) - size.y);
-
-
-    if(pos.x < 0){
-        pos.x = 0;
-    }
-    if(pos.x + size.x > windowW){
-        pos.x = windowW - size.x;
-    }
-    if(pos.y < 0){
-        pos.y = 0;
-    }
-    if(pos.y + size.y > windowH){
-        pos.y = windowH - size.y;
-    }
+    pos.x = std::max(pos.x, 0.0);
+    pos.y = std::max(pos.y, 0.0);
+    pos.x = std::min(pos.x, windowW - size.x);
+    pos.y = std::min(pos.y, windowH - size.y);
 }
 void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
     if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
@@ -6372,165 +6374,100 @@ void EngineLoop::updateCamerasPositions(vector <Camera2D> & Cameras){
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_N:
-            if(Mouse.getPos().y <= dragLimit.y){
-                SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
-                if(SelectedCamera->isPinnedToCamera){
-                    SelectedCamera->relativePos.set(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
-                    keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size);
-                }
-                else{
-                    SelectedCamera->pos.set(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
-                    keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
-                }
+            SelectedCamera->setSize(SelectedCamera->size.x, dragStartingPos.y - Mouse.getPos().y);
+            if(SelectedCamera->keepInsideScreen){
+                SelectedCamera->setSize(SelectedCamera->size.x, std::min(SelectedCamera->size.y, dragStartingPos.y - dragStartingPos2.y));
+            }
+            if(SelectedCamera->isPinnedToCamera){
+                SelectedCamera->relativePos.set(SelectedCamera->pos.x, std::min(Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
+                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size);
             }
             else{
-                SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
-                if(SelectedCamera->isPinnedToCamera){
-                    SelectedCamera->relativePos.set(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
-                    keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size);
-                }
-                else{
-                    SelectedCamera->pos.set(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
-                    keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
-                }
+                SelectedCamera->pos.set(SelectedCamera->pos.x, std::min(Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
+                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
             }
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_NE:
-            if(Mouse.getPos().x <= dragLimit.x){
-                SelectedCamera->setSize(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y);
-            }
-            else{
-                SelectedCamera->setSize(dragLimit.x - dragStartingPos.x, SelectedCamera->size.y);
+            SelectedCamera->setSize(Mouse.getPos().x - dragStartingPos.x, dragStartingPos.y - Mouse.getPos().y);
+            if(SelectedCamera->keepInsideScreen){
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, windowW - SelectedCamera->pos.x),
+                                        std::min(SelectedCamera->size.y, dragStartingPos.y - dragStartingPos2.y));
             }
             if(SelectedCamera->isPinnedToCamera){
-                if(Mouse.getPos().y <= dragLimit.y){
-                    SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
-                    SelectedCamera->relativePos.set(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
-                }
-                else{
-                    SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
-                    SelectedCamera->relativePos.set(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
-                }
+                SelectedCamera->relativePos.set(SelectedCamera->pos.x, std::min(Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
                 keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size);
             }
             else{
-                if(Mouse.getPos().y <= dragLimit.y){
-                    SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
-                    SelectedCamera->pos.set(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
-                }
-                else{
-                    SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
-                    SelectedCamera->pos.set(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
-                }
+                SelectedCamera->pos.set(SelectedCamera->pos.x, std::min(Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
                 keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
             }
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_E:
             SelectedCamera->setSize(Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y);
+            if(SelectedCamera->keepInsideScreen){
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, windowW - SelectedCamera->pos.x), SelectedCamera->size.y);
+            }
             break;
         case CAMERA_SE:
             SelectedCamera->setSize(Mouse.getPos().x - dragStartingPos.x, Mouse.getPos().y - dragStartingPos.y);
+            if(SelectedCamera->keepInsideScreen){
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, windowW - SelectedCamera->pos.x),
+                                        std::min(SelectedCamera->size.y, windowH - SelectedCamera->pos.y));
+            }
             break;
         case CAMERA_S:
             SelectedCamera->setSize(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y);
+            if(SelectedCamera->keepInsideScreen){
+                SelectedCamera->setSize(SelectedCamera->size.x, std::min(SelectedCamera->size.y, windowH - SelectedCamera->pos.y));
+            }
             break;
         case CAMERA_SW:
+            SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, Mouse.getPos().y - dragStartingPos.y);
+            if(SelectedCamera->keepInsideScreen){
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, dragStartingPos.x - dragStartingPos2.x),
+                                        std::min(SelectedCamera->size.y, windowH - SelectedCamera->pos.y));
+            }
             if(SelectedCamera->isPinnedToCamera){
-                if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->relativePos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
-                }
-                else{
-                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->relativePos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
-                }
+                SelectedCamera->relativePos.set(std::min(Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x), SelectedCamera->pos.y);
                 keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size);
             }
             else{
-                if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->pos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
-                }
-                else{
-                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->pos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
-                }
+                SelectedCamera->pos.set(std::min(Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x), SelectedCamera->pos.y);
                 keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
-            }
-            if(Mouse.getPos().y <= dragLimit.y){
-                SelectedCamera->setSize(SelectedCamera->size.x, Mouse.getPos().y - dragStartingPos.y);
-            }
-            else{
-                SelectedCamera->setSize(SelectedCamera->size.x, dragLimit.y - dragStartingPos.y);
             }
             adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_W:
+            SelectedCamera->setSize(dragStartingPos.x - Mouse.getPos().x, SelectedCamera->size.y);
+            if(SelectedCamera->keepInsideScreen){
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, dragStartingPos.x - dragStartingPos2.x), SelectedCamera->size.y);
+            }
             if(SelectedCamera->isPinnedToCamera){
-                if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->relativePos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
-                }
-                else{
-                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->relativePos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
-                }
+                SelectedCamera->relativePos.set(std::min(Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x), SelectedCamera->pos.y);
                 keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size);
-                adjustPositionOfAllCameras(Cameras);
             }
             else{
-                if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->pos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
-                    keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
-                }
-                else{
-                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->pos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
-                    keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
-                }
-                adjustPositionOfAllCameras(Cameras);
+                SelectedCamera->pos.set(std::min(Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x), SelectedCamera->pos.y);
+                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
             }
+            adjustPositionOfAllCameras(Cameras);
             break;
         case CAMERA_NW:
+            SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, dragStartingPos.y - Mouse.getPos().y);
+            if(SelectedCamera->keepInsideScreen){
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, dragStartingPos.x - dragStartingPos2.x),
+                                        std::min(SelectedCamera->size.y, dragStartingPos.y - dragStartingPos2.y));
+            }
             if(SelectedCamera->isPinnedToCamera){
-                if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->relativePos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->relativePos.y);
-                }
-                else{
-                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->relativePos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->relativePos.y);
-                }
-                if(Mouse.getPos().y <= dragLimit.y){
-                    SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
-                    SelectedCamera->relativePos.set(SelectedCamera->relativePos.x, Mouse.getPos().y - dragStartingPos2.y);
-                }
-                else{
-                    SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
-                    SelectedCamera->relativePos.set(SelectedCamera->relativePos.x, dragLimit.y - dragStartingPos2.y);
-                }
+                SelectedCamera->relativePos.set(std::min(Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x),
+                                                std::min(Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
                 keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size);
             }
             else{
-                if(Mouse.getPos().x <= dragLimit.x){
-                    SelectedCamera->setSize(-Mouse.getPos().x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->pos.set(Mouse.getPos().x - dragStartingPos2.x, SelectedCamera->pos.y);
-                }
-                else{
-                    SelectedCamera->setSize(-dragLimit.x + dragStartingPos.x, SelectedCamera->size.y);
-                    SelectedCamera->pos.set(dragLimit.x - dragStartingPos2.x, SelectedCamera->pos.y);
-                }
-                if(Mouse.getPos().y <= dragLimit.y){
-                    SelectedCamera->setSize(SelectedCamera->size.x, -Mouse.getPos().y + dragStartingPos.y);
-                    SelectedCamera->pos.set(SelectedCamera->pos.x, Mouse.getPos().y - dragStartingPos2.y);
-                }
-                else{
-                    SelectedCamera->setSize(SelectedCamera->size.x, -dragLimit.y + dragStartingPos.y);
-                    SelectedCamera->pos.set(SelectedCamera->pos.x, dragLimit.y - dragStartingPos2.y);
-                }
+                SelectedCamera->pos.set(std::min(Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x),
+                                        std::min(Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
                 keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size);
             }
             adjustPositionOfAllCameras(Cameras);
@@ -6749,8 +6686,6 @@ void EngineLoop::detectStartPosOfDraggingCamera(){
     if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
         return;
     }
-    
-    
     if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true)){
         al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_N);
         activeCameraMoveType = CAMERA_N;

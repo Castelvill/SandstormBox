@@ -245,8 +245,8 @@ private:
     LayerClass * SelectedLayer;
     AncestorObject * SelectedObject;
     AncestorObject * EditorObject;
-    vec2d dragStartingPos, dragStartingPos2, dragLimit;
-    vec2d dragCameraStaringPos;
+    vec2d dragStartingPos, dragStartingPos2;
+    vec2d dragCameraStaringPos, dragLimit;
     vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
     bool firstIteration, rebooted, closeProgram, displayResized;

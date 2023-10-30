@@ -40,7 +40,7 @@ bool LayerClass::isObjectsUniquenessViolated(){
             if(!violated){
                 cout << "\n\n";
             }
-            cout << "Uniqueness has been violated in: Layer[" << ID << "]=" << ID
+            cout << "Uniqueness has been violated In Layer[" << ID << "]=" << ID
                 << " by Object[" << j << "]=" << Objects[j].getID() << "\n";
             violated = true;
         }

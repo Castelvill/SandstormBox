@@ -1,25 +1,34 @@
-start interpreter false
-…
-stack: choice:string, params: values
-run [case1, case2, neofetch]
+start wait_for_input false
+triggers [each_iteration]
+run [get_input print_art print_hello print_byebye clear_input]
 end
 
-start case1 false
-if ([context choice] [string print] ==)
-index context params [0] delimiter
-(subvec or just index) params 1 _ params
-print _ context delimiter context params
+start get_input false
+if ([c me variable input] [string "get_input"] ==)
+index context [0 1] [me] variable input
+string ["print_hello"] null
+= input null
 end
 
-start case2 false
-if ([context choice] [string ls] ==)
-print _ string ["\nbin dev lib minecraft\n"]
+start clear_input false
+index context [0 1] [me] variable input
+string [""] null
+= input null
 end
 
+start print_hello false
+if ([c me variable input] [string "print_hello"] ==)
+print _ string ["Hello python!\n"]
+end
 
-start neofetch false
-if ([context choice] [string neofetch] ==)
-print _ string "
+start print_byebye false
+if ([c me variable input] [string print_byebye] ==)
+print _ string ["Bye, bye!\n"]
+end
+
+start print_art false
+if ([c me variable input] [string "print_art"] ==)
+print _ string ["
 @@@%%%%*-. ... :*#*+@@@@@@@@@@@@@@%=%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@+. .=++=: :*+==+@@@@@@@@@@%%#%%####%#+=+**:....-==+#%###%###%#%#%#%#:@@@@@@@@%+%+@@@@@@@#@@#@@@%%@@@@%%@%@@#%@%@@@@@%@@@@@@%@@@@
 %###%####:=%%%+:##%@@@@@@@@@@@@@@@@@=#@@@@@@@@@@@#*@*=:+.+%@@@@@@@@@@@@@@@@*===+%@@@@@@@@@@@@@%%%%%%%#####*=-+###+=%%#%@%@+:++*###****++++*#.@@@@@@@@@%#*@@%#**.-@:+@@%%@@@@%@@@@%@@@@@@@@@@@@@@@@@@@@@@
 %%%%%%%#*:****.=%@@@@@@@@@@@@@@@@@@@%:%@@@@@@@@@@@+.=++++:-=#@@@@@%@@@@@@@@@@@@@@@@@@@@@@@@@%%%####%#%##+.-#*****+.%%%@@@%%@@#=-==-===*%@%.+.@@@@@@%*:::.#::=+ ::. -%@@@@@@%%@@@@@@@@@@@%@@@@@@@%@@@@@@@
@@ -105,6 +114,5 @@ print _ string "
 ****++:=+%@@@@@@@@@@@@#-+**++ :%@@@@@@@%#*==*++:....           ..-=+*+%+---=%@@@@@@@@@@@@@@@@@@%%*===*#**##%##%%##%%#%=*=***##**#**@=*@#:%-#%#*#*:    .*=:. .***+*#-+*+-*+*@@@%:*-@@@@#=--+#%######++=.-
 ********%@@@@@@@@@@@@@@@%*+-::-%#%@@@@@@@@%%++::                 ...::*%%%**+++++++*%%%%%%%%#**#%%%%%%%%#%%%%%%%%%%%#+*+************#**%*@::@**+     :*-.  -**++*+=+*=-**.@@@%=.:.+*#%@@@@@@@@@@@@@@@@@@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%##=-          .=        .#%%%#%%#%#%%%%%%%#####%%%%#%%%%#%%#%%%###%%#*-*=*****#*#*****+****#*%#+:     :+.   -**+**=+*+=-*+-:+==*%@@@@@@@@@@@@@@@@@@@@@@@@@
-
-"
+"]
 end
