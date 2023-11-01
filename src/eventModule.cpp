@@ -15,7 +15,15 @@ void EveModule::clone(const EveModule &Original, vector<string> &listOfIDs, stri
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 
+void EveModule::setUpNewInstance(){
+    conditionalStatus = 'n';
+    elseChildID = "";
+    areDependentOperationsDone = false;
+    elseChildFinished = false;
+    loop = false;
+}
 EveModule::EveModule(){
+    primaryConstructor("", nullptr, "", "");
     setUpNewInstance();
 }
 EveModule::EveModule(unsigned int eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
@@ -25,13 +33,6 @@ EveModule::EveModule(unsigned int eventModuleID, vector<string> *listOfIDs, stri
 EveModule::EveModule(string eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
-}
-void EveModule::setUpNewInstance(){
-    conditionalStatus = 'n';
-    elseChildID = "";
-    areDependentOperationsDone = false;
-    elseChildFinished = false;
-    loop = false;
 }
 void EveModule::clear(){
     ConditionalChain.clear();
@@ -116,7 +117,7 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "update_size" && Values.size() > 0){
         Text->fitSizeToText(FontContainer);
     }
-    else if(attribute == "select" && Values.size() > 0){
+    else if(attribute == "select_content" && Values.size() > 0){
         Text->chooseContent(Values[0].getIntUnsafe());
     }
     else if(attribute == "delete" && Values.size() > 0){
@@ -145,7 +146,60 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
         Text->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer, string EXE_PATH){
+void EveModule::controlEditableText(EditableTextModule *EditableText, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, const vector<SingleFont> &FontContainer){
+    if(attribute == "set_editable" && Values.size() > 0){
+        EditableText->setCanBeEdited(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_space_use" && Values.size() > 0){
+        EditableText->setCanUseSpace(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_numerical" && Values.size() > 0){
+        EditableText->setIsNumerical(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_floating_point" && Values.size() > 0){
+        EditableText->setHasFloatingPoint(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_can_update_variable" && Values.size() > 0){
+        EditableText->setUpdateConnectedVariable(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_auto_cleaning" && Values.size() > 0){
+        EditableText->setCanClearContentAfterSuccess(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_use_arrows" && Values.size() > 0){
+        EditableText->setUseArrowsAsChar(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_min_content_length" && Values.size() > 0){
+        EditableText->setMinContentSize(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_max_content_length" && Values.size() > 0){
+        EditableText->setMaxContentSize(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_input_delay" && Values.size() > 0){
+        EditableText->setInputDelay(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_repetition_delay" && Values.size() > 0){
+        EditableText->setRepetitionDelay(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "connect_object" && Values.size() > 0){
+        EditableText->connectedObject = Values[0].getStringUnsafe();
+    }
+    else if(attribute == "connect_group" && Values.size() > 0){
+        EditableText->connectedGroup = Values[0].getStringUnsafe();
+    }
+    else if(attribute == "connect_module" && Values.size() > 0){
+        EditableText->connectedModule = Values[0].getStringUnsafe();
+    }
+    else if(attribute == "connect_module_id" && Values.size() > 0){
+        EditableText->connectedModuleID = Values[0].getStringUnsafe();
+    }
+    else if(attribute == "connect_variable" && Values.size() > 0){
+        EditableText->connectedVariable = Values[0].getStringUnsafe();
+    }
+    else{
+        controlText(EditableText, attribute, Values, IDs, FontContainer);
+    }
+}
+void EveModule::controlImage(ImageModule *Image, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, vector<SingleBitmap> &BitmapContainer, string EXE_PATH){
     if(attribute == "set_id" && Values.size() > 0){
         Image->setID(Values[0].getStringUnsafe(), IDs);
     }

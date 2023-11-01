@@ -87,6 +87,7 @@ void ImageModule::setUpNewInstance(){
     usedBitmapLayer = 0;
 }
 ImageModule::ImageModule(){
+    primaryConstructor("", nullptr, "", "");
     setUpNewInstance();
 }
 ImageModule::ImageModule(string newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID){

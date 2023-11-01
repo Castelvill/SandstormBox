@@ -276,6 +276,8 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 releasedKeys = getReleasedKeys(key, pressedKeys);
                 pressedKeys.clear();
                 pressedKeys = getPressedKeys(key);
+                
+                delayEditableTextFields(Layers);
 
                 selectCamera(Cameras, true);
 
@@ -372,15 +374,17 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         }
 
         if(Mouse.isPressed() || releasedKeys.size() != 0 || pressedKeys.size() != 0){
-            for(unsigned int i = 0; i < releasedKeys.size(); i++){
-                if(releasedKeys[i] >= ALLEGRO_KEY_0 && releasedKeys[i] <= ALLEGRO_KEY_9 && int(Layers.size()) >= releasedKeys[i]-26){
-                    Layers[releasedKeys[i]-27].setIsActive(!Layers[releasedKeys[i]-27].getIsActive());
-                    if(!Layers[releasedKeys[i]-27].getIsActive()){
-                        unselectObject();
+            if(key[ALLEGRO_KEY_LCTRL]){
+                for(unsigned int i = 0; i < releasedKeys.size(); i++){
+                    if(releasedKeys[i] >= ALLEGRO_KEY_0 && releasedKeys[i] <= ALLEGRO_KEY_9 && int(Layers.size()) >= releasedKeys[i]-26){
+                        Layers[releasedKeys[i]-27].setIsActive(!Layers[releasedKeys[i]-27].getIsActive());
+                        if(!Layers[releasedKeys[i]-27].getIsActive()){
+                            unselectObject();
+                        }
                     }
                 }
             }
-            updateEditableTextFields(Layers, BitmapContainer);
+            updateEditableTextFields(Layers, BitmapContainer, FontContainer);
         }
 
         if(Mouse.didMouseMove && SelectedCamera != nullptr && SelectedCamera->getIsActive()
@@ -400,8 +404,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         //al_set_target_bitmap(al_get_backbuffer(window));
         
         drawEverything(Layers, Cameras, FontContainer);
-
-        //al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
 
         al_flip_display();
         al_clear_to_color(al_map_rgb_f(0.0, 0.0, 0.0));
@@ -4733,12 +4735,12 @@ void EngineLoop::executeFunction(OperaClass Operation, vector<PointerContainer> 
                 if(!findObjectForFunction(ModulesObject, Layers, EditableText->getObjectID(), EditableText->getLayerID())){
                     continue;
                 }
-                Event->controlText(EditableText, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs, FontContainer);
+                Event->controlEditableText(EditableText, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs, FontContainer);
             }
             return;
         }
         for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
-            Event->controlText(EditableText, Operation.Location.attribute, Variables, emptyString, FontContainer);
+            Event->controlEditableText(EditableText, Operation.Location.attribute, Variables, emptyString, FontContainer);
         }
     }
     else if(Context->type == "image"){
@@ -6546,7 +6548,7 @@ void EngineLoop::selectCamera(vector <Camera2D> & Cameras, bool fromAltTab){
     if(Cameras.size() == 0){
         return;
     }
-    if(isKeyReleased(ALLEGRO_KEY_TAB) && fromAltTab){
+    if(isKeyPressed(ALLEGRO_KEY_LCTRL) && isKeyReleased(ALLEGRO_KEY_TAB) && fromAltTab){
         if(camerasOrder[0] >= Cameras.size()){
             cout << "Error: Index of camera is out of scope!\n";
             return;
@@ -7136,11 +7138,10 @@ void EngineLoop::drawEverything(vector <LayerClass> & Layers, vector <Camera2D> 
         }
         al_set_target_backbuffer(window);
         //al_draw_bitmap(Camera->bitmapBuffer, Camera->pos.x, Camera->pos.y, 0);
-
         al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
         al_draw_tinted_bitmap(Camera->bitmapBuffer, al_map_rgba_f(Camera->tint[0], Camera->tint[1], Camera->tint[2], Camera->tint[3]), Camera->pos.x, Camera->pos.y, 0);
         al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
-
+        
         foregroundOfObjects.clear();
         //vector<unsigned int>().swap(foregroundOfObjects);
         //foregroundOfObjects.shrink_to_fit();
@@ -7232,6 +7233,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         for(SingleFont font : FontContainer){
             if(Text.getFontID() == font.ID){
                 Text.drawText(Object.getPos(isScrollable), font.font, drawTextFieldBorders, Camera, 0, false);
+                break;
             }
         }
 
@@ -7385,7 +7387,25 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         numberOfDrawnObjects++;
     }
 }
-void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <SingleBitmap> & BitmapContainer){
+void EngineLoop::delayEditableTextFields(vector <LayerClass> & Layers){
+    for(LayerClass & Layer : Layers){
+        if(!Layer.getIsActive()){
+            continue;
+        }
+        for(AncestorObject & Object : Layer.Objects){
+            if(!Object.getIsActive()){
+                continue;
+            }
+            for(EditableTextModule & TextField : Object.EditableTextContainer){
+                if(!TextField.getIsActive() || !TextField.getCanBeEdited() || !TextField.getEditingIsActive() || TextField.currentInputDelay == 0.0){
+                    continue;
+                }
+                TextField.currentInputDelay -= 1/FPS; 
+            }
+        }
+    }
+}
+void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer){
     if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
         return;
     }
@@ -7444,23 +7464,18 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                     continue;
                 }
                 for(EditableTextModule & TextField : Object.EditableTextContainer){
-                    if(!TextField.getIsActive()){
+                    if(!TextField.getIsActive() || !TextField.getCanBeEdited() || !TextField.getEditingIsActive()){
                         continue;
                     }
-                    if(TextField.getCanBeEdited() == true){
-                        if(TextField.getEditingIsActive() == true){
+                    TextField.editText(releasedKeys, pressedKeys, FontContainer);
+                    if(!TextField.getUpdateConnectedVariable()){
+                        continue;
+                    }
+                    Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs, EXE_PATH);
+                    TextField.setUpdateConnectedVariable(false);
 
-                            TextField.editText(releasedKeys, pressedKeys);
-
-                            if(TextField.getUpdateConnectedVariable() == true){
-                                Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs, EXE_PATH);
-                                TextField.setUpdateConnectedVariable(false);
-
-                                if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
-                                    Object.EditableTextContainer[0].modifyContent(0, SelectedObject->getID());
-                                }
-                            }
-                        }
+                    if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
+                        Object.EditableTextContainer[0].modifyContent(0, SelectedObject->getID());
                     }
                 }
             }

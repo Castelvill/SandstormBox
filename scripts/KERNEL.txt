@@ -19,7 +19,8 @@ env auto_print_stack 0
 env draw_hitboxes 0
 env print_logical_evaluations 0
 env draw_camera_borders 1
-env draw_text_borders 0
+env draw_text_borders 1
+env window_size 1000 300
 
 load_bitmap "images/amongus1.png" amongus_1
 load_bitmap "images/amongus2.png" amongus_2
@@ -213,8 +214,8 @@ new layer l 1 _ _ L2
 fun L2 set_id string [L2]
 fun L2 activate
 
-new object l L2 1 _ _ Back
-new text c Back 1 _ _ terminalXD
+new object l L2 1 _ _ Terminal
+/*new text c Terminal 1 _ _ terminalXD
 fun terminalXD set_position int [30 20]
 fun terminalXD set_font string [fira_mono24]
 fun terminalXD set_wrapping int [0]
@@ -226,8 +227,8 @@ fun terminalXD select_layer int [1]
 fun terminalXD set_color double [1.0 0.0 0.0 0.0]
 fun terminalXD attach_to_camera
 fun terminalXD set_random_change_speed double [0.1]
-fun terminalXD set_min_color double [0.2]
-new primitives c Back 1 _ _ PrimiFun
+fun terminalXD set_min_color double [0.2]*/
+new primitives c Terminal 1 _ _ PrimiFun
 fun PrimiFun set_type string [filled_rounded_rectangle]
 fun PrimiFun add_point double [0.0 0.0]
 fun PrimiFun add_point double [880 980]
@@ -238,14 +239,27 @@ fun PrimiFun set_samples int [4.0]
 fun PrimiFun select_layer int [0]
 fun PrimiFun set_size int [400 700]
 fun PrimiFun update_with_size
-new variable c Back 1 _ _ Var
+new variable c Terminal 1 _ _ Var
 fun Var set_int int [0]
-new variable c Back 1 _ _ input
+new variable c Terminal 1 _ _ input
 fun input set_id string ["input"]
 fun input set_string string [""]
-bind Back literal ["scripts/terminal.txt"]
-build Back true
-
+bind Terminal literal ["scripts/terminal.txt"]
+build Terminal true
+new editable_text c Terminal 1 _ _ Editable
+fun Editable set_position int [60 20]
+fun Editable set_font string [fira_mono24]
+fun Editable set_wrapping int [1]
+fun Editable set_editable bool [1]
+fun Editable set_space_use bool [1]
+fun Editable set_max_content_length int [200]
+fun Editable add_and_update string ["Hello: "]
+fun Editable set_size int [400 300]
+fun Editable select_layer int [1]
+fun Editable set_color double [1.0 0.0 0.0 0.2]
+fun Editable set_input_delay double [0.3]
+fun Editable set_repetition_delay double [0.05]
+//fun Editable set_rotation double [5]
 
 new camera l 1 _ _ cam
 //fun cam set_position int [100 100]
@@ -456,7 +470,7 @@ fun newMovement set_break_chance double [0.1]
 ++ cat_i
 end
 
-start reset false
+/*start reset false
 triggers [key_pressed]
 if ([key_pressed 18])
 index layer [1 0] _ object Amogus
@@ -468,7 +482,7 @@ bind Terminal literal ["scripts/terminal.txt"]
 index context [0 1] [Terminal] variable input
 fun input set_string string ["get_input"]
 build Terminal true
-end
+end*/
 
 
 start fs_click false
@@ -515,6 +529,6 @@ start rainbow false
 if ([context BackVar] [int 1] ==)
 int [0] zero
 = BackVar zero
-index layer [2 0 0] _ text BackText
-fun BackText increment_random_color
+//index layer [2 0 0] _ text BackText
+//fun BackText increment_random_color
 end

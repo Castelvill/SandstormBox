@@ -403,7 +403,8 @@ public:
     void moveParticles(vector <LayerClass> & Layers);
     void moveSelectedObject();
     void triggerEvents(vector <LayerClass> & Layers, short eventsType);
-    void updateEditableTextFields(vector <LayerClass> & Layers, vector <SingleBitmap> & BitmapContainer);
+    void delayEditableTextFields(vector <LayerClass> & Layers);
+    void updateEditableTextFields(vector <LayerClass> & Layers, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer);
     void startTimer();
     void selectObject(vector <LayerClass> & Layers, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer);
     void unselectObject();

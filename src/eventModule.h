@@ -65,6 +65,7 @@ public:
 	bool checkIfAllChildrenFinished();
 
     void controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer);
+    void controlEditableText(EditableTextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer);
     void controlImage(ImageModule * Image, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleBitmap> & BitmapContainer, string EXE_PATH);
     void controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);
     void controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values, vector <string> & IDs);

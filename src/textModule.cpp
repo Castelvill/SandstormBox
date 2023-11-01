@@ -14,20 +14,21 @@ double getFontHeight(vector <SingleFont> FontContainer, string fontID){
 }
 
 void TextModule::setUpNewInstance(){
-    color = al_map_rgba_f(0.0, 0.0, 0.0, 0.0);
+    color = al_map_rgba_f(0.0, 0.0, 0.0, 1.0);
     fontID = -1;
     wrapped = false;
     horizontalAlign = 0;
     verticalAlign = 0;
     rotation = 0.0;
     scale.set(1.0, 1.0);
-    currentTextID = 0;
+    currentTextIdx = 0;
     usedBitmapLayer = 0;
     randomChangeSpeed = 0.001;
     minColorValue = 0.0f;
     maxColorValue = 1.0f;
 }
 TextModule::TextModule(){
+    primaryConstructor("", nullptr, "", "");
     setUpNewInstance();
 }
 TextModule::TextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
@@ -61,43 +62,48 @@ void TextModule::addNewContentAndResize(string newContent, vector <SingleFont> F
     content.push_back(newContent);
     fitSizeToText(FontContainer);
 }
-void TextModule::chooseContent(unsigned int textID){
-    if(textID < content.size())
-        currentTextID = textID;
-    else{
-        cout << "Bad index in textModule \"" << ID << "\".\n";
-    } 
-}
-void TextModule::modifyContent(unsigned int textID, string modifiedContent){
-    if(textID < content.size()){
-        content[textID] = modifiedContent;
+bool TextModule::checkSize(unsigned int textID) const {
+    if(content.size() == 0){
+        cout << "Error: In " << __FUNCTION__ << ": No text content in the text field: \"" << ID << "\".\n";
+        return false;
     }
-    else{
-        cout << "Bad index in textModule \"" << ID << "\".\n";
-    } 
-}
-void TextModule::modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer){
-    if(textID < content.size()){
-        content[textID] = modifiedContent;
-        fitSizeToText(FontContainer);
+    if(textID >= content.size()){
+        cout << "Error: In " << __FUNCTION__ << ": Bad index (" << textID << "/" << content.size() << ") in the text field: \"" << ID << "\".\n";
+        return false;
     }
-    else{
-        cout << "Bad index in textModule \"" << ID << "\".\n";
-    } 
+    return true;
 }
-void TextModule::deleteContent(unsigned int textID){
-    if(textID < content.size()){
-        content.erase(content.begin()+textID);
-        if(currentTextID >= textID && currentTextID > 0)
-            currentTextID--;
+void TextModule::chooseContent(unsigned int textNumber){
+    if(!checkSize(textNumber)){
+        return;
     }
-    else{
-        cout << "Bad index in textModule \"" << ID << "\".\n";
-    } 
+    currentTextIdx = textNumber;
+}
+void TextModule::modifyContent(unsigned int textNumber, string modifiedContent){
+    if(!checkSize(textNumber)){
+        return;
+    }
+    content[textNumber] = modifiedContent;
+}
+void TextModule::modifyContentAndResize(unsigned int textNumber, string modifiedContent, vector <SingleFont> FontContainer){
+    if(!checkSize(textNumber)){
+        return;
+    }
+    content[textNumber] = modifiedContent;
+    fitSizeToText(FontContainer);
+}
+void TextModule::deleteContent(unsigned int textNumber){
+    if(!checkSize(textNumber)){
+        return;
+    }
+    content.erase(content.begin()+textNumber);
+    if(currentTextIdx >= textNumber && currentTextIdx > 0){
+        currentTextIdx--;
+    }
 }
 void TextModule::clear(){
     content.clear();
-    currentTextID = 0;
+    currentTextIdx = 0;
 }
 void TextModule::setColors(float r, float g, float b, float a){
     color = al_map_rgba_f(r, g, b, a);
@@ -178,23 +184,13 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     vector <string> textLines;
     textLines.push_back(string());
     string temp, text;
-    int currentLength = 0, currentHeight = 0, realHeight = 0, cursorRealPos = 0;
-    if(currentTextID < content.size()){
-        text = content[currentTextID];
+    int currentLength = 0, currentHeight = 0, realHeight = 0;
+    int fontHeight = al_get_font_line_height(font);
+    if(currentTextIdx < content.size()){
+        text = content[currentTextIdx];
     }
     else{
         return;
-    }
-
-    if(editingIsActive){
-        if(cursorPos > text.size()){
-            cursorPos = 0;
-        }
-        for(unsigned int letter = 0; letter < cursorPos; letter++){
-            temp.clear();
-            temp = text.substr(letter, 1);
-            cursorRealPos += al_get_text_width(font, temp.c_str());
-        }
     }
 
     for(unsigned int letter = 0; letter < text.size(); letter++){
@@ -202,10 +198,11 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         temp = text.substr(letter, 1);
         if(temp == "\n"){ //enter handling
             currentLength = 0;
-            currentHeight += al_get_font_line_height(font);
-            if(currentHeight + al_get_font_line_height(font) > size.y){
+            currentHeight += fontHeight;
+            if(currentHeight + fontHeight > size.y){
                 break;
             }
+            textLines.back() += '\n';
             textLines.push_back(string());
             continue;
         }
@@ -223,7 +220,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 futureLenght += al_get_text_width(font, newTemp.c_str());
                 if(futureLenght > size.x){
                     currentLength = 0;
-                    currentHeight += al_get_font_line_height(font);
+                    currentHeight += fontHeight;
                     textLines.push_back(string());
                     success = true;
                     break;
@@ -233,14 +230,15 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 continue;
             }
         }
-        if(currentLength + al_get_text_width(font, temp.c_str()) > size.x){ //cropping text according to its dimensions and wrapping text when possible
+        //cropping text according to its dimensions and wrapping text when possible
+        if(currentLength + al_get_text_width(font, temp.c_str()) > size.x){
             if(wrapped == 0){
                 break;
             }
             currentLength = 0;
-            currentHeight += al_get_font_line_height(font);
+            currentHeight += fontHeight;
             textLines.push_back(string());
-            if(currentHeight + al_get_font_line_height(font) > size.y){
+            if(currentHeight + fontHeight > size.y){
                 break;
             }
         }
@@ -250,7 +248,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
             realHeight = currentHeight;
         }
     }
-    realHeight += al_get_font_line_height(font);
+    realHeight += fontHeight;
     int alignHeight = 0;
     if(verticalAlign == 1){
         alignHeight = size.y/2-realHeight/2;
@@ -281,28 +279,88 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     al_translate_transform(&t, finalPos.x, finalPos.y);
     al_use_transform(&t);
 
+    vec2d cursorRealPos(finalPos);
+
+    string letterOnCursor = "";
+
+    if(editingIsActive){
+        if(cursorPos > text.size()){
+            cursorPos = 0;
+        }
+        else{
+            unsigned countedChars = 0, line, letter;
+            for(line = 0; line < textLines.size(); line++){
+                for(letter = 0; letter < textLines[line].size() && countedChars < cursorPos; letter++, countedChars++){
+                    temp.clear();
+                    temp = text.substr(letter, 1);
+                    if(temp != "\n"){
+                        cursorRealPos.x += al_get_text_width(font, temp.c_str());
+                    }
+                    else{
+                        cursorRealPos.x += al_get_text_width(font, " ");
+                    }
+                }
+                if(countedChars >= cursorPos){
+                    if(textLines[line].size() > 0 && letter == textLines[line].size() && (textLines[line][letter-1] == '\n' || al_get_text_width(font, (textLines[line]+" ").c_str()) > size.x)){
+                        cursorRealPos.x = finalPos.x;
+                        cursorRealPos.y += fontHeight;
+                        line++;
+                        letter = 0;
+                    }
+                    if(line < textLines.size() && letter < textLines[line].size()){
+                        letterOnCursor = textLines[line].substr(letter, 1);
+                    }
+                    break;
+                }
+                cursorRealPos.x = finalPos.x;
+                cursorRealPos.y += fontHeight;
+            }
+        }
+    }
+
+    if(letterOnCursor == "\n"){
+        letterOnCursor = "";
+    }
+
+    for(string & line : textLines){
+        if(line.size() > 0 && line.back() == '\n'){
+            line.pop_back();
+        }
+    }
+
+    ALLEGRO_COLOR inversedColor = al_map_rgba_f(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a);
+
     if(horizontalAlign == 0){
+        if(editingIsActive){
+            al_draw_text(font, color, cursorRealPos.x, alignHeight + cursorRealPos.y, 0, "█");
+        }
         for(unsigned int i = 0; i < textLines.size(); i++){
-            al_draw_text(font, color, finalPos.x, finalPos.y+alignHeight+i*al_get_font_line_height(font), 0, textLines[i].c_str());
+            al_draw_text(font, color, finalPos.x, finalPos.y + alignHeight + i * fontHeight, 0, textLines[i].c_str());
         }
         if(editingIsActive){
-            al_draw_text(font, color, finalPos.x+cursorRealPos, finalPos.y+alignHeight+(textLines.size() - 1)*al_get_font_line_height(font), 0, "|");
+            al_draw_text(font, inversedColor, cursorRealPos.x, alignHeight + cursorRealPos.y, 0, letterOnCursor.c_str());
         }
     }
     else if(horizontalAlign == 1){
+        if(editingIsActive){
+            al_draw_text(font, color, size.x / 2 + cursorRealPos.x, alignHeight + cursorRealPos.y, ALLEGRO_ALIGN_CENTRE, "█");
+        }
         for(unsigned int i = 0; i < textLines.size(); i++){
-            al_draw_text(font, color, finalPos.x+size.x/2, finalPos.y+alignHeight+i*al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, textLines[i].c_str());
+            al_draw_text(font, color, finalPos.x + size.x / 2, finalPos.y + alignHeight + i * fontHeight, ALLEGRO_ALIGN_CENTRE, textLines[i].c_str());
         }
         if(editingIsActive){
-            al_draw_text(font, color, finalPos.x+size.x/2+cursorRealPos, finalPos.y+alignHeight+(textLines.size() - 1)*al_get_font_line_height(font), ALLEGRO_ALIGN_CENTRE, "|");
+            al_draw_text(font, inversedColor, size.x / 2 + cursorRealPos.x, alignHeight + cursorRealPos.y, ALLEGRO_ALIGN_CENTRE, letterOnCursor.c_str());
         }
     }
     else if(horizontalAlign == 2){
+        if(editingIsActive){
+            al_draw_text(font, color, size.x + cursorRealPos.x, alignHeight + cursorRealPos.y, ALLEGRO_ALIGN_RIGHT, "█");
+        }
         for(unsigned int i = 0; i < textLines.size(); i++){
-            al_draw_text(font, color, finalPos.x+size.x, finalPos.y+alignHeight+i*al_get_font_line_height(font), ALLEGRO_ALIGN_RIGHT, textLines[i].c_str());
+            al_draw_text(font, color, finalPos.x + size.x, finalPos.y + alignHeight + i * fontHeight, ALLEGRO_ALIGN_RIGHT, textLines[i].c_str());
         }
         if(editingIsActive){
-            al_draw_text(font, color,finalPos.x+size.x+cursorRealPos, finalPos.y+alignHeight+(textLines.size() - 1)*al_get_font_line_height(font), ALLEGRO_ALIGN_RIGHT, "|");
+            al_draw_text(font, inversedColor, size.x + cursorRealPos.x, alignHeight + cursorRealPos.y, ALLEGRO_ALIGN_RIGHT, letterOnCursor.c_str());
         }
     }
 
@@ -322,8 +380,8 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
 
     string temp, text;
     int currentLength = 0, currentHigh = 0;
-    if(currentTextID < content.size()){
-        text = content[currentTextID];
+    if(currentTextIdx < content.size()){
+        text = content[currentTextIdx];
     }
     else{
         text = "error";
@@ -378,10 +436,10 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
 void TextModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
     BasePointers.push_back(BasePointersStruct());
     if(attribute == "content"){
-        BasePointers.back().setPointer(&content[currentTextID]);
+        BasePointers.back().setPointer(&content[currentTextIdx]);
     }
     else if(attribute == "current_text_id"){
-        BasePointers.back().setPointer(&currentTextID);
+        BasePointers.back().setPointer(&currentTextIdx);
     }
     else if(attribute == "font_id"){
         BasePointers.back().setPointer(&fontID);
@@ -420,13 +478,11 @@ void TextModule::getContext(string attribute, vector <BasePointersStruct> & Base
 string TextModule::getFontID(){
     return fontID;
 }
-string TextModule::getContent(unsigned int textID) const{
-    if(textID < content.size())
-        return content[textID];
-    else{
-        cout << "Bad index in textModule \"" << ID << "\".\n";
-        return "no";
+string TextModule::getContent(unsigned int textNumber) const{
+    if(!checkSize(textNumber)){
+        return "";
     }
+    return content[textNumber];
 }
 float TextModule::getColor(char whichColor){
     if(whichColor == 'r'){
@@ -443,11 +499,11 @@ float TextModule::getColor(char whichColor){
     }
     return 0.0;
 }
-unsigned int TextModule::getCurrentTextID() const{
-    return currentTextID;
+unsigned int TextModule::getCurrentTextIdx() const{
+    return currentTextIdx;
 }
 string TextModule::getCurrentContent() const{
-    return getContent(getCurrentTextID());
+    return getContent(getCurrentTextIdx());
 }
 VariableModule TextModule::getAttributeValue(const string &attribute, const string &detail) const{
     if(attribute == "in_group"){
@@ -457,7 +513,7 @@ VariableModule TextModule::getAttributeValue(const string &attribute, const stri
         return VariableModule::newString(getCurrentContent());
     }
     else if(attribute == "current_text_id"){
-        return VariableModule::newInt(currentTextID);
+        return VariableModule::newInt(currentTextIdx);
     }
     else if(attribute == "font_id"){
         return VariableModule::newString(getCurrentContent());
@@ -491,20 +547,27 @@ VariableModule TextModule::getAttributeValue(const string &attribute, const stri
 }
 
 void EditableTextModule::setUpNewInstance(){
+    TextModule::setUpNewInstance();
     isAttachedToCamera = true;
     canBeEdited = true;
     editingIsActive = false;
     canUseSpace = false;
-    isNumerical = true;
-    hasFloatingPoint = true;
+    isNumerical = false;
+    hasFloatingPoint = false;
     updateConnectedVariable = false;
     canClearContentAfterSuccess = false;
     useArrowsAsChar = false;
+    enterAcceptsChanges = false;
     cursorPos = 0;
     minContentSize = 0;
     maxContentSize = 20;
+    inputDelay = 1.0;
+    repetitionDelay = 0.5;
+    currentInputDelay = 0.0;
+    lastInputedKey = -1;
 }
 EditableTextModule::EditableTextModule(){
+    primaryConstructor("", nullptr, "", "");
     setUpNewInstance();
 }
 EditableTextModule::EditableTextModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
@@ -554,20 +617,26 @@ void EditableTextModule::setMinContentSize(unsigned int newMinContentSize){
 void EditableTextModule::setMaxContentSize(unsigned int newMaxContentSize){
     maxContentSize = newMaxContentSize;
 }
+void EditableTextModule::setInputDelay(float newValue){
+    inputDelay = newValue;
+}
+void EditableTextModule::setRepetitionDelay(float newValue){
+    repetitionDelay = newValue;
+}
 void EditableTextModule::setConnectedObjectID(string newValue){
     connectedObject = newValue;
 }
 void EditableTextModule::setConnectedObject(string objectID, string moduleType, string moduleID, string variableName){
     setConnectedObjectID(objectID);
-    affectedModule = moduleType;
+    connectedModule = moduleType;
     connectedModuleID = moduleID;
-    affectedVariable = variableName;
+    connectedVariable = variableName;
 }
 void EditableTextModule::setConnectedGroup(string groupName, string moduleType, string moduleID, string variableName){
     connectedGroup = groupName;
-    affectedModule = moduleType;
+    connectedModule = moduleType;
     connectedModuleID = moduleID;
-    affectedVariable = variableName;
+    connectedVariable = variableName;
 }
 bool EditableTextModule::getCanBeEdited() const{
     return canBeEdited;
@@ -609,47 +678,218 @@ void EditableTextModule::clearContentAfterSuccess(bool success){
     modifyContent(0, "");
     setCursorPos(0);
 }
-void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pressedKeys){
+char toChara(short a){
+    return 'a'+a-1;
+}
+void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer){
     if(!getIsActive()){
         return;
     }
 
-    short special_key = 0;
-    char character = '\0';
+    // cout << "Pressed: [";
+    // for(short a : pressedKeys){
+    //     cout << toChara(a) << ", ";
+    // }
+    // cout << "] Released: [";
+    // for(short a : releasedKeys){
+    //     cout << toChara(a) << ", ";
+    // }
+    // cout << "] Blocked: [";
+    // for(short a : blockedKeys){
+    //     cout << toChara(a) << ", ";
+    // }
+    // cout << "] Last: " << toChara(lastInputedKey) << "\n";
+
+    bool shift = false;
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
-        if(pressedKeys[i] == ALLEGRO_KEY_RSHIFT)
-            special_key = pressedKeys[i];
-        if(pressedKeys[i] == ALLEGRO_KEY_ENTER){
+        if(pressedKeys[i] == ALLEGRO_KEY_LSHIFT || pressedKeys[i] == ALLEGRO_KEY_RSHIFT){
+            shift = true;
+            pressedKeys.erase(pressedKeys.begin() + i);
+            i--;
+            continue;
+        }
+        if(pressedKeys[i] == ALLEGRO_KEY_ENTER && enterAcceptsChanges){
             editingIsActive = false;
             setUpdateConnectedVariable(true);
             return;
         }
     }
+
+    //remove released keys from blocked keys
     for(unsigned int i = 0; i < releasedKeys.size(); i++){
+        for(unsigned int j = 0; j < blockedKeys.size(); j++){
+            if(releasedKeys[i] == blockedKeys[j]){
+                blockedKeys.erase(blockedKeys.begin() + j);
+                currentInputDelay = inputDelay;
+                break;
+            }
+        }
+    }
+    // cout << "Blocked after releasing: [";
+    // for(short a : blockedKeys){
+    //     cout << toChara(a) << ", ";
+    // }
+    // cout << "]\n";
+
+    bool ignoreLast = false;
+
+    if(pressedKeys.size() > blockedKeys.size()){
+        lastInputedKey = -1;
+        currentInputDelay = 0.0;
+        ignoreLast = true;
+    }
+
+    //removing blocked keys from pressed keys
+    for(unsigned int i = 0; i < blockedKeys.size(); i++){
+        for(unsigned int j = 0; j < pressedKeys.size(); j++){
+            if(blockedKeys[i] == pressedKeys[j] && pressedKeys[j] != lastInputedKey){
+                pressedKeys.erase(pressedKeys.begin() + j);
+                break;
+            }
+        }
+    }
+    // cout << "Pressed after removing: [";
+    // for(short a : pressedKeys){
+    //     cout << toChara(a) << ", ";
+    // }
+    // cout << "]\n";
+
+
+    //find last pressed key, dont include the last 
+    if(pressedKeys.size() > 0){
+        vector<short> newKeys = pressedKeys;
+        if(lastInputedKey != -1 && pressedKeys.size() > 1){
+            for(unsigned int i = 0; i < newKeys.size(); i++){
+                if(lastInputedKey == newKeys[i]){
+                    newKeys.erase(newKeys.begin() + i);
+                    break;
+                }
+            }
+        }
+        lastInputedKey = newKeys.back();
+    }
+    //cout << "New last key: " << toChara(lastInputedKey) << "\n";
+
+    //block all pressed keys
+    bool found;
+    for(unsigned int i = 0; i < pressedKeys.size(); i++){
+        found = false;
+        for(unsigned int j = 0; j < blockedKeys.size(); j++){
+            if(pressedKeys[i] == blockedKeys[j]){
+                found = true;
+                break;
+            }
+        }
+        if(!found){
+            blockedKeys.push_back(pressedKeys[i]);
+        }
+    }
+    // cout << "New blocked: [";
+    // for(short a : blockedKeys){
+    //     cout << toChara(a) << ", ";
+    // }
+    // cout << "]\n";
+
+    if(pressedKeys.size() == 0){
+        currentInputDelay = 0.0;
+        lastInputedKey = -1;
+        //cout << "Nothing pressed!\n\n";
+        return;
+    }
+
+    if(pressedKeys.size() > 1){
+        currentInputDelay = 0.0;
+    }
+
+    if(currentInputDelay > 0.0){
+        //cout << "Waiting!\n\n";
+        return;
+    }
+
+    //delaying input and delaying repetition of the last pressed key
+    if(pressedKeys.back() != lastInputedKey || pressedKeys.size() > 1 || ignoreLast){
+        currentInputDelay = inputDelay;
+        //cout << "Delayed input: " << inputDelay << "!\n";
+    }
+    else{
+        currentInputDelay = repetitionDelay;
+        //cout << "Delayed repeat: " << repetitionDelay << "!\n";
+    }
+
+    //cout << "\n";
+
+    char character = '\0';
+
+    for(unsigned int i = 0; i < pressedKeys.size(); i++){
         if(!useArrowsAsChar){
-            if(releasedKeys[i] == ALLEGRO_KEY_RIGHT && cursorPos < content[currentTextID].size())
+            if(pressedKeys[i] == ALLEGRO_KEY_RIGHT && cursorPos < content[currentTextIdx].size()){
                 cursorPos += 1;
-            if(releasedKeys[i] == ALLEGRO_KEY_LEFT && cursorPos > 0)
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_LEFT && cursorPos > 0){
                 cursorPos -= 1;
+            }
         }
         else{
-            if(releasedKeys[i] == ALLEGRO_KEY_UP)
+            if(pressedKeys[i] == ALLEGRO_KEY_UP){
                 character = 24;
-            if(releasedKeys[i] == ALLEGRO_KEY_RIGHT)
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_RIGHT){
                 character = 26;
-            if(releasedKeys[i] == ALLEGRO_KEY_DOWN)
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_DOWN){
                 character = 25;
-            if(releasedKeys[i] == ALLEGRO_KEY_LEFT)
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_LEFT){
                 character = 27;
+            }
         }
 
 
-        if(releasedKeys[i] >= 27 && releasedKeys[i] <= 36)
-            character = releasedKeys[i]+21;
-        if(releasedKeys[i] == 73 && (getHasFloatingPoint() == true || getIsNumerical() == false)){
+        if(pressedKeys[i] >= 27 && pressedKeys[i] <= 36){
+            if(getIsNumerical() || !shift){
+                character = pressedKeys[i]+21;
+            }
+            else{
+                switch (pressedKeys[i]){
+                case ALLEGRO_KEY_1:
+                    character = '!';
+                    break;
+                case ALLEGRO_KEY_2:
+                    character = '@';
+                    break;
+                case ALLEGRO_KEY_3:
+                    character = '#';
+                    break;
+                case ALLEGRO_KEY_4:
+                    character = '$';
+                    break;
+                case ALLEGRO_KEY_5:
+                    character = '%';
+                    break;
+                case ALLEGRO_KEY_6:
+                    character = '^';
+                    break;
+                case ALLEGRO_KEY_7:
+                    character = '&';
+                    break;
+                case ALLEGRO_KEY_8:
+                    character = '*';
+                    break;
+                case ALLEGRO_KEY_9:
+                    character = '(';
+                    break;
+                case ALLEGRO_KEY_0:
+                    character = ')';
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+        if(pressedKeys[i] == 73 && (getHasFloatingPoint() || getIsNumerical())){
             string text = getContent(0);
             bool isTherePoint = false;
-            if(getIsNumerical() == true){
+            if(getIsNumerical()){
                 for(unsigned int i = 0; i < text.size(); i++){
                     if(text[i] == '.'){
                         isTherePoint = true;
@@ -657,11 +897,12 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
                     }
                 }
             }
-            if(isTherePoint == false)
+            if(isTherePoint){
                 character = '.';
+            }
         }
-        if(releasedKeys[i] == ALLEGRO_KEY_MINUS){
-            if(getIsNumerical() == true){
+        if(pressedKeys[i] == ALLEGRO_KEY_MINUS){
+            if(getIsNumerical()){
                 if(cursorPos > 0)
                     continue;
                 string text = getContent(0);
@@ -672,29 +913,96 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
                         break;
                     }
                 }
-                if(isThereMinus == true)
+                if(isThereMinus)
                     continue;
             }
             character = '-';
         }
 
 
-        if(getIsNumerical() == false){
-            if(releasedKeys[i] >= 1 && releasedKeys[i] <= 26 && special_key != ALLEGRO_KEY_RSHIFT)
-                character = 'a'+releasedKeys[i]-1;
-            else if(releasedKeys[i] >= 1 && releasedKeys[i] <= 26)
-                character = 'A'+releasedKeys[i]-1;
-            if(releasedKeys[i] == 61 && special_key == ALLEGRO_KEY_RSHIFT)
+        if(!getIsNumerical()){
+            if(pressedKeys[i] >= 1 && pressedKeys[i] <= 26){
+                if(shift){
+                    character = 'A'+pressedKeys[i]-1;
+                }
+                else{
+                    character = 'a'+pressedKeys[i]-1;
+                }
+            }
+            else if(pressedKeys[i] == 61 && shift){
                 character = '_';
-            if(releasedKeys[i] == 72)
+            }
+            else if(pressedKeys[i] == 61){
+                character = '-';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_EQUALS && shift){
+                character = '+';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_EQUALS){
+                character = '=';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_OPENBRACE && shift){
+                character = '{';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_OPENBRACE){
+                character = '[';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_CLOSEBRACE && shift){
+                character = '}';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_CLOSEBRACE){
+                character = ']';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_COMMA && shift){
+                character = '<';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_COMMA){
                 character = ',';
-            if(releasedKeys[i] == 75 && getCanUseSpace() == true)
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_FULLSTOP && shift){
+                character = '>';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_FULLSTOP){
+                character = '.';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_SLASH && shift){
+                character = '?';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_SLASH){
+                character = '/';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_SEMICOLON && shift){
+                character = ':';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_SEMICOLON){
+                character = ';';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_QUOTE && shift){
+                character = '\"';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_QUOTE){
+                character = '\'';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_BACKSLASH && shift){
+                character = '|';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_BACKSLASH){
+                character = '\\';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_SPACE && getCanUseSpace()){
                 character = ' ';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_TAB){
+                character = '\t';
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_ENTER){
+                character = '\n';
+            }
         }
 
 
         if(character == '\0' || getContent(0).size() >= getMaxContentSize()){
-            if(releasedKeys[i] == ALLEGRO_KEY_BACKSPACE && getContent(0).size() > getMinContentSize()){
+            if(pressedKeys[i] == ALLEGRO_KEY_BACKSPACE && getContent(0).size() > getMinContentSize()){
                 if(cursorPos == 0)
                     continue;
                 string old_content = getContent(0);
@@ -705,10 +1013,13 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             continue;
         }
 
+        cout << "Character: \'" << character << "\'\n";
+
         string old_content = getContent(0);
         string new_content = old_content.substr(0, cursorPos);
         new_content = new_content + character + old_content.substr(cursorPos, old_content.size()-cursorPos);
 
+        cout << "New content: \"" << new_content << "\"\n\n";
 
         modifyContent(0, new_content);
         cursorPos += 1;
@@ -718,14 +1029,14 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
     }
 }
 bool EditableTextModule::canConvertContentToNumber(){
-    if(getIsNumerical() == false)
+    if(getIsNumerical())
         return false;
     string text = getContent(0);
     bool isTherePoint = false;
 
     for(unsigned int i = 0; i < text.size(); i++){
         if(text[i] == '.' || text[i] == ' ' || text[i] == '_'){
-            if(text[i] == '.' && isTherePoint == false){
+            if(text[i] == '.' && isTherePoint){
                 isTherePoint = true;
                 continue;
             }
@@ -750,13 +1061,13 @@ bool EditableTextModule::tryUpdatingID(vector <string> & listOfIDs, string & cur
 bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string> & listOfIDs){
     bool success = true;
 
-    if(affectedVariable == "activate"){
+    if(connectedVariable == "activate"){
         Primary.activate();
     }
-    else if(affectedVariable == "deactivate"){
+    else if(connectedVariable == "deactivate"){
         Primary.deactivate();
     }
-    else if(affectedVariable == "toggle_is_active"){
+    else if(connectedVariable == "toggle_is_active"){
         Primary.toggleIsActive();
     }
     else{
@@ -773,7 +1084,7 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
         return false;
     }
 
-    if(affectedVariable == "id"){
+    if(connectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Primary.getIDAddr(), cContent)){
             connectedObject = cContent;
             return true;
@@ -788,13 +1099,13 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
         if(cContent == "false" || cContent == "0")
             bValue = false;
 
-        if(affectedVariable == "is_active"){
+        if(connectedVariable == "is_active"){
             Primary.setIsActive(bValue);
         }
-        else if(affectedVariable == "is_scaled_from_center"){
+        else if(connectedVariable == "is_scaled_from_center"){
             Primary.setIsScaledFromCenter(bValue);
         }
-        else if(affectedVariable == "is_attached_to_camera"){
+        else if(connectedVariable == "is_attached_to_camera"){
             Primary.setIsAttachedToCamera(bValue);
         }
         else{
@@ -814,16 +1125,16 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
 
     success = true;
 
-    if(affectedVariable == "position_x"){
+    if(connectedVariable == "position_x"){
         Primary.setPos(dValue, Primary.getPos(false).y);
     }
-    else if(affectedVariable == "position_y"){
+    else if(connectedVariable == "position_y"){
         Primary.setPos(Primary.getPos(false).x, dValue);
     }
-    else if(affectedVariable == "size_x"){
+    else if(connectedVariable == "size_x"){
         Primary.setSize(dValue, Primary.getSize().y);
     }
-    else if(affectedVariable == "size_y"){
+    else if(connectedVariable == "size_y"){
         Primary.setSize(Primary.getSize().x, dValue);
     }
     else{
@@ -839,19 +1150,19 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
 bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOfIDs){
     bool success = false;
 
-    if(affectedVariable == "activate"){
+    if(connectedVariable == "activate"){
         Text.activate();
         return true;
     }
-    if(affectedVariable == "deactivate"){
+    if(connectedVariable == "deactivate"){
         Text.deactivate();
         return true;
     }
 
     string cContent = getContent(0);
 
-    if(affectedVariable == "content"){
-        Text.modifyContent(Text.getCurrentTextID(), cContent);
+    if(connectedVariable == "content"){
+        Text.modifyContent(Text.getCurrentTextIdx(), cContent);
         success = true;
     }
 
@@ -859,14 +1170,14 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
         return success;
     }
 
-    if(affectedVariable == "id"){
+    if(connectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Text.getIDAddr(), cContent)){
             connectedModuleID = cContent;
             return true;
         }
     }
 
-    if(affectedVariable == "font"){
+    if(connectedVariable == "font"){
         setFontID(cContent);
         return true;
     }
@@ -879,43 +1190,43 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     success = true;
     double dValue = std::stod(cContent);
 
-    if(affectedVariable == "position_x"){
+    if(connectedVariable == "position_x"){
         Text.setPos(dValue, Text.getPos(false).y);
     }
-    else if(affectedVariable == "position_y"){
+    else if(connectedVariable == "position_y"){
         Text.setPos(Text.getPos(false).x, dValue);
     }
-    else if(affectedVariable == "size_x"){
+    else if(connectedVariable == "size_x"){
         Text.setSize(dValue, Text.getSize().y);
     }
-    else if(affectedVariable == "size_y"){
+    else if(connectedVariable == "size_y"){
         Text.setSize(Text.getSize().x, dValue);
     }
-    else if(affectedVariable == "scale_x"){
+    else if(connectedVariable == "scale_x"){
         Text.setScale(dValue, Text.getSize().y);
     }
-    else if(affectedVariable == "scale_y"){
+    else if(connectedVariable == "scale_y"){
         Text.setScale(Text.getSize().x, dValue);
     }
-    else if(affectedVariable == "resize_x"){
+    else if(connectedVariable == "resize_x"){
         Text.resizeX(dValue);
     }
-    else if(affectedVariable == "resize_y"){
+    else if(connectedVariable == "resize_y"){
         Text.resizeY(dValue);
     }
-    else if(affectedVariable == "rotation"){
+    else if(connectedVariable == "rotation"){
         Text.setRotation(dValue);
     }
-    if(affectedVariable == "color_r"){
+    if(connectedVariable == "color_r"){
         Text.setColors(dValue, Text.color.g, Text.color.b, Text.color.a);
     }
-    else if(affectedVariable == "color_g"){
+    else if(connectedVariable == "color_g"){
         Text.setColors(Text.color.r, dValue, Text.color.b, Text.color.a);
     }
-    else if(affectedVariable == "color_b"){
+    else if(connectedVariable == "color_b"){
         Text.setColors(Text.color.r, Text.color.g, dValue, Text.color.a);
     }
-    else if(affectedVariable == "color_a"){
+    else if(connectedVariable == "color_a"){
         Text.setColors(Text.color.r, Text.color.g, Text.color.b, dValue);
     }
     else{
@@ -928,7 +1239,7 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
 
     if(dValue >= 0){
         unsigned int uiValue = static_cast<unsigned int>(dValue);
-        if(affectedVariable == "font_id"){
+        if(connectedVariable == "font_id"){
             Text.fontID = uiValue;
             success = true;
         }
@@ -940,16 +1251,16 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     success = true;
     short shValue = short(dValue);
 
-    if(affectedVariable == "wrapped"){
+    if(connectedVariable == "wrapped"){
         Text.wrapped = shValue;
     }
-    else if(affectedVariable == "horizontal_align"){
+    else if(connectedVariable == "horizontal_align"){
         Text.horizontalAlign = shValue;
     }
-    else if(affectedVariable == "vertical_align"){
+    else if(connectedVariable == "vertical_align"){
         Text.verticalAlign = shValue;
     }
-    else if(affectedVariable == "bitmap_layer"){
+    else if(connectedVariable == "bitmap_layer"){
         Text.usedBitmapLayer = shValue;
     }
     else{
@@ -970,11 +1281,11 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
     bool success = false;
 
     string cContent = getContent(0);
-    if(affectedVariable == "connect_bitmap_via_path"){
+    if(connectedVariable == "connect_bitmap_via_path"){
         Image.connectBitmap(BitmapContainer, cContent, "", EXE_PATH);
         success = true;
     }
-    else if(affectedVariable == "connect_bitmap_via_alias"){
+    else if(connectedVariable == "connect_bitmap_via_alias"){
         Image.connectBitmap(BitmapContainer, "", cContent, EXE_PATH);
         success = true;
     }
@@ -983,7 +1294,7 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
         return success;
     }
 
-    if(affectedVariable == "id"){
+    if(connectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Image.getIDAddr(), cContent)){
             connectedModuleID = cContent;
             return true;
@@ -998,13 +1309,13 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
         if(cContent == "false" || cContent == "0")
             bValue = false;
 
-        if(affectedVariable == "mirror_x"){
+        if(connectedVariable == "mirror_x"){
             Image.setMirrorX(bValue);
         }
-        else if(affectedVariable == "mirror_y"){
+        else if(connectedVariable == "mirror_y"){
             Image.setMirrorX(bValue);
         }
-        else if(affectedVariable == "drawing"){
+        else if(connectedVariable == "drawing"){
             Image.setIsActive(bValue);
         }
         else{
@@ -1022,82 +1333,82 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
     success = true;
     double dValue = std::stod(cContent);
 
-    if(affectedVariable == "position_x"){
+    if(connectedVariable == "position_x"){
         Image.setPos(dValue, Image.getPos(false).y);
     }
-    else if(affectedVariable == "position_y"){
+    else if(connectedVariable == "position_y"){
         Image.setPos(Image.getPos(false).x, dValue);
     }
-    else if(affectedVariable == "size_x"){
+    else if(connectedVariable == "size_x"){
         Image.setSize(dValue, Image.getSize().y);
     }
-    else if(affectedVariable == "size_y"){
+    else if(connectedVariable == "size_y"){
         Image.setSize(Image.getSize().x, dValue);
     }
-    else if(affectedVariable == "scale_x"){
+    else if(connectedVariable == "scale_x"){
         Image.setScale(dValue, Image.getScale().y);
     }
-    else if(affectedVariable == "scale_y"){
+    else if(connectedVariable == "scale_y"){
         Image.setScale(Image.getScale().x, dValue);
     }
-    else if(affectedVariable == "resize_x"){
+    else if(connectedVariable == "resize_x"){
         Image.resizeX(dValue);
     }
-    else if(affectedVariable == "resize_y"){
+    else if(connectedVariable == "resize_y"){
         Image.resizeY(dValue);
     }
-    else if(affectedVariable == "layer"){
+    else if(connectedVariable == "layer"){
         Image.setUsedBitmapLayer(int(dValue));
     }
-    else if(affectedVariable == "center_x"){
+    else if(connectedVariable == "center_x"){
         Image.setCenterX(dValue);
     }
-    else if(affectedVariable == "center_y"){
+    else if(connectedVariable == "center_y"){
         Image.setCenterY(dValue);
     }
-    else if(affectedVariable == "start_x"){
+    else if(connectedVariable == "start_x"){
         Image.setStartX(dValue);
     }
-    else if(affectedVariable == "start_y"){
+    else if(connectedVariable == "start_y"){
         Image.setStartY(dValue);
     }
-    else if(affectedVariable == "frame_size_x"){
+    else if(connectedVariable == "frame_size_x"){
         Image.setFrameSizeX(dValue);
     }
-    else if(affectedVariable == "frame_size_y"){
+    else if(connectedVariable == "frame_size_y"){
         Image.setFrameSizeY(dValue);
     }
-    else if(affectedVariable == "current_frame_x"){
+    else if(connectedVariable == "current_frame_x"){
         Image.setCurrentFrameX(int(dValue));
     }
-    else if(affectedVariable == "current_frame_y"){
+    else if(connectedVariable == "current_frame_y"){
         Image.setCurrentFrameY(int(dValue));
     }
-    else if(affectedVariable == "rotation"){
+    else if(connectedVariable == "rotation"){
         Image.setRotation(dValue);
     }
-    else if(affectedVariable == "image_color_r"){
+    else if(connectedVariable == "image_color_r"){
         Image.setImageColor(float(dValue), 'r');
     }
-    else if(affectedVariable == "image_color_g"){
+    else if(connectedVariable == "image_color_g"){
         Image.setImageColor(float(dValue), 'g');
     }
-    else if(affectedVariable == "image_color_b"){
+    else if(connectedVariable == "image_color_b"){
         Image.setImageColor(float(dValue), 'b');
     }
-    else if(affectedVariable == "image_color_a"){
+    else if(connectedVariable == "image_color_a"){
         Image.setImageColor(float(dValue), 'a');
     }
-    else if(affectedVariable == "light_r"){
+    else if(connectedVariable == "light_r"){
         Image.setLightColor(float(dValue), 'r');
     }
-    else if(affectedVariable == "light_g"){
+    else if(connectedVariable == "light_g"){
         Image.setLightColor(float(dValue), 'g');
     }
-    else if(affectedVariable == "light_b"){
+    else if(connectedVariable == "light_b"){
         Image.setLightColor(float(dValue), 'b');
     }
-    else if(affectedVariable == "light_l"){
+    else if(connectedVariable == "light_l"){
         Image.setLightColor(float(dValue), 'l');
     }
     else{
@@ -1118,7 +1429,7 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
         return false;
     }
 
-    if(affectedVariable == "id"){
+    if(connectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Movement.getIDAddr(), cContent)){
             connectedModuleID = cContent;
             return true;
@@ -1133,16 +1444,16 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
         if(cContent == "false" || cContent == "0")
             bValue = false;
 
-        if(affectedVariable == "can_move_diagonally"){
+        if(connectedVariable == "can_move_diagonally"){
             Movement.setCanMoveDiagonally(bValue);
         }
-        else if(affectedVariable == "reset_momentum_when_jumping"){
+        else if(connectedVariable == "reset_momentum_when_jumping"){
             Movement.setResetMomentumWhenJumping(bValue);
         }
-        else if(affectedVariable == "move_on_mouse_release"){
+        else if(connectedVariable == "move_on_mouse_release"){
             Movement.setMoveOnMouseRelease(bValue);
         }
-        else if(affectedVariable == "reset_direction_after_collision"){
+        else if(connectedVariable == "reset_direction_after_collision"){
             Movement.setResetDirectionAfterCollision(bValue);
         }
         else{
@@ -1157,22 +1468,22 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
     if(cContent.size() == 1){
         success = true;
         char chValue = cContent[0];
-        if(affectedVariable == "up_key"){
+        if(connectedVariable == "up_key"){
             Movement.setUpKey(chValue);
         }
-        else if(affectedVariable == "right_key"){
+        else if(connectedVariable == "right_key"){
             Movement.setRightKey(chValue);
         }
-        else if(affectedVariable == "down_key"){
+        else if(connectedVariable == "down_key"){
             Movement.setDownKey(chValue);
         }
-        else if(affectedVariable == "left_key"){
+        else if(connectedVariable == "left_key"){
             Movement.setLeftKey(chValue);
         }
-        else if(affectedVariable == "jump_key"){
+        else if(connectedVariable == "jump_key"){
             Movement.setJumpKey(chValue);
         }
-        else if(affectedVariable == "running_key"){
+        else if(connectedVariable == "running_key"){
             Movement.setRunningKey(chValue);
         }
         else{
@@ -1192,16 +1503,16 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
     double dValue = std::stod(cContent);
     short shValue = short(dValue);
 
-    if(affectedVariable == "movement_type"){
+    if(connectedVariable == "movement_type"){
         Movement.setMovementType(shValue);
     }
-    else if(affectedVariable == "input_type"){
+    else if(connectedVariable == "input_type"){
         Movement.setInputType(shValue);
     }
-    else if(affectedVariable == "allowed_jumps"){
+    else if(connectedVariable == "allowed_jumps"){
         Movement.setAllowedJumps(shValue);
     }
-    else if(affectedVariable == "mouse_button"){
+    else if(connectedVariable == "mouse_button"){
         Movement.setMouseButton(shValue);
     }
     else{
@@ -1214,37 +1525,37 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
 
     success = true;
 
-    if(affectedVariable == "jump_ cooldown_duration"){
+    if(connectedVariable == "jump_ cooldown_duration"){
         Movement.setJumpCooldownDuration(dValue);
     }
-    else if(affectedVariable == "move_cooldown_duration"){
+    else if(connectedVariable == "move_cooldown_duration"){
         Movement.setMoveCooldownDuration(dValue);
     }
-    else if(affectedVariable == "body_mass"){
+    else if(connectedVariable == "body_mass"){
         Movement.setBodyMass(dValue);
     }
-    else if(affectedVariable == "walking_speed"){
+    else if(connectedVariable == "walking_speed"){
         Movement.setWalkingSpeed(dValue);
     }
-    else if(affectedVariable == "running_speed"){
+    else if(connectedVariable == "running_speed"){
         Movement.setRunningSpeed(dValue);
     }
-    else if(affectedVariable == "jump_speed"){
+    else if(connectedVariable == "jump_speed"){
         Movement.setJumpSpeed(dValue);
     }
-    else if(affectedVariable == "gravitation"){
+    else if(connectedVariable == "gravitation"){
         Movement.setGravitation(dValue);
     }
-    else if(affectedVariable == "base_friction"){
+    else if(connectedVariable == "base_friction"){
         Movement.setBaseFriction(dValue);
     }
-    else if(affectedVariable == "max_momentum_x"){
+    else if(connectedVariable == "max_momentum_x"){
         Movement.setMaxMomentumX(dValue);
     }
-    else if(affectedVariable == "min_momentum_y"){
+    else if(connectedVariable == "min_momentum_y"){
         Movement.setMinMomentumY(dValue);
     }
-    else if(affectedVariable == "max_momentum_y"){
+    else if(connectedVariable == "max_momentum_y"){
         Movement.setMaxMomentumY(dValue);
     }
     else{
@@ -1262,28 +1573,28 @@ bool EditableTextModule::controlCollision(CollisionModule & Collision, vector <s
 
     string cContent = getContent(0);
 
-    if(affectedVariable == "add_to_ignored_objects"){
+    if(connectedVariable == "add_to_ignored_objects"){
         Collision.addToIgnoreList("objects", cContent);
     }
-    else if(affectedVariable == "add_to_ignored_groups_of_objects"){
+    else if(connectedVariable == "add_to_ignored_groups_of_objects"){
         Collision.addToIgnoreList("groups_of_objects", cContent);
     }
-    else if(affectedVariable == "add_to_ignored_hitboxes"){
+    else if(connectedVariable == "add_to_ignored_hitboxes"){
         Collision.addToIgnoreList("hitboxes", cContent);
     }
-    else if(affectedVariable == "add_to_ignored_groups_of_hitboxes"){
+    else if(connectedVariable == "add_to_ignored_groups_of_hitboxes"){
         Collision.addToIgnoreList("groups_of_hitboxes", cContent);
     }
-    else if(affectedVariable == "remove_from_ignored_objects"){
+    else if(connectedVariable == "remove_from_ignored_objects"){
         Collision.removeFromIgnoreList("objects", cContent);
     }
-    else if(affectedVariable == "remove_from_ignored_groups_of_objects"){
+    else if(connectedVariable == "remove_from_ignored_groups_of_objects"){
         Collision.removeFromIgnoreList("groups_of_objects", cContent);
     }
-    else if(affectedVariable == "remove_from_ignored_hitboxes"){
+    else if(connectedVariable == "remove_from_ignored_hitboxes"){
         Collision.removeFromIgnoreList("hitboxes", cContent);
     }
-    else if(affectedVariable == "remove_from_ignored_groups_of_hitboxes"){
+    else if(connectedVariable == "remove_from_ignored_groups_of_hitboxes"){
         Collision.removeFromIgnoreList("groups_of_hitboxes", cContent);
     }
     else{
@@ -1294,7 +1605,7 @@ bool EditableTextModule::controlCollision(CollisionModule & Collision, vector <s
         return success;
     }
 
-    if(affectedVariable == "id"){
+    if(connectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Collision.getIDAddr(), cContent)){
             connectedModuleID = cContent;
             return true;
@@ -1309,10 +1620,10 @@ bool EditableTextModule::controlCollision(CollisionModule & Collision, vector <s
         if(cContent == "false" || cContent == "0")
             bValue = false;
 
-        if(affectedVariable == "is_solid"){
+        if(connectedVariable == "is_solid"){
             Collision.setIsSolid(bValue);
         }
-        else if(affectedVariable == "can_penetrate_solids"){
+        else if(connectedVariable == "can_penetrate_solids"){
             Collision.setCanPenetrateSolids(bValue);
         }
         else{
@@ -1330,23 +1641,23 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
     bool success = true;
     string cContent = getContent(0);
 
-    if(affectedVariable == "spawn_key_bind"){
+    if(connectedVariable == "spawn_key_bind"){
         if(cContent.size() != 1)
             return false;
         Particles.setSpawnKeyBind(cContent[0]);
         return true;
     }
 
-    if(affectedVariable == "add_color_in_hex"){
+    if(connectedVariable == "add_color_in_hex"){
         Particles.addColorInHex(cContent);
     }
-    else if(affectedVariable == "add_color_interval_in_hex"){
+    else if(connectedVariable == "add_color_interval_in_hex"){
         Particles.addColorIntervalInHex(cContent);
     }
-    else if(affectedVariable == "add_image"){
+    else if(connectedVariable == "add_image"){
         Particles.addImage(cContent);
     }
-    else if(affectedVariable == "remove_image"){
+    else if(connectedVariable == "remove_image"){
         Particles.removeImage(cContent);
     }
     else{
@@ -1357,7 +1668,7 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
         return success;
     }
 
-    if(affectedVariable == "id"){
+    if(connectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Particles.getIDAddr(), cContent)){
             connectedModuleID = cContent;
             return true;
@@ -1373,28 +1684,28 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
         if(cContent == "false" || cContent == "0")
             bValue = false;
 
-        if(affectedVariable == "particles_moving"){
+        if(connectedVariable == "particles_moving"){
             Particles.setAreParticlesMoving(bValue);
         }
-        else if(affectedVariable == "environment_synchronized"){
+        else if(connectedVariable == "environment_synchronized"){
             Particles.setIsEnvironmentSynchronized(bValue);
         }
-        else if(affectedVariable == "use_image_as_particles"){
+        else if(connectedVariable == "use_image_as_particles"){
             Particles.setUseImageAsParticles(bValue);
         }
-        else if(affectedVariable == "use_random_colors"){
+        else if(connectedVariable == "use_random_colors"){
             Particles.setUseRandomColors(bValue);
         }
-        else if(affectedVariable == "module_static"){
+        else if(connectedVariable == "module_static"){
             Particles.setIsModuleStatic(bValue);
         }
-        else if(affectedVariable == "drawing_with_details"){
+        else if(connectedVariable == "drawing_with_details"){
             Particles.setIsDrawingWithDetails(bValue);
         }
-        else if(affectedVariable == "block_particles_spawn"){
+        else if(connectedVariable == "block_particles_spawn"){
             Particles.setBlockParticlesSpawn(bValue);
         }
-        else if(affectedVariable == "spawn_on_key_release"){
+        else if(connectedVariable == "spawn_on_key_release"){
             Particles.setSpawnOnKeyRelease(bValue);
         }
         else{
@@ -1413,85 +1724,85 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
     double dValue = std::stod(cContent);
 
 
-    if(affectedVariable == "environment_x"){
+    if(connectedVariable == "environment_x"){
         Particles.setEnvironmentX(dValue);
     }
-    else if(affectedVariable == "environment_y"){
+    else if(connectedVariable == "environment_y"){
         Particles.setEnvironmentY(dValue);
     }
-    else if(affectedVariable == "environment_speed_x"){
+    else if(connectedVariable == "environment_speed_x"){
         Particles.setEnvironmentSpeedX(dValue);
     }
-    else if(affectedVariable == "environment_speed_y"){
+    else if(connectedVariable == "environment_speed_y"){
         Particles.setEnvironmentSpeedY(dValue);
     }
-    else if(affectedVariable == "min_speed"){
+    else if(connectedVariable == "min_speed"){
         Particles.setMinSpeed(dValue);
     }
-    else if(affectedVariable == "max_speed"){
+    else if(connectedVariable == "max_speed"){
         Particles.setMaxSpeed(dValue);
     }
-    else if(affectedVariable == "min_basic_speed"){
+    else if(connectedVariable == "min_basic_speed"){
         Particles.setMinBasicSpeed(dValue);
     }
-    else if(affectedVariable == "max_basic_speed"){
+    else if(connectedVariable == "max_basic_speed"){
         Particles.setMaxBasicSpeed(dValue);
     }
-    else if(affectedVariable == "min_acceleration"){
+    else if(connectedVariable == "min_acceleration"){
         Particles.setMinAcceleration(dValue);
     }
-    else if(affectedVariable == "max_acceleration"){
+    else if(connectedVariable == "max_acceleration"){
         Particles.setMaxAcceleration(dValue);
     }
-    else if(affectedVariable == "min_particle_mass"){
+    else if(connectedVariable == "min_particle_mass"){
         Particles.setMinParticleMass(dValue);
     }
-    else if(affectedVariable == "max_particle_mass"){
+    else if(connectedVariable == "max_particle_mass"){
         Particles.setMaxParticleMass(dValue);
     }
-    else if(affectedVariable == "min_direction_degree"){
+    else if(connectedVariable == "min_direction_degree"){
         Particles.setMinDirectionDegree(dValue);
     }
-    else if(affectedVariable == "max_direction_degree"){
+    else if(connectedVariable == "max_direction_degree"){
         Particles.setMaxDirectionDegree(dValue);
     }
-    else if(affectedVariable == "min_rotation_speed"){
+    else if(connectedVariable == "min_rotation_speed"){
         Particles.setMinRotationSpeed(dValue);
     }
-    else if(affectedVariable == "max_rotation_speed"){
+    else if(connectedVariable == "max_rotation_speed"){
         Particles.setMaxRotationSpeed(dValue);
     }
-    else if(affectedVariable == "min_time_to_negate_rotation"){
+    else if(connectedVariable == "min_time_to_negate_rotation"){
         Particles.setMinTimeToNegateRotation(dValue);
     }
-    else if(affectedVariable == "max_time_to_negate_rotation"){
+    else if(connectedVariable == "max_time_to_negate_rotation"){
         Particles.setMaxTimeToNegateRotation(dValue);
     }
-    else if(affectedVariable == "min_particle_radius"){
+    else if(connectedVariable == "min_particle_radius"){
         Particles.setMinParticleRadius(dValue);
     }
-    else if(affectedVariable == "max_particle_radius"){
+    else if(connectedVariable == "max_particle_radius"){
         Particles.setMaxParticleRadius(dValue);
     }
-    else if(affectedVariable == "min_time_to_death"){
+    else if(connectedVariable == "min_time_to_death"){
         Particles.setMinTimeToDeath(dValue);
     }
-    else if(affectedVariable == "max_time_to_death"){
+    else if(connectedVariable == "max_time_to_death"){
         Particles.setMaxTimeToDeath(dValue);
     }
-    else if(affectedVariable == "min_shape_rotation_speed"){
+    else if(connectedVariable == "min_shape_rotation_speed"){
         Particles.setMinShapeRotationSpeed(dValue);
     }
-    else if(affectedVariable == "max_shape_rotation_speed"){
+    else if(connectedVariable == "max_shape_rotation_speed"){
         Particles.setMaxShapeRotationSpeed(dValue);
     }
-    else if(affectedVariable == "min_color_intensity"){
+    else if(connectedVariable == "min_color_intensity"){
         Particles.setMinColorIntensity(dValue);
     }
-    else if(affectedVariable == "max_color_intensity"){
+    else if(connectedVariable == "max_color_intensity"){
         Particles.setMaxColorIntensity(dValue);
     }
-    else if(affectedVariable == "max_time_to_spawn"){
+    else if(connectedVariable == "max_time_to_spawn"){
         Particles.setMaxTimeToSpawn(dValue);
     }
     else{
@@ -1504,10 +1815,10 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
     success = true;
 
     short shValue = short(dValue);
-    if(affectedVariable == "particle_shape"){
+    if(connectedVariable == "particle_shape"){
         Particles.setParticlesShape(shValue);
     }
-    else if(affectedVariable == "spawn_key_bind_short"){
+    else if(connectedVariable == "spawn_key_bind_short"){
         Particles.setSpawnKeyBindShort(shValue);
     }
     else{
@@ -1522,22 +1833,22 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
         success = true;
         unsigned int uiValue = static_cast<unsigned int>(dValue);
 
-        if(affectedVariable == "min_particles_per_spawn"){
+        if(connectedVariable == "min_particles_per_spawn"){
             Particles.setMinParticlesPerSpawn(uiValue);
         }
-        else if(affectedVariable == "max_particles_per_spawn"){
+        else if(connectedVariable == "max_particles_per_spawn"){
             Particles.setMaxParticlesPerSpawn(uiValue);
         }
-        else if(affectedVariable == "max_particles_count"){
+        else if(connectedVariable == "max_particles_count"){
             Particles.setMaxParticlesCount(uiValue);
         }
-        else if(affectedVariable == "remove_color"){
+        else if(connectedVariable == "remove_color"){
             Particles.removeColor(uiValue);
         }
-        else if(affectedVariable == "remove_color_interval"){
+        else if(connectedVariable == "remove_color_interval"){
             Particles.removeColorInterval(uiValue);
         }
-        else if(affectedVariable == "remove_image"){
+        else if(connectedVariable == "remove_image"){
             Particles.removeImage(uiValue);
         }
         else{
@@ -1554,10 +1865,10 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
 bool EditableTextModule::controlVariable(VariableModule & Variable, vector <string> & listOfIDs){
     string cContent = getContent(0);
 
-    if(affectedVariable == "default_string"){
+    if(connectedVariable == "default_string"){
         return Variable.setDefaultString(cContent);
     }
-    else if(affectedVariable == "string"){
+    else if(connectedVariable == "string"){
         return Variable.setString(cContent);
     }
 
@@ -1565,7 +1876,7 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
         return false;
     }
 
-    if(affectedVariable == "id"){
+    if(connectedVariable == "id"){
         if(tryUpdatingID(listOfIDs, Variable.getIDAddr(), cContent)){
             connectedModuleID = cContent;
             return true;
@@ -1573,7 +1884,7 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
         return false;
     }
 
-    if(affectedVariable == "type"){
+    if(connectedVariable == "type"){
         return Variable.setType(cContent[0]);
     }
 
@@ -1584,10 +1895,10 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
         if(cContent == "false" || cContent == "0")
             bValue = false;
 
-        if(affectedVariable == "dafault_bool"){
+        if(connectedVariable == "dafault_bool"){
             return Variable.setDefaultBool(bValue);
         }
-        else if(affectedVariable == "bool"){
+        else if(connectedVariable == "bool"){
             return Variable.setBool(bValue);
         }
     }
@@ -1601,16 +1912,16 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
     double dValue = std::stod(cContent);
     int iValue = int(dValue);
 
-    if(affectedVariable == "default_int"){
+    if(connectedVariable == "default_int"){
         return Variable.setDefaultInt(iValue);
     }
-    else if(affectedVariable == "default_double"){
+    else if(connectedVariable == "default_double"){
         return Variable.setDefaultDouble(dValue);
     }
-    else if(affectedVariable == "int"){
+    else if(connectedVariable == "int"){
         return Variable.setInt(iValue);
     }
-    else if(affectedVariable == "double"){
+    else if(connectedVariable == "double"){
         return Variable.setDouble(dValue);
     }
     return false;
@@ -1624,10 +1935,10 @@ void printCommandDoesNotExistWarning(){
 void EditableTextModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
     BasePointers.push_back(BasePointersStruct());
     if(attribute == "content"){
-        BasePointers.back().setPointer(&content[currentTextID]);
+        BasePointers.back().setPointer(&content[currentTextIdx]);
     }
     else if(attribute == "current_text_id"){
-        BasePointers.back().setPointer(&currentTextID);
+        BasePointers.back().setPointer(&currentTextIdx);
     }
     else if(attribute == "font_id"){
         BasePointers.back().setPointer(&fontID);
@@ -1693,13 +2004,13 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
         BasePointers.back().setPointer(&connectedGroup);
     }
     else if(attribute == "affected_module"){
-        BasePointers.back().setPointer(&affectedModule);
+        BasePointers.back().setPointer(&connectedModule);
     }
     else if(attribute == "connected_module_id"){
         BasePointers.back().setPointer(&connectedModuleID);
     }
     else if(attribute == "affected_variable"){
-        BasePointers.back().setPointer(&affectedVariable);
+        BasePointers.back().setPointer(&connectedVariable);
     }
     else{
         getPrimaryContext(attribute, BasePointers);
@@ -1713,7 +2024,7 @@ VariableModule EditableTextModule::getAttributeValue(const string &attribute, co
         return VariableModule::newString(getCurrentContent());
     }
     else if(attribute == "current_text_id"){
-        return VariableModule::newInt(currentTextID);
+        return VariableModule::newInt(currentTextIdx);
     }
     else if(attribute == "font_id"){
         return VariableModule::newString(getCurrentContent());

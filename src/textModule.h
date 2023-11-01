@@ -18,7 +18,7 @@ class TextModule: public PrimaryModule{
 //It connects with a font via font ID and size.
 public:
     vector <string> content;
-    unsigned int currentTextID; //indexes of content vector
+    unsigned int currentTextIdx; //indexes of content vector
     string fontID;
     ALLEGRO_COLOR color;
     short wrapped; //0-single line, 1-wrapped, 2-smart wrap
@@ -39,6 +39,7 @@ public:
     void addNewContent(string newContent);
     void addNewContentAndResize(string newContent, vector <SingleFont> FontContainer);
     void chooseContent(unsigned int textID);
+    bool checkSize(unsigned int textID) const;
     void modifyContent(unsigned int textID, string modifiedContent);
     void modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer);
     void deleteContent(unsigned int textID);
@@ -62,7 +63,7 @@ public:
     string getFontID();
     string getContent(unsigned int textID) const;
     float getColor(char whichColor);
-    unsigned int getCurrentTextID() const;
+    unsigned int getCurrentTextIdx() const;
     string getCurrentContent() const;
     VariableModule getAttributeValue(const string &attribute, const string &detail) const;
 };
@@ -71,23 +72,28 @@ public:
 class EditableTextModule: public TextModule{
 private:
     bool canBeEdited;
-    bool editingIsActive;
     bool canUseSpace;
     bool isNumerical;
     bool hasFloatingPoint;
     bool updateConnectedVariable;
     bool canClearContentAfterSuccess; //If true, content is cleaned only when all operations succeeded.
     bool useArrowsAsChar;
-    unsigned int cursorPos;
+    bool enterAcceptsChanges;
     unsigned int minContentSize;
     unsigned int maxContentSize;
+    float inputDelay, repetitionDelay;
 
+    unsigned int cursorPos;
+    bool editingIsActive;
+    vector<short> blockedKeys;
+    short lastInputedKey;
 public:
     string connectedObject;
     string connectedGroup;
-    string affectedModule;
+    string connectedModule;
     string connectedModuleID;
-    string affectedVariable;
+    string connectedVariable;
+    float currentInputDelay;
 
     void setUpNewInstance();
     EditableTextModule();
@@ -104,6 +110,8 @@ public:
     void setCursorPos(unsigned int newCursorPos);
     void setMinContentSize(unsigned int newMinContentSize);
     void setMaxContentSize(unsigned int newMaxContentSize);
+    void setInputDelay(float);
+    void setRepetitionDelay(float);
     void setConnectedObjectID(string newValue);
     void setConnectedObject(string objectID, string moduleType, string moduleID, string variableName);
     void setConnectedGroup(string groupName, string moduleType, string moduleID, string variableName);
@@ -121,7 +129,7 @@ public:
     string getConnectedObjectID();
     bool canConvertContentToNumber();
     void clearContentAfterSuccess(bool success);
-    void editText(vector <short> releasedKeys, vector <short> pressedKeys);
+    void editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer);
     //Function checks if the new id is unique and if it is, function changes previous id and updates listOfIds.
     bool tryUpdatingID(vector <string> & listOfIDs, string & currentID, string newID);
     bool controlAncestor(PrimaryModule & Primary, vector <string> & listOfAncestorIDs);

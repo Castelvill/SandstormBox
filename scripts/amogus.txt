@@ -1,4 +1,4 @@
-start while_click false
+/*start while_click false
 triggers [key_pressed]
 if ([key_pressed 23])
 int [0] xd
@@ -74,4 +74,4 @@ double [10] divide
 /= dColors divide
 fun image1 set_color c dColors
 ++ index
-end
+end*/

@@ -357,45 +357,45 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
         if(EditableText.connectedObject == Object.getID()
            || Object.isInAGroup(EditableText.connectedGroup)){
             bool success = false;
-            if(EditableText.affectedModule == "ancestor"){
+            if(EditableText.connectedModule == "ancestor"){
                 success = EditableText.controlAncestor(Object, listOfAncestorIDs);
             }
-            else if(EditableText.affectedModule == "text"){
+            else if(EditableText.connectedModule == "text"){
                 for(auto & Text : Object.TextContainer){
                     if(EditableText.connectedModuleID == Text.getID()){
                         success = EditableText.controlText(Text, Object.textContainerIDs);
                     }
                 }
             }
-            else if(EditableText.affectedModule == "image"){
+            else if(EditableText.connectedModule == "image"){
                 for(auto & Image : Object.ImageContainer){
                     if(EditableText.connectedModuleID == Image.getID()){
                         success = EditableText.controlImage(Image, BitmapContainer, Object.imageContainerIDs, EXE_PATH);
                     }
                 }
             }
-            else if(EditableText.affectedModule == "movement"){
+            else if(EditableText.connectedModule == "movement"){
                 for(auto & Movement : Object.MovementContainer){
                     if(EditableText.connectedModuleID == Movement.getID()){
                         success = EditableText.controlMovement(Movement, Object.movementContainerIDs);
                     }
                 }
             }
-            else if(EditableText.affectedModule == "collision"){
+            else if(EditableText.connectedModule == "collision"){
                 for(auto & Collision : Object.CollisionContainer){
                     if(EditableText.connectedModuleID == Collision.getID()){
                         success = EditableText.controlCollision(Collision, Object.collisionContainerIDs);
                     }
                 }
             }
-            else if(EditableText.affectedModule == "particles"){
+            else if(EditableText.connectedModule == "particles"){
                 for(auto & Particles : Object.ParticlesContainer){
                     if(EditableText.connectedModuleID == Particles.getID()){
                         success = EditableText.controlParticles(Particles, Object.particlesContainerIDs);
                     }
                 }
             }
-            else if(EditableText.affectedModule == "variable"){
+            else if(EditableText.connectedModule == "variable"){
                 for(auto & Variable : Object.VariablesContainer){
                     if(EditableText.connectedModuleID == Variable.getID()){
                         success = EditableText.controlVariable(Variable, Object.variablesContainerIDs);
