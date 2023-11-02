@@ -109,7 +109,7 @@ fun PrimiFun add_point double [900.0 400.0]
 fun PrimiFun set_color double [0.0 0.0 1.0 1.0]
 fun PrimiFun set_thickness double [20.0]
 fun PrimiFun set_radius double [350.0]
-fun PrimiFun select_layer int [2]*/
+fun PrimiFun select_layer int [2]
 new primitives c Arch 1 _ _ PrimiFun
 fun PrimiFun set_type string [filled_rounded_rectangle]
 fun PrimiFun add_point double [920.0 20.0]
@@ -125,7 +125,7 @@ fun PrimiFun add_point double [1900.0 1000.0]
 fun PrimiFun add_point double [30.0 30.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.5]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun select_layer int [2]
+fun PrimiFun select_layer int [2]*/
 
 new layer l 1 _ _ L1
 fun L1 set_id string [L1]
@@ -178,6 +178,7 @@ new image c ObjPar 1 _ _ steveImg
 fun steveImg set_id string [lel]
 fun steveImg connect_bitmap_via_alias string [steve]
 fun steveImg select_layer int [1]
+fun steveImg deactivate
 new image c ObjPar 1 _ _ insaneImg
 fun insaneImg set_id string [insane]
 fun insaneImg connect_bitmap_via_alias string [insanity1]
@@ -253,7 +254,7 @@ fun Editable set_wrapping int [2]
 fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [200]
-fun Editable add_and_update string ["sed do eiusmod tempor incididunt ut et\t\tdolore magna aliqua."]
+fun Editable add_and_update string ["sed do eiusmod tempor incididunt ut et\t doloreee magna aliqua."]
 fun Editable set_size int [400 300]
 fun Editable select_layer int [1]
 fun Editable set_color double [1.0 0.0 0.0 1.0]
@@ -332,7 +333,7 @@ fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
 fun cam set_can_interact_with_mouse bool [true]
 fun cam set_keep_inside_screen bool [true]
-//fun cam minimize
+fun cam minimize
 //fun cam bring_forward
 
 new camera l 1 _ _ cam
@@ -356,7 +357,7 @@ fun cam pin_to_camera string [okienko]
 fun cam activate_pin
 fun cam set_is_forcefully_pinned bool [true]
 fun cam set_relative_position int [100 100]
-//fun cam minimize
+fun cam minimize
 
 /*new camera l 1 _ _ cam
 fun cam set_position int [300 50]
@@ -396,7 +397,7 @@ int [0] zero
 int [3] break_loop
 int [0] cat_i
 int [10] catsNum
-run [cobblestone_generator_1 spawn_cats]
+//run [cobblestone_generator_1 spawn_cats]
 end
 
 start cobblestone_generator_1 true

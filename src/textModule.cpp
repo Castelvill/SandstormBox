@@ -187,7 +187,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     string temp, text;
     int currentLength = 0, currentHeight = 0, realHeight = 0;
     int fontHeight = al_get_font_line_height(font);
-    int charLength = 0;
+    int charLength = 0, smartCharLength = 0;
     unsigned letter = 0, lettersCountForTabs = 0;
     if(currentTextIdx < content.size()){
         text = content[currentTextIdx];
@@ -206,20 +206,15 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 break;
             }
             textLines.back() += '\n';
+            lettersCountForTabs = -1;
             textLines.push_back(string());
             continue;
-        }
-        charLength = al_get_text_width(font, temp.c_str());
-        if(temp == "\t"){
-            charLength = al_get_text_width(font, string(" ").c_str()) * (tabLength - lettersCountForTabs % tabLength);
-            if(tabLength > 0){
-                lettersCountForTabs += tabLength - 1;
-            }
         }
         if((temp == " " || temp == "\t") && wrapped == 2){ //smart text wrapping - keeping words intact
             int futureLenght = currentLength;
             string newTemp;
             bool success = false;
+
             for(unsigned i = letter, j = lettersCountForTabs; i < text.size(); i++, j++){
                 newTemp.clear();
                 newTemp = text.substr(i, 1);
@@ -227,18 +222,19 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 if(i != letter && (newTemp == " " || newTemp == "\n" || newTemp == "\t")){
                     break;
                 }
-                charLength = al_get_text_width(font, newTemp.c_str());
+                smartCharLength = al_get_text_width(font, newTemp.c_str());
                 if(newTemp == "\t"){
-                    charLength = al_get_text_width(font, string(" ").c_str()) * (tabLength - j % tabLength);
+                    smartCharLength = al_get_text_width(font, string(" ").c_str()) * (tabLength - j % tabLength);
                     if(tabLength > 0){
-                        j += tabLength - 1;
+                        j += tabLength - j % tabLength - 1;
                     }
                 }
-                futureLenght += charLength;
+                futureLenght += smartCharLength;
                 if(futureLenght > size.x){
                     currentLength = 0;
                     currentHeight += fontHeight;
                     textLines.back() += '\n';
+                    lettersCountForTabs = -1;
                     textLines.push_back(string());
                     success = true;
                     break;
@@ -248,6 +244,13 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 continue;
             }
         }
+        charLength = al_get_text_width(font, temp.c_str());
+        if(temp == "\t"){
+            charLength = al_get_text_width(font, string(" ").c_str()) * (tabLength - lettersCountForTabs % tabLength);
+            if(tabLength > 0){
+                lettersCountForTabs += tabLength - lettersCountForTabs % tabLength - 1;
+            }
+        }
         //cropping text according to its dimensions and wrapping text when possible
         if(currentLength + charLength > size.x){
             if(wrapped == 0){
@@ -255,6 +258,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
             }
             currentLength = 0;
             currentHeight += fontHeight;
+            lettersCountForTabs = -1;
             textLines.push_back(string());
             if(currentHeight + fontHeight > size.y){
                 break;
@@ -301,7 +305,6 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     string letterOnCursor = "";
 
     unsigned cursorLine = 0;
-    
 
     if(editingIsActive){
         if(cursorPos > text.size()){
@@ -319,7 +322,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                     else{
                         cursorRealPos.x += al_get_text_width(font, string(" ").c_str()) * (tabLength - lettersCountForTabs % tabLength);
                         if(tabLength > 0){
-                            lettersCountForTabs += tabLength - 1;
+                            lettersCountForTabs += tabLength - lettersCountForTabs % tabLength - 1;
                         }
                     }
                 }
@@ -352,6 +355,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 }
                 cursorRealPos.x = finalPos.x;
                 cursorRealPos.y += fontHeight;
+                lettersCountForTabs = -1;
             }
         }
     }
@@ -368,7 +372,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                     finalTextLines.back() += " ";
                 }
                 if(tabLength > 0){
-                    lettersCountForTabs += tabLength - 1;
+                    lettersCountForTabs += tabLength - lettersCountForTabs % tabLength - 1;
                 }
                 continue;
             }
