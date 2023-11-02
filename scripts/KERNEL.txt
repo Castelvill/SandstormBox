@@ -249,16 +249,19 @@ build Terminal true
 new editable_text c Terminal 1 _ _ Editable
 fun Editable set_position int [60 20]
 fun Editable set_font string [fira_mono24]
-fun Editable set_wrapping int [1]
+fun Editable set_wrapping int [2]
 fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [200]
-fun Editable add_and_update string ["Hello: "]
+fun Editable add_and_update string ["sed do eiusmod tempor incididunt ut et\t\tdolore magna aliqua."]
 fun Editable set_size int [400 300]
 fun Editable select_layer int [1]
-fun Editable set_color double [1.0 0.0 0.0 0.2]
+fun Editable set_color double [1.0 0.0 0.0 1.0]
 fun Editable set_input_delay double [0.3]
 fun Editable set_repetition_delay double [0.05]
+fun Editable set_vertical_align int [0]
+fun Editable set_horizontal_align int [0]
+fun Editable set_use_tabs bool [1]
 //fun Editable set_rotation double [5]
 
 new camera l 1 _ _ cam

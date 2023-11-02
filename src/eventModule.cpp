@@ -168,6 +168,9 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
     else if(attribute == "set_use_arrows" && Values.size() > 0){
         EditableText->setUseArrowsAsChar(Values[0].getBoolUnsafe());
     }
+    else if(attribute == "set_use_tabs" && Values.size() > 0){
+        EditableText->setUseTabs(Values[0].getBoolUnsafe());
+    }
     else if(attribute == "set_min_content_length" && Values.size() > 0){
         EditableText->setMinContentSize(Values[0].getIntUnsafe());
     }

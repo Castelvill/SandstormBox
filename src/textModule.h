@@ -27,6 +27,7 @@ public:
     double rotation;
     float randomChangeSpeed;
     float minColorValue, maxColorValue;
+    int tabLength;
 
     short usedBitmapLayer;  //Text fields with numbers higher or equal to zero are drawn in ascending order. If the value is -1, text will be drawn on top of everything else.
 
@@ -79,6 +80,7 @@ private:
     bool canClearContentAfterSuccess; //If true, content is cleaned only when all operations succeeded.
     bool useArrowsAsChar;
     bool enterAcceptsChanges;
+    bool useTabs;
     unsigned int minContentSize;
     unsigned int maxContentSize;
     float inputDelay, repetitionDelay;
@@ -107,6 +109,7 @@ public:
     void setHasFloatingPoint(bool newHasFloatingPoint);
     void setUpdateConnectedVariable(bool newUpdateConnectedVariable);
     void setUseArrowsAsChar(bool newValue);
+    void setUseTabs(bool newValue);
     void setCursorPos(unsigned int newCursorPos);
     void setMinContentSize(unsigned int newMinContentSize);
     void setMaxContentSize(unsigned int newMaxContentSize);

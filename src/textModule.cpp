@@ -26,6 +26,7 @@ void TextModule::setUpNewInstance(){
     randomChangeSpeed = 0.001;
     minColorValue = 0.0f;
     maxColorValue = 1.0f;
+    tabLength = 4;
 }
 TextModule::TextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -186,6 +187,8 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     string temp, text;
     int currentLength = 0, currentHeight = 0, realHeight = 0;
     int fontHeight = al_get_font_line_height(font);
+    int charLength = 0;
+    unsigned letter = 0, lettersCountForTabs = 0;
     if(currentTextIdx < content.size()){
         text = content[currentTextIdx];
     }
@@ -193,7 +196,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         return;
     }
 
-    for(unsigned int letter = 0; letter < text.size(); letter++){
+    for(; letter < text.size(); letter++, lettersCountForTabs++){
         temp.clear();
         temp = text.substr(letter, 1);
         if(temp == "\n"){ //enter handling
@@ -206,21 +209,36 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
             textLines.push_back(string());
             continue;
         }
-        if(temp == " " && wrapped == 2){ //smart text wrapping - keeping words intact
+        charLength = al_get_text_width(font, temp.c_str());
+        if(temp == "\t"){
+            charLength = al_get_text_width(font, string(" ").c_str()) * (tabLength - lettersCountForTabs % tabLength);
+            if(tabLength > 0){
+                lettersCountForTabs += tabLength - 1;
+            }
+        }
+        if((temp == " " || temp == "\t") && wrapped == 2){ //smart text wrapping - keeping words intact
             int futureLenght = currentLength;
             string newTemp;
             bool success = false;
-            for(unsigned int i = letter; i < text.size(); i++){
+            for(unsigned i = letter, j = lettersCountForTabs; i < text.size(); i++, j++){
                 newTemp.clear();
                 newTemp = text.substr(i, 1);
 
-                if(i != letter && newTemp == " "){
+                if(i != letter && (newTemp == " " || newTemp == "\n" || newTemp == "\t")){
                     break;
                 }
-                futureLenght += al_get_text_width(font, newTemp.c_str());
+                charLength = al_get_text_width(font, newTemp.c_str());
+                if(newTemp == "\t"){
+                    charLength = al_get_text_width(font, string(" ").c_str()) * (tabLength - j % tabLength);
+                    if(tabLength > 0){
+                        j += tabLength - 1;
+                    }
+                }
+                futureLenght += charLength;
                 if(futureLenght > size.x){
                     currentLength = 0;
                     currentHeight += fontHeight;
+                    textLines.back() += '\n';
                     textLines.push_back(string());
                     success = true;
                     break;
@@ -231,7 +249,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
             }
         }
         //cropping text according to its dimensions and wrapping text when possible
-        if(currentLength + al_get_text_width(font, temp.c_str()) > size.x){
+        if(currentLength + charLength > size.x){
             if(wrapped == 0){
                 break;
             }
@@ -242,11 +260,10 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 break;
             }
         }
-        if(temp != " " || currentLength != 0){
-            textLines[textLines.size()-1] = textLines[textLines.size()-1] + temp;
-            currentLength += al_get_text_width(font, temp.c_str());
-            realHeight = currentHeight;
-        }
+        textLines[textLines.size()-1] = textLines[textLines.size()-1] + temp;
+        currentLength += charLength;
+        
+        realHeight = currentHeight;
     }
     realHeight += fontHeight;
     int alignHeight = 0;
@@ -283,32 +300,53 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
 
     string letterOnCursor = "";
 
+    unsigned cursorLine = 0;
+    
+
     if(editingIsActive){
         if(cursorPos > text.size()){
             cursorPos = 0;
         }
         else{
-            unsigned countedChars = 0, line, letter;
-            for(line = 0; line < textLines.size(); line++){
-                for(letter = 0; letter < textLines[line].size() && countedChars < cursorPos; letter++, countedChars++){
+            unsigned countedChars = 0;
+            for(cursorLine = 0; cursorLine < textLines.size(); cursorLine++){
+                for(letter = 0, lettersCountForTabs = 0; letter < textLines[cursorLine].size() && countedChars < cursorPos; letter++, countedChars++, lettersCountForTabs++){
                     temp.clear();
-                    temp = text.substr(letter, 1);
-                    if(temp != "\n"){
+                    temp = textLines[cursorLine].substr(letter, 1);
+                    if(temp != "\t"){
                         cursorRealPos.x += al_get_text_width(font, temp.c_str());
                     }
                     else{
-                        cursorRealPos.x += al_get_text_width(font, " ");
+                        cursorRealPos.x += al_get_text_width(font, string(" ").c_str()) * (tabLength - lettersCountForTabs % tabLength);
+                        if(tabLength > 0){
+                            lettersCountForTabs += tabLength - 1;
+                        }
                     }
                 }
                 if(countedChars >= cursorPos){
-                    if(textLines[line].size() > 0 && letter == textLines[line].size() && (textLines[line][letter-1] == '\n' || al_get_text_width(font, (textLines[line]+" ").c_str()) > size.x)){
+                    if(textLines[cursorLine].size() > 0 && ((letter == textLines[cursorLine].size()-1 && textLines[cursorLine][letter] == '\n')
+                        || (letter == textLines[cursorLine].size() && (textLines[cursorLine][letter-1] == '\n'
+                        || al_get_text_width(font, (textLines[cursorLine]+" ").c_str()) > size.x))))
+                    {
                         cursorRealPos.x = finalPos.x;
                         cursorRealPos.y += fontHeight;
-                        line++;
+                        cursorLine++;
                         letter = 0;
                     }
-                    if(line < textLines.size() && letter < textLines[line].size()){
-                        letterOnCursor = textLines[line].substr(letter, 1);
+                    if(horizontalAlign == 2 && letter == textLines[cursorLine].size()){
+                        if(cursorLine == textLines.size()-1 && letter > 0){
+                            letter--;
+                            cursorRealPos.x -= al_get_text_width(font, textLines[cursorLine].substr(letter, 1).c_str());
+                        }
+                        else{
+                            cursorRealPos.x -= al_get_text_width(font, string(" ").c_str());
+                        }
+                    }
+                    if(cursorLine < textLines.size() && letter < textLines[cursorLine].size()){
+                        letterOnCursor = textLines[cursorLine].substr(letter, 1);
+                        if(letterOnCursor == "\t"){
+                            letterOnCursor = " ";
+                        }
                     }
                     break;
                 }
@@ -318,15 +356,35 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         }
     }
 
-    if(letterOnCursor == "\n"){
-        letterOnCursor = "";
-    }
-
+    vector <string> finalTextLines;
     for(string & line : textLines){
-        if(line.size() > 0 && line.back() == '\n'){
-            line.pop_back();
+        finalTextLines.push_back(string(""));
+        for(letter = 0, lettersCountForTabs = 0; letter < line.size(); letter++, lettersCountForTabs++){
+            if(line[letter] == '\n'){
+                continue;
+            }
+            if(line[letter] == '\t'){
+                for(unsigned tabN = 0; tabN < (tabLength - lettersCountForTabs % tabLength); tabN++){
+                    finalTextLines.back() += " ";
+                }
+                if(tabLength > 0){
+                    lettersCountForTabs += tabLength - 1;
+                }
+                continue;
+            }
+            finalTextLines.back() += line[letter];
         }
     }
+
+    // if(editingIsActive & cursorPos < content[currentTextIdx].size()){
+    //     letterOnCursor = content[currentTextIdx].substr(cursorPos, 1);
+    //     if(letterOnCursor == "\n"){
+    //         letterOnCursor = "";
+    //         if(cursorPos + 1 < content[currentTextIdx].size()){
+    //             letterOnCursor = content[currentTextIdx].substr(cursorPos+1, 1);
+    //         }
+    //     }
+    // }
 
     ALLEGRO_COLOR inversedColor = al_map_rgba_f(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a);
 
@@ -334,8 +392,8 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         if(editingIsActive){
             al_draw_text(font, color, cursorRealPos.x, alignHeight + cursorRealPos.y, 0, "█");
         }
-        for(unsigned int i = 0; i < textLines.size(); i++){
-            al_draw_text(font, color, finalPos.x, finalPos.y + alignHeight + i * fontHeight, 0, textLines[i].c_str());
+        for(letter = 0; letter < finalTextLines.size(); letter++){
+            al_draw_text(font, color, finalPos.x, finalPos.y + alignHeight + letter * fontHeight, 0, finalTextLines[letter].c_str());
         }
         if(editingIsActive){
             al_draw_text(font, inversedColor, cursorRealPos.x, alignHeight + cursorRealPos.y, 0, letterOnCursor.c_str());
@@ -343,24 +401,35 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     }
     else if(horizontalAlign == 1){
         if(editingIsActive){
-            al_draw_text(font, color, size.x / 2 + cursorRealPos.x, alignHeight + cursorRealPos.y, ALLEGRO_ALIGN_CENTRE, "█");
+            if(cursorLine < finalTextLines.size()){
+                al_draw_text(font, color, size.x / 2 + cursorRealPos.x - al_get_text_width(font, (finalTextLines[cursorLine]).c_str()) / 2, alignHeight + cursorRealPos.y, 0, "█");
+            }
+            else{
+                al_draw_text(font, color, size.x / 2 + cursorRealPos.x - al_get_text_width(font, string(" ").c_str()) / 2, alignHeight + cursorRealPos.y, 0, "█");
+            }
         }
-        for(unsigned int i = 0; i < textLines.size(); i++){
-            al_draw_text(font, color, finalPos.x + size.x / 2, finalPos.y + alignHeight + i * fontHeight, ALLEGRO_ALIGN_CENTRE, textLines[i].c_str());
+        for(letter = 0; letter < finalTextLines.size(); letter++){
+            al_draw_text(font, color, finalPos.x + size.x / 2, finalPos.y + alignHeight + letter * fontHeight, ALLEGRO_ALIGN_CENTRE, finalTextLines[letter].c_str());
         }
-        if(editingIsActive){
-            al_draw_text(font, inversedColor, size.x / 2 + cursorRealPos.x, alignHeight + cursorRealPos.y, ALLEGRO_ALIGN_CENTRE, letterOnCursor.c_str());
+        if(editingIsActive && cursorLine < finalTextLines.size()){
+            al_draw_text(font, inversedColor, size.x / 2 + cursorRealPos.x - al_get_text_width(font, (finalTextLines[cursorLine]).c_str()) / 2, alignHeight + cursorRealPos.y, 0, letterOnCursor.c_str());
         }
     }
     else if(horizontalAlign == 2){
         if(editingIsActive){
-            al_draw_text(font, color, size.x + cursorRealPos.x, alignHeight + cursorRealPos.y, ALLEGRO_ALIGN_RIGHT, "█");
+            if(cursorLine < finalTextLines.size()){
+                al_draw_text(font, color, size.x + cursorRealPos.x - al_get_text_width(font, (finalTextLines[cursorLine]).c_str()),
+                    alignHeight + cursorRealPos.y, 0, "█");
+            }
+            else{
+                al_draw_text(font, color, size.x + cursorRealPos.x - al_get_text_width(font, string(" ").c_str()), alignHeight + cursorRealPos.y, 0, "█");
+            }
         }
-        for(unsigned int i = 0; i < textLines.size(); i++){
-            al_draw_text(font, color, finalPos.x + size.x, finalPos.y + alignHeight + i * fontHeight, ALLEGRO_ALIGN_RIGHT, textLines[i].c_str());
+        for(letter = 0; letter < finalTextLines.size(); letter++){
+            al_draw_text(font, color, finalPos.x + size.x, finalPos.y + alignHeight + letter * fontHeight, ALLEGRO_ALIGN_RIGHT, finalTextLines[letter].c_str());
         }
-        if(editingIsActive){
-            al_draw_text(font, inversedColor, size.x + cursorRealPos.x, alignHeight + cursorRealPos.y, ALLEGRO_ALIGN_RIGHT, letterOnCursor.c_str());
+        if(editingIsActive && cursorLine < finalTextLines.size()){
+            al_draw_text(font, inversedColor, size.x + cursorRealPos.x - al_get_text_width(font, (finalTextLines[cursorLine]).c_str()), alignHeight + cursorRealPos.y, 0, letterOnCursor.c_str());
         }
     }
 
@@ -369,6 +438,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     }
 
     textLines.clear();
+    finalTextLines.clear();
 
     al_identity_transform(&t);
     al_use_transform(&t);
@@ -558,6 +628,7 @@ void EditableTextModule::setUpNewInstance(){
     canClearContentAfterSuccess = false;
     useArrowsAsChar = false;
     enterAcceptsChanges = false;
+    useTabs = false;
     cursorPos = 0;
     minContentSize = 0;
     maxContentSize = 20;
@@ -604,6 +675,9 @@ void EditableTextModule::setUpdateConnectedVariable(bool newUpdateConnectedVaria
 }
 void EditableTextModule::setUseArrowsAsChar(bool newValue){
     useArrowsAsChar = newValue;
+}
+void EditableTextModule::setUseTabs(bool newValue){
+    useTabs = newValue;
 }
 void EditableTextModule::setCanClearContentAfterSuccess(bool newValue){
     canClearContentAfterSuccess = newValue;
@@ -675,7 +749,7 @@ void EditableTextModule::clearContentAfterSuccess(bool success){
     if(!canClearContentAfterSuccess || !success){
         return;
     }
-    modifyContent(0, "");
+    modifyContent(currentTextIdx, "");
     setCursorPos(0);
 }
 char toChara(short a){
@@ -887,7 +961,7 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             }
         }
         if(pressedKeys[i] == 73 && (getHasFloatingPoint() || getIsNumerical())){
-            string text = getContent(0);
+            string text = getContent(currentTextIdx);
             bool isTherePoint = false;
             if(getIsNumerical()){
                 for(unsigned int i = 0; i < text.size(); i++){
@@ -905,7 +979,7 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             if(getIsNumerical()){
                 if(cursorPos > 0)
                     continue;
-                string text = getContent(0);
+                string text = getContent(currentTextIdx);
                 bool isThereMinus = false;
                 for(unsigned int i = 0; i < text.size(); i++){
                     if(text[i] == '-'){
@@ -1000,29 +1074,47 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             }
         }
 
-
-        if(character == '\0' || getContent(0).size() >= getMaxContentSize()){
-            if(pressedKeys[i] == ALLEGRO_KEY_BACKSPACE && getContent(0).size() > getMinContentSize()){
-                if(cursorPos == 0)
+        if(character == '\0' || getContent(currentTextIdx).size() >= getMaxContentSize()){
+            if(pressedKeys[i] == ALLEGRO_KEY_BACKSPACE && getContent(currentTextIdx).size() > getMinContentSize()){
+                if(cursorPos == 0){
                     continue;
-                string old_content = getContent(0);
+                }
+                string old_content = getContent(currentTextIdx);
                 string new_content = old_content.substr(0, cursorPos-1) + old_content.substr(cursorPos, old_content.size()-cursorPos);
-                modifyContent(0, new_content);
+                modifyContent(currentTextIdx, new_content);
+                cout << "Deleted\nNew content: \"" << new_content << "\"\n\n";
                 cursorPos -= 1;
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_DELETE && getContent(currentTextIdx).size() >= getMinContentSize()
+                && cursorPos < getContent(currentTextIdx).size()){
+                string old_content = getContent(currentTextIdx);
+                string new_content = old_content.substr(0, cursorPos) + old_content.substr(cursorPos+1, old_content.size()-cursorPos);
+                modifyContent(currentTextIdx, new_content);
+                cout << "Deleted\nNew content: \"" << new_content << "\"\n\n";
             }
             continue;
         }
 
         cout << "Character: \'" << character << "\'\n";
 
-        string old_content = getContent(0);
+        string old_content = getContent(currentTextIdx);
         string new_content = old_content.substr(0, cursorPos);
-        new_content = new_content + character + old_content.substr(cursorPos, old_content.size()-cursorPos);
+        if(character != '\t' || useTabs){
+            new_content = new_content + character + old_content.substr(cursorPos, old_content.size()-cursorPos);
+            cursorPos += 1;
+        }
+        else{
+            for(int i = 0; i < tabLength; i++){
+                new_content += " ";
+            }
+            new_content += old_content.substr(cursorPos, old_content.size()-cursorPos);
+            cursorPos += tabLength;
+        }
 
         cout << "New content: \"" << new_content << "\"\n\n";
 
-        modifyContent(0, new_content);
-        cursorPos += 1;
+        modifyContent(currentTextIdx, new_content);
+        
 
         //cout << int(character) << " ";
         //cout << character << " (" << int(character) << ") " << " ";
@@ -1078,7 +1170,7 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
         return success;
     }
 
-    string cContent = getContent(0);
+    string cContent = getContent(currentTextIdx);
 
     if(cContent.size() == 0){
         return false;
@@ -1121,7 +1213,7 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
         printNotNumericalWarning();
         return false;
     }
-    double dValue = std::stod(getContent(0));
+    double dValue = std::stod(getContent(currentTextIdx));
 
     success = true;
 
@@ -1159,7 +1251,7 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
         return true;
     }
 
-    string cContent = getContent(0);
+    string cContent = getContent(currentTextIdx);
 
     if(connectedVariable == "content"){
         Text.modifyContent(Text.getCurrentTextIdx(), cContent);
@@ -1280,7 +1372,7 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
 bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfIDs, string EXE_PATH){
     bool success = false;
 
-    string cContent = getContent(0);
+    string cContent = getContent(currentTextIdx);
     if(connectedVariable == "connect_bitmap_via_path"){
         Image.connectBitmap(BitmapContainer, cContent, "", EXE_PATH);
         success = true;
@@ -1423,7 +1515,7 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
 }
 bool EditableTextModule::controlMovement(MovementModule & Movement, vector <string> & listOfIDs){
     bool success = false;
-    string cContent = getContent(0);
+    string cContent = getContent(currentTextIdx);
 
     if(cContent == ""){
         return false;
@@ -1571,7 +1663,7 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
 bool EditableTextModule::controlCollision(CollisionModule & Collision, vector <string> & listOfIDs){
     bool success = true;
 
-    string cContent = getContent(0);
+    string cContent = getContent(currentTextIdx);
 
     if(connectedVariable == "add_to_ignored_objects"){
         Collision.addToIgnoreList("objects", cContent);
@@ -1639,7 +1731,7 @@ bool EditableTextModule::controlCollision(CollisionModule & Collision, vector <s
 }
 bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vector <string> & listOfIDs){
     bool success = true;
-    string cContent = getContent(0);
+    string cContent = getContent(currentTextIdx);
 
     if(connectedVariable == "spawn_key_bind"){
         if(cContent.size() != 1)
@@ -1863,7 +1955,7 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
     return success;
 }
 bool EditableTextModule::controlVariable(VariableModule & Variable, vector <string> & listOfIDs){
-    string cContent = getContent(0);
+    string cContent = getContent(currentTextIdx);
 
     if(connectedVariable == "default_string"){
         return Variable.setDefaultString(cContent);
