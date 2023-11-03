@@ -7509,7 +7509,7 @@ void EngineLoop::selectObject(vector <LayerClass> & Layers, vector <SingleBitmap
                 SelectedLayer = &Layer;
                 SelectedObject = &Object;
                 SelectedObject->refreshCoordinates();
-                //cout << "Selected: " << SelectedObject->getID() << "\n";
+                //cout << "Selected Layer: " << SelectedLayer->getID() << " Selected Object: " << SelectedObject->getID() << "\n";
 
                 /*EditorObject = &Layers[0].Objects[0];
                 THERE IS A MEMORY LEAK HERE

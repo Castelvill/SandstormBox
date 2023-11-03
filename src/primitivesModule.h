@@ -23,7 +23,6 @@ class PrimitivesModule : public PrimaryModule{
     int samples;
     int usedBitmapLayer;
 
-
     void setUpNewInstance();
     PrimitivesModule();
     PrimitivesModule(string newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID);

@@ -313,7 +313,9 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         else{
             unsigned countedChars = 0;
             for(cursorLine = 0; cursorLine < textLines.size(); cursorLine++){
-                for(letter = 0, lettersCountForTabs = 0; letter < textLines[cursorLine].size() && countedChars < cursorPos; letter++, countedChars++, lettersCountForTabs++){
+                for(letter = 0, lettersCountForTabs = 0; letter < textLines[cursorLine].size()
+                    && countedChars < cursorPos; letter++, countedChars++, lettersCountForTabs++
+                ){
                     temp.clear();
                     temp = textLines[cursorLine].substr(letter, 1);
                     if(temp != "\t"){
@@ -327,9 +329,10 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                     }
                 }
                 if(countedChars >= cursorPos){
-                    if(textLines[cursorLine].size() > 0 && ((letter == textLines[cursorLine].size()-1 && textLines[cursorLine][letter] == '\n')
+                    if(textLines[cursorLine].size() > 0 && ((letter == textLines[cursorLine].size()-1
+                        && textLines[cursorLine][letter] == '\n' && cursorRealPos.x + al_get_text_width(font, string(" ").c_str()) >= size.x)
                         || (letter == textLines[cursorLine].size() && (textLines[cursorLine][letter-1] == '\n'
-                        || al_get_text_width(font, (textLines[cursorLine]+" ").c_str()) > size.x))))
+                        /*|| al_get_text_width(font, (textLines[cursorLine]+" ").c_str()) > size.x*/))))
                     {
                         cursorRealPos.x = finalPos.x;
                         cursorRealPos.y += fontHeight;
@@ -347,7 +350,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                     }
                     if(cursorLine < textLines.size() && letter < textLines[cursorLine].size()){
                         letterOnCursor = textLines[cursorLine].substr(letter, 1);
-                        if(letterOnCursor == "\t"){
+                        if(letterOnCursor == "\t" || letterOnCursor == "\n"){
                             letterOnCursor = " ";
                         }
                     }
@@ -905,11 +908,13 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             if(pressedKeys[i] == ALLEGRO_KEY_UP && cursorPos > 0){
                 //From cursor go back to the beginning of the current line.
                 //If cursor is in the first line, do nothing.
-                //If not, count the length of the previous line and substract this number from the current cursor position.
+                //If not, count the distance from the beginning of previous line to the cursor.
+                //Count the length of the new line.
+                //Add the smaller length to the cursor position at the beginning of the new line.
                 unsigned newCursor = cursorPos;
                 bool cursorOnFirstLine = true;
                 for(; newCursor > 0; newCursor--){
-                    if(text[newCursor] == '\n'){
+                    if(text[newCursor] == '\n' && newCursor != cursorPos){
                         cursorOnFirstLine = false;
                         break;
                     }
@@ -917,22 +922,68 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
                 if(cursorOnFirstLine){
                     continue;
                 }
-                unsigned cursorPosFromPreviousLine = cursorPos - newCursor;
+                unsigned tempCursor = newCursor + 1, preLineLength = 0, newLineLength = 0, tabCounter = 0;
+                for(; tempCursor < cursorPos; tempCursor++, tabCounter++){
+                    if(text[tempCursor] == '\t'){
+                        preLineLength += tabLength - tabCounter % tabLength;
+                        if(tabLength > 0){
+                            tabCounter += tabLength - tabCounter % tabLength - 1;
+                        }
+                    }
+                    else{
+                        preLineLength++;
+                    }
+                }
+
                 newCursor--;
                 for(; newCursor > 0; newCursor--){
                     if(text[newCursor] == '\n'){
-                        cursorOnFirstLine = false;
+                        newCursor++;
                         break;
                     }
                 }
-                if(cursorPos - newCursor > cursorPosFromPreviousLine * 2){
-                    cursorPos = newCursor + cursorPosFromPreviousLine;
-                    if(newCursor == 0 && cursorPos > 0){
-                        cursorPos--;
+                
+                unsigned newLineTabsLength = 0;
+                for(tempCursor = newCursor, tabCounter = 0; text[tempCursor] != '\n'; tempCursor++, tabCounter++){
+                    if(text[tempCursor] == '\t'){
+                        newLineLength += tabLength - tabCounter % tabLength;
+                        newLineTabsLength += tabLength - tabCounter % tabLength - 1;
+                        if(tabLength > 0){
+                            tabCounter += tabLength - tabCounter % tabLength - 1;
+                        }
+                    }
+                    else{
+                        newLineLength++;
+                    }
+                }
+
+                if(preLineLength == 0){
+                    cursorPos = newCursor;
+                }
+                else if(newLineLength > preLineLength){
+                    if(newLineTabsLength > 0){
+                        cursorPos = newCursor;
+                        //Find a local minimum on the new line.
+                        tabCounter = 0;
+                        for(; preLineLength > 0; preLineLength--, tabCounter++){
+                            if(text[cursorPos] == '\t'){
+                                if(preLineLength < tabLength - tabCounter % tabLength){
+                                    break;
+                                }
+                                else{
+                                    preLineLength -= tabLength - tabCounter % tabLength - 1;
+                                    tabCounter += tabLength - tabCounter % tabLength - 1;
+                                }
+                            }
+                            cursorPos++;
+                        }
+                    }
+                    else{
+                        cursorPos = newCursor + preLineLength;
                     }
                 }
                 else{
-                    cursorPos -= cursorPosFromPreviousLine;
+                    cursorPos = newCursor + newLineLength - newLineTabsLength;
                 }
                 continue;
             }
@@ -964,7 +1015,6 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
                         break;
                     }
                 }
-
                 cursorPos += frontCursor - backCursor;
                 if(backCursor == 0){
                     cursorPos++;
