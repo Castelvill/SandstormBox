@@ -1,3 +1,6 @@
+-You should be able to save any type of entity from the engine by using "save <context> <fileName> [force]" instruction. Saving entity or a vector of entities (context) firstly writes a type and number of entities to the file and later all entities' data. Using force, engine will overwrite the previous content of the chosen file.
+-Add "load <fileName> <context> [force]" instruction. Load will overwrite all entities in the context based on the content of the file. If the user doesn't provide big enough context, instruction will fail. By using force, engine will create new (valid number) entities, add them to the context, and finally overwrite everything.
+-Projects will be the another type of entity and it will just add new way of saving and loading entities.
 -Test zooming in and out of the text. Test it for two text fields.
 -Maybe add selection rectangle to the mouse and change SelectedObject to a unique vector of pointers. It could be hard, but very rewarding.
 -Add a second cursor to the text. All characters between both cursors will be selected. Moving cursor or clicking mouse button will cancel selection. By default the second cursor will be on the same position as the original.
