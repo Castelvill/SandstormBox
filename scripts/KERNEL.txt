@@ -19,7 +19,7 @@ env auto_print_stack 0
 env draw_hitboxes 0
 env print_logical_evaluations 0
 env draw_camera_borders 1
-env draw_text_borders 1
+env draw_text_borders 0
 env window_size 1000 300
 
 load_bitmap "images/amongus1.png" amongus_1
@@ -70,7 +70,7 @@ mkdir "projects/test"
 
 index layer [0 0] _ object Arch
 new image c Arch 1 _ _ archImg
-fun archImg connect_bitmap_via_alias string [i_use_arch_btw]
+//fun archImg connect_bitmap_via_alias string [i_use_arch_btw]
 //fun archImg connect_bitmap_via_alias string [black]
 fun archImg attach_to_camera
 value ([window_w]) ww
@@ -217,13 +217,13 @@ fun L2 activate
 
 new object l L2 1 _ _ Terminal
 /*new text c Terminal 1 _ _ terminalXD
-fun terminalXD set_position int [30 20]
+fun terminalXD set_position int [0 0]
 fun terminalXD set_font string [fira_mono24]
 fun terminalXD set_wrapping int [0]
 fun terminalXD add_and_update string ["mateusz@arch:~$ ls
 bin     dev     lib     fornite     roblox
 mateusz@arch:~$ "]
-fun terminalXD set_size int [700 700]
+fun terminalXD set_size int [1920 1080]
 fun terminalXD select_layer int [1]
 fun terminalXD set_color double [1.0 0.0 0.0 0.0]
 fun terminalXD attach_to_camera
@@ -248,14 +248,18 @@ fun input set_string string [""]
 bind Terminal literal ["scripts/terminal.txt"]
 build Terminal true
 new editable_text c Terminal 1 _ _ Editable
-fun Editable set_position int [60 20]
+fun Editable set_position int [0 0]
 fun Editable set_font string [fira_mono24]
-fun Editable set_wrapping int [2]
+fun Editable set_wrapping int [0]
 fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
-fun Editable set_max_content_length int [200]
-fun Editable add_and_update string ["sed do eiusmod tempor incididunt ut et\t doloreee magna aliqua."]
-fun Editable set_size int [400 300]
+fun Editable set_max_content_length int [1000]
+fun Editable add_and_update string [""]/*["Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+sed do eiusmod tempor incid idunt ut labore et dolore
+magna aliqua. Ut enim ad minim veniam, quis nostrud
+exercitation ullamco labori nisi ut aliquip ex ea
+commodo consequat."]*/
+fun Editable set_size int [1920 1080]
 fun Editable select_layer int [1]
 fun Editable set_color double [1.0 0.0 0.0 1.0]
 fun Editable set_input_delay double [0.3]
@@ -291,7 +295,7 @@ new camera l 1 _ _ cam
 fun cam set_id string [C2]
 fun cam set_position int [20 20]
 fun cam set_active bool [true]
-fun cam resize int [880 980]
+fun cam resize int [1920 1080]
 fun cam set_zoom double [1.0]
 fun cam set_speed double [20]
 fun cam set_key_zoom_in int [15]
@@ -307,7 +311,7 @@ fun cam set_min_size int [200 200]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
 fun cam set_grabbing_area_size int [600 30]
-fun cam set_keep_inside_screen bool [true]
+//fun cam set_keep_inside_screen bool [true]
 
 
 new camera l 1 _ _ cam

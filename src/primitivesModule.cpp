@@ -7,7 +7,6 @@ void PrimitivesModule::setUpNewInstance(){
     radius = 1.0;
     samples = 0;
 }
-
 PrimitivesModule::PrimitivesModule(){
     setUpNewInstance();
 }
@@ -15,11 +14,9 @@ PrimitivesModule::PrimitivesModule(string newAlias, vector<string> * listOfIDs, 
     primaryConstructor(newAlias, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-
 void PrimitivesModule::clear(){
     points.clear();
 }
-
 void PrimitivesModule::clone(const PrimitivesModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, bool changeOldID){
     string oldID = ID;
     *this = Original;
@@ -120,7 +117,6 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
             break;
     }
 }
-
 void PrimitivesModule::updateWithSize(){
     if(points.size() == 0){
         return;
@@ -156,7 +152,6 @@ void PrimitivesModule::updateWithSize(){
         cout << "Error: In " << __FUNCTION__ << ": Cannot calculate points of triangle primitive.\n";
     }
 }
-
 void PrimitivesModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
     BasePointers.push_back(BasePointersStruct());
     if(attribute == "thickness"){
@@ -167,11 +162,9 @@ void PrimitivesModule::getContext(string attribute, vector <BasePointersStruct> 
         getPrimaryContext(attribute, BasePointers);
     }
 }
-
 int PrimitivesModule::getUsedBitmapLayer() const{
     return usedBitmapLayer;
 }
-
 PrimitiveType getPrimitiveType(string type){
     if(type == "line"){
         return prim_line;

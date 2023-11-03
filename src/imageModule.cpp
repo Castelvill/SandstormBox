@@ -348,7 +348,7 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
         newScale.multiply(Camera.zoom);
     }
     else{
-        base.set(base+pos);
+        base.set(base + pos);
     }
 
     float red = imageColor[0];
@@ -356,7 +356,7 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
     float blue = imageColor[2];
     float alpha = imageColor[3];
 
-    double radians = (rotateAngle*M_PI)/180.0;
+    double radians = (rotateAngle * M_PI) / 180.0;
     if(!isScaledFromCenter){
         draw_bitmap(image, start.x, start.y, size.x, size.y, red, green, blue, alpha, rotPos.x, rotPos.y,
             base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
@@ -383,7 +383,6 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
 
         draw_bitmap(image, start.x, start.y, size.x, size.y, red, green, blue, alpha, rotPos.x, rotPos.y,
             base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
-
 
         if(lightLevel > 0.0){
             //Blending allows to mix colors of different bitmaps

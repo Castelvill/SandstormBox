@@ -897,14 +897,85 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
     //cout << "\n";
 
     char character = '\0';
+    string text = "";
 
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
+        text = getContent(currentTextIdx);
         if(!useArrowsAsChar){
-            if(pressedKeys[i] == ALLEGRO_KEY_RIGHT && cursorPos < content[currentTextIdx].size()){
+            if(pressedKeys[i] == ALLEGRO_KEY_UP && cursorPos > 0){
+                //From cursor go back to the beginning of the current line.
+                //If cursor is in the first line, do nothing.
+                //If not, count the length of the previous line and substract this number from the current cursor position.
+                unsigned newCursor = cursorPos;
+                bool cursorOnFirstLine = true;
+                for(; newCursor > 0; newCursor--){
+                    if(text[newCursor] == '\n'){
+                        cursorOnFirstLine = false;
+                        break;
+                    }
+                }
+                if(cursorOnFirstLine){
+                    continue;
+                }
+                unsigned cursorPosFromPreviousLine = cursorPos - newCursor;
+                newCursor--;
+                for(; newCursor > 0; newCursor--){
+                    if(text[newCursor] == '\n'){
+                        cursorOnFirstLine = false;
+                        break;
+                    }
+                }
+                if(cursorPos - newCursor > cursorPosFromPreviousLine * 2){
+                    cursorPos = newCursor + cursorPosFromPreviousLine;
+                    if(newCursor == 0 && cursorPos > 0){
+                        cursorPos--;
+                    }
+                }
+                else{
+                    cursorPos -= cursorPosFromPreviousLine;
+                }
+                continue;
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_RIGHT && cursorPos < text.size()){
                 cursorPos += 1;
+                continue;
+            }
+            else if(pressedKeys[i] == ALLEGRO_KEY_DOWN && cursorPos < text.size()){
+                unsigned frontCursor = cursorPos;
+                bool cursorOnLastLine = false;
+                for(; frontCursor < text.size(); frontCursor++){
+                    if(text[frontCursor] == '\n'){
+                        cursorOnLastLine = true;
+                        break;
+                    }
+                }
+                if(!cursorOnLastLine){
+                    continue;
+                }
+                unsigned cursorOfFuture = frontCursor + 1;
+                for(; cursorOfFuture < text.size(); cursorOfFuture++){
+                    if(text[cursorOfFuture] == '\n'){
+                        break;
+                    }
+                }
+                unsigned backCursor = cursorPos;
+                for(; backCursor > 0; backCursor--){
+                    if(text[backCursor] == '\n'){
+                        break;
+                    }
+                }
+
+                cursorPos += frontCursor - backCursor;
+                if(backCursor == 0){
+                    cursorPos++;
+                }
+                cursorPos = std::min(cursorPos, cursorOfFuture);
+
+                continue;
             }
             else if(pressedKeys[i] == ALLEGRO_KEY_LEFT && cursorPos > 0){
                 cursorPos -= 1;
+                continue;
             }
         }
         else{
@@ -921,7 +992,6 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
                 character = 27;
             }
         }
-
 
         if(pressedKeys[i] >= 27 && pressedKeys[i] <= 36){
             if(getIsNumerical() || !shift){
@@ -965,7 +1035,6 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             }
         }
         if(pressedKeys[i] == 73 && (getHasFloatingPoint() || getIsNumerical())){
-            string text = getContent(currentTextIdx);
             bool isTherePoint = false;
             if(getIsNumerical()){
                 for(unsigned int i = 0; i < text.size(); i++){
@@ -983,7 +1052,6 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             if(getIsNumerical()){
                 if(cursorPos > 0)
                     continue;
-                string text = getContent(currentTextIdx);
                 bool isThereMinus = false;
                 for(unsigned int i = 0; i < text.size(); i++){
                     if(text[i] == '-'){
@@ -1078,20 +1146,20 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             }
         }
 
-        if(character == '\0' || getContent(currentTextIdx).size() >= getMaxContentSize()){
-            if(pressedKeys[i] == ALLEGRO_KEY_BACKSPACE && getContent(currentTextIdx).size() > getMinContentSize()){
+        if(character == '\0' || text.size() >= getMaxContentSize()){
+            if(pressedKeys[i] == ALLEGRO_KEY_BACKSPACE && text.size() > getMinContentSize()){
                 if(cursorPos == 0){
                     continue;
                 }
-                string old_content = getContent(currentTextIdx);
+                string old_content = text;
                 string new_content = old_content.substr(0, cursorPos-1) + old_content.substr(cursorPos, old_content.size()-cursorPos);
                 modifyContent(currentTextIdx, new_content);
                 cout << "Deleted\nNew content: \"" << new_content << "\"\n\n";
                 cursorPos -= 1;
             }
-            else if(pressedKeys[i] == ALLEGRO_KEY_DELETE && getContent(currentTextIdx).size() >= getMinContentSize()
-                && cursorPos < getContent(currentTextIdx).size()){
-                string old_content = getContent(currentTextIdx);
+            else if(pressedKeys[i] == ALLEGRO_KEY_DELETE && text.size() >= getMinContentSize()
+                && cursorPos < text.size()){
+                string old_content = text;
                 string new_content = old_content.substr(0, cursorPos) + old_content.substr(cursorPos+1, old_content.size()-cursorPos);
                 modifyContent(currentTextIdx, new_content);
                 cout << "Deleted\nNew content: \"" << new_content << "\"\n\n";
@@ -1101,10 +1169,11 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
 
         cout << "Character: \'" << character << "\'\n";
 
-        string old_content = getContent(currentTextIdx);
+        string old_content = text;
         string new_content = old_content.substr(0, cursorPos);
         if(character != '\t' || useTabs){
-            new_content = new_content + character + old_content.substr(cursorPos, old_content.size()-cursorPos);
+            new_content = new_content + character;
+            new_content += old_content.substr(cursorPos, old_content.size()-cursorPos);
             cursorPos += 1;
         }
         else{
@@ -1116,9 +1185,7 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
         }
 
         cout << "New content: \"" << new_content << "\"\n\n";
-
         modifyContent(currentTextIdx, new_content);
-        
 
         //cout << int(character) << " ";
         //cout << character << " (" << int(character) << ") " << " ";
