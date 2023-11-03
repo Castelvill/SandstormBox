@@ -1,0 +1,4 @@
+-Test zooming in and out of the text. Test it for two text fields.
+-Maybe add selection rectangle to the mouse and change SelectedObject to a unique vector of pointers. It could be hard, but very rewarding.
+-Add a second cursor to the text. All characters between both cursors will be selected. Moving cursor or clicking mouse button will cancel selection. By default the second cursor will be on the same position as the original.
+-Add hyperlinks to the SuperText. Clicking them will be able to trigger an event.
