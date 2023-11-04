@@ -30,7 +30,7 @@ bool * MouseClass::getPressed(){
 bool * MouseClass::getReleased(){
     return released;
 }
-vec2d MouseClass::getPos(){
+vec2d MouseClass::getPos() const{
     return pos;
 }
 vec2d MouseClass::getZoomPos(){

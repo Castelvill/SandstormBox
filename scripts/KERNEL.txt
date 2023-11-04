@@ -19,7 +19,7 @@ env auto_print_stack 0
 env draw_hitboxes 0
 env print_logical_evaluations 0
 env draw_camera_borders 1
-env draw_text_borders 1
+env draw_text_borders 0
 env window_size 1000 300
 
 load_bitmap "images/amongus1.png" amongus_1
@@ -216,6 +216,7 @@ fun L2 set_id string [L2]
 fun L2 activate
 
 new object l L2 1 _ _ Terminal
+fun Terminal set_position int [0 0]
 fun Terminal set_id string [terminal]
 fun Terminal set_can_be_selected bool [0]
 /*new text c Terminal 1 _ _ terminalXD
@@ -258,7 +259,7 @@ fun Editable set_font string [fira_mono24]
 fun Editable set_wrapping int [0]
 fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
-fun Editable set_max_content_length int [1000]
+fun Editable set_max_content_length int [10000]
 fun Editable add_and_update string ["a\taaaaaa
 \taaa\taa\taaaa
 aaaaaaaaaaaaaaa"]/*["Lorem ipsum dolor sit amet, consectetur adipiscing elit,
@@ -300,7 +301,7 @@ fun cam set_can_move_with_mouse bool [1]
 
 new camera l 1 _ _ cam
 fun cam set_id string [C2]
-fun cam set_position int [20 20]
+fun cam set_position int [-20 -20]
 fun cam set_active bool [true]
 fun cam resize int [1920 1080]
 fun cam set_zoom double [1.0]

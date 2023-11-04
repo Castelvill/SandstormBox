@@ -27,7 +27,7 @@ public:
     double rotation;
     float randomChangeSpeed;
     float minColorValue, maxColorValue;
-    int tabLength;
+    unsigned tabLength;
 
     short usedBitmapLayer;  //Text fields with numbers higher or equal to zero are drawn in ascending order. If the value is -1, text will be drawn on top of everything else.
 
@@ -67,6 +67,7 @@ public:
     unsigned int getCurrentTextIdx() const;
     string getCurrentContent() const;
     VariableModule getAttributeValue(const string &attribute, const string &detail) const;
+    unsigned getCurrentTabLength(const unsigned & tabCounter);
 };
 
 
@@ -78,7 +79,6 @@ private:
     bool hasFloatingPoint;
     bool updateConnectedVariable;
     bool canClearContentAfterSuccess; //If true, content is cleaned only when all operations succeeded.
-    bool useArrowsAsChar;
     bool enterAcceptsChanges;
     bool useTabs;
     unsigned int minContentSize;
@@ -108,9 +108,9 @@ public:
     void setIsNumerical(bool newIsNumerical);
     void setHasFloatingPoint(bool newHasFloatingPoint);
     void setUpdateConnectedVariable(bool newUpdateConnectedVariable);
-    void setUseArrowsAsChar(bool newValue);
     void setUseTabs(bool newValue);
     void setCursorPos(unsigned int newCursorPos);
+    void setCursorPos(vec2d finalPos, vec2d finalSize, const vector<SingleFont> & FontContainer, const MouseClass & Mouse, const Camera2D & Camera);
     void setMinContentSize(unsigned int newMinContentSize);
     void setMaxContentSize(unsigned int newMaxContentSize);
     void setInputDelay(float);
@@ -125,14 +125,21 @@ public:
     bool getIsNumerical();
     bool getHasFloatingPoint();
     bool getUpdateConnectedVariable();
-    bool getUseArrowsAsChar();
     unsigned int getCursorPos();
     unsigned int getMinContentSize();
     unsigned int getMaxContentSize();
     string getConnectedObjectID();
     bool canConvertContentToNumber();
     void clearContentAfterSuccess(bool success);
-    void editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer);
+    void moveCursorUp(const string & text);
+    void moveCursorDown(const string & text);
+    bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
+    void getNumbers(char pKey, char & character, bool shift);
+    void getLetters(char pKey, char & character, bool shift);
+    bool deleteFromText(char pKey, char character, string text);
+    void addFloatingPoint(char pKey, char & character, string text);
+    bool addMinus(char pKey, char & character, string text);
+    void editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer, ALLEGRO_DISPLAY * window);
     //Function checks if the new id is unique and if it is, function changes previous id and updates listOfIds.
     bool tryUpdatingID(vector <string> & listOfIDs, string & currentID, string newID);
     bool controlAncestor(PrimaryModule & Primary, vector <string> & listOfAncestorIDs);

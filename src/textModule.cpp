@@ -622,6 +622,9 @@ VariableModule TextModule::getAttributeValue(const string &attribute, const stri
     cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     return VariableModule::newBool(false);
 }
+unsigned TextModule::getCurrentTabLength(const unsigned & tabCounter){
+    return tabLength - tabCounter % tabLength - 1;
+}
 
 void EditableTextModule::setUpNewInstance(){
     TextModule::setUpNewInstance();
@@ -633,7 +636,6 @@ void EditableTextModule::setUpNewInstance(){
     hasFloatingPoint = false;
     updateConnectedVariable = false;
     canClearContentAfterSuccess = false;
-    useArrowsAsChar = false;
     enterAcceptsChanges = false;
     useTabs = false;
     cursorPos = 0;
@@ -680,9 +682,6 @@ void EditableTextModule::setHasFloatingPoint(bool newHasFloatingPoint){
 void EditableTextModule::setUpdateConnectedVariable(bool newUpdateConnectedVariable){
     updateConnectedVariable = newUpdateConnectedVariable;
 }
-void EditableTextModule::setUseArrowsAsChar(bool newValue){
-    useArrowsAsChar = newValue;
-}
 void EditableTextModule::setUseTabs(bool newValue){
     useTabs = newValue;
 }
@@ -691,6 +690,89 @@ void EditableTextModule::setCanClearContentAfterSuccess(bool newValue){
 }
 void EditableTextModule::setCursorPos(unsigned int newCursorPos){
     cursorPos = newCursorPos;
+}
+void EditableTextModule::setCursorPos(vec2d finalPos, vec2d finalSize, const vector<SingleFont> & FontContainer, const MouseClass & Mouse, const Camera2D & Camera){
+    cursorPos = 0;
+    unsigned columns = 1;
+    string text = getCurrentContent();
+    for(cursorPos = 0; cursorPos < text.size(); cursorPos++){
+        if(text[cursorPos] == '\n'){
+            columns++;
+        }
+    }
+    const ALLEGRO_FONT * font = nullptr;
+    for(const SingleFont & checkFont : FontContainer){
+        if(getFontID() == checkFont.ID){
+            font = checkFont.font;
+            break;
+        }
+    }
+    if(font == nullptr){
+        cursorPos = text.size();
+        return;
+    }
+    if(finalPos.y + al_get_font_line_height(font) * columns < Mouse.getPos().y){
+        cursorPos = text.size();
+        return;
+    }
+    columns = (Mouse.getPos().y - finalPos.y) / double(al_get_font_line_height(font));
+    if(columns < 0){
+        cursorPos = text.size();
+        return;
+    }
+    for(cursorPos = 0; columns > 0 && cursorPos < text.size(); cursorPos++){
+        if(text[cursorPos] == '\n'){
+            columns--;
+        }
+    }
+    unsigned rowLength = 0, tabCounter = 0, i, rowCursor = cursorPos, onlyTabs = 0, realWidth = 0;
+    for(; rowCursor < text.size(); rowCursor++, tabCounter++, rowLength++){
+        if(text[rowCursor] == '\t'){
+            for(i = 0; i < tabLength - tabCounter % tabLength; i++){
+                realWidth += al_get_text_width(font, string(" ").c_str());
+            }
+            rowLength += getCurrentTabLength(tabCounter);
+            onlyTabs += getCurrentTabLength(tabCounter);
+            if(tabLength > 0){
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        else{
+            realWidth += al_get_text_width(font, text.substr(rowCursor, 1).c_str());
+        }
+        if(text[rowCursor] == '\n'){
+            break;
+        }
+    }
+    if(Mouse.getPos().x < finalPos.x){
+        return;
+    }
+    if(rowCursor == text.size()){
+        realWidth += al_get_text_width(font, string(" ").c_str());
+    }
+    rowLength++;
+    
+    unsigned place = 0;
+    if(finalPos.x + realWidth <= Mouse.getPos().x){
+        place = rowLength - 1;
+    }
+    else{
+        place = (double(rowLength) * (Mouse.getPos().x - finalPos.x)) / double(realWidth);
+    }
+
+    tabCounter = 0;
+    for(; place > 0; place--, tabCounter++){
+        if(text[cursorPos] == '\t'){
+            if(place <= getCurrentTabLength(tabCounter)){
+                break;
+            }
+            else{
+                place -= getCurrentTabLength(tabCounter);
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        cursorPos++;
+    }
 }
 void EditableTextModule::setMinContentSize(unsigned int newMinContentSize){
     minContentSize = newMinContentSize;
@@ -746,9 +828,6 @@ bool EditableTextModule::getHasFloatingPoint(){
 bool EditableTextModule::getUpdateConnectedVariable(){
     return updateConnectedVariable;
 }
-bool EditableTextModule::getUseArrowsAsChar(){
-    return useArrowsAsChar;
-}
 string EditableTextModule::getConnectedObjectID(){
     return connectedObject;
 }
@@ -762,26 +841,165 @@ void EditableTextModule::clearContentAfterSuccess(bool success){
 char toChara(short a){
     return 'a'+a-1;
 }
-void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer){
-    if(!getIsActive()){
+void EditableTextModule::moveCursorUp(const string & text){
+    //From cursor go back to the beginning of the current line.
+    //If cursor is in the first line, do nothing.
+    //If not, count the distance from the beginning of previous line to the cursor.
+    //Count the length of the new line.
+    //Add the smaller length to the cursor position at the beginning of the new line.
+    unsigned newCursor = cursorPos;
+    bool cursorOnFirstLine = true;
+    for(; newCursor > 0; newCursor--){
+        if(text[newCursor] == '\n' && newCursor != cursorPos){
+            cursorOnFirstLine = false;
+            break;
+        }
+    }
+    if(cursorOnFirstLine){
         return;
     }
+    unsigned tempCursor = newCursor + 1, preLineLength = 0, newLineLength = 0, tabCounter = 0;
+    for(; tempCursor < cursorPos; tempCursor++, tabCounter++){
+        if(text[tempCursor] == '\t'){
+            preLineLength += tabLength - tabCounter % tabLength;
+            if(tabLength > 0){
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        else{
+            preLineLength++;
+        }
+    }
 
-    // cout << "Pressed: [";
-    // for(short a : pressedKeys){
-    //     cout << toChara(a) << ", ";
-    // }
-    // cout << "] Released: [";
-    // for(short a : releasedKeys){
-    //     cout << toChara(a) << ", ";
-    // }
-    // cout << "] Blocked: [";
-    // for(short a : blockedKeys){
-    //     cout << toChara(a) << ", ";
-    // }
-    // cout << "] Last: " << toChara(lastInputedKey) << "\n";
+    newCursor--;
+    for(; newCursor > 0; newCursor--){
+        if(text[newCursor] == '\n'){
+            newCursor++;
+            break;
+        }
+    }
+    
+    unsigned newLineTabsLength = 0;
+    for(tempCursor = newCursor, tabCounter = 0; text[tempCursor] != '\n'; tempCursor++, tabCounter++){
+        if(text[tempCursor] == '\t'){
+            newLineLength += tabLength - tabCounter % tabLength;
+            newLineTabsLength += getCurrentTabLength(tabCounter);
+            if(tabLength > 0){
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        else{
+            newLineLength++;
+        }
+    }
 
-    bool shift = false;
+    if(preLineLength == 0){
+        cursorPos = newCursor;
+    }
+    else if(newLineLength > preLineLength){
+        if(newLineTabsLength > 0){
+            cursorPos = newCursor;
+            //Find a local minimum on the new line.
+            tabCounter = 0;
+            for(; preLineLength > 0; preLineLength--, tabCounter++){
+                if(text[cursorPos] == '\t'){
+                    if(preLineLength < tabLength - tabCounter % tabLength){
+                        break;
+                    }
+                    else{
+                        preLineLength -= getCurrentTabLength(tabCounter);
+                        tabCounter += getCurrentTabLength(tabCounter);
+                    }
+                }
+                cursorPos++;
+            }
+        }
+        else{
+            cursorPos = newCursor + preLineLength;
+        }
+    }
+    else{
+        cursorPos = newCursor + newLineLength - newLineTabsLength;
+    }
+}
+void EditableTextModule::moveCursorDown(const string & text){
+    unsigned newCursor;
+    
+    for(newCursor = cursorPos; newCursor > 0; newCursor--){
+        if(text[newCursor] == '\n' && newCursor != cursorPos){
+            break;
+        }
+    }
+    
+    unsigned tempCursor, preLineLength = 0, newLineLength = 0, tabCounter = 0;
+    for(tempCursor = newCursor + 1; tempCursor < cursorPos; tempCursor++, tabCounter++){
+        if(text[tempCursor] == '\t'){
+            preLineLength += tabLength - tabCounter % tabLength;
+            if(tabLength > 0){
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        else{
+            preLineLength++;
+        }
+    }
+
+    bool cursorOnLastLine = true;
+    for(newCursor = cursorPos; newCursor < text.size(); newCursor++){
+        if(text[newCursor] == '\n'){
+            cursorOnLastLine = false;
+            newCursor++;
+            break;
+        }
+    }
+    if(cursorOnLastLine){
+        return;
+    }
+    
+    unsigned newLineTabsLength = 0;
+    for(tempCursor = newCursor, tabCounter = 0; text[tempCursor] != '\n' && tempCursor < text.size(); tempCursor++, tabCounter++){
+        if(text[tempCursor] == '\t'){
+            newLineLength += tabLength - tabCounter % tabLength;
+            newLineTabsLength += getCurrentTabLength(tabCounter);
+            if(tabLength > 0){
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        else{
+            newLineLength++;
+        }
+    }
+
+    if(preLineLength == 0){
+        cursorPos = newCursor;
+    }
+    else if(newLineLength > preLineLength){
+        if(newLineTabsLength > 0){
+            cursorPos = newCursor;
+            //Find a local minimum on the new line.
+            tabCounter = 0;
+            for(; preLineLength > 0; preLineLength--, tabCounter++){
+                if(text[cursorPos] == '\t'){
+                    if(preLineLength < tabLength - tabCounter % tabLength){
+                        break;
+                    }
+                    else{
+                        preLineLength -= getCurrentTabLength(tabCounter);
+                        tabCounter += getCurrentTabLength(tabCounter);
+                    }
+                }
+                cursorPos++;
+            }
+        }
+        else{
+            cursorPos = newCursor + preLineLength;
+        }
+    }
+    else{
+        cursorPos = newCursor + newLineLength - newLineTabsLength;
+    }
+}
+bool EditableTextModule::prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control){
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
         if(pressedKeys[i] == ALLEGRO_KEY_LSHIFT || pressedKeys[i] == ALLEGRO_KEY_RSHIFT){
             shift = true;
@@ -789,28 +1007,29 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             i--;
             continue;
         }
+        if(pressedKeys[i] == ALLEGRO_KEY_LCTRL || pressedKeys[i] == ALLEGRO_KEY_RCTRL){
+            control = true;
+            pressedKeys.erase(pressedKeys.begin() + i);
+            i--;
+            continue;
+        }
         if(pressedKeys[i] == ALLEGRO_KEY_ENTER && enterAcceptsChanges){
             editingIsActive = false;
             setUpdateConnectedVariable(true);
-            return;
+            return false;
         }
     }
 
     //remove released keys from blocked keys
-    for(unsigned int i = 0; i < releasedKeys.size(); i++){
+    for(char rKey : releasedKeys){
         for(unsigned int j = 0; j < blockedKeys.size(); j++){
-            if(releasedKeys[i] == blockedKeys[j]){
+            if(rKey == blockedKeys[j]){
                 blockedKeys.erase(blockedKeys.begin() + j);
                 currentInputDelay = inputDelay;
                 break;
             }
         }
     }
-    // cout << "Blocked after releasing: [";
-    // for(short a : blockedKeys){
-    //     cout << toChara(a) << ", ";
-    // }
-    // cout << "]\n";
 
     bool ignoreLast = false;
 
@@ -821,20 +1040,14 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
     }
 
     //removing blocked keys from pressed keys
-    for(unsigned int i = 0; i < blockedKeys.size(); i++){
+    for(char bKey : blockedKeys){
         for(unsigned int j = 0; j < pressedKeys.size(); j++){
-            if(blockedKeys[i] == pressedKeys[j] && pressedKeys[j] != lastInputedKey){
+            if(bKey == pressedKeys[j] && pressedKeys[j] != lastInputedKey){
                 pressedKeys.erase(pressedKeys.begin() + j);
                 break;
             }
         }
     }
-    // cout << "Pressed after removing: [";
-    // for(short a : pressedKeys){
-    //     cout << toChara(a) << ", ";
-    // }
-    // cout << "]\n";
-
 
     //find last pressed key, dont include the last 
     if(pressedKeys.size() > 0){
@@ -849,33 +1062,26 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
         }
         lastInputedKey = newKeys.back();
     }
-    //cout << "New last key: " << toChara(lastInputedKey) << "\n";
 
     //block all pressed keys
     bool found;
-    for(unsigned int i = 0; i < pressedKeys.size(); i++){
+    for(char pKey : pressedKeys){
         found = false;
         for(unsigned int j = 0; j < blockedKeys.size(); j++){
-            if(pressedKeys[i] == blockedKeys[j]){
+            if(pKey == blockedKeys[j]){
                 found = true;
                 break;
             }
         }
         if(!found){
-            blockedKeys.push_back(pressedKeys[i]);
+            blockedKeys.push_back(pKey);
         }
     }
-    // cout << "New blocked: [";
-    // for(short a : blockedKeys){
-    //     cout << toChara(a) << ", ";
-    // }
-    // cout << "]\n";
 
     if(pressedKeys.size() == 0){
         currentInputDelay = 0.0;
         lastInputedKey = -1;
-        //cout << "Nothing pressed!\n\n";
-        return;
+        return false;
     }
 
     if(pressedKeys.size() > 1){
@@ -883,408 +1089,280 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
     }
 
     if(currentInputDelay > 0.0){
-        //cout << "Waiting!\n\n";
-        return;
+        return false;
     }
 
     //delaying input and delaying repetition of the last pressed key
     if(pressedKeys.back() != lastInputedKey || pressedKeys.size() > 1 || ignoreLast){
         currentInputDelay = inputDelay;
-        //cout << "Delayed input: " << inputDelay << "!\n";
     }
     else{
         currentInputDelay = repetitionDelay;
-        //cout << "Delayed repeat: " << repetitionDelay << "!\n";
     }
 
-    //cout << "\n";
+    return true;
+}
+void EditableTextModule::getNumbers(char pKey, char & character, bool shift){
+    if(pKey < 27 || pKey > 36){
+        return;
+    }
+    if(getIsNumerical() || !shift){
+        character = pKey+21;
+        return;
+    }
+    switch (pKey){
+        case ALLEGRO_KEY_1:
+            character = '!';
+            break;
+        case ALLEGRO_KEY_2:
+            character = '@';
+            break;
+        case ALLEGRO_KEY_3:
+            character = '#';
+            break;
+        case ALLEGRO_KEY_4:
+            character = '$';
+            break;
+        case ALLEGRO_KEY_5:
+            character = '%';
+            break;
+        case ALLEGRO_KEY_6:
+            character = '^';
+            break;
+        case ALLEGRO_KEY_7:
+            character = '&';
+            break;
+        case ALLEGRO_KEY_8:
+            character = '*';
+            break;
+        case ALLEGRO_KEY_9:
+            character = '(';
+            break;
+        case ALLEGRO_KEY_0:
+            character = ')';
+            break;
+        default:
+            break;
+    }
+}
+void EditableTextModule::getLetters(char pKey, char & character, bool shift){
+    if(getIsNumerical()){
+        return;
+    }
+    if(pKey >= 1 && pKey <= 26){
+        if(shift){
+            character = 'A'+pKey-1;
+        }
+        else{
+            character = 'a'+pKey-1;
+        }
+    }
+    else if(pKey == 61 && shift){
+        character = '_';
+    }
+    else if(pKey == 61){
+        character = '-';
+    }
+    else if(pKey == ALLEGRO_KEY_EQUALS && shift){
+        character = '+';
+    }
+    else if(pKey == ALLEGRO_KEY_EQUALS){
+        character = '=';
+    }
+    else if(pKey == ALLEGRO_KEY_OPENBRACE && shift){
+        character = '{';
+    }
+    else if(pKey == ALLEGRO_KEY_OPENBRACE){
+        character = '[';
+    }
+    else if(pKey == ALLEGRO_KEY_CLOSEBRACE && shift){
+        character = '}';
+    }
+    else if(pKey == ALLEGRO_KEY_CLOSEBRACE){
+        character = ']';
+    }
+    else if(pKey == ALLEGRO_KEY_COMMA && shift){
+        character = '<';
+    }
+    else if(pKey == ALLEGRO_KEY_COMMA){
+        character = ',';
+    }
+    else if(pKey == ALLEGRO_KEY_FULLSTOP && shift){
+        character = '>';
+    }
+    else if(pKey == ALLEGRO_KEY_FULLSTOP){
+        character = '.';
+    }
+    else if(pKey == ALLEGRO_KEY_SLASH && shift){
+        character = '?';
+    }
+    else if(pKey == ALLEGRO_KEY_SLASH){
+        character = '/';
+    }
+    else if(pKey == ALLEGRO_KEY_SEMICOLON && shift){
+        character = ':';
+    }
+    else if(pKey == ALLEGRO_KEY_SEMICOLON){
+        character = ';';
+    }
+    else if(pKey == ALLEGRO_KEY_QUOTE && shift){
+        character = '\"';
+    }
+    else if(pKey == ALLEGRO_KEY_QUOTE){
+        character = '\'';
+    }
+    else if(pKey == ALLEGRO_KEY_BACKSLASH && shift){
+        character = '|';
+    }
+    else if(pKey == ALLEGRO_KEY_BACKSLASH){
+        character = '\\';
+    }
+    else if(pKey == ALLEGRO_KEY_SPACE && getCanUseSpace()){
+        character = ' ';
+    }
+    else if(pKey == ALLEGRO_KEY_TAB){
+        character = '\t';
+    }
+    else if(pKey == ALLEGRO_KEY_ENTER){
+        character = '\n';
+    }
+}
+bool EditableTextModule::deleteFromText(char pKey, char character, string text){
+    if(character != '\0' && text.size() < getMaxContentSize()){
+        return false;
+    }
+    if(pKey == ALLEGRO_KEY_BACKSPACE && text.size() > getMinContentSize()){
+        if(cursorPos == 0){
+            return true;
+        }
+        string old_content = text;
+        string new_content = old_content.substr(0, cursorPos-1) + old_content.substr(cursorPos, old_content.size()-cursorPos);
+        modifyContent(currentTextIdx, new_content);
+        cursorPos -= 1;
+    }
+    else if(pKey == ALLEGRO_KEY_DELETE && text.size() >= getMinContentSize()
+        && cursorPos < text.size()){
+        string old_content = text;
+        string new_content = old_content.substr(0, cursorPos) + old_content.substr(cursorPos+1, old_content.size()-cursorPos);
+        modifyContent(currentTextIdx, new_content);
+    }
+    return true;
+}
+void EditableTextModule::addFloatingPoint(char pKey, char & character, string text){
+    if(pKey == 73 && (getHasFloatingPoint() || getIsNumerical())){
+        bool isTherePoint = false;
+        if(getIsNumerical()){
+            for(char p : text){
+                if(p == '.'){
+                    isTherePoint = true;
+                    break;
+                }
+            }
+        }
+        if(isTherePoint){
+            character = '.';
+        }
+    }
+}
+bool EditableTextModule::addMinus(char pKey, char & character, string text){
+    if(pKey != ALLEGRO_KEY_MINUS){
+        return false;
+    }
+    if(getIsNumerical()){
+        if(cursorPos > 0){
+            return true;
+        }
+        for(char p : text){
+            if(p == '-'){
+                return true;
+            }
+        }
+    }
+    character = '-';
+    return false;
+}
+void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer, ALLEGRO_DISPLAY * window){
+    if(!getIsActive()){
+        return;
+    }
+
+    bool shift = false;
+    bool control = false;
+    
+    if(!prepareEditing(releasedKeys, pressedKeys, shift, control)){
+        return;
+    }
 
     char character = '\0';
     string text = "";
 
-    for(unsigned int i = 0; i < pressedKeys.size(); i++){
+    for(char pKey : pressedKeys){
         text = getContent(currentTextIdx);
-        if(!useArrowsAsChar){
-            if(pressedKeys[i] == ALLEGRO_KEY_UP && cursorPos > 0){
-                //From cursor go back to the beginning of the current line.
-                //If cursor is in the first line, do nothing.
-                //If not, count the distance from the beginning of previous line to the cursor.
-                //Count the length of the new line.
-                //Add the smaller length to the cursor position at the beginning of the new line.
-                unsigned newCursor = cursorPos;
-                bool cursorOnFirstLine = true;
-                for(; newCursor > 0; newCursor--){
-                    if(text[newCursor] == '\n' && newCursor != cursorPos){
-                        cursorOnFirstLine = false;
-                        break;
-                    }
-                }
-                if(cursorOnFirstLine){
-                    continue;
-                }
-                unsigned tempCursor = newCursor + 1, preLineLength = 0, newLineLength = 0, tabCounter = 0;
-                for(; tempCursor < cursorPos; tempCursor++, tabCounter++){
-                    if(text[tempCursor] == '\t'){
-                        preLineLength += tabLength - tabCounter % tabLength;
-                        if(tabLength > 0){
-                            tabCounter += tabLength - tabCounter % tabLength - 1;
-                        }
-                    }
-                    else{
-                        preLineLength++;
-                    }
-                }
 
-                newCursor--;
-                for(; newCursor > 0; newCursor--){
-                    if(text[newCursor] == '\n'){
-                        newCursor++;
-                        break;
-                    }
-                }
-                
-                unsigned newLineTabsLength = 0;
-                for(tempCursor = newCursor, tabCounter = 0; text[tempCursor] != '\n'; tempCursor++, tabCounter++){
-                    if(text[tempCursor] == '\t'){
-                        newLineLength += tabLength - tabCounter % tabLength;
-                        newLineTabsLength += tabLength - tabCounter % tabLength - 1;
-                        if(tabLength > 0){
-                            tabCounter += tabLength - tabCounter % tabLength - 1;
-                        }
-                    }
-                    else{
-                        newLineLength++;
-                    }
-                }
-
-                if(preLineLength == 0){
-                    cursorPos = newCursor;
-                }
-                else if(newLineLength > preLineLength){
-                    if(newLineTabsLength > 0){
-                        cursorPos = newCursor;
-                        //Find a local minimum on the new line.
-                        tabCounter = 0;
-                        for(; preLineLength > 0; preLineLength--, tabCounter++){
-                            if(text[cursorPos] == '\t'){
-                                if(preLineLength < tabLength - tabCounter % tabLength){
-                                    break;
-                                }
-                                else{
-                                    preLineLength -= tabLength - tabCounter % tabLength - 1;
-                                    tabCounter += tabLength - tabCounter % tabLength - 1;
-                                }
-                            }
-                            cursorPos++;
-                        }
-                    }
-                    else{
-                        cursorPos = newCursor + preLineLength;
-                    }
-                }
-                else{
-                    cursorPos = newCursor + newLineLength - newLineTabsLength;
-                }
-                continue;
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_RIGHT && cursorPos < text.size()){
-                cursorPos += 1;
-                continue;
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_DOWN && cursorPos < text.size()){
-                unsigned newCursor = cursorPos;
-                
-                for(; newCursor > 0; newCursor--){
-                    if(text[newCursor] == '\n' && newCursor != cursorPos){
-                        break;
-                    }
-                }
-                
-                unsigned tempCursor = newCursor + 1, preLineLength = 0, newLineLength = 0, tabCounter = 0;
-                for(; tempCursor < cursorPos; tempCursor++, tabCounter++){
-                    if(text[tempCursor] == '\t'){
-                        preLineLength += tabLength - tabCounter % tabLength;
-                        if(tabLength > 0){
-                            tabCounter += tabLength - tabCounter % tabLength - 1;
-                        }
-                    }
-                    else{
-                        preLineLength++;
-                    }
-                }
-
-                bool cursorOnLastLine = true;
-                for(newCursor = cursorPos; newCursor < text.size(); newCursor++){
-                    if(text[newCursor] == '\n'){
-                        cursorOnLastLine = false;
-                        newCursor++;
-                        break;
-                    }
-                }
-                if(cursorOnLastLine){
-                    continue;
-                }
-                
-                unsigned newLineTabsLength = 0;
-                for(tempCursor = newCursor, tabCounter = 0; text[tempCursor] != '\n' && tempCursor < text.size(); tempCursor++, tabCounter++){
-                    if(text[tempCursor] == '\t'){
-                        newLineLength += tabLength - tabCounter % tabLength;
-                        newLineTabsLength += tabLength - tabCounter % tabLength - 1;
-                        if(tabLength > 0){
-                            tabCounter += tabLength - tabCounter % tabLength - 1;
-                        }
-                    }
-                    else{
-                        newLineLength++;
-                    }
-                }
-
-                if(preLineLength == 0){
-                    cursorPos = newCursor;
-                }
-                else if(newLineLength > preLineLength){
-                    if(newLineTabsLength > 0){
-                        cursorPos = newCursor;
-                        //Find a local minimum on the new line.
-                        tabCounter = 0;
-                        for(; preLineLength > 0; preLineLength--, tabCounter++){
-                            if(text[cursorPos] == '\t'){
-                                if(preLineLength < tabLength - tabCounter % tabLength){
-                                    break;
-                                }
-                                else{
-                                    preLineLength -= tabLength - tabCounter % tabLength - 1;
-                                    tabCounter += tabLength - tabCounter % tabLength - 1;
-                                }
-                            }
-                            cursorPos++;
-                        }
-                    }
-                    else{
-                        cursorPos = newCursor + preLineLength;
-                    }
-                }
-                else{
-                    cursorPos = newCursor + newLineLength - newLineTabsLength;
-                }
-                continue;
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_LEFT && cursorPos > 0){
-                cursorPos -= 1;
-                continue;
-            }
+        if(pKey == ALLEGRO_KEY_UP && cursorPos > 0){
+            moveCursorUp(text);
+            continue;
         }
-        else{
-            if(pressedKeys[i] == ALLEGRO_KEY_UP){
-                character = 24;
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_RIGHT){
-                character = 26;
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_DOWN){
-                character = 25;
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_LEFT){
-                character = 27;
-            }
+        else if(pKey == ALLEGRO_KEY_RIGHT && cursorPos < text.size()){
+            cursorPos += 1;
+            continue;
         }
-
-        if(pressedKeys[i] >= 27 && pressedKeys[i] <= 36){
-            if(getIsNumerical() || !shift){
-                character = pressedKeys[i]+21;
-            }
-            else{
-                switch (pressedKeys[i]){
-                case ALLEGRO_KEY_1:
-                    character = '!';
-                    break;
-                case ALLEGRO_KEY_2:
-                    character = '@';
-                    break;
-                case ALLEGRO_KEY_3:
-                    character = '#';
-                    break;
-                case ALLEGRO_KEY_4:
-                    character = '$';
-                    break;
-                case ALLEGRO_KEY_5:
-                    character = '%';
-                    break;
-                case ALLEGRO_KEY_6:
-                    character = '^';
-                    break;
-                case ALLEGRO_KEY_7:
-                    character = '&';
-                    break;
-                case ALLEGRO_KEY_8:
-                    character = '*';
-                    break;
-                case ALLEGRO_KEY_9:
-                    character = '(';
-                    break;
-                case ALLEGRO_KEY_0:
-                    character = ')';
-                    break;
-                default:
-                    break;
-                }
-            }
+        else if(pKey == ALLEGRO_KEY_DOWN && cursorPos < text.size()){
+            moveCursorDown(text);
+            continue;
         }
-        if(pressedKeys[i] == 73 && (getHasFloatingPoint() || getIsNumerical())){
-            bool isTherePoint = false;
-            if(getIsNumerical()){
-                for(unsigned int i = 0; i < text.size(); i++){
-                    if(text[i] == '.'){
-                        isTherePoint = true;
-                        break;
-                    }
-                }
-            }
-            if(isTherePoint){
-                character = '.';
-            }
-        }
-        if(pressedKeys[i] == ALLEGRO_KEY_MINUS){
-            if(getIsNumerical()){
-                if(cursorPos > 0)
-                    continue;
-                bool isThereMinus = false;
-                for(unsigned int i = 0; i < text.size(); i++){
-                    if(text[i] == '-'){
-                        isThereMinus = true;
-                        break;
-                    }
-                }
-                if(isThereMinus)
-                    continue;
-            }
-            character = '-';
-        }
-
-
-        if(!getIsNumerical()){
-            if(pressedKeys[i] >= 1 && pressedKeys[i] <= 26){
-                if(shift){
-                    character = 'A'+pressedKeys[i]-1;
-                }
-                else{
-                    character = 'a'+pressedKeys[i]-1;
-                }
-            }
-            else if(pressedKeys[i] == 61 && shift){
-                character = '_';
-            }
-            else if(pressedKeys[i] == 61){
-                character = '-';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_EQUALS && shift){
-                character = '+';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_EQUALS){
-                character = '=';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_OPENBRACE && shift){
-                character = '{';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_OPENBRACE){
-                character = '[';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_CLOSEBRACE && shift){
-                character = '}';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_CLOSEBRACE){
-                character = ']';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_COMMA && shift){
-                character = '<';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_COMMA){
-                character = ',';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_FULLSTOP && shift){
-                character = '>';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_FULLSTOP){
-                character = '.';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_SLASH && shift){
-                character = '?';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_SLASH){
-                character = '/';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_SEMICOLON && shift){
-                character = ':';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_SEMICOLON){
-                character = ';';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_QUOTE && shift){
-                character = '\"';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_QUOTE){
-                character = '\'';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_BACKSLASH && shift){
-                character = '|';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_BACKSLASH){
-                character = '\\';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_SPACE && getCanUseSpace()){
-                character = ' ';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_TAB){
-                character = '\t';
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_ENTER){
-                character = '\n';
-            }
-        }
-
-        if(character == '\0' || text.size() >= getMaxContentSize()){
-            if(pressedKeys[i] == ALLEGRO_KEY_BACKSPACE && text.size() > getMinContentSize()){
-                if(cursorPos == 0){
-                    continue;
-                }
-                string old_content = text;
-                string new_content = old_content.substr(0, cursorPos-1) + old_content.substr(cursorPos, old_content.size()-cursorPos);
-                modifyContent(currentTextIdx, new_content);
-                cout << "Deleted\nNew content: \"" << new_content << "\"\n\n";
-                cursorPos -= 1;
-            }
-            else if(pressedKeys[i] == ALLEGRO_KEY_DELETE && text.size() >= getMinContentSize()
-                && cursorPos < text.size()){
-                string old_content = text;
-                string new_content = old_content.substr(0, cursorPos) + old_content.substr(cursorPos+1, old_content.size()-cursorPos);
-                modifyContent(currentTextIdx, new_content);
-                cout << "Deleted\nNew content: \"" << new_content << "\"\n\n";
-            }
+        else if(pKey == ALLEGRO_KEY_LEFT && cursorPos > 0){
+            cursorPos -= 1;
             continue;
         }
 
-        cout << "Character: \'" << character << "\'\n";
+        getNumbers(pKey, character, shift);
 
-        string old_content = text;
-        string new_content = old_content.substr(0, cursorPos);
-        if(character != '\t' || useTabs){
-            new_content = new_content + character;
-            new_content += old_content.substr(cursorPos, old_content.size()-cursorPos);
+        addFloatingPoint(pKey, character, text);
+        
+        if(addMinus(pKey, character, text)){
+            continue;
+        }
+
+        getLetters(pKey, character, shift);
+
+        if(deleteFromText(pKey, character, text)){
+            continue;
+        }
+
+        if(control && (character == 'c' || character == 'C')){
+            string clipboard = "hello python!";
+            al_set_clipboard_text(window, clipboard.c_str());
+            continue;
+        }
+
+        string new_content = text.substr(0, cursorPos);
+        if(control && (character == 'v' || character == 'V')){
+            if(!al_clipboard_has_text(window)){
+                continue;
+            }
+            string clipboard = al_get_clipboard_text(window);
+            if(clipboard.size() == 0){
+                continue;
+            }
+            new_content += clipboard;
+            new_content += text.substr(cursorPos, text.size()-cursorPos);
+            cursorPos += clipboard.size();
+        }
+        else if(character != '\t' || useTabs){
+            new_content += character;
+            new_content += text.substr(cursorPos, text.size()-cursorPos);
             cursorPos += 1;
         }
         else{
-            for(int i = 0; i < tabLength; i++){
+            for(unsigned i = 0; i < tabLength; i++){
                 new_content += " ";
             }
-            new_content += old_content.substr(cursorPos, old_content.size()-cursorPos);
+            new_content += text.substr(cursorPos, text.size()-cursorPos);
             cursorPos += tabLength;
         }
 
-        cout << "New content: \"" << new_content << "\"\n\n";
         modifyContent(currentTextIdx, new_content);
-
-        //cout << int(character) << " ";
-        //cout << character << " (" << int(character) << ") " << " ";
     }
 }
 bool EditableTextModule::canConvertContentToNumber(){
@@ -2246,9 +2324,6 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
     }
     else if(attribute == "can_clear_content_after_success"){
         BasePointers.back().setPointer(&canClearContentAfterSuccess);
-    }
-    else if(attribute == "use_arrows_as_char"){
-        BasePointers.back().setPointer(&useArrowsAsChar);
     }
     else if(attribute == "min_content_size"){
         BasePointers.back().setPointer(&minContentSize);

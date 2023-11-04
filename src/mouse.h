@@ -25,7 +25,7 @@ public:
     void setUp();
     bool * getPressed();
     bool * getReleased();
-    vec2d getPos();
+    vec2d getPos() const;
     vec2d getZoomPos();
     vec2d getPressedPos();
     vec2d getZoomPressedPos();

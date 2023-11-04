@@ -271,7 +271,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 displayResized = true;
                 break;
             case ALLEGRO_EVENT_TIMER:
-                //Keyboard input is gathered here
                 releasedKeys.clear();
                 releasedKeys = getReleasedKeys(key, pressedKeys);
                 pressedKeys.clear();
@@ -290,8 +289,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
                     SelectedCamera->update(pressedKeys);
                 }
-
-                //START EVENT CONTROL SECTION
                 
                 triggerEve(Layers, Cameras, BitmapContainer, FontContainer);
 
@@ -307,8 +304,6 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 }
 
                 displayResized = false;
-
-                //END EVENT CONTROL SECTION
 
                 firstPressedKeys.clear();
 
@@ -337,7 +332,7 @@ void EngineLoop::windowLoop(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && SelectedCamera->canMoveWithMouse
                     && Mouse.firstPositionInRectangle(SelectedCamera->pos, SelectedCamera->size, 2, true)
                 ){
-                        SelectedCamera->visionShift = Mouse.getZoomPos() - dragCameraStaringPos;
+                    SelectedCamera->visionShift = Mouse.getZoomPos() - dragCameraStaringPos;
                 }
 
                 break;
@@ -7409,11 +7404,12 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
     if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
         return;
     }
-    if(Mouse.isPressed() == true){
+    if(Mouse.isPressed()){
         vec2d finalPos, finalSize;
         bool isScrollable;
         for(LayerClass & Layer : Layers){
-            if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID()) || !SelectedCamera->isLayerAccessible(Layer.getID())){
+            if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID())
+                || !SelectedCamera->isLayerAccessible(Layer.getID())){
                 continue;
             }
             for(AncestorObject & Object : Layer.Objects){
@@ -7424,13 +7420,12 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                     if(!TextField.getIsActive()){
                         continue;
                     }
-                    if(TextField.getCanBeEdited() == true){
-                        
+                    if(TextField.getCanBeEdited()){
                         isScrollable = TextField.getIsScrollable();
                         finalPos.set(Object.getPos(isScrollable));
                         finalPos.translate(TextField.getPos(false));
                         if(!TextField.getIsAttachedToCamera()){
-                            finalPos.translate(SelectedCamera->pos/SelectedCamera->zoom + SelectedCamera->visionShift);
+                            finalPos.translate(SelectedCamera->pos / SelectedCamera->zoom + SelectedCamera->visionShift);
                         }
                         else{
                             finalPos.translate(SelectedCamera->pos);
@@ -7439,11 +7434,12 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                         finalSize.multiply(TextField.getScale());
                         if(Mouse.firstPositionInRectangle(finalPos, finalSize, 0, TextField.getIsAttachedToCamera())){
                             TextField.setEditingIsActive(true);
-                            TextField.setCursorPos(TextField.getContent(0).size());
+                            TextField.setCursorPos(finalPos, finalSize, FontContainer, Mouse, *SelectedCamera);
+                            //TextField.setCursorPos(TextField.getCurrentContent().size());
                             continue;
                         }
                     }
-                    if(TextField.getEditingIsActive() == true){
+                    if(TextField.getEditingIsActive()){
                         Object.operateTextFieldUpdate(TextField, Layer.Objects, BitmapContainer, Layer.objectsIDs, EXE_PATH);
                     }
                     TextField.setEditingIsActive(false);
@@ -7467,7 +7463,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                     if(!TextField.getIsActive() || !TextField.getCanBeEdited() || !TextField.getEditingIsActive()){
                         continue;
                     }
-                    TextField.editText(releasedKeys, pressedKeys, FontContainer);
+                    TextField.editText(releasedKeys, pressedKeys, FontContainer, window);
                     if(!TextField.getUpdateConnectedVariable()){
                         continue;
                     }
@@ -7546,6 +7542,7 @@ void EngineLoop::unselectObject(){
     SelectedLayer = nullptr;
     SelectedObject = nullptr;
 }
+
 void EngineLoop::updateEditorWindowOnSelection(vector <EditableTextModule> & EditableTextContainer){
     for(EditableTextModule & Text : EditableTextContainer){
         Text.setConnectedObjectID(SelectedObject->getID());

@@ -1632,7 +1632,7 @@ void deactivateWrapped(int categoryIndex, AncestorObject * EditorWindow){
         wrapperVariableID = std::to_string(categoryIndex) + "_wrapper_" + std::to_string(wrapperIndex+1);
         if(Variable.getID() == wrapperVariableID){
             wrapContent = Variable.getBool();
-            if(wrapContent == false){
+            if(wrapContent){
                 for(index = 0; index < EditorWindow->TextContainer.size(); index++){
                     if(EditorWindow->TextContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
                         index+=1;
