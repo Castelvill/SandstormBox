@@ -7227,7 +7227,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         //If a font exists in FontContainer, draw the text on screen.
         for(SingleFont font : FontContainer){
             if(Text.getFontID() == font.ID){
-                Text.drawText(Object.getPos(isScrollable), font.font, drawTextFieldBorders, Camera, 0, false);
+                Text.drawText(Object.getPos(isScrollable), font.font, drawTextFieldBorders, Camera, 0, 0, false);
                 break;
             }
         }
@@ -7271,7 +7271,7 @@ void EngineLoop::drawModules(AncestorObject & Object, unsigned int iteration, Ca
         for(auto font : FontContainer){
             if(Editable.getFontID() == font.ID){
                 Editable.drawText(Object.getPos(isScrollable), font.font,
-                    drawTextFieldBorders, Camera, Editable.getCursorPos(), Editable.getEditingIsActive());
+                    drawTextFieldBorders, Camera, Editable.getCursorPos(), Editable.secondCursorPos, Editable.getEditingIsActive());
             }
         }
         numberOfDrawnObjects++;
@@ -7435,6 +7435,10 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                         if(Mouse.firstPositionInRectangle(finalPos, finalSize, 0, TextField.getIsAttachedToCamera())){
                             TextField.setEditingIsActive(true);
                             TextField.setCursorPos(finalPos, finalSize, FontContainer, Mouse, *SelectedCamera);
+                            if(Mouse.firstPressedInRectangle(finalPos, finalSize, 0, TextField.getIsAttachedToCamera())){
+                                TextField.secondCursorPos = TextField.cursorPos;
+                            }
+                            
                             //TextField.setCursorPos(TextField.getCurrentContent().size());
                             continue;
                         }

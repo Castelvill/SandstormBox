@@ -18,7 +18,7 @@ class TextModule: public PrimaryModule{
 //It connects with a font via font ID and size.
 public:
     vector <string> content;
-    unsigned int currentTextIdx; //indexes of content vector
+    unsigned currentTextIdx; //indexes of content vector
     string fontID;
     ALLEGRO_COLOR color;
     short wrapped; //0-single line, 1-wrapped, 2-smart wrap
@@ -58,7 +58,7 @@ public:
     void setVerticalAlign(short newValue);
     void changeParameters(string newID, vector<string> & listOfIDs, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
                           double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign);
-    void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, bool editingIsActive);
+    void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, unsigned secondCursorPos, bool editingIsActive);
     void drawTextByLetters(ALLEGRO_FONT * font);
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     string getFontID();
@@ -81,11 +81,10 @@ private:
     bool canClearContentAfterSuccess; //If true, content is cleaned only when all operations succeeded.
     bool enterAcceptsChanges;
     bool useTabs;
-    unsigned int minContentSize;
-    unsigned int maxContentSize;
+    unsigned minContentSize;
+    unsigned maxContentSize;
     float inputDelay, repetitionDelay;
 
-    unsigned int cursorPos;
     bool editingIsActive;
     vector<short> blockedKeys;
     short lastInputedKey;
@@ -96,6 +95,7 @@ public:
     string connectedModuleID;
     string connectedVariable;
     float currentInputDelay;
+    unsigned cursorPos, secondCursorPos;
 
     void setUpNewInstance();
     EditableTextModule();
@@ -125,18 +125,18 @@ public:
     bool getIsNumerical();
     bool getHasFloatingPoint();
     bool getUpdateConnectedVariable();
-    unsigned int getCursorPos();
-    unsigned int getMinContentSize();
-    unsigned int getMaxContentSize();
+    unsigned getCursorPos();
+    unsigned getMinContentSize();
+    unsigned getMaxContentSize();
     string getConnectedObjectID();
     bool canConvertContentToNumber();
     void clearContentAfterSuccess(bool success);
-    void moveCursorUp(const string & text);
-    void moveCursorDown(const string & text);
+    void moveCursorUp(const string & text, bool shift);
+    void moveCursorDown(const string & text, bool shift);
     bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
     void getNumbers(char pKey, char & character, bool shift);
     void getLetters(char pKey, char & character, bool shift);
-    bool deleteFromText(char pKey, char character, string text);
+    bool deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * window);
     void addFloatingPoint(char pKey, char & character, string text);
     bool addMinus(char pKey, char & character, string text);
     void editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer, ALLEGRO_DISPLAY * window);

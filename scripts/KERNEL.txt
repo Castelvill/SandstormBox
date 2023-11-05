@@ -260,9 +260,13 @@ fun Editable set_wrapping int [0]
 fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
-fun Editable add_and_update string ["a\taaaaaa
+fun Editable add_and_update string ["Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+sed do eiusmod tempor incid idunt ut labore et dolore
+magna aliqua. Ut enim ad minim veniam, quis nostrud
+exercitation ullamco labori nisi ut aliquip ex ea
+commodo consequat."]/*["a\taaaaaa
 \taaa\taa\taaaa
-aaaaaaaaaaaaaaa"]/*["Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+aaaaaaaaaaaaaaa"]*//*["Lorem ipsum dolor sit amet, consectetur adipiscing elit,
 sed do eiusmod tempor incid idunt ut labore et dolore
 magna aliqua. Ut enim ad minim veniam, quis nostrud
 exercitation ullamco labori nisi ut aliquip ex ea
@@ -314,11 +318,11 @@ fun cam add_visible_layer string [L2]
 fun cam add_accessible_layer string [L2]
 fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders int [0]
-fun cam set_can_interact_with_mouse bool [true]
+fun cam set_can_interact_with_mouse bool [false]
 fun cam set_min_size int [200 200]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
-fun cam set_grabbing_area_size int [600 30]
+//fun cam set_grabbing_area_size int [600 30]
 //fun cam set_keep_inside_screen bool [true]
 
 
