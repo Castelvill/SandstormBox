@@ -361,6 +361,8 @@ public:
     void removeRecursivelyFileOrDirectory(OperaClass & Operation);
     void renameFileOrDirectory(OperaClass & Operation);
     void executePrint(OperaClass & Operation, vector<PointerContainer> & EventContext);
+    void saveStringAsFile(OperaClass & Operation, vector<PointerContainer> & EventContext);
+    void loadFileAsString(OperaClass & Operation, vector<PointerContainer> & EventContext);
     OperaClass executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
         vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,

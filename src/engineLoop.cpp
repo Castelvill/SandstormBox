@@ -4903,8 +4903,7 @@ void EngineLoop::changeEngineVariables(OperaClass & Operation){
         fullscreen = Operation.Literals[1].getBool();
         al_set_display_flag(window, ALLEGRO_FULLSCREEN_WINDOW, !(al_get_display_flags(window) & ALLEGRO_FULLSCREEN_WINDOW));
         al_set_display_flag(window, ALLEGRO_MAXIMIZED, !(al_get_display_flags(window) & ALLEGRO_MAXIMIZED));
-        //al_set_display_flag(window, ALLEGRO_NOFRAME, !(al_get_display_flags(window) & ALLEGRO_NOFRAME));
-        
+        //al_set_display_flag(window, ALLEGRO_NOFRAME, !(al_get_display_flags(window) & ALLEGRO_NOFRAME));   
     }
     else if(Operation.Literals[0].getString() == "pixel_art"){
         if(Operation.Literals[1].getBool() == isPixelArt){
@@ -5091,6 +5090,157 @@ void EngineLoop::executePrint(OperaClass & Operation, vector<PointerContainer> &
         }
     }
 }
+void EngineLoop::loadFileAsString(OperaClass & Operation, vector<PointerContainer> & EventContext){
+    if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to a text file).\n";
+        return;
+    }
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
+    }
+    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+    }
+
+    string loadedText = "";
+
+    std::ifstream File(EXE_PATH + Operation.Literals[0].getString());
+
+	if(!File){
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << Operation.Literals[0].getString() << "\n";
+        return;
+    }
+    for(string line; std::getline(File, line);){
+        loadedText += line + "\n";
+    }
+    File.close();
+
+    PointerContainer * Context;
+    if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        return;
+    }
+    if(Context->type == "value"){
+        if(Context->Variables.size() == 0){
+            cout << "Error: In " << __FUNCTION__ << ": There are no literals in the context.\n";
+            return;
+        }
+        if(Context->Variables.size() != 1){
+            cout << "Warning: In " << __FUNCTION__ << ": There are several literals in the context. Program will proceed with the last added literal.\n";
+        }
+        if(Context->Variables.back().getType() != 's'){
+            cout << "Error: In " << __FUNCTION__ << ": String variable required, but got \'" << Context->Variables.back().getType() << "\'.\n";
+            return;
+        }
+        Context->Variables.back().setString(loadedText);
+    }
+    else if(Context->type == "pointer"){
+        if(Context->BasePointers.size() == 0){
+            cout << "Error: In " << __FUNCTION__ << ": There are no pointers in the context.\n";
+            return;
+        }
+        if(Context->BasePointers.size() != 1){
+            cout << "Warning: In " << __FUNCTION__ << ": There are several pointers in the context. Program will proceed with the last added pointer.\n";
+        }
+        if(Context->BasePointers.back().type != "string"){
+            cout << "Error: In " << __FUNCTION__ << ": String pointer required, but got \'" << Context->Variables.back().getType() << "\'.\n";
+            return;
+        }
+        *Context->BasePointers.back().pString = loadedText;
+    }
+    else if(Context->type == "variable"){
+        if(Context->Modules.Variables.size() == 0){
+            cout << "Error: In " << __FUNCTION__ << ": There are no variables in the context.\n";
+            return;
+        }
+        if(Context->Modules.Variables.size() != 1){
+            cout << "Warning: In " << __FUNCTION__ << ": There are several variables in the context. Program will proceed with the last added literal.\n";
+        }
+        if(Context->Modules.Variables.back()->getType() != 's'){
+            cout << "Error: In " << __FUNCTION__ << ": String variable required, but got \'" << Context->Variables.back().getType() << "\'.\n";
+            return;
+        }
+        Context->Modules.Variables.back()->setString(loadedText);
+    }
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
+    }
+}
+void EngineLoop::saveStringAsFile(OperaClass & Operation, vector<PointerContainer> & EventContext){
+    if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to a text file).\n";
+        return;
+    }
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
+    }
+    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+    }
+
+    string textFromContext = "";
+
+    PointerContainer * Context;
+    if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        return;
+    }
+    if(Context->type == "value"){
+        if(Context->Variables.size() == 0){
+            cout << "Error: In " << __FUNCTION__ << ": There are no literals in the context.\n";
+            return;
+        }
+        if(Context->Variables.size() != 1){
+            cout << "Warning: In " << __FUNCTION__ << ": There are several literals in the context. Program will proceed with the last added literal.\n";
+        }
+        if(Context->Variables.back().getType() != 's'){
+            cout << "Error: In " << __FUNCTION__ << ": String variable required, but got \'" << Context->Variables.back().getType() << "\'.\n";
+            return;
+        }
+        textFromContext = Context->Variables.back().getString();
+    }
+    else if(Context->type == "pointer"){
+        if(Context->BasePointers.size() == 0){
+            cout << "Error: In " << __FUNCTION__ << ": There are no pointers in the context.\n";
+            return;
+        }
+        if(Context->BasePointers.size() != 1){
+            cout << "Warning: In " << __FUNCTION__ << ": There are several pointers in the context. Program will proceed with the last added pointer.\n";
+        }
+        if(Context->BasePointers.back().type != "string"){
+            cout << "Error: In " << __FUNCTION__ << ": String pointer required, but got \'" << Context->Variables.back().getType() << "\'.\n";
+            return;
+        }
+        textFromContext = *Context->BasePointers.back().pString;
+    }
+    else if(Context->type == "variable"){
+        if(Context->Modules.Variables.size() == 0){
+            cout << "Error: In " << __FUNCTION__ << ": There are no variables in the context.\n";
+            return;
+        }
+        if(Context->Modules.Variables.size() != 1){
+            cout << "Warning: In " << __FUNCTION__ << ": There are several variables in the context. Program will proceed with the last added literal.\n";
+        }
+        if(Context->Modules.Variables.back()->getType() != 's'){
+            cout << "Error: In " << __FUNCTION__ << ": String variable required, but got \'" << Context->Variables.back().getType() << "\'.\n";
+            return;
+        }
+        textFromContext = Context->Modules.Variables.back()->getString();
+    }
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
+        return;
+    }
+
+    std::ofstream File(EXE_PATH + Operation.Literals[0].getString());
+
+	if(!File){
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << Operation.Literals[0].getString() << "\n";
+        return;
+    }
+	File << textFromContext;
+    File.close();
+}
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,
@@ -5189,6 +5339,12 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
         }
         else if(Operation.instruction == "print"){
             executePrint(Operation, EventContext);
+        }
+        else if(Operation.instruction == "load_string"){
+            loadFileAsString(Operation, EventContext);
+        }
+        else if(Operation.instruction == "save_string"){
+            saveStringAsFile(Operation, EventContext);
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";

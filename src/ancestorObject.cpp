@@ -84,12 +84,12 @@ vector<string> readLines(const string& filename) {
 
 	if(!File){
 		std::cerr << "Cannot open file: " << filename << "\n";
+        return lines;
 	}
-    else{
-	    for(string line; std::getline(File, line);){
-            lines.push_back(line);
-		}
-	}
+    for(string line; std::getline(File, line);){
+        lines.push_back(line);
+    }
+    File.close();
 
     lines = removeComments(lines);
 
@@ -1554,6 +1554,13 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     }
                 }
             }
+        }
+        else if(words[0] == "load_string" || words[0] == "save_string"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            Operation->dynamicIDs.push_back(words[2]);
         }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
