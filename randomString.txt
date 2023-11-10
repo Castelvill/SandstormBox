@@ -1,2 +1,4 @@
-notatki
-xd
+#include <iostream>
+#using namespace::std;
+
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
