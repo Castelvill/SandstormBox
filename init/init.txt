@@ -1,0 +1,9 @@
+start init false
+triggers [on_boot]
+if ([on_boot])
+print _ string ["halo?"]
+index layer [0 1] _ object First
+bind First rliteral ["scripts/KERNEL.txt"]
+bind First literal ["scripts/KERNEL.txt"]
+build First true
+end
