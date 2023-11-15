@@ -5255,7 +5255,7 @@ void EngineLoop::saveStringAsFile(OperaClass & Operation, vector<PointerContaine
 	File << textFromContext;
     File.close();
 }
-OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
+OperaClass EngineLoop::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack,
     vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
@@ -6354,7 +6354,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){ //if true
                 if(!Event->areDependentOperationsDone){
-                    Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
+                    Interrupt = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
                         StartingEvent, Event, MemoryStack, BitmapContainer, FontContainer
                     );
                     if(Interrupt.instruction == "power_off"){
@@ -6421,7 +6421,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
                 Interrupt.instruction = "";
             }
             if(Interrupt.instruction != "break"){ //operations after loop/if
-                Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
+                Interrupt = executeInstructions(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
                     StartingEvent, Event, MemoryStack, BitmapContainer, FontContainer
                 );
                 if(Interrupt.instruction == "power_off"){
@@ -6948,7 +6948,8 @@ void EngineLoop::startScrollbarDragging(vector <LayerClass> & Layers){
         return;
     }
     for(LayerClass & Layer : Layers){
-        if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID()) || !SelectedCamera->isLayerAccessible(Layer.getID())){
+        if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID())
+            || !SelectedCamera->isLayerAccessible(Layer.getID())){
             continue;
         }
         for(AncestorObject & Object : Layer.Objects){
@@ -7603,8 +7604,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
         vec2d finalPos, finalSize;
         bool isScrollable;
         for(LayerClass & Layer : Layers){
-            if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID())
-                || !SelectedCamera->isLayerAccessible(Layer.getID())){
+            if(!Layer.getIsActive()){
                 continue;
             }
             for(AncestorObject & Object : Layer.Objects){
@@ -7615,7 +7615,7 @@ void EngineLoop::updateEditableTextFields(vector <LayerClass> & Layers, vector <
                     if(!TextField.getIsActive()){
                         continue;
                     }
-                    if(TextField.getCanBeEdited()){
+                    if(SelectedCamera->isLayerAccessible(Layer.getID()) && TextField.getCanBeEdited()){
                         isScrollable = TextField.getIsScrollable();
                         finalPos.set(Object.getPos(isScrollable));
                         finalPos.translate(TextField.getPos(false));
@@ -7704,32 +7704,6 @@ void EngineLoop::selectObject(vector <LayerClass> & Layers, vector <SingleBitmap
                 SelectedLayer = &Layer;
                 SelectedObject = &Object;
                 SelectedObject->refreshCoordinates();
-                //cout << "Selected Layer: " << SelectedLayer->getID() << " Selected Object: " << SelectedObject->getID() << "\n";
-
-                /*EditorObject = &Layers[0].Objects[0];
-                THERE IS A MEMORY LEAK HERE
-                char lastActiveCategory = getActiveEditorWindowCategory(EditorObject);
-                //cout << "Last active category: " << lastActiveCategory << "\n";
-
-                removeListsInEditorWindow(EditorObject);
-
-                EditorWindowArrangement Arr;
-                Arr.labelHeight = getFontHeight(FontContainer, Arr.labelFontID);
-                Arr.attributeSize.y = getFontHeight(FontContainer, Arr.attributeFontID);
-                prepareEditorWindowImage(EditorObject, FontContainer, BitmapContainer, Arr);
-                prepareEditorWindowText(EditorObject, FontContainer, BitmapContainer, Arr);
-                prepareEditorWindowMovement(EditorObject, FontContainer, BitmapContainer, Arr);
-                prepareEditorWindowCollisions(EditorObject, FontContainer, BitmapContainer, Arr);
-                prepareEditorWindowEvents(EditorObject, FontContainer, BitmapContainer, Arr);
-                prepareEditorWindowParticles(EditorObject, FontContainer, BitmapContainer, Arr);
-                prepareEditorWindowVariables(EditorObject, FontContainer, BitmapContainer, Arr);
-                prepareEditorWindowEditable(EditorObject, FontContainer, BitmapContainer, Arr);
-
-                activateBasedOnFirstChar(EditorObject, lastActiveCategory);
-                deactivateWrapped((int)(lastActiveCategory - '0'), EditorObject);
-
-                updateEditorWindowOnSelection(EditorObject->EditableTextContainer);*/
-
                 return;
             }
         }
