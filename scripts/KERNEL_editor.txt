@@ -1,0 +1,69 @@
+start init false
+triggers [on_init]
+env window_size 1000 300
+
+env draw_camera_borders 0
+
+new object l KERNEL 1 _ _ Terminal
+fun Terminal set_position int [0 0]
+fun Terminal set_id string [terminal]
+fun Terminal set_can_be_selected bool [0]
+new editable_text c Terminal 1 _ _ Editable
+fun Editable set_id string [edi]
+fun Editable set_position int [0 0]
+fun Editable set_font string [fira_mono24]
+fun Editable set_wrapping int [0]
+fun Editable set_editable bool [1]
+fun Editable set_space_use bool [1]
+fun Editable set_max_content_length int [10000]
+string [""] loaded
+load_string "randomString.txt" loaded
+fun Editable add_and_update context loaded
+fun Editable set_size int [1920 1080]
+fun Editable select_layer int [1]
+fun Editable set_color double [1.0 0.0 0.0 1.0]
+fun Editable set_input_delay double [0.3]
+fun Editable set_repetition_delay double [0.05]
+fun Editable set_vertical_align int [0]
+fun Editable set_horizontal_align int [0]
+fun Editable set_use_tabs bool [1]
+
+new camera l 1 _ _ cam
+fun cam set_id string [Desktop]
+fun cam set_active bool [true]
+value ([window_w]) ww
+value ([window_h]) wh
+fun cam resize int [1920 1080]//c ww c wh//[1360 768][1920 1080]
+fun cam set_zoom double [0.3]
+fun cam set_speed double [20]
+fun cam set_key_zoom_in int [15]
+fun cam set_key_zoom_out int [21]
+fun cam set_zoom_increase double [0.02]
+fun cam bind_keys int [15 21 13 9 12 11 10]
+fun cam add_visible_layer string [KERNEL]
+fun cam add_accessible_layer string [KERNEL]
+end
+
+start save_editable false
+triggers [key_pressed]
+if ([key_pressed 23] [key_pressed 217] &&)
+value ([object L2 terminal editable_text edi content]) randomString
+save_string "randomString.txt" randomString
+end
+
+start fs_click false
+triggers [key_pressed]
+if ([key_pressed 58])
+int [1] xd
+run [fs]
+end
+
+start fs false
+if ([fullscreen] !)
+env fullscreen 1
+else fs_else
+end
+
+start fs_else false
+env fullscreen 0
+end

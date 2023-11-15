@@ -1,18 +1,5 @@
-/*start print_test false
-triggers [on_boot]
-if ([on_boot])
-env print_instructions 0
-//env auto_print_stack 1
-//env window_size 200 200
-
-//print _ string ["Hello: "] int [69] string [" -> "] int [420] string [" >>> "] int [2137]
-print " " bool [true false]
-power_off
-end*/
-
 start init false
-triggers [on_boot]
-if ([on_boot])
+triggers [on_init]
 
 env print_instructions 0
 env auto_print_stack 0
@@ -51,15 +38,14 @@ mkdir "projects/test"
 //rename "projects/test" "projects/kaczki"
 //remove_all "projects"
 
-index layer [0 0] _ object Arch
-new image c Arch 1 _ _ archImg
+new image c me 1 _ _ archImg
 fun archImg connect_bitmap_via_alias string [i_use_arch_btw]
 //fun archImg connect_bitmap_via_alias string [black]
 fun archImg attach_to_camera
 value ([window_w]) ww
 value ([window_h]) wh
 fun archImg resize c ww c wh
-new text c Arch 1 _ _ FPS_text
+new text c me 1 _ _ FPS_text
 fun FPS_text set_id string ["king"]
 fun FPS_text set_position int [10 10]
 fun FPS_text set_size int [400 300]
@@ -70,7 +56,7 @@ fun FPS_text set_wrapping int [2]
 fun FPS_text attach_to_camera
 fun FPS_text select_layer int [-1]
 fun FPS_text deactivate
-/*new primitives c Arch 1 _ _ PrimiFun
+/*new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [triangle]
 fun PrimiFun add_point double [500.0 100.0]
 fun PrimiFun add_point double [1300.0 200.0]
@@ -78,7 +64,7 @@ fun PrimiFun add_point double [600.0 1000.0]
 fun PrimiFun set_color double [1.0 0.0 0.0 1.0]
 fun PrimiFun set_thickness double [10.0]
 fun PrimiFun select_layer int [2]
-new primitives c Arch 1 _ _ PrimiFun
+new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [triangle]
 fun PrimiFun add_point double [800.0 100.0]
 fun PrimiFun add_point double [1300.0 200.0]
@@ -86,14 +72,14 @@ fun PrimiFun add_point double [600.0 1000.0]
 fun PrimiFun set_color double [0.9 0.0 0.0 0.8]
 fun PrimiFun set_thickness double [11.0]
 fun PrimiFun select_layer int [2]
-new primitives c Arch 1 _ _ PrimiFun
+new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [circle]
 fun PrimiFun add_point double [900.0 400.0]
 fun PrimiFun set_color double [0.0 0.0 1.0 1.0]
 fun PrimiFun set_thickness double [20.0]
 fun PrimiFun set_radius double [350.0]
 fun PrimiFun select_layer int [2]
-new primitives c Arch 1 _ _ PrimiFun
+new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [filled_rounded_rectangle]
 fun PrimiFun add_point double [920.0 20.0]
 fun PrimiFun add_point double [1900.0 500.0]
@@ -101,7 +87,7 @@ fun PrimiFun add_point double [30.0 30.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.5]
 fun PrimiFun set_thickness double [10.0]
 fun PrimiFun select_layer int [2]
-new primitives c Arch 1 _ _ PrimiFun
+new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [filled_rounded_rectangle]
 fun PrimiFun add_point double [920.0 520.0]
 fun PrimiFun add_point double [1900.0 1000.0]
@@ -539,7 +525,7 @@ triggers [key_pressed]
 if ([key_pressed 23] [key_pressed 217] &&)
 value ([object L2 terminal editable_text edi content]) randomString
 save_string "randomString.txt" randomString
-end)
+end
 
 
 start fs_click false
@@ -564,7 +550,7 @@ triggers [on_display_resize]
 if([on_display_resize])
 value ([window_w]) w
 value ([window_h]) h
-index layer [0 0 0] _ image Arch
+index context [0 0] [me] image Arch
 fun Arch resize c w c h
 index camera [0] _ camera Cam0
 fun Cam0 resize c w c h

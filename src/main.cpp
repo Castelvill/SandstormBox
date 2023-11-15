@@ -77,8 +77,10 @@ int main(){
     Layers.push_back(LayerClass("KERNEL", Threads.back().layersIDs, true, vec2d(0.0, 0.0), Threads.back().getScreenSize()));
     Layers.back().Objects.push_back(AncestorObject("init", Layers.back().objectsIDs, Layers.back().getID()));
     Layers.back().Objects.back().bindedScripts.push_back(Threads.back().EXE_PATH + "init/init.txt");
-    Layers.back().Objects.push_back(AncestorObject("KERNEL", Layers.back().objectsIDs, Layers.back().getID()));
     Layers.back().Objects.back().translateAllScripts(true);
+    Layers.back().Objects.push_back(AncestorObject("KERNEL", Layers.back().objectsIDs, Layers.back().getID()));
+    
+    
     
     if(Threads.back().isLayersUniquenessViolated(Layers)){
         goto uniquenessViolated;

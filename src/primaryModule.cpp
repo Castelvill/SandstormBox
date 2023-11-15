@@ -233,12 +233,10 @@ vec2d PrimaryModule::getScaledSize(){
 bool PrimaryModule::getIsActive() const{
     return isActive;
 }
-bool PrimaryModule::getIsDeleted() const
-{
+bool PrimaryModule::getIsDeleted() const{
     return deleted;
 }
-bool PrimaryModule::getIsScaledFromCenter()
-{
+bool PrimaryModule::getIsScaledFromCenter(){
     return isScaledFromCenter;
 }
 bool PrimaryModule::getIsAttachedToCamera(){

@@ -54,6 +54,7 @@ public:
     bool areDependentOperationsDone;
     bool elseChildFinished;
     bool loop;
+    bool willBeDeleted; //Event will be deleted as soon as possible, but it still can be executed.
     EveModule();
     EveModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     EveModule(string textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);

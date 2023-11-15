@@ -57,6 +57,7 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
 
 void EventsLookupTable::clear(){
     BootTriggered.clear();
+    InitTriggered.clear();
     IterationTriggered.clear();
     TimeTriggered.clear();
     KeyPressedTriggered.clear();
@@ -83,6 +84,9 @@ EngineLoop::EngineLoop(std::string title){
     rebooted = false;
     closeProgram = false;
     displayResized = false;
+    wasDeleteExecuted = false;
+    wasNewExecuted = false;
+    wasBuildExecuted = false;
     drawCameraBorders = true;
     drawTextFieldBorders = false;
     drawHitboxes = false;
@@ -427,6 +431,9 @@ void EngineLoop::updateBaseOfTriggerableObjects(vector <LayerClass> & Layers){
                     if(type == "on_boot"){
                         BaseOfTriggerableObjects.BootTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
+                    else if(type == "on_init"){
+                        BaseOfTriggerableObjects.InitTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
+                    }
                     else if(type == "each_iteration"){
                         BaseOfTriggerableObjects.IterationTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
@@ -493,6 +500,13 @@ void EngineLoop::detectTriggeredEvents(vector <LayerClass> & Layers, vector <Cam
             }
         }
     }
+    for(AncestorIndex & Index : BaseOfTriggerableObjects.InitTriggered){
+        tempObject = Index.object(Layers);
+        if(tempObject != nullptr && tempObject->getIsActive()){
+            TriggeredObjects.push_back(&(*tempObject));
+        }
+    }
+    BaseOfTriggerableObjects.InitTriggered.clear();
     for(AncestorIndex & Index : BaseOfTriggerableObjects.IterationTriggered){
         tempObject = Index.object(Layers);
         if(tempObject != nullptr && tempObject->getIsActive()){
@@ -3285,7 +3299,7 @@ bool EngineLoop::prepareDestinationForNew(OperaClass & Operation, vector<Pointer
 }
 void EngineLoop::createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<LayerClass> &Layers, vector<Camera2D> &Cameras, vector <AncestorObject*> & TriggeredObjects,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasNewExecuted
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     LayerClass * CurrentLayer = nullptr;
     AncestorObject * CurrentObject = nullptr;
@@ -3465,7 +3479,7 @@ void clearDeletedPointersFromVector(vector<T*> & Vector){
     }
 }
 void EngineLoop::markEntitiesForDeletion(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, bool & wasDeleteExecuted
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects
 ){
     PointerContainer * DeletedContext = nullptr;
     if(!getOneContext(DeletedContext, EventContext, Operation.dynamicIDs)){
@@ -4281,7 +4295,7 @@ void EngineLoop::bindFilesToObjects(OperaClass & Operation, vector<PointerContai
         }
     }
 }
-void EngineLoop::buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext, bool & wasBuildExecuted){
+void EngineLoop::buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext){
     if(Operation.dynamicIDs.size() == 0){
         cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
         return;
@@ -4487,7 +4501,7 @@ void EngineLoop::executeFunctionForCameras(OperaClass & Operation, vector <Varia
             Camera->setTint(Variables[0].getIntUnsafe(), Variables[1].getIntUnsafe(), Variables[2].getIntUnsafe(), Variables[3].getIntUnsafe());
         }
         else if(Operation.Location.attribute == "set_drawing_borders" && Variables.size() > 0){
-            Camera->allowsDrawingBorders = Variables[0].getIntUnsafe();
+            Camera->allowsDrawingBorders = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "minimize"){
             Camera->deactivate();
@@ -5243,8 +5257,8 @@ void EngineLoop::saveStringAsFile(OperaClass & Operation, vector<PointerContaine
 }
 OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
     vector <PointerContainer> & EventContext, vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector <AncestorObject*> & TriggeredObjects,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool & wasDeleteExecuted,
-    bool & wasNewExecuted, bool & wasBuildExecuted, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack,
+    vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer
 ){
     for(OperaClass & Operation : Operations){
         if(isStringInGroup(Operation.instruction, 5, "continue", "break", "return", "reboot", "power_off")){
@@ -5302,10 +5316,10 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             checkIfVectorContainsVector(Operation, EventContext);
         }
         else if(Operation.instruction == "new"){
-            createNewEntities(Operation, EventContext, OwnerLayer, Owner, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack, wasNewExecuted);
+            createNewEntities(Operation, EventContext, OwnerLayer, Owner, Layers, Cameras, TriggeredObjects, StartingEvent, Event, MemoryStack);
         }
         else if(Operation.instruction == "delete"){
-            markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, wasDeleteExecuted);
+            markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects);
             if(OwnerLayer == nullptr || Owner == nullptr){
                 return OperaClass();
             }
@@ -5314,7 +5328,7 @@ OperaClass EngineLoop::executeOperations(vector<OperaClass> Operations, LayerCla
             bindFilesToObjects(Operation, EventContext);
         }
         else if(Operation.instruction == "build"){
-            buildEventsInObjects(Operation, EventContext, wasBuildExecuted);
+            buildEventsInObjects(Operation, EventContext);
         }
         else if(Operation.instruction == "fun"){
             executeFunction(Operation, EventContext, Event, Layers, Cameras, BitmapContainer, FontContainer);
@@ -6138,6 +6152,18 @@ void deleteModuleInstance(vector<Module> & Container, bool & layersWereModified)
         }
     }
 }
+void deleteEventInstance(vector<EveModule> & Container, bool & layersWereModified){
+    for(auto Instance = Container.begin(); Instance != Container.end();){
+        if(Instance->getIsDeleted() || Instance->willBeDeleted){
+            layersWereModified = true;
+            Instance->clear();
+            Instance = Container.erase(Instance);
+        }
+        else{
+            ++Instance;
+        }
+    }
+}
 bool EngineLoop::deleteEntities(vector <LayerClass> & Layers, vector <Camera2D> & Cameras){
     bool layersWereModified = false;
     unsigned cameraIndex = 0;
@@ -6171,7 +6197,7 @@ bool EngineLoop::deleteEntities(vector <LayerClass> & Layers, vector <Camera2D> 
                     deleteModuleInstance(Object->MovementContainer, layersWereModified);
                     deleteModuleInstance(Object->CollisionContainer, layersWereModified);
                     deleteModuleInstance(Object->ParticlesContainer, layersWereModified);
-                    deleteModuleInstance(Object->EveContainer, layersWereModified);
+                    deleteEventInstance(Object->EveContainer, layersWereModified);
                     deleteModuleInstance(Object->VariablesContainer, layersWereModified);
                     deleteModuleInstance(Object->ScrollbarContainer, layersWereModified);
                     deleteModuleInstance(Object->PrimitivesContainer, layersWereModified);
@@ -6217,10 +6243,19 @@ void EngineLoop::resetChildren(vector<EveModule>::iterator & Event, AncestorObje
     }
 }
 void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Cameras, vector<SingleBitmap> & BitmapContainer, const vector<SingleFont> & FontContainer){
+    if(wasDeleteExecuted && deleteEntities(Layers, Cameras)){
+        updateBaseOfTriggerableObjects(Layers);
+        wasDeleteExecuted = false;
+    }
+    if(wasNewExecuted || wasBuildExecuted){
+        updateBaseOfTriggerableObjects(Layers);
+        wasNewExecuted = false;
+        wasBuildExecuted = false;
+    }
+    
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
     //must wait with execution for the next iteration, unless run() command will be used.
     vector <AncestorObject*> TriggeredObjects;
-
     detectTriggeredEvents(Layers, Cameras, TriggeredObjects);
 
     if(TriggeredObjects.size() == 0){
@@ -6238,9 +6273,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
     vector<PointerContainer> Context; //All dynamic context created from instructions. It's inherited by the children of an event.
 
     bool noTriggerableEvents = true;
-    bool wasDeleteExecuted = false;
-    bool wasNewExecuted = false;
-    bool wasBuildExecuted = false;
+    
 
     unsigned i = 0;
 
@@ -6274,6 +6307,13 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             continue;
         }
 
+        for(auto trigger : Event->primaryTriggerTypes){
+            if(trigger == "on_init"){
+                Event->willBeDeleted = true;
+                wasDeleteExecuted = true;
+            }
+        }
+
         TriggeredLayer = nullptr;
 
         for(LayerClass & Layer : Layers){
@@ -6288,10 +6328,6 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
         }
         
         StartingEvent = Event;
-
-        wasDeleteExecuted = false;
-        wasNewExecuted = false;
-        wasBuildExecuted = false;
 
         for(auto _ : Context){
             _.clear();
@@ -6319,7 +6355,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){ //if true
                 if(!Event->areDependentOperationsDone){
                     Interrupt = executeOperations(Event->DependentOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
-                        StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer, FontContainer
+                        StartingEvent, Event, MemoryStack, BitmapContainer, FontContainer
                     );
                     if(Interrupt.instruction == "power_off"){
                         closeProgram = true;
@@ -6386,7 +6422,7 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
             }
             if(Interrupt.instruction != "break"){ //operations after loop/if
                 Interrupt = executeOperations(Event->PostOperations, TriggeredLayer, Triggered, Context, Layers, Cameras, TriggeredObjects,
-                    StartingEvent, Event, MemoryStack, wasDeleteExecuted, wasNewExecuted, wasBuildExecuted, BitmapContainer, FontContainer
+                    StartingEvent, Event, MemoryStack, BitmapContainer, FontContainer
                 );
                 if(Interrupt.instruction == "power_off"){
                     closeProgram = true;
@@ -6438,10 +6474,13 @@ void EngineLoop::triggerEve(vector <LayerClass> & Layers, vector <Camera2D> & Ca
 
         if(wasDeleteExecuted && deleteEntities(Layers, Cameras)){
             updateBaseOfTriggerableObjects(Layers);
+            wasDeleteExecuted = false;
         }
 
         if(wasNewExecuted || wasBuildExecuted){
             updateBaseOfTriggerableObjects(Layers);
+            wasNewExecuted = false;
+            wasBuildExecuted = false;
         }
     }
 

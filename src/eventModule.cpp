@@ -21,6 +21,7 @@ void EveModule::setUpNewInstance(){
     areDependentOperationsDone = false;
     elseChildFinished = false;
     loop = false;
+    willBeDeleted = false;
 }
 EveModule::EveModule(){
     primaryConstructor("", nullptr, "", "");

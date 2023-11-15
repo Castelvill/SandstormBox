@@ -1426,7 +1426,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
         else if(words[0] == "bind"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
             Operation->dynamicIDs.push_back(words[1]);
@@ -1439,7 +1439,12 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
             }
             else if(isStringInGroup(words[2], 5, "context", "c", "remove_context", "rcontext", "rc")){
-                Operation->dynamicIDs.push_back(words[3]);
+                if(words.size() > 3){
+                    Operation->dynamicIDs.push_back(words[3]);
+                }
+                else{
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": No context provided.\n";
+                }
             }
             else if(words[2] != "reset" && words[2] != "r"){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": In bind instruction, type must be equal to one of these values: "
