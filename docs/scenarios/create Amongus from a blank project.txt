@@ -1,0 +1,52 @@
+*run empty EGM.exe*
+*you see a terminal window - half width and half height of the screen - with a simple window border (white and black), minimize and maximize buttons*
+
+Hello in the EGM terminal! Enter "help" command to get help.
+
+$ ls
+TL TC
+$ ls -c(ameras)
+TC
+$ ls -l(ayers)
+TL
+$ ls -a(ll)
+name	type	group	size	access
+TL	Layer	term	69	0
+TC	Camera	term	-	0
+$ new -t(ype) layer -i(ds) [L1] -width 1920 -height 1080 -g(roup) L1 --access-level 1 (default)
+Layer "L1" has been created!
+*Nothing has changed visually*
+$ ls -l
+TL L1
+$ new -t object -l(ayer) L1 -n(umber) 1 -i(ds) [Amongus]
+Object "Amongus" has been created!
+$ ls -o(bjects)
+Amongus
+$ cd L1
+L1$ cd Amongus
+L1/Amongus$ new -t image -i [Astronaut]
+Image "Astronaut" has been created!
+L1/Amongus$ fun -m(odule) image -i [Astronaut] -f load_bitmap string ["images/Amongus.png"]
+L1/Amongus$ undo 1
+Reverted 1 command!
+L1/Amongus$ cd Astronaut
+L1/Amongus/Astronaut$ fun load_bitmap string ["images/Amongus.png"]
+L1/Amongus/Astronaut$ new -t camera -i [C1] -v(isible) [L1] -a(ccessible) [L1]
+Camera "C1" has been created!
+*Amongus has appeared on the screen*
+L1/Amongus/Astronaut$ ls
+Amongus.png
+L1/Amongus/Astronaut$ cd ..
+L1/Amongus$ ls
+Astronaut
+L1/Amongus$ cd ..
+L1$ ls
+Amongus
+L1$ cd ..
+$ ls -a
+name	type	group	size	access
+C1	Camera	-	-	1
+L1	Layer	-	1	1
+TL	Layer	term	69	0
+TC	Camera	term	-	0
+
