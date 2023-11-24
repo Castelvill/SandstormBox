@@ -46,6 +46,7 @@ public:
     ImageModule();
     ImageModule(string newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     ImageModule(unsigned int newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ~ImageModule();
     void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
     void loadImage(string newFilePath, string newAlias, string EXE_PATH);

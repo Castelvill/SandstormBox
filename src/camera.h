@@ -48,6 +48,7 @@ public:
     void setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
     Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
     Camera2D(string newID, vector <string> & camerasIDs);
+    ~Camera2D();
     void clone(const Camera2D& Original, vector <string> & camerasIDs, bool changeOldID);
     void clear();
     void setID(string newID, vector <string> & camerasIDs);
@@ -78,7 +79,7 @@ public:
     void setIsUsingKeyboardToMove(bool isUsingKeyboard);
     void setCanInteractWithMouse(bool newValue);
     void setTint(float r, float g, float b, float a);
-    void update(vector <short> pressedKeys);
+    void update(const vector<short> & pressedKeys);
     bool isObjectVisible(vec2d objPos, vec2d objSize) const;
     bool isOnScreenWithRadius(vec2d objPos, vec2d objSize);
     vec2d translateWithZoom(vec2d objBasePos, vec2d objPosShift);

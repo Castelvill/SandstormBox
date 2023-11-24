@@ -21,6 +21,9 @@ LayerClass::LayerClass(string newID, vector <string> & layersIDs, bool activate,
 LayerClass::LayerClass(string newID, vector <string> & layersIDs){
     setUpNewInstance(newID, layersIDs, false, vec2d(0.0, 0.0), vec2i(0, 0));
 }
+LayerClass::~LayerClass(){
+
+}
 void LayerClass::clear(){
     for(AncestorObject & Object : Objects){
         Object.clearContainers();

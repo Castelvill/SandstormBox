@@ -35,6 +35,7 @@ public:
     TextModule();
     TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     TextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ~TextModule();
     void clone(const TextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void fitSizeToText(vector <SingleFont> FontContainer);
     void addNewContent(string newContent);

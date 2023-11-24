@@ -188,8 +188,12 @@ vector <string> changeCodeIntoWords(string input);
 
 class ProcessClass{
 private:
-    bool wasMousePressedInSelectedObject;
-    CAMERA_MOVE activeCameraMoveType;
+    bool isActive;
+    bool isRendering;
+    ALLEGRO_BITMAP * WindowBuffer;
+    vec2d windowPos, windowSize, minWindowSize;
+    float windowTint[4];
+
     string EXE_PATH;
     
     vector <LayerClass> Layers;
@@ -209,6 +213,9 @@ private:
     EventsLookupTable BaseOfTriggerableObjects;
     bool firstIteration, rebooted;
     bool wasDeleteExecuted, wasNewExecuted, wasBuildExecuted;
+
+    bool wasMousePressedInSelectedObject;
+    CAMERA_MOVE activeCameraMoveType;
     
     bool drawCameraBorders;
     bool drawTextFieldBorders;
@@ -227,11 +234,16 @@ private:
 public:
     vector <unsigned> camerasOrder;
 
-    ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize);
+    void loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath);
+    ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath);
     ~ProcessClass();
+    void clear();
+    void setWindowSize(vec2d newSize);
+    void setWindowSize(double x, double y);
     bool isLayersUniquenessViolated();
     bool isCamerasUniquenessViolated();
-    void windowLoop(EngineClass & Engine);
+    void executeIteration(EngineClass & Engine);
+    void renderOnDisplay(EngineClass & Engine);
     void aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras,
         const EngineClass & Engine, vector<PointerContainer> &EventContext);
     void aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers,
@@ -300,7 +312,8 @@ public:
     void executeFunctionForLayers(OperaClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
     void executeFunctionForObjects(OperaClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
     void executeFunction(OperaClass Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine);
-    void changeProcessAndEngineVariables(OperaClass & Operation, EngineClass & Engine);
+    void changeEngineVariables(OperaClass & Operation, EngineClass & Engine);
+    void changeProcessVariables(OperaClass & Operation);
     void loadBitmap(OperaClass & Operation, vector<SingleBitmap> & BitmapContainer);
     void createDirectory(OperaClass & Operation);
     void removeFileOrDirectory(OperaClass & Operation);
@@ -334,27 +347,27 @@ public:
     void updateTreeOfCamerasFromSelectedRoot(Camera2D * Selected);
     void updateWholeForestOfCameras();
     void adjustPositionOfAllCameras();
-    void keepPositionInsideScreen(vec2d & pos, vec2d & size, double displayW, double displayH);
+    void keepPositionInsideScreen(vec2d & pos, vec2d & size, vec2i displaySize);
     void updateCamerasPositions(const EngineClass & Engine);
     void bringCameraForward(unsigned index, Camera2D * ChosenCamera);
-    void selectCamera(bool fromAltTab, const MouseClass & Mouse, vector<short> pressedKeys, vector<short> releasedKeys);
+    void selectCamera(bool fromAltTab, const MouseClass & Mouse, const vector<short> & pressedKeys, const vector<short> & releasedKeys);
     bool isKeyFirstPressed(short key, vector <short> firstPressedKeys);
     bool isKeyPressed(short key, vector <short> pressedKeys);
     bool isKeyReleased(short key, vector <short> releasedKeys);
     void detectStartPosOfDraggingObjects(const MouseClass & Mouse);
     void changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mouse);
     void detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, const MouseClass & Mouse);
-    void drawEverything(ALLEGRO_DISPLAY *display, vector <SingleFont> & FontContainer, int displayW, int displayH);
+    void drawEverything(ALLEGRO_DISPLAY *display, vec2i displaySize, vector <SingleFont> & FontContainer);
     void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Cameras, vector <SingleFont> & FontContainer,
-        int currentlyDrawnLayer, int & numberOfDrawnObjects, vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground,
-        int displayW, int displayH);
+        int currentlyDrawnLayer, int & numberOfDrawnObjects, vector <unsigned int> & foregroundOfObjects,
+        bool isTimeForForeground, vec2i displaySize);
     void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, vec2d momentum);
     bool shouldCheckOverlapingOnly(CollisionModule & Collision, AncestorObject & SolidObject, CollisionModule & SolidCollision);
     void detectRealCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement);
     void adjustAndStopMomentum(AncestorObject & Object, MovementModule & Movement);
     void updateCameraPosition(Camera2D & Cameras, AncestorObject * FollowedByCamera);
-    void moveObjects(vector<short> pressedKeys, MouseClass Mouse);
-    void moveParticles(vector<short> pressedKeys, vector<short> releasedKeys);
+    void moveObjects(const vector<short> & pressedKeys, const MouseClass & Mouse);
+    void moveParticles(const vector<short> & pressedKeys, const vector<short> & releasedKeys);
     void moveSelectedObject(const MouseClass & Mouse);
     void delayEditableTextFields();
     void updateEditableTextFields(EngineClass & Engine);

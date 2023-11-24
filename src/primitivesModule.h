@@ -26,6 +26,7 @@ class PrimitivesModule : public PrimaryModule{
     void setUpNewInstance();
     PrimitivesModule();
     PrimitivesModule(string newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ~PrimitivesModule();
     void clear();
     void clone(const PrimitivesModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, bool changeOldID);
     void draw(vec2d base, Camera2D Camera, bool outSourcing);

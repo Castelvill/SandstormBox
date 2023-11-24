@@ -1397,9 +1397,6 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(words[1] == "window_title"){
                 Operation->Literals.push_back(VariableModule::newString(words[2]));
             }
-            else if(words[1] == "reservation_multiplier"){
-                Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
-            }
             else if(words[1] == "window_size"){
                 if(words.size() < 4){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
@@ -1408,6 +1405,18 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
                 Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
                 Operation->Literals.push_back(VariableModule::newInt(stoi(words[3])));
+            }
+            else{
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
+            }
+        }
+        else if(words[0] == "proc"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1] == "reservation_multiplier"){
+                Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
             }
             else{
                 Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));

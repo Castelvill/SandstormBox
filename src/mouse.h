@@ -17,12 +17,13 @@ public:
     bool didMouseMove;
 
     MouseClass();
+    ~MouseClass();
     void reset();
     void resetReleased();
     void resetFirstPressed();
     void setUp();
-    bool * getPressed();
-    bool * getReleased();
+    void getPressed(bool pressedMouse[5]) const;
+    void getReleased(bool releasedMouse[5]) const;
     vec2d getPos() const;
     vec2d getPressedPos() const;
     vec2d getZoomedPos(const Camera2D * Camera) const;

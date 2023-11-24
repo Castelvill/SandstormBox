@@ -17,6 +17,7 @@ public:
     VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule();
+    ~VariableModule();
     
     void deleteLater();
     bool getIsDeleted() const;

@@ -98,7 +98,10 @@ ImageModule::ImageModule(unsigned int newAlias, vector<string> * listOfIDs, stri
     primaryConstructor(newAlias, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-void ImageModule::clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+ImageModule::~ImageModule(){
+
+}
+void ImageModule::clone(const ImageModule &Image, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
     PrimaryModule::clone(Image, listOfIDs, newLayerID, newObjectID, changeOldID);
     rotPos = Image.rotPos;
     start = Image.start;

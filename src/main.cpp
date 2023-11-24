@@ -16,17 +16,31 @@ int main(){
     srand(time(NULL));
 
     EngineClass Engine("EGM");
-    vector <ProcessClass> Processes = {ProcessClass(Engine.EXE_PATH, Engine.getScreenSize())};
-    
+    vector <ProcessClass> Processes;
+    Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init.txt"));
+    Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init1.txt"));
     //Main loop
     do{
+        Engine.redraw = false;
         do{
             al_wait_for_event(Engine.eventQueue , &Engine.event);
             Engine.updateEvents();
             for(ProcessClass & Process : Processes){
-                Process.windowLoop(Engine);
-            }            
+                Process.executeIteration(Engine);
+            }
+            Engine.endEvents();     
         }while(!al_is_event_queue_empty(Engine.eventQueue));
+
+        if(Engine.redraw){
+            for(ProcessClass & Process : Processes){
+                Process.renderOnDisplay(Engine);
+            }
+            al_flip_display();
+            al_clear_to_color(al_map_rgb_f(0.0, 0.0, 0.0));
+            Engine.redraw = false;
+            Engine.fps.update();
+        }
+
     }while(Engine.isRunning());
 
     vector <string> fileNames;

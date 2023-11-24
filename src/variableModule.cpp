@@ -15,6 +15,9 @@ VariableModule::VariableModule(){
     ID = "";
     clear();
 }
+VariableModule::~VariableModule(){
+
+}
 void VariableModule::deleteLater(){
     deleted = true;
 }

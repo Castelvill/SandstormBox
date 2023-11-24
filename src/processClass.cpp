@@ -22,7 +22,32 @@ void EventsLookupTable::clear(){
     ResizeTriggered.clear();
 }
 
-ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize){
+void ProcessClass::loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath){
+    Layers.push_back(LayerClass("KERNEL", layersIDs, true, vec2d(0.0, 0.0), screenSize));
+    Layers.back().Objects.push_back(AncestorObject("init", Layers.back().objectsIDs, Layers.back().getID()));
+    Layers.back().Objects.back().bindedScripts.push_back(EXE_PATH + initFilePath);
+    Layers.back().Objects.back().translateAllScripts(true);
+    Layers.back().Objects.push_back(AncestorObject("KERNEL", Layers.back().objectsIDs, Layers.back().getID()));
+
+    if(isLayersUniquenessViolated()){
+        cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
+    }
+
+    for(LayerClass & layer : Layers){
+        for(AncestorObject & obj : layer.Objects){
+            obj.createVectorsOfIds();
+        }
+        if(layer.isObjectsUniquenessViolated()){
+            cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
+        }
+    }
+
+    updateBaseOfTriggerableObjects();
+}
+
+ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath){
+    isActive = true;
+    
     EXE_PATH = EXE_PATH_FROM_ENGINE;
     firstIteration = true;
     rebooted = false;
@@ -56,26 +81,15 @@ ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize){
     SelectedObject = nullptr;
     EditorObject = nullptr;
 
-    Layers.push_back(LayerClass("KERNEL", layersIDs, true, vec2d(0.0, 0.0), screenSize));
-    Layers.back().Objects.push_back(AncestorObject("init", Layers.back().objectsIDs, Layers.back().getID()));
-    Layers.back().Objects.back().bindedScripts.push_back(EXE_PATH + "init/init.txt");
-    Layers.back().Objects.back().translateAllScripts(true);
-    Layers.back().Objects.push_back(AncestorObject("KERNEL", Layers.back().objectsIDs, Layers.back().getID()));
+    isRendering = true;
+    windowPos.set(0.0, 0.0);
+    windowSize.set(screenSize.x, screenSize.y);
+    minWindowSize.set(50, 50);
+    std::fill_n(windowTint, 4, 1);
 
-    if(isLayersUniquenessViolated()){
-        cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
-    }
+    WindowBuffer = al_create_bitmap(windowSize.x, windowSize.y);
 
-    for(LayerClass & layer : Layers){
-        for(AncestorObject & obj : layer.Objects){
-            obj.createVectorsOfIds();
-        }
-        if(layer.isObjectsUniquenessViolated()){
-            cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
-        }
-    }
-
-    updateBaseOfTriggerableObjects();
+    loadInitProcess(EXE_PATH_FROM_ENGINE, screenSize, initFilePath);
 }
 ProcessClass::~ProcessClass(){
     foregroundOfObjects.clear();
@@ -93,7 +107,23 @@ ProcessClass::~ProcessClass(){
         Camera.clear();
     }
     Cameras.clear();
-    cout << "Process destructor has been executed.\n";
+}
+void ProcessClass::clear(){
+    al_destroy_bitmap(WindowBuffer);
+}
+void ProcessClass::setWindowSize(vec2d newSize){
+    windowSize.set(newSize);
+    if(windowSize.x < minWindowSize.x){
+        windowSize.x = minWindowSize.x;
+    }
+    if(windowSize.y < minWindowSize.y){
+        windowSize.y = minWindowSize.y;
+    }
+    al_destroy_bitmap(WindowBuffer);
+    WindowBuffer = al_create_bitmap(windowSize.x, windowSize.y);
+}
+void ProcessClass::setWindowSize(double x, double y){
+    setWindowSize(vec2d(x, y));
 }
 bool ProcessClass::isLayersUniquenessViolated(){
     unsigned i, j;
@@ -138,63 +168,51 @@ bool ProcessClass::isCamerasUniquenessViolated(){
     return violated;
 }
 
-void ProcessClass::windowLoop(EngineClass & Engine){
+void ProcessClass::executeIteration(EngineClass & Engine){
+    if(Engine.closeProgram || !isActive){
+        return;
+    }
     switch(Engine.event.type){
         case ALLEGRO_EVENT_TIMER:
-
             delayEditableTextFields();
-
             selectCamera(true, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys);
-
             updateCamerasPositions(Engine);
-            
             moveObjects(Engine.pressedKeys, Engine.Mouse);
-            
             moveParticles(Engine.pressedKeys, Engine.releasedKeys);
-
             if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
                 SelectedCamera->update(Engine.pressedKeys);
             }
             
             triggerEve(Engine);
 
+            if(Engine.closeProgram){
+                return;
+            }
             firstIteration = false;
-
             if(rebooted){
                 rebooted = false;
                 firstIteration = true;
             }
-
             break;
         case ALLEGRO_EVENT_MOUSE_AXES:
-
-            changeCursor(Engine.window, Engine.Mouse);
-
+            changeCursor(Engine.display, Engine.Mouse);
             moveSelectedObject(Engine.Mouse);
             dragScrollbars(Engine.Mouse);
-
             if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && SelectedCamera->canMoveWithMouse
                 && Engine.Mouse.firstPositionInRectangle(SelectedCamera->pos, SelectedCamera->size, 2, true, SelectedCamera)
             ){
                 SelectedCamera->visionShift = Engine.Mouse.getZoomedPos(SelectedCamera) - dragCameraStaringPos;
             }
-
             break;
         case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-
             selectCamera(false, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys);
-
             selectObject(Engine.Mouse, Engine.BitmapContainer, Engine.FontContainer);
-
-            detectStartPosOfDraggingCamera(Engine.window, Engine.Mouse);
-
+            detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
             detectStartPosOfDraggingObjects(Engine.Mouse);
-
             startScrollbarDragging(Engine.Mouse);
             if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
                 dragCameraStaringPos.set(Engine.Mouse.getZoomedPos(SelectedCamera)-SelectedCamera->visionShift);
             }
-
             break;
     }
 
@@ -220,28 +238,25 @@ void ProcessClass::windowLoop(EngineClass & Engine){
     ){
         Engine.Mouse.updateZoomForCamera(SelectedCamera);
     }
+}
+void ProcessClass::renderOnDisplay(EngineClass & Engine){
+    if(!isActive || !isRendering){
+        return;
+    }
+    
+    timeToInterruptMovement = 20000;
 
-    if(Engine.redraw){
-        timeToInterruptMovement = 20000;
+    timeToInterruptParticles = 500;
 
-        timeToInterruptParticles = 500;
+    //al_set_target_bitmap(al_get_backbuffer(window));
+    
+    drawEverything(Engine.display, Engine.displaySize, Engine.FontContainer);
 
-        //al_set_target_bitmap(al_get_backbuffer(window));
-        
-        drawEverything(Engine.window, Engine.FontContainer, Engine.windowW, Engine.windowH);
+    string updatedFpsLabel = "FPS: " + intToStr(Engine.fps.get());
 
-        al_flip_display();
-        al_clear_to_color(al_map_rgb_f(0.0, 0.0, 0.0));
-
-        Engine.redraw = false;
-
-        Engine.fps.update();
-        string updatedFpsLabel = "FPS: " + intToStr(Engine.fps.get());
-
-        if(Layers[0].Objects.size() > 0){
-            if(Layers[0].Objects[0].TextContainer.size() > 0){
-                Layers[0].Objects[0].TextContainer[0].modifyContentAndResize(0, updatedFpsLabel, Engine.FontContainer);
-            }
+    if(Layers[0].Objects.size() > 0){
+        if(Layers[0].Objects[0].TextContainer.size() > 0){
+            Layers[0].Objects[0].TextContainer[0].modifyContentAndResize(0, updatedFpsLabel, Engine.FontContainer);
         }
     }
 }
@@ -4681,7 +4696,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<PointerContainer
         cout << "Error: In " << __FUNCTION__ << ": type \'" << Context->type << "\' does not exist.\n";
     }
 }
-void ProcessClass::changeProcessAndEngineVariables(OperaClass & Operation, EngineClass & Engine){
+void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & Engine){
     if(Operation.Literals.size() < 2){
         cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least two literals.\n";
         return;
@@ -4702,7 +4717,7 @@ void ProcessClass::changeProcessAndEngineVariables(OperaClass & Operation, Engin
             return;
         }
         Engine.windowTitle = Operation.Literals[1].getStringUnsafe();
-        al_set_window_title(Engine.window, Engine.windowTitle.c_str());
+        al_set_window_title(Engine.display, Engine.windowTitle.c_str());
     }
     else if(Operation.Literals[0].getString() == "window_size"){
         if(Operation.Literals.size() < 3){
@@ -4715,17 +4730,16 @@ void ProcessClass::changeProcessAndEngineVariables(OperaClass & Operation, Engin
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
             return;
         }
-        Engine.windowW = Operation.Literals[1].getInt();
-        Engine.windowH = Operation.Literals[2].getInt();
-        al_resize_display(Engine.window, Engine.windowW, Engine.windowH);
+        Engine.displaySize.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
+        al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y);
     }
     else if(Operation.Literals[0].getString() == "fullscreen"){
         if(Operation.Literals[1].getBool() == Engine.fullscreen){
             return;
         }
         Engine.fullscreen = Operation.Literals[1].getBool();
-        al_set_display_flag(Engine.window, ALLEGRO_FULLSCREEN_WINDOW, !(al_get_display_flags(Engine.window) & ALLEGRO_FULLSCREEN_WINDOW));
-        al_set_display_flag(Engine.window, ALLEGRO_MAXIMIZED, !(al_get_display_flags(Engine.window) & ALLEGRO_MAXIMIZED));
+        al_set_display_flag(Engine.display, ALLEGRO_FULLSCREEN_WINDOW, !(al_get_display_flags(Engine.display) & ALLEGRO_FULLSCREEN_WINDOW));
+        al_set_display_flag(Engine.display, ALLEGRO_MAXIMIZED, !(al_get_display_flags(Engine.display) & ALLEGRO_MAXIMIZED));
         //al_set_display_flag(window, ALLEGRO_NOFRAME, !(al_get_display_flags(window) & ALLEGRO_NOFRAME));   
     }
     else if(Operation.Literals[0].getString() == "pixel_art"){
@@ -4740,7 +4754,27 @@ void ProcessClass::changeProcessAndEngineVariables(OperaClass & Operation, Engin
             al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR);
         }   
     }
-    else if(Operation.Literals[0].getString() == "draw_camera_borders"){
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
+    }
+}
+void ProcessClass::changeProcessVariables(OperaClass & Operation){
+    if(Operation.Literals.size() < 2){
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least two literals.\n";
+        return;
+    }
+    if(Operation.Literals[0].getType() != 's'){
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires first literal being of a string type.\n";
+        return;
+    }
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.Literals[0].getString() << " ";
+        for(unsigned i = 1; i < Operation.Literals.size(); i++){
+            cout << Operation.Literals[i].getStringUnsafe() << " ";
+        }
+        cout << "\n";
+    }
+    if(Operation.Literals[0].getString() == "draw_camera_borders"){
         drawCameraBorders = Operation.Literals[1].getBool(); 
     }
     else if(Operation.Literals[0].getString() == "draw_text_borders"){
@@ -5142,7 +5176,10 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             executeFunction(Operation, EventContext, Event, Engine);
         }
         else if(Operation.instruction == "env"){
-            changeProcessAndEngineVariables(Operation, Engine);
+            changeEngineVariables(Operation, Engine);
+        }
+        else if(Operation.instruction == "proc"){
+            changeProcessVariables(Operation);
         }
         else if(Operation.instruction == "load_bitmap"){
             loadBitmap(Operation, Engine.BitmapContainer);
@@ -5626,11 +5663,11 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         return NewValue;
     }
     else if(Condition.Location.source == "window_w"){
-        NewValue.setInt(Engine.windowW);
+        NewValue.setInt(Engine.displaySize.x);
         return NewValue;
     }
     else if(Condition.Location.source == "window_h"){
-        NewValue.setInt(Engine.windowH);
+        NewValue.setInt(Engine.displaySize.y);
         return NewValue;
     }
     else if(Condition.Location.source == "camera"){
@@ -6346,16 +6383,16 @@ void ProcessClass::adjustPositionOfAllCameras(){
     }
     updateTreeOfCamerasFromSelectedRoot(SelectedCamera);
 }
-void ProcessClass::keepPositionInsideScreen(vec2d & pos, vec2d & size, double displayW, double displayH){
+void ProcessClass::keepPositionInsideScreen(vec2d & pos, vec2d & size, vec2i displaySize){
     if(!SelectedCamera->keepInsideScreen){
         return;
     }
-    size.x = std::min(size.x, displayW);
-    size.y = std::min(size.y, displayH);
+    size.x = std::min(size.x, double(displaySize.x));
+    size.y = std::min(size.y, double(displaySize.y));
     pos.x = std::max(pos.x, 0.0);
     pos.y = std::max(pos.y, 0.0);
-    pos.x = std::min(pos.x, displayW - size.x);
-    pos.y = std::min(pos.y, displayH - size.y);
+    pos.x = std::min(pos.x, double(displaySize.x - size.x));
+    pos.y = std::min(pos.y, double(displaySize.y - size.y));
 }
 void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
     if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
@@ -6368,11 +6405,11 @@ void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
         case CAMERA_FULL:
             if(SelectedCamera->isPinnedToCamera){
                 SelectedCamera->relativePos = Engine.Mouse.getPos() - dragStartingPos;
-                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.displaySize);
             }
             else{
                 SelectedCamera->pos = Engine.Mouse.getPos() - dragStartingPos;
-                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.displaySize);
             }
             adjustPositionOfAllCameras();
             break;
@@ -6383,62 +6420,62 @@ void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
             }
             if(SelectedCamera->isPinnedToCamera){
                 SelectedCamera->relativePos.set(SelectedCamera->pos.x, std::min(Engine.Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
-                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.displaySize);
             }
             else{
                 SelectedCamera->pos.set(SelectedCamera->pos.x, std::min(Engine.Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
-                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.displaySize);
             }
             adjustPositionOfAllCameras();
             break;
         case CAMERA_NE:
             SelectedCamera->setSize(Engine.Mouse.getPos().x - dragStartingPos.x, dragStartingPos.y - Engine.Mouse.getPos().y);
             if(SelectedCamera->keepInsideScreen){
-                SelectedCamera->setSize(std::min(SelectedCamera->size.x, Engine.windowW - SelectedCamera->pos.x),
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, Engine.displaySize.x - SelectedCamera->pos.x),
                                         std::min(SelectedCamera->size.y, dragStartingPos.y - dragStartingPos2.y));
             }
             if(SelectedCamera->isPinnedToCamera){
                 SelectedCamera->relativePos.set(SelectedCamera->pos.x, std::min(Engine.Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
-                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.displaySize);
             }
             else{
                 SelectedCamera->pos.set(SelectedCamera->pos.x, std::min(Engine.Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
-                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.displaySize);
             }
             adjustPositionOfAllCameras();
             break;
         case CAMERA_E:
             SelectedCamera->setSize(Engine.Mouse.getPos().x - dragStartingPos.x, SelectedCamera->size.y);
             if(SelectedCamera->keepInsideScreen){
-                SelectedCamera->setSize(std::min(SelectedCamera->size.x, Engine.windowW - SelectedCamera->pos.x), SelectedCamera->size.y);
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, Engine.displaySize.x - SelectedCamera->pos.x), SelectedCamera->size.y);
             }
             break;
         case CAMERA_SE:
             SelectedCamera->setSize(Engine.Mouse.getPos().x - dragStartingPos.x, Engine.Mouse.getPos().y - dragStartingPos.y);
             if(SelectedCamera->keepInsideScreen){
-                SelectedCamera->setSize(std::min(SelectedCamera->size.x, Engine.windowW - SelectedCamera->pos.x),
-                                        std::min(SelectedCamera->size.y, Engine.windowH - SelectedCamera->pos.y));
+                SelectedCamera->setSize(std::min(SelectedCamera->size.x, Engine.displaySize.x - SelectedCamera->pos.x),
+                                        std::min(SelectedCamera->size.y, Engine.displaySize.y - SelectedCamera->pos.y));
             }
             break;
         case CAMERA_S:
             SelectedCamera->setSize(SelectedCamera->size.x, Engine.Mouse.getPos().y - dragStartingPos.y);
             if(SelectedCamera->keepInsideScreen){
-                SelectedCamera->setSize(SelectedCamera->size.x, std::min(SelectedCamera->size.y, Engine.windowH - SelectedCamera->pos.y));
+                SelectedCamera->setSize(SelectedCamera->size.x, std::min(SelectedCamera->size.y, Engine.displaySize.y - SelectedCamera->pos.y));
             }
             break;
         case CAMERA_SW:
             SelectedCamera->setSize(-Engine.Mouse.getPos().x + dragStartingPos.x, Engine.Mouse.getPos().y - dragStartingPos.y);
             if(SelectedCamera->keepInsideScreen){
                 SelectedCamera->setSize(std::min(SelectedCamera->size.x, dragStartingPos.x - dragStartingPos2.x),
-                                        std::min(SelectedCamera->size.y, Engine.windowH - SelectedCamera->pos.y));
+                                        std::min(SelectedCamera->size.y, Engine.displaySize.y - SelectedCamera->pos.y));
             }
             if(SelectedCamera->isPinnedToCamera){
                 SelectedCamera->relativePos.set(std::min(Engine.Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x), SelectedCamera->pos.y);
-                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.displaySize);
             }
             else{
                 SelectedCamera->pos.set(std::min(Engine.Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x), SelectedCamera->pos.y);
-                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.displaySize);
             }
             adjustPositionOfAllCameras();
             break;
@@ -6449,11 +6486,11 @@ void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
             }
             if(SelectedCamera->isPinnedToCamera){
                 SelectedCamera->relativePos.set(std::min(Engine.Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x), SelectedCamera->pos.y);
-                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.displaySize);
             }
             else{
                 SelectedCamera->pos.set(std::min(Engine.Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x), SelectedCamera->pos.y);
-                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.displaySize);
             }
             adjustPositionOfAllCameras();
             break;
@@ -6466,17 +6503,17 @@ void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
             if(SelectedCamera->isPinnedToCamera){
                 SelectedCamera->relativePos.set(std::min(Engine.Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x),
                                                 std::min(Engine.Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
-                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->relativePos, SelectedCamera->size, Engine.displaySize);
             }
             else{
                 SelectedCamera->pos.set(std::min(Engine.Mouse.getPos().x - dragStartingPos2.x, dragLimit.x - dragStartingPos2.x),
                                         std::min(Engine.Mouse.getPos().y - dragStartingPos2.y, dragLimit.y - dragStartingPos2.y));
-                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.windowW, Engine.windowH);
+                keepPositionInsideScreen(SelectedCamera->pos, SelectedCamera->size, Engine.displaySize);
             }
             adjustPositionOfAllCameras();
             break;
         default:
-            al_set_system_mouse_cursor(Engine.window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+            al_set_system_mouse_cursor(Engine.display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
             break;
     }
 }
@@ -6545,7 +6582,7 @@ void ProcessClass::bringCameraForward(unsigned index, Camera2D * ChosenCamera){
         }
     }
 }
-void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, vector<short> pressedKeys, vector<short> releasedKeys){
+void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const vector<short> & pressedKeys, const vector<short> & releasedKeys){
     if(Cameras.size() == 0){
         return;
     }
@@ -6793,7 +6830,7 @@ void ProcessClass::dragScrollbars(const MouseClass & Mouse){
         }
     }
 }
-void ProcessClass::moveParticles(vector<short> pressedKeys, vector<short> releasedKeys){
+void ProcessClass::moveParticles(const vector<short> & pressedKeys, const vector<short> & releasedKeys){
     timeToInterruptParticles--;
     if(timeToInterruptParticles <= 0)
         return;
@@ -6965,7 +7002,7 @@ void ProcessClass::updateCameraPosition(Camera2D & Camera, AncestorObject * Foll
         Camera.setVisionShift(newPos);
     }
 }
-void ProcessClass::moveObjects(vector<short> pressedKeys, MouseClass Mouse){
+void ProcessClass::moveObjects(const vector<short> & pressedKeys, const MouseClass & Mouse){
     timeToInterruptMovement--;
     if(timeToInterruptMovement <= 0)
         return;
@@ -6986,7 +7023,11 @@ void ProcessClass::moveObjects(vector<short> pressedKeys, MouseClass Mouse){
                 if(!Movement.getIsActive()){
                     continue;
                 }
-                Movement.updateStatesAndVectors(pressedKeys, Mouse.getPressed(), Mouse.getReleased(), Mouse.getZoomedPos(SelectedCamera), Object.getPos(false));
+                bool pressedMouse[5];
+                bool releasedMouse[5];
+                Mouse.getPressed(pressedMouse);
+                Mouse.getReleased(releasedMouse);
+                Movement.updateStatesAndVectors(pressedKeys, pressedMouse, releasedMouse, Mouse.getZoomedPos(SelectedCamera), Object.getPos(false));
                 Movement.updateMomentum(Object.getPos(false));
 
                 //If object doesn't move, clear movement's collisions and detect overlaping objects
@@ -7027,7 +7068,7 @@ void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
         }
     }
 }
-void ProcessClass::drawEverything(ALLEGRO_DISPLAY *display, vector <SingleFont> & FontContainer, int displayW, int displayH){
+void ProcessClass::drawEverything(ALLEGRO_DISPLAY *display, vec2i displaySize, vector <SingleFont> & FontContainer){
     int numberOfDrawnObjects;
     unsigned int i;
     int currentlyDrawnLayer;
@@ -7058,13 +7099,13 @@ void ProcessClass::drawEverything(ALLEGRO_DISPLAY *display, vector <SingleFont> 
             for(currentlyDrawnLayer = 0; currentlyDrawnLayer < totalNumberOfBitmapLayers; currentlyDrawnLayer++){
                 for(i = 0; i < Layer.Objects.size(); i++){
                     if(Layer.Objects[i].getIsActive()){
-                        drawModules(Layer.Objects[i], i, *Camera, FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false, displayW, displayH);
+                        drawModules(Layer.Objects[i], i, *Camera, FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false, displaySize);
                     }
                 }
             }
             for(i = 0; i < foregroundOfObjects.size(); i++){
                 if(Layer.Objects[foregroundOfObjects[i]].getIsActive()){
-                    drawModules(Layer.Objects[foregroundOfObjects[i]], i, *Camera, FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true, displayW, displayH);
+                    drawModules(Layer.Objects[foregroundOfObjects[i]], i, *Camera, FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true, displaySize);
                 }
             }
             if(SelectedLayer == &Layer){
@@ -7091,7 +7132,7 @@ void ProcessClass::drawEverything(ALLEGRO_DISPLAY *display, vector <SingleFont> 
     }
 }
 void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Camera, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
-                             vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground, int displayW, int displayH){
+                             vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground, vec2i displaySize){
     vec2d newPos;
     vec2d objectSize;
     vec2d scaledObjectSize;
@@ -7318,7 +7359,7 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
         if(ParticleEffect.usedBitmapLayer != currentlyDrawnLayer)
             continue;
         
-        ParticleEffect.drawParticles(Object.ImageContainer, vec2i(displayW, displayH), Camera);
+        ParticleEffect.drawParticles(Object.ImageContainer, displaySize, Camera);
         numberOfDrawnObjects++;
     }
 }
@@ -7406,7 +7447,7 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
                     if(!TextField.getIsActive() || !TextField.getCanBeEdited() || !TextField.getEditingIsActive()){
                         continue;
                     }
-                    TextField.editText(Engine.releasedKeys, Engine.pressedKeys, Engine.FontContainer, Engine.window);
+                    TextField.editText(Engine.releasedKeys, Engine.pressedKeys, Engine.FontContainer, Engine.display);
                     if(!TextField.getUpdateConnectedVariable()){
                         continue;
                     }

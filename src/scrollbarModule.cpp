@@ -20,6 +20,9 @@ ScrollbarModule::ScrollbarModule(unsigned newID, vector<string> * listOfIDs, str
     primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     clear();
 }
+ScrollbarModule::~ScrollbarModule(){
+
+}
 
 void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;

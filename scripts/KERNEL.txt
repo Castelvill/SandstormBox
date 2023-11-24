@@ -1,12 +1,12 @@
 start init false
 triggers [on_init]
 
-env print_instructions 0
-env auto_print_stack 0
-env draw_hitboxes 0
-env print_logical_evaluations 0
-env draw_camera_borders 1
-env draw_text_borders 0
+proc print_instructions 0
+proc auto_print_stack 0
+proc draw_hitboxes 0
+proc print_logical_evaluations 0
+proc draw_camera_borders 1
+proc draw_text_borders 0
 env window_size 1366 768
 
 load_bitmap "images/amongus1.png" amongus_1

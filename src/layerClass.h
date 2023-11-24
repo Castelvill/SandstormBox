@@ -19,6 +19,7 @@ public:
     LayerClass();
     LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2i bufferSize);
     LayerClass(string newID, vector <string> & layersIDs);
+    ~LayerClass();
     void clear();
     bool isObjectsUniquenessViolated();
 

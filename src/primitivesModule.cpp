@@ -14,6 +14,9 @@ PrimitivesModule::PrimitivesModule(string newAlias, vector<string> * listOfIDs, 
     primaryConstructor(newAlias, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
+PrimitivesModule::~PrimitivesModule(){
+
+}
 void PrimitivesModule::clear(){
     points.clear();
 }

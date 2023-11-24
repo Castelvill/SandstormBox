@@ -58,6 +58,7 @@ public:
     EveModule();
     EveModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     EveModule(string textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    ~EveModule();
     void clone(const EveModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
     void setUpNewInstance();

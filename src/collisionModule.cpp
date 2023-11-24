@@ -43,7 +43,10 @@ CollisionModule::CollisionModule(string newID, vector<string> *listOfIDs, string
 CollisionModule::CollisionModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     setUpNewInstance(intToStr(newID), vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
 }
-void CollisionModule::clone(const CollisionModule &Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+CollisionModule::~CollisionModule(){
+
+}
+void CollisionModule::clone(const CollisionModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;

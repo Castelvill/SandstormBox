@@ -3,6 +3,9 @@
 
 #include "layerClass.h"
 
+#define KEY_SEEN     1
+#define KEY_RELEASED 2
+
 class Interval{
 private:
     unsigned int initial_;
@@ -27,7 +30,7 @@ public:
 
 class EngineClass{
 public:
-    ALLEGRO_DISPLAY * window;
+    ALLEGRO_DISPLAY * display;
     ALLEGRO_BITMAP * cursorBitmap;
     ALLEGRO_BITMAP * iconBitmap;
     ALLEGRO_MOUSE_CURSOR * mouseCursor;
@@ -37,8 +40,7 @@ public:
 
     Fps fps;
     string windowTitle;
-    int windowW;
-    int windowH;
+    vec2i displaySize;
     bool fullscreen;
     bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
 
@@ -54,17 +56,19 @@ public:
     vector <short> firstPressedKeys;
     vector <short> releasedKeys;
 
+    vector <unsigned> processDisplayOrder;
+
     EngineClass(string title);
     void initAllegro();
     void exitAllegro();
     void updateEvents();
-    void clearEvents();
+    void endEvents();
 
     bool isRunning() const;
     int getWindowW() const;
     int getWindowH() const;
     ALLEGRO_DISPLAY *getWindow();
-    vec2i getScreenSize() const;
+    vec2i getDisplaySize() const;
     bool secondHasPassed() const;
 };
 

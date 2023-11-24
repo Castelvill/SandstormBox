@@ -72,6 +72,7 @@ public:
     MovementModule();
     MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ~MovementModule();
     void clone(const MovementModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clear();
 

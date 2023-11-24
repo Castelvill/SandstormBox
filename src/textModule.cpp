@@ -36,15 +36,18 @@ TextModule::TextModule(string newID, vector<string> *listOfIDs, string newLayerI
     primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+TextModule::TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+    setUpNewInstance();
+}
+TextModule::~TextModule(){
+
+}
+void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
-}
-TextModule::TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    setUpNewInstance();
 }
 void TextModule::addNewContent(string newContent){
     content.push_back(newContent);

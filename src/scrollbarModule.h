@@ -19,6 +19,7 @@ public:
     ScrollbarModule();
     ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     ScrollbarModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ~ScrollbarModule();
     void clone(const ScrollbarModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
     void draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera);

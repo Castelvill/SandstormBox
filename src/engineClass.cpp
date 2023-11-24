@@ -11,9 +11,6 @@
     }
 #endif
 
-#define KEY_SEEN     1
-#define KEY_RELEASED 2
-
 inline unsigned int Interval::value() const{
     return GetTickCount()-initial_;
 }
@@ -108,8 +105,7 @@ EngineClass::EngineClass(string title){
     isPixelArt = false;
     cursorBitmap = NULL;
     windowTitle = title;
-    windowW = 1280;//1920/1.0;
-    windowH = 720;//1025/1.0;
+    displaySize.set(1280, 720);
     fullscreen = false;
     closeProgram = false;
     redraw = false;
@@ -147,10 +143,10 @@ void EngineClass::initAllegro(){
     int SCREEN_H;
     getDesktopResolution(0, &SCREEN_W, &SCREEN_H);
 
-    window = al_create_display(SCREEN_W, SCREEN_H);
-    al_set_window_title(window, windowTitle.c_str());
-    al_set_window_position(window, 0, 0);
-    al_resize_display(window, windowW, windowH);
+    display = al_create_display(SCREEN_W, SCREEN_H);
+    al_set_window_title(display, windowTitle.c_str());
+    al_set_window_position(display, 0, 0);
+    al_resize_display(display, displaySize.x, displaySize.y);
 
     EXE_PATH = "";
     ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
@@ -163,10 +159,10 @@ void EngineClass::initAllegro(){
     //cursorBitmap = al_load_bitmap("images/cursor.png");
     if(cursorBitmap){
         mouseCursor = al_create_mouse_cursor(cursorBitmap, 0, 0);
-        al_set_mouse_cursor(window, mouseCursor);
+        al_set_mouse_cursor(display, mouseCursor);
     }
     else{
-        al_set_system_mouse_cursor(window, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+        al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
     }
 
     eventQueue = al_create_event_queue();
@@ -176,7 +172,7 @@ void EngineClass::initAllegro(){
     //cout << "Timer speed: "<< al_get_timer_speed(timer)*60 << "s\n";
 
     al_register_event_source(eventQueue, al_get_keyboard_event_source());
-    al_register_event_source(eventQueue, al_get_display_event_source(window));
+    al_register_event_source(eventQueue, al_get_display_event_source(display));
     al_register_event_source(eventQueue, al_get_timer_event_source(timer));
     al_register_event_source(eventQueue, al_get_mouse_event_source());
 
@@ -190,7 +186,7 @@ void EngineClass::initAllegro(){
 
     iconBitmap = al_load_bitmap((EXE_PATH + "icon.png").c_str());
     if(iconBitmap){
-        al_set_display_icon(window, iconBitmap);
+        al_set_display_icon(display, iconBitmap);
     }
 
     loadFontsToContainer(FontContainer, EXE_PATH);
@@ -205,7 +201,7 @@ void EngineClass::exitAllegro(){
     firstPressedKeys.clear();
     pressedKeys.clear();
     
-    al_destroy_display(window);
+    al_destroy_display(display);
     if(cursorBitmap){
         al_destroy_bitmap(cursorBitmap);
         al_destroy_mouse_cursor(mouseCursor);
@@ -221,25 +217,25 @@ void EngineClass::exitAllegro(){
 }
 void EngineClass::updateEvents(){
     switch(event.type){
+        case ALLEGRO_EVENT_DISPLAY_RESIZE:
+            al_acknowledge_resize(display);
+            displaySize.set(al_get_display_width(display), al_get_display_height(display));
+            displayResized = true;
+            break;
         case ALLEGRO_EVENT_TIMER:
             releasedKeys.clear();
             releasedKeys = getReleasedKeys(key, pressedKeys);
             pressedKeys.clear();
             pressedKeys = getPressedKeys(key);
-
             if(key[ALLEGRO_KEY_ESCAPE]){
                 closeProgram = true;
-                return;
             }
-
-            redraw = true;
-                
             break;
-        case ALLEGRO_EVENT_DISPLAY_RESIZE:
-            al_acknowledge_resize(window);
-            windowW = al_get_display_width(window);
-            windowH = al_get_display_height(window);
-            displayResized = true;
+        case ALLEGRO_EVENT_MOUSE_AXES:
+            Mouse.updateAxes(event, fullscreen);
+            break;
+        case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+            Mouse.updateButtonsPressed(event);
             break;
         case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
             Mouse.updateButtonsReleased(event);
@@ -251,31 +247,22 @@ void EngineClass::updateEvents(){
         case ALLEGRO_EVENT_KEY_UP:
             key[event.keyboard.keycode] &= KEY_RELEASED;
             break;
-        case ALLEGRO_EVENT_MOUSE_AXES:
-            Mouse.updateAxes(event, fullscreen);
-        case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-            Mouse.updateButtonsPressed(event);
-            break;
         case ALLEGRO_EVENT_DISPLAY_CLOSE:
             closeProgram = true;
-            return;
+            break;
     }
 }
-void EngineClass::clearEvents(){
+void EngineClass::endEvents(){
     switch(event.type){
         case ALLEGRO_EVENT_TIMER:
             displayResized = false;
-
             firstPressedKeys.clear();
-
             Mouse.didMouseMove = false;
-
             Mouse.resetFirstPressed();
-            
             for(int i = 0; i < ALLEGRO_KEY_MAX; i++)
                 key[i] &= KEY_SEEN;
-
             Mouse.resetReleased();
+            redraw = true;
             break;
     }
 }
@@ -284,16 +271,16 @@ bool EngineClass::isRunning() const{
     return !closeProgram;
 }
 int EngineClass::getWindowW() const{
-    return windowW;
+    return displaySize.x;
 }
 int EngineClass::getWindowH() const{
-    return windowH;
+    return displaySize.y;
 }
 ALLEGRO_DISPLAY *EngineClass::getWindow(){
-    return window;
+    return display;
 }
-vec2i EngineClass::getScreenSize() const{
-    return vec2i(windowW, windowH);
+vec2i EngineClass::getDisplaySize() const{
+    return displaySize;
 }
 bool EngineClass::secondHasPassed() const{
     return al_get_timer_count(timer) % (int)FPS == 0;

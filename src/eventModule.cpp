@@ -35,6 +35,9 @@ EveModule::EveModule(string eventModuleID, vector<string> *listOfIDs, string new
     primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
+EveModule::~EveModule(){
+
+}
 void EveModule::clear(){
     ConditionalChain.clear();
     PostOperations.clear();

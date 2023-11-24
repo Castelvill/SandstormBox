@@ -52,7 +52,10 @@ Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
     setUpInstance(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0));
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
-void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs, bool changeOldID){
+Camera2D::~Camera2D(){
+
+}
+void Camera2D::clone(const Camera2D &Original, vector<string> &camerasIDs, bool changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
         cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
@@ -67,10 +70,8 @@ void Camera2D::clone(const Camera2D& Original, vector <string> & camerasIDs, boo
     if(changeOldID){
         setID(Original.getID(), camerasIDs);
     }
-    if(bitmapBuffer){
-        bitmapBuffer = nullptr;
-        bitmapBuffer = al_create_bitmap(size.x, size.y);
-    }
+    al_destroy_bitmap(bitmapBuffer);
+    bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 void Camera2D::clear(){
     al_destroy_bitmap(bitmapBuffer);
@@ -140,16 +141,7 @@ void Camera2D::setSize(vec2d newSize){
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 void Camera2D::setSize(double x, double y){
-    size.x = x;
-    size.y = y;
-    if(size.x < minSize.x){
-        size.x = minSize.x;
-    }
-    if(size.y < minSize.y){
-        size.y = minSize.y;
-    }
-    al_destroy_bitmap(bitmapBuffer);
-    bitmapBuffer = al_create_bitmap(size.x, size.y);
+    setSize(vec2d(x, y));
 }
 void Camera2D::setMinSize(vec2d newSize){
     minSize = newSize;
@@ -213,7 +205,7 @@ void Camera2D::setTint(float r, float g, float b, float a){
     tint[2] = b;
     tint[3] = a;
 }
-void Camera2D::update(vector<short> pressedKeys){
+void Camera2D::update(const vector<short> & pressedKeys){
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
         if(pressedKeys[i] == upKey)
             visionShift.y += speed;

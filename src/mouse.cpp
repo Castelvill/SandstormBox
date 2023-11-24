@@ -4,6 +4,9 @@ MouseClass::MouseClass(){
     scrollPos = 0;
     lastScrollPos = 0;
 }
+MouseClass::~MouseClass(){
+    reset();
+}
 void MouseClass::reset(){
     for(int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
         firstPressed[i] = false;
@@ -24,11 +27,11 @@ void MouseClass::resetFirstPressed(){
 void MouseClass::setUp(){
     reset();
 }
-bool * MouseClass::getPressed(){
-    return pressed;
+void MouseClass::getPressed(bool pressedMouse[5]) const{
+    memcpy(pressedMouse, pressed, 5 * sizeof(bool));
 }
-bool * MouseClass::getReleased(){
-    return released;
+void MouseClass::getReleased(bool releasedMouse[5]) const{
+    memcpy(releasedMouse, released, 5 * sizeof(bool));
 }
 vec2d MouseClass::getPos() const{
     return pos;

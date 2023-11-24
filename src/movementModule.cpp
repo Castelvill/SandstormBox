@@ -130,7 +130,10 @@ MovementModule::MovementModule(string newID, vector<string> * listOfIDs, string 
 MovementModule::MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     setUpNewInstance(intToStr(newID), listOfIDs, newLayerID, newObjectID);
 }
-void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+MovementModule::~MovementModule(){
+
+}
+void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;
