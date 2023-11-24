@@ -43,12 +43,12 @@ void ScrollbarModule::draw(vec2d basePos ,vector <ImageModule> & ImageContainer,
         }
     }
 }
-bool ScrollbarModule::startDragging(vec2d basePos, MouseClass Mouse, Camera2D * Camera){
+bool ScrollbarModule::startDragging(vec2d basePos, const MouseClass & Mouse, Camera2D * Camera){
     mousePressed = false;
 
     vec2d realThumbPos(basePos+pos+thumbPos);
     if(isAttachedToCamera){
-        if(Mouse.inRectangle(realThumbPos, thumbSize, true)){
+        if(Mouse.inRectangle(realThumbPos, thumbSize, true, Camera)){
             mousePressed = true;
             dragStartingPos.set(Mouse.getPos()-realThumbPos);
             FocusedCamera = Camera;
@@ -56,9 +56,9 @@ bool ScrollbarModule::startDragging(vec2d basePos, MouseClass Mouse, Camera2D * 
         }
     }
     else{
-        if(Mouse.inRectangle(realThumbPos+Camera->visionShift, thumbSize, false)){
+        if(Mouse.inRectangle(realThumbPos+Camera->visionShift, thumbSize, false, nullptr)){
             mousePressed = true;
-            dragStartingPos.set(Mouse.getZoomPos()-realThumbPos-Camera->visionShift);
+            dragStartingPos.set(Mouse.getZoomedPos(Camera)-realThumbPos-Camera->visionShift);
             FocusedCamera = Camera;
             return true;
         }
@@ -66,13 +66,12 @@ bool ScrollbarModule::startDragging(vec2d basePos, MouseClass Mouse, Camera2D * 
 
     return false;
 }
-bool ScrollbarModule::dragThumb(vec2d basePos, MouseClass Mouse){
+bool ScrollbarModule::dragThumb(vec2d basePos, const MouseClass & Mouse){
     if(FocusedCamera == nullptr){
         mousePressed = false;
         return false;
     }
-    Mouse.updateZoomPos(*FocusedCamera);
-    if(!mousePressed || !Mouse.pressedInRectangle(FocusedCamera->pos, FocusedCamera->size, 0, false)){
+    if(!mousePressed || !Mouse.pressedInRectangle(FocusedCamera->pos, FocusedCamera->size, 0, false, nullptr)){
         mousePressed = false;
         return false;
     }
@@ -92,7 +91,7 @@ bool ScrollbarModule::dragThumb(vec2d basePos, MouseClass Mouse){
         }
     }
     else{
-        thumbPos.set(Mouse.getZoomPos()-FocusedCamera->visionShift-basePos-pos-dragStartingPos);
+        thumbPos.set(Mouse.getZoomedPos(FocusedCamera)-FocusedCamera->visionShift-basePos-pos-dragStartingPos);
         if(thumbPos.x < 0){
             thumbPos.x = 0;
         }

@@ -8,9 +8,7 @@
 class MouseClass{
 private:
     vec2d pos;
-    vec2d zoomPos;
     vec2d pressedPos;
-    vec2d zoomPressedPos;
     int scrollPos, lastScrollPos;
     bool pressed[MOUSE_BUTTONS_NUM_MAX];
     bool released[MOUSE_BUTTONS_NUM_MAX];
@@ -26,30 +24,29 @@ public:
     bool * getPressed();
     bool * getReleased();
     vec2d getPos() const;
-    vec2d getZoomPos();
-    vec2d getPressedPos();
-    vec2d getZoomPressedPos();
-    void updateZoomPos(Camera2D Camera);
+    vec2d getPressedPos() const;
+    vec2d getZoomedPos(const Camera2D * Camera) const;
+    vec2d getZoomedPressedPos(const Camera2D * Camera) const;
     void updateAxes(ALLEGRO_EVENT event, bool fullscreen);
     void updateZoomForCamera(Camera2D * Camera);
     void updateButtonsPressed(ALLEGRO_EVENT event);
     void updateButtonsReleased(ALLEGRO_EVENT event);
-    bool isFirstPressed();
-    bool isPressed();
-    bool isReleased();
-    bool doesButtonExist(short button);
-    bool isFirstPressed(short button);
-    bool isPressed(short button);
-    bool isReleased(short button);
-    bool inRectangle(vec2d rPos, vec2d rSize, bool isCameraOrAttachedToCamera);
-    bool firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera);
-    bool pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera);
-    bool firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera);
-    bool releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera);
-    bool inRadius(vec2d rPos, double radius, bool isCameraOrAttachedToCamera);
-    bool firstPressedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera);
-    bool pressedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera);
-    bool releasedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera);
+    bool isFirstPressed() const;
+    bool isPressed() const;
+    bool isReleased() const;
+    bool doesButtonExist(short button) const;
+    bool isFirstPressed(short button) const;
+    bool isPressed(short button) const;
+    bool isReleased(short button) const;
+    bool inRectangle(vec2d rPos, vec2d rSize, bool isAttachedToCamera, const Camera2D * Camera) const;
+    bool firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isAttachedToCamera, const Camera2D * Camera) const;
+    bool pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isAttachedToCamera, const Camera2D * Camera) const;
+    bool firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isAttachedToCamera, const Camera2D * Camera) const;
+    bool releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isAttachedToCamera, const Camera2D * Camera) const;
+    bool inRadius(vec2d rPos, double radius, bool isAttachedToCamera, const Camera2D * Camera) const;
+    bool firstPressedInRadius(vec2d rPos, double radius, short button, bool isAttachedToCamera, const Camera2D * Camera) const;
+    bool pressedInRadius(vec2d rPos, double radius, short button, bool isAttachedToCamera, const Camera2D * Camera) const;
+    bool releasedInRadius(vec2d rPos, double radius, short button, bool isAttachedToCamera, const Camera2D * Camera) const;
 };
 
 

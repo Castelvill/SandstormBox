@@ -1,5 +1,5 @@
 void createObjects1(vector <AncestorObject> & Objects, string layerID, vector <string> & listOfUniqueIDs, vector <SingleFont> & FontContainer,
-    vector <SingleBitmap> & BitmapContainer, EngineLoop & Engine)
+    vector <SingleBitmap> & BitmapContainer, ProcessClass & Engine)
 {
     /*Objects.push_back(AncestorObject(Objects.size(), layerID));
     Objects.back().setID("king_arthur");

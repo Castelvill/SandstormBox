@@ -22,8 +22,8 @@ public:
     void clone(const ScrollbarModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
     void draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera);
-    bool startDragging(vec2d basePos, MouseClass Mouse, Camera2D * Camera);
-    bool dragThumb(vec2d basePos, MouseClass Mouse);
+    bool startDragging(vec2d basePos, const MouseClass & Mouse, Camera2D * Camera);
+    bool dragThumb(vec2d basePos, const MouseClass & Mouse);
     vec2d countScrollShift();
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 

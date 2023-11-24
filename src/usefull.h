@@ -17,7 +17,6 @@ string intToStr(int integer);
 string uIntToStr(unsigned int integer);
 string doubleToStr(double doubleVar);
 double countDistance(double x1, double y1, double x2, double y2);
-double countDistance2(double & x1, double & y1, double & x2, double & y2);
 int randomInt(int minValue, int maxValue);
 float randomFloat(float minValue, float maxValue);
 double randomDouble(double minValue, double maxValue);

@@ -123,7 +123,7 @@ bool CollisionModule::isCloseEnough(vec2d solidPos, string solidName, vec2d movi
     double y = solidPos.y+pos.y+size.y/2;
     double x2 = movingPos.x+movingColl->pos.x+movingColl->size.x/2;
     double y2 = movingPos.y+movingColl->pos.y+movingColl->size.y/2;
-    double distance = countDistance2(x, y, x2, y2); //distance from centers
+    double distance = countDistance(x, y, x2, y2); //distance from centers
 
     double radiusOfSolid = 2+sqrt(pow(size.x, 2) + pow(size.y, 2)) / 2.0;
     double radiusOfMoving = 2+sqrt(pow(movingColl->size.x + abs(movingMomentum.x), 2) + pow(movingColl->size.y + abs(movingMomentum.y), 2)) / 2.0;

@@ -26,9 +26,6 @@ string doubleToStr(double doubleVar){
 double countDistance(double x1, double y1, double x2, double y2){
     return sqrt(pow(x1-x2, 2) + pow(y1-y2, 2));
 }
-double countDistance2(double & x1, double & y1, double & x2, double & y2){
-    return sqrt(pow(x1-x2, 2) + pow(y1-y2, 2));
-}
 int randomInt(int minValue, int maxValue){
     return minValue + (rand() % (maxValue - minValue + 1));
     //return minValue + ((double)rand() / (double)RAND_MAX) * (maxValue - minValue);

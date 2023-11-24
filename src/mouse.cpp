@@ -33,19 +33,28 @@ bool * MouseClass::getReleased(){
 vec2d MouseClass::getPos() const{
     return pos;
 }
-vec2d MouseClass::getZoomPos(){
-    return zoomPos;
-}
-vec2d MouseClass::getPressedPos(){
+vec2d MouseClass::getPressedPos() const{
     return pressedPos;
 }
-vec2d MouseClass::getZoomPressedPos(){
-    return zoomPressedPos;
+vec2d MouseClass::getZoomedPos(const Camera2D * Camera) const{
+    if(Camera == nullptr){
+        return pos;
+    }
+    vec2d zoomedPos;
+    zoomedPos.set(Camera->size.x/2-pos.x, Camera->size.y/2-pos.y);
+    zoomedPos.divide(Camera->zoom);
+    zoomedPos.set(Camera->size.x/2-zoomedPos.x, Camera->size.y/2-zoomedPos.y);
+    return zoomedPos;
 }
-void MouseClass::updateZoomPos(Camera2D Camera){
-    zoomPos.set(Camera.size.x/2-pos.x, Camera.size.y/2-pos.y);
-    zoomPos.divide(Camera.zoom);
-    zoomPos.set(Camera.size.x/2-zoomPos.x, Camera.size.y/2-zoomPos.y);
+vec2d MouseClass::getZoomedPressedPos(const Camera2D * Camera) const{
+    if(Camera == nullptr){
+        return pos;
+    }
+    vec2d zoomedPressedPos;
+    zoomedPressedPos.set(Camera->size.x/2-pressedPos.x, Camera->size.y/2-pressedPos.y);
+    zoomedPressedPos.divide(Camera->zoom);
+    zoomedPressedPos.set(Camera->size.x/2-zoomedPressedPos.x, Camera->size.y/2-zoomedPressedPos.y);
+    return zoomedPressedPos;
 }
 void MouseClass::updateAxes(ALLEGRO_EVENT event, bool fullscreen){
     didMouseMove = true;
@@ -100,7 +109,6 @@ void MouseClass::updateButtonsPressed(ALLEGRO_EVENT event){
     }
     if(updatePressedPos){
         pressedPos.set(pos);
-        zoomPressedPos.set(zoomPos);
     }
 }
 void MouseClass::updateButtonsReleased(ALLEGRO_EVENT event){
@@ -130,108 +138,112 @@ void MouseClass::updateButtonsReleased(ALLEGRO_EVENT event){
         pressed[4] = false;
     }
 }
-bool MouseClass::inRectangle(vec2d rPos, vec2d rSize, bool isCameraOrAttachedToCamera){
-    if(isCameraOrAttachedToCamera){
+bool MouseClass::inRectangle(vec2d rPos, vec2d rSize, bool isAttachedToCamera, const Camera2D * Camera) const{
+    if(isAttachedToCamera){
         if(pos.x >= rPos.x && pos.x <= rPos.x + rSize.x && pos.y >= rPos.y && pos.y <= rPos.y + rSize.y){
             return true;
         }
     }
     else{
-        if(zoomPos.x >= rPos.x && zoomPos.x <= rPos.x + rSize.x && zoomPos.y >= rPos.y && zoomPos.y <= rPos.y + rSize.y){
+        vec2d zoomedPos(getZoomedPos(Camera));
+        if(zoomedPos.x >= rPos.x && zoomedPos.x <= rPos.x + rSize.x && zoomedPos.y >= rPos.y && zoomedPos.y <= rPos.y + rSize.y){
             return true;
         }
     }
 
     return false;
 }
-bool MouseClass::isFirstPressed(){
+bool MouseClass::isFirstPressed() const{
     for(unsigned int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
         if(firstPressed[i])
             return true;
     }
     return false;
 }
-bool MouseClass::isPressed(){
+bool MouseClass::isPressed() const{
     for(unsigned int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
         if(pressed[i])
             return true;
     }
     return false;
 }
-bool MouseClass::isReleased(){
+bool MouseClass::isReleased() const{
     for(unsigned int i = 0; i < MOUSE_BUTTONS_NUM_MAX; i++){
         if(released[i])
             return true;
     }
     return false;
 }
-bool MouseClass::doesButtonExist(short button){
+bool MouseClass::doesButtonExist(short button)  const{
     if(button < 0 || button >= MOUSE_BUTTONS_NUM_MAX){
         cout << "Error [Mouse]: Mouse button with number " << button << " does not exist.\n";
         return false;
     }
     return true;
 }
-bool MouseClass::isFirstPressed(short button){
+bool MouseClass::isFirstPressed(short button) const{
     if(!doesButtonExist(button)){
         return false;
     }
     return firstPressed[button];
 }
-bool MouseClass::isPressed(short button){
+bool MouseClass::isPressed(short button) const{
     if(!doesButtonExist(button)){
         return false;
     }
     return pressed[button];
 }
-bool MouseClass::isReleased(short button){
+bool MouseClass::isReleased(short button) const{
     if(!doesButtonExist(button)){
         return false;
     }
     return released[button];
 }
-bool MouseClass::firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera){
+bool MouseClass::firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isAttachedToCamera, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(firstPressed[button]){
-        return inRectangle(rPos, rSize, isCameraOrAttachedToCamera);
+        return inRectangle(rPos, rSize, isAttachedToCamera, Camera);
     }
     return false;
 }
-bool MouseClass::pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera){
+bool MouseClass::pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isAttachedToCamera, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        return inRectangle(rPos, rSize, isCameraOrAttachedToCamera);
+        return inRectangle(rPos, rSize, isAttachedToCamera, Camera);
     }
     return false;
 }
-bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera){
+bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isAttachedToCamera, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        if(isCameraOrAttachedToCamera){
+        if(isAttachedToCamera){
             if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
                 return true;
             }
         }
         else{
-            if(zoomPressedPos.x >= rPos.x && zoomPressedPos.x <= rPos.x + rSize.x && zoomPressedPos.y >= rPos.y && zoomPressedPos.y <= rPos.y + rSize.y){
+            vec2d zoomedPressedPos(getZoomedPressedPos(Camera));
+            if(zoomedPressedPos.x >= rPos.x && zoomedPressedPos.x <= rPos.x + rSize.x
+                && zoomedPressedPos.y >= rPos.y && zoomedPressedPos.y <= rPos.y + rSize.y)
+            {
                 return true;
             }
         }
     }
     return false;
 }
-bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isCameraOrAttachedToCamera){
+bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isAttachedToCamera, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(released[button]){
-        if(isCameraOrAttachedToCamera){
+        if(isAttachedToCamera){
             if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
                 if(pos.x >= rPos.x && pos.x <= rPos.x + rSize.x && pos.y >= rPos.y && pos.y <= rPos.y + rSize.y){
                     return true;
@@ -239,8 +251,12 @@ bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool
             }
         }
         else{
-            if(zoomPressedPos.x >= rPos.x && zoomPressedPos.x <= rPos.x + rSize.x && zoomPressedPos.y >= rPos.y && zoomPressedPos.y <= rPos.y + rSize.y){
-                if(zoomPos.x >= rPos.x && zoomPos.x <= rPos.x + rSize.x && zoomPos.y >= rPos.y && zoomPos.y <= rPos.y + rSize.y){
+            vec2d zoomedPressedPos(getZoomedPressedPos(Camera));
+            if(zoomedPressedPos.x >= rPos.x && zoomedPressedPos.x <= rPos.x + rSize.x
+                && zoomedPressedPos.y >= rPos.y && zoomedPressedPos.y <= rPos.y + rSize.y)
+            {
+                vec2d zoomedPos(getZoomedPos(Camera));
+                if(zoomedPos.x >= rPos.x && zoomedPos.x <= rPos.x + rSize.x && zoomedPos.y >= rPos.y && zoomedPos.y <= rPos.y + rSize.y){
                     return true;
                 }
             }
@@ -248,53 +264,56 @@ bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool
     }
     return false;
 }
-bool MouseClass::inRadius(vec2d rPos, double radius, bool isCameraOrAttachedToCamera){
-    if(isCameraOrAttachedToCamera){
-        if(countDistance2(pos.x, pos.y, rPos.x, rPos.y) <= radius){
+bool MouseClass::inRadius(vec2d rPos, double radius, bool isAttachedToCamera, const Camera2D * Camera) const{
+    if(isAttachedToCamera){
+        if(countDistance(pos.x, pos.y, rPos.x, rPos.y) <= radius){
             return true;
         }
     }
     else{
-        if(countDistance2(zoomPos.x, zoomPos.y, rPos.x, rPos.y) <= radius){
+        vec2d zoomedPos(getZoomedPos(Camera));
+        if(countDistance(zoomedPos.x, zoomedPos.y, rPos.x, rPos.y) <= radius){
             return true;
         }
     }
 
     return false;
 }
-bool MouseClass::firstPressedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera){
+bool MouseClass::firstPressedInRadius(vec2d rPos, double radius, short button, bool isAttachedToCamera, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(firstPressed[button]){
-        return inRadius(rPos, radius, isCameraOrAttachedToCamera);
+        return inRadius(rPos, radius, isAttachedToCamera, Camera);
     }
     return false;
 }
-bool MouseClass::pressedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera){
+bool MouseClass::pressedInRadius(vec2d rPos, double radius, short button, bool isAttachedToCamera, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        return inRadius(rPos, radius, isCameraOrAttachedToCamera);
+        return inRadius(rPos, radius, isAttachedToCamera, Camera);
     }
     return false;
 }
-bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool isCameraOrAttachedToCamera){
+bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool isAttachedToCamera, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(released[button]){
-        if(isCameraOrAttachedToCamera){
-            if(countDistance2(pressedPos.x, pressedPos.y, rPos.x, rPos.y) <= radius){
-                if(countDistance2(pos.x, pos.y, rPos.x, rPos.y) <= radius){
+        if(isAttachedToCamera){
+            if(countDistance(pressedPos.x, pressedPos.y, rPos.x, rPos.y) <= radius){
+                if(countDistance(pos.x, pos.y, rPos.x, rPos.y) <= radius){
                     return true;
                 }
             }
         }
         else{
-            if(countDistance2(zoomPressedPos.x, zoomPressedPos.y, rPos.x, rPos.y) <= radius){
-                if(countDistance2(zoomPos.x, zoomPos.y, rPos.x, rPos.y) <= radius){
+            vec2d zoomedPressedPos(getZoomedPressedPos(Camera));
+            if(countDistance(zoomedPressedPos.x, zoomedPressedPos.y, rPos.x, rPos.y) <= radius){
+                vec2d zoomedPos(getZoomedPos(Camera));
+                if(countDistance(zoomedPos.x, zoomedPos.y, rPos.x, rPos.y) <= radius){
                     return true;
                 }
             }

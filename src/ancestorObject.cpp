@@ -227,9 +227,6 @@ void AncestorObject::clearContainers(){
     for(auto & Particle : ParticlesContainer){
         Particle.clear();
     }
-    for(auto & Event : EventsContainer){
-        Event.clear();
-    }
     for(auto & Event : EveContainer){
         Event.clear();
     }
@@ -242,7 +239,6 @@ void AncestorObject::clearContainers(){
     MovementContainer.clear();
     CollisionContainer.clear();
     ParticlesContainer.clear();
-    EventsContainer.clear();
     VariablesContainer.clear();
     ScrollbarContainer.clear();
     PrimitivesContainer.clear();
@@ -258,100 +254,6 @@ void AncestorObject::clearContainers(){
     ImageContainer.back().setIsAttachedToCamera(true);
     setIsAttachedToCamera(true);
 }*/
-void AncestorObject::operateEvent(int sourceID, int event, int operationID, vector <AncestorObject> & Objects){
-    unsigned int objIndex = EventsContainer[event].Operations[operationID].affectedObjectIndex;
-
-    if(!EventsContainer[event].Operations[operationID].isTriggeringItself){
-        if(EventsContainer[event].Operations[operationID].affectedObjectID != Objects[objIndex].getID()){
-            bool success = false;
-            for(unsigned int i = 0 ; i < Objects.size(); i++){
-                if(EventsContainer[event].Operations[operationID].affectedObjectID == Objects[i].getID()){
-                    success = true;
-                    EventsContainer[event].Operations[operationID].affectedObjectIndex = i;
-                    objIndex = i;
-                }
-            }
-            if(!success){
-                return;
-            }
-        }
-    }
-    else{
-        objIndex = sourceID;
-    }
-
-
-    if(EventsContainer[event].Operations[operationID].affectedModule == "ancestor"){
-        EventsContainer[event].controlAncestor(operationID, Objects[objIndex].getPosAddr(), Objects[objIndex].getSizeAddr());
-    }
-    else if(EventsContainer[event].Operations[operationID].affectedModule == "text"){
-        for(auto & Text : Objects[objIndex].TextContainer){
-            if(EventsContainer[event].Operations[operationID].affectedModuleID == Text.getID()){
-                EventsContainer[event].controlText(operationID, Text);
-            }
-        }
-    }
-    else if(EventsContainer[event].Operations[operationID].affectedModule == "image"){
-        for(auto & Image : Objects[objIndex].ImageContainer){
-            if(EventsContainer[event].Operations[operationID].affectedModuleID == Image.getID()){
-                EventsContainer[event].controlImage(operationID, Image);
-            }
-        }
-    }
-    else if(EventsContainer[event].Operations[operationID].affectedModule == "movement"){
-        for(auto & Movement : Objects[objIndex].MovementContainer){
-            if(EventsContainer[event].Operations[operationID].affectedModuleID == Movement.getID()){
-                EventsContainer[event].controlMovement(operationID, Movement);
-            }
-        }
-    }
-    else if(EventsContainer[event].Operations[operationID].affectedModule == "collision"){
-        for(auto & Collision : Objects[objIndex].CollisionContainer){
-            if(EventsContainer[event].Operations[operationID].affectedModuleID == Collision.getID()){
-                EventsContainer[event].controlCollision(operationID, Collision);
-            }
-        }
-    }
-    else if(EventsContainer[event].Operations[operationID].affectedModule == "particles"){
-        for(auto & Particles : Objects[objIndex].ParticlesContainer){
-            if(EventsContainer[event].Operations[operationID].affectedModuleID == Particles.getID()){
-                EventsContainer[event].controlParticles(operationID, Particles);
-            }
-        }
-    }
-    else if(EventsContainer[event].Operations[operationID].affectedModule == "variables"){
-        for(auto & Variable : Objects[objIndex].VariablesContainer){
-            if(EventsContainer[event].Operations[operationID].affectedModuleID == Variable.getID()){
-                EventsContainer[event].controlVariables(operationID, Variable);
-            }
-        }
-    }
-    else if(EventsContainer[event].Operations[operationID].affectedModule == "scrollbar"){
-        for(auto & Scrollbar : Objects[objIndex].ScrollbarContainer){
-            if(EventsContainer[event].Operations[operationID].affectedModuleID == Scrollbar.getID()){
-                EventsContainer[event].controlScrollbar(operationID, Scrollbar);
-            }
-        }
-    }
-    else if(EventsContainer[event].Operations[operationID].affectedModule == "function"){
-        if(EventsContainer[event].Operations[operationID].affectedVariable == "deactivate_all"){
-            deactivateAllVectorsInEditorWindow(&Objects[objIndex]);
-        }
-        else if(EventsContainer[event].Operations[operationID].affectedVariable == "activate_based_on_id"){
-            activateBasedOnId(&Objects[objIndex], EventsContainer[event].Operations[operationID].affectedModuleID);
-        }
-        else if(EventsContainer[event].Operations[operationID].affectedVariable == "activate_based_on_first_char"){
-            activateBasedOnFirstChar(&Objects[objIndex], EventsContainer[event].Operations[operationID].affectedModuleID[0]);
-            deactivateWrapped(std::stoi(EventsContainer[event].Operations[operationID].affectedModuleID), &Objects[objIndex]);
-        }
-        else if(EventsContainer[event].Operations[operationID].affectedVariable == "manage_wrap"){
-            int categoryIndex = (int)EventsContainer[event].Operations[operationID].choosenDoubles[0];
-            int wrapperIndex = (int)EventsContainer[event].Operations[operationID].choosenDoubles[1];
-            double containerHeight = EventsContainer[event].Operations[operationID].choosenDoubles[2];
-            manageWrapper(categoryIndex, wrapperIndex, &Objects[objIndex], containerHeight);
-        }
-    }
-}
 void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string EXE_PATH){
     for(AncestorObject & Object : Objects){
         if(EditableText.connectedObject == Object.getID()
@@ -456,9 +358,6 @@ void AncestorObject::createVectorsOfIds(){
     }
     for(const ParticleEffectModule & content : ParticlesContainer){
         particlesContainerIDs.push_back(content.getID());
-    }
-    for(const EventModule & content : EventsContainer){
-        eventsContainerIDs.push_back(content.getID());
     }
     for(const EveModule & content : EveContainer){
         eveContainerIDs.push_back(content.getID());
@@ -1613,7 +1512,6 @@ void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){
     for_each_if(EditorWindow->ImageContainer.begin(), EditorWindow->ImageContainer.end(), isStringInGroupModule<ImageModule>(), deactivateModule<ImageModule>());
     for_each_if(EditorWindow->CollisionContainer.begin(), EditorWindow->CollisionContainer.end(), isStringInGroupModule<CollisionModule>(), deactivateModule<CollisionModule>());
     for_each_if(EditorWindow->EditableTextContainer.begin(), EditorWindow->EditableTextContainer.end(), isStringInGroupModule<EditableTextModule>(), deactivateModule<EditableTextModule>());
-    for_each_if(EditorWindow->EventsContainer.begin(), EditorWindow->EventsContainer.end(), isStringInGroupModule<EventModule>(), deactivateModule<EventModule>());
     for_each_if(EditorWindow->EveContainer.begin(), EditorWindow->EveContainer.end(), isStringInGroupModule<EveModule>(), deactivateModule<EveModule>());
     for_each_if(EditorWindow->ScrollbarContainer.begin(), EditorWindow->ScrollbarContainer.end(), isStringInGroupModule<ScrollbarModule>(), deactivateModule<ScrollbarModule>());
 }
@@ -1622,7 +1520,6 @@ void activateBasedOnId(AncestorObject * EditorWindow, string activateID){
     for_each_if(EditorWindow->ImageContainer.begin(), EditorWindow->ImageContainer.end(), isIDEqualString<ImageModule>(activateID), activateModule<ImageModule>());
     for_each_if(EditorWindow->CollisionContainer.begin(), EditorWindow->CollisionContainer.end(), isIDEqualString<CollisionModule>(activateID), activateModule<CollisionModule>());
     for_each_if(EditorWindow->EditableTextContainer.begin(), EditorWindow->EditableTextContainer.end(), isIDEqualString<EditableTextModule>(activateID), activateModule<EditableTextModule>());
-    for_each_if(EditorWindow->EventsContainer.begin(), EditorWindow->EventsContainer.end(), isIDEqualString<EventModule>(activateID), activateModule<EventModule>());
     for_each_if(EditorWindow->ScrollbarContainer.begin(), EditorWindow->ScrollbarContainer.end(), isIDEqualString<ScrollbarModule>(activateID), activateModule<ScrollbarModule>());
 }
 void activateBasedOnFirstChar(AncestorObject * EditorWindow, char activateID){
@@ -1630,7 +1527,6 @@ void activateBasedOnFirstChar(AncestorObject * EditorWindow, char activateID){
     for_each_if(EditorWindow->ImageContainer.begin(), EditorWindow->ImageContainer.end(), isIDEqualChar<ImageModule>(activateID), activateModule<ImageModule>());
     for_each_if(EditorWindow->CollisionContainer.begin(), EditorWindow->CollisionContainer.end(), isIDEqualChar<CollisionModule>(activateID), activateModule<CollisionModule>());
     for_each_if(EditorWindow->EditableTextContainer.begin(), EditorWindow->EditableTextContainer.end(), isIDEqualChar<EditableTextModule>(activateID), activateModule<EditableTextModule>());
-    for_each_if(EditorWindow->EventsContainer.begin(), EditorWindow->EventsContainer.end(), isIDEqualChar<EventModule>(activateID), activateModule<EventModule>());
     for_each_if(EditorWindow->ScrollbarContainer.begin(), EditorWindow->ScrollbarContainer.end(), isIDEqualChar<ScrollbarModule>(activateID), activateModule<ScrollbarModule>());
 }
 
@@ -1771,7 +1667,7 @@ void manageWrapper(int categoryIndex, int wrapperIndex, AncestorObject * EditorW
         }
     }
 
-    for(index = 0; index < EditorWindow->EventsContainer.size(); index++){
+    /*for(index = 0; index < EditorWindow->EventsContainer.size(); index++){
         if(EditorWindow->EventsContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
             index += wrapperIndex+1;
             for(; index < EditorWindow->EventsContainer.size(); index++){
@@ -1788,5 +1684,5 @@ void manageWrapper(int categoryIndex, int wrapperIndex, AncestorObject * EditorW
             }
             break;
         }
-    }
+    }*/
 }
