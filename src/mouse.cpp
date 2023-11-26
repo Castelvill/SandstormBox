@@ -33,7 +33,18 @@ void MouseClass::getPressed(bool pressedMouse[5]) const{
 void MouseClass::getReleased(bool releasedMouse[5]) const{
     memcpy(releasedMouse, released, 5 * sizeof(bool));
 }
-vec2d MouseClass::getPos() const{
+void MouseClass::translateAllPos(vec2d translation){
+    pos.translate(translation);
+    pressedPos.translate(translation);
+}
+void MouseClass::setPos(vec2d newPos){
+    pos = newPos;
+}
+void MouseClass::setPressedPos(vec2d newPos){
+    pressedPos = newPos;
+}
+vec2d MouseClass::getPos() const
+{
     return pos;
 }
 vec2d MouseClass::getPressedPos() const{

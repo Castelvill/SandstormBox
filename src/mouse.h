@@ -7,8 +7,7 @@
 
 class MouseClass{
 private:
-    vec2d pos;
-    vec2d pressedPos;
+    vec2d pos, pressedPos;
     int scrollPos, lastScrollPos;
     bool pressed[MOUSE_BUTTONS_NUM_MAX];
     bool released[MOUSE_BUTTONS_NUM_MAX];
@@ -24,6 +23,9 @@ public:
     void setUp();
     void getPressed(bool pressedMouse[5]) const;
     void getReleased(bool releasedMouse[5]) const;
+    void translateAllPos(vec2d translation);
+    void setPos(vec2d);
+    void setPressedPos(vec2d);
     vec2d getPos() const;
     vec2d getPressedPos() const;
     vec2d getZoomedPos(const Camera2D * Camera) const;

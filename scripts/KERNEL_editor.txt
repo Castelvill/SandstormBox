@@ -1,6 +1,8 @@
 start init false
 triggers [on_init]
 //env window_size 1000 300
+proc window_pos 1520 0
+proc window_size 400 400
 
 proc draw_camera_borders 0
 

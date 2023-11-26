@@ -44,9 +44,9 @@ void ProcessClass::loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize
 
     updateBaseOfTriggerableObjects();
 }
-
 ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath){
     isActive = true;
+    canInteractWithUser = true;
     
     EXE_PATH = EXE_PATH_FROM_ENGINE;
     firstIteration = true;
@@ -111,7 +111,7 @@ ProcessClass::~ProcessClass(){
 void ProcessClass::clear(){
     al_destroy_bitmap(WindowBuffer);
 }
-void ProcessClass::setWindowSize(vec2d newSize){
+void ProcessClass::resizeWindow(vec2d newSize){
     windowSize.set(newSize);
     if(windowSize.x < minWindowSize.x){
         windowSize.x = minWindowSize.x;
@@ -122,8 +122,8 @@ void ProcessClass::setWindowSize(vec2d newSize){
     al_destroy_bitmap(WindowBuffer);
     WindowBuffer = al_create_bitmap(windowSize.x, windowSize.y);
 }
-void ProcessClass::setWindowSize(double x, double y){
-    setWindowSize(vec2d(x, y));
+void ProcessClass::resizeWindow(double x, double y){
+    resizeWindow(vec2d(x, y));
 }
 bool ProcessClass::isLayersUniquenessViolated(){
     unsigned i, j;
@@ -172,6 +172,7 @@ void ProcessClass::executeIteration(EngineClass & Engine){
     if(Engine.closeProgram || !isActive){
         return;
     }
+    Engine.Mouse.translateAllPos(-windowPos);
     switch(Engine.event.type){
         case ALLEGRO_EVENT_TIMER:
             delayEditableTextFields();
@@ -250,7 +251,7 @@ void ProcessClass::renderOnDisplay(EngineClass & Engine){
 
     //al_set_target_bitmap(al_get_backbuffer(window));
     
-    drawEverything(Engine.display, Engine.displaySize, Engine.FontContainer);
+    drawEverything(Engine);
 
     string updatedFpsLabel = "FPS: " + intToStr(Engine.fps.get());
 
@@ -4774,7 +4775,16 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation){
         }
         cout << "\n";
     }
-    if(Operation.Literals[0].getString() == "draw_camera_borders"){
+    if(Operation.Literals[0].getString() == "is_active"){
+        isActive = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "can_interact_with_user"){
+        canInteractWithUser = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "is_rendering"){
+        isRendering = Operation.Literals[1].getBool(); 
+    }
+    else if(Operation.Literals[0].getString() == "draw_camera_borders"){
         drawCameraBorders = Operation.Literals[1].getBool(); 
     }
     else if(Operation.Literals[0].getString() == "draw_text_borders"){
@@ -4803,6 +4813,64 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation){
     }
     else if(Operation.Literals[0].getString() == "reservation_multiplier"){
         reservationMultiplier = Operation.Literals[1].getDouble(); 
+    }
+    else if(Operation.Literals[0].getString() == "window_pos"){
+        if(Operation.Literals.size() < 3){
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
+            return;
+        }
+        if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()){
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
+            return;
+        }
+        windowPos.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
+    }
+    else if(Operation.Literals[0].getString() == "window_size"){
+        if(Operation.Literals.size() < 3){
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
+            return;
+        }
+        if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()){
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
+            return;
+        }
+        windowSize.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
+        resizeWindow(windowSize);
+    }
+    else if(Operation.Literals[0].getString() == "min_window_size"){
+        if(Operation.Literals.size() < 3){
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
+            return;
+        }
+        if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()){
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
+            return;
+        }
+        minWindowSize.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
+    }
+    else if(Operation.Literals[0].getString() == "window_tint"){
+        if(Operation.Literals.size() < 5){
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
+            return;
+        }
+        if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()
+            || !Operation.Literals[3].isNumeric() || !Operation.Literals[4].isNumeric()
+        ){
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction <<
+                "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
+            return;
+        }
+        windowTint[0] = Operation.Literals[1].getDouble();
+        windowTint[1] = Operation.Literals[2].getDouble();
+        windowTint[2] = Operation.Literals[3].getDouble();
+        windowTint[3] = Operation.Literals[4].getDouble();
     }
     else{
         cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
@@ -7068,7 +7136,9 @@ void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
         }
     }
 }
-void ProcessClass::drawEverything(ALLEGRO_DISPLAY *display, vec2i displaySize, vector <SingleFont> & FontContainer){
+void ProcessClass::drawEverything(EngineClass & Engine){
+    al_set_clipping_rectangle(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
+    
     int numberOfDrawnObjects;
     unsigned int i;
     int currentlyDrawnLayer;
@@ -7099,23 +7169,24 @@ void ProcessClass::drawEverything(ALLEGRO_DISPLAY *display, vec2i displaySize, v
             for(currentlyDrawnLayer = 0; currentlyDrawnLayer < totalNumberOfBitmapLayers; currentlyDrawnLayer++){
                 for(i = 0; i < Layer.Objects.size(); i++){
                     if(Layer.Objects[i].getIsActive()){
-                        drawModules(Layer.Objects[i], i, *Camera, FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false, displaySize);
+                        drawModules(Layer.Objects[i], i, *Camera, Engine.FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false, Engine.displaySize);
                     }
                 }
             }
             for(i = 0; i < foregroundOfObjects.size(); i++){
                 if(Layer.Objects[foregroundOfObjects[i]].getIsActive()){
-                    drawModules(Layer.Objects[foregroundOfObjects[i]], i, *Camera, FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true, displaySize);
+                    drawModules(Layer.Objects[foregroundOfObjects[i]], i, *Camera, Engine.FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true, Engine.displaySize);
                 }
             }
             if(SelectedLayer == &Layer){
                 drawSelectionBorder(*Camera);
             }
         }
-        al_set_target_backbuffer(display);
+        al_set_target_backbuffer(Engine.display);
         //al_draw_bitmap(Camera->bitmapBuffer, Camera->pos.x, Camera->pos.y, 0);
         al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
-        al_draw_tinted_bitmap(Camera->bitmapBuffer, al_map_rgba_f(Camera->tint[0], Camera->tint[1], Camera->tint[2], Camera->tint[3]), Camera->pos.x, Camera->pos.y, 0);
+        al_draw_tinted_bitmap(Camera->bitmapBuffer, al_map_rgba_f(Camera->tint[0], Camera->tint[1], Camera->tint[2], Camera->tint[3]),
+            windowPos.x + Camera->pos.x, windowPos.y + Camera->pos.y, 0);
         al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
         
         foregroundOfObjects.clear();
@@ -7129,7 +7200,13 @@ void ProcessClass::drawEverything(ALLEGRO_DISPLAY *display, vec2i displaySize, v
                 al_draw_rectangle(Camera->pos.x, Camera->pos.y, Camera->pos.x + Camera->size.x, Camera->pos.y + Camera->size.y, al_map_rgb(62, 249, 239), 6);
             }
         }
+        if(Engine.Mouse.isPressed(0)){
+            al_draw_rectangle(Engine.Mouse.getPressedPos().x, Engine.Mouse.getPressedPos().y,
+                Engine.Mouse.getPos().x, Engine.Mouse.getPos().y, al_map_rgb(200, 200, 200), 1);
+        }
     }
+
+    al_reset_clipping_rectangle();
 }
 void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Camera, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
                              vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground, vec2i displaySize){

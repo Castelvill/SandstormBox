@@ -189,6 +189,7 @@ vector <string> changeCodeIntoWords(string input);
 class ProcessClass{
 private:
     bool isActive;
+    bool canInteractWithUser; 
     bool isRendering;
     ALLEGRO_BITMAP * WindowBuffer;
     vec2d windowPos, windowSize, minWindowSize;
@@ -238,8 +239,8 @@ public:
     ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath);
     ~ProcessClass();
     void clear();
-    void setWindowSize(vec2d newSize);
-    void setWindowSize(double x, double y);
+    void resizeWindow(vec2d newSize);
+    void resizeWindow(double x, double y);
     bool isLayersUniquenessViolated();
     bool isCamerasUniquenessViolated();
     void executeIteration(EngineClass & Engine);
@@ -357,7 +358,7 @@ public:
     void detectStartPosOfDraggingObjects(const MouseClass & Mouse);
     void changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mouse);
     void detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, const MouseClass & Mouse);
-    void drawEverything(ALLEGRO_DISPLAY *display, vec2i displaySize, vector <SingleFont> & FontContainer);
+    void drawEverything(EngineClass & Engine);
     void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Cameras, vector <SingleFont> & FontContainer,
         int currentlyDrawnLayer, int & numberOfDrawnObjects, vector <unsigned int> & foregroundOfObjects,
         bool isTimeForForeground, vec2i displaySize);

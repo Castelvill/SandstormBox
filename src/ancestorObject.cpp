@@ -1400,7 +1400,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             else if(words[1] == "window_size"){
                 if(words.size() < 4){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
-                        "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of numeric type.\n";
+                        "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                     return;
                 }
                 Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
@@ -1417,6 +1417,26 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->Literals.push_back(VariableModule::newString(words[1]));
             if(words[1] == "reservation_multiplier"){
                 Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
+            }
+            else if(words[1] == "window_pos" || words[1] == "window_size" || words[1] == "min_window_size"){
+                if(words.size() < 4){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
+                        "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
+                    return;
+                }
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[3])));
+            }
+            else if(words[1] == "window_tint"){
+                if(words.size() < 6){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
+                        "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires four literals of a double type.\n";
+                    return;
+                }
+                Operation->Literals.push_back(VariableModule::newDouble(stoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newDouble(stoi(words[3])));
+                Operation->Literals.push_back(VariableModule::newDouble(stoi(words[4])));
+                Operation->Literals.push_back(VariableModule::newDouble(stoi(words[5])));
             }
             else{
                 Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
