@@ -14,3 +14,9 @@ If selected and !mouse.left.pressed
 THEN
 pressed = false;
 END
+
+Why was EGM created?
+To enable people to prototype games and game engines.
+
+Where you can start to create?
+You can create games and a game engine (or rather its interface, workspace and development pipeline)

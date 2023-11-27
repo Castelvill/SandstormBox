@@ -1,5 +1,0 @@
-new <type> [layerID] [objectID] [size1] [size2] [newIDs] [newContextID] 
-
-new <type> [destinationType] ...
-new <type> location [layerID] [objectID] [size1] [size2] [newIDs] [newContextID]
-new <type> context [contextID] [size1] [size2] [newIDs] [newContextID] 

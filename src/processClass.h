@@ -95,7 +95,7 @@ struct EventsLookupTable{
     void clear();
 };
 
-struct PointerContainer{
+struct ContextClass{
     string ID;
     string type;
     bool readOnly;
@@ -105,9 +105,9 @@ struct PointerContainer{
     vector <AncestorObject*> Objects;
     vector <LayerClass*> Layers;
     vector <Camera2D*> Cameras;
-    PointerContainer();
+    ContextClass();
     void clear();
-    void setID(vector<PointerContainer> &EventContext, string newID, const bool & printOutInstructions);
+    void setID(vector<ContextClass> &EventContext, string newID, const bool & printOutInstructions);
     string getValue();
     template<typename T>
     void addBasePointer(T * pointer);
@@ -161,24 +161,24 @@ struct PointerRecalculator{
     ModuleIndex eventIndex = {0, 0, 0};
 
     void clear();
-    void findIndexesForCameras(vector<Camera2D> &Cameras, vector<PointerContainer> & EventContext, Camera2D *& SelectedCamera);
-    void findIndexesForLayers(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext);
-    void findIndexesForObjects(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext, AncestorObject *& Owner,
+    void findIndexesForCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera);
+    void findIndexesForLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext);
+    void findIndexesForObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, AncestorObject *& EditorObject);
     template <class Module>
     ModuleIndex getIndex(Module *& Instance, vector<LayerClass> & Layers);
     ModuleIndex getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers);
     template <class Module>
     void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers);
-    void findIndexesForModules(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
-    void updatePointersToCameras(vector<Camera2D> &Cameras, vector<PointerContainer> & EventContext, Camera2D *& SelectedCamera);
-    void updatePointersToLayers(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext);
-    void updatePointersToObjects(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext, AncestorObject *& Owner,
+    void findIndexesForModules(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
+    void updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera);
+    void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext);
+    void updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, AncestorObject *& EditorObject);
-    void updatePointersToModules(vector<LayerClass> &Layers, vector<PointerContainer> &EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
+    void updatePointersToModules(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
 };
 
-PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID, bool warning);
+ContextClass * getContextByID(vector<ContextClass> & AllContexts, string contextID, bool warning);
 void extractPointersFromModules(ModulesPointers & ContextModules, AncestorObject * Object, string moduleType);
 template<class Entity>
 Entity * lastNotDeletedInVector(vector<Entity> &Vector);
@@ -188,6 +188,7 @@ vector <string> changeCodeIntoWords(string input);
 
 class ProcessClass{
 private:
+    string ID;
     bool isActive;
     bool canInteractWithUser; 
     bool isRendering;
@@ -243,76 +244,76 @@ public:
     void resizeWindow(double x, double y);
     bool isLayersUniquenessViolated();
     bool isCamerasUniquenessViolated();
-    void executeIteration(EngineClass & Engine);
+    void executeIteration(EngineClass & Engine, vector<ProcessClass> & Processes);
     void renderOnDisplay(EngineClass & Engine);
-    void aggregateCameras(OperaClass & Operation, PointerContainer & NewContext, vector <Camera2D*> AggregatedCameras,
-        const EngineClass & Engine, vector<PointerContainer> &EventContext);
-    void aggregateLayers(OperaClass & Operation, PointerContainer & NewVariable, vector <LayerClass*> AggregatedLayers,
-        const EngineClass & Engine, vector<PointerContainer> &EventContext);
-    void aggregateObjects(OperaClass & Operation, PointerContainer & NewVariable, vector <AncestorObject*> AggregatedObjects,
-        const EngineClass & Engine, vector<PointerContainer> &EventContext);
+    void aggregateCameras(OperaClass & Operation, ContextClass & NewContext, vector <Camera2D*> AggregatedCameras,
+        const EngineClass & Engine, vector<ContextClass> &EventContext);
+    void aggregateLayers(OperaClass & Operation, ContextClass & NewVariable, vector <LayerClass*> AggregatedLayers,
+        const EngineClass & Engine, vector<ContextClass> &EventContext);
+    void aggregateObjects(OperaClass & Operation, ContextClass & NewVariable, vector <AncestorObject*> AggregatedObjects,
+        const EngineClass & Engine, vector<ContextClass> &EventContext);
     //Returns true if the context is of a module type.
-    bool chooseRandomModule(PointerContainer & NewContext);
+    bool chooseRandomModule(ContextClass & NewContext);
     template<class ModuleClass>
-    void aggregateModuleContextFromVectors(vector<ModuleClass*> AggregatedModules, const string & type, OperaClass & Operation, PointerContainer & NewContext,
-        AncestorObject * Object, const EngineClass & Engine, vector<PointerContainer> &EventContext
+    void aggregateModuleContextFromVectors(vector<ModuleClass*> AggregatedModules, const string & type, OperaClass & Operation, ContextClass & NewContext,
+        AncestorObject * Object, const EngineClass & Engine, vector<ContextClass> &EventContext
     );
     template<class ModuleClass>
-    void findContextInModule(string module, string attribute, PointerContainer & NewContext, ModuleClass * Module);
+    void findContextInModule(string module, string attribute, ContextClass & NewContext, ModuleClass * Module);
     template<class ModuleClass>
-    void getContextFromModuleVectorById(string module, string moduleID, string attribute, PointerContainer & NewContext, vector <ModuleClass*> AggregatedModules);
-    void aggregateModules(OperaClass & Operation, PointerContainer & NewVariable, PointerContainer * OldContext, vector<PointerContainer> &EventContext, const EngineClass & Engine);
-    void aggregatePointers(string instruction, PointerContainer & NewContext, vector <BasePointersStruct> & AggregatedPointers);
-    void aggregateVariables(string instruction, PointerContainer & NewContext, vector <VariableModule> & AggregatedVariables);
-    void findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera);
-    void findContextInLayer(ValueLocation Location, PointerContainer & NewContext, LayerClass * Layer);
+    void getContextFromModuleVectorById(string module, string moduleID, string attribute, ContextClass & NewContext, vector <ModuleClass*> AggregatedModules);
+    void aggregateModules(OperaClass & Operation, ContextClass & NewVariable, ContextClass * OldContext, vector<ContextClass> &EventContext, const EngineClass & Engine);
+    void aggregatePointers(string instruction, ContextClass & NewContext, vector <BasePointersStruct> & AggregatedPointers);
+    void aggregateVariables(string instruction, ContextClass & NewContext, vector <VariableModule> & AggregatedVariables);
+    void findContextInCamera(string attribute, ContextClass & NewContext, Camera2D * Camera);
+    void findContextInLayer(ValueLocation Location, ContextClass & NewContext, LayerClass * Layer);
     template <class Module>
-    void findContextInModuleVector(const ValueLocation & Location, PointerContainer & NewContext, vector<Module> & Source);
-    void findContextInObject(ValueLocation Location, PointerContainer & NewContext, AncestorObject * Object);
+    void findContextInModuleVector(const ValueLocation & Location, ContextClass & NewContext, vector<Module> & Source);
+    void findContextInObject(ValueLocation Location, ContextClass & NewContext, AncestorObject * Object);
     bool findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject);
-    void aggregateCamerasAndLayersById(ValueLocation & Location, PointerContainer & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer);
-    void aggregateModulesById(string moduleType, string moduleID, string attribute, PointerContainer & NewContext, ModulesPointers & AggregatedModules);
-    void findLowerContextById(ValueLocation  & Location, PointerContainer & NewContext, PointerContainer * OldContext);
+    void aggregateCamerasAndLayersById(ValueLocation & Location, ContextClass & NewVariable, AncestorObject * Owner, LayerClass * OwnerLayer);
+    void aggregateModulesById(string moduleType, string moduleID, string attribute, ContextClass & NewContext, ModulesPointers & AggregatedModules);
+    void findLowerContextById(ValueLocation  & Location, ContextClass & NewContext, ContextClass * OldContext);
     //Method return true if a pair of contexts of the same type is found.
-    bool getPairOfContexts(PointerContainer *& LeftOperand, PointerContainer *& RightOperand, vector<PointerContainer> & AllContexts, vector <string> contextIDs);
-    bool getOneContext(PointerContainer *& SelectedContext, vector<PointerContainer> & AllContexts, vector<string> contextIDs);
-    bool getAllSelectedContexts(vector<PointerContainer*> & SelectedContexts, vector<PointerContainer> & AllContexts, const vector<string> & contextIDs);
+    bool getPairOfContexts(ContextClass *& LeftOperand, ContextClass *& RightOperand, vector<ContextClass> & AllContexts, vector <string> contextIDs);
+    bool getOneContext(ContextClass *& SelectedContext, vector<ContextClass> & AllContexts, vector<string> contextIDs);
+    bool getAllSelectedContexts(vector<ContextClass*> & SelectedContexts, vector<ContextClass> & AllContexts, const vector<string> & contextIDs);
     template<class Entity>
     void executeOperationsOnSets(string instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand);
     template<class Entity>
     void executeOperationsOnSets(string instruction, vector<Entity> & NewContext, vector<Entity> & LeftOperand, vector<Entity> & RightOperand);
-    void aggregateTwoSets(OperaClass & Operation, vector<PointerContainer> & EventContext);
-    void addNewContext(vector<PointerContainer> & EventContext, const PointerContainer & NewContext, string type, string newID);
-    void aggregateEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, const EngineClass & Engine);
-    void aggregateValues(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer,
+    void aggregateTwoSets(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void addNewContext(vector<ContextClass> & EventContext, const ContextClass & NewContext, string type, string newID);
+    void aggregateEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const EngineClass & Engine);
+    void aggregateValues(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer,
         AncestorObject *Owner, const EngineClass & Engine);
-    void aggregateOnlyById(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner);
-    void nameVariable(vector<PointerContainer> & EventContext, OperaClass & Operation);
+    void aggregateOnlyById(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner);
+    void nameVariable(vector<ContextClass> & EventContext, OperaClass & Operation);
     template<class Entity>
     void cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOperand, vector<LayerClass> & Layers, const bool & changeOldID);
-    void moveValues(OperaClass & Operation, vector<PointerContainer> &EventContext);
-    void cloneEntities(vector<string> dynamicIDs, bool changeOldID, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers);
-    void executeArithmetics(OperaClass & Operation, vector<PointerContainer> &EventContext);
-    void generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation);
-    void createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation);
-    void checkIfVectorContainsVector(OperaClass & Operation, vector<PointerContainer> &EventContext);
-    bool prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs);
-    bool prepareDestinationForNew(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
-    void createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
-        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    void moveValues(OperaClass & Operation, vector<ContextClass> &EventContext);
+    void cloneEntities(vector<string> dynamicIDs, bool changeOldID, vector<ContextClass> &EventContext, vector<LayerClass> &Layers);
+    void executeArithmetics(OperaClass & Operation, vector<ContextClass> &EventContext);
+    void generateRandomVariable(vector<ContextClass> &EventContext, const OperaClass & Operation);
+    void createLiteral(vector<ContextClass> &EventContext, const OperaClass & Operation);
+    void checkIfVectorContainsVector(OperaClass & Operation, vector<ContextClass> &EventContext);
+    bool prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs);
+    bool prepareDestinationForNew(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
+    void createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
     );
-    void markEntitiesForDeletion(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
+    void markEntitiesForDeletion(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects
     );
-    void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<PointerContainer> & EventContext);
-    void getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext);
-    void bindFilesToObjects(OperaClass & Operation, vector<PointerContainer> & EventContext);
-    void buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext);
+    void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<ContextClass> & EventContext);
+    void getReferenceByIndex(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void bindFilesToObjects(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext);
     void executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext);
     void executeFunctionForLayers(OperaClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
     void executeFunctionForObjects(OperaClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
-    void executeFunction(OperaClass Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine);
+    void executeFunction(OperaClass Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine);
     void changeEngineVariables(OperaClass & Operation, EngineClass & Engine);
     void changeProcessVariables(OperaClass & Operation);
     void loadBitmap(OperaClass & Operation, vector<SingleBitmap> & BitmapContainer);
@@ -320,12 +321,12 @@ public:
     void removeFileOrDirectory(OperaClass & Operation);
     void removeRecursivelyFileOrDirectory(OperaClass & Operation);
     void renameFileOrDirectory(OperaClass & Operation);
-    void executePrint(OperaClass & Operation, vector<PointerContainer> & EventContext);
-    void saveStringAsFile(OperaClass & Operation, vector<PointerContainer> & EventContext);
-    void loadFileAsString(OperaClass & Operation, vector<PointerContainer> & EventContext);
-    OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
-        vector <PointerContainer> & EventContext,
-        vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
+    void executePrint(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void saveStringAsFile(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext);
+    OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
+        AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
+        vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
         vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
     );
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
@@ -337,14 +338,14 @@ public:
     VariableModule findNextValueAmongObjects(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
         const MouseClass & Mouse);
     VariableModule findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
-        const EngineClass & Engine, vector<PointerContainer> &EventContext);
+        const EngineClass & Engine, vector<ContextClass> &EventContext);
     char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer,
-        const EngineClass & Engine, vector<PointerContainer> &EventContext);
+        const EngineClass & Engine, vector<ContextClass> &EventContext);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     bool deleteEntities();
     void resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered);
-    void triggerEve(EngineClass & Engine);
+    void triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes);
     void updateTreeOfCamerasFromSelectedRoot(Camera2D * Selected);
     void updateWholeForestOfCameras();
     void adjustPositionOfAllCameras();

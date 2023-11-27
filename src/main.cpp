@@ -29,7 +29,7 @@ int main(){
             oldMousePos[0].set(Engine.Mouse.getPos());
             oldMousePos[1].set(Engine.Mouse.getPressedPos());
             for(ProcessClass & Process : Processes){
-                Process.executeIteration(Engine);
+                Process.executeIteration(Engine, Processes);
                 if(!Engine.isRunning()){
                     break;
                 }

@@ -168,7 +168,7 @@ bool ProcessClass::isCamerasUniquenessViolated(){
     return violated;
 }
 
-void ProcessClass::executeIteration(EngineClass & Engine){
+void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> & Processes){
     if(Engine.closeProgram || !isActive){
         return;
     }
@@ -184,7 +184,7 @@ void ProcessClass::executeIteration(EngineClass & Engine){
                 SelectedCamera->update(Engine.pressedKeys);
             }
             
-            triggerEve(Engine);
+            triggerEve(Engine, Processes);
 
             if(Engine.closeProgram){
                 return;
@@ -496,7 +496,7 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
         }
     }
 }
-void PointerContainer::clear(){
+void ContextClass::clear(){
     ID = "";
     type = "";
     Variables.clear();
@@ -514,7 +514,7 @@ void PointerContainer::clear(){
     Layers.clear();
     Cameras.clear();
 }
-string PointerContainer::getValue(){
+string ContextClass::getValue(){
     string buffer = "";
     if(type == ""){
         cout << "Error: In " << __FUNCTION__ << ": Context does not have type.\n";
@@ -598,13 +598,13 @@ string PointerContainer::getValue(){
     }
     return buffer;
 }
-PointerContainer::PointerContainer(){
+ContextClass::ContextClass(){
     ID = "";
     type = "";
     readOnly = false;
 }
 template<typename T>
-void PointerContainer::addBasePointer(T * pointer){
+void ContextClass::addBasePointer(T * pointer){
     if(pointer == nullptr){
         return;
     }
@@ -613,7 +613,7 @@ void PointerContainer::addBasePointer(T * pointer){
     type = "pointer";
 }
 template<typename T>
-void PointerContainer::setFirstBasePointer(T * pointer){
+void ContextClass::setFirstBasePointer(T * pointer){
     if(pointer == nullptr){
         return;
     }
@@ -623,57 +623,57 @@ void PointerContainer::setFirstBasePointer(T * pointer){
     }
     BasePointers.back().setPointer(pointer);
 }
-void PointerContainer::addModule(TextModule * Module){
+void ContextClass::addModule(TextModule * Module){
     if(Module != nullptr){
         Modules.Texts.push_back(Module);
     }
 }
-void PointerContainer::addModule(EditableTextModule * Module){
+void ContextClass::addModule(EditableTextModule * Module){
     if(Module != nullptr){
         Modules.EditableTexts.push_back(Module);
     }
 }
-void PointerContainer::addModule(ImageModule * Module){
+void ContextClass::addModule(ImageModule * Module){
     if(Module != nullptr){
         Modules.Images.push_back(Module);
     }
 }
-void PointerContainer::addModule(MovementModule * Module){
+void ContextClass::addModule(MovementModule * Module){
     if(Module != nullptr){
         Modules.Movements.push_back(Module);
     }
 }
-void PointerContainer::addModule(CollisionModule * Module){
+void ContextClass::addModule(CollisionModule * Module){
     if(Module != nullptr){
         Modules.Collisions.push_back(Module);
     }
 }
-void PointerContainer::addModule(ParticleEffectModule * Module){
+void ContextClass::addModule(ParticleEffectModule * Module){
     if(Module != nullptr){
         Modules.Particles.push_back(Module);
     }
 }
-void PointerContainer::addModule(EveModule * Module){
+void ContextClass::addModule(EveModule * Module){
     if(Module != nullptr){
         Modules.Events.push_back(Module);
     }
 }
-void PointerContainer::addModule(VariableModule * Module){
+void ContextClass::addModule(VariableModule * Module){
     if(Module != nullptr){
         Modules.Variables.push_back(Module);
     }
 }
-void PointerContainer::addModule(ScrollbarModule * Module){
+void ContextClass::addModule(ScrollbarModule * Module){
     if(Module != nullptr){
         Modules.Scrollbars.push_back(Module);
     }
 }
-void PointerContainer::addModule(PrimitivesModule * Module){
+void ContextClass::addModule(PrimitivesModule * Module){
     if(Module != nullptr){
         Modules.Primitives.push_back(Module);
     }
 }
-void PointerContainer::setFirstModule(TextModule * Module){
+void ContextClass::setFirstModule(TextModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -685,7 +685,7 @@ void PointerContainer::setFirstModule(TextModule * Module){
         Modules.Texts.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(EditableTextModule * Module){
+void ContextClass::setFirstModule(EditableTextModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -697,7 +697,7 @@ void PointerContainer::setFirstModule(EditableTextModule * Module){
         Modules.EditableTexts.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(ImageModule * Module){
+void ContextClass::setFirstModule(ImageModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -709,7 +709,7 @@ void PointerContainer::setFirstModule(ImageModule * Module){
         Modules.Images.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(MovementModule * Module){
+void ContextClass::setFirstModule(MovementModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -721,7 +721,7 @@ void PointerContainer::setFirstModule(MovementModule * Module){
         Modules.Movements.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(CollisionModule * Module){
+void ContextClass::setFirstModule(CollisionModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -733,7 +733,7 @@ void PointerContainer::setFirstModule(CollisionModule * Module){
         Modules.Collisions.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(ParticleEffectModule * Module){
+void ContextClass::setFirstModule(ParticleEffectModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -745,7 +745,7 @@ void PointerContainer::setFirstModule(ParticleEffectModule * Module){
         Modules.Particles.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(EveModule * Module){
+void ContextClass::setFirstModule(EveModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -757,7 +757,7 @@ void PointerContainer::setFirstModule(EveModule * Module){
         Modules.Events.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(VariableModule * Module){
+void ContextClass::setFirstModule(VariableModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -769,7 +769,7 @@ void PointerContainer::setFirstModule(VariableModule * Module){
         Modules.Variables.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(ScrollbarModule * Module){
+void ContextClass::setFirstModule(ScrollbarModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -781,7 +781,7 @@ void PointerContainer::setFirstModule(ScrollbarModule * Module){
         Modules.Scrollbars.back() = Module;
     }
 }
-void PointerContainer::setFirstModule(PrimitivesModule * Module){
+void ContextClass::setFirstModule(PrimitivesModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -793,7 +793,7 @@ void PointerContainer::setFirstModule(PrimitivesModule * Module){
         Modules.Primitives.back() = Module;
     }
 }
-void PointerContainer::leaveOneRandomBasePointer(){
+void ContextClass::leaveOneRandomBasePointer(){
     if(BasePointers.size() == 0){
         return;
     }
@@ -801,7 +801,7 @@ void PointerContainer::leaveOneRandomBasePointer(){
     BasePointers.clear();
     BasePointers.push_back(randomPointer);
 }
-unsigned PointerContainer::size() const{
+unsigned ContextClass::size() const{
     return Cameras.size() + Layers.size() + Objects.size() + Modules.size();
 }
 template <class Entity>
@@ -813,7 +813,7 @@ void chooseRandomEntity(vector <Entity*> & Vector){
     Vector.clear();
     Vector.push_back(randomEntity);
 }
-bool ProcessClass::chooseRandomModule(PointerContainer & NewContext){
+bool ProcessClass::chooseRandomModule(ContextClass & NewContext){
     if(NewContext.type == "text"){
         chooseRandomEntity(NewContext.Modules.Texts);
     }
@@ -851,7 +851,7 @@ bool ProcessClass::chooseRandomModule(PointerContainer & NewContext){
     return true;
 }
 
-void ProcessClass::aggregateCameras(OperaClass &Operation, PointerContainer &NewContext, vector<Camera2D*> AggregatedCameras, const EngineClass & Engine, vector<PointerContainer> &EventContext){
+void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewContext, vector<Camera2D*> AggregatedCameras, const EngineClass & Engine, vector<ContextClass> &EventContext){
     Camera2D * Camera = nullptr;
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
         if(AggregatedCameras.size() > 0){
@@ -866,7 +866,7 @@ void ProcessClass::aggregateCameras(OperaClass &Operation, PointerContainer &New
         return;
     }
 
-    PointerContainer TempContext;
+    ContextClass TempContext;
     AncestorObject * TempObject = new AncestorObject();
     LayerClass * TempLayer = new LayerClass();
     vector <LayerClass> TempLayers;
@@ -924,7 +924,7 @@ void ProcessClass::aggregateCameras(OperaClass &Operation, PointerContainer &New
         }
     }
 }
-void ProcessClass::aggregateLayers(OperaClass & Operation, PointerContainer & NewContext, vector <LayerClass*> AggregatedLayers, const EngineClass & Engine, vector<PointerContainer> &EventContext){
+void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewContext, vector <LayerClass*> AggregatedLayers, const EngineClass & Engine, vector<ContextClass> &EventContext){
     LayerClass * Layer = nullptr;
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
         if(AggregatedLayers.size() > 0){
@@ -939,7 +939,7 @@ void ProcessClass::aggregateLayers(OperaClass & Operation, PointerContainer & Ne
         return;
     }
 
-    PointerContainer TempContext;
+    ContextClass TempContext;
     AncestorObject * TempObject = new AncestorObject();
     
     unsigned i = 0, vector_end = 0;
@@ -997,7 +997,7 @@ void ProcessClass::aggregateLayers(OperaClass & Operation, PointerContainer & Ne
         }
     }
 }
-void ProcessClass::aggregateObjects(OperaClass & Operation, PointerContainer & NewContext, vector <AncestorObject*> AggregatedObjects, const EngineClass & Engine, vector<PointerContainer> &EventContext){
+void ProcessClass::aggregateObjects(OperaClass & Operation, ContextClass & NewContext, vector <AncestorObject*> AggregatedObjects, const EngineClass & Engine, vector<ContextClass> &EventContext){
     if(AggregatedObjects.size() == 0){
         return;
     }
@@ -1009,7 +1009,7 @@ void ProcessClass::aggregateObjects(OperaClass & Operation, PointerContainer & N
         return;
     }
 
-    PointerContainer TempContext;
+    ContextClass TempContext;
     LayerClass * EmptyLayer = nullptr;
 
     for(AncestorObject * Object : AggregatedObjects){
@@ -1048,9 +1048,9 @@ void ProcessClass::aggregateObjects(OperaClass & Operation, PointerContainer & N
 }
 template<class ModuleClass>
 void ProcessClass::aggregateModuleContextFromVectors(vector<ModuleClass*> AggregatedModules, const string & aggregatedType, OperaClass & Operation,
-    PointerContainer & NewContext, AncestorObject * Object, const EngineClass & Engine, vector<PointerContainer> &EventContext
+    ContextClass & NewContext, AncestorObject * Object, const EngineClass & Engine, vector<ContextClass> &EventContext
 ){
-    PointerContainer TempContext;
+    ContextClass TempContext;
     LayerClass * EmptyLayer = nullptr;
 
     for(ModuleClass * Instance : AggregatedModules){
@@ -1080,7 +1080,7 @@ void ProcessClass::aggregateModuleContextFromVectors(vector<ModuleClass*> Aggreg
     }
 }
 template<class ModuleClass>
-void ProcessClass::findContextInModule(string type, string attribute, PointerContainer & NewContext, ModuleClass * Module){
+void ProcessClass::findContextInModule(string type, string attribute, ContextClass & NewContext, ModuleClass * Module){
     if(Module == nullptr){
         return;
     }
@@ -1101,7 +1101,7 @@ void ProcessClass::findContextInModule(string type, string attribute, PointerCon
     }
 }
 template<class ModuleClass>
-void ProcessClass::getContextFromModuleVectorById(string moduleType, string moduleID, string attribute, PointerContainer & NewContext, vector <ModuleClass*> AggregatedModules){
+void ProcessClass::getContextFromModuleVectorById(string moduleType, string moduleID, string attribute, ContextClass & NewContext, vector <ModuleClass*> AggregatedModules){
     for(ModuleClass * Module : AggregatedModules){
         if(Module == nullptr || (moduleID != "" && Module->getID() != moduleID)){
             continue;
@@ -1142,7 +1142,7 @@ ModuleClass * findLastModule(vector <ModuleClass*> & Vector, const string & modu
     }
     return nullptr;
 }
-void ProcessClass::aggregateModules(OperaClass & Operation, PointerContainer & NewContext, PointerContainer * OldContext, vector<PointerContainer> &EventContext, const EngineClass & Engine){
+void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewContext, ContextClass * OldContext, vector<ContextClass> &EventContext, const EngineClass & Engine){
     ModulesPointers * AggregatedModules = &OldContext->Modules;
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
         if(OldContext->type == "text" && AggregatedModules->Texts.size() > 0){
@@ -1222,7 +1222,7 @@ void ProcessClass::aggregateModules(OperaClass & Operation, PointerContainer & N
         }
     }
 }
-void ProcessClass::aggregatePointers(string instruction, PointerContainer & NewContext, vector <BasePointersStruct> & AggregatedPointers){
+void ProcessClass::aggregatePointers(string instruction, ContextClass & NewContext, vector <BasePointersStruct> & AggregatedPointers){
     if(instruction == "first"){
         NewContext.BasePointers.push_back(AggregatedPointers.front());
     }
@@ -1239,7 +1239,7 @@ void ProcessClass::aggregatePointers(string instruction, PointerContainer & NewC
         NewContext.type = "pointer";
     }
 }
-void ProcessClass::aggregateVariables(string instruction, PointerContainer & NewContext, vector <VariableModule> & AggregatedVariables){
+void ProcessClass::aggregateVariables(string instruction, ContextClass & NewContext, vector <VariableModule> & AggregatedVariables){
     if(instruction == "first"){
         NewContext.Variables.push_back(AggregatedVariables.front());
     }
@@ -1256,7 +1256,7 @@ void ProcessClass::aggregateVariables(string instruction, PointerContainer & New
         NewContext.type = "value";
     }
 }
-void ProcessClass::findContextInCamera(string attribute, PointerContainer & NewContext, Camera2D * Camera){
+void ProcessClass::findContextInCamera(string attribute, ContextClass & NewContext, Camera2D * Camera){
     if(Camera == nullptr){
         return;
     }
@@ -1365,7 +1365,7 @@ void ProcessClass::findContextInCamera(string attribute, PointerContainer & NewC
         cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     }
 }
-void ProcessClass::findContextInLayer(ValueLocation Location, PointerContainer & NewContext, LayerClass * Layer){
+void ProcessClass::findContextInLayer(ValueLocation Location, ContextClass & NewContext, LayerClass * Layer){
     if(Layer == nullptr){
         return;
     }
@@ -1413,7 +1413,7 @@ void ProcessClass::findContextInLayer(ValueLocation Location, PointerContainer &
     }
 }
 template <class Module>
-void ProcessClass::findContextInModuleVector(const ValueLocation & Location, PointerContainer & NewContext, vector<Module> & Source){
+void ProcessClass::findContextInModuleVector(const ValueLocation & Location, ContextClass & NewContext, vector<Module> & Source){
     for(Module & Instance : Source){
         if(Location.moduleID != "" && Location.moduleID != Instance.getID()){
             continue;
@@ -1426,7 +1426,7 @@ void ProcessClass::findContextInModuleVector(const ValueLocation & Location, Poi
         }
     }
 }
-void ProcessClass::findContextInObject(ValueLocation Location, PointerContainer & NewContext, AncestorObject * Object){
+void ProcessClass::findContextInObject(ValueLocation Location, ContextClass & NewContext, AncestorObject * Object){
     if(Object == nullptr){
         return;
     }
@@ -1572,7 +1572,7 @@ void extractPointersFromModules(ModulesPointers &ContextModules, AncestorObject 
         getPointersFromVector(ContextModules.Primitives, Object->PrimitivesContainer);
     }
 }
-void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, PointerContainer & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer){
+void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, ContextClass & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer){
     if(Location.source == "layer"){
         for(LayerClass & Layer : Layers){
             if(Location.layerID != "" && Location.layerID != Layer.getID()){
@@ -1603,7 +1603,7 @@ void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, Point
         cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
     }
 }
-void ProcessClass::aggregateModulesById(string moduleType, string moduleID, string attribute, PointerContainer & NewContext, ModulesPointers & AggregatedModules){
+void ProcessClass::aggregateModulesById(string moduleType, string moduleID, string attribute, ContextClass & NewContext, ModulesPointers & AggregatedModules){
     if(moduleType == "text" && AggregatedModules.Texts.size() > 0){
         getContextFromModuleVectorById<TextModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Texts);
     }
@@ -1638,7 +1638,7 @@ void ProcessClass::aggregateModulesById(string moduleType, string moduleID, stri
         cout << "Error: In " << __FUNCTION__ << ": There are no instances of the \'" << moduleType << "\' module.\n";
     }
 }
-void ProcessClass::findLowerContextById(ValueLocation & Location, PointerContainer & NewContext, PointerContainer * OldContext){
+void ProcessClass::findLowerContextById(ValueLocation & Location, ContextClass & NewContext, ContextClass * OldContext){
     if(OldContext->type == "object"){
         for(AncestorObject * Object : OldContext->Objects){
             if(Location.objectID != "" && Location.objectID != Object->getID()){
@@ -1685,8 +1685,8 @@ void ProcessClass::findLowerContextById(ValueLocation & Location, PointerContain
         cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
     }
 }
-PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string contextID, bool warning){
-    for(PointerContainer & Context : AllContexts){
+ContextClass * getContextByID(vector<ContextClass> & AllContexts, string contextID, bool warning){
+    for(ContextClass & Context : AllContexts){
         if(Context.ID == contextID){
             return &Context;
         }
@@ -1696,7 +1696,7 @@ PointerContainer * getContextByID(vector<PointerContainer> & AllContexts, string
     }
     return nullptr;
 }
-bool ProcessClass::getPairOfContexts(PointerContainer *& LeftOperand, PointerContainer *& RightOperand, vector<PointerContainer> & AllContexts, vector<string> contextIDs){
+bool ProcessClass::getPairOfContexts(ContextClass *& LeftOperand, ContextClass *& RightOperand, vector<ContextClass> & AllContexts, vector<string> contextIDs){
     if(AllContexts.size() < 2){
         cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
     }
@@ -1736,7 +1736,7 @@ bool ProcessClass::getPairOfContexts(PointerContainer *& LeftOperand, PointerCon
 
     return true;
 }
-bool ProcessClass::getOneContext(PointerContainer *& SelectedContext, vector<PointerContainer> & AllContexts, vector<string> contextIDs){
+bool ProcessClass::getOneContext(ContextClass *& SelectedContext, vector<ContextClass> & AllContexts, vector<string> contextIDs){
     if(AllContexts.size() == 0){
         cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
     }
@@ -1755,7 +1755,7 @@ bool ProcessClass::getOneContext(PointerContainer *& SelectedContext, vector<Poi
     
     return true;
 }
-bool ProcessClass::getAllSelectedContexts(vector<PointerContainer*> & SelectedContexts, vector<PointerContainer> & AllContexts, const vector<string> & contextIDs){
+bool ProcessClass::getAllSelectedContexts(vector<ContextClass*> & SelectedContexts, vector<ContextClass> & AllContexts, const vector<string> & contextIDs){
     if(contextIDs.size() == 0){
         return false;
     }
@@ -1850,15 +1850,15 @@ void ProcessClass::executeOperationsOnSets(string instruction, vector<Entity> & 
         }
     }
 }
-void ProcessClass::addNewContext(vector<PointerContainer> & EventContext, const PointerContainer & NewContext, string type, string newID){
+void ProcessClass::addNewContext(vector<ContextClass> & EventContext, const ContextClass & NewContext, string type, string newID){
     EventContext.push_back(NewContext);
     EventContext.back().type = type;
     EventContext.back().setID(EventContext, newID, printOutInstructions);
 }
-void ProcessClass::aggregateTwoSets(OperaClass & Operation, vector<PointerContainer> & EventContext){
-    PointerContainer NewContext;
-    PointerContainer * LeftOperand = nullptr;
-    PointerContainer * RightOperand = nullptr;
+void ProcessClass::aggregateTwoSets(OperaClass & Operation, vector<ContextClass> & EventContext){
+    ContextClass NewContext;
+    ContextClass * LeftOperand = nullptr;
+    ContextClass * RightOperand = nullptr;
 
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
         return;
@@ -1929,8 +1929,8 @@ void ProcessClass::aggregateTwoSets(OperaClass & Operation, vector<PointerContai
 
     addNewContext(EventContext, NewContext, LeftOperand->type, Operation.newContextID);
 }
-void ProcessClass::aggregateEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, const EngineClass & Engine){
-    PointerContainer NewContext;
+void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const EngineClass & Engine){
+    ContextClass NewContext;
 
     if(Operation.Location.source == "layer" || Operation.Location.source == "camera"){
         if(printOutInstructions){
@@ -1950,7 +1950,7 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<PointerConta
     }
     else if(Operation.dynamicIDs.size() > 0){
         for(const string & contextID : Operation.dynamicIDs){
-            PointerContainer * SourceContext = getContextByID(EventContext, contextID, true);
+            ContextClass * SourceContext = getContextByID(EventContext, contextID, true);
             if(SourceContext == nullptr){
                 cout << "Error: In " << __FUNCTION__ << ": Context \'" << contextID << "\' does not exist.\n";
                 continue;
@@ -2004,10 +2004,10 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<PointerConta
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ProcessClass::aggregateValues(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer,
+void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer,
     AncestorObject *Owner, const EngineClass & Engine
 ){
-    PointerContainer NewContext;
+    ContextClass NewContext;
     for(ConditionClass & ValueLocation : Operation.ConditionalChain){
         if(printOutInstructions){
             cout << "inner_find ";
@@ -2028,9 +2028,9 @@ void ProcessClass::aggregateValues(vector<PointerContainer> &EventContext, Opera
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ProcessClass::aggregateOnlyById(vector<PointerContainer> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner){
-    PointerContainer NewContext;
-    PointerContainer * LeftOperand = nullptr;
+void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner){
+    ContextClass NewContext;
+    ContextClass * LeftOperand = nullptr;
 
     if(Operation.Location.source == "layer" || Operation.Location.source == "camera"){
         if(printOutInstructions){
@@ -2072,12 +2072,12 @@ void ProcessClass::aggregateOnlyById(vector<PointerContainer> &EventContext, Ope
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void PointerContainer::setID(vector<PointerContainer> &EventContext, string newID, const bool & printOutInstructions){
+void ContextClass::setID(vector<ContextClass> &EventContext, string newID, const bool & printOutInstructions){
     if(newID == ""){
         return;
     }
     
-    PointerContainer * OldVariable = getContextByID(EventContext, newID, false);
+    ContextClass * OldVariable = getContextByID(EventContext, newID, false);
 
     if(OldVariable != nullptr){
         if(printOutInstructions){
@@ -2095,8 +2095,8 @@ void PointerContainer::setID(vector<PointerContainer> &EventContext, string newI
         ID = newID;
     }
 }
-void ProcessClass::nameVariable(vector<PointerContainer> & EventContext, OperaClass & Operation){
-    PointerContainer * LeftOperand = nullptr;
+void ProcessClass::nameVariable(vector<ContextClass> & EventContext, OperaClass & Operation){
+    ContextClass * LeftOperand = nullptr;
 
     if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)){
         cout << "Error: In " << __FUNCTION__ << ": Variable \'" << Operation.newContextID << "\' can not be created.\n";
@@ -2146,9 +2146,9 @@ void ProcessClass::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Enti
         }
     }
 }
-void ProcessClass::moveValues(OperaClass & Operation, vector<PointerContainer> &EventContext){
-    PointerContainer * LeftOperand = nullptr;
-    PointerContainer * RightOperand = nullptr;
+void ProcessClass::moveValues(OperaClass & Operation, vector<ContextClass> &EventContext){
+    ContextClass * LeftOperand = nullptr;
+    ContextClass * RightOperand = nullptr;
 
     if(Operation.instruction == "++" || Operation.instruction == "--"){
         if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)){
@@ -2254,9 +2254,9 @@ void ProcessClass::moveValues(OperaClass & Operation, vector<PointerContainer> &
         cout << "Error: In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
 }
-void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, vector<PointerContainer> &EventContext, vector<LayerClass> &Layers){
-    PointerContainer * LeftOperand = nullptr;
-    PointerContainer * RightOperand = nullptr;
+void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, vector<ContextClass> &EventContext, vector<LayerClass> &Layers){
+    ContextClass * LeftOperand = nullptr;
+    ContextClass * RightOperand = nullptr;
     
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, dynamicIDs)){
         return;
@@ -2412,9 +2412,9 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
         }
     }
 }
-void ProcessClass::executeArithmetics(OperaClass & Operation, vector<PointerContainer> &EventContext){
-    PointerContainer * LeftOperand = nullptr;
-    PointerContainer * RightOperand = nullptr;
+void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClass> &EventContext){
+    ContextClass * LeftOperand = nullptr;
+    ContextClass * RightOperand = nullptr;
 
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
         || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
@@ -2423,7 +2423,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<PointerCont
         return;
     }
 
-    PointerContainer NewContext;
+    ContextClass NewContext;
     BaseVariableStruct result;
     unsigned i = 0, j = 0;
     bool sameSize = false;
@@ -2587,8 +2587,8 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<PointerCont
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ProcessClass::createLiteral(vector<PointerContainer> &EventContext, const OperaClass & Operation){
-    PointerContainer NewContext;
+void ProcessClass::createLiteral(vector<ContextClass> &EventContext, const OperaClass & Operation){
+    ContextClass NewContext;
     if(printOutInstructions){
         cout << Operation.instruction << " {";
         for(const VariableModule & Literal : Operation.Literals){
@@ -2610,16 +2610,16 @@ void ProcessClass::createLiteral(vector<PointerContainer> &EventContext, const O
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ProcessClass::generateRandomVariable(vector<PointerContainer> &EventContext, const OperaClass & Operation){
-    PointerContainer * LeftOperand = nullptr;
-    PointerContainer * RightOperand = nullptr;
+void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, const OperaClass & Operation){
+    ContextClass * LeftOperand = nullptr;
+    ContextClass * RightOperand = nullptr;
     bool deletePointers = false;
 
     if(Operation.Literals.size() == 2){
-        LeftOperand = new PointerContainer();
+        LeftOperand = new ContextClass();
         LeftOperand->Variables.push_back(Operation.Literals[0]);
         LeftOperand->type = "value";
-        RightOperand = new PointerContainer();
+        RightOperand = new ContextClass();
         RightOperand->Variables.push_back(Operation.Literals[1]);
         RightOperand->type = "value";
         deletePointers = true;
@@ -2631,7 +2631,7 @@ void ProcessClass::generateRandomVariable(vector<PointerContainer> &EventContext
         return;
     }
 
-    PointerContainer NewContext;
+    ContextClass NewContext;
     VariableModule Result;
     unsigned i = 0, j = 0;
     bool sameSize = false;
@@ -2767,9 +2767,9 @@ bool containsTheSameModule(const vector <Module> & LeftModules, const vector <Mo
     }
     return false;
 }
-void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<PointerContainer> &EventContext){
-    PointerContainer * LeftOperand = nullptr;
-    PointerContainer * RightOperand = nullptr;
+void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<ContextClass> &EventContext){
+    ContextClass * LeftOperand = nullptr;
+    ContextClass * RightOperand = nullptr;
     
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
         return;
@@ -2951,13 +2951,13 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Po
         }
     }
 
-    PointerContainer NewContext;
+    ContextClass NewContext;
     NewContext.Variables.push_back(VariableModule::newBool(result));
     addNewContext(EventContext, NewContext, "value", Operation.newContextID);
 }
 template <class Module>
 void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const unsigned & newVectorSize,
-    const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, vector<PointerContainer> & EventContext,
+    const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, vector<ContextClass> & EventContext,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, double reservationMultiplier
 ){
     if(Container.size() + newVectorSize > Container.capacity()){
@@ -2975,14 +2975,14 @@ void createNewModule(vector <Module> & Container, vector <string> & allIDs, vect
         Context.push_back(&Container.back());
     }
 }
-bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<PointerContainer> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs){
+bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs){
     if(Literals.size() == 0 || Literals[0].getType() != 's'){
         cout << "Error: In " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
         return false;
     }
     
-    PointerContainer * SizeContext = nullptr;
-    PointerContainer * IdContext = nullptr;
+    ContextClass * SizeContext = nullptr;
+    ContextClass * IdContext = nullptr;
     if(Literals.size() > 1 && Literals.back().getType() == 'i'){
         newVectorSize = Literals.back().getInt();
         if(dynamicIDs.size() > 0){
@@ -3040,7 +3040,7 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<PointerContainer> & Even
     }
     return true;
 }
-bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers){
+bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers){
     if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
         cout << "Error: In " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
         return false;
@@ -3078,7 +3078,7 @@ bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<Point
         }   
     }
     else if(Operation.Literals[0].getString() == "context" || Operation.Literals[0].getString() == "c"){
-        PointerContainer * Context;
+        ContextClass * Context;
         if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
             cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
             return false;
@@ -3124,9 +3124,9 @@ bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<Point
 
     return true;
 }
-void ProcessClass::createNewEntities(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     LayerClass * CurrentLayer = nullptr;
     AncestorObject * CurrentObject = nullptr;
@@ -3172,7 +3172,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<PointerConta
         cout << "\n";
     }
 
-    PointerContainer NewContext;
+    ContextClass NewContext;
 
     NewContext.type = Operation.Location.source;
 
@@ -3305,10 +3305,10 @@ void clearDeletedPointersFromVector(vector<T*> & Vector){
         }
     }
 }
-void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<PointerContainer> & EventContext, LayerClass *& OwnerLayer,
+void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects
 ){
-    PointerContainer * DeletedContext = nullptr;
+    ContextClass * DeletedContext = nullptr;
     if(!getOneContext(DeletedContext, EventContext, Operation.dynamicIDs)){
         cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
         return;
@@ -3334,7 +3334,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Pointe
         if(SelectedCamera != nullptr && SelectedCamera->getIsDeleted()){
             SelectedCamera = nullptr;
         }
-        for(PointerContainer & Context : EventContext){
+        for(ContextClass & Context : EventContext){
             if(Context.type == "camera"){
                 clearDeletedPointersFromVector(Context.Cameras);
             }
@@ -3357,7 +3357,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Pointe
         if(SelectedLayer != nullptr && SelectedLayer->getIsDeleted()){
             SelectedLayer = nullptr;
         }
-        for(PointerContainer & Context : EventContext){
+        for(ContextClass & Context : EventContext){
             if(Context.type == "layer"){
                 clearDeletedPointersFromVector(Context.Layers);
             }
@@ -3453,7 +3453,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Pointe
                 Object = nullptr;
             }
         }
-        for(PointerContainer & Context : EventContext){
+        for(ContextClass & Context : EventContext){
             if(Context.type == "object"){
                 clearDeletedPointersFromVector(Context.Objects);
             }
@@ -3461,7 +3461,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Pointe
     }
 
     if(isStringInGroup(DeletedContext->type, 12, "layer", "object", "text", "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", "primitives")){
-        for(PointerContainer & Context : EventContext){
+        for(ContextClass & Context : EventContext){
             if(Context.type == "text"){
                 clearDeletedPointersFromVector(Context.Modules.Texts);
             }
@@ -3543,7 +3543,7 @@ void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity*> & Agg
         }
     }
 }
-void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<PointerContainer> & EventContext){
+void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<ContextClass> & EventContext){
     for(const VariableModule & Variable : Literals){
         if(Variable.getType() == 'i'){
             indexes.push_back(Variable.getInt());
@@ -3558,10 +3558,10 @@ void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vec
         return;
     }
 
-    vector<PointerContainer*> IndexContexts;
+    vector<ContextClass*> IndexContexts;
 
     if(getAllSelectedContexts(IndexContexts, EventContext, dynamicIDs)){
-        for(PointerContainer * Index : IndexContexts){
+        for(ContextClass * Index : IndexContexts){
             if(Index->type == "value"){
                 for(const VariableModule & Variable : Index->Variables){
                     if(Variable.getType() == 'i'){
@@ -3605,8 +3605,8 @@ void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vec
         indexes.push_back(0);
     }
 }
-void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<PointerContainer> & EventContext){
-    PointerContainer * Context = nullptr, NewContext;
+void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextClass> & EventContext){
+    ContextClass * Context = nullptr, NewContext;
     vector<unsigned> indexes;
     unsigned realIndex = 0, entityIndex = 0;
 
@@ -3955,7 +3955,7 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<PointerCon
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<PointerContainer> & EventContext){
+void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.dynamicIDs.size() == 0){
         cout << "Error: In " << __FUNCTION__ << ": Bind requires at least one context.\n";
         return;
@@ -3969,7 +3969,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<PointerCont
             cout << "Error: In " << __FUNCTION__ << ": Bind requires at least two literals of string type.\n";
             return;
         }
-        PointerContainer * ContextA;
+        ContextClass * ContextA;
         if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
             cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
             return;
@@ -4003,7 +4003,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<PointerCont
         }
     }
     else if(isStringInGroup(Operation.Literals[0].getString(), 5, "context", "c", "remove_context", "rcontext", "rc")){
-        PointerContainer * ContextObject, * ContextFiles;
+        ContextClass * ContextObject, * ContextFiles;
         if(!getPairOfContexts(ContextObject, ContextFiles, EventContext, Operation.dynamicIDs)){
             cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
             return;
@@ -4105,7 +4105,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<PointerCont
         }
     }
     else if(Operation.Literals[0].getString() == "reset" || Operation.Literals[0].getString() == "r"){
-        PointerContainer * ContextObject;
+        ContextClass * ContextObject;
         if(!getOneContext(ContextObject, EventContext, Operation.dynamicIDs)){
             cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
             return;
@@ -4122,12 +4122,12 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<PointerCont
         }
     }
 }
-void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<PointerContainer> & EventContext){
+void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.dynamicIDs.size() == 0){
         cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
         return;
     }
-    PointerContainer * ContextA;
+    ContextClass * ContextA;
     if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
         cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
         return;
@@ -4475,14 +4475,14 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
         }
     }
 }
-void ProcessClass::executeFunction(OperaClass Operation, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine){
+void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine){
     if(Operation.dynamicIDs.size() == 0){
         cout << "Error: In " << __FUNCTION__ << ": Function requires at least one context.\n";
         return;
     }
 
     vector <VariableModule> & Variables = Operation.Literals;
-    PointerContainer * Context = nullptr;
+    ContextClass * Context = nullptr;
     
     if(Operation.Literals.size() > 0 || Operation.dynamicIDs.size() == 1){
         if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
@@ -4496,7 +4496,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<PointerContainer
             return;
         }
 
-        PointerContainer * ContextValues = nullptr;
+        ContextClass * ContextValues = nullptr;
 
         for(unsigned i = 1; i < Operation.dynamicIDs.size(); i++){
             ContextValues = getContextByID(EventContext, Operation.dynamicIDs[i], true);
@@ -4962,7 +4962,7 @@ void ProcessClass::renameFileOrDirectory(OperaClass & Operation){
         cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
     }
 }
-void ProcessClass::executePrint(OperaClass & Operation, vector<PointerContainer> & EventContext){
+void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & EventContext){
     string delimeter = "";
 
     if(Operation.Literals.size() > 0){
@@ -4987,7 +4987,7 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<PointerContainer>
         cout << mIter->getStringUnsafe() << delimeter;
     }
 
-    PointerContainer * ContextValues = nullptr;
+    ContextClass * ContextValues = nullptr;
 
     for(string contextID : Operation.dynamicIDs){
         ContextValues = getContextByID(EventContext, contextID, true);
@@ -5015,7 +5015,7 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<PointerContainer>
         }
     }
 }
-void ProcessClass::loadFileAsString(OperaClass & Operation, vector<PointerContainer> & EventContext){
+void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
         cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to a text file).\n";
         return;
@@ -5040,7 +5040,7 @@ void ProcessClass::loadFileAsString(OperaClass & Operation, vector<PointerContai
     }
     File.close();
 
-    PointerContainer * Context;
+    ContextClass * Context;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
         cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
         return;
@@ -5091,7 +5091,7 @@ void ProcessClass::loadFileAsString(OperaClass & Operation, vector<PointerContai
         cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
     }
 }
-void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<PointerContainer> & EventContext){
+void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
         cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to a text file).\n";
         return;
@@ -5105,7 +5105,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<PointerContai
 
     string textFromContext = "";
 
-    PointerContainer * Context;
+    ContextClass * Context;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
         cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
         return;
@@ -5166,9 +5166,10 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<PointerContai
 	File << textFromContext;
     File.close();
 }
-OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer, AncestorObject *& Owner,
-    vector <PointerContainer> & EventContext, vector <AncestorObject*> & TriggeredObjects,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
+OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
+    AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
+    vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
 ){
     for(OperaClass & Operation : Operations){
         if(isStringInGroup(Operation.instruction, 5, "continue", "break", "return", "reboot", "power_off")){
@@ -5672,7 +5673,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
     cout << "Error: In " << __FUNCTION__ << ": Value not found.\n";
     return VariableModule::newBool(false, "null");
 }
-VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, vector<PointerContainer> &EventContext){
+VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, vector<ContextClass> &EventContext){
     VariableModule NewValue(Condition.Location.source, nullptr, "", "");
     if(Condition.Location.source == "on_boot"){
         NewValue.setBool(firstIteration);
@@ -5829,7 +5830,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         return findNextValueAmongObjects(Condition, Owner, OwnerLayer, Engine.Mouse);
     }
     else if(Condition.Location.source == "context" || Condition.Location.source == "c"){
-        PointerContainer * Context;
+        ContextClass * Context;
         vector<string> dynamicIDs = {Condition.Literal.getStringUnsafe()};
         if(!getOneContext(Context, EventContext, dynamicIDs)){
             cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
@@ -5905,7 +5906,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
     NewValue.setBool(false);
     return NewValue;
 }
-char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, vector<PointerContainer> &EventContext){
+char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, vector<ContextClass> &EventContext){
     short ignoreFlagOr = 0, ignoreFlagAnd = 0;
     bool comparasion;
     int resultInt;
@@ -6158,7 +6159,7 @@ void ProcessClass::resetChildren(vector<EveModule>::iterator & Event, AncestorOb
         }
     }
 }
-void ProcessClass::triggerEve(EngineClass & Engine){
+void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes){
     if(wasDeleteExecuted && deleteEntities()){
         updateBaseOfTriggerableObjects();
         wasDeleteExecuted = false;
@@ -6186,7 +6187,7 @@ void ProcessClass::triggerEve(EngineClass & Engine){
     
     vector<EveModule>::iterator StartingEvent, Event;
     vector<MemoryStackStruct> MemoryStack;
-    vector<PointerContainer> Context; //All dynamic context created from instructions. It's inherited by the children of an event.
+    vector<ContextClass> Context; //All dynamic context created from instructions. It's inherited by the children of an event.
 
     bool noTriggerableEvents = true;
     
@@ -6251,11 +6252,11 @@ void ProcessClass::triggerEve(EngineClass & Engine){
         Context.clear();
         MemoryStack.clear();
 
-        Context.push_back(PointerContainer());
+        Context.push_back(ContextClass());
         Context.back().type = "object";
         Context.back().Objects.push_back(Triggered);
         Context.back().ID = "me";
-        Context.push_back(PointerContainer());
+        Context.push_back(ContextClass());
         Context.back().type = "layer";
         Context.back().Layers.push_back(TriggeredLayer);
         Context.back().ID = "my_layer";
@@ -6266,12 +6267,11 @@ void ProcessClass::triggerEve(EngineClass & Engine){
             }
             if(Event->conditionalStatus == 'n' && Interrupt.instruction != "break"){
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Engine, Context);
-                //cout << "Result: " << Event->conditionalStatus << "\n";
             }
             if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){ //if true
                 if(!Event->areDependentOperationsDone){
                     Interrupt = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
-                        StartingEvent, Event, MemoryStack, Engine
+                        Processes, StartingEvent, Event, MemoryStack, Engine
                     );
                     if(Interrupt.instruction == "power_off"){
                         Engine.closeProgram = true;
@@ -6314,23 +6314,12 @@ void ProcessClass::triggerEve(EngineClass & Engine){
                     cout << "THIS SHOULD NOT HAPPENED\n";
                 }
             }
-            
 
             if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){ //loop back
                 Event->conditionalStatus = 'n';
                 Event->areDependentOperationsDone = false;
                 Event->elseChildFinished = false;
                 resetChildren(Event, Triggered);
-                
-                /*if(MemoryStack.size() > 0){
-                    for(ChildStruct & Child : MemoryStack.back().Event->Children){
-                        if(Child.ID == Event->getID()){
-                            Child.finished = false;
-                            break;
-                        }
-                    }
-                }*/
-
                 continue;
             }
             if(Event->loop){
@@ -6338,7 +6327,7 @@ void ProcessClass::triggerEve(EngineClass & Engine){
             }
             if(Interrupt.instruction != "break"){ //operations after loop/if
                 Interrupt = executeInstructions(Event->PostOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
-                    StartingEvent, Event, MemoryStack, Engine
+                    Processes, StartingEvent, Event, MemoryStack, Engine
                 );
                 if(Interrupt.instruction == "power_off"){
                     Engine.closeProgram = true;
@@ -7201,8 +7190,8 @@ void ProcessClass::drawEverything(EngineClass & Engine){
             }
         }
         if(Engine.Mouse.isPressed(0)){
-            al_draw_rectangle(Engine.Mouse.getPressedPos().x, Engine.Mouse.getPressedPos().y,
-                Engine.Mouse.getPos().x, Engine.Mouse.getPos().y, al_map_rgb(200, 200, 200), 1);
+            //al_draw_rectangle(Engine.Mouse.getPressedPos().x, Engine.Mouse.getPressedPos().y,
+            //    Engine.Mouse.getPos().x, Engine.Mouse.getPos().y, al_map_rgb(200, 200, 200), 1);
         }
     }
 
@@ -8187,8 +8176,8 @@ void PointerRecalculator::clear(){
     CameraIndexes.clear();
     TriggeredObjectIndexes.clear();
 }
-void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, vector<PointerContainer> & EventContext, Camera2D *& SelectedCamera){ 
-    for(PointerContainer & Context : EventContext){
+void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera){ 
+    for(ContextClass & Context : EventContext){
         CameraIndexes.push_back(vector<unsigned>());
         for(Camera2D * Camera : Context.Cameras){
             CameraIndexes.back().push_back(Camera - &Cameras[0]);
@@ -8198,19 +8187,19 @@ void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, vecto
         selectedCameraIndex = SelectedCamera - &Cameras[0];
     }
 }
-void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, vector<PointerContainer> &EventContext){
-    for(PointerContainer & Context : EventContext){
+void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext){
+    for(ContextClass & Context : EventContext){
         LayerIndexes.push_back(vector<unsigned>());
         for(LayerClass * Layer : Context.Layers){
             LayerIndexes.back().push_back(Layer - &Layers[0]);
         }
     }
 }
-void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, vector<PointerContainer> & EventContext, AncestorObject *& Owner,
+void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
     vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, AncestorObject *& EditorObject
 ){
     unsigned layerIndex;   
-    for(PointerContainer & Context : EventContext){
+    for(ContextClass & Context : EventContext){
         ObjectIndexes.push_back(vector<AncestorIndex>());
         for(AncestorObject * Object : Context.Objects){
             for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
@@ -8326,7 +8315,7 @@ ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance
     }
     return ModuleIndex(0, 0, 0);
 }
-void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & StartingEvent,
+void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     startingEventIndex = getIndex(StartingEvent, Layers);
@@ -8334,7 +8323,7 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vec
     for(MemoryStackStruct & Memory : MemoryStack){
         PastEvents.push_back(getIndex(Memory.Event, Layers));
     }
-    for(PointerContainer & Context : EventContext){
+    for(ContextClass & Context : EventContext){
         ModuleIndexes.push_back(vector<ModuleIndex>());
         if(Context.type == "text"){
             findIndexesInModule(Context.Modules.Texts, Layers);
@@ -8368,7 +8357,7 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vec
         }
     }
 }
-void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<PointerContainer> & EventContext, Camera2D *& SelectedCamera){
+void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera){
     unsigned context, camera;
     for(context = 0; context < CameraIndexes.size(); context++){
         for(camera = 0; camera < CameraIndexes[context].size(); camera++){
@@ -8389,7 +8378,7 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vec
         SelectedCamera = &Cameras[selectedCameraIndex];   
     }
 }
-void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<PointerContainer> &EventContext){
+void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext){
     unsigned context, layer;
     for(context = 0; context < LayerIndexes.size(); context++){
         for(layer = 0; layer < LayerIndexes[context].size(); layer++){
@@ -8402,7 +8391,7 @@ void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vec
         }
     }
 }
-void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, vector<PointerContainer> &EventContext, AncestorObject *&Owner,
+void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, AncestorObject *&Owner,
     vector<AncestorObject *> &TriggeredObjects, LayerClass *&SelectedLayer, AncestorObject *&SelectedObject, AncestorObject *&EditorObject)
 {
     unsigned i;
@@ -8435,7 +8424,7 @@ void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, ve
         EditorObject = OtherObjectIndexes[2].object(Layers);
     }
 }
-void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, vector<PointerContainer> & EventContext, vector<EveModule>::iterator & StartingEvent,
+void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     StartingEvent = startingEventIndex.module(Layers);
