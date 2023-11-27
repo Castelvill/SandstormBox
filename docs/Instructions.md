@@ -2,31 +2,31 @@
    
 **Description**
 
-    Interrupts the execution of the current scope.
+    Interrupt the execution of the current scope.
 
 ## return
 
 **Description**   
 
-    Interrupts the execution of all events from the object.
+    Interrupt the execution of all events from the object.
 
 ## reboot
 
 **Description**
 
-    Restarts the engine. All boot triggered events will be executed in the next engine iteration.
+    Restart the engine. All boot triggered events will be executed in the next engine iteration.
 
 ## power_off
 
 **Description**
    
-    Exits the program.
+    Exit the program.
 
 ## *aggregation* *source* [contextIDs] [cameraID] [layerID] [objectID] [moduleType] [moduleID] [attribute] [expression] [newContextID]
 
 **Description**
 
-    Returns a context that fulfils the boolean expression and optional parameters.
+    Return a context that fulfils the boolean expression and optional parameters.
 
 **Parameters:**
 
@@ -46,7 +46,7 @@
 
 **Description**
 
-    takes a list of indexes and returns a context with entities found by indexes.
+    Take a list of indexes and returns a context with entities found by indexes.
 
 **Parameters:**
 
@@ -60,7 +60,7 @@
 
 **Description**
 
-    takes a pair of contexts and returns the sum of these sets.
+    Take a pair of contexts and return the sum of these sets.
 
 **Parameters**
 
@@ -71,7 +71,7 @@
 
 **Description**
 
-    takes a pair of contexts and returns the intersection of these sets.
+    Take a pair of contexts and returns the intersection of these sets.
 
 **Parameters**
 
@@ -82,7 +82,7 @@
 
 **Description**
 
-    takes a pair of contexts and returns the difference of these sets.
+    Take a pair of contexts and return the difference of these sets.
 
 **Parameters**
 
@@ -93,7 +93,7 @@
 
 **Description**
 
-    returns a context made out of given literals or values found in different sources.
+    Return a context made out of given literals or values found in different sources.
 
 **Parameters**
 
@@ -104,7 +104,7 @@
 
 **Description**
 
-    returns a context filled with provided literals.
+    Return a context filled with provided literals.
 
 **Parameters**
 
@@ -116,7 +116,7 @@
 
 **Description**
 
-    returns a random integer from the range provided in the pair of literals.
+    Return a random integer from the range provided in the pair of literals.
 
 **Parameters**
 
@@ -127,7 +127,7 @@
 
 **Description**
 
-    returns a list of random integers from the ranges provided in the pair of contexts.
+    Return a list of random integers from the ranges provided in the pair of contexts.
 
 **Parameters**
 
@@ -138,7 +138,7 @@
 
 **Description**
 
-    returns a context filled with entities which ids are equal to ones provided in parameters. If no ids are provided, aggregates all possible entities.
+    Return a context filled with entities which ids are equal to ones provided in parameters. If no ids are provided, aggregate all possible entities.
 
 **Parameters**
 
@@ -156,7 +156,7 @@
 
 **Description**
 
-    creates a variable with provided id from the selected or last existing context or overwrites the context of the existing variable with the same id. New variables will exist only in the current scope.
+    Create a variable with provided id from the selected or last existing context or overwrite the context of the existing variable with the same id. New variables will exist only in the current scope.
 
 **Parameters**
 
@@ -167,7 +167,7 @@
 
 **Description**
 
-    clones the values and structure of the right context to the left context. 
+    Clone the values and structure of the right context to the left context. 
 
 **Parameters**
 
@@ -178,7 +178,7 @@
 
 **Description**
 
-    returns a context with a result of an arithmetic operation on the pair of contexts (with numeric values).
+    Return a context with a result of an arithmetic operation on the pair of contexts (with numeric values).
 
 **Parameters**
 
@@ -190,7 +190,7 @@
 
 **Description**
 
-    increments or decrements the numeric value found in the context by 1.
+    Rncrement or decrements the numeric value found in the context by 1.
 
 **Parameters**
 
@@ -201,7 +201,7 @@
 
 **Description**
 
-    moves a numeric value from the right context to the left context based on the choosen operator.
+    Move a numeric value from the right context to the left context based on the choosen operator.
 
 **Parameters**
 
@@ -212,7 +212,7 @@
 
 **Description**
 
-    returns true if any entity from the left context occurs in the right context. In case of numeric values, instruction compares their values. For other entities like layers, instruction compares their ids, but only if both entities are of the same type.
+    Return true if any entity from the left context occurs in the right context. In case of numeric values, compare their values. For other entities like layers, compare their ids, but only if both entities are of the same type.
 
 **Parameters**
 
@@ -223,7 +223,7 @@
 
 **Description**
 
-    creates new entities and returns a context with their pointers.
+    Create new entities and returns a context with their pointers.
 
 **Parameters**
 
@@ -239,7 +239,7 @@
 
 **Description**
 
-    creates new entities and returns a context with their pointers.
+    Create new entities and return a context with their pointers.
 
 **Parameters**
 
@@ -254,7 +254,7 @@
 
 **Description**
 
-    deletes all entities provided in the context.
+    Delete all entities provided in the context.
 
 **Parameters**
 
@@ -264,35 +264,35 @@
 
 **Description**
 
-    adds or removes paths to scripts from objects.
+    Add or remove paths to scripts from objects.
 
 **Parameters**
 
 - contextID (string) - id of the context with objects;
 - source (string):
-	“context” or “c” - next parameter will require an id of the context with paths to scripts. Instruction will bind those paths to provided objects;
-	“literal” or “l” - next parameter will require a list of string values - script paths. Instruction will bind those paths to provided objects;
-	“remove_context”, “rcontext” or “rc” - next parameter will require an id of the context with paths to scripts. Instruction will remove those paths from provided objects;
-	“remove_literal”, “rliteral” or “rl” - next parameter will require an id of the context with paths to scripts. Instruction will remove those paths from provided objects;
-	“reset” - instruction will remove all binded paths from provided objects.
+    - “context” or “c” - next parameter will require an id of the context with paths to scripts. Instruction will bind those paths to provided objects;
+    - “literal” or “l” - next parameter will require a list of string values - script paths. Instruction will bind those paths to provided objects;
+    - “remove_context”, “rcontext” or “rc” - next parameter will require an id of the context with paths to scripts. Instruction will remove those paths from provided objects;
+    - “remove_literal”, “rliteral” or “rl” - next parameter will require an id of the context with paths to scripts. Instruction will remove those paths from provided objects;
+    - “reset” - instruction will remove all binded paths from provided objects.
 - scriptPaths (string / vector*string*) - paths to scripts, their purpose depends from “source” parameter.
 
 ## build *contextID* [reset]
 
 **Description**
 
-    instruction translates all scripts binded to objects provided in the context and creates events based on those scripts.
+    Translate all scripts binded to objects provided in the context and create events based on those scripts.
 
 **Parameters**
 
 - contextID (string) - id of the context with objects intended for event building;
-- [optional] reset (bool) - if true, before creating new events, instruction removes all events from provided objects.
+- [reset] (bool) - if true, before creating new events, instruction removes all events from provided objects.
 
 ## env *name* *value* [value]
 
 **Description**
 
-    changes the value of environmental variable.
+    Change the value of environmental variable.
 
 **Parameters**
 
@@ -303,7 +303,7 @@
 
 **Description**
 
-    executes a function for all objects in the context. You can add as many type-value pairs as needed.
+    Execute a function for all objects in the context. You can add as many type-value pairs as needed.
 
 **Parameters**
 
