@@ -279,7 +279,7 @@ fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
 string [""] loaded
-load_string "randomString.txt" loaded
+load_text "randomString.txt" loaded
 //print _ context loaded
 fun Editable add_and_update context loaded /*string ["Lorem ipsum dolor sit amet, consectetur adipiscing elit,
 sed do eiusmod tempor incid idunt ut labore et dolore
@@ -525,7 +525,7 @@ start save_editable false
 triggers [key_pressed]
 if ([key_pressed 23] [key_pressed 217] &&)
 value ([object L2 terminal editable_text edi content]) randomString
-save_string "randomString.txt" randomString
+save_text "randomString.txt" randomString
 end
 
 

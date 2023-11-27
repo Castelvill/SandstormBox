@@ -5256,10 +5256,10 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         else if(Operation.instruction == "mkdir"){
             createDirectory(Operation);
         }
-        else if(Operation.instruction == "remove"){
+        else if(Operation.instruction == "rm"){
             removeFileOrDirectory(Operation);
         }
-        else if(Operation.instruction == "remove_all"){
+        else if(Operation.instruction == "rmll"){
             removeRecursivelyFileOrDirectory(Operation);
         }
         else if(Operation.instruction == "rename"){
@@ -5268,10 +5268,10 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         else if(Operation.instruction == "print"){
             executePrint(Operation, EventContext);
         }
-        else if(Operation.instruction == "load_string"){
+        else if(Operation.instruction == "load_text"){
             loadFileAsString(Operation, EventContext);
         }
-        else if(Operation.instruction == "save_string"){
+        else if(Operation.instruction == "save_text"){
             saveStringAsFile(Operation, EventContext);
         }
         if(printOutInstructions && printOutStackAutomatically){

@@ -19,7 +19,7 @@ fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
 string [""] loaded
-load_string "randomString.txt" loaded
+load_text "randomString.txt" loaded
 fun Editable add_and_update context loaded
 fun Editable set_size int [640 480]//[1920 1080]
 fun Editable select_layer int [1]
@@ -51,5 +51,5 @@ start save_editable false
 triggers [key_pressed]
 if ([key_pressed 23] [key_pressed 217] &&)
 value ([object L2 terminal editable_text edi content]) randomString
-save_string "randomString.txt" randomString
+save_text "randomString.txt" randomString
 end

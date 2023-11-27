@@ -1449,7 +1449,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->Literals.push_back(VariableModule::newString(words[1]));
             Operation->Literals.push_back(VariableModule::newString(words[2]));
         }
-        else if(words[0] == "mkdir" || words[0] == "remove" || words[0] == "remove_all"){
+        else if(words[0] == "mkdir" || words[0] == "rm" || words[0] == "rmll"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
@@ -1488,7 +1488,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
             }
         }
-        else if(words[0] == "load_string" || words[0] == "save_string"){
+        else if(words[0] == "load_text" || words[0] == "save_text"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
