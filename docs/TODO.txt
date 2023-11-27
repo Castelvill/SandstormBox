@@ -1,0 +1,124 @@
+-Reminder: You cannot put processes into contexts, because processes use context class.
+-Think about adding first layers, first objects and binding initialization scripts to newly created processes.
+-Add “id” parameter to the “proc” instruction and force uniqueness.
+-Add choosing ID of the currently configured process to the “proc” instruction.
+-Add processes to “new” instruction – new processes will be added to a buffer vector in order to be configured.
+-Upgrade “proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
+-Add deleting processes.
+-Implement “clone_proc [procID] [procID]” – cloning a process to a different process.
+-Implement “clone_to_proc [procID] [contextID]” – cloning a context to a process.
+-Add “clear_layers” and “clear_cameras” attributes to the “proc” instruction.  
+-Add buffers(bitmaps) to processes instead of cropping rectangle.
+-Add procWindowPos procWindowSize to Process.
+-Add canInteractWithUser boolean to ProcessClass – if true, you can interact with this thread using cameras, mouse and keyboard.
+-Add blocking user input based allegro events in the processes that are not focused.
+-Add blocking keyboard and mouse input through cameras that are out of focus.
+-Add “ls” instruction – print list of processes, cameras, layers, objects, modules, loaded bitmaps and fonts. Using flags prints details or limits the list to one type of entities. Look in scenarios for more info.
+-Create basic terminal with EditableText connected to the “INTERPRETER” event – event will take the command and turn it into an enclosed event “COMMAND”. Command event will be executed once (by the run() instruction) and will be cleared afterwards.
+-Document instructions.
+
+-MILESTONE: ImpostorOS.
+
+-Add more milestones.
+-Connect primitives to cameras.
+-Add selection rectangle to the mouse.
+-Change selection borders to primitives?
+-Add an interactive grid to cameras.
+-Add instruction “clone_to_process <context_id> <thread_id> [activate_sim]” – clones layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
+-Add instruction “move_to_process <context_id> <thread_id> [activate_sim]” – moves (clone and delete) layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
+-Create Window templates.
+-Add Window: Options - shows the list of options/functions of the entity/window, every list item is a button, camera is immobilized, minimizes when mouse is out of focus.
+-Add Window: Filesystem – displays container for entities (threads, projects, layers, cameras, objects, modules, images, text, etc.). You cannot move camera freely. You can scroll up and down. Right clicking on the entity brings up the Options window. Filesystem has many display mods: list, icons, movable icons (like in old macs, very easy to implement because icons are just objects), tree (like in vs code). You can also open different threads like different partitions, but that might be problematic.
+-Add Window: ImagePlacement - only draws images of a one object, you can move images around, you can also move camera. On technical plane, objects in this window directly correspond/point to images from the chosen object.
+-Add Window: CollisionPlacement – gives access to collision borders of a one object, you can move them around, you can also move camera. Aside from borders, window also draws chosen object images. On technical plane, objects in this window directly correspond/point to collision borders and images from the chosen object, but you can only interact with collisions.
+-Add Window: EditEntity - custom for every other entity, lists all editable parameters (EditableTexts) and eventual sliders, has up-down scrollbar, camera is immobilized.
+-Add Window: Wim - text editor, has four directional scrollbar, camera is... idk.
+-Add Window: Logs – the list of text fields, up-down scrollbar. Lists logs from its process.
+-Add Window: DisplayCameras – shows a vertical list of cameras in the order of display. Does not include this window. User can filter out cameras based on access level and groups. User can move cameras around, switching their order of display. Window’s camera is immobilized. There is up-down scrollbar.
+-Add Window: GameRunner/VirtualMachine/Simulator/Streamer/SSH - takes layers and cameras from a different process and allows user to interact with it in the current process. Its main goal is to run/test a game/program independently from the current development session. For example if you are in the process of creating a game, you press run button and this window is created. You can now play this game safely, make progress, have fun, test some new feature. If finish playing, just close the window and you will see that nothing changed in the game editor, because the game you played was just a clone of your game.
+-Add Window: DuctTape – Paint. Why Tape? Because Paint keeps the world in one piece like tape.
+-Implement access to windows based on “access to engine windows.PNG” or find it in Miro.
+
+-Create SuperTextModule - instead of using a vector of strings, use Letter vector. Letter( char ch; AllegroColor color; bool bold; bool italic; bool crossed; bool rainbow;). This basically creats multi-color, all-purpouse text printer.
+-Creat EditableSuperTextModule.
+-You should be able to save any type of entity from the engine by using "save <context> <fileName> [force]" instruction. Saving entity or a vector of entities (context) firstly writes a type and number of entities to the file and then all entities' data. If the file already exists and have any content inside, instruction will fail. By using force, engine will overwrite the previous content of the chosen file.
+-Add "load <fileName> <context> [force]" instruction. Load will overwrite all entities in the context based on the contents of the file. If the user doesn't provide big enough context, instruction will fail. By using force, engine will create new (valid number of) entities, add them to the context and finally overwrite everything.
+-Projects will be the another type of entity and it will just add new way of saving and loading entities.
+-Add hyperlinks to the SuperText. Clicking them will be able to trigger an event.
+-LayerManagerWindow / Project tree.
+-Load fonts from script.
+-Use translateToAllegroKey.
+-Remove ancestor::createButton method.
+-Add logging system with filters and colors.
+-Go through every module and ask the question: can events modify everything? 
+-Some instructions don’t work with zero dynamicIDs.
+-Implement variable change detection and add it to triggers lookup table.
+-Add “areObjectsActive” bool to layers – if it’s true, modules and events of objects in this layer can be executed. Reason: layers are processes and can become games by cloning them and switching “areObjectsActive” to true.
+-Add “IDPermissions”, “groupPermissions” vectors to layers.
+-Events can access context of layers in layer’s IDPermissions and groupPermissions.
+-Add mouse selection to if statement sources.
+-Remove ALL remains of old event system.
+-Add buffer to EditableText – during the editing process text field prints the buffer state, while the original, unchanged content is used in events.
+-Test: 50x50 big pixel screen, activate one pixels every 0.25s, 0.5s, 1s, 2s.
+-Test: “paper, scissor, stone” – three groups of randomly moving objects, each kills objects from one other group.
+-Create Goo Scripting Language.
+-Update realAreaOfScrolling.
+-Editables should update its value in the beginning and on update of the connected variable
+now it's just hard-wired in editor.
+-Undo, redo.
+-Create a documentation based on linux manuals.
+
+-MILESTONE: you can configure every object visible on the map using OBJECT EDITOR (look up program_model.png)
+
+- Pick up an object from TREE OF OBJECTS instead of only from the map to change edit window context; TREE OF OBJECTS is a file tree.
+-Save and load projects.
+
+-MILESTONE: you can save current project (with all objects and configurations), load saved projects, create a new project.
+
+-Implement search bar for TREE OF OBJECTS.
+-IDK - Remove light bitmap and implement hsva color management instead of rgba.
+-Update drawing frames.
+-Add platforms that you can hop on from any directions.
+-Add Animation Module - animation creator (choosing sub-images from chosen image module, duration of each frame). Animation Module contains animation time, speed of animation, animation choreographics and currently used choreography (character is moving upwards, downwards, etc.).
+-Add sound module.
+-Add image library: use getAllFilesNamesWithinFolder() with scaled images.
+-Movement update: chain move (vector based move).
+-Add horizontal dash move to movement.
+-Add friction from objects that are under moving objects.
+-Add bouncing from walls (balls in themselves or objects from other objects).
+-Make balls act like balls (physics).
+-Add vehicle like movement (use movement of particles)
+-Add particles that imitate a campfire, fire and smoke (use a noise map)
+-Add diagonal walking (going up or descending a ramp) and sliding off the ramp. Movement function asks for ground degree (rotation of an object) and rotates speed vector according to this degree (fast descending, slow ascending, because vertical speed translates to horizontal speed).
+-To collision module add lines of hitmap, add to collisions cords of the center (center of rotating), add rotating objects (create vectors that come from center of the object to every point of hitmap, rotate these vectors and move previous points to new locations - use wektorki main)
+-Add collisions with lines using intersection project.
+-Allow moving objects to move other objects using vectors (rotating objects will have momentum vectors used only to move other objects).
+-Add blur: takes color from few pixels and create brighter and darker squares with a little bit of alpha around the object; takes pixels from whole objects and uses avarage to blur an image; takes color from the closest sides of objects and fills the space between these two sides using avarage colors (ropes).
+-Add object goes many objects (cutting images using lines and dividing object into few small objects)
+-Add shape controler module: mainly used as hitboxes, can be used in vector graphics. There are two modes: draw by squares or draw normally. By pressing Q and LMB you create a point and the line from this point focuses on your mouse pointer. By clicking LMB again you create a new point with a line connecting both points. You can connect two existing points, but if there was a line, you don't create a new one. If you click RMB, the drawing is over, but if you click LMB on existing point, you can draw again from that point (or Q+LMB). By pressing shift you can draw horizontally, vertically and diagonally. If option „fill with color” is enable, the program fills with chosen color or colors only triangles
+-Make transition/special effects module (old pixelated transition, star wars transition (moving wall changes one scene to another), blur, everything turns white or black, random pixels/lines missing, old television errors, convex screen)
+-Inverse cinematics
+-Fabric algorithm
+-Depth maps
+-Add filling imageModule full area with used image if isFilledWithCopies is true
+-Add gifs.
+
+OPTIMALIZATIONS
+-Bounding volume hierarchy – group objects into “boxes/chunks” and iterate only through chunks where the player is (could work only for collisions). 
+-Declare variables as locally as possible.
+-Replace every vec2d with vec2f.
+-Replace big if else statements with switch and enum.
+-Use ++iterator – it’s faster. 
+-Use “const &” on every OBJECT (not variables).
+-Try unorganised_list for password-function connection in EditableText module.
+-Divide drawing on cameras to threads.
+-Instead of running for loops everywhere, make hash map from IDs or something.
+-(memory optimalization) Single Particles have only positions and Module have few vectors of randomized variables and single particles use them
+-(performance optimalization) Add a vector that tells what objects have particles
+-Add threads: one for moving and one for drawing particles
+
+BUGS
+-Vector movement doesn’t support camera movement
+-60 FPS max
+-Random copies of letters in editable fields -When you release few buttons at once editable fucking loses its shit. Do: when one button is pressed, every [var] seconds letter is entered, but when another button is pressed, the previous ones are 100% blocked until release (like in notepad)
+-Pointers in contexts may point to deleted entities (deleted = true).
