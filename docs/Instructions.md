@@ -503,7 +503,7 @@ print [delimeter] [[type] [value] ... ]
 
 **Description**
 
-    Remove a file or directory in the selected path using recurrency. 
+    Print the list of values on the standard output.
 
 **Parameters**
 

@@ -8,7 +8,7 @@ proc print_logical_evaluations 0
 proc draw_camera_borders 1
 proc draw_text_borders 0
 proc window_pos 0 0
-proc window_size 1920 1080
+proc window_size 600 1080
 env window_size 1366 768
 
 load_bitmap "images/amongus1.png" amongus_1

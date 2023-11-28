@@ -3,11 +3,6 @@
 
 #include "engineClass.h"
 
-#if __linux__
-    #include <sys/time.h>
-    unsigned long long GetTickCount();
-#endif
-
 enum CAMERA_MOVE: unsigned char{NONE, CAMERA_FULL, CAMERA_N, CAMERA_NE, CAMERA_E, CAMERA_SE, CAMERA_S, CAMERA_SW, CAMERA_W, CAMERA_NW};
 
 void freeFontsFromContainer(vector <SingleFont> & FontContainer);
