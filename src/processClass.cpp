@@ -4760,8 +4760,8 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
     }
 }
 void ProcessClass::changeProcessVariables(OperaClass & Operation){
-    if(Operation.Literals.size() < 2){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least two literals.\n";
+    if(Operation.Literals.size() == 0){
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least one literal.\n";
         return;
     }
     if(Operation.Literals[0].getType() != 's'){
@@ -4774,6 +4774,23 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation){
             cout << Operation.Literals[i].getStringUnsafe() << " ";
         }
         cout << "\n";
+    }
+    
+    if(Operation.Literals[0].getString() == "clear_layers"){
+        for(LayerClass & Layer : Layers){
+            Layer.deleteLater();
+        }
+        return;
+    }
+    else if(Operation.Literals[0].getString() == "clear_cameras"){
+        for(Camera2D & Camera : Cameras){
+            Camera.deleteLater();
+        }
+        return;
+    }
+    if(Operation.Literals.size() == 1){
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least two literals.\n";
+        return;
     }
     if(Operation.Literals[0].getString() == "is_active"){
         isActive = Operation.Literals[1].getBool(); 

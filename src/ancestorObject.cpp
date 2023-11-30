@@ -1411,10 +1411,18 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else if(words[0] == "proc"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
             Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(isStringInGroup(words[1], 2, "clear_layers", "clear_cameras")){
+                continue;
+            }
+            if(words.size() < 3){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
+                        "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
+                return;
+            }
             if(words[1] == "reservation_multiplier"){
                 Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
             }

@@ -7,7 +7,6 @@
 -Add deleting processes.
 -Implement “clone_proc [procID] [procID]” – cloning a process to a different process.
 -Implement “clone_to_proc [procID] [contextID]” – cloning a context to a process.
--Add “clear_layers” and “clear_cameras” attributes to the “proc” instruction.  
 -Add buffers(bitmaps) to processes instead of cropping rectangle.
 -Add procWindowPos procWindowSize to Process.
 -Add canInteractWithUser boolean to ProcessClass – if true, you can interact with this thread using cameras, mouse and keyboard.
