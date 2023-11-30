@@ -64,7 +64,7 @@ end
 start colors true
 if ([context index] [layer L1 objects_count] <)
 index layer [1] [index] object obj
-index context [0 0] [obj] image image1
+index context obj [0 0] _ image image1
 double [0 0 0 0] low
 double [10 10 10 10] high
 random_int _ low high randomColor

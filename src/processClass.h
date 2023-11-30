@@ -232,7 +232,8 @@ public:
     vector <unsigned> camerasOrder;
 
     void loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath);
-    ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath);
+    void setID(string newID, vector<string> & listOfIDs);
+    ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, vector<string> &listOfIDs);
     ~ProcessClass();
     void clear();
     void resizeWindow(vec2d newSize);
@@ -281,7 +282,7 @@ public:
     void addNewContext(vector<ContextClass> & EventContext, const ContextClass & NewContext, string type, string newID);
     void aggregateEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const EngineClass & Engine);
     void aggregateValues(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer,
-        AncestorObject *Owner, const EngineClass & Engine);
+        AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes);
     void aggregateOnlyById(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner);
     void nameVariable(vector<ContextClass> & EventContext, OperaClass & Operation);
     template<class Entity>
@@ -310,7 +311,7 @@ public:
     void executeFunctionForObjects(OperaClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
     void executeFunction(OperaClass Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine);
     void changeEngineVariables(OperaClass & Operation, EngineClass & Engine);
-    void changeProcessVariables(OperaClass & Operation);
+    void changeProcessVariables(OperaClass & Operation, vector <string> & processIDs);
     void loadBitmap(OperaClass & Operation, vector<SingleBitmap> & BitmapContainer);
     void createDirectory(OperaClass & Operation);
     void removeFileOrDirectory(OperaClass & Operation);
@@ -333,7 +334,7 @@ public:
     VariableModule findNextValueAmongObjects(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
         const MouseClass & Mouse);
     VariableModule findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
-        const EngineClass & Engine, vector<ContextClass> &EventContext);
+        const EngineClass & Engine, vector<ProcessClass> * Processes, vector<ContextClass> &EventContext);
     char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer,
         const EngineClass & Engine, vector<ContextClass> &EventContext);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);

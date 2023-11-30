@@ -197,6 +197,8 @@ void EngineClass::initAllegro(){
     al_start_timer(timer);
 }
 void EngineClass::exitAllegro(){
+    processIDs.clear();
+    
     releasedKeys.clear();
     firstPressedKeys.clear();
     pressedKeys.clear();

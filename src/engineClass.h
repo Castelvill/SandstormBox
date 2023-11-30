@@ -54,6 +54,7 @@ public:
 
     vector <SingleFont> FontContainer;
     vector <SingleBitmap> BitmapContainer;
+    vector <string> processIDs;
 
     MouseClass Mouse;
     unsigned char key[ALLEGRO_KEY_MAX];

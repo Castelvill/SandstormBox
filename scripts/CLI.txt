@@ -6,7 +6,7 @@ end
 
 start case1 false
 if ([context choice] [string print] ==)
-index context params [0] delimiter
+index context params [0] _ delimiter
 (subvec or just index) params 1 _ params
 print _ context delimiter context params
 end

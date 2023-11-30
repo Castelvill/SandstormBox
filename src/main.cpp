@@ -17,8 +17,8 @@ int main(){
 
     EngineClass Engine("EGM");
     vector <ProcessClass> Processes;
-    Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init.txt"));
-    Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init1.txt"));
+    Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init.txt", "Init", Engine.processIDs));
+    Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init1.txt", "Init1", Engine.processIDs));
     vec2d oldMousePos[2];
     //Main loop
     do{

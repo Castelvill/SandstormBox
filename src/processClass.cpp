@@ -44,7 +44,17 @@ void ProcessClass::loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize
 
     updateBaseOfTriggerableObjects();
 }
-ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath){
+void ProcessClass::setID(string newID, vector<string> & listOfIDs){
+    if(isStringInVector(reservedIDs, ID)){
+        cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        return;
+    }
+    removeFromStringVector(listOfIDs, ID);
+    ID = findNewUniqueID(listOfIDs, newID);
+    listOfIDs.push_back(ID);
+}
+ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, vector<string> &listOfIDs){
+    setID(newID, listOfIDs);
     isActive = true;
     canInteractWithUser = true;
     
@@ -2005,7 +2015,7 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
     }
 }
 void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer,
-    AncestorObject *Owner, const EngineClass & Engine
+    AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes
 ){
     ContextClass NewContext;
     for(ConditionClass & ValueLocation : Operation.ConditionalChain){
@@ -2014,7 +2024,7 @@ void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, OperaClas
             ValueLocation.Location.print("");
             cout << "\n";
         }
-        NewContext.Variables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Engine, EventContext));
+        NewContext.Variables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Engine, Processes, EventContext));
     }
     if(NewContext.Variables.size() > 0){
         NewContext.type = "value";
@@ -3175,8 +3185,10 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     ContextClass NewContext;
 
     NewContext.type = Operation.Location.source;
+    if(Operation.Location.source == "process"){
 
-    if(Operation.Location.source == "camera"){
+    }
+    else if(Operation.Location.source == "camera"){
         if(Cameras.size() + newVectorSize > Cameras.capacity()){
             for(LayerClass & Layer : Layers){
                 Layer.nullifyAllPointers();
@@ -4759,7 +4771,7 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
         cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
     }
 }
-void ProcessClass::changeProcessVariables(OperaClass & Operation){
+void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string> & processIDs){
     if(Operation.Literals.size() == 0){
         cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least one literal.\n";
         return;
@@ -4792,7 +4804,10 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation){
         cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least two literals.\n";
         return;
     }
-    if(Operation.Literals[0].getString() == "is_active"){
+    if(Operation.Literals[0].getString() == "id"){
+        setID(Operation.Literals[1].getString(), processIDs); 
+    }
+    else if(Operation.Literals[0].getString() == "is_active"){
         isActive = Operation.Literals[1].getBool(); 
     }
     else if(Operation.Literals[0].getString() == "can_interact_with_user"){
@@ -5208,7 +5223,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         //Get only values from the environment.
         else if(Operation.instruction == "value"){
-            aggregateValues(EventContext, Operation, OwnerLayer, Owner, Engine);
+            aggregateValues(EventContext, Operation, OwnerLayer, Owner, Engine, &Processes);
         }
         //Get literals prepared in the event.
         else if(isStringInGroup(Operation.instruction, 4, "bool", "int", "double", "string")){
@@ -5265,7 +5280,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             changeEngineVariables(Operation, Engine);
         }
         else if(Operation.instruction == "proc"){
-            changeProcessVariables(Operation);
+            changeProcessVariables(Operation, Engine.processIDs);
         }
         else if(Operation.instruction == "load_bitmap"){
             loadBitmap(Operation, Engine.BitmapContainer);
@@ -5690,13 +5705,11 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
     cout << "Error: In " << __FUNCTION__ << ": Value not found.\n";
     return VariableModule::newBool(false, "null");
 }
-VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, vector<ContextClass> &EventContext){
+VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
+    const EngineClass & Engine, vector<ProcessClass> * Processes, vector<ContextClass> &EventContext
+){
     VariableModule NewValue(Condition.Location.source, nullptr, "", "");
-    if(Condition.Location.source == "on_boot"){
-        NewValue.setBool(firstIteration);
-        return NewValue;
-    }
-    else if(Condition.Location.source == "fullscreen"){
+    if(Condition.Location.source == "fullscreen"){
         NewValue.setBool(Engine.fullscreen);
         return NewValue;
     }
@@ -5756,9 +5769,70 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         NewValue.setInt(Engine.displaySize.y);
         return NewValue;
     }
+    else if(Condition.Location.source == "number_of_processes"){
+        NewValue.setInt(Processes->size());
+        return NewValue;
+    }
+    else if(Condition.Location.source == "number_of_cameras"){
+        NewValue.setInt(0);
+        for(const ProcessClass & ProcessIter : *Processes){
+            NewValue.addInt(ProcessIter.Cameras.size());
+        }
+        return NewValue;
+    }
+    else if(Condition.Location.source == "number_of_layers"){
+        NewValue.setInt(0);
+        for(const ProcessClass & ProcessIter : *Processes){
+            NewValue.addInt(ProcessIter.Layers.size());
+        }
+        return NewValue;
+    }
+    else if(Condition.Location.source == "number_of_objects"){
+        NewValue.setInt(0);
+        for(const ProcessClass & ProcessIter : *Processes){
+            for(const LayerClass & Layer : ProcessIter.Layers){
+                NewValue.addInt(Layer.Objects.size());
+            }
+        }
+        return NewValue;
+    }
+    
+    ProcessClass * Process = this;
+    if(Condition.Location.process != "" && Condition.Location.process != ID && Processes != nullptr){
+        Process = nullptr;
+        for(ProcessClass & ProcessIter : *Processes){
+            if(ProcessIter.ID == Condition.Location.process){
+                Process = &ProcessIter;
+                break;
+            }
+        }
+        cout << "Error: In " << __FUNCTION__ << ": Process with id \'" << Condition.Location.process << "\' does not exist.\n";
+        return VariableModule::newBool(false);
+    }
+    if(Condition.Location.source == "on_boot"){
+        NewValue.setBool(Process->firstIteration);
+        return NewValue;
+    }
+    else if(Condition.Location.source == "process"){
+        if(Condition.Location.attribute == "number_of_cameras"){
+            NewValue.setInt(Process->Cameras.size());
+            return NewValue;
+        }
+        else if(Condition.Location.attribute == "number_of_layers"){
+            NewValue.setInt(Process->Layers.size());
+            return NewValue;
+        }
+        else if(Condition.Location.source == "number_of_objects"){
+            NewValue.setInt(0);
+            for(const LayerClass & Layer : Process->Layers){
+                NewValue.addInt(Layer.Objects.size());
+            }
+            return NewValue;
+        }
+    }
     else if(Condition.Location.source == "camera"){
         NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
-        for(const Camera2D & Camera : Cameras){
+        for(const Camera2D & Camera : Process->Cameras){
             if(Camera.getID() != Condition.Location.cameraID){
                 continue;
             }
@@ -5798,7 +5872,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
     }
     else if(Condition.Location.source == "layer"){
         NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
-        for(const LayerClass & Layer : Layers){
+        for(const LayerClass & Layer : Process->Layers){
             if(Layer.getID() != Condition.Location.layerID){
                 continue;
             }
@@ -5844,7 +5918,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
     }
     else if(Condition.Location.source == "object"){
-        return findNextValueAmongObjects(Condition, Owner, OwnerLayer, Engine.Mouse);
+        return Process->findNextValueAmongObjects(Condition, Owner, OwnerLayer, Engine.Mouse);
     }
     else if(Condition.Location.source == "context" || Condition.Location.source == "c"){
         ContextClass * Context;
@@ -5934,7 +6008,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
     
     for(ConditionClass & Condition : ConditionalChain){
         if(ignoreFlagOr == 0 && ignoreFlagAnd == 0){
-            resultStack.push_back(findNextValue(Condition, Owner, OwnerLayer, Engine, EventContext));
+            resultStack.push_back(findNextValue(Condition, Owner, OwnerLayer, Engine, nullptr, EventContext));
         }
         if(resultStack.size() == 0){
             continue;

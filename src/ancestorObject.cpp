@@ -1121,11 +1121,15 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else if(words[0] == "index"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
             Operation->Location.source = words[1];
             cursor = 2;
+            if(words[1] != "process" && words[1] != "layer" && words[1] != "camera"){
+                Operation->dynamicIDs.push_back(words[cursor]);
+                cursor++;
+            }
             if(!gatherLiterals(words, cursor, Operation->Literals, 'i', lineNumber, scriptName)){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                 return;
@@ -1423,7 +1427,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                 return;
             }
-            if(words[1] == "reservation_multiplier"){
+            if(words[1] == "id"){
+                Operation->Literals.push_back(VariableModule::newString(words[2]));
+            }
+            else if(words[1] == "reservation_multiplier"){
                 Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
             }
             else if(words[1] == "window_pos" || words[1] == "window_size" || words[1] == "min_window_size"){

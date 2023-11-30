@@ -145,7 +145,7 @@ fun NewAmo set_id string [Amongus]
 fun NewAmo set_position double [0 80]
 new image l L1 Amongus 1 _ _ redAstronaut
 fun redAstronaut set_id string [amongus]
-fun redAstronaut connect_bitmap_via_alias string [minion_1]
+fun redAstronaut connect_bitmap_via_alias string [amongus_2]
 fun redAstronaut select_layer int [1]
 fun redAstronaut set_scale double [0.6 0.6]
 new image l L1 Amongus 1 _ _ insanity
@@ -516,7 +516,7 @@ bind Amogus literal ["scripts/amogus.txt"]
 index layer [2 0] _ object Terminal
 bind Terminal rliteral ["scripts/terminal.txt"]
 bind Terminal literal ["scripts/terminal.txt"]
-index context [0 1] [Terminal] variable input
+index context Terminal [0 1] _ variable input
 fun input set_string string ["get_input"]
 build Terminal true
 end*/
@@ -551,7 +551,7 @@ triggers [on_display_resize]
 if([on_display_resize])
 value ([window_w]) w
 value ([window_h]) h
-index context [0 0] [me] image Arch
+index context me [0 0] _ image Arch
 fun Arch resize c w c h
 index camera [0] _ camera Cam0
 fun Cam0 resize c w c h

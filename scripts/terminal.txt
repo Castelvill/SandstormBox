@@ -5,13 +5,13 @@ end
 
 start get_input false
 if ([c me variable input] [string "get_input"] ==)
-index context [0 1] [me] variable input
+index context me [0 1] _ variable input
 string ["print_hello"] null
 = input null
 end
 
 start clear_input false
-index context [0 1] [me] variable input
+index context me [0 1] _ variable input
 string [""] null
 = input null
 end

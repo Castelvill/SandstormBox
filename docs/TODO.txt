@@ -1,20 +1,16 @@
+-Add “ls” instruction – print list of processes, cameras, layers, objects, modules, loaded bitmaps and fonts. Using flags prints details or limits the list to one type of entities. Look in scenarios for more info.
 -Reminder: You cannot put processes into contexts, because processes use context class.
 -Think about adding first layers, first objects and binding initialization scripts to newly created processes.
--Add “id” parameter to the “proc” instruction and force uniqueness.
--Add choosing ID of the currently configured process to the “proc” instruction.
 -Add processes to “new” instruction – new processes will be added to a buffer vector in order to be configured.
 -Upgrade “proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
--Implement “clone_proc [procID] [procID]” – cloning a process to a different process.
--Implement “clone_to_proc [procID] [contextID]” – cloning a context to a process.
+-Implement “clone_proc *procID* *contextID*” – cloning (adding) a context into selected process.
 -Add buffers(bitmaps) to processes instead of cropping rectangle.
--Add procWindowPos procWindowSize to Process.
--Add canInteractWithUser boolean to ProcessClass – if true, you can interact with this thread using cameras, mouse and keyboard.
 -Add blocking user input based allegro events in the processes that are not focused.
 -Add blocking keyboard and mouse input through cameras that are out of focus.
--Add “ls” instruction – print list of processes, cameras, layers, objects, modules, loaded bitmaps and fonts. Using flags prints details or limits the list to one type of entities. Look in scenarios for more info.
+-Add canInteractWithUser boolean to ProcessClass – if true, you can interact with this thread using cameras, mouse and keyboard.
 -Create basic terminal with EditableText connected to the “INTERPRETER” event – event will take the command and turn it into an enclosed event “COMMAND”. Command event will be executed once (by the run() instruction) and will be cleared afterwards.
--Document instructions.
+-Update documentation.
 
 -MILESTONE: ImpostorOS.
 
