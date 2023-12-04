@@ -232,6 +232,7 @@ public:
     vector <unsigned> camerasOrder;
 
     void loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath);
+    string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
     ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, vector<string> &listOfIDs);
     ~ProcessClass();
@@ -320,6 +321,7 @@ public:
     void executePrint(OperaClass & Operation, vector<ContextClass> & EventContext);
     void saveStringAsFile(OperaClass & Operation, vector<ContextClass> & EventContext);
     void loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void listOutEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const vector<ProcessClass> & Processes);
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
@@ -378,17 +380,9 @@ public:
     void dragScrollbars(const MouseClass & Mouse);
     void updateBaseOfTriggerableObjects();
     void detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects);
-
-    void prepareEditorWindowObjectsList(int categoryIndex, AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr);
-    void prepareEditorWindowImage(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-    void prepareEditorWindowText(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-    void prepareEditorWindowMovement(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-    void prepareEditorWindowCollisions(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-    void prepareEditorWindowEvents(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-    void prepareEditorWindowParticles(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-    void prepareEditorWindowVariables(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-    void prepareEditorWindowEditable(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-
+    size_t countLayers() const;
+    size_t countCameras() const;
+    
     bool checkDefaultCondition(VariableModule * Left, VariableModule * Right);
     bool checkDefaultCondition(BasePointersStruct * Left, BasePointersStruct * Right);
 };

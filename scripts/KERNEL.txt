@@ -532,6 +532,7 @@ end
 start fs_click false
 triggers [key_pressed]
 if ([key_pressed 58])
+ls proc true
 int [1] xd
 run [fs]
 end

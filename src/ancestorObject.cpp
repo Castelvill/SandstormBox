@@ -1510,6 +1510,24 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->Literals.push_back(VariableModule::newString(words[1]));
             Operation->dynamicIDs.push_back(words[2]);
         }
+        else if(words[0] == "ls"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words.size() == 2){
+                continue;
+            }
+            if(words[2] == "true"){
+                Operation->Literals.push_back(VariableModule::newBool(true));
+            }
+            else if(words[2] == "false"){
+                Operation->Literals.push_back(VariableModule::newBool(false));
+            }
+            else{
+                Operation->Literals.push_back(VariableModule::newBool(stoi(words[2])));
+            }
+        }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
         }

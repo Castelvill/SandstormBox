@@ -1,3 +1,5 @@
+-Remove useless "vector<ContextClass> & EventContext" parameters.
+-Use size_t with size().
 -Add “ls” instruction – print list of processes, cameras, layers, objects, modules, loaded bitmaps and fonts. Using flags prints details or limits the list to one type of entities. Look in scenarios for more info.
 -Reminder: You cannot put processes into contexts, because processes use context class.
 -Think about adding first layers, first objects and binding initialization scripts to newly created processes.

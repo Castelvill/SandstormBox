@@ -44,7 +44,10 @@ void ProcessClass::loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize
 
     updateBaseOfTriggerableObjects();
 }
-void ProcessClass::setID(string newID, vector<string> & listOfIDs){
+string ProcessClass::getID() const{
+    return ID;
+}
+void ProcessClass::setID(string newID, vector<string> &listOfIDs){
     if(isStringInVector(reservedIDs, ID)){
         cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
@@ -505,6 +508,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             ++Object;
         }
     }
+}
+size_t ProcessClass::countLayers() const{
+    return Layers.size();
+}
+size_t ProcessClass::countCameras() const{
+    return Cameras.size();
 }
 void ContextClass::clear(){
     ID = "";
@@ -5198,6 +5207,34 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
 	File << textFromContext;
     File.close();
 }
+void ProcessClass::listOutEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const vector<ProcessClass> & Processes){
+    if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least one string.\n";
+        return;
+    }
+    bool printDetails = false;
+    if(Operation.Literals.size() >= 2){
+        printDetails = Operation.Literals[1].getBoolUnsafe();
+    }
+    if(Operation.Literals[0].getString() == "proc"){
+        if(printDetails){
+            int i = 0;
+            cout << "Nr\tID\tLayers\tCameras\n";
+            for(const ProcessClass & Process : Processes){
+                cout << i << "\t" << Process.getID()
+                    << "\t" << Process.countLayers()
+                    << "\t" << Process.countCameras()
+                    << "\n";
+                i++;
+            }
+        }
+        else{
+            for(const ProcessClass & Process : Processes){
+                cout << Process.getID() << " ";
+            }
+        }
+    }
+}
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
     vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
@@ -5305,6 +5342,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         else if(Operation.instruction == "save_text"){
             saveStringAsFile(Operation, EventContext);
+        }
+        else if(Operation.instruction == "ls"){
+            listOutEntities(Operation, EventContext, Processes);
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";
@@ -5806,8 +5846,10 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 break;
             }
         }
-        cout << "Error: In " << __FUNCTION__ << ": Process with id \'" << Condition.Location.process << "\' does not exist.\n";
-        return VariableModule::newBool(false);
+        if(Process == nullptr){
+            cout << "Error: In " << __FUNCTION__ << ": Process with id \'" << Condition.Location.process << "\' does not exist.\n";
+            return VariableModule::newBool(false);
+        }
     }
     if(Condition.Location.source == "on_boot"){
         NewValue.setBool(Process->firstIteration);
