@@ -5216,7 +5216,25 @@ void ProcessClass::listOutEntities(OperaClass & Operation, vector<ContextClass> 
     if(Operation.Literals.size() >= 2){
         printDetails = Operation.Literals[1].getBoolUnsafe();
     }
-    if(Operation.Literals[0].getString() == "proc"){
+    if(Operation.Literals[0].getString() == "processes"){
+        if(printDetails){
+            int i = 0;
+            cout << "Nr\tID\tLayers\tCameras\n";
+            for(const ProcessClass & Process : Processes){
+                cout << i << "\t" << Process.getID()
+                    << "\t" << Process.countLayers()
+                    << "\t" << Process.countCameras()
+                    << "\n";
+                i++;
+            }
+        }
+        else{
+            for(const ProcessClass & Process : Processes){
+                cout << Process.getID() << " ";
+            }
+        }
+    }
+    else if(Operation.Literals[0].getString() == "layers"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tLayers\tCameras\n";

@@ -1,0 +1,11 @@
+
+
+string ["id1", "id2"] newIDs
+new process _ _ 2 _ newIDs NewProcs // set ids of n processes
+proc_init id1 "init3.txt" // create a layer and object and insert the script inside
+index context NewProcs [0] _ Proc0
+fun Proc0 set_window_size int [690 420]
+index layer [0] Layer0
+clone_to_proc id1 Layer0
+clone_to_proc id2 ld1
+delete id2
