@@ -58,7 +58,7 @@ public:
     void deleteLater();
     void deactivate();
     void toggleIsActive();
-    bool getIsActive();
+    bool getIsActive() const;
     bool getIsDeleted() const;
     void setPos(vec2d newPos);
     void setPos(double x, double y);

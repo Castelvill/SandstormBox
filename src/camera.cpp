@@ -106,7 +106,7 @@ void Camera2D::deactivate(){
 void Camera2D::toggleIsActive(){
     isActive = !isActive;
 }
-bool Camera2D::getIsActive(){
+bool Camera2D::getIsActive() const{
     return isActive;
 }
 bool Camera2D::getIsDeleted() const{

@@ -5207,7 +5207,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
 	File << textFromContext;
     File.close();
 }
-void ProcessClass::listOutEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const vector<ProcessClass> & Processes){
+void ProcessClass::listOutEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const vector<ProcessClass> & Processes, const EngineClass & Engine){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
         cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least one string.\n";
         return;
@@ -5237,18 +5237,80 @@ void ProcessClass::listOutEntities(OperaClass & Operation, vector<ContextClass> 
     else if(Operation.Literals[0].getString() == "layers"){
         if(printDetails){
             int i = 0;
-            cout << "Nr\tID\tLayers\tCameras\n";
+            cout << "Nr\tID\tProcess\tActive\tObjects\n";
             for(const ProcessClass & Process : Processes){
-                cout << i << "\t" << Process.getID()
-                    << "\t" << Process.countLayers()
-                    << "\t" << Process.countCameras()
+                for(const LayerClass & Layer : Process.Layers){
+                    cout << i
+                    << "\t" << Layer.getID()
+                    << "\t" << Process.getID()
+                    << "\t" << Layer.getIsActive()
+                    << "\t" << Layer.Objects.size()
                     << "\n";
-                i++;
+                    i++;
+                }
             }
         }
         else{
             for(const ProcessClass & Process : Processes){
-                cout << Process.getID() << " ";
+                for(const LayerClass & Layer : Process.Layers){
+                    cout << Layer.getID() << " ";
+                }
+            }
+        }
+    }
+    else if(Operation.Literals[0].getString() == "cameras"){
+        if(printDetails){
+            int i = 0;
+            cout << "Nr\tID\tProcess\tActive\tPinned\n";
+            for(const ProcessClass & Process : Processes){
+                for(const Camera2D & Camera : Process.Cameras){
+                    cout << i
+                    << "\t" << Camera.getID()
+                    << "\t" << Process.getID()
+                    << "\t" << Camera.getIsActive()
+                    << "\t" << Camera.pinnedCameraID
+                    << "\n";
+                    i++;
+                }
+            }
+        }
+        else{
+            for(const ProcessClass & Process : Processes){
+                for(const Camera2D & Camera : Process.Cameras){
+                    cout << Camera.getID() << " ";
+                }
+            }
+        }
+    }
+    else if(Operation.Literals[0].getString() == "bitmaps"){
+        if(printDetails){
+            int i = 0;
+            cout << "Nr\tID\tPath\n";
+            for(const SingleBitmap & Bitmap : Engine.BitmapContainer){
+                cout << i << "\t" << Bitmap.ID
+                    << "\t" << Bitmap.filePath << "\n";
+                i++;
+            }
+        }
+        else{
+            for(const SingleBitmap & Bitmap : Engine.BitmapContainer){
+                cout << Bitmap.ID << " ";
+            }
+        }
+    }
+    else if(Operation.Literals[0].getString() == "fonts"){
+        if(printDetails){
+            int i = 0;
+            cout << "Nr\tID\tSize\n";
+            for(const SingleFont & Font : Engine.FontContainer){
+                cout << i << "\t" << Font.ID
+                    << "\t" << Font.sizeF << "\n";
+                i++;
+            }
+        }
+        else{
+            for(const SingleFont & Font : Engine.FontContainer){
+                cout << Font.ID << " ";
             }
         }
     }
@@ -5362,7 +5424,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             saveStringAsFile(Operation, EventContext);
         }
         else if(Operation.instruction == "ls"){
-            listOutEntities(Operation, EventContext, Processes);
+            listOutEntities(Operation, EventContext, Processes, Engine);
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";

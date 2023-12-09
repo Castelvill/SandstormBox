@@ -41,14 +41,14 @@ void draw_bitmap(ALLEGRO_BITMAP *bitmap, float sx, float sy, float sw, float sh,
 
 SingleBitmap::SingleBitmap(){
     filePath = "";
-    alias = "";
+    ID = "";
     bitmap = nullptr;
 }
-void SingleBitmap::loadBitmap(string newAlias, string newFilePath, string EXE_PATH){
+void SingleBitmap::loadBitmap(string newID, string newFilePath, string EXE_PATH){
     if(bitmap)
         al_destroy_bitmap(bitmap);
     filePath = newFilePath;
-    alias = newAlias;
+    ID = newID;
     bitmap = al_load_bitmap((EXE_PATH + filePath).c_str());
     if(!bitmap){
         cout << "Failed to load a bitmap: File \'" << filePath << "\' not found.\n";
@@ -90,12 +90,12 @@ ImageModule::ImageModule(){
     primaryConstructor("", nullptr, "", "");
     setUpNewInstance();
 }
-ImageModule::ImageModule(string newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newAlias, listOfIDs, newLayerID, newObjectID);
+ImageModule::ImageModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-ImageModule::ImageModule(unsigned int newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newAlias, listOfIDs, newLayerID, newObjectID);
+ImageModule::ImageModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
 ImageModule::~ImageModule(){
@@ -154,7 +154,7 @@ void ImageModule::clear(){
         lightBitmap = nullptr;
     }
 }
-void ImageModule::loadImage(string newFilePath, string newAlias, string EXE_PATH){
+void ImageModule::loadImage(string newFilePath, string newImageID, string EXE_PATH){
     if(image && !isBitmapFromContainer[0])
         al_destroy_bitmap(image);
     else
@@ -166,7 +166,7 @@ void ImageModule::loadImage(string newFilePath, string newAlias, string EXE_PATH
 
     isBitmapFromContainer[0] = false;
     isBitmapFromContainer[1] = false;
-    imageAlias = newAlias;
+    imageID = newImageID;
     imageFilePath = newFilePath;
     image = al_load_bitmap((EXE_PATH + imageFilePath).c_str());
     if(!image){
@@ -179,7 +179,7 @@ void ImageModule::loadImage(string newFilePath, string newAlias, string EXE_PATH
     al_clear_to_color(al_map_rgb(255, 255, 255));
 
 }
-void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newAlias, string EXE_PATH){
+void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string EXE_PATH){
     //If the bitmap doesn't exist, return without changing the bitmap.
     unsigned int i = 0;
     bool bitmapExists = false;
@@ -192,9 +192,9 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
             }
         }
     }
-    else if(newAlias != ""){
+    else if(newImageID != ""){
         for(; i < BitmapContainer.size(); i++){
-            if(BitmapContainer[i].alias == newAlias){
+            if(BitmapContainer[i].ID == newImageID){
                 bitmapExists = true;
                 break;
             }
@@ -202,8 +202,8 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     }
     
     if(!bitmapExists){
-        if(newAlias != ""){
-            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newAlias << "\' not found.\n";
+        if(newImageID != ""){
+            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not found.\n";
         }
         else if(newFilePath != ""){
             cout << "Error: In " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
@@ -215,7 +215,7 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     }
 
     imageFilePath = newFilePath;
-    imageAlias = newAlias;
+    imageID = newImageID;
 
     if(image && !isBitmapFromContainer[0]){
         al_destroy_bitmap(image);
@@ -237,8 +237,8 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
 
     if(!image){
         image = al_create_bitmap(100, 100);
-        if(imageAlias != ""){
-            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << imageAlias << "\' not found.\n";
+        if(newImageID != ""){
+            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not found.\n";
         }
         else{
             cout << "Error: In " << __FUNCTION__ << ": File \'" << imageFilePath << "\' not loaded into memory.\n";
@@ -250,7 +250,7 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     al_set_target_bitmap(lightBitmap);
     al_clear_to_color(al_map_rgb(255, 255, 255));
 }
-void ImageModule::loadLight(string newFilePath, string newAlias, string EXE_PATH){
+void ImageModule::loadLight(string newFilePath, string newLightID, string EXE_PATH){
     if(lightBitmap && !isBitmapFromContainer[1]){
         al_destroy_bitmap(lightBitmap);
     }
@@ -259,7 +259,7 @@ void ImageModule::loadLight(string newFilePath, string newAlias, string EXE_PATH
     }
         
     lightFilePath = newFilePath;
-    lightAlias = newAlias;
+    lightID = newLightID;
 
     isBitmapFromContainer[1] = false;
     lightBitmap = al_load_bitmap((EXE_PATH + lightFilePath).c_str());
@@ -268,7 +268,7 @@ void ImageModule::loadLight(string newFilePath, string newAlias, string EXE_PATH
         return;
     }
 }
-void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newAlias, string EXE_PATH){
+void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newLightID, string EXE_PATH){
     //If the bitmap doesn't exist, return without changing the bitmap.
     unsigned int i = 0;
     bool bitmapExists = false;
@@ -281,9 +281,9 @@ void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, st
             }
         }
     }
-    else if(newAlias != ""){
+    else if(newLightID != ""){
         for(; i < BitmapContainer.size(); i++){
-            if(BitmapContainer[i].alias == newAlias){
+            if(BitmapContainer[i].ID == newLightID){
                 bitmapExists = true;
                 break;
             }
@@ -291,8 +291,8 @@ void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, st
     }
     
     if(!bitmapExists){
-        if(newAlias != ""){
-            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newAlias << "\' not found.\n";
+        if(newLightID != ""){
+            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newLightID << "\' not found.\n";
         }
         else if(newFilePath != ""){
             cout << "Error: In " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
@@ -304,7 +304,7 @@ void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, st
     }
 
     lightFilePath = newFilePath;
-    lightAlias = newAlias;
+    lightID = newLightID;
 
 
     if(lightBitmap && !isBitmapFromContainer[1]){
@@ -321,8 +321,8 @@ void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, st
 
     if(!lightBitmap){
         lightBitmap = al_create_bitmap(100, 100);
-        if(lightAlias != ""){
-            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << lightAlias << "\' not found.\n";
+        if(newLightID != ""){
+            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newLightID << "\' not found.\n";
         }
         else{
             cout << "Error: In " << __FUNCTION__ << ": File \'" << lightFilePath << "\' not loaded into memory.\n";
@@ -585,8 +585,8 @@ void ImageModule::setUsedBitmapLayer(int newLayer){
 float ImageModule::getLightLevel() const{
     return lightLevel;
 }
-void ImageModule::changeParameters(string newAlias, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors){
-    setID(newAlias, listOfIDs);
+void ImageModule::changeParameters(string newID, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors){
+    setID(newID, listOfIDs);
     setPos(dimPos.val[0], dimPos.val[1]);
     setSize(dimPos.val[2], dimPos.val[3]);
     setScale(newScale);

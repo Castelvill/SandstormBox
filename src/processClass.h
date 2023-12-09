@@ -321,7 +321,7 @@ public:
     void executePrint(OperaClass & Operation, vector<ContextClass> & EventContext);
     void saveStringAsFile(OperaClass & Operation, vector<ContextClass> & EventContext);
     void loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext);
-    void listOutEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const vector<ProcessClass> & Processes);
+    void listOutEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const vector<ProcessClass> & Processes, const EngineClass & Engine);
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
