@@ -5003,6 +5003,12 @@ void ProcessClass::renameFileOrDirectory(OperaClass & Operation){
         cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
     }
 }
+template <class T>
+void printIDs(const vector<T*> Instances, string delimeter){
+    for(const T * Instance : Instances){
+        cout << Instance->getID() << delimeter;
+    }
+}
 void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & EventContext){
     string delimeter = "";
 
@@ -5051,8 +5057,47 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
                 cout << Variable->getStringUnsafe() << delimeter;
             }
         }
+        else if(ContextValues->type == "camera"){
+            printIDs(ContextValues->Cameras, delimeter);
+        }
+        else if(ContextValues->type == "layer"){
+            printIDs(ContextValues->Layers, delimeter);
+        }
+        else if(ContextValues->type == "object"){
+            printIDs(ContextValues->Objects, delimeter);
+        }
+        else if(ContextValues->type == "text"){
+            printIDs(ContextValues->Modules.Texts, delimeter);
+        }
+        else if(ContextValues->type == "editable_text"){
+            printIDs(ContextValues->Modules.EditableTexts, delimeter);
+        }
+        else if(ContextValues->type == "image"){
+            printIDs(ContextValues->Modules.Images, delimeter);
+        }
+        else if(ContextValues->type == "movement"){
+            printIDs(ContextValues->Modules.Movements, delimeter);
+        }
+        else if(ContextValues->type == "collision"){
+            printIDs(ContextValues->Modules.Collisions, delimeter);
+        }
+        else if(ContextValues->type == "movement"){
+            printIDs(ContextValues->Modules.Movements, delimeter);
+        }
+        else if(ContextValues->type == "particles"){
+            printIDs(ContextValues->Modules.Particles, delimeter);
+        }
+        else if(ContextValues->type == "event"){
+            printIDs(ContextValues->Modules.Events, delimeter);
+        }
+        else if(ContextValues->type == "scrollbar"){
+            printIDs(ContextValues->Modules.Scrollbars, delimeter);
+        }
+        else if(ContextValues->type == "primitive"){
+            printIDs(ContextValues->Modules.Primitives, delimeter);
+        }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Second context must be of type: pointer or value.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Invalid context type.\n";
         }
     }
 }
@@ -5207,7 +5252,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
 	File << textFromContext;
     File.close();
 }
-void ProcessClass::listOutEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const vector<ProcessClass> & Processes, const EngineClass & Engine){
+void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessClass> & Processes, const EngineClass & Engine){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
         cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least one string.\n";
         return;
@@ -5215,6 +5260,9 @@ void ProcessClass::listOutEntities(OperaClass & Operation, vector<ContextClass> 
     bool printDetails = false;
     if(Operation.Literals.size() >= 2){
         printDetails = Operation.Literals[1].getBoolUnsafe();
+    }
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.Literals[0].getString() << " " << printDetails << "\n";
     }
     if(Operation.Literals[0].getString() == "processes"){
         if(printDetails){
@@ -5424,7 +5472,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             saveStringAsFile(Operation, EventContext);
         }
         else if(Operation.instruction == "ls"){
-            listOutEntities(Operation, EventContext, Processes, Engine);
+            listOutEntities(Operation, Processes, Engine);
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";

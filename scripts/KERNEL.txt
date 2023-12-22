@@ -533,7 +533,7 @@ start fs_click false
 triggers [key_pressed]
 if ([key_pressed 58])
 //print _ string ["Processes: \n"]
-ls bitmaps true
+ls bitmaps
 int [1] xd
 run [fs]
 end

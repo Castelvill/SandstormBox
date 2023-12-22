@@ -541,3 +541,18 @@ save_text *path* *text*
 
 - path (string) - path to a text file;
 - text (string) - id of the context of the string type.
+
+## ls
+
+**Syntax**
+
+ls *source* *detail*
+
+**Description**
+
+    Prints out the list of items from the source on the standard output.
+
+**Parameters**
+
+- source (string): processes, layers, cameras, bitmaps, fonts;
+- detail (bool) - if true, prints items in the table with details.

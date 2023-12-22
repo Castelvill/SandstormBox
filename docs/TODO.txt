@@ -1,8 +1,3 @@
--Add “ls” instruction – print list of processes, cameras, layers, objects, modules, loaded bitmaps and fonts. Using flags prints details or limits the list to one type of entities. Look in scenarios for more info.
--Expand "print" instruction: passing non-single-value context prints out the list of entities' ids divided with delimiters. 
--Remove useless "vector<ContextClass> & EventContext" parameters.
--Use size_t with size().
--Reminder: You cannot put processes into contexts, because processes use context class.
 -Think about adding first layers, first objects and binding initialization scripts to newly created processes.
 -Add processes to “new” instruction – new processes will be added to a buffer vector in order to be configured.
 -Upgrade “proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
