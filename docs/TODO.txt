@@ -1,5 +1,6 @@
--Think about adding first layers, first objects and binding initialization scripts to newly created processes.
+-Remove EditorObject.
 -Add processes to “new” instruction – new processes will be added to a buffer vector in order to be configured.
+-Think about adding first layers, first objects and binding initialization scripts to newly created processes.
 -Upgrade “proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
 -Implement “clone_proc *procID* *contextID*” – cloning (adding) a context into selected process.

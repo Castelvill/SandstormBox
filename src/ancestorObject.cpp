@@ -1528,6 +1528,18 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newBool(stoi(words[2])));
             }
         }
+        else if(words[0] == "new_proc"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            for(unsigned int i = 2; i < 5; i++){
+                if(words.size() <= i){
+                    break;
+                }
+                Operation->Literals.push_back(VariableModule::newString(words[i]));
+            }
+        }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
         }

@@ -231,10 +231,10 @@ private:
 public:
     vector <unsigned> camerasOrder;
 
-    void loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath);
+    void loadInitProcess(string layerID, string objectID, vec2i screenSize, string initFilePath);
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
-    ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, vector<string> &listOfIDs);
+    ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
     ~ProcessClass();
     void clear();
     void resizeWindow(vec2d newSize);
@@ -296,7 +296,7 @@ public:
     void checkIfVectorContainsVector(OperaClass & Operation, vector<ContextClass> &EventContext);
     bool prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs);
     bool prepareDestinationForNew(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
-    void createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
+    void createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
         vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
     );
@@ -322,6 +322,10 @@ public:
     void saveStringAsFile(OperaClass & Operation, vector<ContextClass> & EventContext);
     void loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext);
     void listOutEntities(OperaClass & Operation, const vector<ProcessClass> & Processes, const EngineClass & Engine);
+    void createNewProcess(OperaClass & Operation, vector<ProcessClass> & Processes, vector<ContextClass> &EventContext,
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
+    );
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,

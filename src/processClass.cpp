@@ -22,22 +22,20 @@ void EventsLookupTable::clear(){
     ResizeTriggered.clear();
 }
 
-void ProcessClass::loadInitProcess(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath){
-    Layers.push_back(LayerClass("KERNEL", layersIDs, true, vec2d(0.0, 0.0), screenSize));
-    Layers.back().Objects.push_back(AncestorObject("init", Layers.back().objectsIDs, Layers.back().getID()));
+void ProcessClass::loadInitProcess(string layerID, string objectID, vec2i screenSize, string initFilePath){
+    Layers.push_back(LayerClass(layerID, layersIDs, true, vec2d(0.0, 0.0), screenSize));
+    Layers.back().Objects.push_back(AncestorObject(objectID, Layers.back().objectsIDs, Layers.back().getID()));
     Layers.back().Objects.back().bindedScripts.push_back(EXE_PATH + initFilePath);
     Layers.back().Objects.back().translateAllScripts(true);
-    Layers.back().Objects.push_back(AncestorObject("KERNEL", Layers.back().objectsIDs, Layers.back().getID()));
-
     if(isLayersUniquenessViolated()){
         cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
     }
 
-    for(LayerClass & layer : Layers){
-        for(AncestorObject & obj : layer.Objects){
+    for(LayerClass & Layer : Layers){
+        for(AncestorObject & obj : Layer.Objects){
             obj.createVectorsOfIds();
         }
-        if(layer.isObjectsUniquenessViolated()){
+        if(Layer.isObjectsUniquenessViolated()){
             cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
         }
     }
@@ -56,7 +54,7 @@ void ProcessClass::setID(string newID, vector<string> &listOfIDs){
     ID = findNewUniqueID(listOfIDs, newID);
     listOfIDs.push_back(ID);
 }
-ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, vector<string> &listOfIDs){
+ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs){
     setID(newID, listOfIDs);
     isActive = true;
     canInteractWithUser = true;
@@ -102,7 +100,7 @@ ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string
 
     WindowBuffer = al_create_bitmap(windowSize.x, windowSize.y);
 
-    loadInitProcess(EXE_PATH_FROM_ENGINE, screenSize, initFilePath);
+    loadInitProcess(newLayerID, newObjectID, screenSize, initFilePath);
 }
 ProcessClass::~ProcessClass(){
     foregroundOfObjects.clear();
@@ -3143,7 +3141,7 @@ bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<Conte
 
     return true;
 }
-void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
+void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext,
     AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
@@ -3194,10 +3192,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     ContextClass NewContext;
 
     NewContext.type = Operation.Location.source;
-    if(Operation.Location.source == "process"){
-
-    }
-    else if(Operation.Location.source == "camera"){
+    if(Operation.Location.source == "camera"){
         if(Cameras.size() + newVectorSize > Cameras.capacity()){
             for(LayerClass & Layer : Layers){
                 Layer.nullifyAllPointers();
@@ -3364,12 +3359,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
     else if(DeletedContext->type == "layer"){
         for(LayerClass * Layer : DeletedContext->Layers){
             if(Layer != nullptr){
-                if(Layer->getID() == "KERNEL"){
-                    cout << "Error: In " << __FUNCTION__ << ": KERNEL cannot be deleted.\n";
-                }
-                else{
-                    Layer->deleteLater();
-                }
+                Layer->deleteLater();
             }
         }
         if(OwnerLayer != nullptr && OwnerLayer->getIsDeleted()){
@@ -5363,6 +5353,71 @@ void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessC
         }
     }
 }
+void ProcessClass::createNewProcess(OperaClass & Operation, vector<ProcessClass> & Processes, vector<ContextClass> &EventContext,
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
+){
+    if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
+        cout << "Error: In " << __FUNCTION__ << ": " << Operation.instruction << " requires at least one string literal.\n";
+        return;
+    }
+    if(Processes.size() + 1 > Processes.capacity()){
+        PointerRecalculator Recalculator;
+        Recalculator.findIndexesForLayers(Layers, EventContext);
+        Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
+        Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+        
+        size_t processesSize = Processes.size();
+        size_t selectedLayersIndexes[processesSize];
+        size_t layerIndex;
+        AncestorIndex selectedObjectsIndexes[processesSize];
+        for(size_t i = 0; i < processesSize; i++){
+            if(Processes[i].SelectedLayer != nullptr){
+                selectedLayersIndexes[i] = Processes[i].SelectedLayer - &Layers[0];
+            }
+            if(Processes[i].SelectedObject != nullptr){
+                for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
+                    if(Layers[layerIndex].getID() == Processes[i].SelectedObject->getLayerID()){
+                        selectedObjectsIndexes[i] = AncestorIndex(layerIndex, Processes[i].SelectedObject - &Layers[layerIndex].Objects[0]);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        Processes.reserve((Processes.size() + 1) * reservationMultiplier);
+
+        Recalculator.updatePointersToLayers(Layers, EventContext);
+        Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EditorObject);
+        Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+        for(size_t i = 0; i < processesSize; i++){
+            if(Processes[i].SelectedLayer != nullptr){
+                if(Layers.size() <= selectedLayersIndexes[i]){
+                    cout << "Error: In " << __FUNCTION__ << ": selectedLayerIndex goes out of scope of Layers.\n";
+                    Processes[i].SelectedLayer = nullptr;
+                }
+                else{
+                    Processes[i].SelectedLayer = &Layers[selectedLayersIndexes[i]];
+                }
+            }
+            if(Processes[i].SelectedObject != nullptr){
+                Processes[i].SelectedObject = selectedObjectsIndexes[i].object(Layers);
+            }
+        }
+    }
+    string layerID = "0", objectID = "0", script = "";
+    if(Operation.Literals.size() > 1 && Operation.Literals[1].getType() == 's'){
+        layerID = Operation.Literals[1].getString();
+    }
+    if(Operation.Literals.size() > 2 && Operation.Literals[2].getType() == 's'){
+        objectID = Operation.Literals[2].getString();
+    }
+    if(Operation.Literals.size() > 3 && Operation.Literals[3].getType() == 's'){
+        script = Operation.Literals[3].getString();
+    }
+    Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(),
+        script, Operation.Literals[0].getString(), layerID, objectID, Engine.processIDs));
+}
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
     vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
@@ -5424,7 +5479,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             checkIfVectorContainsVector(Operation, EventContext);
         }
         else if(Operation.instruction == "new"){
-            createNewEntities(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, StartingEvent, Event, MemoryStack);
+            createNewEntities(Operation, EventContext, Owner, TriggeredObjects, StartingEvent, Event, MemoryStack);
         }
         else if(Operation.instruction == "delete"){
             markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects);
@@ -5473,6 +5528,10 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         else if(Operation.instruction == "ls"){
             listOutEntities(Operation, Processes, Engine);
+        }
+        else if(Operation.instruction == "new_proc"){
+            createNewProcess(Operation, Processes, EventContext, Owner, TriggeredObjects,
+                StartingEvent, Event, MemoryStack, Engine);
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";
@@ -8644,7 +8703,9 @@ void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vec
     for(context = 0; context < LayerIndexes.size(); context++){
         for(layer = 0; layer < LayerIndexes[context].size(); layer++){
             if(Layers.size() <= LayerIndexes[context][layer]){
-                cout << "Error: In " << __FUNCTION__ << ": LayerIndexes[context][layer] goes out of scope of Layers.\n";
+                cout << "Error: In " << __FUNCTION__ << ": LayerIndexes[" << context
+                    << "][" << layer << "]=" << LayerIndexes[context][layer]
+                    << " goes out of scope of Layers<" << Layers.size()  << ">.\n";
                 EventContext[context].Layers[layer] = nullptr;
                 continue;
             }

@@ -13,6 +13,7 @@ env window_size 1366 768
 
 load_bitmap "images/amongus1.png" amongus_1
 load_bitmap "images/amongus2.png" amongus_2
+load_bitmap "images/amongus3.png" amongus_3
 load_bitmap "images/cobblestone.png" cobblestone
 load_bitmap "images/steve.png" steve
 load_bitmap "images/arch.jpg" i_use_arch_btw
@@ -145,7 +146,7 @@ fun NewAmo set_id string [Amongus]
 fun NewAmo set_position double [0 80]
 new image l L1 Amongus 1 _ _ redAstronaut
 fun redAstronaut set_id string [amongus]
-fun redAstronaut connect_bitmap_via_alias string [amongus_2]
+fun redAstronaut connect_bitmap_via_alias string [amongus_3]
 fun redAstronaut select_layer int [1]
 fun redAstronaut set_scale double [0.6 0.6]
 new image l L1 Amongus 1 _ _ insanity
@@ -532,8 +533,16 @@ end
 start fs_click false
 triggers [key_pressed]
 if ([key_pressed 58])
-//print _ string ["Processes: \n"]
+//new_proc santa
+print _ string ["Processes: \n"]
+ls processes
+print _ string ["\n\nLayers: \n"]
+ls layers
+print _ string ["\n\nImages: \n"]
 ls bitmaps
+print _ string ["\n\nFonts: \n"]
+ls fonts
+print _ string ["\n"]
 int [1] xd
 run [fs]
 end

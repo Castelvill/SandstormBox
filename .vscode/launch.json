@@ -3,16 +3,19 @@
     "type": "cppvsdbg",
     "request": "launch",
     "args" : [
-        "D:\\Programming\\Easy Game Maker"
+        //"D:\\Programming\\Easy Game Maker"
+        "/home/mateusz/Desktop/Easy-Game-Maker"
     ],
-    "program": "D:\\Programming\\Easy Game Maker\\EGM.exe",
+    //"program": "D:\\Programming\\Easy Game Maker\\EGM.exe",
+    "program": "/home/mateusz/Desktop/Easy-Game-Maker/EGM.exe",
     "cwd": "${fileDirname}",
     "configurations": [
     {
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "D:\\Programming\\Easy Game Maker\\EGM.exe",
+        //"program": "D:\\Programming\\Easy Game Maker\\EGM.exe",
+        "program": "/home/mateusz/Desktop/Easy-Game-Maker/EGM.exe",
         "args": [],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",
