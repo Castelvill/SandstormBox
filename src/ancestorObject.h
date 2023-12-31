@@ -62,8 +62,14 @@ public:
     string addModuleInstance(string module, string newID);
     string destroyModuleInstance(string module, string destroyID);
     VariableModule getAttributeValue(const string & attribute, const string & detail);
+    /*Translate instructions into events and add them to the event container of the object.*/
     void eventAssembler(vector<string> code, string scriptName);
+    void clearAllEvents();
     void translateAllScripts(bool clearEvents);
+    void translateScriptsFromPaths(vector<string> scriptsPaths);
+    void translateSubsetBindedScripts(vector<string> scripts);
+    void injectCode(vector<string> code);
+    void injectInstructions(vector<string> instructions);
 };
 
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);

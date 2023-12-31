@@ -70,9 +70,6 @@ vector<string> removeComments(const vector<string> & lines){
             }
             newLines.back() += line[cursor];
         }
-        /*if(newLines.back().size() == 0){
-            newLines.pop_back();
-        }*/
         lineNumber++;
     }
     
@@ -503,8 +500,8 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
     return NewValue;
 }
 
-string preprocessString(string input){
-    //Merge string parts into special characters.
+string findAndUseSpecialCharacters(string input){
+    //Translate special letter pairs into special characters.
     string output = "";
     for(unsigned i = 0; i < input.size(); i++){
         if(input[i] == '\\' && i + 1 < input.size()){
@@ -525,7 +522,7 @@ string preprocessString(string input){
     return output;
 }
 vector <string> changeCodeIntoWords(string input){
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
@@ -542,8 +539,10 @@ vector <string> changeCodeIntoWords(string input){
 
     vector<string> stringSectors;
     bool isInsideStringSector = false;
-    for(char chara : input){
-        if(chara == '\"'){
+
+    for(size_t i = 0; i < input.size(); i++){
+        
+        if(input[i] == '\"' && (i == 0 || input[i - 1] != '\\')){
             if(!isInsideStringSector){
                 stringSectors.push_back("");
             }
@@ -551,7 +550,7 @@ vector <string> changeCodeIntoWords(string input){
             continue;
         }
         if(isInsideStringSector){
-            stringSectors.back() += chara;
+            stringSectors.back() += input[i];
         }
     }
 
@@ -983,9 +982,13 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
 
     vector<string> code2 = {""};
 
+    //merge string sections
     for(unsigned line = 0; line < code.size(); line++){
         for(unsigned ch = 0; ch < code[line].size(); ch++){
             if(code[line][ch] == '\"'){
+                if(ch != 0 && code[line][ch-1] == '\\'){
+                    continue;
+                }
                 stringSection = !stringSection;
             }
         }
@@ -1003,7 +1006,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
     for(string line : code){
         lineNumber++;
         words.clear();
-        line = preprocessString(line);
+        line = findAndUseSpecialCharacters(line);
         words = changeCodeIntoWords(line);
         //words = mergeStrings(words);
         if(words.size() == 0){
@@ -1070,7 +1073,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             NewEvent.elseChildID = words[1];
         }
-        else if(isStringInGroup(words[0], 5, "continue", "break", "return", "reboot", "power_off")){
+        else if(isStringInGroup(words[0], 6, "continue", "break", "return", "reboot", "power_off", "delete_this_event")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
@@ -1150,7 +1153,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             cursor = 3;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "++" || words[0] == "--" || words[0] == "delete"){
+        else if(words[0] == "++" || words[0] == "--" || words[0] == "delete" || words[0] == "demolish"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
@@ -1372,6 +1375,26 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
             }     
         }
+        else if(words[0] == "load_build" || words[0] == "build_subset" || words[0] == "inject_code" || words[0] == "inject_instr"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            if(words.size() == 2){
+                continue;
+            }
+            if(words[2] != "_"){
+                Operation->dynamicIDs.push_back(words[2]);
+            }
+            if(words.size() == 3){
+                continue;
+            }
+            cursor = 3;
+            if(!gatherLiterals(words, cursor, Operation->Literals, 's', lineNumber, scriptName)){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
+                return;
+            }
+        }
         else if(words[0] == "fun"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
@@ -1414,7 +1437,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
             }
         }
-        else if(words[0] == "proc"){
+        else if(words[0] == "edit_proc"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
@@ -1540,6 +1563,39 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newString(words[i]));
             }
         }
+        else if(words[0] == "var"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1] == "bool" || words[1] == "b"){
+                if(words[2] == "true" || words[2] == "t"){
+                    Operation->Literals.push_back(VariableModule::newBool(true));
+                }
+                else if(words[2] == "false" || words[2] == "f"){
+                    Operation->Literals.push_back(VariableModule::newBool(false));
+                }
+                else{
+                    Operation->Literals.push_back(VariableModule::newBool(stoi(words[2])));
+                }
+            }
+            else if(words[1] == "int" || words[1] == "i"){
+                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
+            }
+            else if(words[1] == "double" || words[1] == "d"){
+                Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
+            }
+            else if(words[1] == "string" || words[1] == "s"){
+                Operation->Literals.push_back(VariableModule::newString(words[2]));
+            }
+            else{
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In "
+                    << __FUNCTION__ << ": In instruction \'" << words[0] << "\' the type \'" << words[1] << "\' does not exist.\n";
+                continue;
+            }
+            cursor = 3;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
         }
@@ -1550,22 +1606,90 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
         }
     }
 }
+void AncestorObject::clearAllEvents(){
+    for(auto & Event : EveContainer){
+        Event.clear();
+    }
+    EveContainer.clear();
+    eveContainerIDs.clear();
+}
 void AncestorObject::translateAllScripts(bool clearEvents){
     if(clearEvents){
-        for(auto & Event : EveContainer){
-            Event.clear();
-        }
-        EveContainer.clear();
-        eveContainerIDs.clear();
+        clearAllEvents();
     }
 
     vector<string> code;
     
-    for(string fileName : bindedScripts){
-        code = readLines(fileName);
-        eventAssembler(code, fileName);
-        code.clear();
+    for(string scriptName : bindedScripts){
+        code = readLines(scriptName);
+        if(code.size() > 0){
+            eventAssembler(code, scriptName);
+            code.clear();
+        }
+        else{
+            cout << "Warning: In " << __FUNCTION__ << ": script \'" << scriptName << "\' is empty or cannot be opened.\n";
+        }
     }
+}
+void AncestorObject::translateScriptsFromPaths(vector<string> scriptsPaths){
+    vector<string> code;
+    
+    for(string scriptName : scriptsPaths){
+        code = readLines(scriptName);
+        if(code.size() > 0){
+            eventAssembler(code, scriptName);
+            code.clear();
+        }
+        else{
+            cout << "Warning: In " << __FUNCTION__ << ": script \'" << scriptName << "\' is empty or cannot be opened.\n";
+        }
+    }
+}
+void AncestorObject::translateSubsetBindedScripts(vector<string> scripts){
+    vector<string> code;
+    
+    for(string scriptName : bindedScripts){
+        if(!isStringInVector(scripts, scriptName)){
+            continue;
+        }
+        code = readLines(scriptName);
+        if(code.size() > 0){
+            eventAssembler(code, scriptName);
+            code.clear();
+        }
+        else{
+            cout << "Warning: In " << __FUNCTION__ << ": script \'" << scriptName << "\' is empty or cannot be opened.\n";
+        }
+    }
+}
+void AncestorObject::injectCode(vector<string> code){
+    code = removeComments(code);
+    
+    if(code.size() > 0){
+        eventAssembler(code, "<injection>");
+    }
+}
+void AncestorObject::injectInstructions(vector<string> instructions){
+    vector<string> preprocessed;
+    for(string line : instructions){
+        string output;
+        for(size_t i = 0; i < line.size(); i++){
+            if(line[i] == '\\' && i + 1 != line.size() && line[i+1] == '\"'){
+                output += '\"';
+                i++;
+                continue;
+            }
+            output += line[i];
+        }
+        preprocessed.push_back(output);
+    }
+    
+    preprocessed = removeComments(preprocessed);
+    preprocessed.insert(preprocessed.begin(), "triggers [each_iteration]");
+    preprocessed.insert(preprocessed.begin(), "start _ false");
+    preprocessed.push_back("delete_this_event");
+    preprocessed.push_back("end");
+    eventAssembler(preprocessed, "<injection>");
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule() const{

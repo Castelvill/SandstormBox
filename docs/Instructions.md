@@ -24,6 +24,12 @@
 
     Interrupt the execution of the current scope.
 
+## delete_this_event
+   
+**Description**
+
+    Delete current event and interrupt the execution of the current scope.
+
 ## continue
    
 **Description**
@@ -390,6 +396,84 @@ build *context* [reset]
 - context (string) - id of the context with objects intended for event building;
 - [reset] (bool) - if true, before creating new events, instruction removes all events from provided objects.
 
+## load_build
+
+**Syntax**
+
+load_build *objects* [paths1] [paths2]
+
+**Description**
+
+    Load scripts from provided paths and translate them into events for selected objects.
+
+**Parameters**
+
+- objects (string) - id of the context with objects intended for event building,
+- paths1 (string) - id of the context with paths to the scripts,
+- paths2 (VariableModule vector) - vector of paths to the scripts.
+
+## build_subset
+
+**Syntax**
+
+build_subset *objects* [paths1] [paths2]
+
+**Description**
+
+    Translate the subset of scripts binded to objects provided in the context and create events based on selected scripts.
+
+**Parameters**
+
+- objects (string) - id of the context with objects intended for event building,
+- paths1 (string) - id of the context with paths to the scripts,
+- paths2 (VariableModule vector) - vector of paths to the scripts. 
+
+## inject_code
+
+**Syntax**
+
+inject_code *objects* [code1] [code2]
+
+**Description**
+
+    Translate provided code into events for selected objects. Provided code must have correct syntax.
+
+**Parameters**
+
+- objects (string) - id of the context with objects intended for event building,
+- code1 (string) - id of the context with code lines,
+- code2 (VariableModule vector) - vector of code lines.
+
+## inject_instr
+
+**Syntax**
+
+inject_instr *objects* [instr1] [instr2]
+
+**Description**
+
+    Translate provided instructions into events for selected objects. Created event will be executed as soon as possible and will be deleted right afterwards.
+
+**Parameters**
+
+- objects (string) - id of the context with objects intended for event building,
+- instr1 (string) - id of the context with instructions,
+- instr2 (VariableModule vector) - vector with instructions.
+
+## demolish
+
+**Syntax**
+
+demolish *context*
+
+**Description**
+
+    Destroy all events of objects provided in the context. Context cannot include the owner of currently executed event.
+
+**Parameters**
+
+- context (string) - id of the context with objects intended for event building.
+
 ## env
 
 **Syntax**
@@ -406,11 +490,11 @@ env *name* *variable* [value]
 - variable (string);
 - [value] (VariableModule): bool, int, double, string - the new value of the selected variable.
 
-## proc
+## edit_proc
 
 **Syntax**
 
-proc *name* *variable* [value]
+edit_proc *name* *variable* [values]
 
 **Description**
 
@@ -420,7 +504,7 @@ proc *name* *variable* [value]
 
 - name (string) - the name of the variable selected for modification;
 - variable (string): is_active, can_interact_with_user, is_rendering, draw_camera_borders, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, auto_print_stack, reservation_multiplier, window_pos, window_size, min_window_size, window_tint
-- [value] (VariableModule): bool, int, double, string - the new value of the selected variable.
+- [values] (VariableModule): bool, int, double, string - a new value or values for the selected variable.
 
 ## fun
 

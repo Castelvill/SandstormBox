@@ -1,6 +1,5 @@
--Remove EditorObject.
+-Add "var" instruction - "Create a new variable for the current event's owner and bind it to the context stack".
 -Add processes to “new” instruction – new processes will be added to a buffer vector in order to be configured.
--Think about adding first layers, first objects and binding initialization scripts to newly created processes.
 -Upgrade “proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
 -Implement “clone_proc *procID* *contextID*” – cloning (adding) a context into selected process.
@@ -14,6 +13,7 @@
 -MILESTONE: ImpostorOS.
 
 -Add more milestones.
+-Copy tilemap editor from Godot.
 -Connect primitives to cameras.
 -Add selection rectangle to the mouse.
 -Change selection borders to primitives?
@@ -98,6 +98,7 @@ now it's just hard-wired in editor.
 -Add gifs.
 
 OPTIMALIZATIONS
+-Function createNewModule recalculates indexes of all modules for each module added. Remove template and create custom index recalculation for each module.
 -Bounding volume hierarchy – group objects into “boxes/chunks” and iterate only through chunks where the player is (could work only for collisions). 
 -Declare variables as locally as possible.
 -Replace every vec2d with vec2f.

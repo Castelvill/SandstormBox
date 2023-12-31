@@ -1,21 +1,25 @@
 {
-    "name": "C++ Launch (Windows)",
+    "name": "C++ Launch",
     "type": "cppvsdbg",
     "request": "launch",
-    "args" : [
-        //"D:\\Programming\\Easy Game Maker"
-        "/home/mateusz/Desktop/Easy-Game-Maker"
-    ],
-    //"program": "D:\\Programming\\Easy Game Maker\\EGM.exe",
-    "program": "/home/mateusz/Desktop/Easy-Game-Maker/EGM.exe",
+    "windows": {
+        "args" : [
+            "D:\\Programming\\Easy Game Maker"
+        ]
+    },
+    "linux": {
+        "args" : [
+            "/home/mateusz/Desktop/Easy-Game-Maker"
+        ]
+    },
+    "program": "${workspaceFolder}${pathSeparator}EGM.exe",
     "cwd": "${fileDirname}",
     "configurations": [
     {
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        //"program": "D:\\Programming\\Easy Game Maker\\EGM.exe",
-        "program": "/home/mateusz/Desktop/Easy-Game-Maker/EGM.exe",
+        "program": "${workspaceFolder}${pathSeparator}EGM.exe",
         "args": [],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",

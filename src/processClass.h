@@ -148,7 +148,8 @@ struct PointerRecalculator{
     vector<AncestorIndex> TriggeredObjectIndexes;
     vector<ModuleIndex> PastEvents;
 
-    AncestorIndex OtherObjectIndexes[3];
+    AncestorIndex EventOwnerIndex;
+    AncestorIndex SelectedObjectIndex;
 
     unsigned selectedLayerIndex = 0;
     unsigned selectedCameraIndex = 0;
@@ -159,7 +160,7 @@ struct PointerRecalculator{
     void findIndexesForCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera);
     void findIndexesForLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext);
     void findIndexesForObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
-        vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, AncestorObject *& EditorObject);
+        vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
     template <class Module>
     ModuleIndex getIndex(Module *& Instance, vector<LayerClass> & Layers);
     ModuleIndex getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers);
@@ -169,7 +170,7 @@ struct PointerRecalculator{
     void updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera);
     void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext);
     void updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
-        vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, AncestorObject *& EditorObject);
+        vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
     void updatePointersToModules(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
 };
 
@@ -203,13 +204,12 @@ private:
     Camera2D * SelectedCamera;
     LayerClass * SelectedLayer;
     AncestorObject * SelectedObject;
-    AncestorObject * EditorObject;
     vec2d dragStartingPos, dragStartingPos2;
     vec2d dragCameraStaringPos, dragLimit;
     vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
     bool firstIteration, rebooted;
-    bool wasDeleteExecuted, wasNewExecuted, wasBuildExecuted;
+    bool wasDeleteExecuted, wasNewExecuted, wasAnyEventUpdated;
 
     bool wasMousePressedInSelectedObject;
     CAMERA_MOVE activeCameraMoveType;
@@ -306,7 +306,13 @@ public:
     void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<ContextClass> & EventContext);
     void getReferenceByIndex(OperaClass & Operation, vector<ContextClass> & EventContext);
     void bindFilesToObjects(OperaClass & Operation, vector<ContextClass> & EventContext);
-    void buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    );
+    void customBuildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode
+    );
+    void clearEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner);
     void executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext);
     void executeFunctionForLayers(OperaClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
     void executeFunctionForObjects(OperaClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
@@ -325,6 +331,9 @@ public:
     void createNewProcess(OperaClass & Operation, vector<ProcessClass> & Processes, vector<ContextClass> &EventContext,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
         vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
+    );
+    void createNewOwnerVariable(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
     );
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
@@ -391,7 +400,12 @@ public:
     bool checkDefaultCondition(BasePointersStruct * Left, BasePointersStruct * Right);
 };
 
-
+struct ProcessSkeleton{
+    string scriptPath;
+    string ID;
+    string firstLayerID;
+    string firstObjectID;
+};
 
 
 

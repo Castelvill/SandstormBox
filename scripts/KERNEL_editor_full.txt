@@ -2,7 +2,7 @@ start init false
 triggers [on_init]
 env window_size 1000 300
 
-proc draw_camera_borders 0
+edit_proc draw_camera_borders 0
 
 new object l KERNEL 1 _ _ Terminal
 fun Terminal set_position int [0 0]
