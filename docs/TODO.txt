@@ -1,17 +1,14 @@
--Add "var" instruction - "Create a new variable for the current event's owner and bind it to the context stack".
--Add processes to “new” instruction – new processes will be added to a buffer vector in order to be configured.
--Upgrade “proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
+-Improve terminal: add auto scrolling to the history and enable user to copy text from not-editable editable text fields.
+-Finish implementing "new_proc" instruction – new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
+-Upgrade “edit_proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
--Implement “clone_proc *procID* *contextID*” – cloning (adding) a context into selected process.
+-Implement “clone_to_proc” – cloning (adding) a context into the selected process.
 -Add buffers(bitmaps) to processes instead of cropping rectangle.
 -Add blocking user input based allegro events in the processes that are not focused.
 -Add blocking keyboard and mouse input through cameras that are out of focus.
 -Add canInteractWithUser boolean to ProcessClass – if true, you can interact with this thread using cameras, mouse and keyboard.
--Create basic terminal with EditableText connected to the “INTERPRETER” event – event will take the command and turn it into an enclosed event “COMMAND”. Command event will be executed once (by the run() instruction) and will be cleared afterwards.
+-Think about better way of getting attributes from module contexts.
 -Update documentation.
-
--MILESTONE: ImpostorOS.
-
 -Add more milestones.
 -Copy tilemap editor from Godot.
 -Connect primitives to cameras.

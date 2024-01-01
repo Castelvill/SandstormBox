@@ -564,6 +564,11 @@ string ContextClass::getValue(){
     else if(type == "variable"){
         buffer = "[";
         for(const VariableModule * Variable: Modules.Variables){
+            if(Variable == nullptr){
+                buffer += "<nullptr>, ";
+                cout << "Error: In " << __FUNCTION__ << ": In the context \'" << ID << "\' the pointer to the variable has a nullptr value.\n";
+                continue;
+            }
             buffer += Variable->getStringUnsafe();
             buffer += ", ";
         }
@@ -5545,11 +5550,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     
     if(printOutInstructions){
         cout << Operation.instruction << " " << Operation.Literals[0].getString()
-            << " " << Operation.Literals[1].getStringUnsafe();
-        if(Operation.newContextID != ""){
-            cout << " " << Operation.newContextID;
-        }
-        cout << "\n";
+            << " " << Operation.Literals[1].getStringUnsafe() << Operation.newContextID << "\n";
     }
 
     PointerRecalculator Recalculator;
@@ -5561,7 +5562,9 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
                 << Operation.Literals[0].getString() << " type.\n";
             return;
         }
-        Owner->VariablesContainer.push_back(Operation.Literals[1]);
+        Owner->VariablesContainer.push_back(VariableModule::newBool(
+            Operation.Literals[1].getBool(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+        ));
     }
     else if(Operation.Literals[0].getString() == "int" || Operation.Literals[0].getString() == "i"){
         if(Operation.Literals[1].getType() != 'i'){
@@ -5569,7 +5572,9 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
                 << Operation.Literals[0].getString() << " type.\n";
             return;
         }
-        Owner->VariablesContainer.push_back(Operation.Literals[1]);
+        Owner->VariablesContainer.push_back(VariableModule::newInt(
+            Operation.Literals[1].getInt(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+        ));
     }
     else if(Operation.Literals[0].getString() == "double" || Operation.Literals[0].getString() == "d"){
         if(Operation.Literals[1].getType() != 'd'){
@@ -5577,7 +5582,9 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
                 << Operation.Literals[0].getString() << " type.\n";
             return;
         }
-        Owner->VariablesContainer.push_back(Operation.Literals[1]);
+        Owner->VariablesContainer.push_back(VariableModule::newDouble(
+            Operation.Literals[1].getDouble(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+        ));
     }
     else if(Operation.Literals[0].getString() == "string" || Operation.Literals[0].getString() == "s"){
         if(Operation.Literals[1].getType() != 's'){
@@ -5585,7 +5592,9 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
                 << Operation.Literals[0].getString() << " type.\n";
             return;
         }
-        Owner->VariablesContainer.push_back(Operation.Literals[1]);
+        Owner->VariablesContainer.push_back(VariableModule::newString(
+            Operation.Literals[1].getString(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+        ));
     }
     else{
         cout << "Error: In " << __FUNCTION__ << ": In " << Operation.instruction
@@ -8790,6 +8799,15 @@ void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, vect
 }
 template <class Module>
 ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass> & Layers){
+    if(Instance->getLayerID() == ""){
+        cout << "Error: In " << __FUNCTION__ << ": Module instance does not belong to any layer.\n";
+    }
+    if(Instance->getObjectID() == ""){
+        cout << "Error: In " << __FUNCTION__ << ": Module instance does not belong to any object.\n";
+    }
+    if(Instance->getLayerID() == "" || Instance->getObjectID() == ""){
+        return ModuleIndex(0, 0, 0);
+    }
     unsigned layer, object;
     for(layer = 0; layer < Layers.size(); layer++){
         if(Layers[layer].getID() != Instance->getLayerID()){
@@ -8842,6 +8860,15 @@ void PointerRecalculator::findIndexesInModule(vector<Module*> Instances, vector<
     }
 }
 ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers){
+    if(Instance->getLayerID() == ""){
+        cout << "Error: In " << __FUNCTION__ << ": Event instance does not belong to any layer.\n";
+    }
+    if(Instance->getObjectID() == ""){
+        cout << "Error: In " << __FUNCTION__ << ": Event instance does not belong to any object.\n";
+    }
+    if(Instance->getLayerID() == "" || Instance->getObjectID() == ""){
+        return ModuleIndex(0, 0, 0);
+    }
     unsigned layer, object;
     for(layer = 0; layer < Layers.size(); layer++){
         if(Layers[layer].getID() != Instance->getLayerID()){

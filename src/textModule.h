@@ -28,6 +28,7 @@ public:
     float randomChangeSpeed;
     float minColorValue, maxColorValue;
     unsigned tabLength;
+    unsigned cursorPos, secondCursorPos;
 
     short usedBitmapLayer;  //Text fields with numbers higher or equal to zero are drawn in ascending order. If the value is -1, text will be drawn on top of everything else.
 
@@ -37,11 +38,13 @@ public:
     TextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     ~TextModule();
     void clone(const TextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void adjustCursorPos();
     void fitSizeToText(vector <SingleFont> FontContainer);
     void addNewContent(string newContent);
     void addNewContentAndResize(string newContent, vector <SingleFont> FontContainer);
     void chooseContent(unsigned int textID);
     bool checkSize(unsigned int textID) const;
+    void addTextToContent(unsigned int textNumber, string newText);
     void modifyContent(unsigned int textID, string modifiedContent);
     void modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer);
     void deleteContent(unsigned int textID);
@@ -76,6 +79,7 @@ class EditableTextModule: public TextModule{
 private:
     bool canBeEdited;
     bool canUseSpace;
+    bool canUseEnter;
     bool isNumerical;
     bool hasFloatingPoint;
     bool updateConnectedVariable;
@@ -96,7 +100,6 @@ public:
     string connectedModuleID;
     string connectedVariable;
     float currentInputDelay;
-    unsigned cursorPos, secondCursorPos;
 
     void setUpNewInstance();
     EditableTextModule();
@@ -106,6 +109,7 @@ public:
     void setCanBeEdited(bool newCanBeEdited);
     void setEditingIsActive(bool newEditingIsActive);
     void setCanUseSpace(bool newCanUseSpace);
+    void setCanUseEnter(bool newCanUseEnter);
     void setIsNumerical(bool newIsNumerical);
     void setHasFloatingPoint(bool newHasFloatingPoint);
     void setUpdateConnectedVariable(bool newUpdateConnectedVariable);
@@ -120,9 +124,11 @@ public:
     void setConnectedObject(string objectID, string moduleType, string moduleID, string variableName);
     void setConnectedGroup(string groupName, string moduleType, string moduleID, string variableName);
     void setCanClearContentAfterSuccess(bool);
+    void setCanEnterAcceptChanges(bool);
     bool getCanBeEdited() const;
     bool getEditingIsActive() const;
     bool getCanUseSpace();
+    bool getCanUseEnter();
     bool getIsNumerical();
     bool getHasFloatingPoint();
     bool getUpdateConnectedVariable();

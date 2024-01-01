@@ -112,10 +112,10 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "set_font" && Values.size() > 0){
         Text->setFontID(Values[0].getStringUnsafe());
     }
-    else if(attribute == "add" && Values.size() > 0){
+    else if(attribute == "add_new_content" && Values.size() > 0){
         Text->addNewContent(Values[0].getStringUnsafe());
     }
-    else if(attribute == "add_and_update" && Values.size() > 0){
+    else if(attribute == "add_new_and_update" && Values.size() > 0){
         Text->addNewContentAndResize(Values[0].getStringUnsafe(), FontContainer);
     }
     else if(attribute == "update_size" && Values.size() > 0){
@@ -127,7 +127,13 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "delete" && Values.size() > 0){
         Text->deleteContent(Values[0].getIntUnsafe());
     }
-    else if(attribute == "update_text" && Values.size() > 1){
+    else if(attribute == "add_text" && Values.size() > 1){
+        Text->addTextToContent(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
+    }
+    else if(attribute == "set_text" && Values.size() > 1){
+        Text->modifyContent(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
+    }
+    else if(attribute == "set_resize_text" && Values.size() > 1){
         Text->modifyContentAndResize(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(), FontContainer);
     }
     else if(attribute == "select_layer" && Values.size() > 0){
@@ -156,6 +162,12 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
     }
     else if(attribute == "set_space_use" && Values.size() > 0){
         EditableText->setCanUseSpace(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_enter_use" && Values.size() > 0){
+        EditableText->setCanUseEnter(Values[0].getBoolUnsafe());
+    }
+    else if(attribute == "set_can_enter_accept" && Values.size() > 0){
+        EditableText->setCanEnterAcceptChanges(Values[0].getBoolUnsafe());
     }
     else if(attribute == "set_numerical" && Values.size() > 0){
         EditableText->setIsNumerical(Values[0].getBoolUnsafe());

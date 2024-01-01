@@ -1564,7 +1564,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else if(words[0] == "var"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
                 return;
             }
             Operation->Literals.push_back(VariableModule::newString(words[1]));
@@ -1593,8 +1593,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     << __FUNCTION__ << ": In instruction \'" << words[0] << "\' the type \'" << words[1] << "\' does not exist.\n";
                 continue;
             }
-            cursor = 3;
-            if(optional(words, cursor, Operation->newContextID)){ continue; }
+            Operation->newContextID = words[3];
         }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";

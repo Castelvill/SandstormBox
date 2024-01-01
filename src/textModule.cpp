@@ -27,6 +27,8 @@ void TextModule::setUpNewInstance(){
     minColorValue = 0.0f;
     maxColorValue = 1.0f;
     tabLength = 4;
+    cursorPos = 0;
+    secondCursorPos = 0;
 }
 TextModule::TextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -49,8 +51,28 @@ void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, st
     ID = oldID;
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
+void TextModule::adjustCursorPos(){
+    if(cursorPos < 0){
+        cursorPos = 0;
+    }
+    if(secondCursorPos < 0){
+        secondCursorPos = 0;
+    }
+    if(content.size() == 0 || currentTextIdx > content.size()){
+        cursorPos = 0;
+        secondCursorPos = cursorPos;
+        return;
+    }
+    if(cursorPos > content[currentTextIdx].size()){
+        cursorPos = content[currentTextIdx].size();
+    }
+    if(secondCursorPos > content[currentTextIdx].size()){
+        secondCursorPos = content[currentTextIdx].size();
+    }
+}
 void TextModule::addNewContent(string newContent){
     content.push_back(newContent);
+    adjustCursorPos();
 }
 void TextModule::fitSizeToText(vector <SingleFont> FontContainer){
     ALLEGRO_FONT * font = findFontByID(FontContainer, fontID)->font;
@@ -61,6 +83,7 @@ void TextModule::fitSizeToText(vector <SingleFont> FontContainer){
         }
     }
     size.set(newSize);
+    adjustCursorPos();
 }
 void TextModule::addNewContentAndResize(string newContent, vector <SingleFont> FontContainer){
     content.push_back(newContent);
@@ -82,12 +105,21 @@ void TextModule::chooseContent(unsigned int textNumber){
         return;
     }
     currentTextIdx = textNumber;
+    adjustCursorPos();
+}
+void TextModule::addTextToContent(unsigned int textNumber, string newText){
+    if(!checkSize(textNumber)){
+        return;
+    }
+    content[textNumber] += newText;
+    adjustCursorPos();
 }
 void TextModule::modifyContent(unsigned int textNumber, string modifiedContent){
     if(!checkSize(textNumber)){
         return;
     }
     content[textNumber] = modifiedContent;
+    adjustCursorPos();
 }
 void TextModule::modifyContentAndResize(unsigned int textNumber, string modifiedContent, vector <SingleFont> FontContainer){
     if(!checkSize(textNumber)){
@@ -104,6 +136,7 @@ void TextModule::deleteContent(unsigned int textNumber){
     if(currentTextIdx >= textNumber && currentTextIdx > 0){
         currentTextIdx--;
     }
+    adjustCursorPos();
 }
 void TextModule::clear(){
     content.clear();
@@ -671,6 +704,7 @@ void EditableTextModule::setUpNewInstance(){
     canBeEdited = true;
     editingIsActive = false;
     canUseSpace = false;
+    canUseEnter = false;
     isNumerical = false;
     hasFloatingPoint = false;
     updateConnectedVariable = false;
@@ -713,6 +747,9 @@ void EditableTextModule::setEditingIsActive(bool newEditingIsActive){
 void EditableTextModule::setCanUseSpace(bool newCanUseSpace){
     canUseSpace = newCanUseSpace;
 }
+void EditableTextModule::setCanUseEnter(bool newCanUseEnter){
+    newCanUseEnter = newCanUseEnter;
+}
 void EditableTextModule::setIsNumerical(bool newIsNumerical){
     isNumerical = newIsNumerical;
 }
@@ -728,6 +765,10 @@ void EditableTextModule::setUseTabs(bool newValue){
 void EditableTextModule::setCanClearContentAfterSuccess(bool newValue){
     canClearContentAfterSuccess = newValue;
 }
+void EditableTextModule::setCanEnterAcceptChanges(bool newValue){
+    enterAcceptsChanges = newValue;
+}
+
 void EditableTextModule::setCursorPos(unsigned int newCursorPos){
     cursorPos = newCursorPos;
 }
@@ -850,7 +891,11 @@ bool EditableTextModule::getEditingIsActive() const{
 bool EditableTextModule::getCanUseSpace(){
     return canUseSpace;
 }
-unsigned int EditableTextModule::getCursorPos(){
+bool EditableTextModule::getCanUseEnter(){
+    return canUseEnter;
+}
+unsigned int EditableTextModule::getCursorPos()
+{
     return cursorPos;
 }
 unsigned int EditableTextModule::getMinContentSize(){
@@ -1059,7 +1104,7 @@ bool EditableTextModule::prepareEditing(const vector <short> & releasedKeys, vec
             i--;
             continue;
         }
-        if(pressedKeys[i] == ALLEGRO_KEY_ENTER && enterAcceptsChanges){
+        if(pressedKeys[i] == ALLEGRO_KEY_ENTER && getCanUseEnter() && enterAcceptsChanges){
             editingIsActive = false;
             setUpdateConnectedVariable(true);
             return false;
@@ -1152,7 +1197,7 @@ void EditableTextModule::getNumbers(char pKey, char & character, bool shift){
     if(pKey < 27 || pKey > 36){
         return;
     }
-    if(getIsNumerical() || !shift){
+    if(!shift){
         character = pKey+21;
         return;
     }
@@ -1192,7 +1237,7 @@ void EditableTextModule::getNumbers(char pKey, char & character, bool shift){
     }
 }
 void EditableTextModule::getLetters(char pKey, char & character, bool shift){
-    if(getIsNumerical()){
+    if(character != '\0' || getIsNumerical()){
         return;
     }
     if(pKey >= 1 && pKey <= 26){
@@ -1203,10 +1248,10 @@ void EditableTextModule::getLetters(char pKey, char & character, bool shift){
             character = 'a'+pKey-1;
         }
     }
-    else if(pKey == 61 && shift){
+    else if(pKey == ALLEGRO_KEY_MINUS && shift){
         character = '_';
     }
-    else if(pKey == 61){
+    else if(pKey == ALLEGRO_KEY_MINUS){
         character = '-';
     }
     else if(pKey == ALLEGRO_KEY_EQUALS && shift){
@@ -1269,8 +1314,11 @@ void EditableTextModule::getLetters(char pKey, char & character, bool shift){
     else if(pKey == ALLEGRO_KEY_TAB){
         character = '\t';
     }
-    else if(pKey == ALLEGRO_KEY_ENTER){
+    else if(pKey == ALLEGRO_KEY_ENTER && getCanUseEnter()){
         character = '\n';
+    }
+    else{
+        character = '\0';
     }
 }
 bool EditableTextModule::deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * window){
@@ -1335,6 +1383,9 @@ bool EditableTextModule::deleteFromText(char pKey, char character, string text, 
     return false;
 }
 void EditableTextModule::addFloatingPoint(char pKey, char & character, string text){
+    if(character != '\0'){
+        return;
+    }
     if(pKey == 73 && (getHasFloatingPoint() || getIsNumerical())){
         bool isTherePoint = false;
         if(getIsNumerical()){
@@ -1351,20 +1402,17 @@ void EditableTextModule::addFloatingPoint(char pKey, char & character, string te
     }
 }
 bool EditableTextModule::addMinus(char pKey, char & character, string text){
-    if(pKey != ALLEGRO_KEY_MINUS){
+    if(pKey != ALLEGRO_KEY_MINUS || !getIsNumerical()){
         return false;
     }
-    if(getIsNumerical()){
-        if(cursorPos > 0){
+    if(cursorPos > 0){
+        return true;
+    }
+    for(char p : text){
+        if(p == '-'){
             return true;
         }
-        for(char p : text){
-            if(p == '-'){
-                return true;
-            }
-        }
     }
-    character = '-';
     return false;
 }
 void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer, ALLEGRO_DISPLAY * window){
@@ -1467,6 +1515,10 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             continue;
         }
 
+        if(getIsNumerical() && (pKey < 27 || pKey > 36)){
+            continue;
+        }
+
         getNumbers(pKey, character, shift);
 
         addFloatingPoint(pKey, character, text);
@@ -1476,6 +1528,10 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
         }
 
         getLetters(pKey, character, shift);
+
+        if(character == '\0'){
+            continue;
+        }
         
         unsigned selectionStart = std::min(cursorPos, secondCursorPos);
         string newContent = text.substr(0, selectionStart);
@@ -2473,6 +2529,9 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
     }
     else if(attribute == "can_use_space"){
         BasePointers.back().setPointer(&canUseSpace);
+    }
+    else if(attribute == "can_use_enter"){
+        BasePointers.back().setPointer(&canUseEnter);
     }
     else if(attribute == "is_numerical"){
         BasePointers.back().setPointer(&isNumerical);

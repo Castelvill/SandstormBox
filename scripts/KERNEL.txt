@@ -180,8 +180,8 @@ index layer [1 0] _ object Amogus
 bind Amogus literal ["scripts/amogus.txt"]
 build Amogus true
 
-//var double 69.0 sixnine
 
+var double 69.0 sixnine
 
 new object l L1 1 _ _ ObjPar
 fun ObjPar set_id string [ObjPar]
@@ -273,7 +273,7 @@ fun Var set_int int [0]
 new variable c Terminal 1 _ _ input
 fun input set_id string ["input"]
 fun input set_string string [""]
-bind Terminal literal ["scripts/terminal.txt"]
+bind Terminal literal ["scripts/oldTerminal.txt"]
 build Terminal true
 new editable_text c Terminal 1 _ _ Editable
 fun Editable set_id string [edi]
@@ -532,8 +532,8 @@ index layer [1 0] _ object Amogus
 bind Amogus rliteral ["scripts/amogus.txt"]
 bind Amogus literal ["scripts/amogus.txt"]
 index layer [2 0] _ object Terminal
-bind Terminal rliteral ["scripts/terminal.txt"]
-bind Terminal literal ["scripts/terminal.txt"]
+bind Terminal rliteral ["scripts/oldTerminal.txt"]
+bind Terminal literal ["scripts/oldTerminal.txt"]
 index context Terminal [0 1] _ variable input
 fun input set_string string ["get_input"]
 build Terminal true
@@ -546,16 +546,22 @@ value ([object L2 terminal editable_text edi content]) randomString
 save_text "randomString.txt" randomString
 end
 
+start fs_click false
+triggers [key_pressed]
+if ([key_pressed 75])
+new_proc santa
+print _ string ["Processes: \n"]
+ls processes
+print _ string ["\n\n"]
+/*print _ string ["\n"]
+print _ context sixnine
+print _ string ["\n\n"]
+++ sixnine*/
+end
 
 start fs_click false
 triggers [key_pressed]
 if ([key_pressed 58])
-new_proc santa
-//print _ string ["Processes: \n"]
-//ls processes
-print _ string ["\n"]
-print _ context sixnine
-print _ string ["\n\n"]
 int [1] xd
 run [fs]
 end

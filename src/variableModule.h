@@ -92,9 +92,13 @@ public:
     void set(const BaseVariableStruct & BaseVariable);
     static VariableModule newBool(bool);
     static VariableModule newBool(bool val, string newID);
+    static VariableModule newBool(bool val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     static VariableModule newInt(int);
+    static VariableModule newInt(int val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     static VariableModule newDouble(double);
+    static VariableModule newDouble(double val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     static VariableModule newString(string);
+    static VariableModule newString(string val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     bool isNumeric() const;
 };
 

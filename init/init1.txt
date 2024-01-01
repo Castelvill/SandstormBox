@@ -1,4 +1,4 @@
-start init false
+/*start init false
 triggers [on_boot]
 if ([on_boot])
 new object l KERNEL 1 _ _ First
@@ -6,4 +6,4 @@ new object l KERNEL 1 _ _ First
 bind First reset
 bind First literal ["scripts/KERNEL_editor.txt"]
 build First true
-end
+end*/

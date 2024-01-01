@@ -27,48 +27,55 @@ void PrimitivesModule::clone(const PrimitivesModule &Original, vector<string> &l
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
+    base.translate(pos);
     switch(type){
         case prim_line:
             if(points.size() < 2){
                 cout << "Error: In " << __FUNCTION__ << ": Line primitive requires 2 points.\n";
                 return;
             }
-            al_draw_line(base.x + points[0].x, points[0].y, points[1].x, points[1].y, color, thickness);
+            al_draw_line(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y, color, thickness);
             break;
         case prim_triangle:
             if(points.size() < 3){
                 cout << "Error: In " << __FUNCTION__ << ": Triangle primitive requires 3 points.\n";
                 return;
             }
-            al_draw_triangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color, thickness);
+            al_draw_triangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
+                base.x + points[2].x, base.y + points[2].y, color, thickness
+            );
             break;
         case prim_filled_triangle:
             if(points.size() < 3){
                 cout << "Error: In " << __FUNCTION__ << ": Triangle primitive requires two points.\n";
                 return;
             }
-            al_draw_filled_triangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color);
+            al_draw_filled_triangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
+                base.x + points[2].x, base.y + points[2].y, color
+            );
             break;
         case prim_rectangle:
             if(points.size() < 2){
                 cout << "Error: In " << __FUNCTION__ << ": Rectangle primitive requires 2 points.\n";
                 return;
             }
-            al_draw_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, color, thickness);
+            al_draw_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y, color, thickness);
             break;
         case prim_filled_rectangle:
             if(points.size() < 2){
                 cout << "Error: In " << __FUNCTION__ << ": Rectangle primitive requires 2 points.\n";
                 return;
             }
-            al_draw_filled_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, color);
+            al_draw_filled_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y, color);
             break;
         case prim_rounded_rectangle:
             if(points.size() < 3){
                 cout << "Error: In " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
                 return;
             }
-            al_draw_rounded_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color, thickness);
+            al_draw_rounded_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
+                points[2].x, points[2].y, color, thickness
+            );
             break;
         case prim_filled_rounded_rectangle:
             if(points.size() < 3){
@@ -76,13 +83,17 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
                 return;
             }
             if(samples <= 0){
-                al_draw_filled_rounded_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, color);
+                al_draw_filled_rounded_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
+                    points[2].x, points[2].y, color
+                );
             }
             else{
                 ALLEGRO_COLOR sampledColor = color;
                 sampledColor.a = color.a / samples;
                 for(int i = 0; i <= samples; i++){
-                    al_draw_filled_rounded_rectangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x + i, points[2].y + i, sampledColor);
+                    al_draw_filled_rounded_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
+                        points[2].x + i, points[2].y + i, sampledColor
+                    );
                 }
             }
             
@@ -92,28 +103,28 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
                 cout << "Error: In " << __FUNCTION__ << ": Circle primitive requires 1 point.\n";
                 return;
             }
-            al_draw_circle(points[0].x, points[0].y, radius, color, thickness);
+            al_draw_circle(base.x + points[0].x, base.y + points[0].y, radius, color, thickness);
             break;
         case prim_filled_circle:
             if(points.size() < 1){
                 cout << "Error: In " << __FUNCTION__ << ": Circle primitive requires 1 points.\n";
                 return;
             }
-            al_draw_filled_circle(points[0].x, points[0].y, radius, color);
+            al_draw_filled_circle(base.x + points[0].x, base.y + points[0].y, radius, color);
             break;
         case prim_ellipse:
             if(points.size() < 2){
                 cout << "Error: In " << __FUNCTION__ << ": Ellipse primitive requires 2 points.\n";
                 return;
             }
-            al_draw_ellipse(points[0].x, points[0].y, points[1].x, points[1].y, color, thickness);
+            al_draw_ellipse(base.x + points[0].x, base.y + points[0].y, points[1].x, points[1].y, color, thickness);
             break;
         case prim_filled_ellipse:
             if(points.size() < 2){
                 cout << "Error: In " << __FUNCTION__ << ": Ellipse primitive requires 2 points.\n";
                 return;
             }
-            al_draw_filled_ellipse(points[0].x, points[0].y, points[1].x, points[1].y, color);
+            al_draw_filled_ellipse(base.x + points[0].x, base.y + points[0].y, points[1].x, points[1].y, color);
             break;
         default:
             cout << "Error: In " << __FUNCTION__ << ": Cannot draw primitive.\n";

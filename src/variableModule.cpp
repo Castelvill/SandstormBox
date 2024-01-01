@@ -905,7 +905,7 @@ void VariableModule::tryToSetFromPointer(const T & value, char newType){
 }
 void VariableModule::setValueFromPointer(const BasePointersStruct &BasePointer){
     if(type == 's' || BasePointer.type == "string"){
-        if(type == 's'){
+        if(type == 's' || type == 'n'){
             setString(BasePointer.getString());
         }
         else{
@@ -982,8 +982,19 @@ VariableModule VariableModule::newBool(bool val, string newID){
     newVariable.setBool(val);
     return newVariable;
 }
-VariableModule VariableModule::newInt(int val){
+VariableModule VariableModule::newBool(bool val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
+    newVariable.setBool(val);
+    return newVariable;
+}
+VariableModule VariableModule::newInt(int val)
+{
     VariableModule newVariable;
+    newVariable.setInt(val);
+    return newVariable;
+}
+VariableModule VariableModule::newInt(int val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
     newVariable.setInt(val);
     return newVariable;
 }
@@ -992,8 +1003,19 @@ VariableModule VariableModule::newDouble(double val){
     newVariable.setDouble(val);
     return newVariable;
 }
+VariableModule VariableModule::newDouble(double val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
+    newVariable.setDouble(val);
+    return newVariable;
+}
 VariableModule VariableModule::newString(string val){
     VariableModule newVariable;
+    newVariable.setString(val);
+    return newVariable;
+}
+
+VariableModule VariableModule::newString(string val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
     newVariable.setString(val);
     return newVariable;
 }

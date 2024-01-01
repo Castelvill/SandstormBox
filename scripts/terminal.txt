@@ -1,32 +1,125 @@
-start wait_for_input false
+start onInit false
+triggers [on_init]
+//print _ string ["Hello world!\n"]
+
+env window_size 1366 768
+edit_proc window_size 1366 768
+edit_proc draw_camera_borders 0
+
+value ([window_w]) ww
+value ([window_h]) wh
+
+load_bitmap "images/arch.jpg" i_use_arch_btw
+new image c me 1 _ _ archImg
+fun archImg connect_bitmap_via_alias string [i_use_arch_btw]
+fun archImg attach_to_camera
+fun archImg resize c ww c wh
+
+new camera l 1 _ _ Cam
+//fun Cam set_position int [100 100]
+fun Cam set_id string [Window]
+fun Cam set_active bool [true]
+fun Cam resize c ww c wh
+fun Cam set_zoom double [1.0]
+fun Cam set_speed double [20]
+fun Cam set_key_zoom_in int [15]
+fun Cam set_key_zoom_out int [21]
+fun Cam set_zoom_increase double [0.02]
+fun Cam bind_keys int [15 21 13 9 12 11 10]
+fun Cam add_visible_layer string [KERNEL]
+fun Cam add_accessible_layer string [KERNEL]
+fun Cam set_tint double [1.0 1.0 1.0 1.0]
+//fun Cam set_can_interact_with_mouse bool [1]
+//fun Cam set_can_move_with_mouse bool [1]
+
+new object l KERNEL 1 _ _ Terminal
+fun Terminal set_id string ["Terminal"]
+fun Terminal set_can_be_selected bool [0]
+fun Terminal attach_to_camera
+
+new primitives c Terminal 1 _ _ Border
+fun Border set_id string [primi]
+fun Border set_type string [filled_rounded_rectangle]
+fun Border add_point double [0.0 0.0]
+fun Border add_point double [880 980]
+fun Border add_point double [20.0 20.0]
+fun Border set_color double [0.0 0.0 0.0 0.7]
+fun Border set_position double [20 20]
+fun Border set_thickness double [10.0]
+fun Border set_samples int [4.0]
+fun Border select_layer int [0]
+fun Border set_size int [1300 400]
+fun Border update_with_size
+
+new primitives c Terminal 1 _ _ Border
+fun Border set_id string [primi2]
+fun Border set_type string [filled_rounded_rectangle]
+fun Border add_point double [0.0 0.0]
+fun Border add_point double [880 980]
+fun Border add_point double [20.0 20.0]
+fun Border set_color double [0.0 0.0 0.0 0.7]
+fun Border set_position double [20 430]
+fun Border set_thickness double [10.0]
+fun Border set_samples int [4.0]
+fun Border select_layer int [0]
+fun Border set_size int [1300 70]
+fun Border update_with_size
+
+
+new text c Terminal 1 _ _ History
+fun History attach_to_camera
+fun History set_id string [History]
+fun History set_position int [40 40]
+fun History set_font string [fira_mono24]
+fun History set_wrapping int [1]
+fun History add_new_and_update string ["Hello in EGM Terminal!"]
+fun History set_size int [1260 400]
+fun History select_layer int [1]
+fun History set_color double [0.0 1.0 0.0 1.0]
+
+new editable_text c Terminal 1 _ _ Editable
+fun Editable set_id string [edi]
+fun Editable set_position int [40 448]
+fun Editable set_font string [fira_mono24]
+fun Editable set_wrapping int [1]
+fun Editable set_editable bool [1]
+fun Editable set_space_use bool [1]
+fun Editable set_max_content_length int [10000]
+fun Editable add_new_and_update string ["print _ string [\"hello world!\"]"]
+fun Editable set_size int [1260 400]
+fun Editable select_layer int [1]
+fun Editable set_color double [0.0 1.0 0.0 1.0]
+fun Editable set_input_delay double [0.3]
+fun Editable set_repetition_delay double [0.05]
+fun Editable set_use_tabs bool [1]
+fun Editable set_enter_use bool [0]
+fun Editable set_can_enter_accept bool [0]
+
+end
+
+start eachIteration false
 triggers [each_iteration]
-run [get_input print_art print_hello print_byebye clear_input]
+
 end
 
-start get_input false
-if ([c me variable input] [string "get_input"] ==)
-index context me [0 1] _ variable input
-string ["print_hello"] null
-= input null
-end
+start enter false
+triggers [key_pressed]
+if ([key_pressed 67])
+//print _ string ["Instruction submitted!\n"]
 
-start clear_input false
-index context me [0 1] _ variable input
-string [""] null
-= input null
-end
+index layer [0 2] _ object Terminal
+index context Terminal [0 0] _ editable_text input
+first _ [input] _ _ _ _ content _ instruction
+//print \n context instruction
+//print _ string ["\n"]
+inject_instr me instruction
 
-start print_hello false
-if ([c me variable input] [string "print_hello"] ==)
-print _ string ["Hello python!\n"]
-end
 
-start print_byebye false
-if ([c me variable input] [string print_byebye] ==)
-print _ string ["Bye, bye!\n"]
-end
+index context Terminal [0 0] _ text History
+int [0] zero
+fun History add_text int [0] string ["\n"]
+fun History add_text context zero context instruction
 
-start print_art false
-if ([c me variable input] [string "print_art"] ==)
-print _ string [""]
+fun input set_text int [0] string [""]
+
 end

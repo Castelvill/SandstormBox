@@ -72,7 +72,7 @@ index *source* *context* [indexes] [indexes_from_contexts] [attribute] [output]
 
 **Parameters:**
 
-- source (string): “camera”, “layer”, “context”, “_”  - if source is equal to “camera” or “layer”, contexts from context_list are treated as indexes.
+- source (string): “camera”, “layer”, “context”, “_”  - if source is equal to “camera” or “layer”, contexts from indexes_from_contexts are treated as indexes.
 - context (string) - id of the context. If source is not equal to "context", this parameter will be ignored; 
 - [indexes] (int/unsigned vector) - the list of indexes used to find entities in vectors;
 - [indexes_from_contexts] (string vector): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value” - ids of contexts
@@ -154,7 +154,7 @@ value *expression* [output]
 
 **Parameters**
 
-- literal_type (string): “bool”, “int”, “double”, “string”;
+- literal_type (string): bool, int, double, string;
 - literals (VariableModule vector): bool, int, double, string;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
@@ -396,22 +396,6 @@ build *context* [reset]
 - context (string) - id of the context with objects intended for event building;
 - [reset] (bool) - if true, before creating new events, instruction removes all events from provided objects.
 
-## load_build
-
-**Syntax**
-
-load_build *objects* [paths1] [paths2]
-
-**Description**
-
-    Load scripts from provided paths and translate them into events for selected objects.
-
-**Parameters**
-
-- objects (string) - id of the context with objects intended for event building,
-- paths1 (string) - id of the context with paths to the scripts,
-- paths2 (VariableModule vector) - vector of paths to the scripts.
-
 ## build_subset
 
 **Syntax**
@@ -428,6 +412,22 @@ build_subset *objects* [paths1] [paths2]
 - paths1 (string) - id of the context with paths to the scripts,
 - paths2 (VariableModule vector) - vector of paths to the scripts. 
 
+## load_build
+
+**Syntax**
+
+load_build *objects* [paths1] [paths2]
+
+**Description**
+
+    Load scripts from provided paths and translate them into events for selected objects.
+
+**Parameters**
+
+- objects (string) - id of the context with objects intended for event building,
+- paths1 (string) - id of the context with paths to the scripts,
+- paths2 (VariableModule vector) - vector of paths to the scripts.
+
 ## inject_code
 
 **Syntax**
@@ -436,7 +436,7 @@ inject_code *objects* [code1] [code2]
 
 **Description**
 
-    Translate provided code into events for selected objects. Provided code must have correct syntax.
+    Translate provided code into events for all selected objects. Provided code must have correct syntax.
 
 **Parameters**
 
@@ -452,7 +452,7 @@ inject_instr *objects* [instr1] [instr2]
 
 **Description**
 
-    Translate provided instructions into events for selected objects. Created event will be executed as soon as possible and will be deleted right afterwards.
+    Translate provided instructions into an event and insert it into all selected objects. Created events will be executed as soon as possible and will be deleted right afterwards.
 
 **Parameters**
 
@@ -619,7 +619,7 @@ save_text *path* *text*
 
 **Description**
 
-    Saves a string value to a text file.
+    Save a string value to a text file.
 
 **Parameters**
 
@@ -634,9 +634,25 @@ ls *source* *detail*
 
 **Description**
 
-    Prints out the list of items from the source on the standard output.
+    Print out the list of items from the source on the standard output.
 
 **Parameters**
 
 - source (string): processes, layers, cameras, bitmaps, fonts;
 - detail (bool) - if true, prints items in the table with details.
+
+## var
+
+**Syntax**
+
+var *type* *value* *id*
+
+**Description**
+
+    Create a new variable for the current event's owner and add it to the context stack.
+
+**Parameters**
+
+- type (string): bool, int, double, string;
+- value (VariableModule);
+- id (string) - id of the new variable and a new context.
