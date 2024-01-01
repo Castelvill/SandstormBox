@@ -216,22 +216,23 @@ find_by_id *source* [context_list] [camera_id] [layer_id] [object_id] [module_ty
 
 **Syntax**
 
-let *context* *output*
+let *id* [context]
 
 **Description**
 
-    Create a variable with provided id from the selected or last existing context or overwrite the context of the existing variable with the same id. New variables will exist only in the current scope.
+    Change the id of the selected context or change the id of the last context from the local stack. If any other context has the same id, renamed context will take it place and old context will be erased from the stack. 
 
 **Parameters**
 
-- context (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- output (string) - id of the new variable or the id of existing variable intended for a context overwrite.
+- id (string) - id for the selected or last context.
+- context (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”.
+
 
 ## clone
 
 **Syntax**
 
-clone *left_context* *right_context* [changeOldID]
+clone *left* *right* [changeOldID]
 
 **Description**
 
@@ -239,15 +240,15 @@ clone *left_context* *right_context* [changeOldID]
 
 **Parameters**
 
-- left_context (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right_context (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- left (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
 - [changeOldID] (bool) - if true, the left context will inherit the id of the right context (with the last number incrementation). True by default.
 
 ## +, -, *, /
 
 **Syntax**
 
-*operator* *left_context* *right_context* [output]
+*operator* *left* *right* [output]
 
 **Description**
 
@@ -256,8 +257,8 @@ clone *left_context* *right_context* [changeOldID]
 **Parameters**
 
 - operator (string): "+", "-", "*", "/";
-- left_context (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right_context (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- left (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- right (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## ++, --
@@ -279,7 +280,7 @@ clone *left_context* *right_context* [changeOldID]
 
 **Syntax**
 
-*operator* *left_context* *right_context*
+*operator* *left* *right*
 
 **Description**
 
@@ -288,14 +289,14 @@ clone *left_context* *right_context* [changeOldID]
 **Parameters**
 
 - operator (string): "=", "+=", "-=", "*=", "/=" - these work exactly like in c++;
-- left_context (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right_context (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”.
+- left (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- right (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”.
 
 ## in
 
 **Syntax**
 
-in *left_context* *right_context* [output]
+in *left* *right* [output]
 
 **Description**
 
@@ -303,8 +304,8 @@ in *left_context* *right_context* [output]
 
 **Parameters**
 
-- left_context (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right_context (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- left (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- right (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## new
@@ -584,7 +585,7 @@ rmll *path*
 
 **Syntax**
 
-print [delimeter] [[type] [value] ... ] 
+print *delimeter* [output] [[type] [value] ... ] 
 
 **Description**
 
@@ -592,9 +593,10 @@ print [delimeter] [[type] [value] ... ]
 
 **Parameters**
 
-- delimeter (string) - path to the file or directory.
+- delimeter (string) - text printed after each printed value. If it's the only parameter, delimeter will be printed alone;
+- output (string) - if equals to "_", print values to the stdout, otherwise create a new context in the current scope and overwrite the context of an existing variable with the same id;
 - type (string): context, c, bool, int, double, string - type of the next parameter;
-- value (string / VariableModule vector) - id of the context with values or a list of values.
+- value (string / VariableModule vector) - id of the context with values or a list of values that will be printed.
 
 ## load_text
 

@@ -1,3 +1,11 @@
+-Upgrade terminal: run events by name instead of instructions, later add script "sh" that will enable the original terminal mode.
+-Implement the functionality for up-down arrows inside the terminal.
+-Add scrolling to the terminal: automatic and the scrollbar.
+-Fix: Reboot doesn't work.
+-Fix: after pasting text inside the command line, right arrow doesn't go behind the text.
+-Add to terminal: "Start" commend should begin bundling the instructions into one string and "end" commend should end it and use inject_instr.
+-Don't change special signs into special sings, change them only inside "print" instruction.
+-Test load_build instruction.
 -Improve terminal: add auto scrolling to the history and enable user to copy text from not-editable editable text fields.
 -Finish implementing "new_proc" instruction – new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
 -Upgrade “edit_proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
@@ -8,6 +16,7 @@
 -Add blocking keyboard and mouse input through cameras that are out of focus.
 -Add canInteractWithUser boolean to ProcessClass – if true, you can interact with this thread using cameras, mouse and keyboard.
 -Think about better way of getting attributes from module contexts.
+-Change "random_int" instruction into "random".
 -Update documentation.
 -Add more milestones.
 -Copy tilemap editor from Godot.

@@ -1,6 +1,6 @@
 start onInit false
 triggers [on_init]
-//print _ string ["Hello world!\n"]
+//print _ _ string ["Hello world!\n"]
 
 env window_size 1366 768
 edit_proc window_size 1366 768
@@ -85,7 +85,7 @@ fun Editable set_wrapping int [1]
 fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
-fun Editable add_new_and_update string ["print _ string [\"hello world!\"]"]
+fun Editable add_new_and_update string [""]//["print _ _ string [\"hello world!\"]"]
 fun Editable set_size int [1260 400]
 fun Editable select_layer int [1]
 fun Editable set_color double [0.0 1.0 0.0 1.0]
@@ -105,15 +105,20 @@ end
 start enter false
 triggers [key_pressed]
 if ([key_pressed 67])
-//print _ string ["Instruction submitted!\n"]
+//print _ _ string ["Instruction submitted!\n"]
 
 index layer [0 2] _ object Terminal
 index context Terminal [0 0] _ editable_text input
 first _ [input] _ _ _ _ content _ instruction
-//print \n context instruction
-//print _ string ["\n"]
+//print \n _ context instruction
+//print _ _ string ["\n"]
+
+
 inject_instr me instruction
 
+//all _ [me] _ _ event _ xdd
+//all layer _ _ _ _ _ _ all_layers_before
+//print " " _ c all_layers_before
 
 index context Terminal [0 0] _ text History
 int [0] zero
@@ -122,4 +127,31 @@ fun History add_text context zero context instruction
 
 fun input set_text int [0] string [""]
 
+end
+
+
+
+start neofetch false
+print _ _ string ["
+                                ..,   Mateusz@DESKTOP-JVU6QTR
+                    ....,,:;+ccllll   -----------------------
+      ...,,+:;  cllllllllllllllllll   OS: Windows 10 Pro x86_64
+,cclllllllllll  lllllllllllllllllll   Host: Gigabyte Technology Co., Ltd. B660 GAMING X DDR4
+llllllllllllll  lllllllllllllllllll   Kernel: 10.0.19045
+llllllllllllll  lllllllllllllllllll   Uptime: 10 hours, 4 mins
+llllllllllllll  lllllllllllllllllll   Packages: 4 (scoop)
+llllllllllllll  lllllllllllllllllll   Shell: bash 5.2.15
+llllllllllllll  lllllllllllllllllll   Resolution: 1366x768
+                                      DE: Aero
+llllllllllllll  lllllllllllllllllll   WM: Explorer
+llllllllllllll  lllllllllllllllllll   WM Theme: Custom
+llllllllllllll  lllllllllllllllllll   CPU: 12th Gen Intel i5-12600KF (16) @ 3.690GHz
+llllllllllllll  lllllllllllllllllll   GPU: Caption
+llllllllllllll  lllllllllllllllllll   GPU: AMD Radeon RX 6700 XT
+`'ccllllllllll  lllllllllllllllllll   GPU
+       `' \*::  :ccllllllllllllllll   Memory: 12819MiB / 32592MiB
+                       ````''*::cll
+                                 ``
+
+"]
 end

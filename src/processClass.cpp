@@ -2028,6 +2028,104 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
+void moveRightToLeft(string instruction, ContextClass * LeftOperand, ContextClass * RightOperand){
+    if(LeftOperand->type != "pointer" && LeftOperand->type != "value" && LeftOperand->type != "variable"){
+        cout << "Error: In " << __FUNCTION__ << ": Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
+        return;
+    }
+    else if(RightOperand->type != "pointer" && RightOperand->type != "value" && RightOperand->type != "variable"){
+        cout << "Error: In " << __FUNCTION__ << ": Right operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
+        return;
+    }
+
+    if(LeftOperand->readOnly){
+        cout << "Error: In " << __FUNCTION__ << ": Left operand is read-only. Instruction \'" << instruction << "\' failed.\n";
+        return;
+    }
+
+    bool sameSize = false;
+    unsigned i = 0, j = 0;
+
+    if(LeftOperand->type == "pointer" && RightOperand->type == "pointer"){
+        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
+            LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], instruction);
+        }
+    }
+    else if(LeftOperand->type == "value" && RightOperand->type == "value"){
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            LeftOperand->Variables[i].move(&RightOperand->Variables[j], instruction);
+        }
+    }
+    else if(LeftOperand->type == "variable" && RightOperand->type == "variable"){
+        if(!checkForVectorSize(LeftOperand->Modules.Variables.size(), RightOperand->Modules.Variables.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
+            LeftOperand->Modules.Variables[i]->move(RightOperand->Modules.Variables[j], instruction);
+        }
+    }
+    else if(LeftOperand->type == "variable" && RightOperand->type == "value"){
+        if(!checkForVectorSize(LeftOperand->Modules.Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
+            LeftOperand->Modules.Variables[i]->move(&RightOperand->Variables[j], instruction);
+        }
+    }
+    else if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
+        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        BaseVariableStruct RightVariable;
+        for(; i < LeftOperand->BasePointers.size(); i++){
+            if(sameSize || i == 0){
+                RightVariable = RightOperand->Variables[i].getVariableStruct();
+                if(RightVariable.type == ""){
+                    cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                    if(!sameSize){
+                        return;
+                    }
+                    continue;
+                }
+            }
+            LeftOperand->BasePointers[i].move(RightVariable, instruction);
+        }
+    }
+    else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            LeftOperand->Variables[i].move(&RightOperand->BasePointers[j], instruction);
+        }
+    }
+    else if(LeftOperand->type == "variable" && RightOperand->type == "pointer"){
+        if(!checkForVectorSize(LeftOperand->Modules.Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
+            LeftOperand->Modules.Variables[i]->move(&RightOperand->BasePointers[j], instruction);
+        }
+    }
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+    }
+}
+void ProcessClass::moveOrRename(vector<ContextClass> & EventContext, ContextClass * NewContext, string newContextID){
+    ContextClass * OldContext = getContextByID(EventContext, newContextID, false);
+    if(OldContext != nullptr){
+        moveRightToLeft("=", OldContext, NewContext);
+    }
+    else{
+        addNewContext(EventContext, *NewContext, "value", newContextID);
+    }
+}
 void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer,
     AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes
 ){
@@ -2040,17 +2138,13 @@ void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, OperaClas
         }
         NewContext.Variables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Engine, Processes, EventContext));
     }
-    if(NewContext.Variables.size() > 0){
-        NewContext.type = "value";
-        if(printOutInstructions){
-            cout << Operation.instruction << " " << NewContext.getValue() << "\n";
-        }
-        addNewContext(EventContext, NewContext, "value", Operation.newContextID);
+
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << NewContext.getValue() << " " << Operation.newContextID << "\n";
     }
-    else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
-        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
-    }
+
+    NewContext.type = "value";
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner){
     ContextClass NewContext;
@@ -2105,7 +2199,7 @@ void ContextClass::setID(vector<ContextClass> &EventContext, string newID, const
 
     if(OldVariable != nullptr){
         if(printOutInstructions){
-            cout << "free "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue() << "\n";
+            cout << "delete "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue() << "\n";
             cout << "let " << newID << " " << ID << ":" << type << ":" << getValue() << "\n";
         }
         *OldVariable = *this;
@@ -2123,7 +2217,7 @@ void ProcessClass::nameVariable(vector<ContextClass> & EventContext, OperaClass 
     ContextClass * LeftOperand = nullptr;
 
     if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": Variable \'" << Operation.newContextID << "\' can not be created.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Variable \'" << Operation.newContextID << "\' cannot be created.\n";
         return;
     }
 
@@ -2134,7 +2228,7 @@ bool checkForVectorSize(size_t leftSize, size_t rightSize, bool & sameSize, stri
         sameSize = true;
     }
     else if(rightSize != 1){
-        cout << "Error: In " << functionName << ": Vector sizes: " << leftSize << " and " << rightSize << " are incorrect.\n";
+        cout << "Error: In " << functionName << ": Vector sizes " << leftSize << " (left) and " << rightSize << " (right) are incorrect.\n";
         return false;
     }
     return true;
@@ -2186,97 +2280,13 @@ void ProcessClass::moveValues(OperaClass & Operation, vector<ContextClass> &Even
     else if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
         return;
     }
-    else if(LeftOperand->type != "pointer" && LeftOperand->type != "value" && LeftOperand->type != "variable"){
-        cout << "Error: In " << __FUNCTION__ << ": Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
-        return;
-    }
-    else if(RightOperand->type != "pointer" && RightOperand->type != "value" && RightOperand->type != "variable"){
-        cout << "Error: In " << __FUNCTION__ << ": Right operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
-        return;
-    }
 
     if(printOutInstructions){
-        cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+        cout << Operation.instruction << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue()
+            << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
-
-    if(LeftOperand->readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": Left operand is read-only. Instruction \'" << Operation.instruction << "\' failed.\n";
-        return;
-    }
-
-    bool sameSize = false;
-    unsigned i = 0, j = 0;
-
-    if(LeftOperand->type == "pointer" && RightOperand->type == "pointer"){
-        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
-            LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], Operation.instruction);
-        }
-    }
-    else if(LeftOperand->type == "value" && RightOperand->type == "value"){
-        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
-            LeftOperand->Variables[i].move(&RightOperand->Variables[j], Operation.instruction);
-        }
-    }
-    else if(LeftOperand->type == "variable" && RightOperand->type == "variable"){
-        if(!checkForVectorSize(LeftOperand->Modules.Variables.size(), RightOperand->Modules.Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
-            LeftOperand->Modules.Variables[i]->move(RightOperand->Modules.Variables[j], Operation.instruction);
-        }
-    }
-    else if(LeftOperand->type == "variable" && RightOperand->type == "value"){
-        if(!checkForVectorSize(LeftOperand->Modules.Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
-            LeftOperand->Modules.Variables[i]->move(&RightOperand->Variables[j], Operation.instruction);
-        }
-    }
-    else if(LeftOperand->type == "pointer" && RightOperand->type == "value"){
-        if(!checkForVectorSize(LeftOperand->BasePointers.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        BaseVariableStruct RightVariable;
-        for(; i < LeftOperand->BasePointers.size(); i++){
-            if(sameSize || i == 0){
-                RightVariable = RightOperand->Variables[i].getVariableStruct();
-                if(RightVariable.type == ""){
-                    cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
-                    if(!sameSize){
-                        return;
-                    }
-                    continue;
-                }
-            }
-            LeftOperand->BasePointers[i].move(RightVariable, Operation.instruction);
-        }
-    }
-    else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
-        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
-            LeftOperand->Variables[i].move(&RightOperand->BasePointers[j], Operation.instruction);
-        }
-    }
-    else if(LeftOperand->type == "variable" && RightOperand->type == "pointer"){
-        if(!checkForVectorSize(LeftOperand->Modules.Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
-            LeftOperand->Modules.Variables[i]->move(&RightOperand->BasePointers[j], Operation.instruction);
-        }
-    }
-    else{
-        cout << "Error: In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
-    }
+    
+    moveRightToLeft(Operation.instruction, LeftOperand, RightOperand);
 }
 void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, vector<ContextClass> &EventContext, vector<LayerClass> &Layers){
     ContextClass * LeftOperand = nullptr;
@@ -2440,10 +2450,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
     ContextClass * LeftOperand = nullptr;
     ContextClass * RightOperand = nullptr;
 
-    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
-        || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
-        || (RightOperand->type != "pointer" && RightOperand->type != "value")
-    ){
+    if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
         return;
     }
 
@@ -2603,13 +2610,8 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
         cout << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic equation on variables of types: \'" << RightOperand->type << "\' and \'" << LeftOperand->type << "\'.\n";
     }
 
-    if(NewContext.Variables.size() > 0){
-        addNewContext(EventContext, NewContext, "value", Operation.newContextID);
-    }
-    else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
-        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
-    }
+    NewContext.type = "value";
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 void ProcessClass::createLiteral(vector<ContextClass> &EventContext, const OperaClass & Operation){
     ContextClass NewContext;
@@ -2626,13 +2628,9 @@ void ProcessClass::createLiteral(vector<ContextClass> &EventContext, const Opera
             NewContext.Variables.push_back(Literal);
         }
     }
-    if(NewContext.Variables.size() > 0){
-        addNewContext(EventContext, NewContext, "value", Operation.newContextID);
-    }
-    else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
-        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
-    }
+
+    NewContext.type = "value";
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, const OperaClass & Operation){
     ContextClass * LeftOperand = nullptr;
@@ -2759,17 +2757,12 @@ void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, co
         cout << "Error: In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
 
-    if(NewContext.Variables.size() > 0){
-        NewContext.type = "value";
-        if(printOutInstructions){
-            cout << Operation.instruction << " " << NewContext.getValue() << "\n";
-        }
-        addNewContext(EventContext, NewContext, "value", Operation.newContextID);
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << NewContext.getValue() << " " << Operation.newContextID << "\n";
     }
-    else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
-        addNewContext(EventContext, NewContext, "null", Operation.newContextID);
-    }
+
+    NewContext.type = "value";
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 
     if(deletePointers){
         delete LeftOperand;
@@ -2977,7 +2970,8 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
 
     ContextClass NewContext;
     NewContext.Variables.push_back(VariableModule::newBool(result));
-    addNewContext(EventContext, NewContext, "value", Operation.newContextID);
+    NewContext.type = "value";
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 template <class Module>
 void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const unsigned & newVectorSize,
@@ -4929,12 +4923,14 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string
     }
     
     if(Operation.Literals[0].getString() == "clear_layers"){
+        wasDeleteExecuted = true;
         for(LayerClass & Layer : Layers){
             Layer.deleteLater();
         }
         return;
     }
     else if(Operation.Literals[0].getString() == "clear_cameras"){
+        wasDeleteExecuted = true;
         for(Camera2D & Camera : Cameras){
             Camera.deleteLater();
         }
@@ -5135,10 +5131,12 @@ void ProcessClass::renameFileOrDirectory(OperaClass & Operation){
     }
 }
 template <class T>
-void printIDs(const vector<T*> Instances, string delimeter){
+string getStringOfIDs(const vector<T*> Instances, string delimeter){
+    string buffer = "";
     for(const T * Instance : Instances){
-        cout << Instance->getID() << delimeter;
+        buffer += Instance->getID() + delimeter;
     }
+    return buffer;
 }
 string catchQuotes(string input){
     string output;
@@ -5173,8 +5171,10 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
         cout << "\n";
     }
 
+    string buffer = "";
+
     for(auto mIter = std::next(Operation.Literals.begin()); mIter != Operation.Literals.end(); ++mIter){
-        cout << catchQuotes(mIter->getStringUnsafe()) << delimeter;
+        buffer += catchQuotes(mIter->getStringUnsafe()) + delimeter;
     }
 
     ContextClass * ContextValues = nullptr;
@@ -5187,61 +5187,76 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
         }
         if(ContextValues->type == "value"){
             for(const VariableModule & Variable : ContextValues->Variables){
-                cout << catchQuotes(Variable.getStringUnsafe()) << delimeter;
+                buffer += catchQuotes(Variable.getStringUnsafe()) + delimeter;
             }
         }
         else if(ContextValues->type == "pointer"){
             for(const BasePointersStruct & Pointer : ContextValues->BasePointers){
-                cout << catchQuotes(Pointer.getString()) << delimeter;
+                buffer += catchQuotes(Pointer.getString()) + delimeter;
             }
         }
         else if(ContextValues->type == "variable"){
             for(const VariableModule * Variable : ContextValues->Modules.Variables){
-                cout << catchQuotes(Variable->getStringUnsafe()) << delimeter;
+                buffer += catchQuotes(Variable->getStringUnsafe()) + delimeter;
             }
         }
         else if(ContextValues->type == "camera"){
-            printIDs(ContextValues->Cameras, delimeter);
+            buffer += getStringOfIDs(ContextValues->Cameras, delimeter);
         }
         else if(ContextValues->type == "layer"){
-            printIDs(ContextValues->Layers, delimeter);
+            buffer += getStringOfIDs(ContextValues->Layers, delimeter);
         }
         else if(ContextValues->type == "object"){
-            printIDs(ContextValues->Objects, delimeter);
+            buffer += getStringOfIDs(ContextValues->Objects, delimeter);
         }
         else if(ContextValues->type == "text"){
-            printIDs(ContextValues->Modules.Texts, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Texts, delimeter);
         }
         else if(ContextValues->type == "editable_text"){
-            printIDs(ContextValues->Modules.EditableTexts, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.EditableTexts, delimeter);
         }
         else if(ContextValues->type == "image"){
-            printIDs(ContextValues->Modules.Images, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Images, delimeter);
         }
         else if(ContextValues->type == "movement"){
-            printIDs(ContextValues->Modules.Movements, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Movements, delimeter);
         }
         else if(ContextValues->type == "collision"){
-            printIDs(ContextValues->Modules.Collisions, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Collisions, delimeter);
         }
         else if(ContextValues->type == "movement"){
-            printIDs(ContextValues->Modules.Movements, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Movements, delimeter);
         }
         else if(ContextValues->type == "particles"){
-            printIDs(ContextValues->Modules.Particles, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Particles, delimeter);
         }
         else if(ContextValues->type == "event"){
-            printIDs(ContextValues->Modules.Events, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Events, delimeter);
         }
         else if(ContextValues->type == "scrollbar"){
-            printIDs(ContextValues->Modules.Scrollbars, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Scrollbars, delimeter);
         }
         else if(ContextValues->type == "primitive"){
-            printIDs(ContextValues->Modules.Primitives, delimeter);
+            buffer += getStringOfIDs(ContextValues->Modules.Primitives, delimeter);
         }
         else{
             cout << "Error: In " << __FUNCTION__ << ": Invalid context type.\n";
         }
+    }
+
+    if(buffer == ""){
+        buffer += delimeter;
+    }
+
+    if(Operation.newContextID == ""){
+        cout << buffer;
+    }
+    else{
+        ContextClass NewContext;
+        NewContext.type = "value";
+        NewContext.Variables.push_back(VariableModule::newString(buffer));
+
+        
     }
 }
 void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext){
@@ -5553,6 +5568,14 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
             << " " << Operation.Literals[1].getStringUnsafe() << Operation.newContextID << "\n";
     }
 
+    for(const VariableModule & Variable : Owner->VariablesContainer){
+        if(Variable.getID() == Operation.newContextID){
+            cout << "Error: In \'" << Operation.instruction << "\' instruction: Cannot create a variable with id \'"
+                << Operation.newContextID << "\', because a variable with the same id already exists.\n";
+            return;
+        }
+    }
+
     PointerRecalculator Recalculator;
     Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
     
@@ -5686,6 +5709,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         else if(Operation.instruction == "delete_this_event"){
             Event->deleteLater();
+            wasDeleteExecuted = true;
             if(printOutInstructions){
                 cout << "delete_this_event\n";
             }
@@ -6599,9 +6623,10 @@ vector<EveModule>::iterator ProcessClass::FindElseEvent(AncestorObject * Trigger
     return Event;
 }
 template <class Module>
-void deleteModuleInstance(vector<Module> & Container, bool & layersWereModified){
+void deleteModuleInstance(vector<Module> & Container, vector<string> & IDs, bool & layersWereModified){
     for(auto Instance = Container.begin(); Instance != Container.end();){
         if(Instance->getIsDeleted()){
+            removeFromVector(IDs, Instance->getID());
             layersWereModified = true;
             Instance->clear();
             Instance = Container.erase(Instance);
@@ -6611,9 +6636,10 @@ void deleteModuleInstance(vector<Module> & Container, bool & layersWereModified)
         }
     }
 }
-void deleteEventInstance(vector<EveModule> & Container, bool & layersWereModified){
+void deleteEventInstance(vector<EveModule> & Container, vector<string> & IDs, bool & layersWereModified){
     for(auto Instance = Container.begin(); Instance != Container.end();){
         if(Instance->getIsDeleted() || Instance->willBeDeleted){
+            removeFromVector(IDs, Instance->getID());
             layersWereModified = true;
             Instance->clear();
             Instance = Container.erase(Instance);
@@ -6628,6 +6654,7 @@ bool ProcessClass::deleteEntities(){
     unsigned cameraIndex = 0;
     for(auto Camera = Cameras.begin(); Camera != Cameras.end(); cameraIndex++){
         if(Camera->getIsDeleted()){
+            removeFromVector(camerasIDs, Camera->getID());
             Camera->clear();
             Camera = Cameras.erase(Camera);
             removeFromVector(camerasOrder, cameraIndex);
@@ -6638,6 +6665,7 @@ bool ProcessClass::deleteEntities(){
     }
     for(auto Layer = Layers.begin(); Layer != Layers.end();){
         if(Layer->getIsDeleted()){
+            removeFromVector(layersIDs, Layer->getID());
             layersWereModified = true;
             Layer->clear();
             Layer = Layers.erase(Layer);
@@ -6645,21 +6673,22 @@ bool ProcessClass::deleteEntities(){
         else{
             for(vector<AncestorObject>::iterator Object = Layer->Objects.begin(); Object != Layer->Objects.end();){
                 if(Object->getIsDeleted()){
+                    removeFromVector(Layer->objectsIDs, Object->getID());
                     layersWereModified = true;
                     Object->clearContainers();
                     Object = Layer->Objects.erase(Object);
                 }
                 else{
-                    deleteModuleInstance(Object->TextContainer, layersWereModified);
-                    deleteModuleInstance(Object->EditableTextContainer, layersWereModified);
-                    deleteModuleInstance(Object->ImageContainer, layersWereModified);
-                    deleteModuleInstance(Object->MovementContainer, layersWereModified);
-                    deleteModuleInstance(Object->CollisionContainer, layersWereModified);
-                    deleteModuleInstance(Object->ParticlesContainer, layersWereModified);
-                    deleteEventInstance(Object->EveContainer, layersWereModified);
-                    deleteModuleInstance(Object->VariablesContainer, layersWereModified);
-                    deleteModuleInstance(Object->ScrollbarContainer, layersWereModified);
-                    deleteModuleInstance(Object->PrimitivesContainer, layersWereModified);
+                    deleteModuleInstance(Object->TextContainer, Object->textContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->EditableTextContainer, Object->editableTextContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->ImageContainer, Object->imageContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->MovementContainer, Object->movementContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->CollisionContainer, Object->collisionContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->ParticlesContainer, Object->particlesContainerIDs, layersWereModified);
+                    deleteEventInstance(Object->EveContainer, Object->eveContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->VariablesContainer, Object->variablesContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->ScrollbarContainer, Object->scrollbarContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->PrimitivesContainer, Object->primitivesContainerIDs, layersWereModified);
                     ++Object;
                 }
             }
@@ -6836,10 +6865,6 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                         Interrupt.instruction = "";
                         break;
                     }
-                    else if(Interrupt.instruction == "delete_this_event"){
-                        Interrupt.instruction = "";
-                        break;
-                    }
                     if(TriggeredLayer == nullptr || Triggered == nullptr){
                         cout << "Aborting! The owner of the event has been deleted.\n";
                         break;
@@ -6902,6 +6927,11 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 }
             }
             if(StartingEvent != Event){ //jump back in event stack
+                Event->conditionalStatus = 'n';
+                Event->areDependentOperationsDone = false;
+                Event->elseChildFinished = false;
+                resetChildren(Event, Triggered);
+
                 Event = MemoryStack.back().Event;
 
                 if(MemoryStack.back().contextSize <= Context.size()){

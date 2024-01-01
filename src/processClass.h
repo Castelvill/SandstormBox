@@ -282,6 +282,7 @@ public:
     void aggregateTwoSets(OperaClass & Operation, vector<ContextClass> & EventContext);
     void addNewContext(vector<ContextClass> & EventContext, const ContextClass & NewContext, string type, string newID);
     void aggregateEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const EngineClass & Engine);
+    void moveOrRename(vector<ContextClass> & EventContext, ContextClass * NewContext, string newContextID);
     void aggregateValues(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer,
         AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes);
     void aggregateOnlyById(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner);

@@ -863,7 +863,7 @@ bool gatherChildEvents(const vector<string> & words, unsigned & cursor, vector<C
         return false;
     }
     while(words[cursor] != "]"){
-        Children.push_back(ChildStruct(words[cursor]));
+        Children.push_back(ChildStruct(words[cursor], false));
         cursor++;
         if(cursor >= words.size()){
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
@@ -1259,11 +1259,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else if(words[0] == "let"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->newContextID = words[2];
+            Operation->newContextID = words[1];
+            if(words.size() < 3){
+                continue;
+            }
+            Operation->dynamicIDs.push_back(words[2]);
         }
         else if(words[0] == "clone"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
@@ -1510,8 +1513,16 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             else{
                 Operation->Literals.push_back(VariableModule::newString(""));
             }
+
+            if(words.size() < 3){
+                continue;
+            }
+
+            if(words[2] != "_"){
+                Operation->newContextID = words[2];
+            }
             
-            cursor = 2;
+            cursor = 3;
             while(words.size() > cursor + 1){
                 if(words[cursor] == "context" || words[cursor] == "c"){
                     cursor++;

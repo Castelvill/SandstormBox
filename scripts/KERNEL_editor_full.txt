@@ -18,7 +18,7 @@ fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
 string [""] loaded
 load_text "randomString.txt" loaded
-fun Editable add_and_update context loaded
+fun Editable add_new_and_update context loaded
 fun Editable set_size int [1920 1080]
 fun Editable select_layer int [1]
 fun Editable set_color double [1.0 0.0 0.0 1.0]

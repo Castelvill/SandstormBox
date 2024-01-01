@@ -18,15 +18,15 @@ end
 
 start print_hello false
 if ([c me variable input] [string "print_hello"] ==)
-print _ string ["Hello python!\n"]
+print _ _ string ["Hello python!\n"]
 end
 
 start print_byebye false
 if ([c me variable input] [string print_byebye] ==)
-print _ string ["Bye, bye!\n"]
+print _ _ string ["Bye, bye!\n"]
 end
 
 start print_art false
 if ([c me variable input] [string "print_art"] ==)
-print _ string [""]
+print _ _ string [""]
 end

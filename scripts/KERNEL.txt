@@ -53,7 +53,7 @@ fun FPS_text set_id string ["king"]
 fun FPS_text set_position int [10 10]
 fun FPS_text set_size int [400 300]
 fun FPS_text set_font string [Minecraft24]
-fun FPS_text add_and_update string ["FPS: "]
+fun FPS_text add_new_and_update string ["FPS: "]
 fun FPS_text set_color double [1.0 0.0 0.0 0.0]
 fun FPS_text set_wrapping int [2]
 fun FPS_text attach_to_camera
@@ -135,7 +135,7 @@ fun title set_id string [title]
 fun title set_position int [10 10]
 fun title set_font string [arial24]
 fun title set_wrapping int [0]
-fun title add_and_update string ["Okienko"]
+fun title add_new_and_update string ["Okienko"]
 fun title set_size int [400 50]
 fun title select_layer int [-1]
 fun title set_color double [1.0 1.0 1.0 0.0]
@@ -171,7 +171,7 @@ new collision l L1 Amongus 1 _ _ col
 fun col set_size double [50 50]
 fun col set_position double [50 0]
 new text l L1 Amongus 1 _ _ text
-fun text add_and_update string [""]
+fun text add_new_and_update string [""]
 fun text set_font string [fira_mono12]
 fun text set_color double [1.0 0.0 0.0 0.0]
 fun text set_wrapping int [0]
@@ -237,7 +237,7 @@ fun title set_id string [terminal]
 fun title set_position int [10 10]
 fun title set_font string [arial24]
 fun title set_wrapping int [0]
-fun title add_and_update string ["Terminal"]
+fun title add_new_and_update string ["Terminal"]
 fun title set_size int [400 50]
 fun title select_layer int [1]
 fun title set_color double [1.0 1.0 1.0 0.0]
@@ -285,8 +285,8 @@ fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
 string [""] loaded
 load_text "randomString.txt" loaded
-//print _ context loaded
-fun Editable add_and_update context loaded /*string ["Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+//print _ _ context loaded
+fun Editable add_new_and_update context loaded /*string ["Lorem ipsum dolor sit amet, consectetur adipiscing elit,
 sed do eiusmod tempor incid idunt ut labore et dolore
 magna aliqua. Ut enim ad minim veniam, quis nostrud
 exercitation ullamco labori nisi ut aliquip ex ea
@@ -420,9 +420,9 @@ fun cam minimize
 fun cam set_grabbing_area_position int [0 10]
 fun cam set_grabbing_area_size int [350 20]*/
 
-//print _ string ["\nxddd \" haha\n\n"]
+//print _ _ string ["\nxddd \" haha\n\n"]
 
-/*string ["int [2] two" "+ two two four" "print _ context four" "print _ string [\n]"] code
+/*string ["int [2] two" "+ two two four" "print _ _ context four" "print _ _ string [\n]"] code
 index layer [1 0] _ object Lol
 inject_instr me code*/
 
@@ -447,7 +447,7 @@ end
 
 start dolphin.exe false
 triggers [each_iteration]
-print _ string ["I'm just a dolphin, not a virus!\n"]
+print _ _ string ["I'm just a dolphin, not a virus!\n"]
 delete_this_event
 end
 
@@ -550,12 +550,12 @@ start fs_click false
 triggers [key_pressed]
 if ([key_pressed 75])
 new_proc santa
-print _ string ["Processes: \n"]
+print _ _ string ["Processes: \n"]
 ls processes
-print _ string ["\n\n"]
-/*print _ string ["\n"]
-print _ context sixnine
-print _ string ["\n\n"]
+print _ _ string ["\n\n"]
+/*print _ _ string ["\n"]
+print _ _ context sixnine
+print _ _ string ["\n\n"]
 ++ sixnine*/
 end
 
