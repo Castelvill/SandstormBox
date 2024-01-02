@@ -521,7 +521,7 @@ string findAndUseSpecialCharacters(string input){
 
     return output;
 }
-vector <string> changeCodeIntoWords(string input){
+vector <string> tokenizeCode(string input){
     std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
@@ -845,34 +845,6 @@ bool gatherStringVector(const vector<string> & words, unsigned & cursor, vector<
     cursor++;
     return true;
 }
-bool gatherChildEvents(const vector<string> & words, unsigned & cursor, vector<ChildStruct> & Children, unsigned lineNumber, string scriptName){
-    if(cursor >= words.size()){
-        return true;
-    }
-    if(words[cursor] == "_"){
-        cursor++;
-        return true;
-    }
-    if(words[cursor] != "["){
-        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Every list of child events must begin with a square bracket.\n";
-        return false;
-    }
-    cursor++;
-    if(cursor >= words.size()){
-        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
-        return false;
-    }
-    while(words[cursor] != "]"){
-        Children.push_back(ChildStruct(words[cursor], false));
-        cursor++;
-        if(cursor >= words.size()){
-            cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
-            return false;
-        }
-    }
-    cursor++;
-    return true;
-}
 bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<VariableModule> & Literals, char type, unsigned lineNumber, string scriptName){
     bool negate = false;
     if(cursor >= words.size()){
@@ -1007,18 +979,22 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
         lineNumber++;
         words.clear();
         line = findAndUseSpecialCharacters(line);
-        words = changeCodeIntoWords(line);
+        words = tokenizeCode(line);
         //words = mergeStrings(words);
         if(words.size() == 0){
             continue;
         }
         cursor = 1;
         if(words[0] == "start"){
-            if(words.size() < 3){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+            if(words.size() < 2){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
+                    ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires one parameter.\n";
                 return;
             }
             NewEvent = EveModule(words[1], &eveContainerIDs, getLayerID(), getID());
+            if(words.size() == 2){
+                continue;
+            }
             if(words[2] == "true"){
                 NewEvent.loop = true;
             }
@@ -1054,9 +1030,9 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             cursor = 1;
-            if(!gatherChildEvents(words, cursor, NewEvent.Children, lineNumber, scriptName)){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
-                return;
+            while(cursor < words.size()){
+                NewEvent.Children.push_back(ChildStruct(words[cursor], false));
+                cursor++;
             }
         }
         else if(words[0] == "if"){
@@ -1605,6 +1581,15 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 continue;
             }
             Operation->newContextID = words[3];
+        }
+        else if(words[0] == "tokenize"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            if(words.size() > 2){
+                Operation->newContextID = words[2];
+            }
         }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";

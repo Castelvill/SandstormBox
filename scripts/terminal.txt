@@ -1,4 +1,4 @@
-start onInit false
+start onInit
 triggers [on_init]
 //print _ _ string ["Hello world!\n"]
 
@@ -95,35 +95,51 @@ fun Editable set_use_tabs bool [1]
 fun Editable set_enter_use bool [0]
 fun Editable set_can_enter_accept bool [0]
 
+var string "" param0
+var string "" param1
+var string "" param2
+var string "" param3
+
 end
 
-start eachIteration false
+start eachIteration
 triggers [each_iteration]
 
 end
 
-start enter false
+start enter
 triggers [key_pressed]
 if ([key_pressed 67])
-//print _ _ string ["Instruction submitted!\n"]
 
 index layer [0 2] _ object Terminal
 index context Terminal [0 0] _ editable_text input
-first _ [input] _ _ _ _ content _ instruction
-//print \n _ context instruction
-//print _ _ string ["\n"]
+first _ [input] _ _ _ _ content _ user_input
 
+tokenize user_input words
 
-inject_instr me instruction
+index context words [0] _ _ x
+//print \n _ c x
+= param0 x
+index context words [1] _ _ x
+//print \n _ c x
+= param1 x
+index context words [2] _ _ x
+//print \n _ c x
+= param2 x
+index context words [3] _ _ x
+//print \n _ c x
+= param3 x
 
-//all _ [me] _ _ event _ xdd
-//all layer _ _ _ _ _ _ all_layers_before
-//print " " _ c all_layers_before
+string ["run "] run
++= run param0
+
+inject_instr me run
+
 
 index context Terminal [0 0] _ text History
 int [0] zero
 fun History add_text int [0] string ["\n"]
-fun History add_text context zero context instruction
+fun History add_text context zero context user_input
 
 fun input set_text int [0] string [""]
 
@@ -131,7 +147,35 @@ end
 
 
 
-start neofetch false
+
+start sh
+
+string [""] instruction
+string [" "] space
+
++= instruction param1
++= instruction space
++= instruction param2
++= instruction space
++= instruction param3
+
+/*print \n _ c param1
+print \n _ c param2
+print \n _ c instruction*/
+
+inject_instr me instruction
+
+end
+
+start 222
+int [1 2 3 4] x
+int [2 2 1 1] y
++= x x
+print " " _ c x
+print \n
+end
+
+start neofetch
 print _ _ string ["
                                 ..,   Mateusz@DESKTOP-JVU6QTR
                     ....,,:;+ccllll   -----------------------

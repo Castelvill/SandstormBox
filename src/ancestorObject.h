@@ -72,6 +72,8 @@ public:
     void injectInstructions(vector<string> instructions);
 };
 
+vector <string> tokenizeCode(string input);
+
 void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);
 void activateBasedOnId(AncestorObject * EditorWindow, string activateID);
 void activateBasedOnFirstChar(AncestorObject * EditorWindow, char activateID);

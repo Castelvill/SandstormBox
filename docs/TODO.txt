@@ -1,3 +1,7 @@
+-Add "mute" instruction, or "mute" parameter to "index" and "=" (and actually to all others) instructions: mute errors. 
+-Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
+-Remove parentheses from "value", "if" and aggregating instructions.
+-Add start, end, triggers instructions to the documentation.
 -Upgrade terminal: run events by name instead of instructions, later add script "sh" that will enable the original terminal mode.
 -Implement the functionality for up-down arrows inside the terminal.
 -Add scrolling to the terminal: automatic and the scrollbar.

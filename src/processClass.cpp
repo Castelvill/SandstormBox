@@ -2030,16 +2030,16 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
 }
 void moveRightToLeft(string instruction, ContextClass * LeftOperand, ContextClass * RightOperand){
     if(LeftOperand->type != "pointer" && LeftOperand->type != "value" && LeftOperand->type != "variable"){
-        cout << "Error: In " << __FUNCTION__ << ": Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
         return;
     }
     else if(RightOperand->type != "pointer" && RightOperand->type != "value" && RightOperand->type != "variable"){
-        cout << "Error: In " << __FUNCTION__ << ": Right operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: Right operand has an invalid type: \'" << RightOperand->type << "\'.\n";
         return;
     }
 
     if(LeftOperand->readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": Left operand is read-only. Instruction \'" << instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: Left operand is read-only. Instruction \'" << instruction << "\' failed.\n";
         return;
     }
 
@@ -2070,6 +2070,14 @@ void moveRightToLeft(string instruction, ContextClass * LeftOperand, ContextClas
             LeftOperand->Modules.Variables[i]->move(RightOperand->Modules.Variables[j], instruction);
         }
     }
+    else if(LeftOperand->type == "value" && RightOperand->type == "variable"){
+        if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Modules.Variables.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        for(; i < LeftOperand->Variables.size(); i++, j+=sameSize){
+            LeftOperand->Variables[i].move(RightOperand->Modules.Variables[j], instruction);
+        }
+    }
     else if(LeftOperand->type == "variable" && RightOperand->type == "value"){
         if(!checkForVectorSize(LeftOperand->Modules.Variables.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
             return;
@@ -2087,7 +2095,7 @@ void moveRightToLeft(string instruction, ContextClass * LeftOperand, ContextClas
             if(sameSize || i == 0){
                 RightVariable = RightOperand->Variables[i].getVariableStruct();
                 if(RightVariable.type == ""){
-                    cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: Failed to fetch a variable.\n";
                     if(!sameSize){
                         return;
                     }
@@ -2114,7 +2122,7 @@ void moveRightToLeft(string instruction, ContextClass * LeftOperand, ContextClas
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
 }
 void ProcessClass::moveOrRename(vector<ContextClass> & EventContext, ContextClass * NewContext, string newContextID){
@@ -5240,7 +5248,7 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
             buffer += getStringOfIDs(ContextValues->Modules.Primitives, delimeter);
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Invalid context type.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Invalid context type \'" << ContextValues->type << "\'.\n";
         }
     }
 
@@ -5638,6 +5646,46 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
+void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> & EventContext){
+    ContextClass * Context = nullptr;
+    if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In" << __FUNCTION__ << ": \'" << Operation.instruction << "\' requires at least one context.\n";
+        return;
+    }
+    string input = "";
+    if(Context->type == "value"){
+        if(Context->Variables.size() == 0){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Context is empty.\n";
+            return;
+        }
+        input = Context->Variables[0].getString();
+    }
+    else if(Context->type == "variable"){
+        if(Context->Modules.Variables.size() == 0){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Context is empty.\n";
+            return;
+        }
+        input = Context->Modules.Variables[0]->getString();
+    }
+    else if(Context->type == "pointer"){
+        if(Context->BasePointers.size() == 0){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Context is empty.\n";
+            return;
+        }
+        input = Context->BasePointers[0].getString();
+    }
+    else{
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': invalid context type \'" << Context->type << "\'.\n";
+        return;
+    }
+    vector <string> words = tokenizeCode(input);
+    ContextClass NewContext;
+    for(string word : words){
+        NewContext.Variables.push_back(VariableModule::newString(word));
+    }
+    NewContext.type = "value";
+    addNewContext(EventContext, NewContext, "value", Operation.newContextID);
+}
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
     vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
@@ -5778,6 +5826,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         else if(Operation.instruction == "var"){
             createNewOwnerVariable(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack);
+        }
+        else if(Operation.instruction == "tokenize"){
+            tokenizeString(Operation, EventContext);
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";

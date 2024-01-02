@@ -1,10 +1,24 @@
 # Instructions
 
+## run
+
+**Syntax**
+
+run *event* [[event] ...]
+
+**Description**
+
+    Execute all events which names were provided in this instruction.
+
+**Parameters:**
+
+- event (string) - a name of an event to be executed.
+
 ## power_off
 
 **Description**
    
-    Exit the program.
+    Exit the engine.
 
 ## reboot
 
@@ -658,3 +672,18 @@ var *type* *value* *id*
 - type (string): bool, int, double, string;
 - value (VariableModule);
 - id (string) - id of the new variable and a new context.
+
+## tokenize
+
+**Syntax**
+
+tokenize *context* [output]
+
+**Description**
+
+    Create a new variable for the current event's owner and add it to the context stack.
+
+**Parameters**
+
+- context (string) - id of the context with a string to be tokenize;
+- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
