@@ -1,8 +1,11 @@
+-Fix: all new layers in "spawn" program are drawn only on the one camera. 
+-Write a program for a terminal that creates a window with amogus each time it is called.
+-Implement "set_triggers *event* [[trigger] ...]" instruction.
+-Implement "set_if *event* *expression*" instruction.
 -Add "mute" instruction, or "mute" parameter to "index" and "=" (and actually to all others) instructions: mute errors. 
 -Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
 -Remove parentheses from "value", "if" and aggregating instructions.
 -Add start, end, triggers instructions to the documentation.
--Upgrade terminal: run events by name instead of instructions, later add script "sh" that will enable the original terminal mode.
 -Implement the functionality for up-down arrows inside the terminal.
 -Add scrolling to the terminal: automatic and the scrollbar.
 -Fix: Reboot doesn't work.
@@ -11,6 +14,15 @@
 -Don't change special signs into special sings, change them only inside "print" instruction.
 -Test load_build instruction.
 -Improve terminal: add auto scrolling to the history and enable user to copy text from not-editable editable text fields.
+-Remember to use "clone".
+
+MILESTONE:
+Terminal with printing, scrolling and a history of used commands.
+
+-Add "sh" MODE to the Terminal.
+-Fix: zooming edited text can move its position.
+-Add module scalling from the edge of the camera.
+-Add "Ctrl + c" support: While the events are running, they always check if ctrl+c is pressed. If it is, they abort their execution. It will not help with infinite loops yet, but it can stop events that are executed in each iteration. You could implement it in c++ or in your script with if statement and “else” event that for example removes the “each_iteration” trigger from a selected event.
 -Finish implementing "new_proc" instruction – new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
 -Upgrade “edit_proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
@@ -106,6 +118,9 @@ now it's just hard-wired in editor.
 -Depth maps
 -Add filling imageModule full area with used image if isFilledWithCopies is true
 -Add gifs.
+
+-MILESTONE: Make donut.cpp with EGM script.
+
 
 OPTIMALIZATIONS
 -Function createNewModule recalculates indexes of all modules for each module added. Remove template and create custom index recalculation for each module.

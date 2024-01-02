@@ -92,7 +92,45 @@ bool *LayerClass::getIsActiveAddr()
 {
     return &isActive;
 }
-void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs, const bool & changeOldID){
+VariableModule LayerClass::getValue(string attribute, string option) const{
+    VariableModule NewValue;
+    if(attribute == "id"){
+        NewValue.setString(getID());
+        return NewValue;
+    }
+    if(attribute == "in_group"){
+        NewValue.setBool(isInAGroup(option));
+        return NewValue;
+    }
+    if(attribute == "objects_count"){
+        NewValue.setInt(Objects.size());
+        return NewValue;
+    }
+    if(attribute == "is_active"){
+        NewValue.setDouble(getIsActive());
+        return NewValue;
+    }
+    if(attribute == "pos_x"){
+        NewValue.setDouble(pos.x);
+        return NewValue;
+    }
+    if(attribute == "pos_y"){
+        NewValue.setDouble(pos.y);
+        return NewValue;
+    }
+    if(attribute == "size_x"){
+        NewValue.setDouble(size.x);
+        return NewValue;
+    }
+    if(attribute == "size_y"){
+        NewValue.setDouble(size.y);
+        return NewValue;
+    }
+    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    return VariableModule();
+}
+void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, const bool &changeOldID)
+{
     if(isStringInVector(reservedIDs, Original.ID)){
         cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
@@ -103,13 +141,24 @@ void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs, 
     }
     string oldID = ID;
     clear();
-    *this = Original;
     ID = oldID;
     if(changeOldID){
         setID(Original.getID(), layersIDs);
     }
 
-    for(AncestorObject & Object : Objects){
+    groups = Original.groups;
+    isActive = Original.isActive;
+    deleted = Original.deleted;
+    objectsIDs = Original.objectsIDs;
+    pos.set(Original.pos);
+    size.set(Original.size);
+
+    for(const AncestorObject & Object : Original.Objects){
+        Objects.push_back(AncestorObject());
+        Objects.back().clone(Object, objectsIDs, ID, false);
+    }
+
+    /*for(AncestorObject & Object : Objects){
         Object.setLayerID(getID());
         for(TextModule & Text : Object.TextContainer){
             Text.setLayerID(getID());
@@ -157,7 +206,7 @@ void LayerClass::clone(const LayerClass& Original, vector <string> & layersIDs, 
         for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
             Scrollbar.setLayerID(getID());
         }
-    }
+    }*/
 }
 
 void LayerClass::addGroup(string newGroup){

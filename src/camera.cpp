@@ -64,17 +64,18 @@ void Camera2D::clone(const Camera2D &Original, vector<string> &camerasIDs, bool 
         cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
+    clear();
     string oldID = ID;
     *this = Original;
     ID = oldID;
     if(changeOldID){
         setID(Original.getID(), camerasIDs);
     }
-    al_destroy_bitmap(bitmapBuffer);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 void Camera2D::clear(){
     al_destroy_bitmap(bitmapBuffer);
+    bitmapBuffer = nullptr;
     clearVisibleLayers();
     clearAccessibleLayers();
 }
@@ -89,6 +90,35 @@ void Camera2D::setID(string newID, vector <string> & camerasIDs){
 }
 string Camera2D::getID() const{
     return ID;
+}
+VariableModule Camera2D::getValue(string attribute) const{
+    VariableModule NewValue;
+    if(attribute == "id"){
+        NewValue.setString(getID());
+        return NewValue;
+    }
+    else if(attribute == "pos_x"){
+        NewValue.setDouble(pos.x);
+        return NewValue;
+    }
+    else if(attribute == "pos_y"){
+        NewValue.setDouble(pos.y);
+        return NewValue;
+    }
+    else if(attribute == "size_x"){
+        NewValue.setDouble(size.x);
+        return NewValue;
+    }
+    else if(attribute == "size_y"){
+        NewValue.setDouble(size.y);
+        return NewValue;
+    }
+    else if(attribute == "zoom"){
+        NewValue.setDouble(zoom);
+        return NewValue;
+    }
+    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    return VariableModule();
 }
 void Camera2D::setIsActive(bool newValue){
     isActive = newValue;

@@ -5060,6 +5060,13 @@ void ProcessClass::loadBitmap(OperaClass & Operation, vector<SingleBitmap> & Bit
     if(printOutInstructions){
         cout << Operation.instruction << " " << Operation.Literals[0].getString() << " " << Operation.Literals[1].getString() << "\n";
     }
+    for(const SingleBitmap & Bitmap : BitmapContainer){
+        if(Bitmap.ID == Operation.Literals[1].getString()){
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << Operation.instruction << "\' instruction: "
+                << "Loading failed. Bitmap with the id \'" << Bitmap.ID << "\' already exists.\n";
+            return;
+        }
+    }
     BitmapContainer.push_back(SingleBitmap());
     BitmapContainer.back().loadBitmap(Operation.Literals[1].getString(), Operation.Literals[0].getString(), EXE_PATH);
 }
@@ -5263,8 +5270,7 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
         ContextClass NewContext;
         NewContext.type = "value";
         NewContext.Variables.push_back(VariableModule::newString(buffer));
-
-        
+        moveOrRename(EventContext, &NewContext, Operation.newContextID);
     }
 }
 void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext){
@@ -5680,11 +5686,26 @@ void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> &
     }
     vector <string> words = tokenizeCode(input);
     ContextClass NewContext;
-    for(string word : words){
-        NewContext.Variables.push_back(VariableModule::newString(word));
-    }
     NewContext.type = "value";
-    addNewContext(EventContext, NewContext, "value", Operation.newContextID);
+    if(Operation.dynamicIDs.size() == 1){
+        for(string word : words){
+            NewContext.Variables.push_back(VariableModule::newString(word));
+        }
+        addNewContext(EventContext, NewContext, "value", "");
+    }
+    else if(Operation.dynamicIDs.size() == 2){
+        for(string word : words){
+            NewContext.Variables.push_back(VariableModule::newString(word));
+        }
+        addNewContext(EventContext, NewContext, "value", Operation.dynamicIDs[1]);
+    }
+    else{
+        NewContext.Variables.push_back(VariableModule::newString(""));
+        for(size_t i = 0; i < words.size() && i+1 < Operation.dynamicIDs.size(); i++){
+            NewContext.Variables.back().setString(words[i]);
+            moveOrRename(EventContext, &NewContext, Operation.dynamicIDs[i+1]);
+        }
+    }
 }
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
@@ -6365,35 +6386,9 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             if(Camera.getIsDeleted()){
                 break;
             }
-            if(Condition.Location.attribute == "id"){
-                NewValue.setString(Camera.getID());
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "pos_x"){
-                NewValue.setDouble(Camera.pos.x);
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "pos_y"){
-                NewValue.setDouble(Camera.pos.y);
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "size_x"){
-                NewValue.setDouble(Camera.size.x);
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "size_y"){
-                NewValue.setDouble(Camera.size.y);
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "zoom"){
-                NewValue.setDouble(Camera.zoom);
-                return NewValue;
-            }
-            else{
-                cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
-                break;
-            }
-            break;
+            NewValue = Camera.getValue(Condition.Location.attribute);
+            NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
+            return NewValue;
         }
     }
     else if(Condition.Location.source == "layer"){
@@ -6405,42 +6400,9 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             if(Layer.getIsDeleted()){
                 break;
             }
-            if(Condition.Location.attribute == "id"){
-                NewValue.setString(Layer.getID());
-                return NewValue;
-            }
-            if(Condition.Location.attribute == "in_group"){
-                NewValue.setBool(Layer.isInAGroup(Condition.Literal.getStringUnsafe()));
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "objects_count"){
-                NewValue.setInt(Layer.Objects.size());
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "is_active"){
-                NewValue.setDouble(Layer.getIsActive());
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "pos_x"){
-                NewValue.setDouble(Layer.pos.x);
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "pos_y"){
-                NewValue.setDouble(Layer.pos.y);
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "size_x"){
-                NewValue.setDouble(Layer.size.x);
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "size_y"){
-                NewValue.setDouble(Layer.size.y);
-                return NewValue;
-            }
-            else{
-                cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
-            }
-            break;
+            NewValue = Layer.getValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
+            NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
+            return NewValue;
         }
     }
     else if(Condition.Location.source == "object"){
@@ -6490,7 +6452,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         if(Context->type == "object"){
             if(Context->Objects.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no variables in the context.\n";
+                cout << "Error: In " << __FUNCTION__ << ": There are no objects in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -6500,6 +6462,32 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             Condition.Location.layerID = Context->Objects.back()->getLayerID();
             Condition.Location.objectID = Context->Objects.back()->getObjectID();
             return findNextValueAmongObjects(Condition, Owner, OwnerLayer, Engine.Mouse);
+        }
+        if(Context->type == "layer"){
+            if(Context->Layers.size() == 0){
+                cout << "Error: In " << __FUNCTION__ << ": There are no layers in the context.\n";
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Context->Layers.size() != 1){
+                cout << "Warning: In " << __FUNCTION__ << ": There are several layers in the context. Program will proceed with the last added layer.\n";
+            }
+            NewValue = Context->Layers.back()->getValue(Condition.Location.attribute, Condition.Location.spareID);
+            NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
+            return NewValue;
+        }
+        if(Context->type == "camera"){
+            if(Context->Cameras.size() == 0){
+                cout << "Error: In " << __FUNCTION__ << ": There are no cameras in the context.\n";
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Context->Cameras.size() != 1){
+                cout << "Warning: In " << __FUNCTION__ << ": There are several cameras in the context. Program will proceed with the last added camera.\n";
+            }
+            NewValue = Context->Cameras.back()->getValue(Condition.Location.attribute);
+            NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
+            return NewValue;
         }
         cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
     }

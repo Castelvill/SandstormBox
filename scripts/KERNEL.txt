@@ -1,5 +1,5 @@
 start init false
-triggers [on_init]
+triggers on_init
 
 edit_proc print_instructions 0
 edit_proc auto_print_stack 0
@@ -426,7 +426,7 @@ fun cam set_grabbing_area_size int [350 20]*/
 index layer [1 0] _ object Lol
 inject_instr me code*/
 
-/*string ["start fs_click false" "triggers [key_pressed]" "if ([key_pressed 58])" "run [fs]" "end"] code
+/*string ["start fs_click false" "triggers key_pressed" "if ([key_pressed 58])" "run fs" "end"] code
 inject_code me code*/
 
 int [20] vam
@@ -442,11 +442,11 @@ int [0] zero
 int [3] break_loop
 int [0] cat_i
 int [10] catsNum
-run [cobblestone_generator_1 spawn_cats]
+run cobblestone_generator_1 spawn_cats
 end
 
 start dolphin.exe false
-triggers [each_iteration]
+triggers each_iteration
 print _ _ string ["I'm just a dolphin, not a virus!\n"]
 delete_this_event
 end
@@ -454,12 +454,12 @@ end
 start cobblestone_generator_1 true
 if ([context i] [context vam] <)
 = j zero
-run [cobblestone_generator_2]
+run cobblestone_generator_2
 end
 
 start cobblestone_generator_2 true
 if ([context j] [context bam] <)
-run [remove_inside]
+run remove_inside
 post
 ++ i
 end
@@ -526,7 +526,7 @@ fun newMovement set_break_chance double [0.1]
 end
 
 /*start reset false
-triggers [key_pressed]
+triggers key_pressed
 if ([key_pressed 18])
 index layer [1 0] _ object Amogus
 bind Amogus rliteral ["scripts/amogus.txt"]
@@ -540,14 +540,14 @@ build Terminal true
 end*/
 
 start save_editable false
-triggers [key_pressed]
+triggers key_pressed
 if ([key_pressed 23] [key_pressed 217] &&)
 value ([object L2 terminal editable_text edi content]) randomString
 save_text "randomString.txt" randomString
 end
 
 start fs_click false
-triggers [key_pressed]
+triggers key_pressed
 if ([key_pressed 75])
 new_proc santa
 print _ _ string ["Processes: \n"]
@@ -560,10 +560,10 @@ print _ _ string ["\n\n"]
 end
 
 start fs_click false
-triggers [key_pressed]
+triggers key_pressed
 if ([key_pressed 58])
 int [1] xd
-run [fs]
+run fs
 end
 
 start fs false
@@ -577,7 +577,7 @@ env fullscreen 0
 end
 
 start refresh false
-triggers [on_display_resize]
+triggers on_display_resize
 if([on_display_resize])
 value ([window_w]) w
 value ([window_h]) h
@@ -588,7 +588,7 @@ fun Cam0 resize c w c h
 end
 
 start refreshWindows false
-triggers [each_iteration]
+triggers each_iteration
 //C2
 value ([camera C2 size_x]) sx
 value ([camera C2 size_y]) sy
@@ -616,7 +616,7 @@ fun C2 set_grabbing_area_size c sx c sy
 //?
 index layer [2 0 0] _ variable BackVar
 ++ BackVar
-run [rainbow NoRainbow]
+run rainbow NoRainbow
 end
 
 start rainbow false

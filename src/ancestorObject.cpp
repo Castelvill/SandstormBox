@@ -648,7 +648,7 @@ bool nextCond(const vector<string> & words, unsigned & cursor, string & variable
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor] != "_"){
+    if(words[cursor] != "_" && words[cursor] != "]"){
         variable = words[cursor];
     }
     if(words[cursor] != "]"){
@@ -771,11 +771,16 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 }
                 if(nextCond(words, cursor, Expression.back().Literal, 'd')){ continue; };
             }
-            else if(Expression.back().Location.source == "string" || Expression.back().Location.source == "context"){
+            else if(Expression.back().Location.source == "string"){
                 if(Expression.back().Location.source == "string"){
                     Expression.back().Location.source = "literal";
                 }
                 if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+            }
+            else if(Expression.back().Location.source == "context"){
+                if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.spareID)){ continue; };
             }
             else if(Expression.back().Location.source == "camera"){
                 if(nextCond(words, cursor, Expression.back().Location.cameraID)){ continue; };
@@ -1019,10 +1024,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             cursor = 1;
-            if(!gatherStringVector(words, cursor, NewEvent.primaryTriggerTypes, lineNumber, scriptName)){
+            while(cursor < words.size()){
+                NewEvent.primaryTriggerTypes.push_back(words[cursor]);
+                cursor++;
+            }
+            /*if(!gatherStringVector(words, cursor, NewEvent.primaryTriggerTypes, lineNumber, scriptName)){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
                 return;
-            }
+            }*/
         }
         else if(words[0] == "run"){
             if(words.size() < 2){
@@ -1586,9 +1595,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            if(words.size() > 2){
-                Operation->newContextID = words[2];
+            cursor = 1;
+            while(cursor < words.size()){
+                Operation->dynamicIDs.push_back(words[cursor]);
+                cursor++;
             }
         }
         else{
@@ -1680,7 +1690,7 @@ void AncestorObject::injectInstructions(vector<string> instructions){
     }
     
     preprocessed = removeComments(preprocessed);
-    preprocessed.insert(preprocessed.begin(), "triggers [each_iteration]");
+    preprocessed.insert(preprocessed.begin(), "triggers each_iteration");
     preprocessed.insert(preprocessed.begin(), "start _ false");
     preprocessed.push_back("delete_this_event");
     preprocessed.push_back("end");

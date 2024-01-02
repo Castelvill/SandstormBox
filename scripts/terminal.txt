@@ -1,10 +1,12 @@
 start onInit
-triggers [on_init]
+triggers on_init
 //print _ _ string ["Hello world!\n"]
 
-env window_size 1366 768
-edit_proc window_size 1366 768
-edit_proc draw_camera_borders 0
+//env window_size 1366 568
+//edit_proc window_size 1366 568
+env window_size 1920 1080
+edit_proc window_size 1920 1080
+edit_proc draw_camera_borders 1
 
 value ([window_w]) ww
 value ([window_h]) wh
@@ -17,7 +19,7 @@ fun archImg resize c ww c wh
 
 new camera l 1 _ _ Cam
 //fun Cam set_position int [100 100]
-fun Cam set_id string [Window]
+fun Cam set_id string [Desktop]
 fun Cam set_active bool [true]
 fun Cam resize c ww c wh
 fun Cam set_zoom double [1.0]
@@ -31,8 +33,32 @@ fun Cam add_accessible_layer string [KERNEL]
 fun Cam set_tint double [1.0 1.0 1.0 1.0]
 //fun Cam set_can_interact_with_mouse bool [1]
 //fun Cam set_can_move_with_mouse bool [1]
+fun Cam set_drawing_borders bool [0]
 
-new object l KERNEL 1 _ _ Terminal
+new layer l 1 _ _ TerminalLayer
+fun TerminalLayer set_id string [TerminalLayer]
+fun TerminalLayer activate
+
+new camera l 1 _ _ Window
+fun Window set_position int [100 100]
+fun Window set_id string [Window]
+fun Window set_active bool [true]
+fun Window resize int [1300 880]
+fun Window set_zoom double [1.0]
+fun Window set_speed double [20]
+fun Window set_key_zoom_in int [15]
+fun Window set_key_zoom_out int [21]
+fun Window set_zoom_increase double [0.02]
+fun Window bind_keys int [15 21 13 9 12 11 10]
+fun Window add_visible_layer string [TerminalLayer]
+fun Window add_accessible_layer string [TerminalLayer]
+fun Window set_tint double [1.0 1.0 1.0 1.0]
+fun Window set_can_interact_with_mouse bool [1]
+fun Window set_drawing_borders bool [0]
+fun Window pin_to_camera string [Desktop]
+fun Window activate_pin
+
+new object l TerminalLayer 1 _ _ Terminal
 fun Terminal set_id string ["Terminal"]
 fun Terminal set_can_be_selected bool [0]
 fun Terminal attach_to_camera
@@ -44,49 +70,40 @@ fun Border add_point double [0.0 0.0]
 fun Border add_point double [880 980]
 fun Border add_point double [20.0 20.0]
 fun Border set_color double [0.0 0.0 0.0 0.7]
-fun Border set_position double [20 20]
+fun Border set_position double [0 0]
 fun Border set_thickness double [10.0]
 fun Border set_samples int [4.0]
 fun Border select_layer int [0]
-fun Border set_size int [1300 400]
+fun Border set_size int [1300 800]
 fun Border update_with_size
 
-new primitives c Terminal 1 _ _ Border
-fun Border set_id string [primi2]
-fun Border set_type string [filled_rounded_rectangle]
-fun Border add_point double [0.0 0.0]
-fun Border add_point double [880 980]
-fun Border add_point double [20.0 20.0]
-fun Border set_color double [0.0 0.0 0.0 0.7]
-fun Border set_position double [20 430]
-fun Border set_thickness double [10.0]
-fun Border set_samples int [4.0]
-fun Border select_layer int [0]
-fun Border set_size int [1300 70]
-fun Border update_with_size
-
+new primitives c Terminal 1 _ _ Border2
+clone Border2 Border
+fun Border2 set_position double [0 810]
+fun Border2 set_size int [1300 70]
+fun Border2 update_with_size
 
 new text c Terminal 1 _ _ History
 fun History attach_to_camera
 fun History set_id string [History]
-fun History set_position int [40 40]
+fun History set_position int [20 20]
 fun History set_font string [fira_mono24]
 fun History set_wrapping int [1]
-fun History add_new_and_update string ["Hello in EGM Terminal!"]
-fun History set_size int [1260 400]
+fun History add_new_and_update string ["Welcome in Sandstorm Box Terminal!\n"]
+fun History set_size int [1260 4320]
 fun History select_layer int [1]
 fun History set_color double [0.0 1.0 0.0 1.0]
 
 new editable_text c Terminal 1 _ _ Editable
 fun Editable set_id string [edi]
-fun Editable set_position int [40 448]
+fun Editable set_position int [20 828]
 fun Editable set_font string [fira_mono24]
 fun Editable set_wrapping int [1]
 fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
 fun Editable add_new_and_update string [""]//["print _ _ string [\"hello world!\"]"]
-fun Editable set_size int [1260 400]
+fun Editable set_size int [1260 800]
 fun Editable select_layer int [1]
 fun Editable set_color double [0.0 1.0 0.0 1.0]
 fun Editable set_input_delay double [0.3]
@@ -99,92 +116,123 @@ var string "" param0
 var string "" param1
 var string "" param2
 var string "" param3
-
+var string "" param4
+var string "" param5
+var string "" param6
+var string "" param7
 end
 
 start eachIteration
-triggers [each_iteration]
-
+triggers each_iteration
 end
 
+
+
+
+
 start enter
-triggers [key_pressed]
+triggers key_pressed
 if ([key_pressed 67])
 
-index layer [0 2] _ object Terminal
+index layer [1 0] _ object Terminal
 index context Terminal [0 0] _ editable_text input
 first _ [input] _ _ _ _ content _ user_input
 
-tokenize user_input words
+string [""] param0
+string [""] param1
+string [""] param2
+string [""] param3
+string [""] param4
+string [""] param5
+string [""] param6
+string [""] param7
 
-index context words [0] _ _ x
-//print \n _ c x
-= param0 x
-index context words [1] _ _ x
-//print \n _ c x
-= param1 x
-index context words [2] _ _ x
-//print \n _ c x
-= param2 x
-index context words [3] _ _ x
-//print \n _ c x
-= param3 x
+tokenize user_input param0 param1 param2 param3 param4 param5 param6 param7
 
 string ["run "] run
 += run param0
 
 inject_instr me run
-
-
-index context Terminal [0 0] _ text History
-int [0] zero
-fun History add_text int [0] string ["\n"]
-fun History add_text context zero context user_input
+string ["$ "] result
++= result user_input
 
 fun input set_text int [0] string [""]
-
+run /*printParams*/ printOnTerminal
 end
 
 
+start printParams
+print "Params: {"
+print , _ c param0
+print , _ c param1
+print , _ c param2 
+print , _ c param3 
+print , _ c param4 
+print , _ c param5 
+print , _ c param6 
+print , _ c param7
+print "}\n"
+end
+
+start help
+print _ result string ["help
+hello
+222
+cls
+cats
+sq
+neofetch
+sh"]
+run printOnTerminal
+end
 
 
 start sh
-
 string [""] instruction
 string [" "] space
-
 += instruction param1
 += instruction space
 += instruction param2
 += instruction space
 += instruction param3
++= instruction space
++= instruction param4
++= instruction space
++= instruction param5
++= instruction space
++= instruction param6
++= instruction space
++= instruction param7
 
 /*print \n _ c param1
 print \n _ c param2
 print \n _ c instruction*/
 
 inject_instr me instruction
-
 end
+
+
 
 start 222
 int [1 2 3 4] x
 int [2 2 1 1] y
 += x x
-print " " _ c x
-print \n
+print " " result c x
+string ["\n"] endl
+//+= result endl
+run printOnTerminal
 end
 
-start neofetch
-print _ _ string ["
+start neofetch_host
+print _ result string ["
                                 ..,   Mateusz@DESKTOP-JVU6QTR
                     ....,,:;+ccllll   -----------------------
       ...,,+:;  cllllllllllllllllll   OS: Windows 10 Pro x86_64
-,cclllllllllll  lllllllllllllllllll   Host: Gigabyte Technology Co., Ltd. B660 GAMING X DDR4
-llllllllllllll  lllllllllllllllllll   Kernel: 10.0.19045
+,cclllllllllll  lllllllllllllllllll   Host: Gigabyte
+llllllllllllll  lllllllllllllllllll   Kernel: 10.0.xxxx
 llllllllllllll  lllllllllllllllllll   Uptime: 10 hours, 4 mins
 llllllllllllll  lllllllllllllllllll   Packages: 4 (scoop)
-llllllllllllll  lllllllllllllllllll   Shell: bash 5.2.15
+llllllllllllll  lllllllllllllllllll   Shell: bash 5.2.x
 llllllllllllll  lllllllllllllllllll   Resolution: 1366x768
                                       DE: Aero
 llllllllllllll  lllllllllllllllllll   WM: Explorer
@@ -198,4 +246,184 @@ llllllllllllll  lllllllllllllllllll   GPU: AMD Radeon RX 6700 XT
                                  ``
 
 "]
+run printOnTerminal
+end
+
+start neofetch
+print _ result string ["
+  . .   ..   .:*@@@@m;'     ... . .   Mateusz@69
+         @@@@@@   . .@@@@@@ .         -----------------------
+.    .@@@@@@.  @@@@@@   .@@@@@.. .    OS: Sandstorm Box
+ .. @@@@ ..`@@@@@@@@@@@@@  @@@@@  .   Host: OS: Windows 10 Pro x86_64
+   @@  .@@@@@@@@@@@@@@@@@@@   @@@.    Kernel: 0.1
+..@@ .. )@@@@@@@@@@$@@@@@@@@@@  @@    Uptime: 420 hours, 4 mins
+ @@@  @@  ..@@@@@@@@@@@@@@@  ..@@@@.  Shell: Sandbox 0.1
+ @@@  @@@@@@   @@@@@mr.   ^@@@@@@@@   Resolution: 1920x1080
+.@@@  @$@@@@@@@.    }$@@@@@@@@@@@@@.  Theme: NewWorld
+@@@@ .@@@@@@@@@@@ @@@@@ ..    @@@@@$  CPU: 12th Gen Intel i5-12600KF (16) @ 3.690GHz
+ @@@. @@@@@@@@@@@ @@@@M  @@@i. .k@@   GPU: AMD Radeon RX 6700 XT
+ @@@ }@@@@@@@@@@@ @@@@@@   @@@[@@@@   Memory: 12819MiB / 32592MiB
+.@@@' .W@@@@@@@@@.@v ..@@@   @@@@@@ 
+  @@@@@ .t@@@@@@@ @@ .  )@@  i@@@@  
+   @@@@@@p. .@@@@.@@@@@  .. /@@@@.  
+    @@@@@@@@@. @@ @@@@@@@@@@@@@@ .  
+ .    @@@@@@@@@    @@@@@@@@@@@ .    
+      . .@@@@@@@@@@@@@@@@@@  ..     
+.     .. .   x~/QMMJf_r   .         
+"]
+run printOnTerminal
+end
+
+start hello
+print _ result string ["Hello, world!"]
+run printOnTerminal
+end
+
+
+start cats
+print _ result string ["
+                      /^--^\     /^--^\     /^--^\
+                      \____/     \____/     \____/
+                     /      \   /      \   /      \
+                    |        | |        | |        |
+                     \__  __/   \__  __/   \__  __/
+|^|^|^|^|^|^|^|^|^|^|^|^\ \^|^|^|^/ /^|^|^|^|^\ \^|^|^|^|^|^|^|^|^|^|^|^|
+| | | | | | | | | | | | |\ \| | |/ /| | | | | | \ \ | | | | | | | | | | |
+| | | | | | | | | | | | / / | | |\ \| | | | | |/ /| | | | | | | | | | | |
+| | | | | | | | | | | | \/| | | | \/| | | | | |\/ | | | | | | | | | | | |
+#########################################################################
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+"]
+run printOnTerminal
+end
+
+start sq
+print _ result string ["
+        .--'''''''''--.
+     .'      .---.      '.
+    /    .-----------.    \
+   /        .-----.        \
+   |       .-.   .-.       |
+   |      /   \ /   \      |
+    \    | .-. | .-. |    /
+     '-._| | | | | | |_.-'
+         | '-' | '-' |
+          \___/ \___/
+       _.-'  /   \  `-._
+     .' _.--|     |--._ '.
+     ' _...-|     |-..._ '
+            |     |
+            '.___.'
+              | |
+"]
+run printOnTerminal
+end
+
+start printOnTerminal
+index layer [1 0] _ object Terminal
+index context Terminal [0 0] _ text History
+int [0] zero
+fun History add_text context zero context result
+fun History add_text int [0] string ["\n"]
+end
+
+start cls
+index layer [1 0] _ object Terminal
+index context Terminal [0 0] _ text History
+int [0] zero
+fun History set_text int [0] string [""]
+end
+
+
+start fs_click false
+triggers key_pressed
+if ([key_pressed 58])
+run [fullscreen]
+end
+
+start fullscreen false
+if ([fullscreen] !)
+env fullscreen 1
+else fs_else
+end
+
+start fs_else false
+env fullscreen 0
+end
+
+
+start spawn
+load_bitmap "images/amongus3.png" amongus_3
+
+//edit_proc print_instructions 1
+//edit_proc auto_print_stack 1
+
+new layer l 1 _ _ AmogusLayer
+fun AmogusLayer activate
+fun AmogusLayer set_id string [AmogusLayer]
+value ([context AmogusLayer id]) newLayerID
+
+print ": " _ c AmogusLayer
+
+new camera l 1 _ _ NewWindow
+fun NewWindow set_position int [0 0]
+fun NewWindow set_id string [AmogusWindow]
+fun NewWindow set_active bool [true]
+fun NewWindow resize int [640 480]
+fun NewWindow set_zoom double [1.0]
+fun NewWindow set_speed double [20]
+fun NewWindow set_key_zoom_in int [15]
+fun NewWindow set_key_zoom_out int [21]
+fun NewWindow set_zoom_increase double [0.02]
+fun NewWindow bind_keys int [15 21 13 9 12 11 10]
+fun NewWindow set_tint double [1.0 1.0 1.0 1.0]
+fun NewWindow set_drawing_borders bool [1]
+fun NewWindow set_can_interact_with_mouse bool [1]
+fun NewWindow set_can_move_with_mouse bool [1]
+fun NewWindow add_visible_layer c newLayerID
+fun NewWindow add_accessible_layer c newLayerID
+fun NewWindow set_grabbing_area_size int [640 50]
+value ([context NewWindow id]) newWindowID
+
+print \n _ c NewWindow
+
+new object l AmogusLayer 1 _ _ NewWindowObject
+fun NewWindowObject set_can_be_selected bool [0]
+
+new primitives c NewWindowObject 1 _ _ border1
+fun border1 set_id string [primi]
+fun border1 set_type string [filled_rounded_rectangle]
+fun border1 add_point double [0.0 0.0]
+fun border1 add_point double [880 980]
+fun border1 add_point double [20.0 20.0]
+fun border1 set_color double [0.0 0.0 0.0 0.7]
+fun border1 set_thickness double [10.0]
+fun border1 set_samples int [4]
+fun border1 select_layer int [0]
+fun border1 set_size int [640 480]
+fun border1 update_with_size
+
+new primitives c NewWindowObject 1 _ _ border2
+clone border2 border1
+fun border2 set_id string [toolbar]
+fun border2 set_color double [0.0 0.0 0.0 0.8]
+fun border2 select_layer int [2]
+fun border2 set_size int [640 50]
+fun border2 update_with_size
+
+new text c NewWindowObject 1 _ _ title
+fun title set_id string [title]
+fun title set_position int [10 10]
+fun title set_font string [arial24]
+fun title set_wrapping int [0]
+fun title add_new_and_update c newWindowID
+fun title set_size int [400 50]
+fun title select_layer int [-1]
+fun title set_color double [1.0 1.0 1.0 0.0]
+fun title attach_to_camera
+
+edit_proc print_instructions 0
+edit_proc auto_print_stack 0
+
 end

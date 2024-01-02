@@ -1,5 +1,5 @@
 start init false
-triggers [on_boot]
+triggers on_boot
 if ([on_boot])
 new object l KERNEL 1 _ _ First
 fun First set_can_be_selected bool [0]

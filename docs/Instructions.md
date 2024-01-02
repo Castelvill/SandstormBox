@@ -677,7 +677,7 @@ var *type* *value* *id*
 
 **Syntax**
 
-tokenize *context* [output]
+tokenize *context* [[output] ...]
 
 **Description**
 

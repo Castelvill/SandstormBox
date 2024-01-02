@@ -53,6 +53,7 @@ public:
     void clear();
     void setID(string newID, vector <string> & camerasIDs);
     string getID() const;
+    VariableModule getValue(string attribute) const;
     void setIsActive(bool newValue);
     void activate();
     void deleteLater();

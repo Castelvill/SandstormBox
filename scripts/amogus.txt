@@ -1,5 +1,5 @@
 /*start while_click false
-triggers [key_pressed]
+triggers key_pressed
 if ([key_pressed 23])
 int [0] xd
 run [while]
@@ -13,7 +13,7 @@ first _ [obj] _ _ _ _ id
 end
 
 start create_new false
-triggers [key_pressed]
+triggers key_pressed
 if ([key_pressed 17])
 all layer _ _ _ _ _ _ all_layers_before
 string [new_object] ids
@@ -26,7 +26,7 @@ all layer _ _ _ _ object _ all_objects
 end
 
 start delete_last false
-triggers [key_pressed]
+triggers key_pressed
 if ([key_pressed 5])
 first layer L1 _ _ _ _ _ L1
 first layer KERNEL _ _ _ _ _ KERNEL
@@ -37,7 +37,7 @@ all layer _ _ _ _ object _ all_objects
 end
 
 start left false
-triggers [key_pressing]
+triggers key_pressing
 if ([key_pressing 1])
 index layer [1 0] _ object Amogus
 first _ [Amogus] _ _ _ _ pos_x _ pos_x
@@ -46,7 +46,7 @@ int [20] speed
 end
 
 start right false
-triggers [key_pressing]
+triggers key_pressing
 if ([key_pressing 4])
 index layer [1 0] _ object Amogus
 first _ [Amogus] _ _ _ _ pos_x _ pos_x
@@ -55,7 +55,7 @@ int [20] speed
 end
 
 start color false
-triggers [key_pressing]
+triggers key_pressing
 if ([key_pressing 26])
 int [0] index
 run [colors]

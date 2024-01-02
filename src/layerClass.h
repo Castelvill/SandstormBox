@@ -31,6 +31,7 @@ public:
     bool getIsActive() const;
     bool getIsDeleted() const;
     bool* getIsActiveAddr();
+    VariableModule getValue(string attribute, string option) const;
     void clone(const LayerClass& Orginal, vector <string> & layersIDs, const bool & changeOldID);
 
     void addGroup(string newGroup);
