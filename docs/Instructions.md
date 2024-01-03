@@ -603,7 +603,7 @@ print *delimeter* [output] [[type] [value] ... ]
 
 **Description**
 
-    Print the list of values on the standard output.
+    Print the list of values to the standard output or put it inside the string variable.
 
 **Parameters**
 
@@ -686,4 +686,18 @@ tokenize *context* [[output] ...]
 **Parameters**
 
 - context (string) - id of the context with a string to be tokenize;
+- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+
+## tree
+
+**Syntax**
+
+tree [output]
+
+**Description**
+
+    Print a tree of entities to the standard output or put it inside the string variable.
+
+**Parameters**
+
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.

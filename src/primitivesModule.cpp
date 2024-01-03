@@ -217,3 +217,33 @@ PrimitiveType getPrimitiveType(string type){
         return prim_null;
     }
 }
+
+string translatePrimitiveType(PrimitiveType type){
+    switch(type){
+        case prim_line:
+            return "line";
+        case prim_triangle:
+            return "triangle";
+        case prim_filled_triangle:
+            return "filled_triangle";
+        case prim_rectangle:
+            return "rectangle";
+        case prim_filled_rectangle:
+            return "filled_rectangle";
+        case prim_rounded_rectangle:
+            return "rounded_rectangle";
+        case prim_filled_rounded_rectangle:
+            return "filled_rounded_rectangle";
+        case prim_circle:
+            return "circle";
+        case prim_filled_circle:
+            return "filled_circle";
+        case prim_ellipse:
+            return "ellipse";
+        case prim_filled_ellipse:
+            return "filled_ellipse";
+        default:
+            return "null";
+    }
+    return "null";
+}

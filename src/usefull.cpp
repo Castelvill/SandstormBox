@@ -1,5 +1,23 @@
 #include "usefull.h"
 
+int cstoi(string text){
+    try{
+        return stoi(text);
+    }
+    catch(std::invalid_argument const& ex){
+        cout << "Error: In " << __FUNCTION__ << ": In " << ex.what() << ": 'std::invalid_argument'\n";
+        return 0;
+    }
+}
+double cstod(string text){
+    try{
+        return stod(text);
+    }
+    catch(std::invalid_argument const& ex){
+        cout << "Error: In " << __FUNCTION__ << ": In " << ex.what() << ": 'std::invalid_argument'\n";
+        return 0;
+    }
+}
 string shortToStr(short integer){
     char buff[6];
     sprintf(buff, "%d", integer);
@@ -97,7 +115,6 @@ bool isStringInVector(const vector <string> & stringVec, string findString){
     return foundGroup != std::end(stringVec);
 }
 
-
 string findNewUniqueID(vector <string> uniqueIDs, string newID){
     if(newID == ""){
         newID = "0";
@@ -105,7 +122,7 @@ string findNewUniqueID(vector <string> uniqueIDs, string newID){
     while(isStringInVector(uniqueIDs, newID)){
         if(isdigit(newID.back())){
             size_t last_index = newID.find_last_not_of("0123456789");
-            newID = newID.substr(0, last_index + 1) + intToStr(stoi(newID.substr(last_index + 1)) + 1);
+            newID = newID.substr(0, last_index + 1) + intToStr(cstoi(newID.substr(last_index + 1)) + 1);
         }
         else{
             newID += "0";

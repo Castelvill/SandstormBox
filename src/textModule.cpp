@@ -1672,7 +1672,7 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
         printNotNumericalWarning();
         return false;
     }
-    double dValue = std::stod(getContent(currentTextIdx));
+    double dValue = cstod(getContent(currentTextIdx));
 
     success = true;
 
@@ -1739,7 +1739,7 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     }
 
     success = true;
-    double dValue = std::stod(cContent);
+    double dValue = cstod(cContent);
 
     if(connectedVariable == "position_x"){
         Text.setPos(dValue, Text.getPos(false).y);
@@ -1882,7 +1882,7 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
         return false;
     }
     success = true;
-    double dValue = std::stod(cContent);
+    double dValue = cstod(cContent);
 
     if(connectedVariable == "position_x"){
         Image.setPos(dValue, Image.getPos(false).y);
@@ -2051,7 +2051,7 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
     }
 
     success = true;
-    double dValue = std::stod(cContent);
+    double dValue = cstod(cContent);
     short shValue = short(dValue);
 
     if(connectedVariable == "movement_type"){
@@ -2272,7 +2272,7 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
         return false;
     }
     success = true;
-    double dValue = std::stod(cContent);
+    double dValue = cstod(cContent);
 
 
     if(connectedVariable == "environment_x"){
@@ -2460,7 +2460,7 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
         return false;
     }
 
-    double dValue = std::stod(cContent);
+    double dValue = cstod(cContent);
     int iValue = int(dValue);
 
     if(connectedVariable == "default_int"){

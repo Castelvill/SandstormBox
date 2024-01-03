@@ -27,6 +27,7 @@ public:
     bool isForcefullyPinned; //If true, camera will be always on top of the chosen camera.
     bool isFollowingObject; //Camera's position on screen won't change by following an object.
     bool isUsingKeyboardToMove;
+    bool isUsingKeyboardToZoom;
     bool canMoveWithMouse;
     bool canZoomWithMouse;
     bool canInteractWithMouse;
@@ -78,6 +79,7 @@ public:
     void setFollowedImageID(string);
     void setIsFollowingObject(bool newIsFollowingObject);
     void setIsUsingKeyboardToMove(bool isUsingKeyboard);
+    void setIsUsingKeyboardToZoom(bool isUsingKeyboard);
     void setCanInteractWithMouse(bool newValue);
     void setTint(float r, float g, float b, float a);
     void update(const vector<short> & pressedKeys);

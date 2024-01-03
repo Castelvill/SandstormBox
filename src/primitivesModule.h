@@ -10,6 +10,7 @@ enum PrimitiveType : char{
 };
 
 PrimitiveType getPrimitiveType(string type);
+string translatePrimitiveType(PrimitiveType type);
 
 class PrimitivesModule : public PrimaryModule{
     private:

@@ -669,14 +669,14 @@ bool nextCond(const vector<string> & words, unsigned & cursor, VariableModule & 
                 variable.setBool(false);
             }
             else{
-                variable.setBool(stoi(words[cursor]));
+                variable.setBool(cstoi(words[cursor]));
             }
         }
         else if(type == 'i'){
-            variable.setInt(stoi(words[cursor]));
+            variable.setInt(cstoi(words[cursor]));
         }
         else if(type == 'd'){
-            variable.setInt(stod(words[cursor]));
+            variable.setInt(cstod(words[cursor]));
         }
         else if(type == 's'){
             variable.setString(words[cursor]);
@@ -692,7 +692,7 @@ bool nextCond(const vector<string> & words, unsigned & cursor, int & variable){
         return true;
     }
     if(words[cursor] != "_"){
-        variable = stoi(words[cursor]);
+        variable = cstoi(words[cursor]);
     }
     if(words[cursor] != "]"){
         cursor++;
@@ -704,7 +704,7 @@ bool nextCond(const vector<string> & words, unsigned & cursor, double & variable
         return true;
     }
     if(words[cursor] != "_"){
-        variable = stod(words[cursor]);
+        variable = cstod(words[cursor]);
     }
     if(words[cursor] != "]"){
         cursor++;
@@ -880,7 +880,7 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
                 Literals.push_back(VariableModule::newBool(false));
             }
             else{
-                Literals.push_back(VariableModule::newBool(stoi(words[cursor])));
+                Literals.push_back(VariableModule::newBool(cstoi(words[cursor])));
             }
             if(negate){
                 negate = false;
@@ -890,19 +890,19 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
         else if(type == 'i'){
             if(negate){
                 negate = false;
-                Literals.push_back(VariableModule::newInt(-stoi(words[cursor])));
+                Literals.push_back(VariableModule::newInt(-cstoi(words[cursor])));
             }
             else{
-                Literals.push_back(VariableModule::newInt(stoi(words[cursor])));
+                Literals.push_back(VariableModule::newInt(cstoi(words[cursor])));
             }
         }
         else if(type == 'd'){
             if(negate){
                 negate = false;
-                Literals.push_back(VariableModule::newDouble(-stod(words[cursor])));
+                Literals.push_back(VariableModule::newDouble(-cstod(words[cursor])));
             }
             else{
-                Literals.push_back(VariableModule::newDouble(stod(words[cursor])));
+                Literals.push_back(VariableModule::newDouble(cstod(words[cursor])));
             }
         }
         else{
@@ -1007,7 +1007,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 NewEvent.loop = false;
             }
             else{
-                NewEvent.loop = stoi(words[2]);
+                NewEvent.loop = cstoi(words[2]);
             }
         }
         else if(words[0] == "end"){
@@ -1201,8 +1201,8 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1] == "literal"){
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[3])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3])));
             }
             else{
                 Operation->dynamicIDs.push_back(words[2]);
@@ -1267,7 +1267,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     Operation->Literals.push_back(VariableModule::newBool(false));
                 }
                 else{
-                    Operation->Literals.push_back(VariableModule::newBool(stoi(words[3])));
+                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[3])));
                 }
             }
         }
@@ -1300,7 +1300,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 continue;
             }
             if(words[cursor] != "_"){
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[cursor])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[cursor])));
             }
             cursor++;
             if(words.size() <= cursor){
@@ -1359,7 +1359,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     Operation->Literals.push_back(VariableModule::newBool(false));
                 }
                 else{
-                    Operation->Literals.push_back(VariableModule::newBool(stoi(words[2])));
+                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2])));
                 }
             }     
         }
@@ -1418,11 +1418,11 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[3])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3])));
             }
             else{
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
             }
         }
         else if(words[0] == "edit_proc"){
@@ -1442,7 +1442,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newString(words[2]));
             }
             else if(words[1] == "reservation_multiplier"){
-                Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2])));
             }
             else if(words[1] == "window_pos" || words[1] == "window_size" || words[1] == "min_window_size"){
                 if(words.size() < 4){
@@ -1450,8 +1450,8 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[3])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3])));
             }
             else if(words[1] == "window_tint"){
                 if(words.size() < 6){
@@ -1459,13 +1459,13 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires four literals of a double type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newDouble(stoi(words[2])));
-                Operation->Literals.push_back(VariableModule::newDouble(stoi(words[3])));
-                Operation->Literals.push_back(VariableModule::newDouble(stoi(words[4])));
-                Operation->Literals.push_back(VariableModule::newDouble(stoi(words[5])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[3])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[4])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[5])));
             }
             else{
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
             }
         }
         else if(words[0] == "load_bitmap"){
@@ -1544,7 +1544,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newBool(false));
             }
             else{
-                Operation->Literals.push_back(VariableModule::newBool(stoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2])));
             }
         }
         else if(words[0] == "new_proc"){
@@ -1572,14 +1572,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     Operation->Literals.push_back(VariableModule::newBool(false));
                 }
                 else{
-                    Operation->Literals.push_back(VariableModule::newBool(stoi(words[2])));
+                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2])));
                 }
             }
             else if(words[1] == "int" || words[1] == "i"){
-                Operation->Literals.push_back(VariableModule::newInt(stoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
             }
             else if(words[1] == "double" || words[1] == "d"){
-                Operation->Literals.push_back(VariableModule::newDouble(stod(words[2])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2])));
             }
             else if(words[1] == "string" || words[1] == "s"){
                 Operation->Literals.push_back(VariableModule::newString(words[2]));
@@ -1600,6 +1600,15 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->dynamicIDs.push_back(words[cursor]);
                 cursor++;
             }
+        }
+        else if(words[0] == "tree"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(words.size() == 1){
+                continue;
+            }
+            Operation->newContextID = words[1];
         }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";

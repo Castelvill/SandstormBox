@@ -337,6 +337,7 @@ public:
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
     );
     void tokenizeString(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void printTree(OperaClass & Operation, vector<ContextClass> & EventContext, vector<ProcessClass> & Processes);
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,

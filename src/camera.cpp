@@ -29,6 +29,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     isForcefullyPinned = false;
     isFollowingObject = false;
     isUsingKeyboardToMove = true;
+    isUsingKeyboardToZoom = true;
     canMoveWithMouse = true;
     canZoomWithMouse = true;
     canInteractWithMouse = false;
@@ -226,6 +227,9 @@ void Camera2D::setIsFollowingObject(bool newIsFollowingObject){
 void Camera2D::setIsUsingKeyboardToMove(bool isUsingKeyboard){
     isUsingKeyboardToMove = isUsingKeyboard;
 }
+void Camera2D::setIsUsingKeyboardToZoom(bool isUsingKeyboard){
+    isUsingKeyboardToZoom = isUsingKeyboard;
+}
 void Camera2D::setCanInteractWithMouse(bool newValue){
     canInteractWithMouse = newValue;
 }
@@ -236,21 +240,28 @@ void Camera2D::setTint(float r, float g, float b, float a){
     tint[3] = a;
 }
 void Camera2D::update(const vector<short> & pressedKeys){
+    if(!isUsingKeyboardToMove && !isUsingKeyboardToZoom){
+        return;
+    }
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
-        if(pressedKeys[i] == upKey)
-            visionShift.y += speed;
-        if(pressedKeys[i] == rightKey)
-            visionShift.x -= speed;
-        if(pressedKeys[i] == downKey)
-            visionShift.y -= speed;
-        if(pressedKeys[i] == leftKey)
-            visionShift.x += speed;
-        if(pressedKeys[i] == zoomInKey)
-            zoom += zoomIncrease;
-        if(pressedKeys[i] == zoomOutKey)
-            zoom -= zoomIncrease;
-        if(pressedKeys[i] == zoomResetKey)
-            zoom = 1.0;
+        if(isUsingKeyboardToMove){
+            if(pressedKeys[i] == upKey)
+                visionShift.y += speed;
+            if(pressedKeys[i] == rightKey)
+                visionShift.x -= speed;
+            if(pressedKeys[i] == downKey)
+                visionShift.y -= speed;
+            if(pressedKeys[i] == leftKey)
+                visionShift.x += speed;
+        }
+        if(isUsingKeyboardToZoom){
+            if(pressedKeys[i] == zoomInKey)
+                zoom += zoomIncrease;
+            if(pressedKeys[i] == zoomOutKey)
+                zoom -= zoomIncrease;
+            if(pressedKeys[i] == zoomResetKey)
+                zoom = 1.0;
+        }
     }
     if(zoom > maxZoom)
         zoom = maxZoom;

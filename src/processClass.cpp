@@ -1382,6 +1382,9 @@ void ProcessClass::findContextInCamera(string attribute, ContextClass & NewConte
     else if(attribute == "is_using_keyboard_to_move"){
         NewContext.addBasePointer(&Camera->isUsingKeyboardToMove);
     }
+    else if(attribute == "is_using_keyboard_to_zoom"){
+        NewContext.addBasePointer(&Camera->isUsingKeyboardToZoom);
+    }
     else if(attribute == "is_using_cursor_position_to_move"){
         NewContext.addBasePointer(&Camera->canInteractWithMouse);
     }
@@ -4265,7 +4268,28 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
             Object->injectCode(stringVec);
         }
         else if(mode == 'i'){
-            Object->injectInstructions(stringVec);
+            bool isInsideStringSector = false;
+            vector <string> preprocessed = {""};
+            for(size_t i = 0; i < stringVec.size(); i++){
+                for(size_t j = 0; j < stringVec[i].size(); j++){
+                    if(stringVec[i][j] == '\"' && (j == 0 || stringVec[i][j - 1] != '\\')){
+                        isInsideStringSector = !isInsideStringSector;
+                    }
+                    if(!isInsideStringSector && stringVec[i][j] == '\n'){
+                        preprocessed.push_back("");
+                    }
+                    else{
+                        preprocessed.back() += stringVec[i][j];
+                    }
+                }
+            }
+            if(isInsideStringSector){
+                cout << "Error: In " << __FUNCTION__ << ": String section was not closed in lines:\n";
+                for(string line : stringVec){
+                    cout << "\t" << line << "\n";
+                }
+            }
+            Object->injectInstructions(preprocessed);
         }
         else{
             cout << "Error: In " << __FUNCTION__ << ": \'" << mode << "\' mode does not exist."
@@ -4448,8 +4472,11 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
         else if(Operation.Location.attribute == "set_is_following_object" && Variables.size() > 0){
             Camera->isFollowingObject = Variables[0].getBoolUnsafe();
         }
-        else if(Operation.Location.attribute == "set_is_using_keyboard" && Variables.size() > 0){
+        else if(Operation.Location.attribute == "set_can_move_with_keyboard" && Variables.size() > 0){
             Camera->isUsingKeyboardToMove = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_can_zoom_with_keyboard" && Variables.size() > 0){
+            Camera->isUsingKeyboardToZoom = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "set_can_move_with_mouse" && Variables.size() > 0){
             Camera->canMoveWithMouse = Variables[0].getBoolUnsafe();
@@ -5707,6 +5734,77 @@ void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> &
         }
     }
 }
+void ProcessClass::printTree(OperaClass & Operation, vector<ContextClass> & EventContext, vector<ProcessClass> & Processes){
+    string buffor;
+    for(const ProcessClass & Process : Processes){
+        buffor += "Process " + Process.getID() + "\n";
+        for(const Camera2D & Camera : Process.Cameras){
+            buffor += "\tCamera " + Camera.getID() + "\n";
+            if(Camera.pinnedCameraID != ""){
+                buffor += "\t\tPinnedTo " + Camera.pinnedCameraID + "\n";
+            }
+            for(string visible : Camera.visibleLayersIDs){
+                buffor += "\t\tVisible " + visible + "\n";
+            }
+            for(string accessible : Camera.accessibleLayersIDs){
+                buffor += "\t\tAccesible " + accessible + "\n";
+            }
+        }
+        for(const LayerClass & Layer : Process.Layers){
+            buffor += "\tLayer " + Layer.getID() + " <" + intToStr(Layer.Objects.size()) + ">\n";
+            for(const AncestorObject & Object : Layer.Objects){
+                buffor += "\t\tObject " + Object.getID() + "\n";
+                for(const TextModule & Text : Object.TextContainer){
+                    buffor += "\t\t\tText " + Text.getID() + "\n";
+                }
+                for(const EditableTextModule & Text : Object.EditableTextContainer){
+                    buffor += "\t\t\tEditableText " + Text.getID() + "\n";
+                }
+                for(const ImageModule & Image : Object.ImageContainer){
+                    buffor += "\t\t\tImage " + Image.getID() + "\n";
+                }
+                for(const MovementModule & Movement : Object.MovementContainer){
+                    buffor += "\t\t\tMovement " + Movement.getID() + "\n";
+                }
+                for(const CollisionModule & Collision : Object.CollisionContainer){
+                    buffor += "\t\t\tCollision " + Collision.getID() + "\n";
+                }
+                for(const ParticleEffectModule & Particle : Object.ParticlesContainer){
+                    buffor += "\t\t\tParticle " + Particle.getID() + "\n";
+                }
+                for(const EveModule & Event : Object.EveContainer){
+                    buffor += "\t\t\tEvent " + Event.getID() + "\n";
+                    for(const ChildStruct & Child : Event.Children){
+                        buffor += "\t\t\t\tEvent::Child " + Child.ID + "\n";
+                    }
+                    if(Event.elseChildID != ""){
+                        buffor += "\t\t\t\tEvent::Else " + Event.elseChildID + "\n";
+                    }
+                }
+                for(const VariableModule & Variable : Object.VariablesContainer){
+                    buffor += "\t\t\tVariable::";
+                    buffor += Variable.getType();
+                    buffor += " " + Variable.getID() + "\n";
+                }
+                for(const ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
+                    buffor += "\t\t\tScrollbar " + Scrollbar.getID() + "\n";
+                }
+                for(const PrimitivesModule & Primitive : Object.PrimitivesContainer){
+                    buffor += "\t\t\tPrimitive::" + translatePrimitiveType(Primitive.type) + " " + Primitive.getID() + "\n";
+                }
+            }
+        }
+    }
+    if(Operation.newContextID == ""){
+        cout << buffor;
+    }
+    else{
+        ContextClass NewContext;
+        NewContext.type = "value";
+        NewContext.Variables.push_back(VariableModule::newString(buffor));
+        moveOrRename(EventContext, &NewContext, Operation.newContextID);
+    }
+}
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
     vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
@@ -5850,6 +5948,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         else if(Operation.instruction == "tokenize"){
             tokenizeString(Operation, EventContext);
+        }
+        else if(Operation.instruction == "tree"){
+            printTree(Operation, EventContext, Processes);
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";

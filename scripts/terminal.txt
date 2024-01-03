@@ -4,7 +4,7 @@ triggers on_init
 
 //env window_size 1366 568
 //edit_proc window_size 1366 568
-env window_size 1920 1080
+env window_size 640 480//1920 1080
 edit_proc window_size 1920 1080
 edit_proc draw_camera_borders 1
 
@@ -39,17 +39,29 @@ new layer l 1 _ _ TerminalLayer
 fun TerminalLayer set_id string [TerminalLayer]
 fun TerminalLayer activate
 
+int [640] windowSizeX
+int [480] windowSizeY
+
+int [20 20] historyTextPos
+int [400] historySizeY
+int [70] commandLineSizeY
+int [0 410] commandLinePos
+int [20 428] commandLineTextPos
+var int 10 roundingSize
+
 new camera l 1 _ _ Window
-fun Window set_position int [100 100]
+fun Window set_position int [0 0]
 fun Window set_id string [Window]
 fun Window set_active bool [true]
-fun Window resize int [1300 880]
+fun Window resize c windowSizeX c windowSizeY
 fun Window set_zoom double [1.0]
 fun Window set_speed double [20]
 fun Window set_key_zoom_in int [15]
 fun Window set_key_zoom_out int [21]
 fun Window set_zoom_increase double [0.02]
 fun Window bind_keys int [15 21 13 9 12 11 10]
+fun Window set_can_move_with_keyboard bool [0]
+fun Window set_can_zoom_with_keyboard bool [0]
 fun Window add_visible_layer string [TerminalLayer]
 fun Window add_accessible_layer string [TerminalLayer]
 fun Window set_tint double [1.0 1.0 1.0 1.0]
@@ -68,25 +80,25 @@ fun Border set_id string [primi]
 fun Border set_type string [filled_rounded_rectangle]
 fun Border add_point double [0.0 0.0]
 fun Border add_point double [880 980]
-fun Border add_point double [20.0 20.0]
+fun Border add_point c roundingSize c roundingSize
 fun Border set_color double [0.0 0.0 0.0 0.7]
 fun Border set_position double [0 0]
 fun Border set_thickness double [10.0]
 fun Border set_samples int [4.0]
 fun Border select_layer int [0]
-fun Border set_size int [1300 800]
+fun Border set_size c windowSizeX c historySizeY
 fun Border update_with_size
 
 new primitives c Terminal 1 _ _ Border2
 clone Border2 Border
-fun Border2 set_position double [0 810]
-fun Border2 set_size int [1300 70]
+fun Border2 set_position c commandLinePos
+fun Border2 set_size c windowSizeX c commandLineSizeY
 fun Border2 update_with_size
 
 new text c Terminal 1 _ _ History
-fun History attach_to_camera
+//fun History attach_to_camera
 fun History set_id string [History]
-fun History set_position int [20 20]
+fun History set_position c historyTextPos
 fun History set_font string [fira_mono24]
 fun History set_wrapping int [1]
 fun History add_new_and_update string ["Welcome in Sandstorm Box Terminal!\n"]
@@ -96,7 +108,7 @@ fun History set_color double [0.0 1.0 0.0 1.0]
 
 new editable_text c Terminal 1 _ _ Editable
 fun Editable set_id string [edi]
-fun Editable set_position int [20 828]
+fun Editable set_position c commandLineTextPos
 fun Editable set_font string [fira_mono24]
 fun Editable set_wrapping int [1]
 fun Editable set_editable bool [1]
@@ -120,6 +132,10 @@ var string "" param4
 var string "" param5
 var string "" param6
 var string "" param7
+
+load_bitmap "images/amongus1.png" amongus1
+load_bitmap "images/amongus2.png" amongus2
+load_bitmap "images/amongus3.png" amongus3
 end
 
 start eachIteration
@@ -176,13 +192,20 @@ end
 
 start help
 print _ result string ["help
+cls
+fullscreen
 hello
 222
-cls
 cats
 sq
 neofetch
-sh"]
+sh
+spawn
+\tsyntax:
+\t\tspawn *type*
+\tParameters:
+\t\t-type: amongus1, amongus2, amongus3
+"]
 run printOnTerminal
 end
 
@@ -320,6 +343,12 @@ print _ result string ["
 run printOnTerminal
 end
 
+start print
+print _ result c param1
+run printOnTerminal
+end
+
+
 start printOnTerminal
 index layer [1 0] _ object Terminal
 index context Terminal [0 0] _ text History
@@ -339,7 +368,7 @@ end
 start fs_click false
 triggers key_pressed
 if ([key_pressed 58])
-run [fullscreen]
+run fullscreen
 end
 
 start fullscreen false
@@ -354,8 +383,6 @@ end
 
 
 start spawn
-load_bitmap "images/amongus3.png" amongus_3
-
 //edit_proc print_instructions 1
 //edit_proc auto_print_stack 1
 
@@ -364,11 +391,11 @@ fun AmogusLayer activate
 fun AmogusLayer set_id string [AmogusLayer]
 value ([context AmogusLayer id]) newLayerID
 
-print ": " _ c AmogusLayer
+//print ": " _ c AmogusLayer
 
 new camera l 1 _ _ NewWindow
 fun NewWindow set_position int [0 0]
-fun NewWindow set_id string [AmogusWindow]
+fun NewWindow set_id string [AmogusWindow0]
 fun NewWindow set_active bool [true]
 fun NewWindow resize int [640 480]
 fun NewWindow set_zoom double [1.0]
@@ -378,25 +405,28 @@ fun NewWindow set_key_zoom_out int [21]
 fun NewWindow set_zoom_increase double [0.02]
 fun NewWindow bind_keys int [15 21 13 9 12 11 10]
 fun NewWindow set_tint double [1.0 1.0 1.0 1.0]
-fun NewWindow set_drawing_borders bool [1]
+fun NewWindow set_drawing_borders bool [0]
 fun NewWindow set_can_interact_with_mouse bool [1]
 fun NewWindow set_can_move_with_mouse bool [1]
 fun NewWindow add_visible_layer c newLayerID
 fun NewWindow add_accessible_layer c newLayerID
 fun NewWindow set_grabbing_area_size int [640 50]
+fun NewWindow pin_to_camera string [Desktop]
+fun NewWindow activate_pin
 value ([context NewWindow id]) newWindowID
 
-print \n _ c NewWindow
+//print \n _ c NewWindow
 
-new object l AmogusLayer 1 _ _ NewWindowObject
+new object c AmogusLayer 1 _ _ NewWindowObject
+fun NewWindowObject set_id string [Window]
 fun NewWindowObject set_can_be_selected bool [0]
 
 new primitives c NewWindowObject 1 _ _ border1
-fun border1 set_id string [primi]
+fun border1 set_id string [background]
 fun border1 set_type string [filled_rounded_rectangle]
 fun border1 add_point double [0.0 0.0]
 fun border1 add_point double [880 980]
-fun border1 add_point double [20.0 20.0]
+fun border1 add_point c roundingSize c roundingSize
 fun border1 set_color double [0.0 0.0 0.0 0.7]
 fun border1 set_thickness double [10.0]
 fun border1 set_samples int [4]
@@ -423,7 +453,13 @@ fun title select_layer int [-1]
 fun title set_color double [1.0 1.0 1.0 0.0]
 fun title attach_to_camera
 
-edit_proc print_instructions 0
-edit_proc auto_print_stack 0
+new object c AmogusLayer 1 _ _ NewAmo
+fun NewAmo set_id string [Amongus]
+fun NewAmo set_position double [0 80]
+new image c NewAmo 1 _ _ redAstronaut
+fun redAstronaut set_id string [amongus]
+fun redAstronaut connect_bitmap_via_alias c param1
+fun redAstronaut select_layer int [1]
+fun redAstronaut set_scale double [0.6 0.6]
 
 end

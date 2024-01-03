@@ -1,19 +1,21 @@
--Fix: all new layers in "spawn" program are drawn only on the one camera. 
--Write a program for a terminal that creates a window with amogus each time it is called.
+-Command "sh print "xd\n"" does not work.
+-Change special signs into special signs only inside "print" and in other instances when it is expected.
+-Fix: print doesn't use special signs.
+-Maybe print should add to the text and not set it?
+-Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
+-Add start, end, triggers instructions to the documentation.
+-Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
 -Implement "set_if *event* *expression*" instruction.
 -Add "mute" instruction, or "mute" parameter to "index" and "=" (and actually to all others) instructions: mute errors. 
--Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
 -Remove parentheses from "value", "if" and aggregating instructions.
--Add start, end, triggers instructions to the documentation.
 -Implement the functionality for up-down arrows inside the terminal.
 -Add scrolling to the terminal: automatic and the scrollbar.
 -Fix: Reboot doesn't work.
 -Fix: after pasting text inside the command line, right arrow doesn't go behind the text.
--Add to terminal: "Start" commend should begin bundling the instructions into one string and "end" commend should end it and use inject_instr.
--Don't change special signs into special sings, change them only inside "print" instruction.
 -Test load_build instruction.
 -Improve terminal: add auto scrolling to the history and enable user to copy text from not-editable editable text fields.
+-Copy some cool ui for the terminal.
 -Remember to use "clone".
 
 MILESTONE:
