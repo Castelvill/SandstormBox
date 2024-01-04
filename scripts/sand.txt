@@ -1,0 +1,123 @@
+start onInit
+triggers on_init
+//print _ _ string ["Hello world!\n"]
+
+//env window_size 1366 568
+//edit_proc window_size 1366 568
+env window_size 640 480//1920 1080
+edit_proc window_size 1920 1080
+edit_proc draw_camera_borders 1
+
+value ([window_w]) ww
+value ([window_h]) wh
+
+new camera l 1 _ _ Cam
+//fun Cam set_position int [100 100]
+fun Cam set_id string [Desktop]
+fun Cam set_active bool [true]
+fun Cam resize c ww c wh
+fun Cam set_zoom double [1.0]
+fun Cam set_speed double [20]
+fun Cam set_key_zoom_in int [15]
+fun Cam set_key_zoom_out int [21]
+fun Cam set_zoom_increase double [0.02]
+fun Cam add_visible_layer string [KERNEL]
+fun Cam add_accessible_layer string [KERNEL]
+fun Cam set_tint double [1.0 1.0 1.0 1.0]
+fun Cam set_can_move_with_mouse bool [0]
+fun Cam set_drawing_borders bool [0]
+
+int [640] windowSizeX
+int [480] windowSizeY
+int [0 0] editableTextPos
+
+new editable_text c me 1 _ _ Editable
+fun Editable set_id string [edi]
+fun Editable set_position c editableTextPos
+fun Editable set_font string [fira_mono24]
+fun Editable set_wrapping int [1]
+fun Editable set_editable bool [1]
+fun Editable set_space_use bool [1]
+fun Editable set_max_content_length int [10000]
+fun Editable add_new_and_update string ["Welcome in Sandstorm Box Terminal!\n$ "]
+fun Editable set_size int [1920 1080]
+fun Editable select_layer int [1]
+fun Editable set_color double [0.0 1.0 0.0 1.0]
+fun Editable set_input_delay double [0.3]
+fun Editable set_repetition_delay double [0.05]
+fun Editable set_use_tabs bool [1]
+fun Editable set_enter_use bool [1]
+fun Editable set_can_enter_accept bool [0]
+fun Editable set_protected_area int [37]
+
+var string "" param0
+var string "" param1
+var string "" param2
+var string "" param3
+var string "" param4
+var string "" param5
+var string "" param6
+var string "" param7
+
+load_bitmap "images/amongus1.png" amongus1
+load_bitmap "images/amongus2.png" amongus2
+load_bitmap "images/amongus3.png" amongus3
+
+end
+
+start fs_click false
+triggers key_pressed
+if ([key_pressed 58])
+run fullscreen
+end
+
+start fullscreen false
+if ([fullscreen] !)
+env fullscreen 1
+else fs_else
+end
+
+start fs_else false
+env fullscreen 0
+end
+
+
+
+start enter
+triggers key_pressed
+if ([key_pressed 67])
+
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ editable_text input
+first _ [input] _ _ _ _ content _ user_input
+
+string [""] param0
+string [""] param1
+string [""] param2
+string [""] param3
+string [""] param4
+string [""] param5
+string [""] param6
+string [""] param7
+
+tokenize user_input param0 param1 param2 param3 param4 param5 param6 param7
+
+string ["run "] run
++= run param0
+
+inject_instr me run
+string ["$ "] result
++= result user_input
+
+fun input set_text int [0] string [""]
+//run printOnTerminal
+end
+
+
+start printOnTerminal
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ text Editable
+int [0] zero
+fun Editable add_text context zero context result
+fun Editable add_text int [0] string ["\n $ "]
+end

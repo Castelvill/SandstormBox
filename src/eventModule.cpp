@@ -211,6 +211,9 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
     else if(attribute == "connect_variable" && Values.size() > 0){
         EditableText->connectedVariable = Values[0].getStringUnsafe();
     }
+    else if(attribute == "set_protected_area" && Values.size() > 0){
+        EditableText->setProtectedArea(Values[0].getIntUnsafe());
+    }
     else{
         controlText(EditableText, attribute, Values, IDs, FontContainer);
     }

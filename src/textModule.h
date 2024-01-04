@@ -93,6 +93,7 @@ private:
     bool editingIsActive;
     vector<short> blockedKeys;
     short lastInputedKey;
+    unsigned protectedArea; //User cannot edit the text placed before the protection cursor.
 public:
     string connectedObject;
     string connectedGroup;
@@ -125,6 +126,7 @@ public:
     void setConnectedGroup(string groupName, string moduleType, string moduleID, string variableName);
     void setCanClearContentAfterSuccess(bool);
     void setCanEnterAcceptChanges(bool);
+    void setProtectedArea(unsigned cursor);
     bool getCanBeEdited() const;
     bool getEditingIsActive() const;
     bool getCanUseSpace();
@@ -137,6 +139,7 @@ public:
     unsigned getMaxContentSize();
     string getConnectedObjectID();
     bool canConvertContentToNumber();
+    unsigned getProtectedArea() const;
     void clearContentAfterSuccess(bool success);
     void moveCursorUp(const string & text, bool shift);
     void moveCursorDown(const string & text, bool shift);

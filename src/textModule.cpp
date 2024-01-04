@@ -719,6 +719,7 @@ void EditableTextModule::setUpNewInstance(){
     repetitionDelay = 0.5;
     currentInputDelay = 0.0;
     lastInputedKey = -1;
+    protectedArea = 0;
 }
 EditableTextModule::EditableTextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -748,7 +749,7 @@ void EditableTextModule::setCanUseSpace(bool newCanUseSpace){
     canUseSpace = newCanUseSpace;
 }
 void EditableTextModule::setCanUseEnter(bool newCanUseEnter){
-    newCanUseEnter = newCanUseEnter;
+    canUseEnter = newCanUseEnter;
 }
 void EditableTextModule::setIsNumerical(bool newIsNumerical){
     isNumerical = newIsNumerical;
@@ -767,6 +768,9 @@ void EditableTextModule::setCanClearContentAfterSuccess(bool newValue){
 }
 void EditableTextModule::setCanEnterAcceptChanges(bool newValue){
     enterAcceptsChanges = newValue;
+}
+void EditableTextModule::setProtectedArea(unsigned cursor){
+    protectedArea = cursor;
 }
 
 void EditableTextModule::setCursorPos(unsigned int newCursorPos){
@@ -962,6 +966,14 @@ void EditableTextModule::moveCursorUp(const string & text, bool shift){
             newCursor++;
             break;
         }
+    }
+
+    if(newCursor < protectedArea && preLineLength < protectedArea - newCursor){
+        cursorPos = protectedArea;
+        if(!shift){
+            secondCursorPos = cursorPos;
+        }
+        return;
     }
     
     unsigned newLineTabsLength = 0;
@@ -1322,6 +1334,12 @@ void EditableTextModule::getLetters(char pKey, char & character, bool shift){
     }
 }
 bool EditableTextModule::deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * window){
+    if(pKey != ALLEGRO_KEY_BACKSPACE && pKey != ALLEGRO_KEY_DELETE){
+        return false;
+    }
+    if(cursorPos <= protectedArea || secondCursorPos <= protectedArea){
+        return true;
+    }
     if(pKey == ALLEGRO_KEY_BACKSPACE || (pKey == ALLEGRO_KEY_X && control && cursorPos != secondCursorPos)){
         if(text.size() <= getMinContentSize()){
             return true;
@@ -1458,7 +1476,7 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             continue;
         }
         else if(pKey == ALLEGRO_KEY_LEFT){
-            if(cursorPos == 0){
+            if(cursorPos == 0 || cursorPos <= protectedArea){
                 continue;
             }
             cursorPos -= 1;
@@ -1489,6 +1507,9 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
                 continue;
             }
             else if(pKey == ALLEGRO_KEY_V){
+                if(cursorPos < protectedArea || secondCursorPos < protectedArea){
+                    continue;
+                }
                 string newContent = text.substr(0, std::min(cursorPos, secondCursorPos));
                 if(!al_clipboard_has_text(window)){
                     continue;
@@ -1512,6 +1533,10 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
                 secondCursorPos = cursorPos + clipboard.size() - 1;
                 modifyContent(currentTextIdx, newContent);
             }
+            continue;
+        }
+
+        if(cursorPos < protectedArea || secondCursorPos < protectedArea){
             continue;
         }
 
@@ -1596,7 +1621,11 @@ bool EditableTextModule::canConvertContentToNumber(){
     }
     return true;
 }
-bool EditableTextModule::tryUpdatingID(vector <string> & listOfIDs, string & currentID, string newID){
+unsigned EditableTextModule::getProtectedArea() const{
+    return protectedArea;
+}
+bool EditableTextModule::tryUpdatingID(vector<string> &listOfIDs, string &currentID, string newID)
+{
     if(currentID == newID)
         return false;
     //if the algorithm finds the same ID, function returns false

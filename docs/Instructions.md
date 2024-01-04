@@ -226,6 +226,26 @@ find_by_id *source* [context_list] [camera_id] [layer_id] [object_id] [module_ty
 - [attribute] (string) - if provided, aggregate this this attribute from selected entities;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
+## find_by_id layer
+
+**Syntax**
+
+find_by_id layer *layer_id* *object_id* *module_type* *module_id* *attribute* [output]
+
+**Description**
+
+    Return a context filled with entities which ids are equal to ones provided in parameters. If no ids are provided, aggregate all possible entities.
+
+**Parameters**
+
+- [camera_id] (string) - if source is equal to “camera” or provided context is of a camera type, only the camera with this id can be aggregated;
+- [layer_id] (string) - if source is equal to “layer” or provided context is of a layer type, only the layer with this id can be aggregated;
+- [object_id] (string) - if source is equal to “layer” or provided context is of a layer or object type, only the object with this id can be aggregated;
+- [module_type] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
+- [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
+- [attribute] (string) - if provided, aggregate this this attribute from selected entities;
+- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+
 ## let
 
 **Syntax**

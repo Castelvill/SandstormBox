@@ -1218,11 +1218,21 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->Location.source = words[1];
             cursor = 2;
             if(words[1] == "camera"){
+                if(words.size() < 4){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": \'find_by_id " << words[1] << "\' requires at least 2 additional parameters.\n";
+                    continue;
+                }
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
             else if(words[1] == "layer"){
+                if(words.size() < 7){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": \'find_by_id " << words[1] << "\' requires at least 5 additional parameters.\n";
+                    continue;
+                }
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 if(optional(words, cursor, Operation->Location.objectID)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
@@ -1234,6 +1244,11 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(!gatherStringVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
                     return;
+                }
+                if(words.size() < cursor + 5){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": \'find_by_id " << words[1] << " [context_list]\' requires at least 5 additional parameters.\n";
+                    continue;
                 }
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 if(optional(words, cursor, Operation->Location.objectID)){ continue; }

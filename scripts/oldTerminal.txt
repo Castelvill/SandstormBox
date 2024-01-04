@@ -1,6 +1,6 @@
 start wait_for_input false
 triggers each_iteration
-run [get_input print_art print_hello print_byebye clear_input]
+run get_input print_art print_hello print_byebye clear_input
 end
 
 start get_input false
