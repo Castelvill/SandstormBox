@@ -1,3 +1,4 @@
+-With command "shh" swap the accessed layer in the camera.
 -Command "sh print "xd\n"" does not work.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: print doesn't use special signs.
@@ -30,9 +31,6 @@ Terminal with printing, scrolling and a history of used commands.
 -Add deleting processes.
 -Implement “clone_to_proc” – cloning (adding) a context into the selected process.
 -Add buffers(bitmaps) to processes instead of cropping rectangle.
--Add blocking user input based allegro events in the processes that are not focused.
--Add blocking keyboard and mouse input through cameras that are out of focus.
--Add canInteractWithUser boolean to ProcessClass – if true, you can interact with this thread using cameras, mouse and keyboard.
 -Think about better way of getting attributes from module contexts.
 -Change "random_int" instruction into "random".
 -Update documentation.

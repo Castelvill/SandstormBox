@@ -31,7 +31,6 @@ fun Cam bind_keys int [15 21 13 9 12 11 10]
 fun Cam add_visible_layer string [KERNEL]
 fun Cam add_accessible_layer string [KERNEL]
 fun Cam set_tint double [1.0 1.0 1.0 1.0]
-//fun Cam set_can_interact_with_mouse bool [1]
 //fun Cam set_can_move_with_mouse bool [1]
 fun Cam set_drawing_borders bool [0]
 
@@ -462,4 +461,17 @@ fun redAstronaut connect_bitmap_via_alias c param1
 fun redAstronaut select_layer int [1]
 fun redAstronaut set_scale double [0.6 0.6]
 
+end
+
+
+
+start refresh false
+triggers on_display_resize
+if([on_display_resize])
+value ([window_w]) w
+value ([window_h]) h
+index context me [0 0] _ image Arch
+fun Arch resize c w c h
+index camera [0] _ camera Cam0
+fun Cam0 resize c w c h
 end

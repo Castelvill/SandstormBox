@@ -82,7 +82,7 @@ public:
     ~ParticleEffectModule();
     void clone(const ParticleEffectModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clear();
-    void spawnParticles(vec2d objPos, vector <short> pressedKeys); //Particles spawn in a point or a rectangle.
+    void spawnParticles(vec2d objPos); //Particles spawn in a point or a rectangle.
     void killParticles();
     void drawParticles(vector <ImageModule> ImageContainer, vec2i screen, Camera2D Camera);
     void updateParticles(); //Changing the color accordingly to speed.

@@ -46,20 +46,23 @@ vec2d RandomAction::chooseRandomDirection(vec2d objectPos, vec2d & objectDestina
     //Continue previous action if possible
     if(timeWhenActionPersists > 0.0){
         timeWhenActionPersists -= 1/FPS;
-        if(timeWhenActionPersists < 0.0)
+        if(timeWhenActionPersists < 0.0){
             timeWhenActionPersists = 0.0;
+        }
     }
     if(timeWhenActionPersists > 0.0){
         if(savedAction == 0){ //when object doesn't move
             return vec2d(0.0, 0.0);
         }
-        else if(savedAction == 1){ //when object is moving about
-            if(!objectPos.isEqual(objectDestination)){
-                savedDirection.set(objectPos.x, objectPos.y, objectDestination.x, objectDestination.y);
-                savedDirection.normalize();
-                return savedDirection;
-            }
+        else if(savedAction == 1 && !objectPos.isEqual(objectDestination)){ //when object is moving about
+            savedDirection.set(objectPos.x, objectPos.y, objectDestination.x, objectDestination.y);
+            savedDirection.normalize();
+            return savedDirection;
         }
+    }
+
+    if(!areRandomActionsEnabled){
+        return savedDirection;
     }
 
     //Generate new random action
@@ -68,16 +71,14 @@ vec2d RandomAction::chooseRandomDirection(vec2d objectPos, vec2d & objectDestina
         savedAction = 0;
         return vec2d(0.0, 0.0);
     }
-    else{
-        savedAction = 1;
-        savedDirection.set(1.0, 0.0);
-        savedDirection.rotate(randomDouble(0.0, 359.9));
-        savedDirection.normalize();
-        savedDirection.setLength(randomDouble(minMoveDistance, maxMoveDistance));
-        objectDestination.set(objectPos);
-        objectDestination.translate(savedDirection.x * savedDirection.length, savedDirection.y * savedDirection.length);
-        return savedDirection;
-    }
+    savedAction = 1;
+    savedDirection.set(1.0, 0.0);
+    savedDirection.rotate(randomDouble(0.0, 359.9));
+    savedDirection.normalize();
+    savedDirection.setLength(randomDouble(minMoveDistance, maxMoveDistance));
+    objectDestination.set(objectPos);
+    objectDestination.translate(savedDirection.x * savedDirection.length, savedDirection.y * savedDirection.length);
+    return savedDirection;
 }
 
 void ChainMovement::clearChain(){
@@ -521,8 +522,8 @@ void MovementModule::translateKeyboardToState(vector <short> pressedKeys){
             isRunning = true;
     }
 }
-void MovementModule::translateMouseToVector(bool pressedMouse[5], bool releasedMouse[5], vec2d mousePos, vec2d objectPos){
-    if((moveOnMouseRelease && releasedMouse[mouseButton]) || (!moveOnMouseRelease && pressedMouse[mouseButton])){
+void MovementModule::translateMouseToVector(bool canUserInteract, bool pressedMouse[5], bool releasedMouse[5], vec2d mousePos, vec2d objectPos){
+    if(canUserInteract && ((moveOnMouseRelease && releasedMouse[mouseButton]) || (!moveOnMouseRelease && pressedMouse[mouseButton]))){
         destination.set(mousePos.x, mousePos.y);
         directionOfMove.set(objectPos.x, objectPos.y, mousePos.x, mousePos.y);
         directionOfMove.normalize();
@@ -536,44 +537,54 @@ void MovementModule::translateMouseToVector(bool pressedMouse[5], bool releasedM
         directionOfMove.normalize();
     }
 }
-void MovementModule::updateStatesAndVectors(vector <short> pressedKeys, bool pressedMouse[5], bool releasedMouse[5], vec2d mousePos, vec2d objectPos){
+void MovementModule::updateStatesAndVectors(bool canUserInteract, vector <short> pressedKeys, bool pressedMouse[5], bool releasedMouse[5], vec2d mousePos, vec2d objectPos){
     if(isMovePlanned || inputType == 0){
         isMovePlanned = false;
         return;
     }
     clearStates();
 
-    if(inputType == 1){
-        if(areRandomActionsEnabled){
-            if(movementType == 0 || movementType == 1)
-                translateNumericalActionToState(chooseRandomKey(movementType));
-            else if(movementType == 2){
-                directionOfMove = chooseRandomDirection(objectPos, destination);
-            }
+    switch (inputType)
+    {
+    case 1:
+        if(areRandomActionsEnabled && (movementType == 0 || movementType == 1)){
+            translateNumericalActionToState(chooseRandomKey(movementType));
         }
-    }
-    if(inputType == 2){
+        else if(movementType == 2){
+            directionOfMove = chooseRandomDirection(objectPos, destination);
+        }
+        break;
+    case 2:
+        if(!canUserInteract){
+            break;
+        }
         translateKeyboardToState(pressedKeys);
-    }
-    if(inputType == 3){
+        break;
+    case 3:
         if(areRandomActionsEnabled){
             translateNumericalActionToState(chooseRandomKey(movementType));
         }
-        translateKeyboardToState(pressedKeys);
+        if(canUserInteract){
+            translateKeyboardToState(pressedKeys);
+        }
+        break;
+    case 4:
+        translateMouseToVector(canUserInteract, pressedMouse, releasedMouse, mousePos, objectPos);
+        break;
+    case 5:{
+            directionOfMove = chooseRandomDirection(objectPos, destination);
+            vec2d temp(directionOfMove);
+            translateMouseToVector(canUserInteract, pressedMouse, releasedMouse, mousePos, objectPos);
+            directionOfMove.translate(temp);
+            directionOfMove.normalize();
+            if(!temp.isEqual(0.0, 0.0)){
+                destination.setLength(destination.length/2.0);
+            }
+        }
+        break;
+    default:
+        break;
     }
-    if(inputType == 4){
-        translateMouseToVector(pressedMouse, releasedMouse, mousePos, objectPos);
-    }
-    if(inputType == 5){
-        directionOfMove = chooseRandomDirection(objectPos, destination);
-        vec2d temp(directionOfMove);
-        translateMouseToVector(pressedMouse, releasedMouse, mousePos, objectPos);
-        directionOfMove.translate(temp);
-        directionOfMove.normalize();
-        if(!temp.isEqual(0.0, 0.0))
-            destination.setLength(destination.length/2.0);
-    }
-
 }
 void MovementModule::bindKeys(short newUpKey, short newRightKey, short newDownKey, short newLeftKey, short newJumpKey, short newRunningKey){
     upKey = newUpKey;

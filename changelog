@@ -1,0 +1,4 @@
+04.01.2024
+- Fixed dynamic cursor change.
+- Blocked user input (mouse and keyboard) in not focused processes.
+- Blocked user input (mouse and keyboard) in the processes with "canUserInteract" variable equal to false.

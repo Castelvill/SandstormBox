@@ -93,8 +93,8 @@ public:
     void clearStates();
     void translateKeyboardToState(vector <short> pressedKeys);
     void translateNumericalActionToState(short action);
-    void translateMouseToVector(bool pressedMouse[5], bool releasedMouse[5], vec2d mousePos, vec2d objectPos);
-    void updateStatesAndVectors(vector <short> pressedKeys, bool pressedMouse[5], bool releasedMouse[5], vec2d mousePos, vec2d objectPos);
+    void translateMouseToVector(bool canUserInteract, bool pressedMouse[5], bool releasedMouse[5], vec2d mousePos, vec2d objectPos);
+    void updateStatesAndVectors(bool canUserInteract, vector <short> pressedKeys, bool pressedMouse[5], bool releasedMouse[5], vec2d mousePos, vec2d objectPos);
     void resetJump();
     void bindKeys(short newUpKey, short newRightKey, short newDownKey, short newLeftKey, short newJumpKey, short newRunningKey);
     void bindMouseButton(short newMouseButton);

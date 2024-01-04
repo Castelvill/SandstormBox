@@ -227,13 +227,7 @@ void ParticleEffectModule::clear(){
     basicColorsList.clear();
     usedImagesList.clear();
 }
-void ParticleEffectModule::spawnParticles(vec2d objPos, vector <short> pressedKeys){
-    for(unsigned int i = 0; i < pressedKeys.size(); i++){
-        if(pressedKeys[i] == spawnKeyBind){
-            canParticlesSpawn = true;
-            break;
-        }
-    }
+void ParticleEffectModule::spawnParticles(vec2d objPos){
     if(!canParticlesSpawn || particleEffect.size() == maxParticlesCount || maxParticlesPerSpawn <= 0 || minParticlesPerSpawn < 0){
         return;
     }

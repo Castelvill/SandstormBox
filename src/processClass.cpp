@@ -60,7 +60,7 @@ void ProcessClass::setID(string newID, vector<string> &listOfIDs){
 ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs){
     setID(newID, listOfIDs);
     isActive = true;
-    canInteractWithUser = true;
+    canUserInteract = true;
     
     EXE_PATH = EXE_PATH_FROM_ENGINE;
     firstIteration = true;
@@ -189,11 +189,11 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
     switch(Engine.event.type){
         case ALLEGRO_EVENT_TIMER:
             delayEditableTextFields();
-            selectCamera(true, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys);
+            selectCamera(true, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys, Engine.focusedProcessID);
             updateCamerasPositions(Engine);
             moveObjects(Engine.pressedKeys, Engine.Mouse);
             moveParticles(Engine.pressedKeys, Engine.releasedKeys);
-            if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
+            if(canUserInteract && SelectedCamera != nullptr && SelectedCamera->getIsActive()){
                 SelectedCamera->update(Engine.pressedKeys);
             }
             
@@ -209,6 +209,9 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             }
             break;
         case ALLEGRO_EVENT_MOUSE_AXES:
+            if(!canUserInteract || Engine.focusedProcessID != getID()){
+                break;
+            }
             changeCursor(Engine.display, Engine.Mouse);
             moveSelectedObject(Engine.Mouse);
             dragScrollbars(Engine.Mouse);
@@ -219,7 +222,13 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             }
             break;
         case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-            selectCamera(false, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys);
+            if(!canUserInteract){
+                break;
+            }
+            selectCamera(false, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys, Engine.focusedProcessID);
+            if(Engine.focusedProcessID != getID()){
+                break;
+            }
             selectObject(Engine.Mouse, Engine.BitmapContainer, Engine.FontContainer);
             detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
             detectStartPosOfDraggingObjects(Engine.Mouse);
@@ -230,7 +239,9 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             break;
     }
 
-    if(Engine.Mouse.isPressed() || Engine.releasedKeys.size() != 0 || Engine.pressedKeys.size() != 0){
+    if(canUserInteract && Engine.focusedProcessID == getID()
+        && (Engine.Mouse.isPressed() || Engine.releasedKeys.size() != 0 || Engine.pressedKeys.size() != 0)
+    ){
         if(Engine.key[ALLEGRO_KEY_LCTRL]){
             for(unsigned int i = 0; i < Engine.releasedKeys.size(); i++){
                 if(Engine.releasedKeys[i] >= ALLEGRO_KEY_0 && Engine.releasedKeys[i] <= ALLEGRO_KEY_9
@@ -246,7 +257,8 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
         updateEditableTextFields(Engine);
     }
 
-    if(Engine.Mouse.didMouseMove && SelectedCamera != nullptr && SelectedCamera->getIsActive()
+    if(canUserInteract && Engine.focusedProcessID == getID() && Engine.Mouse.didMouseMove
+        && SelectedCamera != nullptr && SelectedCamera->getIsActive()
         && SelectedCamera->canZoomWithMouse
         && Engine.Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true, SelectedCamera)
     ){
@@ -274,7 +286,14 @@ void ProcessClass::renderOnDisplay(EngineClass & Engine){
         }
     }
 }
-void ProcessClass::updateBaseOfTriggerableObjects(){
+void ProcessClass::unfocusCamera(string &focusedProcessID){
+    SelectedCamera = nullptr;
+    if(getID() == focusedProcessID){
+        focusedProcessID = "";
+    }
+}
+void ProcessClass::updateBaseOfTriggerableObjects()
+{
     BaseOfTriggerableObjects.clear();
 
     unsigned objectIndex;
@@ -376,70 +395,73 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             }
         }
     }
-    if(Engine.firstPressedKeys.size() > 0){
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressedTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
+    if(canUserInteract){
+        if(Engine.firstPressedKeys.size() > 0){
+            for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressedTriggered){
+                tempObject = Index.object(Layers);
+                if(tempObject != nullptr && tempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*tempObject));
+                }
+            }
+        }
+        if(Engine.pressedKeys.size() > 0){
+            for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressingTriggered){
+                tempObject = Index.object(Layers);
+                if(tempObject != nullptr && tempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*tempObject));
+                }
+            }
+        }
+        if(Engine.releasedKeys.size() > 0){
+            for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyReleasedTriggered){
+                tempObject = Index.object(Layers);
+                if(tempObject != nullptr && tempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*tempObject));
+                }
+            }
+        }
+        if(Engine.Mouse.didMouseMove){
+            for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseMovedTriggered){
+                tempObject = Index.object(Layers);
+                if(tempObject != nullptr && tempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*tempObject));
+                }
+            }
+        }
+        if(!Engine.Mouse.didMouseMove){
+            for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseNotMovedTriggered){
+                tempObject = Index.object(Layers);
+                if(tempObject != nullptr && tempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*tempObject));
+                }
+            }
+        }
+        if(Engine.Mouse.isFirstPressed()){
+            for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressedTriggered){
+                tempObject = Index.object(Layers);
+                if(tempObject != nullptr && tempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*tempObject));
+                }
+            }
+        }
+        if(Engine.Mouse.isPressed()){
+            for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressingTriggered){
+                tempObject = Index.object(Layers);
+                if(tempObject != nullptr && tempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*tempObject));
+                }
+            }
+        }
+        if(Engine.Mouse.isReleased()){
+            for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseReleasedTriggered){
+                tempObject = Index.object(Layers);
+                if(tempObject != nullptr && tempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*tempObject));
+                }
             }
         }
     }
-    if(Engine.pressedKeys.size() > 0){
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressingTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
-            }
-        }
-    }
-    if(Engine.releasedKeys.size() > 0){
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyReleasedTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
-            }
-        }
-    }
-    if(Engine.Mouse.didMouseMove){
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseMovedTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
-            }
-        }
-    }
-    if(!Engine.Mouse.didMouseMove){
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseNotMovedTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
-            }
-        }
-    }
-    if(Engine.Mouse.isFirstPressed()){
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressedTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
-            }
-        }
-    }
-    if(Engine.Mouse.isPressed()){
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressingTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
-            }
-        }
-    }
-    if(Engine.Mouse.isReleased()){
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseReleasedTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
-            }
-        }
-    }
+    
     if(Engine.displayResized){
         for(AncestorIndex & Index : BaseOfTriggerableObjects.ResizeTriggered){
             tempObject = Index.object(Layers);
@@ -3155,7 +3177,7 @@ bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<Conte
 }
 void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext,
     AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, string & focusedProcessID
 ){
     LayerClass * CurrentLayer = nullptr;
     AncestorObject * CurrentObject = nullptr;
@@ -3212,7 +3234,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForCameras(Cameras, EventContext, SelectedCamera);
             Cameras.reserve((Cameras.size() + newVectorSize) * reservationMultiplier);
-            Recalculator.updatePointersToCameras(Cameras, EventContext, SelectedCamera);
+            Recalculator.updatePointersToCameras(Cameras, EventContext, SelectedCamera, getID(), focusedProcessID);
         }
         for(unsigned i = 0; i < newVectorSize; i++){
             if(i < newIDs.size()){
@@ -3334,7 +3356,7 @@ void clearDeletedPointersFromVector(vector<T*> & Vector){
     }
 }
 void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, string & focusedProcess
 ){
     ContextClass * DeletedContext = nullptr;
     if(!getOneContext(DeletedContext, EventContext, Operation.dynamicIDs)){
@@ -3360,7 +3382,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
             }
         }
         if(SelectedCamera != nullptr && SelectedCamera->getIsDeleted()){
-            SelectedCamera = nullptr;
+            unfocusCamera(focusedProcess);
         }
         for(ContextClass & Context : EventContext){
             if(Context.type == "camera"){
@@ -4982,7 +5004,7 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string
         isActive = Operation.Literals[1].getBool(); 
     }
     else if(Operation.Literals[0].getString() == "can_interact_with_user"){
-        canInteractWithUser = Operation.Literals[1].getBool(); 
+        canUserInteract = Operation.Literals[1].getBool(); 
     }
     else if(Operation.Literals[0].getString() == "is_rendering"){
         isRendering = Operation.Literals[1].getBool(); 
@@ -5866,10 +5888,10 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             checkIfVectorContainsVector(Operation, EventContext);
         }
         else if(Operation.instruction == "new"){
-            createNewEntities(Operation, EventContext, Owner, TriggeredObjects, StartingEvent, Event, MemoryStack);
+            createNewEntities(Operation, EventContext, Owner, TriggeredObjects, StartingEvent, Event, MemoryStack, Engine.focusedProcessID);
         }
         else if(Operation.instruction == "delete"){
-            markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects);
+            markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, Engine.focusedProcessID);
             if(OwnerLayer == nullptr || Owner == nullptr || Event->getIsDeleted()){
                 return OperaClass();
             }
@@ -6317,7 +6339,12 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
         return getValueFromObjectInCamera(CurrentObject, Condition.Location.attribute, Condition.Location.moduleID);
     }
     else if(Condition.Location.moduleType == "mouse"){
-        return getValueFromMouseClickingObject(Mouse, CurrentObject, Condition.Location.attribute, Condition.Literal.getIntUnsafe());
+        if(canUserInteract){
+            return getValueFromMouseClickingObject(Mouse, CurrentObject, Condition.Location.attribute, Condition.Literal.getIntUnsafe());
+        }
+        else{
+            return VariableModule::newBool(false, "null");
+        }
     }
     else if(Condition.Location.moduleType == "movement"){
         return findNextValueInMovementModule(Condition, CurrentObject);
@@ -6359,81 +6386,93 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         NewValue.setBool(Engine.fullscreen);
         return NewValue;
     }
-    else if(Condition.Location.source == "on_display_resize"){
+    if(Condition.Location.source == "on_display_resize"){
         NewValue.setBool(Engine.displayResized);
         return NewValue;
     }
-    else if(Condition.Location.source == "second_passed"){
+    if(Condition.Location.source == "second_passed"){
         NewValue.setBool(Engine.secondHasPassed());
         return NewValue;
     }
-    else if(Condition.Location.source == "key_pressed"){
-        NewValue.setBool(isKeyFirstPressed(Condition.Literal.getInt(), Engine.firstPressedKeys));
-        return NewValue;
+    if(canUserInteract){
+        if(Condition.Location.source == "key_pressed"){
+            NewValue.setBool(isKeyFirstPressed(Condition.Literal.getInt(), Engine.firstPressedKeys));
+            return NewValue;
+        }
+        if(Condition.Location.source == "key_pressing"){
+            NewValue.setBool(isKeyPressed(Condition.Literal.getInt(), Engine.pressedKeys));
+            return NewValue;
+        }
+        if(Condition.Location.source == "key_released"){
+            NewValue.setBool(isKeyReleased(Condition.Literal.getInt(), Engine.releasedKeys));
+            return NewValue;
+        }
+        if(Condition.Location.source == "any_key_pressed"){
+            NewValue.setBool(Engine.firstPressedKeys.size() > 0);
+            return NewValue;
+        }
+        if(Condition.Location.source == "any_key_pressing"){
+            NewValue.setBool(Engine.pressedKeys.size() > 0);
+            return NewValue;
+        }
+        if(Condition.Location.source == "any_key_released"){
+            NewValue.setBool(Engine.releasedKeys.size() > 0);
+            return NewValue;
+        }
+        if(Condition.Location.source == "mouse_moved"){
+            NewValue.setBool(Engine.Mouse.didMouseMove);
+            return NewValue;
+        }
+        if(Condition.Location.source == "mouse_pressed"){
+            NewValue.setBool(Engine.Mouse.isFirstPressed(Condition.Literal.getInt()));
+            return NewValue;
+        }
+        if(Condition.Location.source == "mouse_pressing"){
+            NewValue.setBool(Engine.Mouse.isPressed(Condition.Literal.getInt()));
+            return NewValue;
+        }
+        if(Condition.Location.source == "mouse_released"){
+            NewValue.setBool(Engine.Mouse.isReleased(Condition.Literal.getInt()));
+            return NewValue;
+        }
     }
-    else if(Condition.Location.source == "key_pressing"){
-        NewValue.setBool(isKeyPressed(Condition.Literal.getInt(), Engine.pressedKeys));
-        return NewValue;
+    else{
+        if(isStringInGroup(Condition.Location.source, 10, "key_pressed", "key_pressing",
+            "key_released", "any_key_pressed", "any_key_pressing", "any_key_released",
+            "mouse_moved", "mouse_pressed", "mouse_pressing", "mouse_released")
+        ){
+            NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute + "<user_cannot_interract>", nullptr);
+            NewValue.setBool(0);
+            return NewValue;
+        }
     }
-    else if(Condition.Location.source == "key_released"){
-        NewValue.setBool(isKeyReleased(Condition.Literal.getInt(), Engine.releasedKeys));
-        return NewValue;
-    }
-    else if(Condition.Location.source == "any_key_pressed"){
-        NewValue.setBool(Engine.firstPressedKeys.size() > 0);
-        return NewValue;
-    }
-    else if(Condition.Location.source == "any_key_pressing"){
-        NewValue.setBool(Engine.pressedKeys.size() > 0);
-        return NewValue;
-    }
-    else if(Condition.Location.source == "any_key_released"){
-        NewValue.setBool(Engine.releasedKeys.size() > 0);
-        return NewValue;
-    }
-    else if(Condition.Location.source == "mouse_moved"){
-        NewValue.setBool(Engine.Mouse.didMouseMove);
-        return NewValue;
-    }
-    else if(Condition.Location.source == "mouse_pressed"){
-        NewValue.setBool(Engine.Mouse.isFirstPressed(Condition.Literal.getInt()));
-        return NewValue;
-    }
-    else if(Condition.Location.source == "mouse_pressing"){
-        NewValue.setBool(Engine.Mouse.isPressed(Condition.Literal.getInt()));
-        return NewValue;
-    }
-    else if(Condition.Location.source == "mouse_released"){
-        NewValue.setBool(Engine.Mouse.isReleased(Condition.Literal.getInt()));
-        return NewValue;
-    }
-    else if(Condition.Location.source == "window_w"){
+    if(Condition.Location.source == "window_w"){
         NewValue.setInt(Engine.displaySize.x);
         return NewValue;
     }
-    else if(Condition.Location.source == "window_h"){
+    if(Condition.Location.source == "window_h"){
         NewValue.setInt(Engine.displaySize.y);
         return NewValue;
     }
-    else if(Condition.Location.source == "number_of_processes"){
+    if(Condition.Location.source == "number_of_processes"){
         NewValue.setInt(Processes->size());
         return NewValue;
     }
-    else if(Condition.Location.source == "number_of_cameras"){
+    if(Condition.Location.source == "number_of_cameras"){
         NewValue.setInt(0);
         for(const ProcessClass & ProcessIter : *Processes){
             NewValue.addInt(ProcessIter.Cameras.size());
         }
         return NewValue;
     }
-    else if(Condition.Location.source == "number_of_layers"){
+    if(Condition.Location.source == "number_of_layers"){
         NewValue.setInt(0);
         for(const ProcessClass & ProcessIter : *Processes){
             NewValue.addInt(ProcessIter.Layers.size());
         }
         return NewValue;
     }
-    else if(Condition.Location.source == "number_of_objects"){
+    if(Condition.Location.source == "number_of_objects"){
         NewValue.setInt(0);
         for(const ProcessClass & ProcessIter : *Processes){
             for(const LayerClass & Layer : ProcessIter.Layers){
@@ -6461,16 +6500,16 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         NewValue.setBool(Process->firstIteration);
         return NewValue;
     }
-    else if(Condition.Location.source == "process"){
+    if(Condition.Location.source == "process"){
         if(Condition.Location.attribute == "number_of_cameras"){
             NewValue.setInt(Process->Cameras.size());
             return NewValue;
         }
-        else if(Condition.Location.attribute == "number_of_layers"){
+        if(Condition.Location.attribute == "number_of_layers"){
             NewValue.setInt(Process->Layers.size());
             return NewValue;
         }
-        else if(Condition.Location.source == "number_of_objects"){
+        if(Condition.Location.source == "number_of_objects"){
             NewValue.setInt(0);
             for(const LayerClass & Layer : Process->Layers){
                 NewValue.addInt(Layer.Objects.size());
@@ -6478,7 +6517,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
     }
-    else if(Condition.Location.source == "camera"){
+    if(Condition.Location.source == "camera"){
         NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
         for(const Camera2D & Camera : Process->Cameras){
             if(Camera.getID() != Condition.Location.cameraID){
@@ -6491,8 +6530,9 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
             return NewValue;
         }
+        return NewValue;
     }
-    else if(Condition.Location.source == "layer"){
+    if(Condition.Location.source == "layer"){
         NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
         for(const LayerClass & Layer : Process->Layers){
             if(Layer.getID() != Condition.Location.layerID){
@@ -6505,11 +6545,12 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
             return NewValue;
         }
+        return NewValue;
     }
-    else if(Condition.Location.source == "object"){
+    if(Condition.Location.source == "object"){
         return Process->findNextValueAmongObjects(Condition, Owner, OwnerLayer, Engine.Mouse);
     }
-    else if(Condition.Location.source == "context" || Condition.Location.source == "c"){
+    if(Condition.Location.source == "context" || Condition.Location.source == "c"){
         ContextClass * Context;
         vector<string> dynamicIDs = {Condition.Literal.getStringUnsafe()};
         if(!getOneContext(Context, EventContext, dynamicIDs)){
@@ -6591,11 +6632,12 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
         cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
+        return NewValue;
     }
-    else if(Condition.Location.source == "literal"){
+    if(Condition.Location.source == "literal"){
         return Condition.Literal;
     }
-    else if(Condition.Location.source == "variable"){
+    if(Condition.Location.source == "variable"){
         for(const VariableModule & Variable : Owner->VariablesContainer){
             if(Variable.getID() == Condition.Location.moduleID){
                 if(Variable.getIsDeleted()){
@@ -6605,10 +6647,9 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             }
         }
         cout << "Error: In " << __FUNCTION__ << ": There is no variable with id: \'" << Condition.Location.moduleID << "\'.\n";
+        return NewValue;
     }
-    else{
-        cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
-    }
+    cout << "Error: In " << __FUNCTION__ << ": \'" << Condition.Location.source << "\' is not a valid source.\n";
     NewValue.setBool(false);
     return NewValue;
 }
@@ -7177,7 +7218,7 @@ void ProcessClass::keepPositionInsideScreen(vec2d & pos, vec2d & size, vec2i dis
     pos.y = std::min(pos.y, double(displaySize.y - size.y));
 }
 void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
+    if(!canUserInteract || SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
         return;
     }
     if(!Engine.Mouse.isPressed(0) || activeCameraMoveType == NONE){
@@ -7364,16 +7405,19 @@ void ProcessClass::bringCameraForward(unsigned index, Camera2D * ChosenCamera){
         }
     }
 }
-void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const vector<short> & pressedKeys, const vector<short> & releasedKeys){
-    if(Cameras.size() == 0){
+void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const vector<short> & pressedKeys,
+    const vector<short> & releasedKeys, string & focusedProcessID
+){
+    if(Cameras.size() == 0 || !canUserInteract){
         return;
     }
-    if(isKeyPressed(ALLEGRO_KEY_LCTRL, pressedKeys) && isKeyReleased(ALLEGRO_KEY_TAB, releasedKeys) && fromAltTab){
+    if(fromAltTab && isKeyPressed(ALLEGRO_KEY_LCTRL, pressedKeys) && isKeyReleased(ALLEGRO_KEY_TAB, releasedKeys)){
         if(camerasOrder[0] >= Cameras.size()){
             cout << "Error: Index of camera is out of scope!\n";
             return;
         }
         SelectedCamera = &Cameras[camerasOrder[0]];
+        focusedProcessID = getID();
         auto it = camerasOrder.begin();
         std::rotate(it, it + 1, camerasOrder.end());
 
@@ -7414,6 +7458,7 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
         }
         if(Mouse.inRectangle(Camera->pos, Camera->size, true, SelectedCamera)){
             SelectedCamera = Camera;
+            focusedProcessID = getID();
 
             bringCameraForward(i, Camera);
 
@@ -7475,8 +7520,12 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
     if(Mouse.isPressed(0)){
         return;
     }
-    al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
+    if(SelectedCamera == nullptr){
+        return;
+    }
+    
+    if(!SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
+        al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
         return;
     }
     if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true, SelectedCamera)){
@@ -7502,6 +7551,9 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
     }
     else if(Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), true, SelectedCamera)){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NW);
+    }
+    else{
+        al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
     }
 }
 void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, const MouseClass & Mouse){
@@ -7612,6 +7664,24 @@ void ProcessClass::dragScrollbars(const MouseClass & Mouse){
         }
     }
 }
+void allowParticlesSpawnFromUserInput(const vector<short> & pressedKeys, const vector<short> & releasedKeys, ParticleEffectModule & ParticleEffect){
+    if(ParticleEffect.getSpawnOnKeyRelease()){
+        for(unsigned int i = 0; i < releasedKeys.size(); i++){
+            if(releasedKeys[i] == ParticleEffect.getSpawnKeyBind()){
+                ParticleEffect.allowSpawning();
+                break;
+            }
+        }
+    }
+    else{
+        for(unsigned int i = 0; i < pressedKeys.size(); i++){
+            if(pressedKeys[i] == ParticleEffect.getSpawnKeyBind()){
+                ParticleEffect.allowSpawning();
+                break;
+            }
+        }
+    }
+}
 void ProcessClass::moveParticles(const vector<short> & pressedKeys, const vector<short> & releasedKeys){
     timeToInterruptParticles--;
     if(timeToInterruptParticles <= 0)
@@ -7630,10 +7700,10 @@ void ProcessClass::moveParticles(const vector<short> & pressedKeys, const vector
                     continue;
                 }
                 bool isScrollable = ParticleEffect.getIsScrollable();
-                if(ParticleEffect.getSpawnOnKeyRelease())
-                    ParticleEffect.spawnParticles(Object.getPos(isScrollable), releasedKeys);
-                else
-                    ParticleEffect.spawnParticles(Object.getPos(isScrollable), pressedKeys);
+                if(canUserInteract){
+                    allowParticlesSpawnFromUserInput(pressedKeys, releasedKeys, ParticleEffect);
+                }
+                ParticleEffect.spawnParticles(Object.getPos(isScrollable));
                 ParticleEffect.updateParticles();
             }
         }
@@ -7805,11 +7875,13 @@ void ProcessClass::moveObjects(const vector<short> & pressedKeys, const MouseCla
                 if(!Movement.getIsActive()){
                     continue;
                 }
-                bool pressedMouse[5];
-                bool releasedMouse[5];
-                Mouse.getPressed(pressedMouse);
-                Mouse.getReleased(releasedMouse);
-                Movement.updateStatesAndVectors(pressedKeys, pressedMouse, releasedMouse, Mouse.getZoomedPos(SelectedCamera), Object.getPos(false));
+                bool pressedMouse[] = {0, 0, 0, 0, 0};
+                bool releasedMouse[] = {0, 0, 0, 0, 0};
+                if(canUserInteract){
+                    Mouse.getPressed(pressedMouse);
+                    Mouse.getReleased(releasedMouse);
+                }
+                Movement.updateStatesAndVectors(canUserInteract, pressedKeys, pressedMouse, releasedMouse, Mouse.getZoomedPos(SelectedCamera), Object.getPos(false));
                 Movement.updateMomentum(Object.getPos(false));
 
                 //If object doesn't move, clear movement's collisions and detect overlaping objects
@@ -9095,7 +9167,7 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vec
         }
     }
 }
-void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera){
+void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera, string processID, string & focusedProcessID){
     unsigned context, camera;
     for(context = 0; context < CameraIndexes.size(); context++){
         for(camera = 0; camera < CameraIndexes[context].size(); camera++){
@@ -9111,9 +9183,13 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vec
         if(Cameras.size() <= selectedCameraIndex){
             cout << "Error: In " << __FUNCTION__ << ": selectedCameraIndex goes out of scope of Cameras.\n";
             SelectedCamera = nullptr;
+            if(processID == focusedProcessID){
+                focusedProcessID = "";
+            }
             return;
         }
-        SelectedCamera = &Cameras[selectedCameraIndex];   
+        SelectedCamera = &Cameras[selectedCameraIndex];
+        focusedProcessID = processID;
     }
 }
 void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext){

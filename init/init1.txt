@@ -1,6 +1,7 @@
 /*start init false
 triggers on_boot
 if ([on_boot])
+//edit_proc can_interact_with_user false
 new object l KERNEL 1 _ _ First
 //index layer [0 1] _ object First
 bind First reset

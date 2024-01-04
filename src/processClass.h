@@ -167,7 +167,7 @@ struct PointerRecalculator{
     template <class Module>
     void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers);
     void findIndexesForModules(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
-    void updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera);
+    void updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera, string processID, string & focusedProcessID);
     void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext);
     void updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
@@ -186,7 +186,7 @@ class ProcessClass{
 private:
     string ID;
     bool isActive;
-    bool canInteractWithUser; 
+    bool canUserInteract; 
     bool isRendering;
     ALLEGRO_BITMAP * WindowBuffer;
     vec2d windowPos, windowSize, minWindowSize;
@@ -243,6 +243,7 @@ public:
     bool isCamerasUniquenessViolated();
     void executeIteration(EngineClass & Engine, vector<ProcessClass> & Processes);
     void renderOnDisplay(EngineClass & Engine);
+    void unfocusCamera(string & focusedProcessID);
     void aggregateCameras(OperaClass & Operation, ContextClass & NewContext, vector <Camera2D*> AggregatedCameras,
         const EngineClass & Engine, vector<ContextClass> &EventContext);
     void aggregateLayers(OperaClass & Operation, ContextClass & NewVariable, vector <LayerClass*> AggregatedLayers,
@@ -299,10 +300,10 @@ public:
     bool prepareDestinationForNew(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
     void createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, string & focusedProcessID
     );
     void markEntitiesForDeletion(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, string & focusedProcess
     );
     void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<ContextClass> & EventContext);
     void getReferenceByIndex(OperaClass & Operation, vector<ContextClass> & EventContext);
@@ -366,7 +367,9 @@ public:
     void keepPositionInsideScreen(vec2d & pos, vec2d & size, vec2i displaySize);
     void updateCamerasPositions(const EngineClass & Engine);
     void bringCameraForward(unsigned index, Camera2D * ChosenCamera);
-    void selectCamera(bool fromAltTab, const MouseClass & Mouse, const vector<short> & pressedKeys, const vector<short> & releasedKeys);
+    void selectCamera(bool fromAltTab, const MouseClass & Mouse, const vector<short> & pressedKeys,
+        const vector<short> & releasedKeys, string & focusedProcessID
+    );
     bool isKeyFirstPressed(short key, vector <short> firstPressedKeys);
     bool isKeyPressed(short key, vector <short> pressedKeys);
     bool isKeyReleased(short key, vector <short> releasedKeys);

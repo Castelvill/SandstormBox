@@ -55,6 +55,7 @@ public:
     vector <SingleFont> FontContainer;
     vector <SingleBitmap> BitmapContainer;
     vector <string> processIDs;
+    string focusedProcessID; //Only the focused process can change the cursor.
 
     MouseClass Mouse;
     unsigned char key[ALLEGRO_KEY_MAX];
