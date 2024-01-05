@@ -1,3 +1,8 @@
+05.01.2024
+- Improved ContextClass with safe getters.
+- Added "substr" instructions - returning a substring from the text.
+- Added "len" instruction - returning the length of the text.
+
 04.01.2024
 - Added protected area to editable text module.
 - Fixed dynamic cursor change.

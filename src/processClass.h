@@ -104,6 +104,9 @@ struct ContextClass{
     void clear();
     void setID(vector<ContextClass> &EventContext, string newID, const bool & printOutInstructions);
     string getValue();
+    bool getUnsignedOrAbort(unsigned & number, string instruction);
+    bool getIntOrAbort(int & number, string instruction);
+    bool getStringOrAbort(string & text, string instruction);
     template<typename T>
     void addBasePointer(T * pointer);
     template<typename T>
@@ -339,6 +342,8 @@ public:
     );
     void tokenizeString(OperaClass & Operation, vector<ContextClass> & EventContext);
     void printTree(OperaClass & Operation, vector<ContextClass> & EventContext, vector<ProcessClass> & Processes);
+    void getStringSizeFromContext(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void getSubStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext);
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,

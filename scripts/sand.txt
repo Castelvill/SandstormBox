@@ -63,6 +63,10 @@ load_bitmap "images/amongus1.png" amongus1
 load_bitmap "images/amongus2.png" amongus2
 load_bitmap "images/amongus3.png" amongus3
 
+string ["elizabeth"] eli
+len eli x
+print \n _ c x
+
 end
 
 start fs_click false

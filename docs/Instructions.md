@@ -721,3 +721,35 @@ tree [output]
 **Parameters**
 
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+
+## len
+
+**Syntax**
+
+len text [output]
+
+**Description**
+
+    Return the length of the provided string.
+
+**Parameters**
+
+- text (string) - id of the context with a string value;
+- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+
+## substr
+
+**Syntax**
+
+substr text begin length [output]
+
+**Description**
+
+    Return the sub-string from the provided text.   
+
+**Parameters**
+
+- text (string) - id of the context with a string value;
+- begin (string) - id of the context with an integer value, the start of the sub-string in the text;
+- length (string) - id of the context with an integer value, the length of the sub-string;
+- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.

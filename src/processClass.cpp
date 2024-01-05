@@ -644,7 +644,128 @@ string ContextClass::getValue(){
     }
     return buffer;
 }
-ContextClass::ContextClass(){
+bool ContextClass::getUnsignedOrAbort(unsigned &number, string instruction){
+    int temp = 0;
+    if(type == "value"){
+        if(Variables.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(Variables.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        temp = Variables.back().getInt();
+    }
+    else if(type == "pointer"){
+        if(BasePointers.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(BasePointers.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        temp = BasePointers.back().getInt();
+    }
+    else if(type == "variable"){
+        if(Modules.Variables.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(Modules.Variables.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        temp = Modules.Variables.back()->getInt();
+    }
+    else{
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context \'" << ID
+            << "\' has invalid type: \'" << type << "\'.\n";
+        return false;
+    }
+    if(temp < 0){
+        number = 0;
+        cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Value is not unsigned - returning 0.\n";
+    }
+    number = temp;
+    return true;
+}
+bool ContextClass::getIntOrAbort(int &number, string instruction){
+    if(type == "value"){
+        if(Variables.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(Variables.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        number = Variables.back().getInt();
+    }
+    else if(type == "pointer"){
+        if(BasePointers.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(BasePointers.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        number = BasePointers.back().getInt();
+    }
+    else if(type == "variable"){
+        if(Modules.Variables.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(Modules.Variables.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        number = Modules.Variables.back()->getInt();
+    }
+    else{
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context \'" << ID
+            << "\' has invalid type: \'" << type << "\'.\n";
+        return false;
+    }
+    return true;
+}
+bool ContextClass::getStringOrAbort(string & text, string instruction){
+    if(type == "value"){
+        if(Variables.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(Variables.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        text = Variables.back().getString();
+    }
+    else if(type == "pointer"){
+        if(BasePointers.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(BasePointers.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        text = BasePointers.back().getString();
+    }
+    else if(type == "variable"){
+        if(Modules.Variables.size() == 0){
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            return false;
+        }
+        if(Modules.Variables.size() != 1){
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        text = Modules.Variables.back()->getString();
+    }
+    else{
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context \'" << ID
+            << "\' has invalid type: \'" << type << "\'.\n";
+        return false;
+    }
+    return true;
+}
+ContextClass::ContextClass()
+{
     ID = "";
     type = "";
     readOnly = false;
@@ -2311,6 +2432,7 @@ void ProcessClass::moveValues(OperaClass & Operation, vector<ContextClass> &Even
         RightOperand = LeftOperand; //Cloning the left operand allows to reuse this function for incrementing and decrementing.
     }
     else if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << __FUNCTION__ << ": In " << Operation.instruction << ": Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -2326,6 +2448,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
     ContextClass * RightOperand = nullptr;
     
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, dynamicIDs)){
+        cout << "Error: In " << __FUNCTION__ << ": In \'clone\': Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -2484,6 +2607,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
     ContextClass * RightOperand = nullptr;
 
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << __FUNCTION__ << ": In " << Operation.instruction << ": Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -2679,10 +2803,8 @@ void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, co
         RightOperand->type = "value";
         deletePointers = true;
     }
-    else if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)
-        || (LeftOperand->type != "pointer" && LeftOperand->type != "value")
-        || (RightOperand->type != "pointer" && RightOperand->type != "value")
-    ){
+    else if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << __FUNCTION__ << ": In " << Operation.instruction << ": Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -2822,6 +2944,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
     ContextClass * RightOperand = nullptr;
     
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << __FUNCTION__ << ": In " << Operation.instruction << ": Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -3057,17 +3180,8 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventCon
     }
     
     if(SizeContext != nullptr){
-        if(SizeContext->type == "value" && SizeContext->Variables.size() == 1){
-            newVectorSize = SizeContext->Variables.back().getIntUnsafe();
-        }
-        else if(SizeContext->type == "pointer" && SizeContext->BasePointers.size() == 1){
-            newVectorSize = SizeContext->BasePointers.back().getInt();
-        }
-        else if(SizeContext->type == "variable" && SizeContext->Modules.Variables.size() == 1){
-            newVectorSize = SizeContext->Modules.Variables.back()->getIntUnsafe();
-        }
-        else{
-            cout << "Error: In " << __FUNCTION__ << ": Context type is invalid for the 'new' instruction.\n";
+        if(!SizeContext->getUnsignedOrAbort(newVectorSize, "new")){
+            cout << "Error: In" << __FUNCTION__ << ": Instruction \'new\' failed.\n";
             return false;
         }
     }
@@ -3604,45 +3718,15 @@ void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vec
     }
 
     vector<ContextClass*> IndexContexts;
+    int singleIndex;
 
     if(getAllSelectedContexts(IndexContexts, EventContext, dynamicIDs)){
         for(ContextClass * Index : IndexContexts){
-            if(Index->type == "value"){
-                for(const VariableModule & Variable : Index->Variables){
-                    if(Variable.getType() == 'i'){
-                        indexes.push_back(Variable.getInt());
-                    }
-                    else{
-                        indexes.push_back(0);
-                        cout << "Warning: In " << __FUNCTION__ << ": Each variable should be of integer type.\n";
-                    }
-                }
+            if(!Index->getIntOrAbort(singleIndex, "index")){
+                cout << "Error: In" << __FUNCTION__ << ": Instruction \'index\' failed.\n";
+                return;
             }
-            else if(Index->type == "pointer"){
-                for(const BasePointersStruct & BasePointer : Index->BasePointers){
-                    if(BasePointer.isInteger()){
-                        indexes.push_back(BasePointer.getInt());
-                    }
-                    else{
-                        indexes.push_back(0);
-                        cout << "Warning: In " << __FUNCTION__ << ": Each pointer should be of integer type.\n";
-                    }
-                }
-            }
-            else if(Index->type == "variable"){
-                for(const VariableModule * Variable : Index->Modules.Variables){
-                    if(Variable->getType() == 'i'){
-                        indexes.push_back(Variable->getInt());
-                    }
-                    else{
-                        indexes.push_back(0);
-                        cout << "Warning: In " << __FUNCTION__ << ": Each variable should be of integer type.\n";
-                    }
-                }
-            }
-            else{
-                cout << "Warning: In " << __FUNCTION__ << ": Context is not of numerical type.\n";
-            }
+            indexes.push_back(singleIndex);
         }
     }
 
@@ -4168,7 +4252,8 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
     }
 }
 void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack){
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+){
     if(Operation.dynamicIDs.size() == 0){
         cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
         return;
@@ -5410,57 +5495,16 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
         cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
     }
 
-    string textFromContext = "";
-
     ContextClass * Context;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
         cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
-    if(Context->type == "value"){
-        if(Context->Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": There are no literals in the context.\n";
-            return;
-        }
-        if(Context->Variables.size() != 1){
-            cout << "Warning: In " << __FUNCTION__ << ": There are several literals in the context. Program will proceed with the last added literal.\n";
-        }
-        if(Context->Variables.back().getType() != 's'){
-            cout << "Error: In " << __FUNCTION__ << ": String variable required, but got \'" << Context->Variables.back().getType() << "\'.\n";
-            return;
-        }
-        textFromContext = Context->Variables.back().getString();
-    }
-    else if(Context->type == "pointer"){
-        if(Context->BasePointers.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": There are no pointers in the context.\n";
-            return;
-        }
-        if(Context->BasePointers.size() != 1){
-            cout << "Warning: In " << __FUNCTION__ << ": There are several pointers in the context. Program will proceed with the last added pointer.\n";
-        }
-        if(Context->BasePointers.back().type != "string"){
-            cout << "Error: In " << __FUNCTION__ << ": String pointer required, but got \'" << Context->Variables.back().getType() << "\'.\n";
-            return;
-        }
-        textFromContext = *Context->BasePointers.back().pString;
-    }
-    else if(Context->type == "variable"){
-        if(Context->Modules.Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": There are no variables in the context.\n";
-            return;
-        }
-        if(Context->Modules.Variables.size() != 1){
-            cout << "Warning: In " << __FUNCTION__ << ": There are several variables in the context. Program will proceed with the last added literal.\n";
-        }
-        if(Context->Modules.Variables.back()->getType() != 's'){
-            cout << "Error: In " << __FUNCTION__ << ": String variable required, but got \'" << Context->Variables.back().getType() << "\'.\n";
-            return;
-        }
-        textFromContext = Context->Modules.Variables.back()->getString();
-    }
-    else{
-        cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
+
+    string textFromContext = "";
+
+    if(!Context->getStringOrAbort(textFromContext, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         return;
     }
 
@@ -5707,32 +5751,13 @@ void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> &
         cout << "Error: In" << __FUNCTION__ << ": \'" << Operation.instruction << "\' requires at least one context.\n";
         return;
     }
+
     string input = "";
-    if(Context->type == "value"){
-        if(Context->Variables.size() == 0){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Context is empty.\n";
-            return;
-        }
-        input = Context->Variables[0].getString();
-    }
-    else if(Context->type == "variable"){
-        if(Context->Modules.Variables.size() == 0){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Context is empty.\n";
-            return;
-        }
-        input = Context->Modules.Variables[0]->getString();
-    }
-    else if(Context->type == "pointer"){
-        if(Context->BasePointers.size() == 0){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Context is empty.\n";
-            return;
-        }
-        input = Context->BasePointers[0].getString();
-    }
-    else{
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': invalid context type \'" << Context->type << "\'.\n";
+    if(!Context->getStringOrAbort(input, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         return;
     }
+
     vector <string> words = tokenizeCode(input);
     ContextClass NewContext;
     NewContext.type = "value";
@@ -5826,6 +5851,73 @@ void ProcessClass::printTree(OperaClass & Operation, vector<ContextClass> & Even
         NewContext.Variables.push_back(VariableModule::newString(buffor));
         moveOrRename(EventContext, &NewContext, Operation.newContextID);
     }
+}
+void ProcessClass::getStringSizeFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
+    ContextClass * Context = nullptr;
+    if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In" << __FUNCTION__ << ": \'" << Operation.instruction << "\' requires at least one context.\n";
+        return;
+    }
+    
+    string text = "";
+    if(!Context->getStringOrAbort(text, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        return;
+    }
+
+    ContextClass NewContext;
+    NewContext.type = "value";
+    NewContext.Variables.push_back(VariableModule::newInt(text.size()));
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
+}
+void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
+    if(Operation.dynamicIDs.size() < 3){
+        cout << "Error: In" << __FUNCTION__ << ": \'" << Operation.instruction << "\' requires at least three contexts.\n";
+        return;
+    }
+
+    ContextClass * TextContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
+    if(TextContext == nullptr){
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
+        return;
+    }
+    ContextClass * BeginContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
+    if(TextContext == nullptr){
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
+        return;
+    }
+    ContextClass * LengthContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
+    if(TextContext == nullptr){
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
+        return;
+    }
+
+    string text = "";
+    if(!TextContext->getStringOrAbort(text, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        return;
+    }
+
+    unsigned beginning = 0;
+    if(!BeginContext->getUnsignedOrAbort(beginning, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        return;
+    }
+
+    unsigned length = 0;
+    if(!LengthContext->getUnsignedOrAbort(length, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        return;
+    }
+
+    if(beginning + length > text.size()){
+        length = text.size() - beginning;
+    }
+
+    ContextClass NewContext;
+    NewContext.type = "value";
+    NewContext.Variables.push_back(VariableModule::newString(text.substr(beginning, length)));
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
@@ -5973,6 +6065,12 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         else if(Operation.instruction == "tree"){
             printTree(Operation, EventContext, Processes);
+        }
+        else if(Operation.instruction == "len"){
+            getStringSizeFromContext(Operation, EventContext);
+        }
+        else if(Operation.instruction == "substr"){
+            getSubStringFromContext(Operation, EventContext);
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";

@@ -1620,10 +1620,25 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
-            if(words.size() == 1){
-                continue;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "len"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+                return;
             }
-            Operation->newContextID = words[1];
+            Operation->dynamicIDs.push_back(words[cursor]);
+            cursor++;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "substr"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            Operation->dynamicIDs.push_back(words[2]);
+            Operation->dynamicIDs.push_back(words[3]);
+            cursor = 4;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
