@@ -60,8 +60,9 @@ public:
     void setWrapping(short newValue);
     void setHorizontalAlign(short newValue);
     void setVerticalAlign(short newValue);
-    void changeParameters(string newID, vector<string> & listOfIDs, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
-                          double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign);
+    void setCursorPos(unsigned int newCursorPos);
+    void setSecondCursorPos(unsigned int newCursorPos);
+    void setCursorPos(vec2d finalPos, vec2d finalSize, const vector<SingleFont> & FontContainer, const MouseClass & Mouse, const Camera2D & Camera);
     void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, unsigned secondCursorPos, bool editingIsActive);
     void drawTextByLetters(ALLEGRO_FONT * font);
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
@@ -115,8 +116,6 @@ public:
     void setHasFloatingPoint(bool newHasFloatingPoint);
     void setUpdateConnectedVariable(bool newUpdateConnectedVariable);
     void setUseTabs(bool newValue);
-    void setCursorPos(unsigned int newCursorPos);
-    void setCursorPos(vec2d finalPos, vec2d finalSize, const vector<SingleFont> & FontContainer, const MouseClass & Mouse, const Camera2D & Camera);
     void setMinContentSize(unsigned int newMinContentSize);
     void setMaxContentSize(unsigned int newMaxContentSize);
     void setInputDelay(float);

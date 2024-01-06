@@ -200,18 +200,97 @@ void TextModule::setVerticalAlign(short newValue){
 void TextModule::setAlpha(float newValue){
     color.a = newValue;
 }
-void TextModule::changeParameters(string newID, vector<string> & listOfIDs, vec4d posSize, vec3d fontColor, string newFontID, vec2d newScale,
-                          double newRotateAngle, short newWrapped, int newHorizontalAlign, int newVerticalAlign){
-    setID(newID, listOfIDs);
-    setPos(posSize.val[0], posSize.val[1]);
-    setSize(posSize.val[2], posSize.val[3]);
-    setScale(newScale);
-    color = al_map_rgba_f(fontColor.val[0], fontColor.val[1], fontColor.val[2], 1.0);
-    fontID = newFontID;
-    rotation = newRotateAngle;
-    wrapped = newWrapped;
-    horizontalAlign = newHorizontalAlign;
-    verticalAlign = newVerticalAlign;
+void TextModule::setCursorPos(unsigned int newCursorPos){
+    cursorPos = newCursorPos;
+    secondCursorPos = newCursorPos;
+    adjustCursorPos();
+}
+void TextModule::setSecondCursorPos(unsigned int newCursorPos){
+    secondCursorPos = newCursorPos;
+    adjustCursorPos();
+}
+void TextModule::setCursorPos(vec2d finalPos, vec2d finalSize, const vector<SingleFont> & FontContainer, const MouseClass & Mouse, const Camera2D & Camera){
+    cursorPos = 0;
+    unsigned columns = 1;
+    string text = getCurrentContent();
+    for(cursorPos = 0; cursorPos < text.size(); cursorPos++){
+        if(text[cursorPos] == '\n'){
+            columns++;
+        }
+    }
+    const ALLEGRO_FONT * font = nullptr;
+    for(const SingleFont & checkFont : FontContainer){
+        if(getFontID() == checkFont.ID){
+            font = checkFont.font;
+            break;
+        }
+    }
+    if(font == nullptr){
+        cursorPos = text.size();
+        return;
+    }
+    if(finalPos.y + al_get_font_line_height(font) * columns < Mouse.getPos().y){
+        cursorPos = text.size();
+        return;
+    }
+    columns = (Mouse.getPos().y - finalPos.y) / double(al_get_font_line_height(font));
+    if(columns < 0){
+        cursorPos = text.size();
+        return;
+    }
+    for(cursorPos = 0; columns > 0 && cursorPos < text.size(); cursorPos++){
+        if(text[cursorPos] == '\n'){
+            columns--;
+        }
+    }
+    unsigned rowLength = 0, tabCounter = 0, i, rowCursor = cursorPos, onlyTabs = 0, realWidth = 0;
+    for(; rowCursor < text.size(); rowCursor++, tabCounter++, rowLength++){
+        if(text[rowCursor] == '\t'){
+            for(i = 0; i < tabLength - tabCounter % tabLength; i++){
+                realWidth += al_get_text_width(font, string(" ").c_str());
+            }
+            rowLength += getCurrentTabLength(tabCounter);
+            onlyTabs += getCurrentTabLength(tabCounter);
+            if(tabLength > 0){
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        else{
+            realWidth += al_get_text_width(font, text.substr(rowCursor, 1).c_str());
+        }
+        if(text[rowCursor] == '\n'){
+            break;
+        }
+    }
+    if(Mouse.getPos().x < finalPos.x){
+        return;
+    }
+    if(rowCursor == text.size()){
+        realWidth += al_get_text_width(font, string(" ").c_str());
+    }
+    rowLength++;
+    
+    unsigned place = 0;
+    if(finalPos.x + realWidth <= Mouse.getPos().x){
+        place = rowLength - 1;
+    }
+    else{
+        place = (double(rowLength) * (Mouse.getPos().x - finalPos.x)) / double(realWidth);
+    }
+
+    tabCounter = 0;
+    for(; place > 0; place--, tabCounter++){
+        if(text[cursorPos] == '\t'){
+            if(place <= getCurrentTabLength(tabCounter)){
+                break;
+            }
+            else{
+                place -= getCurrentTabLength(tabCounter);
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        cursorPos++;
+    }
 }
 void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive){
     if(!getIsActive()){
@@ -700,7 +779,6 @@ unsigned TextModule::getCurrentTabLength(const unsigned & tabCounter){
 
 void EditableTextModule::setUpNewInstance(){
     TextModule::setUpNewInstance();
-    isAttachedToCamera = true;
     canBeEdited = true;
     editingIsActive = false;
     canUseSpace = false;
@@ -773,92 +851,6 @@ void EditableTextModule::setProtectedArea(unsigned cursor){
     protectedArea = cursor;
 }
 
-void EditableTextModule::setCursorPos(unsigned int newCursorPos){
-    cursorPos = newCursorPos;
-}
-void EditableTextModule::setCursorPos(vec2d finalPos, vec2d finalSize, const vector<SingleFont> & FontContainer, const MouseClass & Mouse, const Camera2D & Camera){
-    cursorPos = 0;
-    unsigned columns = 1;
-    string text = getCurrentContent();
-    for(cursorPos = 0; cursorPos < text.size(); cursorPos++){
-        if(text[cursorPos] == '\n'){
-            columns++;
-        }
-    }
-    const ALLEGRO_FONT * font = nullptr;
-    for(const SingleFont & checkFont : FontContainer){
-        if(getFontID() == checkFont.ID){
-            font = checkFont.font;
-            break;
-        }
-    }
-    if(font == nullptr){
-        cursorPos = text.size();
-        return;
-    }
-    if(finalPos.y + al_get_font_line_height(font) * columns < Mouse.getPos().y){
-        cursorPos = text.size();
-        return;
-    }
-    columns = (Mouse.getPos().y - finalPos.y) / double(al_get_font_line_height(font));
-    if(columns < 0){
-        cursorPos = text.size();
-        return;
-    }
-    for(cursorPos = 0; columns > 0 && cursorPos < text.size(); cursorPos++){
-        if(text[cursorPos] == '\n'){
-            columns--;
-        }
-    }
-    unsigned rowLength = 0, tabCounter = 0, i, rowCursor = cursorPos, onlyTabs = 0, realWidth = 0;
-    for(; rowCursor < text.size(); rowCursor++, tabCounter++, rowLength++){
-        if(text[rowCursor] == '\t'){
-            for(i = 0; i < tabLength - tabCounter % tabLength; i++){
-                realWidth += al_get_text_width(font, string(" ").c_str());
-            }
-            rowLength += getCurrentTabLength(tabCounter);
-            onlyTabs += getCurrentTabLength(tabCounter);
-            if(tabLength > 0){
-                tabCounter += getCurrentTabLength(tabCounter);
-            }
-        }
-        else{
-            realWidth += al_get_text_width(font, text.substr(rowCursor, 1).c_str());
-        }
-        if(text[rowCursor] == '\n'){
-            break;
-        }
-    }
-    if(Mouse.getPos().x < finalPos.x){
-        return;
-    }
-    if(rowCursor == text.size()){
-        realWidth += al_get_text_width(font, string(" ").c_str());
-    }
-    rowLength++;
-    
-    unsigned place = 0;
-    if(finalPos.x + realWidth <= Mouse.getPos().x){
-        place = rowLength - 1;
-    }
-    else{
-        place = (double(rowLength) * (Mouse.getPos().x - finalPos.x)) / double(realWidth);
-    }
-
-    tabCounter = 0;
-    for(; place > 0; place--, tabCounter++){
-        if(text[cursorPos] == '\t'){
-            if(place <= getCurrentTabLength(tabCounter)){
-                break;
-            }
-            else{
-                place -= getCurrentTabLength(tabCounter);
-                tabCounter += getCurrentTabLength(tabCounter);
-            }
-        }
-        cursorPos++;
-    }
-}
 void EditableTextModule::setMinContentSize(unsigned int newMinContentSize){
     minContentSize = newMinContentSize;
 }
@@ -2592,6 +2584,9 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
     else if(attribute == "affected_variable"){
         BasePointers.back().setPointer(&connectedVariable);
     }
+    else if(attribute == "protected_area"){
+        BasePointers.back().setPointer(&protectedArea);
+    }
     else{
         getPrimaryContext(attribute, BasePointers);
     }
@@ -2638,6 +2633,9 @@ VariableModule EditableTextModule::getAttributeValue(const string &attribute, co
     }
     else if(attribute == "editing"){
         return VariableModule::newBool(getEditingIsActive());
+    }
+    else if(attribute == "protected_area"){
+        return VariableModule::newInt(protectedArea);
     }
 
     cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";

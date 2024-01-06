@@ -1,3 +1,4 @@
+-Remove changeParameters methods.
 -First layer (KERNEL) should be a camera on the whole window (resizable) and an editableText on the whole window. 
 -Fix: If the cursor is on the first line, down-arrow is moving cursor with an offset.
 -Build a template window binded to refreshing size event and border and borderless modes.

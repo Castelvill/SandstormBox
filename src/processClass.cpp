@@ -68,6 +68,7 @@ ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string
     wasDeleteExecuted = false;
     wasNewExecuted = false;
     wasAnyEventUpdated = false;
+    wereGlobalVariablesCreated = false;
     drawCameraBorders = true;
     drawTextFieldBorders = false;
     drawHitboxes = false;
@@ -292,8 +293,7 @@ void ProcessClass::unfocusCamera(string &focusedProcessID){
         focusedProcessID = "";
     }
 }
-void ProcessClass::updateBaseOfTriggerableObjects()
-{
+void ProcessClass::updateBaseOfTriggerableObjects(){
     BaseOfTriggerableObjects.clear();
 
     unsigned objectIndex;
@@ -2952,7 +2952,8 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
     unsigned i = 0, j = 0;
 
     if(printOutInstructions){
-        cout << "in " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+        cout << "in " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " "
+            << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
     }
 
     if(LeftOperand->type != RightOperand->type){
@@ -3011,6 +3012,19 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
             for(i = 0; i < LeftOperand->Modules.Variables.size(); i++){
                 for(j = 0; j < RightOperand->BasePointers.size(); j++){
                     if(LeftOperand->Modules.Variables[i]->isConditionMet("==", RightOperand->BasePointers[j])){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "variable" && RightOperand->type == "value"){
+            for(i = 0; i < LeftOperand->Modules.Variables.size(); i++){
+                for(j = 0; j < RightOperand->Variables.size(); j++){
+                    if(LeftOperand->Modules.Variables[i]->isConditionMet("==", &RightOperand->Variables[j])){
                         result = true;
                         break;
                     }
@@ -5408,23 +5422,32 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
     }
 }
 void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext){
-    if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to a text file).\n";
+    if(Operation.dynamicIDs.size() == 0){
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires at least 1 context of string type.\n";
+    }
+    ContextClass * PathContext = nullptr;
+    if(!getOneContext(PathContext, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        return;
+    }
+    string pathToTheFile = "";
+    if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         return;
     }
     if(printOutInstructions){
-        cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
+        cout << Operation.instruction << " " << Operation.Literals[0].getString() << " " << Operation.newContextID << "\n";
     }
-    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+    if(pathToTheFile == "" || pathToTheFile[0] == ' '){
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + pathToTheFile << "\'.\n"; 
     }
 
     string loadedText = "";
 
-    std::ifstream File(EXE_PATH + Operation.Literals[0].getString());
+    std::ifstream File(EXE_PATH + pathToTheFile);
 
 	if(!File){
-		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << Operation.Literals[0].getString() << "\n";
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << pathToTheFile << "\n";
         return;
     }
     for(string line; std::getline(File, line);){
@@ -5432,83 +5455,33 @@ void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass>
     }
     File.close();
 
-    ContextClass * Context;
-    if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
-        return;
-    }
-    if(Context->type == "value"){
-        if(Context->Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": There are no literals in the context.\n";
-            return;
-        }
-        if(Context->Variables.size() != 1){
-            cout << "Warning: In " << __FUNCTION__ << ": There are several literals in the context. Program will proceed with the last added literal.\n";
-        }
-        if(Context->Variables.back().getType() != 's'){
-            cout << "Error: In " << __FUNCTION__ << ": String variable required, but got \'" << Context->Variables.back().getType() << "\'.\n";
-            return;
-        }
-        Context->Variables.back().setString(loadedText);
-    }
-    else if(Context->type == "pointer"){
-        if(Context->BasePointers.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": There are no pointers in the context.\n";
-            return;
-        }
-        if(Context->BasePointers.size() != 1){
-            cout << "Warning: In " << __FUNCTION__ << ": There are several pointers in the context. Program will proceed with the last added pointer.\n";
-        }
-        if(Context->BasePointers.back().type != "string"){
-            cout << "Error: In " << __FUNCTION__ << ": String pointer required, but got \'" << Context->Variables.back().getType() << "\'.\n";
-            return;
-        }
-        *Context->BasePointers.back().pString = loadedText;
-    }
-    else if(Context->type == "variable"){
-        if(Context->Modules.Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": There are no variables in the context.\n";
-            return;
-        }
-        if(Context->Modules.Variables.size() != 1){
-            cout << "Warning: In " << __FUNCTION__ << ": There are several variables in the context. Program will proceed with the last added literal.\n";
-        }
-        if(Context->Modules.Variables.back()->getType() != 's'){
-            cout << "Error: In " << __FUNCTION__ << ": String variable required, but got \'" << Context->Variables.back().getType() << "\'.\n";
-            return;
-        }
-        Context->Modules.Variables.back()->setString(loadedText);
-    }
-    else{
-        cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
-    }
+    ContextClass NewContext;
+    NewContext.type = "value";
+    NewContext.Variables.push_back(VariableModule::newString(loadedText));
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass> & EventContext){
-    if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' requires one string (a path to a text file).\n";
-        return;
-    }
-    if(printOutInstructions){
-        cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
-    }
-    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
-    }
-
-    ContextClass * Context;
-    if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+    ContextClass * PathContext = nullptr, * TextContext = nullptr;
+    if(!getPairOfContexts(PathContext, TextContext, EventContext, Operation.dynamicIDs)){
         cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
 
+    string pathToTheFile = "";
+    if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': getting path from context failed.\n";
+        return;
+    }
+    if(pathToTheFile == "" || pathToTheFile[0] == ' '){
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + pathToTheFile << "\'.\n"; 
+    }
     string textFromContext = "";
-
-    if(!Context->getStringOrAbort(textFromContext, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+    if(!TextContext->getStringOrAbort(textFromContext, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': getting text from context failed.\n";
         return;
     }
 
-    std::ofstream File(EXE_PATH + Operation.Literals[0].getString());
+    std::ofstream File(EXE_PATH + pathToTheFile);
 
 	if(!File){
 		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << Operation.Literals[0].getString() << "\n";
@@ -5739,6 +5712,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     if(Owner->VariablesContainer.size() > 0){
         NewContext.Modules.Variables.push_back(&Owner->VariablesContainer.back());
         addNewContext(EventContext, NewContext, "variable", Operation.newContextID);
+        wereGlobalVariablesCreated = true;
     }
     else{
         cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
@@ -5881,12 +5855,12 @@ void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<Contex
         cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
         return;
     }
-    ContextClass * BeginContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
+    ContextClass * BeginContext = getContextByID(EventContext, Operation.dynamicIDs[1], true);
     if(TextContext == nullptr){
         cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
         return;
     }
-    ContextClass * LengthContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
+    ContextClass * LengthContext = getContextByID(EventContext, Operation.dynamicIDs[2], true);
     if(TextContext == nullptr){
         cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
         return;
@@ -7009,6 +6983,24 @@ void ProcessClass::resetChildren(vector<EveModule>::iterator & Event, AncestorOb
         }
     }
 }
+void addGlobalVariables(vector<ContextClass> & EventContext, vector<VariableModule> & VariablesContainer){
+    bool exists = false;
+    for(VariableModule & Variable : VariablesContainer){
+        for(const ContextClass & Context : EventContext){
+            if(Variable.getID() == Context.ID){
+                exists = true;
+                break;
+            }
+        }
+        if(exists){
+            continue;
+        }
+        EventContext.push_back(ContextClass());
+        EventContext.back().type = "variable";
+        EventContext.back().Modules.Variables.push_back(&Variable);
+        EventContext.back().ID = Variable.getID();
+    }
+}
 void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes){
     if(wasDeleteExecuted && deleteEntities()){
         updateBaseOfTriggerableObjects();
@@ -7112,17 +7104,17 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         Context.back().type = "layer";
         Context.back().Layers.push_back(TriggeredLayer);
         Context.back().ID = "my_layer";
-        for(VariableModule & Variable : Triggered->VariablesContainer){
-            Context.push_back(ContextClass());
-            Context.back().type = "variable";
-            Context.back().Modules.Variables.push_back(&Variable);
-            Context.back().ID = Variable.getID();
-        }
+        addGlobalVariables(Context, Triggered->VariablesContainer);
         preGeneratedContextSize = Context.size();
+
+        wereGlobalVariablesCreated = false;
 
         do{
             if(printOutInstructions){
                 printInColor("Current event: " + Event->getID() + "\n", 14);
+            }
+            if(wereGlobalVariablesCreated){
+                addGlobalVariables(Context, Triggered->VariablesContainer);
             }
             if(Event->conditionalStatus == 'n' && Interrupt.instruction != "break"){
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Engine, Context);
@@ -7172,6 +7164,10 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 else{
                     cout << "THIS SHOULD NOT HAPPENED\n";
                 }
+            }
+
+            if(wereGlobalVariablesCreated){
+                addGlobalVariables(Context, Triggered->VariablesContainer);
             }
 
             if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){ //loop back

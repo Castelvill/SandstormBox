@@ -7,6 +7,6 @@ fun First set_can_be_selected bool [0]
 fun me set_can_be_selected bool [0]
 bind First reset
 //bind First literal ["scripts/terminal.txt" "scripts/terminalHelp.txt"]
-bind First literal ["scripts/sand.txt"]
+bind First literal ["scripts/sand.txt" "scripts/sandHelp.txt"]
 build First true
 end

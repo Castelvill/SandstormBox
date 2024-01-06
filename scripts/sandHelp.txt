@@ -1,0 +1,266 @@
+start help
+print _ result string ["cls
+print
+fullscreen
+fs
+hello
+222
+cat
+cats
+sq
+neofetch
+sh
+spawn
+\tsyntax:
+\t\tspawn *type*
+\tParameters:
+\t\t-type: amongus1, amongus2, amongus3
+"]
+string [""] program
+run printOnTerminal
+end
+
+
+start cls
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ editable_text History
+int [0] zero
+fun History set_text int [0] string [""]
+string [""] program
+end
+
+
+start neofetch
+print _ result string ["  . .   ..   .:*@@@@m;'     ... . .   Mateusz
+         @@@@@@   . .@@@@@@ .         -----------------------
+.    .@@@@@@.  @@@@@@   .@@@@@.. .    OS: Sandstorm Box
+ .. @@@@ ..`@@@@@@@@@@@@@  @@@@@  .   Kernel: 0.1
+   @@  .@@@@@@@@@@@@@@@@@@@   @@@.    Shell: Sandbox 0.1
+..@@ .. )@@@@@@@@@@$@@@@@@@@@@  @@    Uptime: 420 hours, 4 mins
+ @@@  @@  ..@@@@@@@@@@@@@@@  ..@@@@.  Resolution: 1920x1080
+ @@@  @@@@@@   @@@@@mr.   ^@@@@@@@@   Theme: NewWorld
+.@@@  @$@@@@@@@.    }$@@@@@@@@@@@@@.  CPU: 12th Gen Intel i5-12600KF (16) @ 3.690GHz
+@@@@ .@@@@@@@@@@@ @@@@@ ..    @@@@@$  GPU: AMD Radeon RX 6700 XT
+ @@@. @@@@@@@@@@@ @@@@M  @@@i. .k@@   Memory: 12819MiB / 32592MiB
+ @@@ }@@@@@@@@@@@ @@@@@@   @@@[@@@@   
+.@@@' .W@@@@@@@@@.@v ..@@@   @@@@@@ 
+  @@@@@ .t@@@@@@@ @@ .  )@@  i@@@@  
+   @@@@@@p. .@@@@.@@@@@  .. /@@@@.  
+    @@@@@@@@@. @@ @@@@@@@@@@@@@@ .  
+ .    @@@@@@@@@    @@@@@@@@@@@ .    
+      . .@@@@@@@@@@@@@@@@@@  ..     
+.     .. .   x~/QMMJf_r   .         
+"]
+string [""] program
+run printOnTerminal
+end
+
+
+start 222
+int [1 2 3 4] x
+int [2 2 1 1] y
++= x x
+print " " result c x
+string ["\n"] endl
++= result endl
+string [""] program
+run printOnTerminal
+end
+
+
+start neofetch_host
+print _ result string ["                                ..,   Mateusz@DESKTOP-JVU6QTR
+                    ....,,:;+ccllll   -----------------------
+      ...,,+:;  cllllllllllllllllll   OS: Windows 10 Pro x86_64
+,cclllllllllll  lllllllllllllllllll   Host: Gigabyte
+llllllllllllll  lllllllllllllllllll   Kernel: 10.0.xxxx
+llllllllllllll  lllllllllllllllllll   Uptime: 10 hours, 4 mins
+llllllllllllll  lllllllllllllllllll   Packages: 4 (scoop)
+llllllllllllll  lllllllllllllllllll   Shell: bash 5.2.x
+llllllllllllll  lllllllllllllllllll   Resolution: 1366x768
+                                      DE: Aero
+llllllllllllll  lllllllllllllllllll   WM: Explorer
+llllllllllllll  lllllllllllllllllll   WM Theme: Custom
+llllllllllllll  lllllllllllllllllll   CPU: 12th Gen Intel i5-12600KF (16) @ 3.690GHz
+llllllllllllll  lllllllllllllllllll   GPU: Caption
+llllllllllllll  lllllllllllllllllll   GPU: AMD Radeon RX 6700 XT
+`'ccllllllllll  lllllllllllllllllll   GPU
+       `' \*::  :ccllllllllllllllll   Memory: 12819MiB / 32592MiB
+                       ````''*::cll
+                                 ``
+"]
+string [""] program
+run printOnTerminal
+end
+
+
+start hello
+print _ result string ["Hello, world!\n"]
+string [""] program
+run printOnTerminal
+end
+
+
+start cats
+print _ result string ["                      /^--^\     /^--^\     /^--^\
+                      \____/     \____/     \____/
+                     /      \   /      \   /      \
+                    |        | |        | |        |
+                     \__  __/   \__  __/   \__  __/
+|^|^|^|^|^|^|^|^|^|^|^|^\ \^|^|^|^/ /^|^|^|^|^\ \^|^|^|^|^|^|^|^|^|^|^|^|
+| | | | | | | | | | | | |\ \| | |/ /| | | | | | \ \ | | | | | | | | | | |
+| | | | | | | | | | | | / / | | |\ \| | | | | |/ /| | | | | | | | | | | |
+| | | | | | | | | | | | \/| | | | \/| | | | | |\/ | | | | | | | | | | | |
+#########################################################################
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+"]
+string [""] program
+run printOnTerminal
+end
+
+
+start sq
+print _ result string ["        .--'''''''''--.
+     .'      .---.      '.
+    /    .-----------.    \
+   /        .-----.        \
+   |       .-.   .-.       |
+   |      /   \ /   \      |
+    \    | .-. | .-. |    /
+     '-._| | | | | | |_.-'
+         | '-' | '-' |
+          \___/ \___/
+       _.-'  /   \  `-._
+     .' _.--|     |--._ '.
+     ' _...-|     |-..._ '
+            |     |
+            '.___.'
+              | |
+"]
+string [""] program
+run printOnTerminal
+end
+
+
+start print
+print _ result c param1
+string ["_enter"] program
+run printOnTerminal
+end
+
+
+start spawn
+//edit_proc print_instructions 1
+//edit_proc auto_print_stack 1
+
+new layer l 1 _ _ AmogusLayer
+fun AmogusLayer activate
+fun AmogusLayer set_id string [AmogusLayer]
+value ([context AmogusLayer id]) newLayerID
+
+//print ": " _ c AmogusLayer
+
+new camera l 1 _ _ NewWindow
+fun NewWindow set_position int [0 0]
+fun NewWindow set_id string [AmogusWindow0]
+fun NewWindow set_active bool [true]
+fun NewWindow resize int [640 480]
+fun NewWindow set_zoom double [1.0]
+fun NewWindow set_speed double [20]
+fun NewWindow set_key_zoom_in int [15]
+fun NewWindow set_key_zoom_out int [21]
+fun NewWindow set_zoom_increase double [0.02]
+fun NewWindow bind_keys int [15 21 13 9 12 11 10]
+fun NewWindow set_tint double [1.0 1.0 1.0 1.0]
+fun NewWindow set_drawing_borders bool [0]
+fun NewWindow set_can_interact_with_mouse bool [1]
+fun NewWindow set_can_move_with_mouse bool [1]
+fun NewWindow add_visible_layer c newLayerID
+fun NewWindow add_accessible_layer c newLayerID
+fun NewWindow set_grabbing_area_size int [640 50]
+fun NewWindow pin_to_camera string [Desktop]
+fun NewWindow activate_pin
+value ([context NewWindow id]) newWindowID
+
+//print \n _ c NewWindow
+
+new object c AmogusLayer 1 _ _ NewWindowObject
+fun NewWindowObject set_id string [Window]
+fun NewWindowObject set_can_be_selected bool [0]
+
+new primitives c NewWindowObject 1 _ _ border1
+fun border1 set_id string [background]
+fun border1 set_type string [filled_rounded_rectangle]
+fun border1 add_point double [0.0 0.0]
+fun border1 add_point double [880 980]
+fun border1 add_point c roundingSize c roundingSize
+fun border1 set_color double [0.0 0.0 0.0 0.7]
+fun border1 set_thickness double [10.0]
+fun border1 set_samples int [4]
+fun border1 select_layer int [0]
+fun border1 set_size int [640 480]
+fun border1 update_with_size
+
+new primitives c NewWindowObject 1 _ _ border2
+clone border2 border1
+fun border2 set_id string [toolbar]
+fun border2 set_color double [0.0 0.0 0.0 0.8]
+fun border2 select_layer int [2]
+fun border2 set_size int [640 50]
+fun border2 update_with_size
+
+new text c NewWindowObject 1 _ _ title
+fun title set_id string [title]
+fun title set_position int [10 10]
+fun title set_font string [arial24]
+fun title set_wrapping int [0]
+fun title add_new_and_update c newWindowID
+fun title set_size int [400 50]
+fun title select_layer int [-1]
+fun title set_color double [1.0 1.0 1.0 0.0]
+fun title attach_to_camera
+
+new object c AmogusLayer 1 _ _ NewAmo
+fun NewAmo set_id string [Amongus]
+fun NewAmo set_position double [0 80]
+new image c NewAmo 1 _ _ redAstronaut
+fun redAstronaut set_id string [amongus]
+fun redAstronaut connect_bitmap_via_alias c param1
+fun redAstronaut select_layer int [1]
+fun redAstronaut set_scale double [0.6 0.6]
+string [""] program
+end
+
+
+start sh
+string [""] instruction
+string [" "] space
++= instruction param1
++= instruction space
++= instruction param2
++= instruction space
++= instruction param3
++= instruction space
++= instruction param4
++= instruction space
++= instruction param5
++= instruction space
++= instruction param6
++= instruction space
++= instruction param7
+
+/*print \n _ c param1
+print \n _ c param2
+print \n _ c instruction*/
+
+string [""] program
+inject_instr me instruction
+end
+
+
+start cat
+load_text param1 result
+string ["_enter"] program
+run printOnTerminal
+end

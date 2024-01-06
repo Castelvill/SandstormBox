@@ -1537,11 +1537,19 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
             }
         }
-        else if(words[0] == "load_text" || words[0] == "save_text"){
+        else if(words[0] == "load_text"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            cursor = 2;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "save_text"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            Operation->dynamicIDs.push_back(words[1]);
             Operation->dynamicIDs.push_back(words[2]);
         }
         else if(words[0] == "ls"){

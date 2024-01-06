@@ -148,6 +148,12 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "set_vertical_align" && Values.size() > 0){
         Text->setVerticalAlign(Values[0].getIntUnsafe());
     }
+    else if(attribute == "set_cursor_pos" && Values.size() > 0){
+        Text->setCursorPos(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_second_cursor_pos" && Values.size() > 0){
+        Text->setSecondCursorPos(Values[0].getIntUnsafe());
+    }
     else{
         bool temp = false;
         if(Values.size() > 0){

@@ -212,7 +212,7 @@ private:
     vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
     bool firstIteration, rebooted;
-    bool wasDeleteExecuted, wasNewExecuted, wasAnyEventUpdated;
+    bool wasDeleteExecuted, wasNewExecuted, wasAnyEventUpdated, wereGlobalVariablesCreated;
 
     bool wasMousePressedInSelectedObject;
     CAMERA_MOVE activeCameraMoveType;

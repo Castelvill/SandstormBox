@@ -636,7 +636,7 @@ print *delimeter* [output] [[type] [value] ... ]
 
 **Syntax**
 
-load_text *path* *text*
+load_text *path* [output]
 
 **Description**
 
@@ -644,8 +644,8 @@ load_text *path* *text*
 
 **Parameters**
 
-- path (string) - path to a text file;
-- text (string) - id of the context of the string type.
+- path (string) - id of the path to a text file;
+- [output] (string) - id of the context for the loaded text.
 
 ## save_text
 
@@ -659,8 +659,8 @@ save_text *path* *text*
 
 **Parameters**
 
-- path (string) - path to a text file;
-- text (string) - id of the context of the string type.
+- path (string) - id of the context with a path to a text file;
+- text (string) - id of the context with a text to save.
 
 ## ls
 
