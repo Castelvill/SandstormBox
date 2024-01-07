@@ -6,6 +6,9 @@ env window_size 640 480//1920 1080
 edit_proc window_size 1920 1080
 edit_proc draw_camera_borders 1
 
+load_bitmap "images/background2.png" background2
+load_bitmap "images/background3.png" background3
+
 value ([window_w]) ww
 value ([window_h]) wh
 
@@ -28,6 +31,13 @@ fun Cam set_can_move_with_keyboard bool [0]
 fun Cam set_can_zoom_with_keyboard bool [0]
 fun Cam set_drawing_borders bool [0]
 
+new image c me 1 _ _ background
+//fun background deactivate
+fun background connect_bitmap_via_alias string [background2]
+fun background attach_to_camera
+fun background resize c ww c wh
+fun background set_color double [0.5 0.5 0.5 0.5]
+
 int [640] windowSizeX
 int [480] windowSizeY
 int [0 0] editableTextPos
@@ -41,7 +51,7 @@ fun Editable set_wrapping int [1]
 fun Editable set_editable bool [1]
 fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
-fun Editable add_new_and_update string ["Welcome in Sandstorm Box Terminal!"]
+fun Editable add_new_and_update string ["Welcome in Sandstorm Box terminal!"]
 fun Editable set_size int [1920 1080]
 fun Editable select_layer int [1]
 fun Editable set_color double [0.0 1.0 0.0 1.0]
@@ -130,6 +140,8 @@ value ([window_w]) w
 value ([window_h]) h
 index camera [0] _ camera Cam0
 fun Cam0 resize c w c h
+index context me [0 0] _ image background
+fun background resize c w c h
 
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ editable_text EditableText
@@ -162,7 +174,7 @@ tokenize command param0 param1 param2 param3 param4 param5 param6 param7
 
 string [neofetch help hello sq cats sh fullscreen fs spawn 222 cls cat print] allowedPrograms
 in param0 allowedPrograms isAllowed
-string [""] program
+string ["_enter"] program
 run programCheck
 end
 

@@ -11,10 +11,6 @@ sq
 neofetch
 sh
 spawn
-\tsyntax:
-\t\tspawn *type*
-\tParameters:
-\t\t-type: amongus1, amongus2, amongus3
 "]
 string [""] program
 run printOnTerminal

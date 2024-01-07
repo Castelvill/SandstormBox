@@ -19,7 +19,6 @@ load_bitmap "images/steve.png" steve
 load_bitmap "images/arch.jpg" i_use_arch_btw
 load_bitmap "images/insanity1.png" insanity1
 load_bitmap "images/minion1.png" minion_1
-load_bitmap "images/vaporeon.png" vaporeon
 load_bitmap "images/h3_dragon.png" dragon_h3
 load_bitmap "images/sword.png" sword
 load_bitmap "images/chad_doge.png" chad
@@ -28,10 +27,7 @@ load_bitmap "images/rocks2_200.png" rocks2_200
 load_bitmap "images/rocks2_300.png" rocks2_300
 load_bitmap "images/rocks1_300.png" rocks1_300
 load_bitmap "images/lel.png" lel
-load_bitmap "images/cat260.png" cat260
-load_bitmap "images/catSmall.jpg" catSmall
 load_bitmap "images/stars.jpg" background
-//load_bitmap "images/Ilulu.jpg" background1
 load_bitmap "images/background2.png" background2
 load_bitmap "images/background3.png" background3
 
