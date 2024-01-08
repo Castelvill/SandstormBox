@@ -211,7 +211,7 @@ fun title set_id string [title]
 fun title set_position int [10 10]
 fun title set_font string [arial24]
 fun title set_wrapping int [0]
-fun title add_new_and_update c newWindowID
+fun title add_new_and_update c param1
 fun title set_size int [400 50]
 fun title select_layer int [-1]
 fun title set_color double [1.0 1.0 1.0 0.0]
@@ -259,4 +259,8 @@ start cat
 load_text param1 result
 string ["_enter"] program
 run printOnTerminal
+end
+
+start exit
+power_off
 end

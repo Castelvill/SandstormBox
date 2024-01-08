@@ -229,7 +229,7 @@ void EngineClass::updateEvents(){
             releasedKeys = getReleasedKeys(key, pressedKeys);
             pressedKeys.clear();
             pressedKeys = getPressedKeys(key);
-            if(key[ALLEGRO_KEY_ESCAPE]){
+            if(key[ALLEGRO_KEY_LCTRL] && key[ALLEGRO_KEY_ESCAPE]){
                 closeProgram = true;
             }
             break;
