@@ -1608,7 +1608,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newString(words[2]));
             }
             else{
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In "
+                cout << "Error: In script: " << scriptName << ":\n\tIn line " << lineNumber << ": In "
                     << __FUNCTION__ << ": In instruction \'" << words[0] << "\' the type \'" << words[1] << "\' does not exist.\n";
                 continue;
             }
