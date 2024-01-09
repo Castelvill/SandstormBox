@@ -35,7 +35,6 @@ public:
     void detectCollision(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum);
     void clear();
     vec2d countMinimalDistanceBetween(vec2d sPos, vec2d sSize, vec2d mPos, vec2d mSize, double precision);
-    void changeParameters(bool newIsSolid, bool newCanPenetrateSolids, vec2d newPos, vec2d newSize);
     void switchSolid();
     void switchSolidPenetration();
     //ignoring_type = ["objects", "groups_of_objects", "hitboxes", "groups_of_hitboxes"]

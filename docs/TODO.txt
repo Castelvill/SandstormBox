@@ -1,10 +1,10 @@
--Remove changeParameters methods.
--First layer (KERNEL) should be a camera on the whole window (resizable) and an editableText on the whole window. 
+-Add the limitless mode to editable text fields.
+-Fix: cloning does not change the id of the new entity.
+-Add muting option to load_text or file_exists attribute to "value" instruction.
 -Fix: If the cursor is on the first line, down-arrow is moving cursor with an offset.
 -Build a template window binded to refreshing size event and border and borderless modes.
 -Ctrl+alt+t should open up a new terminal (clone the template)
--With command "shh" swap the accessed layer in the camera.
--Fix line number showing in eventAssembler.
+-Fix: line number showing in eventAssembler.
 -Command "sh print "xd\n"" does not work.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: print command doesn't use special signs.

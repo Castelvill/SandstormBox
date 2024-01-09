@@ -220,6 +220,12 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
     else if(attribute == "set_protected_area" && Values.size() > 0){
         EditableText->setProtectedArea(Values[0].getIntUnsafe());
     }
+    else if(attribute == "stop_editing"){
+        EditableText->setEditingIsActive(false);
+    }
+    else if(attribute == "start_editing"){
+        EditableText->setEditingIsActive(true);
+    }
     else{
         controlText(EditableText, attribute, Values, IDs, FontContainer);
     }

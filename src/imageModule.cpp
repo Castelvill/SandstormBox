@@ -585,20 +585,6 @@ void ImageModule::setUsedBitmapLayer(int newLayer){
 float ImageModule::getLightLevel() const{
     return lightLevel;
 }
-void ImageModule::changeParameters(string newID, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors){
-    setID(newID, listOfIDs);
-    setPos(dimPos.val[0], dimPos.val[1]);
-    setSize(dimPos.val[2], dimPos.val[3]);
-    setScale(newScale);
-    start.set(dimPos.val[4], dimPos.val[5]);
-    rotateAngle = newRotateAngle;
-    mirrorX = newMirrorX;
-    mirrorY = newMirrorY;
-    for(int i = 0; i < 4; i++)
-        imageColor[i] = newImageColors.val[i];
-    if(image)
-        al_convert_mask_to_alpha(image, al_map_rgb(255, 0, 255));
-}
 void ImageModule::modifyFrames(vec2d newFrameSize){
     frameSize.set(newFrameSize);
     if(!image)

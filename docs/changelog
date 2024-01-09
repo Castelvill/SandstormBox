@@ -1,3 +1,8 @@
+09.01.2024
+-Added ctrl+I shortcut to start editing in the text editor.
+-Moved context removal to the loop back if statement - the post-instructions were losing context from the pre-instructions.
+-Added "start_editing" and "stop_editing" functions to the EditableText module. 
+
 06.01.2024
 -Improved "Sand" terminal.
 -Improved load_text.

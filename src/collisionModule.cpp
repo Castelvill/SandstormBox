@@ -134,12 +134,6 @@ bool CollisionModule::isCloseEnough(vec2d solidPos, string solidName, vec2d movi
         return true;
     return false;
 }
-void CollisionModule::changeParameters(bool newIsSolid, bool newCanPenetrateSolids, vec2d newPos, vec2d newSize){
-    isSolid = newIsSolid;
-    setPos(newPos);
-    setSize(newSize);
-    canPenetrateSolids = newCanPenetrateSolids;
-}
 void CollisionModule::clear(){
     ignoredObjectsList.clear();
     ignoredGroupsOfObjectsList.clear();

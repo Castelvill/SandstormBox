@@ -78,7 +78,6 @@ public:
     void setLightColor(vec3d newLightColor, float newLightLevel);
     void setLightColor(float newLightColor, char whichLight);
     void setUsedBitmapLayer(int newLayer);
-    void changeParameters(string newID, vector<string> & listOfIDs, vec6d dimPos, double newRotateAngle, vec2d newScale, bool newMirrorX, bool newMirrorY, vec4d newImageColors);
     void modifyFrames(vec2d newFrameSize);
     void chooseFrames(vec2i newCurrentFrame);
     void clear();

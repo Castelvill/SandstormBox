@@ -5484,7 +5484,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
     std::ofstream File(EXE_PATH + pathToTheFile);
 
 	if(!File){
-		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << Operation.Literals[0].getString() << "\n";
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << EXE_PATH + pathToTheFile << "\n";
         return;
     }
 	File << textFromContext;
@@ -6045,6 +6045,11 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         else if(Operation.instruction == "substr"){
             getSubStringFromContext(Operation, EventContext);
+        }
+        else if(Operation.instruction == "reset_keyboard"){
+            Engine.pressedKeys.clear();
+            Engine.releasedKeys.clear();
+            Engine.firstPressedKeys.clear();
         }
         if(printOutInstructions && printOutStackAutomatically){
             string buffor = "Stack: ";
@@ -7157,20 +7162,19 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 MemoryStack.pop_back();
             }
 
-            if(MemoryStack.size() > 0){
-                if(MemoryStack.size() > 0 && MemoryStack.back().contextSize <= Context.size()){
-                    Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
-                }
-                else{
-                    cout << "THIS SHOULD NOT HAPPENED\n";
-                }
-            }
-
-            if(wereGlobalVariablesCreated){
-                addGlobalVariables(Context, Triggered->VariablesContainer);
-            }
-
             if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){ //loop back
+                if(MemoryStack.size() > 0){
+                    if(MemoryStack.size() > 0 && MemoryStack.back().contextSize <= Context.size()){
+                        Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
+                    }
+                    else{
+                        cout << "THIS SHOULD NOT HAPPENED\n";
+                    }
+                }
+                if(wereGlobalVariablesCreated){
+                    addGlobalVariables(Context, Triggered->VariablesContainer);
+                }
+                
                 Event->conditionalStatus = 'n';
                 Event->areDependentOperationsDone = false;
                 Event->elseChildFinished = false;
@@ -8381,12 +8385,9 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
                         }
                     }
                     if(TextField.getEditingIsActive()){
-                        Object.operateTextFieldUpdate(TextField, Layer.Objects, Engine.BitmapContainer, Layer.objectsIDs, EXE_PATH);
+                        //Object.operateTextFieldUpdate(TextField, Layer.Objects, Engine.BitmapContainer, Layer.objectsIDs, EXE_PATH);
                     }
                     TextField.setEditingIsActive(false);
-                    if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
-                        Object.EditableTextContainer[0].modifyContent(0, SelectedObject->getID());
-                    }
                 }
             }
         }
