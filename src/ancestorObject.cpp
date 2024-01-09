@@ -240,17 +240,6 @@ void AncestorObject::clearContainers(){
     ScrollbarContainer.clear();
     PrimitivesContainer.clear();
 }
-/*void AncestorObject::createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter){
-    setID(bID);
-    setPos(bPos);
-    setSize(bSize);
-    ImageContainer.push_back(ImageModule(ImageContainer.size()));
-    ImageContainer.back().connectBitmap(BitmapContainer, bImageID);
-    ImageContainer.back().changeParameters("0", vec6d(0.0, 0.0, bImageSize.x, bImageSize.y, 0.0, 0.0), 0.0, bImageScale, false, false, vec4d(1.0, 1.0, 1.0, 1.0));
-    ImageContainer.back().setIsScaledFromCenter(bIsScaledFromCenter);
-    ImageContainer.back().setIsAttachedToCamera(true);
-    setIsAttachedToCamera(true);
-}*/
 void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string EXE_PATH){
     for(AncestorObject & Object : Objects){
         if(EditableText.connectedObject == Object.getID()
