@@ -94,7 +94,7 @@ end
 
 start interrupt
 triggers key_pressed
-if ([key_pressed 215] [key_pressed 3] &&) //217-c, 215-shift, 3-c
+if ([key_pressed 215] [key_pressed 3] &&) //217-ctrl, 215-shift, 3-c
 string ["_enter"] program
 end
 
@@ -107,6 +107,15 @@ string ["$ "] result
 string ["sleep"] program
 run printOnTerminal
 end
+
+
+start clearOnShortcut
+triggers key_pressed
+if ([context program] [string "sleep"] == [key_pressed 217] && [key_pressed 12] &&)
+run cls
+end
+
+
 
 start controlerWithEnter
 triggers each_iteration
