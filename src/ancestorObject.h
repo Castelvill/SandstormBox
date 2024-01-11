@@ -54,7 +54,6 @@ public:
     void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID, const bool & changeOldID);
     void clearVectorsOfIDs();
     void clearContainers();
-    void createButton(string bID, vec2d bPos, vec2d bSize, vec2d bImageSize, vec2d bImageScale, string bImageID, vector <SingleBitmap> & BitmapContainer, bool bIsScaledFromCenter);
     void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string EXE_PATH);
     void refreshCoordinates();
     void createVectorsOfIds();

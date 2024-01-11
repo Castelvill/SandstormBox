@@ -577,7 +577,7 @@ load_bitmap *path* *name*
 
 **Syntax**
 
-load_bitmap *path* *size* *name*
+load_font *path* *size* *name*
 
 **Description**
 

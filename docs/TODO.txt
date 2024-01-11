@@ -1,3 +1,4 @@
+-Add push and pop instructions.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Add the limitless mode to editable text fields.
 -Fix: cloning does not change the id of the new entity.
@@ -21,26 +22,21 @@
 -Add scrolling to the terminal: automatic and the scrollbar.
 -Fix: Reboot doesn't work.
 -Fix: after pasting text inside the command line, right arrow doesn't go behind the text.
--Test load_build instruction.
--Improve terminal: add auto scrolling to the history and enable user to copy text from not-editable editable text fields.
 -Copy some cool ui for the terminal.
--Remember to use "clone".
 
-MILESTONE:
-Terminal with printing, scrolling and a history of used commands.
+MILESTONE: Terminal with printing, scrolling and a history of used commands.
 
--Add "sh" MODE to the Terminal.
+-Add "instruction" MODE to the Terminal.
 -Fix: zooming edited text can move its position.
 -Add module scalling from the edge of the camera.
--Add "Ctrl + c" support: While the events are running, they always check if ctrl+c is pressed. If it is, they abort their execution. It will not help with infinite loops yet, but it can stop events that are executed in each iteration. You could implement it in c++ or in your script with if statement and “else” event that for example removes the “each_iteration” trigger from a selected event.
+-Add a backdoor that will disable all each_iteration triggers to fight the infinite loops.
 -Finish implementing "new_proc" instruction – new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
 -Upgrade “edit_proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
 -Implement “clone_to_proc” – cloning (adding) a context into the selected process.
 -Add buffers(bitmaps) to processes instead of cropping rectangle.
 -Think about better way of getting attributes from module contexts.
--Change "random_int" instruction into "random".
--Update documentation.
+-Evolve "random_int" instruction into "random".
 -Add more milestones.
 -Copy tilemap editor from Godot.
 -Connect primitives to cameras.
@@ -49,7 +45,6 @@ Terminal with printing, scrolling and a history of used commands.
 -Add an interactive grid to cameras.
 -Add instruction “clone_to_process <context_id> <thread_id> [activate_sim]” – clones layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
 -Add instruction “move_to_process <context_id> <thread_id> [activate_sim]” – moves (clone and delete) layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
--Create Window templates.
 -Add Window: Options - shows the list of options/functions of the entity/window, every list item is a button, camera is immobilized, minimizes when mouse is out of focus.
 -Add Window: Filesystem – displays container for entities (threads, projects, layers, cameras, objects, modules, images, text, etc.). You cannot move camera freely. You can scroll up and down. Right clicking on the entity brings up the Options window. Filesystem has many display mods: list, icons, movable icons (like in old macs, very easy to implement because icons are just objects), tree (like in vs code). You can also open different threads like different partitions, but that might be problematic.
 -Add Window: ImagePlacement - only draws images of a one object, you can move images around, you can also move camera. On technical plane, objects in this window directly correspond/point to images from the chosen object.
@@ -68,31 +63,22 @@ Terminal with printing, scrolling and a history of used commands.
 -Add "load <fileName> <context> [force]" instruction. Load will overwrite all entities in the context based on the contents of the file. If the user doesn't provide big enough context, instruction will fail. By using force, engine will create new (valid number of) entities, add them to the context and finally overwrite everything.
 -Projects will be the another type of entity and it will just add new way of saving and loading entities.
 -Add hyperlinks to the SuperText. Clicking them will be able to trigger an event.
--LayerManagerWindow / Project tree.
--Use translateToAllegroKey.
--Remove ancestor::createButton method.
+-Create LayerManagerWindow / Project tree.
 -Add logging system with filters and colors.
--Go through every module and ask the question: can events modify everything? 
--Some instructions don’t work with zero dynamicIDs.
 -Implement variable change detection and add it to triggers lookup table.
 -Add “areObjectsActive” bool to layers – if it’s true, modules and events of objects in this layer can be executed. Reason: layers are processes and can become games by cloning them and switching “areObjectsActive” to true.
 -Add “IDPermissions”, “groupPermissions” vectors to layers.
 -Events can access context of layers in layer’s IDPermissions and groupPermissions.
 -Add mouse selection to if statement sources.
--Remove ALL remains of old event system.
 -Add buffer to EditableText – during the editing process text field prints the buffer state, while the original, unchanged content is used in events.
--Test: 50x50 big pixel screen, activate one pixels every 0.25s, 0.5s, 1s, 2s.
--Test: “paper, scissor, stone” – three groups of randomly moving objects, each kills objects from one other group.
--Create Goo Scripting Language.
 -Update realAreaOfScrolling.
--Editables should update its value in the beginning and on update of the connected variable
-now it's just hard-wired in editor.
+-Editables should update its value in the beginning and on update of the connected variable now it's just hard-wired in editor.
 -Undo, redo.
 -Create a documentation based on linux manuals.
 
 -MILESTONE: you can configure every object visible on the map using OBJECT EDITOR (look up program_model.png)
 
-- Pick up an object from TREE OF OBJECTS instead of only from the map to change edit window context; TREE OF OBJECTS is a file tree.
+-Pick up an object from TREE OF OBJECTS instead of only from the map to change edit window context; TREE OF OBJECTS is a file tree.
 -Save and load projects.
 
 -MILESTONE: you can save current project (with all objects and configurations), load saved projects, create a new project.
@@ -126,7 +112,6 @@ now it's just hard-wired in editor.
 -Add gifs.
 
 -MILESTONE: Make donut.cpp with EGM script.
-
 
 OPTIMALIZATIONS
 -Function createNewModule recalculates indexes of all modules for each module added. Remove template and create custom index recalculation for each module.
