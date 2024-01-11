@@ -34,51 +34,19 @@ unsigned int Fps::get() const{
     return m_fps;
 }
 
-void loadFontsToContainer(vector <SingleFont> & FontContainer, string EXE_PATH){
-    std::ifstream fontListFile;
-    fontListFile.open(EXE_PATH+"fonts/font_list.txt");
-
-    short fontSizes[] = {12, 24, 48, 72};
-    unsigned short i;
-    string fileName, filePath;
-    while(fontListFile >> fileName){
-        if(fileName.substr(fileName.size()-4, fileName.size()) != ".ttf"){
-            cout << "Wrong file extension! Aborting fonts loading.\n";
-            fontListFile.close();
-            return;
-        }
-        filePath = EXE_PATH+"fonts/" + fileName;
-        //cout << filePath << "\n";
-        for(i = 0; i < (sizeof(fontSizes)/sizeof(*fontSizes)); i++){
-            FontContainer.push_back(SingleFont());
-            FontContainer.back().font = al_load_ttf_font(filePath.c_str(), fontSizes[i], 2);
-            FontContainer.back().ID = fileName.substr(0, fileName.size()-4) + intToStr(fontSizes[i]);
-            FontContainer.back().sizeF = fontSizes[i];
-        }
-    }
-    fontListFile.close();
-    //cout << FontContainer.size() << " fonts loaded\n";
-}
 void freeFontsFromContainer(vector <SingleFont> & FontContainer){
     for(unsigned int i = 0; i < FontContainer.size(); i++){
         al_destroy_font(FontContainer[i].font);
     }
     FontContainer.clear();
-    if(FontContainer.size() == 0){
-        //cout << "\nAll fonts destroyed.\n";
-    }
 }
 void freeBitmapsFromContainer(vector <SingleBitmap> & BitmapContainer){
     for(unsigned int i = 0; i < BitmapContainer.size(); i++){
         if(BitmapContainer[i].bitmap){
             al_destroy_bitmap(BitmapContainer[i].bitmap);
-            //cout << "Bitmap '" << BitmapContainer[i].ID << "' destroyed. (by GeneralBitmapContainer)\n";
         }
     }
     BitmapContainer.clear();
-    if(BitmapContainer.size() == 0){
-        //cout << "\nAll bitmaps in general image container destroyed.\n\n";
-    }
 }
 
 vector <short> getPressedKeys(unsigned char key[]){
@@ -153,7 +121,6 @@ void EngineClass::initAllegro(){
     char buffer[1000] = { 0 };
     sprintf(buffer, "%s", al_path_cstr(path, ALLEGRO_NATIVE_PATH_SEP));
     EXE_PATH = string(buffer);
-    //cout << EXE_PATH << "\n";
 
 
     //cursorBitmap = al_load_bitmap("images/cursor.png");
@@ -168,8 +135,6 @@ void EngineClass::initAllegro(){
     eventQueue = al_create_event_queue();
 
     timer = al_create_timer(1.0 / FPS);
-
-    //cout << "Timer speed: "<< al_get_timer_speed(timer)*60 << "s\n";
 
     al_register_event_source(eventQueue, al_get_keyboard_event_source());
     al_register_event_source(eventQueue, al_get_display_event_source(display));
@@ -189,7 +154,7 @@ void EngineClass::initAllegro(){
         al_set_display_icon(display, iconBitmap);
     }
 
-    loadFontsToContainer(FontContainer, EXE_PATH);
+    //loadFontsToContainer(FontContainer, EXE_PATH);
 
     //Find out how much buttons the user has.
     Mouse.setUp();
@@ -267,6 +232,28 @@ void EngineClass::endEvents(){
             redraw = true;
             break;
     }
+}
+
+void EngineClass::loadNewFont(string path, int size, string newID){
+    if(path.size() < 5){
+        cout << "Error: In " << __FUNCTION__ << ": Path to the font file is too short.\n";
+        return;
+    }
+    string fileExtension = path.substr(path.size()-4, path.size());
+    if(fileExtension != ".ttf"){
+        cout << "Error: In " << __FUNCTION__ << ": '" << fileExtension << "' is not a valid font extension.\n";
+        return;
+    }
+    path = EXE_PATH + path;
+    FontContainer.push_back(SingleFont());
+    FontContainer.back().font = al_load_ttf_font(path.c_str(), size, 0);
+    if(!FontContainer.back().font || FontContainer.back().font == nullptr){
+        FontContainer.pop_back();
+        cout << "Error: In " << __FUNCTION__ << ": Failed to load a font from '" << path << "'.\n";
+        return;
+    }
+    FontContainer.back().ID = newID;
+    FontContainer.back().sizeF = size;
 }
 
 bool EngineClass::isRunning() const{

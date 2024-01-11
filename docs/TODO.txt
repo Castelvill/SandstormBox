@@ -1,4 +1,3 @@
--Fix: the lack of fonts crashes the engine.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Add the limitless mode to editable text fields.
 -Fix: cloning does not change the id of the new entity.
@@ -70,7 +69,6 @@ Terminal with printing, scrolling and a history of used commands.
 -Projects will be the another type of entity and it will just add new way of saving and loading entities.
 -Add hyperlinks to the SuperText. Clicking them will be able to trigger an event.
 -LayerManagerWindow / Project tree.
--Load fonts from script.
 -Use translateToAllegroKey.
 -Remove ancestor::createButton method.
 -Add logging system with filters and colors.

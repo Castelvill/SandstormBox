@@ -573,6 +573,22 @@ load_bitmap *path* *name*
 - path (string) - path to an image file;
 - name (string) - name for the new bitmap.
 
+## load_font
+
+**Syntax**
+
+load_bitmap *path* *size* *name*
+
+**Description**
+
+    Load a font from a file path to the engine's RAM.
+
+**Parameters**
+
+- path (string) - id of the context with a path to a font file;
+- size (string) - id of the context with a size of the new font;
+- name (string) - id of the context with the name for the new font.
+
 ## mkdir
 
 **Syntax**

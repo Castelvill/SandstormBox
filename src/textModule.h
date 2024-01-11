@@ -11,8 +11,8 @@ public:
     short sizeF;
 };
 
-SingleFont * findFontByID(std::vector <SingleFont> FontContainer, string fontID);
-double getFontHeight(std::vector <SingleFont> FontContainer, string fontID);
+SingleFont * findFontByID(vector <SingleFont> FontContainer, string fontID);
+double getFontHeight(vector <SingleFont> FontContainer, string fontID);
 
 class TextModule: public PrimaryModule{
 //It connects with a font via font ID and size.

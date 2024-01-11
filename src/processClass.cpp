@@ -5856,12 +5856,12 @@ void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<Contex
         return;
     }
     ContextClass * BeginContext = getContextByID(EventContext, Operation.dynamicIDs[1], true);
-    if(TextContext == nullptr){
+    if(BeginContext == nullptr){
         cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
         return;
     }
     ContextClass * LengthContext = getContextByID(EventContext, Operation.dynamicIDs[2], true);
-    if(TextContext == nullptr){
+    if(LengthContext == nullptr){
         cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
         return;
     }
@@ -5892,6 +5892,48 @@ void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<Contex
     NewContext.type = "value";
     NewContext.Variables.push_back(VariableModule::newString(text.substr(beginning, length)));
     moveOrRename(EventContext, &NewContext, Operation.newContextID);
+}
+void ProcessClass::loadFontFromContext(OperaClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine){
+    if(Operation.dynamicIDs.size() < 3){
+        cout << "Error: In" << __FUNCTION__ << ": \'" << Operation.instruction << "\' requires at least three contexts.\n";
+        return;
+    }
+
+    ContextClass * FilePathContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
+    if(FilePathContext == nullptr){
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
+        return;
+    }
+    ContextClass * SizeContext = getContextByID(EventContext, Operation.dynamicIDs[1], true);
+    if(SizeContext == nullptr){
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
+        return;
+    }
+    ContextClass * IDContext = getContextByID(EventContext, Operation.dynamicIDs[2], true);
+    if(IDContext == nullptr){
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << Operation.instruction << "\': Failed to get context.\n";
+        return;
+    }
+
+    string filePath = "";
+    if(!FilePathContext->getStringOrAbort(filePath, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        return;
+    }
+
+    int fontSize = 0;
+    if(!SizeContext->getIntOrAbort(fontSize, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        return;
+    }
+
+    string fontID = "";
+    if(!IDContext->getStringOrAbort(fontID, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
+        return;
+    }
+
+    Engine.loadNewFont(filePath, fontSize, fontID);
 }
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
@@ -6045,6 +6087,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         }
         else if(Operation.instruction == "substr"){
             getSubStringFromContext(Operation, EventContext);
+        }
+        else if(Operation.instruction == "load_font"){
+            loadFontFromContext(Operation, EventContext, Engine);
         }
         else if(Operation.instruction == "reset_keyboard"){
             Engine.pressedKeys.clear();

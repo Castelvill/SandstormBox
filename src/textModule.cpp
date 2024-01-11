@@ -3,10 +3,15 @@
 SingleFont * findFontByID(vector <SingleFont> FontContainer, string fontID){
     for(SingleFont & font : FontContainer){
         if(fontID == font.ID){
+            if(!font.font){
+                cout << "Error: In " << __FUNCTION__ << ": Font '" << fontID << "' does not exist.\n";
+                return nullptr;
+            }
             return &font;
         }
     }
-    return &FontContainer[0];
+    cout << "Error: In " << __FUNCTION__ << ": Font '" << fontID << "' does not exist.\n";
+    return nullptr;
 }
 
 double getFontHeight(vector <SingleFont> FontContainer, string fontID){
@@ -75,11 +80,14 @@ void TextModule::addNewContent(string newContent){
     adjustCursorPos();
 }
 void TextModule::fitSizeToText(vector <SingleFont> FontContainer){
-    ALLEGRO_FONT * font = findFontByID(FontContainer, fontID)->font;
-    vec2d newSize(0.0, al_get_font_line_height(font));
+    SingleFont * Font = findFontByID(FontContainer, fontID);
+    if(Font == nullptr){
+        return;
+    }
+    vec2d newSize(0.0, al_get_font_line_height(Font->font));
     for(string text : content){
-        if(newSize.x < al_get_text_width(font, text.c_str())){
-            newSize.x = al_get_text_width(font, text.c_str());
+        if(newSize.x < al_get_text_width(Font->font, text.c_str())){
+            newSize.x = al_get_text_width(Font->font, text.c_str());
         }
     }
     size.set(newSize);

@@ -16,6 +16,11 @@ load_bitmap "images/arch.jpg" arch
 load_bitmap "images/cobblestone.png" cobblestone
 load_bitmap "images/elephant.jpg" elephant
 
+string ["fonts/fira_mono.ttf"] path
+int [24] size
+string ["fira_mono24"] name
+load_font path size name
+
 value ([window_w]) ww
 value ([window_h]) wh
 

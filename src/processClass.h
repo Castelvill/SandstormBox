@@ -344,6 +344,7 @@ public:
     void printTree(OperaClass & Operation, vector<ContextClass> & EventContext, vector<ProcessClass> & Processes);
     void getStringSizeFromContext(OperaClass & Operation, vector<ContextClass> & EventContext);
     void getSubStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void loadFontFromContext(OperaClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine);
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,

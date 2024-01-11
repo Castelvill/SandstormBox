@@ -71,6 +71,8 @@ public:
     void updateEvents();
     void endEvents();
 
+    void loadNewFont(string path, int size, string newID);
+
     bool isRunning() const;
     int getWindowW() const;
     int getWindowH() const;
