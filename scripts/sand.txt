@@ -17,8 +17,8 @@ load_bitmap "images/cobblestone.png" cobblestone
 load_bitmap "images/elephant.jpg" elephant
 
 string ["fonts/fira_mono.ttf"] path
-int [24] size
-string ["fira_mono24"] name
+int [20] size
+string ["fira_mono"] name
 load_font path size name
 
 value ([window_w]) ww
@@ -58,7 +58,7 @@ new editable_text c me 1 _ _ TerminalTextField
 //fun TerminalTextField attach_to_camera
 fun TerminalTextField set_id string [edi]
 fun TerminalTextField set_position c editableTextPos
-fun TerminalTextField set_font string [fira_mono24]
+fun TerminalTextField set_font string [fira_mono]
 fun TerminalTextField set_wrapping int [0]
 fun TerminalTextField set_editable bool [1]
 fun TerminalTextField set_space_use bool [1]

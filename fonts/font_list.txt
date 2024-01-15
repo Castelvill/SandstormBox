@@ -1,6 +1,0 @@
-arial.ttf
-cooper_black.ttf
-comic.ttf
-Minecraft.ttf
-fira_mono.ttf
-whitrabt.ttf
