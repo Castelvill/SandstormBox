@@ -129,8 +129,7 @@ VariableModule LayerClass::getValue(string attribute, string option) const{
     cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     return VariableModule();
 }
-void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, const bool &changeOldID)
-{
+void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, const bool &changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
         cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
@@ -149,13 +148,12 @@ void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, co
     groups = Original.groups;
     isActive = Original.isActive;
     deleted = Original.deleted;
-    objectsIDs = Original.objectsIDs;
     pos.set(Original.pos);
     size.set(Original.size);
 
     for(const AncestorObject & Object : Original.Objects){
         Objects.push_back(AncestorObject());
-        Objects.back().clone(Object, objectsIDs, ID, false);
+        Objects.back().clone(Object, objectsIDs, ID, true);
     }
 
     /*for(AncestorObject & Object : Objects){

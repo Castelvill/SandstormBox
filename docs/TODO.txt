@@ -1,7 +1,6 @@
 -Implement controls for the template of the window.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Add the limitless mode to editable text fields.
--Fix: cloning does not change the id of the new entity.
 -Add muting option to load_text or file_exists attribute to "value" instruction.
 -Fix: If the cursor is on the first line, down-arrow is moving cursor with an offset.
 -Add borderless mode to the window template.
