@@ -83,7 +83,6 @@ fun Border add_point c roundingSize c roundingSize
 fun Border set_color double [0.0 0.0 0.0 0.7]
 fun Border set_position double [0 0]
 fun Border set_thickness double [10.0]
-fun Border set_samples int [4.0]
 fun Border select_layer int [0]
 fun Border set_size c windowSizeX c historySizeY
 fun Border update_with_size
@@ -172,7 +171,6 @@ fun PrimiFun add_point double [880 980]
 fun PrimiFun add_point double [10.0 10.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.7]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun set_samples int [4.0]
 fun PrimiFun select_layer int [0]
 fun PrimiFun set_size int [640 480]
 fun PrimiFun update_with_size
@@ -184,7 +182,6 @@ fun PrimiFun add_point double [880 980]
 fun PrimiFun add_point double [10.0 10.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.8]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun set_samples int [4]
 fun PrimiFun select_layer int [0]
 fun PrimiFun set_size int [640 50]
 fun PrimiFun update_with_size

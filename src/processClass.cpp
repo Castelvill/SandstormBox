@@ -555,6 +555,54 @@ void ContextClass::clear(){
     Layers.clear();
     Cameras.clear();
 }
+size_t ContextClass::getVectorSize() const{
+    if(type == "value"){
+        return Variables.size();
+    }
+    if(type == "pointer"){
+        return BasePointers.size();
+    }
+    if(type == "variable"){
+        return Modules.Variables.size();
+    }
+    if(type == "camera"){
+        return Cameras.size();
+    }
+    if(type == "layer"){
+        return Layers.size();
+    }
+    if(type == "object"){
+        return Objects.size();
+    }
+    if(type == "text"){
+        return Modules.Texts.size();
+    }
+    if(type == "editable_text"){
+        return Modules.EditableTexts.size();
+    }
+    if(type == "image"){
+        return Modules.Images.size();
+    }
+    if(type == "movement"){
+        return Modules.Movements.size();
+    }
+    if(type == "collision"){
+        return Modules.Collisions.size();
+    }
+    if(type == "particles"){
+        return Modules.Particles.size();
+    }
+    if(type == "event"){
+        return Modules.Events.size();
+    }
+    if(type == "scrollbar"){
+        return Modules.Scrollbars.size();
+    }
+    if(type == "primitives"){
+        return Modules.Primitives.size();
+    }
+    return 0;
+}
 string ContextClass::getValue(){
     string buffer = "";
     if(type == ""){
@@ -600,43 +648,7 @@ string ContextClass::getValue(){
     }
     else{
         buffer += "<";
-        if(type == "camera"){
-            buffer += uIntToStr(Cameras.size());
-        }
-        else if(type == "layer"){
-            buffer += uIntToStr(Layers.size());
-        }
-        else if(type == "object"){
-            buffer += uIntToStr(Objects.size());
-        }
-        else if(type == "text"){
-            buffer += uIntToStr(Modules.Texts.size());
-        }
-        else if(type == "editable_text"){
-            buffer += uIntToStr(Modules.EditableTexts.size());
-        }
-        else if(type == "image"){
-            buffer += uIntToStr(Modules.Images.size());
-        }
-        else if(type == "movement"){
-            buffer += uIntToStr(Modules.Movements.size());
-        }
-        else if(type == "collision"){
-            buffer += uIntToStr(Modules.Collisions.size());
-        }
-        else if(type == "particles"){
-            buffer += uIntToStr(Modules.Particles.size());
-        }
-        else if(type == "event"){
-            buffer += uIntToStr(Modules.Events.size());
-        }
-        else if(type == "scrollbar"){
-            buffer += uIntToStr(Modules.Scrollbars.size());
-        }
-        else if(type == "primitives"){
-            buffer += uIntToStr(Modules.Primitives.size());
-        }
-        
+        buffer += uIntToStr(getVectorSize());
         buffer += ">";
     }
     if(readOnly){
@@ -760,6 +772,30 @@ bool ContextClass::getStringOrAbort(string & text, string instruction){
     else{
         cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
+        return false;
+    }
+    return true;
+}
+bool ContextClass::getStringOrIgnore(string & text, string instruction){
+    if(type == "value"){
+        if(Variables.size() == 0 || Variables.back().getType() != 's'){
+            return false;
+        }
+        text = Variables.back().getStringUnsafe();
+    }
+    else if(type == "pointer"){
+        if(BasePointers.size() == 0 || BasePointers.back().type != "string"){
+            return false;
+        }
+        text = BasePointers.back().getString();
+    }
+    else if(type == "variable"){
+        if(Modules.Variables.size() == 0 || Modules.Variables.back()->getType() != 's'){
+            return false;
+        }
+        text = Modules.Variables.back()->getStringUnsafe();
+    }
+    else{
         return false;
     }
     return true;
@@ -2367,7 +2403,7 @@ void ContextClass::setID(vector<ContextClass> &EventContext, string newID, const
         ID = newID;
     }
 }
-void ProcessClass::nameVariable(vector<ContextClass> & EventContext, OperaClass & Operation){
+void ProcessClass::nameVariable(vector<ContextClass> &EventContext, OperaClass &Operation){
     ContextClass * LeftOperand = nullptr;
 
     if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)){
@@ -3368,7 +3404,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             if(i < newIDs.size()){
                 ID = newIDs[i];
             }
-            Cameras.push_back(Camera2D(ID, camerasIDs));
+            Cameras.push_back(Camera2D(ID, camerasIDs, 0));
             NewContext.Cameras.push_back(&Cameras.back());
             camerasOrder.push_back(camerasOrder.size());
         }
@@ -4676,6 +4712,9 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
         else if(Operation.Location.attribute == "set_keep_inside_screen" && Variables.size() > 0){
             Camera->keepInsideScreen = Variables[0].getBoolUnsafe();
         }
+        else if(Operation.Location.attribute == "set_samples" && Variables.size() > 0){
+            Camera->setAntialiasingSamples(Variables[0].getIntUnsafe());
+        }
         else{
             cout << "Error: In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
@@ -5844,6 +5883,21 @@ void ProcessClass::getStringSizeFromContext(OperaClass & Operation, vector<Conte
     NewContext.Variables.push_back(VariableModule::newInt(text.size()));
     moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
+void ProcessClass::getSizeOfContext(OperaClass & Operation, vector<ContextClass> & EventContext){
+    ContextClass * Context = nullptr;
+    if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In" << __FUNCTION__ << ": \'" << Operation.instruction << "\' requires at least one context.\n";
+        return;
+    }
+    
+    int size = 0;
+    size = Context->getVectorSize();
+
+    ContextClass NewContext;
+    NewContext.type = "value";
+    NewContext.Variables.push_back(VariableModule::newInt(size));
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
+}
 void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.dynamicIDs.size() < 3){
         cout << "Error: In" << __FUNCTION__ << ": \'" << Operation.instruction << "\' requires at least three contexts.\n";
@@ -5934,6 +5988,128 @@ void ProcessClass::loadFontFromContext(OperaClass & Operation, vector<ContextCla
     }
 
     Engine.loadNewFont(filePath, fontSize, fontID);
+}
+void ProcessClass::findByIDInEventContext(OperaClass & Operation, vector<ContextClass> & EventContext){
+    ContextClass * VectorContext = nullptr, * IDContext = nullptr;
+    if(!getPairOfContexts(VectorContext, IDContext, EventContext, Operation.dynamicIDs)){
+        return;
+    }
+    string id = "";
+    IDContext->getStringOrIgnore(id, Operation.instruction);
+
+    ContextClass NewContext;
+    NewContext.type = VectorContext->type;
+
+    if(id == ""){
+        addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
+        return;
+    }
+    
+    if(VectorContext->type == "variable"){
+        for(VariableModule * Variable : VectorContext->Modules.Variables){
+            if(Variable->getID() == id){
+                VectorContext->Modules.Variables.push_back(Variable);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "camera"){
+        for(Camera2D * Camera : VectorContext->Cameras){
+            if(Camera->getID() == id){
+                NewContext.Cameras.push_back(Camera);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "layer"){
+        for(LayerClass * Layer : VectorContext->Layers){
+            if(Layer->getID() == id){
+                NewContext.Layers.push_back(Layer);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "object"){
+        for(AncestorObject * Object : VectorContext->Objects){
+            if(Object->getID() == id){
+                NewContext.Objects.push_back(Object);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "text"){
+        for(TextModule * Text : VectorContext->Modules.Texts){
+            if(Text->getID() == id){
+                NewContext.Modules.Texts.push_back(Text);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "editable_text"){
+        for(EditableTextModule * EditableText : VectorContext->Modules.EditableTexts){
+            if(EditableText->getID() == id){
+                NewContext.Modules.EditableTexts.push_back(EditableText);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "image"){
+        for(ImageModule * Image : VectorContext->Modules.Images){
+            if(Image->getID() == id){
+                NewContext.Modules.Images.push_back(Image);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "movement"){
+        for(MovementModule * Movement : VectorContext->Modules.Movements){
+            if(Movement->getID() == id){
+                NewContext.Modules.Movements.push_back(Movement);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "collision"){
+        for(CollisionModule * Collision : VectorContext->Modules.Collisions){
+            if(Collision->getID() == id){
+                NewContext.Modules.Collisions.push_back(Collision);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "particles"){
+        for(ParticleEffectModule * Particle : VectorContext->Modules.Particles){
+            if(Particle->getID() == id){
+                NewContext.Modules.Particles.push_back(Particle);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "event"){
+        for(EveModule * Event : VectorContext->Modules.Events){
+            if(Event->getID() == id){
+                NewContext.Modules.Events.push_back(Event);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "scrollbar"){
+        for(ScrollbarModule * Scrollbar : VectorContext->Modules.Scrollbars){
+            if(Scrollbar->getID() == id){
+                NewContext.Modules.Scrollbars.push_back(Scrollbar);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "primitives"){
+        for(PrimitivesModule * Primitive : VectorContext->Modules.Primitives){
+            if(Primitive->getID() == id){
+                NewContext.Modules.Primitives.push_back(Primitive);
+                break;
+            }
+        }
+    }
+    addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
 }
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
@@ -6085,6 +6261,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         else if(Operation.instruction == "len"){
             getStringSizeFromContext(Operation, EventContext);
         }
+        else if(Operation.instruction == "size"){
+            getSizeOfContext(Operation, EventContext);
+        }
         else if(Operation.instruction == "substr"){
             getSubStringFromContext(Operation, EventContext);
         }
@@ -6096,7 +6275,10 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             Engine.releasedKeys.clear();
             Engine.firstPressedKeys.clear();
         }
-        if(printOutInstructions && printOutStackAutomatically){
+        else if(Operation.instruction == "find_by_id_2"){
+            findByIDInEventContext(Operation, EventContext);
+        }
+        if((printOutInstructions && printOutStackAutomatically) || Operation.instruction == "dump_context_stack"){
             string buffor = "Stack: ";
             for(auto context : EventContext){
                 buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
@@ -8134,6 +8316,8 @@ void ProcessClass::drawEverything(EngineClass & Engine){
             //    Engine.Mouse.getPos().x, Engine.Mouse.getPos().y, al_map_rgb(200, 200, 200), 1);
         }
     }
+
+    //draw_horizontal_gradient_rect(200, 200, 840, 680, al_map_rgba(255, 0, 255, 255), al_map_rgba(0, 255, 0, 255));
 
     al_reset_clipping_rectangle();
 }

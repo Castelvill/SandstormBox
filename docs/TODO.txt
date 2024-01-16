@@ -1,10 +1,10 @@
--Add push and pop instructions.
+-Implement controls for the template of the window.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Add the limitless mode to editable text fields.
 -Fix: cloning does not change the id of the new entity.
 -Add muting option to load_text or file_exists attribute to "value" instruction.
 -Fix: If the cursor is on the first line, down-arrow is moving cursor with an offset.
--Build a template window binded to refreshing size event and border and borderless modes.
+-Add borderless mode to the window template.
 -Ctrl+alt+t should open up a new terminal (clone the template)
 -Fix: line number showing in eventAssembler.
 -Command "sh print "xd\n"" does not work.
@@ -23,6 +23,7 @@
 -Fix: Reboot doesn't work.
 -Fix: after pasting text inside the command line, right arrow doesn't go behind the text.
 -Copy some cool ui for the terminal.
+-Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
 
 MILESTONE: Terminal with printing, scrolling and a history of used commands.
 

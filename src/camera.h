@@ -41,14 +41,15 @@ public:
     vec2d grabbingAreaPos, grabbingAreaSize;
 
     float tint[4];
+    int samples;
 
     vector <string> visibleLayersIDs;
     vector <string> accessibleLayersIDs; //User can interact with those Layers through this Camera;
     ALLEGRO_BITMAP * bitmapBuffer;
 
-    void setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
-    Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift);
-    Camera2D(string newID, vector <string> & camerasIDs);
+    void setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift, int newSamples);
+    Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift, int newSamples);
+    Camera2D(string newID, vector <string> & camerasIDs, int newSamples);
     ~Camera2D();
     void clone(const Camera2D& Original, vector <string> & camerasIDs, bool changeOldID);
     void clear();
@@ -105,6 +106,7 @@ public:
     void setGrabbingAreaSize(vec2d newValue);
     void setGrabbingAreaPos(double x, double y);
     void setGrabbingAreaSize(double x, double y);
+    void setAntialiasingSamples(int newSamples);
 };
 
 

@@ -1,6 +1,6 @@
 #include "textModule.h"
 
-SingleFont * findFontByID(vector <SingleFont> FontContainer, string fontID){
+SingleFont * findFontByID(vector <SingleFont> & FontContainer, string fontID){
     for(SingleFont & font : FontContainer){
         if(fontID == font.ID){
             if(!font.font){
@@ -83,6 +83,9 @@ void TextModule::fitSizeToText(vector <SingleFont> FontContainer){
     SingleFont * Font = findFontByID(FontContainer, fontID);
     if(Font == nullptr){
         return;
+    }
+    if(Font->sizeF < 0 || Font->sizeF > 1000){
+        cout << "Error: In " << __FUNCTION__ << ": Font size equal to " << Font->sizeF << " is not a valid size.\n";
     }
     vec2d newSize(0.0, al_get_font_line_height(Font->font));
     for(string text : content){

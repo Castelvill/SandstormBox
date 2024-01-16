@@ -21,7 +21,6 @@ class PrimitivesModule : public PrimaryModule{
     ALLEGRO_COLOR color;
     float thickness;
     float radius;
-    int samples;
     int usedBitmapLayer;
 
     void setUpNewInstance();

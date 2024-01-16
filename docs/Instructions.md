@@ -50,6 +50,12 @@ run *event* [[event] ...]
 
     Interrupt the execution of the current scope.
 
+## dump_context_stack
+   
+**Description**
+
+    Print out the current context stack.
+
 ## all / first / last / random
 
 **Syntax**
@@ -245,6 +251,21 @@ find_by_id layer *layer_id* *object_id* *module_type* *module_id* *attribute* [o
 - [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
 - [attribute] (string) - if provided, aggregate this this attribute from selected entities;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+
+## find_by_id_2
+
+**Syntax**
+
+find_by_id_2 input id [output]
+
+**Description**
+
+    Return an entity with id equal to the one provided in the second context.
+
+**Parameters**
+
+- input (string) - id of the context with a vector of entities,
+- id (string) - id of the context with an id string.
 
 ## let
 
@@ -751,6 +772,21 @@ len text [output]
 **Parameters**
 
 - text (string) - id of the context with a string value;
+- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+
+## size
+
+**Syntax**
+
+size context [output]
+
+**Description**
+
+    Return the size of the vector from the provided context.
+
+**Parameters**
+
+- context (string) - id of the context;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
 ## substr

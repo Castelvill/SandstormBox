@@ -235,6 +235,9 @@ void EngineClass::endEvents(){
 }
 
 void EngineClass::loadNewFont(string path, int size, string newID){
+    if(size < 0 || size > 1000){
+        cout << "Error: In " << __FUNCTION__ << ": Font size equal to " << size << " is not a valid size.\n";
+    }
     if(path.size() < 5){
         cout << "Error: In " << __FUNCTION__ << ": Path to the font file is too short.\n";
         return;
@@ -247,7 +250,7 @@ void EngineClass::loadNewFont(string path, int size, string newID){
     path = EXE_PATH + path;
     FontContainer.push_back(SingleFont());
     FontContainer.back().font = al_load_ttf_font(path.c_str(), size, 0);
-    if(!FontContainer.back().font || FontContainer.back().font == nullptr){
+    if(!FontContainer.back().font){
         FontContainer.pop_back();
         cout << "Error: In " << __FUNCTION__ << ": Failed to load a font from '" << path << "'.\n";
         return;

@@ -1047,7 +1047,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             NewEvent.elseChildID = words[1];
         }
-        else if(isStringInGroup(words[0], 7, "continue", "break", "return", "reboot", "power_off", "delete_this_event", "reset_keyboard")){
+        else if(isStringInGroup(words[0], 8, "continue", "break", "return", "reboot", "power_off", "delete_this_event", "reset_keyboard", "dump_context_stack")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
@@ -1118,7 +1118,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(optional(words, cursor, Operation->Location.attribute)){ continue; }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(isStringInGroup(words[0], 13, "sum", "intersection", "difference", "+", "-", "*", "/", "=", "+=", "-=", "*=", "/=", "in")){
+        else if(isStringInGroup(words[0], 14, "sum", "intersection", "difference", "+", "-", "*", "/", "=", "+=", "-=", "*=", "/=", "in", "find_by_id_2")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
@@ -1619,7 +1619,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "len"){
+        else if(words[0] == "len" || words[0] == "size"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }

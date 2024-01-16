@@ -73,8 +73,7 @@ vec2d MouseClass::getZoomedPressedPos(const Camera2D * Camera) const{
 void MouseClass::updateAxes(ALLEGRO_EVENT event, bool fullscreen){
     didMouseMove = true;
 
-    vec2d lastPos(pos);
-    pos.set(event.mouse.x, event.mouse.y /*+ !fullscreen * 22*/);
+    pos.set(event.mouse.x, event.mouse.y);
 
     scrollPos = event.mouse.z;
 }

@@ -5,7 +5,6 @@ void PrimitivesModule::setUpNewInstance(){
     color = al_map_rgba_f(0.0, 0.0, 0.0, 0.0);
     thickness = 1.0;
     radius = 1.0;
-    samples = 0;
 }
 PrimitivesModule::PrimitivesModule(){
     setUpNewInstance();
@@ -82,21 +81,9 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing){
                 cout << "Error: In " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
                 return;
             }
-            if(samples <= 0){
-                al_draw_filled_rounded_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
-                    points[2].x, points[2].y, color
-                );
-            }
-            else{
-                ALLEGRO_COLOR sampledColor = color;
-                sampledColor.a = color.a / samples;
-                for(int i = 0; i <= samples; i++){
-                    al_draw_filled_rounded_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
-                        points[2].x + i, points[2].y + i, sampledColor
-                    );
-                }
-            }
-            
+            al_draw_filled_rounded_rectangle(base.x + points[0].x, base.y + points[0].y,
+                base.x + points[1].x, base.y + points[1].y, points[2].x, points[2].y, color
+            );
             break;
         case prim_circle:
             if(points.size() < 1){
@@ -246,4 +233,21 @@ string translatePrimitiveType(PrimitiveType type){
             return "null";
     }
     return "null";
+}
+
+void draw_vertical_gradient_rect(float x, float y, float w, float h, ALLEGRO_COLOR top, ALLEGRO_COLOR bottom) {
+    ALLEGRO_VERTEX v[] = {
+        {.x = x, .y = y, .z = 0, .color = top},
+        {.x = x + w, .y = y, .z = 0, .color = top},
+        {.x = x, .y = y + h, .z = 0, .color = bottom},
+        {.x = x + w, .y = y + h, .z = 0, .color = bottom}};
+    al_draw_prim(v, NULL, NULL, 0, 4, ALLEGRO_PRIM_TRIANGLE_STRIP);
+}
+void draw_horizontal_gradient_rect(float x, float y, float w, float h, ALLEGRO_COLOR left, ALLEGRO_COLOR right) {
+    ALLEGRO_VERTEX v[] = {
+        {.x = x, .y = y, .z = 0, .color = left},
+        {.x = x + w, .y = y, .z = 0, .color = right},
+        {.x = x, .y = y + h, .z = 0, .color = left},
+        {.x = x + w, .y = y + h, .z = 0, .color = right}};
+    al_draw_prim(v, NULL, NULL, 0, 4, ALLEGRO_PRIM_TRIANGLE_STRIP);
 }

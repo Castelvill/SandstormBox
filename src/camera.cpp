@@ -1,6 +1,6 @@
 #include "camera.h"
 
-void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
+void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift, int newSamples){
     setID(newID, camerasIDs);
     isActive = newIsActive;
     deleted = false;
@@ -44,13 +44,17 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     grabbingAreaSize.set(50.0, 50.0);
 
     std::fill_n(tint, 4, 1);
+
+    samples = newSamples;
 }
-Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
-    setUpInstance(newID, camerasIDs, newIsActive, newPos, newSize, newVisionShift);
+Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift, int newSamples){
+    setUpInstance(newID, camerasIDs, newIsActive, newPos, newSize, newVisionShift, newSamples);
+    al_set_new_bitmap_samples(samples);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
-Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
-    setUpInstance(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0));
+Camera2D::Camera2D(string newID, vector <string> & camerasIDs, int newSamples){
+    setUpInstance(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0), newSamples);
+    al_set_new_bitmap_samples(samples);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 Camera2D::~Camera2D(){
@@ -72,6 +76,7 @@ void Camera2D::clone(const Camera2D &Original, vector<string> &camerasIDs, bool 
     if(changeOldID){
         setID(Original.getID(), camerasIDs);
     }
+    al_set_new_bitmap_samples(samples);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 void Camera2D::clear(){
@@ -169,6 +174,7 @@ void Camera2D::setSize(vec2d newSize){
         size.y = minSize.y;
     }
     al_destroy_bitmap(bitmapBuffer);
+    al_set_new_bitmap_samples(samples);
     bitmapBuffer = al_create_bitmap(size.x, size.y);
 }
 void Camera2D::setSize(double x, double y){
@@ -361,4 +367,10 @@ void Camera2D::setGrabbingAreaPos(double x, double y){
 }
 void Camera2D::setGrabbingAreaSize(double x, double y){
     grabbingAreaSize.set(x, y);
+}
+void Camera2D::setAntialiasingSamples(int newSamples){
+    samples = newSamples;
+    al_destroy_bitmap(bitmapBuffer);
+    al_set_new_bitmap_samples(samples);
+    bitmapBuffer = al_create_bitmap(size.x, size.y);
 }

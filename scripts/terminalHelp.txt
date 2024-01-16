@@ -191,7 +191,6 @@ fun border1 add_point double [880 980]
 fun border1 add_point c roundingSize c roundingSize
 fun border1 set_color double [0.0 0.0 0.0 0.7]
 fun border1 set_thickness double [10.0]
-fun border1 set_samples int [4]
 fun border1 select_layer int [0]
 fun border1 set_size int [640 480]
 fun border1 update_with_size

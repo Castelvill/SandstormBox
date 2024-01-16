@@ -862,9 +862,6 @@ void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribut
     else if(attribute == "set_radius" && Values.size() >= 1){
         Primitives->radius = Values[0].getDoubleUnsafe();
     }
-    else if(attribute == "set_samples" && Values.size() >= 1){
-        Primitives->samples = Values[0].getIntUnsafe();
-    }
     else if(attribute == "select_layer" && Values.size() >= 1){
         Primitives->usedBitmapLayer = Values[0].getIntUnsafe();
     }
