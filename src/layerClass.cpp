@@ -62,6 +62,10 @@ void LayerClass::setID(string newID, vector <string> & layersIDs){
     }
     removeFromStringVector(layersIDs, ID);
     ID = findNewUniqueID(layersIDs, newID);
+    for(AncestorObject & Object : Objects){
+        Object.setLayerID(ID);
+        Object.propagateLayerID();
+    }
     layersIDs.push_back(ID);
 }
 void LayerClass::setIsActive(bool newIsActive){

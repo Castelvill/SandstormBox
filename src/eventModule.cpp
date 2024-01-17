@@ -259,6 +259,18 @@ void EveModule::controlImage(ImageModule *Image, string attribute, const vector<
         float arr[] = {float(Values[0].getDoubleUnsafe()), float(Values[1].getDoubleUnsafe()), float(Values[2].getDoubleUnsafe()), float(Values[3].getDoubleUnsafe())};
         Image->setImageColor(arr);
     }
+    else if(attribute == "set_color_r" && Values.size() >= 1){
+        Image->setImageColor(Values[0].getDoubleUnsafe(), 'r');
+    }
+    else if(attribute == "set_color_g" && Values.size() >= 1){
+        Image->setImageColor(Values[0].getDoubleUnsafe(), 'g');
+    }
+    else if(attribute == "set_color_b" && Values.size() >= 1){
+        Image->setImageColor(Values[0].getDoubleUnsafe(), 'b');
+    }
+    else if(attribute == "set_color_a" && Values.size() >= 1){
+        Image->setImageColor(Values[0].getDoubleUnsafe(), 'a');
+    }
     else if(attribute == "set_light" && Values.size() >= 4){
         Image->setLightColor(vec3d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe()), Values[3].getDoubleUnsafe());
     }

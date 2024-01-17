@@ -103,9 +103,6 @@ var string "" param5
 var string "" param6
 var string "" param7
 
-var string "" resizableCameras
-var string "" resizableLayers
-
 var int 20 roundingSize
 run createWindowTemplate
 end
@@ -145,6 +142,12 @@ fun WindowCamera deactivate
 new object c WindowLayer 1 _ _ NewWindowObject
 fun NewWindowObject set_id string [WindowObject]
 fun NewWindowObject set_can_be_selected bool [0]
+bind NewWindowObject literal ["scripts/windowTemplate.sand"]
+build NewWindowObject true
+
+new variable c NewWindowObject 1 _ _ objectsCameraID
+fun objectsCameraID set_id string ["cameraID"]
+fun objectsCameraID set_string string ["WindowCamera"]
 
 new primitives c NewWindowObject 1 _ _ border1
 fun border1 set_id string [background]
@@ -176,7 +179,7 @@ fun border3 select_layer int [0]
 fun border3 update_with_size
 
 new primitives c NewWindowObject 1 _ _ exitButton
-fun exitButton set_id string [background]
+fun exitButton set_id string [exitButton]
 fun exitButton set_type string [filled_circle]
 fun exitButton add_point double [0.0 0.0]
 fun exitButton add_point double [5 5]
@@ -188,11 +191,13 @@ fun exitButton update_with_size
 
 new primitives c NewWindowObject 1 _ _ resizeButton
 clone resizeButton exitButton
+fun exitButton set_id string [resizeButton]
 fun exitButton set_position int [590 15]
 fun exitButton set_color double [1.0 1.0 0.0 1.0]
 
 new primitives c NewWindowObject 1 _ _ minimizeButton
 clone minimizeButton exitButton
+fun exitButton set_id string [minimizeButton]
 fun exitButton set_position int [560 15]
 fun exitButton set_color double [0.0 1.0 0.0 1.0]
 
@@ -238,11 +243,9 @@ fun NewWindowCamera activate
 fun NewWindowCamera add_visible_layer c newLayerID
 fun NewWindowCamera add_accessible_layer c newLayerID
 
-string [" "] space
-+= resizableCameras newCameraID
-+= resizableCameras space
-+= resizableLayers newLayerID
-+= resizableLayers space
+index c NewWindowLayer [0 0 0] _ variable objectsCameraID
+= objectsCameraID newCameraID
+
 
 string [""] program
 end
@@ -446,79 +449,4 @@ end
 start sand
 load_build me param1
 string [""] program
-end
-
-
-
-start refreshAllWindows
-triggers mouse_moved
-if ([mouse_moved])
-int [0] windowIndex
-tokenize resizableCameras ResizableCamerasVec
-size ResizableCamerasVec resizableCamerasVecSize
-tokenize resizableLayers ResizableLayersVec
-run refreshEachWindow
-end
-
-start refreshEachWindow true
-if ([context windowIndex] [context resizableCamerasVecSize] <)
-index c ResizableCamerasVec _ [windowIndex] camera cameraID
-index c ResizableLayersVec _ [windowIndex] layer layerID
-
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-all layer _ _ _ _ _ _ Layers
-find_by_id_2 Layers layerID Layer
-
-//print ": " _ c Camera
-
-value ([context Camera size_x]) sx
-value ([context Camera size_y]) sy
-
-int [30] height
-
-fun Camera set_grabbing_area_size c sx c height
-
-//print "x" _ c sx
-//print " " _ c sy
-
-index c Layer [0 0 0] _ primitives Primi
-fun Primi set_size c sx c sy
-fun Primi update_with_size
-
-index c Layer [0 0 1] _ primitives Primi
-int [30] height
-fun Primi set_size c sx c height
-fun Primi update_with_size
-
-index c Layer [0 0 2] _ primitives Primi
-int [-4] sxShift
-int [-4] syShift
-+= sxShift sx
-+= syShift sy
-fun Primi set_size c sxShift c syShift
-fun Primi update_with_size
-
-index c Layer [0 0 3] _ primitives Primi
-int [-80] sxShift
-int [15] height
-+= sxShift sx
-fun Primi set_position c sxShift c height
-fun Primi update_with_size
-
-index c Layer [0 0 4] _ primitives Primi
-int [-20] sxShift
-int [15] height
-+= sxShift sx
-fun Primi set_position c sxShift c height
-fun Primi update_with_size
-
-index c Layer [0 0 5] _ primitives Primi
-int [-50] sxShift
-int [15] height
-+= sxShift sx
-fun Primi set_position c sxShift c height
-fun Primi update_with_size
-
-++ windowIndex
 end

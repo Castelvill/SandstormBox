@@ -555,14 +555,17 @@ void ImageModule::setImageColor(vec4d newImageColor){
     }
 }
 void ImageModule::setImageColor(float newImageColor, char whichColor){
-    if(whichColor == 'r')
+    if(whichColor == 'r' || whichColor == 'x')
         imageColor[0] = newImageColor;
-    if(whichColor == 'g')
+    else if(whichColor == 'g' || whichColor == 'y')
         imageColor[1] = newImageColor;
-    if(whichColor == 'b')
+    else if(whichColor == 'b' || whichColor == 'z')
         imageColor[2] = newImageColor;
-    if(whichColor == 'a')
+    else if(whichColor == 'a' || whichColor == 'l')
         imageColor[3] = newImageColor;
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": Color channel '" << whichColor << "' does not exist.\n";
+    }
 }
 void ImageModule::setLightColor(vec3d newLightColor, float newLightLevel){
     lightLevel = newLightLevel;
@@ -578,6 +581,9 @@ void ImageModule::setLightColor(float newLightColor, char whichLight){
         lightColor[2] = newLightColor;
     if(whichLight == 'a' || whichLight == 'l')
         lightLevel = newLightColor;
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": Light channel '" << whichLight << "' does not exist.\n";
+    }
 }
 void ImageModule::setUsedBitmapLayer(int newLayer){
     usedBitmapLayer = newLayer;

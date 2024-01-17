@@ -2591,6 +2591,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
             for(; i < LeftOperand->Layers.size(); i++, j+=sameSize){
                 LeftOperand->Layers[i]->clone(*RightOperand->Layers[j], layersIDs, changeOldID);
             }
+            wasNewExecuted = true;
         }
         else if(LeftOperand->type == "object"){
             if(!checkForVectorSize(LeftOperand->Objects.size(), RightOperand->Objects.size(), sameSize, __FUNCTION__)){
@@ -2605,6 +2606,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
                     break;
                 }
             }
+            wasNewExecuted = true;
         }
         else if(LeftOperand->type == "text"){
             cloneRightToLeft(LeftOperand->Modules.Texts, RightOperand->Modules.Texts, Layers, changeOldID);
@@ -2626,6 +2628,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
         }
         else if(LeftOperand->type == "event"){
             cloneRightToLeft(LeftOperand->Modules.Events, RightOperand->Modules.Events, Layers, changeOldID);
+            wasNewExecuted = true;
         }
         else if(LeftOperand->type == "variable"){
             cloneRightToLeft(LeftOperand->Modules.Variables, RightOperand->Modules.Variables, Layers, changeOldID);
@@ -4776,6 +4779,7 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
                 continue;
             }
             Object->setID(Variables[0].getStringUnsafe(), ObjectsLayer->objectsIDs);
+            Object->propagateObjectID();
         }
         return;
     }
@@ -6636,7 +6640,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
         }
         cout << "Error: In " << __FUNCTION__ << ": There is no variable with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
-    else if(Condition.Location.moduleType == "ancestor"){
+    else if(Condition.Location.moduleType == "ancestor" || Condition.Location.moduleType == ""){
         return CurrentObject->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
     }
     else if(Condition.Location.moduleType == "camera"){
@@ -6906,7 +6910,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 cout << "Warning: In " << __FUNCTION__ << ": There are several objects in the context. Program will proceed with the last added object.\n";
             }
             Condition.Location.layerID = Context->Objects.back()->getLayerID();
-            Condition.Location.objectID = Context->Objects.back()->getObjectID();
+            Condition.Location.objectID = Context->Objects.back()->getID();
             return findNextValueAmongObjects(Condition, Owner, OwnerLayer, Engine.Mouse);
         }
         if(Context->type == "layer"){
@@ -7254,7 +7258,11 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
     }
 
     if(printOutInstructions){
-        cout << "\nTriggered "<< TriggeredObjects.size() << " objects:\n";
+        cout << "\nTriggered "<< TriggeredObjects.size() << " objects: ";
+        for(AncestorObject * Triggered : TriggeredObjects){
+            cout << Triggered->getLayerID() << "::" << Triggered->getID() << ", ";
+        }
+        cout << "\n";
     }
 
     //Remember to delete pointers to destroyed objects during the iteration
@@ -7343,7 +7351,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
 
         do{
             if(printOutInstructions){
-                printInColor("Current event: " + Event->getID() + "\n", 14);
+                printInColor("Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
             }
             if(wereGlobalVariablesCreated){
                 addGlobalVariables(Context, Triggered->VariablesContainer);
@@ -8797,386 +8805,6 @@ void removeListsInEditorWindow(AncestorObject * EditorWindow){
         }
     }
 }
-
-/*
-void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector<string> &listOfIDs, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer){
-    int SCREEN_W = 1600, SCREEN_H = 900;
-    EditorWindowArrangement Arr;
-    Arr.labelHeight = getFontHeight(FontContainer, Arr.labelFontID);
-    Arr.attributeSize.y = getFontHeight(FontContainer, Arr.attributeFontID);
-
-    Objects.push_back(AncestorObject(Objects.size(), listOfIDs, layerID));
-    AncestorObject * EditorWindow = &Objects.back();
-
-    EditorWindow->setID("editor_window", listOfIDs);
-    EditorWindow->setPos(SCREEN_W-Arr.windowWidth, 0.0);
-    EditorWindow->setCanBeSelected(false);
-    EditorWindow->setIsAttachedToCamera(true);
-
-    EditorWindow->ScrollbarContainer.push_back(ScrollbarModule(0, &EditorWindow->scrollbarContainerIDs, layerID, EditorWindow->getID()));
-    EditorWindow->ScrollbarContainer.back().setIsAttachedToCamera(true);
-    EditorWindow->ScrollbarContainer.back().setPos(vec2d(Arr.windowWidth-45.0, Arr.buttonSize.y+Arr.margin.y+Arr.buttonMargin));
-    EditorWindow->ScrollbarContainer.back().setThumbPos(vec2d(0.0, 0.0));
-    EditorWindow->ScrollbarContainer.back().setThumbSize(Arr.thumbSize);
-    EditorWindow->ScrollbarContainer.back().setScrollingArea(vec2d(Arr.thumbSize.x, SCREEN_H-Arr.scrollbarMargin.y-Arr.margin.y-Arr.buttonSize.y));
-    EditorWindow->ScrollbarContainer.back().setRealScrollingArea(vec2d(0.0, 0.0));
-
-    EditorWindow->ScrollbarContainer.back().setThumbImageID("thumb_1");
-    EditorWindow->ScrollbarContainer.back().setTrackImageID("thumb_track_1");
-    EditorWindow->ScrollbarContainer.back().setUsedBitmapLayer(-1);
-
-
-    EditorWindow->VariablesContainer.push_back(VariableModule("true", &EditorWindow->variablesContainerIDs, layerID, EditorWindow->getID()));
-    EditorWindow->VariablesContainer.back().setDefaultBool(true);
-
-    EditorWindow->ImageContainer.push_back(ImageModule("background", &EditorWindow->imageContainerIDs, layerID, EditorWindow->getID()));
-    EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-    EditorWindow->ImageContainer.back().setUsedBitmapLayer(-1);
-    EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "gui_background");
-    EditorWindow->ImageContainer.back().setPos(0.0, 0.0);
-    EditorWindow->ImageContainer.back().resize(vec2d(Arr.windowWidth, SCREEN_H));
-    EditorWindow->TextContainer.push_back(TextModule(0, &EditorWindow->textContainerIDs, layerID, EditorWindow->getID()));
-    EditorWindow->EventsContainer.push_back(0);
-    for(unsigned int i = 1; i <= 9; i++){
-        EditorWindow->ImageContainer.push_back(ImageModule("icon", &EditorWindow->imageContainerIDs, layerID, EditorWindow->getID()));
-        EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-        EditorWindow->ImageContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->ImageContainer.back().setPos(Arr.margin.x + (i-1) * (Arr.buttonSize.x+Arr.buttonMargin), Arr.margin.y);
-
-        EditorWindow->TextContainer.push_back(TextModule("l_" + std::to_string(i), &EditorWindow->textContainerIDs, layerID, EditorWindow->getID()));
-        EditorWindow->TextContainer.back().setIsAttachedToCamera(true);
-        EditorWindow->TextContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->TextContainer.back().setPos(Arr.margin.x, Arr.margin.y+70.0);
-        EditorWindow->TextContainer.back().setFontID(Arr.labelFontID);
-        EditorWindow->TextContainer.back().deactivate();
-
-        EditorWindow->EventsContainer.push_back(i);
-        EditorWindow->EventsContainer.back().setID("c_" + std::to_string(i), EditorWindow->eventsContainerIDs);
-        EditorWindow->EventsContainer.back().setIsAttachedToCamera(true);
-        EditorWindow->EventsContainer.back().setUpButton(vec2d(Arr.margin.x + (i-1) * (Arr.buttonSize.x+Arr.buttonMargin), Arr.margin.y), Arr.buttonSize);
-        EditorWindow->EventsContainer.back().addOperation("", "mouse_release", "left", "editor_window", true, "function", "", "deactivate_all", vecXd(), vecXs());
-        EditorWindow->EventsContainer.back().addOperation("", "mouse_release", "left", "editor_window", true, "function", std::to_string(i), "activate_based_on_first_char", vecXd(), vecXs());
-        EditorWindow->EventsContainer.back().addOperation("", "mouse_release", "left", "editor_window", true, "function", "l_" + std::to_string(i), "activate_based_on_id", vecXd(), vecXs());
-    }
-
-    EditorWindow->ImageContainer[1].connectBitmap(BitmapContainer, "icon_general");
-    EditorWindow->TextContainer[1].addNewContentAndResize("General", FontContainer);
-    EditorWindow->TextContainer[1].activate();
-
-    prepareEditorWindowGeneral(EditorWindow, FontContainer, BitmapContainer, Arr);
-
-    EditorWindow->ImageContainer[2].connectBitmap(BitmapContainer, "icon_image");
-    EditorWindow->TextContainer[2].addNewContentAndResize("Images", FontContainer);
-
-    EditorWindow->ImageContainer[3].connectBitmap(BitmapContainer, "icon_text");
-    EditorWindow->TextContainer[3].addNewContentAndResize("Text", FontContainer);
-    EditorWindow->ImageContainer[4].connectBitmap(BitmapContainer, "icon_movement");
-    EditorWindow->TextContainer[4].addNewContentAndResize("Movements", FontContainer);
-    EditorWindow->ImageContainer[5].connectBitmap(BitmapContainer, "icon_collision");
-    EditorWindow->TextContainer[5].addNewContentAndResize("Collisions", FontContainer);
-    EditorWindow->ImageContainer[6].connectBitmap(BitmapContainer, "icon_event");
-    EditorWindow->TextContainer[6].addNewContentAndResize("Events", FontContainer);
-    EditorWindow->ImageContainer[7].connectBitmap(BitmapContainer, "icon_particles");
-    EditorWindow->TextContainer[7].addNewContentAndResize("Particles", FontContainer);
-    EditorWindow->ImageContainer[8].connectBitmap(BitmapContainer, "icon_variables");
-    EditorWindow->TextContainer[8].addNewContentAndResize("Variables", FontContainer);
-    EditorWindow->ImageContainer[9].connectBitmap(BitmapContainer, "icon_editable_text");
-    EditorWindow->TextContainer[9].addNewContentAndResize("Editable Text", FontContainer);
-
-    for(unsigned int i = 1; i <= 9; i++){
-        EditorWindow->ImageContainer[i].resize(Arr.buttonSize);
-    }
-
-    EditorWindow->ImageContainer.push_back(ImageModule("thumb_1", &EditorWindow->imageContainerIDs, layerID, EditorWindow->getID()));
-    EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "thumb_1");
-    EditorWindow->ImageContainer.back().resize(EditorWindow->ScrollbarContainer.back().getThumbSize());
-    EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-    EditorWindow->ImageContainer.back().deactivate();
-
-    EditorWindow->ImageContainer.push_back(ImageModule("thumb_track_1", &EditorWindow->imageContainerIDs, layerID, EditorWindow->getID()));
-    EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "thumb_track_1");
-    EditorWindow->ImageContainer.back().resize(EditorWindow->ScrollbarContainer.back().getScrollingArea());
-    EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-    EditorWindow->ImageContainer.back().deactivate();
-
-    cout << "Editor Window:\n-Text: " << EditorWindow->TextContainer.size() << "\n-Image: " << EditorWindow->ImageContainer.size() << "\n-Editable: " << EditorWindow->EditableTextContainer.size() << "\n-Events: " << EditorWindow->EventsContainer.size() << "\n";
-}
-
-void prepareEditorWindowGeneral(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    unsigned int labelIndex = EditorWindow->TextContainer.size();
-    unsigned int attrIndex = EditorWindow->EditableTextContainer.size();
-    for(unsigned int attr = 0; attr < 7; attr++){
-        EditorWindow->TextContainer.push_back(TextModule(1, &EditorWindow->textContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-        EditorWindow->TextContainer.back().setIsAttachedToCamera(true);;
-        EditorWindow->TextContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->TextContainer.back().setPos(Arr.margin.x, Arr.attributeStart + attr*(Arr.labelHeight + Arr.labelMargin+Arr.attributeSize.y+Arr.attributeMargin));
-        EditorWindow->TextContainer.back().setFontID(Arr.labelFontID);
-        EditorWindow->TextContainer.back().setIsScrollable(true);
-
-        EditorWindow->EditableTextContainer.push_back(EditableTextModule(1, &EditorWindow->editableTextContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-        EditorWindow->EditableTextContainer.back().setFontID(Arr.attributeFontID);
-        EditorWindow->EditableTextContainer.back().setPos(
-            Arr.margin.x+Arr.editablePadding.x,
-            Arr.attributeStart + Arr.labelHeight + Arr.labelMargin + Arr.editablePadding.y + attr*(Arr.labelHeight + Arr.labelMargin+Arr.attributeSize.y+Arr.attributeMargin)
-        );
-        EditorWindow->EditableTextContainer.back().setSize(Arr.attributeSize);
-        EditorWindow->EditableTextContainer.back().addNewContent("");
-        EditorWindow->EditableTextContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->EditableTextContainer.back().setVisibility(1.0);
-        EditorWindow->EditableTextContainer.back().setIsScrollable(true);
-
-        EditorWindow->ImageContainer.push_back(ImageModule(1, &EditorWindow->imageContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-        EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-        EditorWindow->ImageContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "text_field_1");
-        EditorWindow->ImageContainer.back().setPos(
-            Arr.margin.x,
-            Arr.attributeStart + Arr.labelHeight + Arr.labelMargin + attr*(Arr.labelHeight + Arr.labelMargin+Arr.attributeSize.y+Arr.attributeMargin)-Arr.attributePadding.y
-        );
-        EditorWindow->ImageContainer.back().resize(Arr.attributeSize+Arr.attributePadding*2.0);
-        EditorWindow->ImageContainer.back().setIsScrollable(true);
-    }
-    EditorWindow->TextContainer[labelIndex].addNewContentAndResize("Id:", FontContainer);
-    EditorWindow->EditableTextContainer[attrIndex].setIsNumerical(false);
-    EditorWindow->EditableTextContainer[attrIndex].setCanUseSpace(true);
-    EditorWindow->EditableTextContainer[attrIndex].setConnectedObject("", "ancestor", "", "id");
-    EditorWindow->TextContainer[labelIndex+1].addNewContentAndResize("Position X:", FontContainer);
-    EditorWindow->EditableTextContainer[attrIndex+1].setConnectedObject("", "ancestor", "", "position_x");
-    EditorWindow->TextContainer[labelIndex+2].addNewContentAndResize("Position Y:", FontContainer);
-    EditorWindow->EditableTextContainer[attrIndex+2].setConnectedObject("", "ancestor", "", "position_y");
-    EditorWindow->TextContainer[labelIndex+3].addNewContentAndResize("Size X:", FontContainer);
-    EditorWindow->EditableTextContainer[attrIndex+3].setConnectedObject("", "ancestor", "", "size_x");
-    EditorWindow->TextContainer[labelIndex+4].addNewContentAndResize("Size Y:", FontContainer);
-    EditorWindow->EditableTextContainer[attrIndex+4].setConnectedObject("", "ancestor", "", "size_y");
-    EditorWindow->TextContainer[labelIndex+5].addNewContentAndResize("Scaled from center:", FontContainer);
-    EditorWindow->EditableTextContainer[attrIndex+5].setConnectedObject("", "ancestor", "", "is_scaled_from_center");
-    EditorWindow->TextContainer[labelIndex+6].addNewContentAndResize("Attached to camera:", FontContainer);
-    EditorWindow->EditableTextContainer[attrIndex+6].setConnectedObject("", "ancestor", "", "is_attached_to_camera");
-}
-
-void ProcessClass::prepareEditorWindowObjectsList(int categoryIndex, AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-
-    unsigned int containerSize = 0;
-
-    EditorWindow->TextContainer.push_back(TextModule(categoryIndex, &EditorWindow->textContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-    EditorWindow->TextContainer.back().setIsAttachedToCamera(true);;
-    EditorWindow->TextContainer.back().setUsedBitmapLayer(-1);
-    EditorWindow->TextContainer.back().setPos(Arr.margin.x+Arr.wraperSize.x+Arr.wraperMargin, Arr.attributeStart + Arr.wraperSize.y/2 - Arr.labelHeight/2 + Arr.editablePadding.y - Arr.wraperSize.y/2);
-    EditorWindow->TextContainer.back().setFontID(Arr.labelFontID);
-    if(categoryIndex == 2){
-        containerSize = SelectedObject->ImageContainer.size();
-        EditorWindow->TextContainer.back().addNewContentAndResize("Add image", FontContainer);
-    }
-    else if(categoryIndex == 3){
-        containerSize = SelectedObject->TextContainer.size();
-        EditorWindow->TextContainer.back().addNewContentAndResize("Add text", FontContainer);
-    }
-    else if(categoryIndex == 4){
-        containerSize = SelectedObject->MovementContainer.size();
-        EditorWindow->TextContainer.back().addNewContentAndResize("Add movement", FontContainer);
-    }
-    else if(categoryIndex == 5){
-        containerSize = SelectedObject->CollisionContainer.size();
-        EditorWindow->TextContainer.back().addNewContentAndResize("Add collision", FontContainer);
-    }
-    else if(categoryIndex == 6){
-        containerSize = SelectedObject->EventsContainer.size();
-        EditorWindow->TextContainer.back().addNewContentAndResize("Add event", FontContainer);
-    }
-    else if(categoryIndex == 7){
-        containerSize = SelectedObject->ParticlesContainer.size();
-        EditorWindow->TextContainer.back().addNewContentAndResize("Add particle", FontContainer);
-    }
-    else if(categoryIndex == 8){
-        containerSize = SelectedObject->VariablesContainer.size();
-        EditorWindow->TextContainer.back().addNewContentAndResize("Add variable", FontContainer);
-    }
-    else if(categoryIndex == 9){
-        containerSize = SelectedObject->EditableTextContainer.size();
-        EditorWindow->TextContainer.back().addNewContentAndResize("Add editable text", FontContainer);
-    }
-    EditorWindow->TextContainer.back().setIsScrollable(true);
-    EditorWindow->TextContainer.back().deactivate();
-
-
-    EditorWindow->ImageContainer.push_back(ImageModule(categoryIndex, &EditorWindow->imageContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-    EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-    EditorWindow->ImageContainer.back().setUsedBitmapLayer(-1);
-    EditorWindow->ImageContainer.back().setPos(Arr.margin.x, Arr.attributeStart-Arr.wraperSize.y/2);
-    EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "plus_1");
-    EditorWindow->ImageContainer.back().resize(Arr.wraperSize);
-    EditorWindow->ImageContainer.back().setIsScrollable(true);
-    EditorWindow->ImageContainer.back().deactivate();
-
-    unsigned int objNumber = 1;
-
-    for(unsigned int vectorNumber = objNumber; vectorNumber <= containerSize; vectorNumber++){
-        EditorWindow->TextContainer.push_back(TextModule(categoryIndex, &EditorWindow->textContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-        EditorWindow->TextContainer.back().setIsAttachedToCamera(true);;
-        EditorWindow->TextContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->TextContainer.back().setPos(Arr.margin.x+Arr.wraperSize.x+Arr.wraperMargin+Arr.editablePadding.x, Arr.attributeStart + objNumber * Arr.containerHeight + Arr.wraperSize.y/2 - Arr.labelHeight/2 + Arr.editablePadding.y);
-        EditorWindow->TextContainer.back().setFontID(Arr.labelFontID);
-        if(categoryIndex == 2){
-            EditorWindow->TextContainer.back().addNewContentAndResize(SelectedObject->ImageContainer[vectorNumber-1].getID(), FontContainer);
-        }
-        else if(categoryIndex == 3){
-            EditorWindow->TextContainer.back().addNewContentAndResize(SelectedObject->TextContainer[vectorNumber-1].getID(), FontContainer);
-        }
-        else if(categoryIndex == 4){
-            EditorWindow->TextContainer.back().addNewContentAndResize(SelectedObject->MovementContainer[vectorNumber-1].getID(), FontContainer);
-        }
-        else if(categoryIndex == 5){
-            EditorWindow->TextContainer.back().addNewContentAndResize(SelectedObject->CollisionContainer[vectorNumber-1].getID(), FontContainer);
-        }
-        else if(categoryIndex == 6){
-            EditorWindow->TextContainer.back().addNewContentAndResize(SelectedObject->EventsContainer[vectorNumber-1].getID(), FontContainer);
-        }
-        else if(categoryIndex == 7){
-            EditorWindow->TextContainer.back().addNewContentAndResize(SelectedObject->ParticlesContainer[vectorNumber-1].getID(), FontContainer);
-        }
-        else if(categoryIndex == 8){
-            EditorWindow->TextContainer.back().addNewContentAndResize(SelectedObject->VariablesContainer[vectorNumber-1].getID(), FontContainer);
-        }
-        else if(categoryIndex == 9){
-            EditorWindow->TextContainer.back().addNewContentAndResize(SelectedObject->EditableTextContainer[vectorNumber-1].getID(), FontContainer);
-        }
-        EditorWindow->TextContainer.back().setIsScrollable(true);
-        EditorWindow->TextContainer.back().deactivate();
-
-        string wrapperID = std::to_string(categoryIndex) + "_wrapper_" + std::to_string(vectorNumber);
-
-        EditorWindow->ImageContainer.push_back(ImageModule(wrapperID, &EditorWindow->imageContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-        EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-        EditorWindow->ImageContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->ImageContainer.back().setPos(Arr.margin.x, Arr.attributeStart + objNumber * Arr.containerHeight);
-        EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "arrow_1");
-        EditorWindow->ImageContainer.back().resize(Arr.wraperSize);
-        EditorWindow->ImageContainer.back().setIsScrollable(true);
-        EditorWindow->ImageContainer.back().deactivate();
-
-
-        EditorWindow->EventsContainer.push_back(categoryIndex);
-        EditorWindow->EventsContainer.back().setIsAttachedToCamera(true);
-        EditorWindow->EventsContainer.back().setUpButton(vec2d(Arr.margin.x, Arr.attributeStart + objNumber * Arr.containerHeight), Arr.wraperSize);
-        EditorWindow->EventsContainer.back().addOperation("", "mouse_release", "left", "editor_window", true, "variables", wrapperID, "toggle_bool", vecXd(), vecXs());
-        EditorWindow->EventsContainer.back().addOperation("", "mouse_release", "left", "editor_window", true, "function", "", "manage_wrap", vecXd(3, (double)categoryIndex, (double)(vectorNumber-1), (double)Arr.containerHeight), vecXs());
-        EditorWindow->EventsContainer.back().addOperation("true", "==", wrapperID, "editor_window", true, "image", EditorWindow->ImageContainer.back().getID(), "set_rotation", vecXd(1, 90.0), vecXs());
-        EditorWindow->EventsContainer.back().addOperation("true", "!=", wrapperID, "editor_window", true, "image", EditorWindow->ImageContainer.back().getID(), "set_rotation", vecXd(1, 0.0), vecXs());
-
-
-        EditorWindow->EventsContainer.back().addOperation("true", "==", wrapperID, "editor_window", true, "scrollbar", EditorWindow->ScrollbarContainer[0].getID(), "add_real_area", vecXd(2, 0.0, -Arr.containerHeight), vecXs());
-        EditorWindow->EventsContainer.back().addOperation("true", "!=", wrapperID, "editor_window", true, "scrollbar", EditorWindow->ScrollbarContainer[0].getID(), "add_real_area", vecXd(2, 0.0, Arr.containerHeight), vecXs());
-
-
-        EditorWindow->EventsContainer.back().setIsScrollable(true);
-        EditorWindow->EventsContainer.back().deactivate();
-
-        EditorWindow->VariablesContainer.push_back(VariableModule(wrapperID, &EditorWindow->variablesContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-        EditorWindow->VariablesContainer.back().setDefaultBool(false);
-
-
-        EditorWindow->ImageContainer.push_back(ImageModule(categoryIndex, &EditorWindow->imageContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-        EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-        EditorWindow->ImageContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->ImageContainer.back().setPos(Arr.margin.x+Arr.wraperSize.x, Arr.attributeStart + objNumber * Arr.containerHeight);
-        EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "text_field_2");
-        EditorWindow->ImageContainer.back().resize(Arr.windowWidth-Arr.wraperSize.x*3-Arr.scrollbarMargin.x, Arr.wraperSize.y);
-        EditorWindow->ImageContainer.back().setIsScrollable(true);
-        EditorWindow->ImageContainer.back().deactivate();
-
-        EditorWindow->ImageContainer.push_back(ImageModule(categoryIndex, &EditorWindow->imageContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-        EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-        EditorWindow->ImageContainer.back().setUsedBitmapLayer(-1);
-        EditorWindow->ImageContainer.back().setPos(Arr.margin.x+Arr.wraperSize.x+Arr.windowWidth-Arr.wraperSize.x*3-Arr.scrollbarMargin.x, Arr.attributeStart + objNumber * Arr.containerHeight);
-        EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "minus_1");
-        EditorWindow->ImageContainer.back().resize(Arr.wraperSize.x, Arr.wraperSize.y);
-        EditorWindow->ImageContainer.back().setIsScrollable(true);
-        EditorWindow->ImageContainer.back().deactivate();
-
-        objNumber++;
-
-        unsigned int attributesCount = 2*2;
-
-        unsigned int attrIndex = EditorWindow->EditableTextContainer.size();
-
-        unsigned int labelIndex = EditorWindow->TextContainer.size();
-
-        for(unsigned int attr = objNumber; attr < objNumber+attributesCount; attr+=2){
-            EditorWindow->TextContainer.push_back(TextModule(categoryIndex, &EditorWindow->textContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-            EditorWindow->TextContainer.back().setIsAttachedToCamera(true);;
-            EditorWindow->TextContainer.back().setUsedBitmapLayer(-1);
-            EditorWindow->TextContainer.back().setPos(Arr.margin.x + Arr.indentation, Arr.attributeStart + Arr.labelMoveAhead + attr * Arr.containerHeight);
-            EditorWindow->TextContainer.back().setFontID(Arr.labelFontID);
-            EditorWindow->TextContainer.back().setIsScrollable(true);
-            EditorWindow->TextContainer.back().deactivate();
-
-            EditorWindow->EditableTextContainer.push_back(EditableTextModule(categoryIndex, &EditorWindow->editableTextContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-            EditorWindow->EditableTextContainer.back().setFontID(Arr.attributeFontID);
-            EditorWindow->EditableTextContainer.back().setPos(Arr.margin.x + Arr.indentation + Arr.editablePadding.x, Arr.attributeStart + Arr.editablePadding.y + (attr+1) * Arr.containerHeight);
-            EditorWindow->EditableTextContainer.back().setSize(Arr.attributeSize.x-Arr.scrollbarMargin.x, Arr.attributeSize.y);
-            EditorWindow->EditableTextContainer.back().addNewContent("");
-            EditorWindow->EditableTextContainer.back().setUsedBitmapLayer(-1);
-            EditorWindow->EditableTextContainer.back().setVisibility(1.0);
-            EditorWindow->EditableTextContainer.back().setIsScrollable(true);
-            EditorWindow->EditableTextContainer.back().deactivate();
-
-            EditorWindow->ImageContainer.push_back(ImageModule(categoryIndex, &EditorWindow->imageContainerIDs, EditorWindow->getLayerID(), EditorWindow->getID()));
-            EditorWindow->ImageContainer.back().setIsAttachedToCamera(true);
-            EditorWindow->ImageContainer.back().setUsedBitmapLayer(-1);
-            EditorWindow->ImageContainer.back().connectBitmap(BitmapContainer, "text_field_1");
-            EditorWindow->ImageContainer.back().setPos(Arr.margin.x + Arr.indentation, Arr.attributeStart - Arr.attributeMoveBack + (attr+1) * Arr.containerHeight);
-            EditorWindow->ImageContainer.back().resize(Arr.attributeSize.x+Arr.attributePadding.x*2.0-Arr.wraperSize.x-Arr.scrollbarMargin.x, Arr.attributeSize.y+Arr.attributePadding.y*2.0);
-            EditorWindow->ImageContainer.back().setIsScrollable(true);
-            EditorWindow->ImageContainer.back().deactivate();
-        }
-
-        //objNumber += attributesCount-1;
-        //objNumber++;
-
-        EditorWindow->TextContainer[labelIndex].addNewContentAndResize("Id:", FontContainer);
-        EditorWindow->EditableTextContainer[attrIndex].setIsNumerical(false);
-        EditorWindow->EditableTextContainer[attrIndex].setCanUseSpace(true);
-        EditorWindow->EditableTextContainer[attrIndex].setConnectedObject("", "ancestor", "", "id");
-        EditorWindow->TextContainer[labelIndex+1].addNewContentAndResize("Position X:", FontContainer);
-        EditorWindow->EditableTextContainer[attrIndex+1].setConnectedObject("", "ancestor", "", "position_x");
-        EditorWindow->TextContainer[labelIndex+2].addNewContentAndResize("Position Y:", FontContainer);
-        EditorWindow->EditableTextContainer[attrIndex+2].setConnectedObject("", "ancestor", "", "position_y");
-        EditorWindow->TextContainer[labelIndex+3].addNewContentAndResize("Size X:", FontContainer);
-        EditorWindow->EditableTextContainer[attrIndex+3].setConnectedObject("", "ancestor", "", "size_x");
-        EditorWindow->TextContainer[labelIndex+4].addNewContentAndResize("Size Y:", FontContainer);
-        EditorWindow->EditableTextContainer[attrIndex+4].setConnectedObject("", "ancestor", "", "size_y");
-        EditorWindow->TextContainer[labelIndex+5].addNewContentAndResize("Scaled from center:", FontContainer);
-        EditorWindow->EditableTextContainer[attrIndex+5].setConnectedObject("", "ancestor", "", "is_scaled_from_center");
-        EditorWindow->TextContainer[labelIndex+6].addNewContentAndResize("Attached to camera:", FontContainer);
-        EditorWindow->EditableTextContainer[attrIndex+6].setConnectedObject("", "ancestor", "", "is_attached_to_camera");
-    }
-}*/
-/*
-void ProcessClass::prepareEditorWindowImage(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    prepareEditorWindowObjectsList(2, EditorWindow, FontContainer, BitmapContainer, Arr);
-}
-void ProcessClass::prepareEditorWindowText(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    prepareEditorWindowObjectsList(3, EditorWindow, FontContainer, BitmapContainer, Arr);
-}
-void ProcessClass::prepareEditorWindowMovement(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    prepareEditorWindowObjectsList(4, EditorWindow, FontContainer, BitmapContainer, Arr);
-}
-void ProcessClass::prepareEditorWindowCollisions(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    prepareEditorWindowObjectsList(5, EditorWindow, FontContainer, BitmapContainer, Arr);
-}
-void ProcessClass::prepareEditorWindowEvents(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    prepareEditorWindowObjectsList(6, EditorWindow, FontContainer, BitmapContainer, Arr);
-}
-void ProcessClass::prepareEditorWindowParticles(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    prepareEditorWindowObjectsList(7, EditorWindow, FontContainer, BitmapContainer, Arr);
-}
-void ProcessClass::prepareEditorWindowVariables(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    prepareEditorWindowObjectsList(8, EditorWindow, FontContainer, BitmapContainer, Arr);
-}
-void ProcessClass::prepareEditorWindowEditable(AncestorObject * EditorWindow, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer, EditorWindowArrangement Arr){
-    prepareEditorWindowObjectsList(9, EditorWindow, FontContainer, BitmapContainer, Arr);
-}
-*/
 
 AncestorObject *AncestorIndex::object(vector<LayerClass> &Layers){
     if(Layers.size() <= layerIndex){

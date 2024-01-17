@@ -150,7 +150,7 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     }
     clearVectorsOfIDs();
     clearContainers();
-    PrimaryModule::clone(Original, listOfUniqueIDs, layerID, "", changeOldID);
+    PrimaryModule::clone(Original, listOfUniqueIDs, newLayerID, "", changeOldID);
     for(const TextModule & Text : Original.TextContainer){
         TextContainer.push_back(TextModule());
         TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID(), true);
@@ -460,6 +460,9 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
     }
     else if(attribute == "id"){
         NewValue.setString(getID());
+    }
+    else if(attribute == "layer_id"){
+        NewValue.setString(getLayerID());
     }
     else if(attribute == "in_group"){
         NewValue.setBool(isInAGroup(detail));
@@ -1739,6 +1742,71 @@ void AncestorObject::injectInstructions(vector<string> instructions){
     preprocessed.push_back("delete_this_event");
     preprocessed.push_back("end");
     eventAssembler(preprocessed, "<injection>");
+}
+
+void AncestorObject::propagateLayerID(){
+    for(TextModule & Text : TextContainer){
+        Text.setLayerID(layerID);
+    }
+    for(EditableTextModule & EditableText : EditableTextContainer){
+        EditableText.setLayerID(layerID);
+    }
+    for(ImageModule & Image : ImageContainer){
+        Image.setLayerID(layerID);
+    }
+    for(MovementModule & Movement : MovementContainer){
+        Movement.setLayerID(layerID);
+    }
+    for(CollisionModule & Collision : CollisionContainer){
+        Collision.setLayerID(layerID);
+    }
+    for(ParticleEffectModule & Particles : ParticlesContainer){
+        Particles.setLayerID(layerID);
+    }
+    for(EveModule & Event : EveContainer){
+        Event.setLayerID(layerID);
+    }
+    for(VariableModule & Variable : VariablesContainer){
+        Variable.setLayerID(layerID);
+    }
+    for(ScrollbarModule & Scrollbar : ScrollbarContainer){
+        Scrollbar.setLayerID(layerID);
+    }
+    for(PrimitivesModule & Primitives : PrimitivesContainer){
+        Primitives.setLayerID(layerID);
+    }
+}
+void AncestorObject::propagateObjectID(){
+    for(TextModule & Text : TextContainer){
+        Text.setObjectID(layerID);
+    }
+    for(EditableTextModule & EditableText : EditableTextContainer){
+        EditableText.setObjectID(layerID);
+    }
+    for(ImageModule & Image : ImageContainer){
+        Image.setObjectID(layerID);
+    }
+    for(MovementModule & Movement : MovementContainer){
+        Movement.setObjectID(layerID);
+    }
+    for(CollisionModule & Collision : CollisionContainer){
+        Collision.setObjectID(layerID);
+    }
+    for(ParticleEffectModule & Particles : ParticlesContainer){
+        Particles.setObjectID(layerID);
+    }
+    for(EveModule & Event : EveContainer){
+        Event.setObjectID(layerID);
+    }
+    for(VariableModule & Variable : VariablesContainer){
+        Variable.setObjectID(layerID);
+    }
+    for(ScrollbarModule & Scrollbar : ScrollbarContainer){
+        Scrollbar.setObjectID(layerID);
+    }
+    for(PrimitivesModule & Primitives : PrimitivesContainer){
+        Primitives.setObjectID(layerID);
+    }
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule() const{

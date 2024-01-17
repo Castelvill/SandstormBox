@@ -1,0 +1,62 @@
+start refreshWindow
+triggers mouse_moved
+if ([mouse_moved])
+
+value ([context me layer_id]) myLayerID
+
+all camera _ camera _ Cameras
+find_by_id_2 Cameras cameraID Camera
+all layer _ _ _ _ _ _ Layers
+find_by_id_2 Layers myLayerID Layer
+
+//print ": " _ c Camera
+
+value ([context Camera size_x]) sx
+value ([context Camera size_y]) sy
+
+int [30] height
+
+fun Camera set_grabbing_area_size c sx c height
+
+//print "x" _ c sx
+//print " " _ c sy
+
+index c Layer [0 0 0] _ primitives Primi
+fun Primi set_size c sx c sy
+fun Primi update_with_size
+
+index c Layer [0 0 1] _ primitives Primi
+int [30] height
+fun Primi set_size c sx c height
+fun Primi update_with_size
+
+index c Layer [0 0 2] _ primitives Primi
+int [-4] sxShift
+int [-4] syShift
++= sxShift sx
++= syShift sy
+fun Primi set_size c sxShift c syShift
+fun Primi update_with_size
+
+index c Layer [0 0 3] _ primitives Primi
+int [-80] sxShift
+int [15] height
++= sxShift sx
+fun Primi set_position c sxShift c height
+fun Primi update_with_size
+
+index c Layer [0 0 4] _ primitives Primi
+int [-20] sxShift
+int [15] height
++= sxShift sx
+fun Primi set_position c sxShift c height
+fun Primi update_with_size
+
+index c Layer [0 0 5] _ primitives Primi
+int [-50] sxShift
+int [15] height
++= sxShift sx
+fun Primi set_position c sxShift c height
+fun Primi update_with_size
+
+end

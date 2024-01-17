@@ -1,3 +1,8 @@
+17.01.2024
+-Tested windowTemplate script.
+-Fixed "value" instruction regarding objects.
+-Fixed the lack of layerID propagation to modules during cloning.
+
 16.01.2024
 -Fixed layers cloning: ids of the cloned objects were blank.
 -Created a window template with resizable elements.

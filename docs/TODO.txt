@@ -1,3 +1,4 @@
+-Add global variables with vectors.
 -Implement controls for the template of the window.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Add the limitless mode to editable text fields.

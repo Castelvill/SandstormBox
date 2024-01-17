@@ -69,6 +69,8 @@ public:
     void translateSubsetBindedScripts(vector<string> scripts);
     void injectCode(vector<string> code);
     void injectInstructions(vector<string> instructions);
+    void propagateLayerID();
+    void propagateObjectID();
 };
 
 vector <string> tokenizeCode(string input);
