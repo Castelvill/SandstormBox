@@ -1,6 +1,3 @@
-Wnioski:
--Nie potrzebny graficzny edytor modu³ów.
-
 New, Load, Save -> NLS
 
 Solid, Movable, Player input, Computer input -> AI
