@@ -1,4 +1,5 @@
--Add "cd" isntruction or "proc_edit cd path" attribute to change EXE_PATH or add workDir (working directory) to each object. 
+-Add "cd" instruction or "proc_edit cd path" attribute to change EXE_PATH or add workDir (working directory) to each object.
+-Add "pwd" instruction.
 -Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.
 -Add global variables with vectors.
 -Implement controls for the template of the window.

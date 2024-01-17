@@ -39,21 +39,21 @@ fun Primi set_size c sxShift c syShift
 fun Primi update_with_size
 
 index c Layer [0 0 3] _ primitives Primi
-int [-80] sxShift
-int [15] height
-+= sxShift sx
-fun Primi set_position c sxShift c height
-fun Primi update_with_size
-
-index c Layer [0 0 4] _ primitives Primi
 int [-20] sxShift
 int [15] height
 += sxShift sx
 fun Primi set_position c sxShift c height
 fun Primi update_with_size
 
-index c Layer [0 0 5] _ primitives Primi
+index c Layer [0 0 4] _ primitives Primi
 int [-50] sxShift
+int [15] height
++= sxShift sx
+fun Primi set_position c sxShift c height
+fun Primi update_with_size
+
+index c Layer [0 0 5] _ primitives Primi
+int [-80] sxShift
 int [15] height
 += sxShift sx
 fun Primi set_position c sxShift c height
