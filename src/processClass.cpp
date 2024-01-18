@@ -5688,7 +5688,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     
     if(printOutInstructions){
         cout << Operation.instruction << " " << Operation.Literals[0].getString()
-            << " " << Operation.Literals[1].getStringUnsafe() << Operation.newContextID << "\n";
+            << " " << Operation.Literals[1].getStringUnsafe() << " " << Operation.newContextID << "\n";
     }
 
     for(const VariableModule & Variable : Owner->VariablesContainer){
@@ -6283,11 +6283,11 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             findByIDInEventContext(Operation, EventContext);
         }
         if((printOutInstructions && printOutStackAutomatically) || Operation.instruction == "dump_context_stack"){
-            string buffor = "Stack: ";
+            string buffor = "\nStack: ";
             for(auto context : EventContext){
                 buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
             }
-            buffor += "\n";
+            buffor += "\n\n";
             printInColor(buffor, 11);
         }
     }

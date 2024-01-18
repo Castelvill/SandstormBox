@@ -1,5 +1,8 @@
 start onInit
 triggers on_init
+edit_proc print_instructions 1
+edit_proc auto_print_stack 1
+
 //env window_size 1366 568
 //edit_proc window_size 1366 568
 env window_size 1366 768//640 480//1920 1080

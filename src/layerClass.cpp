@@ -78,8 +78,7 @@ void LayerClass::deleteLater(){
         Object.deleteLater();
     }
 }
-string LayerClass::getID() const
-{
+string LayerClass::getID() const{
     return ID;
 }
 string* LayerClass::getIDAddr(){
