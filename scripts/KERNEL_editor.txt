@@ -6,6 +6,11 @@ edit_proc window_size 400 400
 
 edit_proc draw_camera_borders 0
 
+string ["fonts/fira_mono.ttf"] path
+int [24] size
+string ["fira_mono24"] name
+load_font path size name
+
 new object l KERNEL 1 _ _ Terminal
 fun Terminal set_position int [0 0]
 fun Terminal set_id string [terminal]

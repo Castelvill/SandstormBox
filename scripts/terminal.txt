@@ -11,6 +11,16 @@ edit_proc draw_camera_borders 1
 value ([window_w]) ww
 value ([window_h]) wh
 
+string ["fonts/fira_mono.ttf"] path
+int [24] size
+string ["fira_mono24"] name
+load_font path size name
+
+string ["fonts/arial.ttf"] path
+int [24] size
+string ["arial24"] name
+load_font path size name
+
 load_bitmap "images/arch.jpg" i_use_arch_btw
 new image c me 1 _ _ archImg
 fun archImg connect_bitmap_via_alias string [i_use_arch_btw]
