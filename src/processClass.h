@@ -153,6 +153,7 @@ struct PointerRecalculator{
     vector<AncestorIndex> TriggeredObjectIndexes;
     vector<ModuleIndex> PastEvents;
 
+    unsigned eventOwnerLayerIndex;
     AncestorIndex EventOwnerIndex;
     AncestorIndex SelectedObjectIndex;
 
@@ -163,7 +164,7 @@ struct PointerRecalculator{
 
     void clear();
     void findIndexesForCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera);
-    void findIndexesForLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext);
+    void findIndexesForLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer);
     void findIndexesForObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
     template <class Module>
@@ -173,10 +174,11 @@ struct PointerRecalculator{
     void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers);
     void findIndexesForModules(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
     void updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera, string processID, string & focusedProcessID);
-    void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext);
+    void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer);
     void updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
     void updatePointersToModules(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
+    LayerClass * getOwnerLayer(vector <LayerClass> & Layers);
 };
 
 ContextClass * getContextByID(vector<ContextClass> & AllContexts, string contextID, bool warning);
@@ -303,7 +305,7 @@ public:
     void checkIfVectorContainsVector(OperaClass & Operation, vector<ContextClass> &EventContext);
     bool prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs);
     bool prepareDestinationForNew(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
-    void createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext,
+    void createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
         vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, string & focusedProcessID
     );

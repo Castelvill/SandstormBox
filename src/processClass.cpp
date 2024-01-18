@@ -3342,7 +3342,7 @@ bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<Conte
 
     return true;
 }
-void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext,
+void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, string & focusedProcessID
 ){
@@ -3415,11 +3415,11 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     else if(Operation.Location.source == "layer"){
         if(Layers.size() + newVectorSize > Layers.capacity()){
             PointerRecalculator Recalculator;
-            Recalculator.findIndexesForLayers(Layers, EventContext);
+            Recalculator.findIndexesForLayers(Layers, EventContext, OwnerLayer);
             Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
             Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
             Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
-            Recalculator.updatePointersToLayers(Layers, EventContext);
+            Recalculator.updatePointersToLayers(Layers, EventContext, OwnerLayer);
             Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
             Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
         }
@@ -6121,6 +6121,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
 ){
     for(OperaClass & Operation : Operations){
+        cout << OwnerLayer->getID() << "\n";
         if(isStringInGroup(Operation.instruction, 5, "continue", "break", "return", "reboot", "power_off")){
             if(printOutInstructions){
                 cout << Operation.instruction << "\n";
@@ -6176,7 +6177,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             checkIfVectorContainsVector(Operation, EventContext);
         }
         else if(Operation.instruction == "new"){
-            createNewEntities(Operation, EventContext, Owner, TriggeredObjects, StartingEvent, Event, MemoryStack, Engine.focusedProcessID);
+            createNewEntities(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, StartingEvent, Event, MemoryStack, Engine.focusedProcessID);
         }
         else if(Operation.instruction == "delete"){
             markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, Engine.focusedProcessID);
@@ -8939,11 +8940,19 @@ void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, vecto
         selectedCameraIndex = SelectedCamera - &Cameras[0];
     }
 }
-void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext){
+void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, LayerClass *& OwnerLayer){
     for(ContextClass & Context : EventContext){
         LayerIndexes.push_back(vector<unsigned>());
         for(LayerClass * Layer : Context.Layers){
             LayerIndexes.back().push_back(Layer - &Layers[0]);
+        }
+    }
+    if(OwnerLayer != nullptr){
+        for(LayerClass & Layer : Layers){
+            if(Layer.getID() == OwnerLayer->getID()){
+                eventOwnerLayerIndex = &Layer - &Layers[0];
+                break;
+            }
         }
     }
 }
@@ -9144,7 +9153,7 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vec
         focusedProcessID = processID;
     }
 }
-void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext){
+void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, LayerClass *& OwnerLayer){
     unsigned context, layer;
     for(context = 0; context < LayerIndexes.size(); context++){
         for(layer = 0; layer < LayerIndexes[context].size(); layer++){
@@ -9157,6 +9166,9 @@ void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vec
             }
             EventContext[context].Layers[layer] = &Layers[LayerIndexes[context][layer]];
         }
+    }
+    if(OwnerLayer != nullptr){
+        OwnerLayer = getOwnerLayer(Layers);
     }
 }
 void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, AncestorObject *&Owner,
@@ -9242,4 +9254,11 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, v
             }
         }
     }
+}
+LayerClass * PointerRecalculator::getOwnerLayer(vector <LayerClass> & Layers){
+    if(Layers.size() <= eventOwnerLayerIndex){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": layerIndex(" << eventOwnerLayerIndex << ") goes out of scope of Layers<" << Layers.size() << ">.\n";
+        return nullptr;
+    }
+    return &Layers[eventOwnerLayerIndex];
 }
