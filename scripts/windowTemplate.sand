@@ -1,5 +1,5 @@
 start refreshWindow
-triggers mouse_moved
+//triggers mouse_moved
 if ([mouse_moved])
 
 value ([context me layer_id]) myLayerID

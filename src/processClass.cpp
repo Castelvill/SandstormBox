@@ -5077,7 +5077,9 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
             return;
         }
         Engine.displaySize.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
-        al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y);
+        if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
+            cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n"; 
+        }
     }
     else if(Operation.Literals[0].getString() == "fullscreen"){
         if(Operation.Literals[1].getBool() == Engine.fullscreen){
@@ -5085,7 +5087,9 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
         }
         Engine.fullscreen = Operation.Literals[1].getBool();
         al_set_display_flag(Engine.display, ALLEGRO_FULLSCREEN_WINDOW, !(al_get_display_flags(Engine.display) & ALLEGRO_FULLSCREEN_WINDOW));
+        #if __WIN32__
         al_set_display_flag(Engine.display, ALLEGRO_MAXIMIZED, !(al_get_display_flags(Engine.display) & ALLEGRO_MAXIMIZED));
+        #endif
         //al_set_display_flag(window, ALLEGRO_NOFRAME, !(al_get_display_flags(window) & ALLEGRO_NOFRAME));   
     }
     else if(Operation.Literals[0].getString() == "pixel_art"){
@@ -6121,7 +6125,6 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
 ){
     for(OperaClass & Operation : Operations){
-        cout << OwnerLayer->getID() << "\n";
         if(isStringInGroup(Operation.instruction, 5, "continue", "break", "return", "reboot", "power_off")){
             if(printOutInstructions){
                 cout << Operation.instruction << "\n";
