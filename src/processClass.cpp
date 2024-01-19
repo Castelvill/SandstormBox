@@ -5078,7 +5078,11 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
         }
         Engine.displaySize.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
         if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
-            cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n"; 
+            #if __WIN32__
+                cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
+            #else
+                cout << "Warning: In " << __FUNCTION__ << ": al_resize_display() does not work on Linux systems when the flag ALLEGRO_RESIZABLE is used on a display.\n";
+            #endif
         }
     }
     else if(Operation.Literals[0].getString() == "fullscreen"){
@@ -6704,6 +6708,18 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
     }
     if(Condition.Location.source == "second_passed"){
         NewValue.setBool(Engine.secondHasPassed());
+        return NewValue;
+    }
+    if(Condition.Location.source == "used_os"){
+        #if __WIN32__
+            NewValue.setString("windows");
+        #elif __linux__
+            NewValue.setString("linux");
+        #elif __APPLE__
+            NewValue.setString("orange");
+        #else
+            NewValue.setString("garlic_bread");
+        #endif
         return NewValue;
     }
     if(canUserInteract){

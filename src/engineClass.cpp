@@ -114,7 +114,13 @@ void EngineClass::initAllegro(){
     display = al_create_display(SCREEN_W, SCREEN_H);
     al_set_window_title(display, windowTitle.c_str());
     al_set_window_position(display, 0, 0);
-    al_resize_display(display, displaySize.x, displaySize.y);
+    if(!al_resize_display(display, displaySize.x, displaySize.y)){
+        #if __WIN32__
+            cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
+        #else
+            //cout << "Warning: In " << __FUNCTION__ << ": al_resize_display() does not work on Linux systems when the flag ALLEGRO_RESIZABLE is used on a display.\n";
+        #endif
+    }
 
     EXE_PATH = "";
     ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);

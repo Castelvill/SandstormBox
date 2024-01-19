@@ -3,10 +3,6 @@ triggers on_init
 //edit_proc print_instructions 1
 //edit_proc auto_print_stack 1
 
-//env window_size 1366 568
-//edit_proc window_size 1366 568
-env window_size 1366 768//640 480//1920 1080
-edit_proc window_size 1366 768
 edit_proc draw_camera_borders 1
 
 load_bitmap "images/background2.png" background2
@@ -107,10 +103,16 @@ var string "" param6
 var string "" param7
 
 var int 20 roundingSize
-run createWindowTemplate
+run resizeDisplay createWindowTemplate
 end
 
-
+start resizeDisplay
+if ([used_os] [string "windows"] ==)
+///env window_size 1366 568
+//edit_proc window_size 1366 568
+env window_size 1366 768//640 480//1920 1080
+edit_proc window_size 1366 768
+end
 
 start createWindowTemplate
 new layer l 1 _ _ WindowLayer
