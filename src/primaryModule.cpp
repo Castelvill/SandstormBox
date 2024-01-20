@@ -56,10 +56,10 @@ EngineInstr transInstr(string instruction){
         return EngineInstr::all;
     }
     if(instruction == "random"){
-        return EngineInstr::random;
+        return EngineInstr::random_i;
     }
     if(instruction == "index"){
-        return EngineInstr::index;
+        return EngineInstr::index_i;
     }
     if(instruction == "sum"){
         return EngineInstr::sum;
@@ -179,7 +179,7 @@ EngineInstr transInstr(string instruction){
         return EngineInstr::let;
     }
     if(instruction == "clone"){
-        return EngineInstr::clone;
+        return EngineInstr::clone_i;
     }
     if(instruction == "new"){
         return EngineInstr::new_i;
@@ -305,9 +305,9 @@ string transInstrToStr(EngineInstr instruction){
             return "last";
         case all:
             return "all";
-        case random:
+        case random_i:
             return "random";
-        case index:
+        case index_i:
             return "index";
         case sum:
             return "sum";
@@ -387,7 +387,7 @@ string transInstrToStr(EngineInstr instruction){
             return "find_by_id";
         case let:
             return "let";
-        case clone:
+        case clone_i:
             return "clone";
         case new_i:
             return "new";
@@ -788,7 +788,7 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
         cout << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return;
     }
-    if(instruction == EngineInstr::move || instruction == EngineInstr::clone){
+    if(instruction == EngineInstr::move || instruction == EngineInstr::clone_i){
         *LeftOperand = *RightOperand;
     }
     else if(instruction == EngineInstr::add_move){

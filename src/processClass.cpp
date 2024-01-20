@@ -1118,7 +1118,7 @@ void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewCont
 
     delete TempObject;
     delete TempLayer;
-    if(Operation.instruction == EngineInstr::random){
+    if(Operation.instruction == EngineInstr::random_i){
         if(NewContext.type == "camera"){
             chooseRandomEntity(NewContext.Cameras);
         }
@@ -1188,7 +1188,7 @@ void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewCon
     }
 
     delete TempObject;
-    if(Operation.instruction == EngineInstr::random){
+    if(Operation.instruction == EngineInstr::random_i){
         if(NewContext.type == "layer"){
             chooseRandomEntity(NewContext.Layers);
         }
@@ -1240,7 +1240,7 @@ void ProcessClass::aggregateObjects(OperaClass & Operation, ContextClass & NewCo
         }
     }
 
-    if(Operation.instruction == EngineInstr::random){
+    if(Operation.instruction == EngineInstr::random_i){
         if(NewContext.type == "object"){
             chooseRandomEntity(NewContext.Objects);
         }
@@ -1419,7 +1419,7 @@ void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewCo
     }
     delete EmptyObject;
 
-    if(Operation.instruction == EngineInstr::random){
+    if(Operation.instruction == EngineInstr::random_i){
         if(!chooseRandomModule(NewContext)){
             NewContext.leaveOneRandomBasePointer();
         }
@@ -1435,7 +1435,7 @@ void ProcessClass::aggregatePointers(EngineInstr instruction, ContextClass & New
     else if(instruction == EngineInstr::all){
         NewContext.BasePointers.insert(NewContext.BasePointers.end(), AggregatedPointers.begin(), AggregatedPointers.end());
     }
-    else if(instruction == EngineInstr::random && AggregatedPointers.size() > 0){
+    else if(instruction == EngineInstr::random_i && AggregatedPointers.size() > 0){
         NewContext.BasePointers.push_back(AggregatedPointers[rand() % AggregatedPointers.size()]);
     }
     if(NewContext.BasePointers.size() > 0){
@@ -1452,7 +1452,7 @@ void ProcessClass::aggregateVariables(EngineInstr instruction, ContextClass & Ne
     else if(instruction == EngineInstr::all){
         NewContext.Variables.insert(NewContext.Variables.end(), AggregatedVariables.begin(), AggregatedVariables.end());
     }
-    else if(instruction == EngineInstr::random && AggregatedVariables.size() > 0){
+    else if(instruction == EngineInstr::random_i && AggregatedVariables.size() > 0){
         NewContext.Variables.push_back(AggregatedVariables[rand() % AggregatedVariables.size()]);
     }
     if(NewContext.Variables.size() > 0){
@@ -2565,7 +2565,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
                 return;
             }
             for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
-                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], EngineInstr::clone);
+                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], EngineInstr::clone_i);
             }
         }
         else if(LeftOperand->type == "value"){
@@ -3775,7 +3775,7 @@ void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vec
 
     if(getAllSelectedContexts(IndexContexts, EventContext, dynamicIDs)){
         for(ContextClass * Index : IndexContexts){
-            if(!Index->getIntOrAbort(singleIndex, EngineInstr::index)){
+            if(!Index->getIntOrAbort(singleIndex, EngineInstr::index_i)){
                 cout << "Error: In" << __FUNCTION__ << ": Instruction \'index\' failed.\n";
                 return;
             }
@@ -6165,10 +6165,10 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             case all: //Aggregate entities and push them on the Variables Stack.
                 aggregateEntities(Operation, EventContext, Engine);
                 break;
-            case random: //Aggregate entities and push them on the Variables Stack.
+            case random_i: //Aggregate entities and push them on the Variables Stack.
                 aggregateEntities(Operation, EventContext, Engine);
                 break;
-            case index:
+            case index_i:
                 getReferenceByIndex(Operation, EventContext);
                 break;
             case sum: //Execute operations on sets.
@@ -6204,7 +6204,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             case let: //Assign a name to the previously aggregated entities.
                 nameVariable(EventContext, Operation);
                 break;
-            case clone:
+            case clone_i:
                 if(Operation.Literals.size() > 0){
                     cloneEntities(Operation.dynamicIDs, Operation.Literals.back().getBoolUnsafe(true), EventContext, Layers);
                 }

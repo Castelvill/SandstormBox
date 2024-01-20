@@ -757,7 +757,7 @@ void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightTyp
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return;
     }
-    if(instruction == EngineInstr::move || instruction == EngineInstr::clone){
+    if(instruction == EngineInstr::move || instruction == EngineInstr::clone_i){
         *LeftOperand = *RightOperand;
     }
     else if(instruction == EngineInstr::add_move){
