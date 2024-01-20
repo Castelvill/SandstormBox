@@ -30,6 +30,20 @@ int [20] size
 string ["cascadia_code_bold"] name
 load_font path size name
 
+run resizeDisplay buildTerminal createWindowTemplate
+end
+
+
+start resizeDisplay
+if ([used_os] [string "windows"] ==)
+///env window_size 1366 568
+//edit_proc window_size 1366 568
+edit_proc window_size 1920 1080
+env window_size 1366 768//640 480//1920 1080
+end
+
+
+start buildTerminal
 value ([window_w]) ww
 value ([window_h]) wh
 
@@ -101,18 +115,9 @@ var string "" param4
 var string "" param5
 var string "" param6
 var string "" param7
-
 var int 20 roundingSize
-run resizeDisplay createWindowTemplate
 end
 
-start resizeDisplay
-if ([used_os] [string "windows"] ==)
-///env window_size 1366 568
-//edit_proc window_size 1366 568
-env window_size 1366 768//640 480//1920 1080
-edit_proc window_size 1366 768
-end
 
 start createWindowTemplate
 new layer l 1 _ _ WindowLayer

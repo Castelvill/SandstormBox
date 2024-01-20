@@ -1,3 +1,6 @@
+20.01.2024
+-Changed instructions' type from string to char (enum).
+
 18.01.2024
 -Added "used_os" attribute to the "value" instruction.
 -Fixed "new" instruction for new layers creation - owner's layer pointer was not recalculated during the vector resizing.
