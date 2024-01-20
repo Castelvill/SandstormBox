@@ -1,5 +1,452 @@
 #include "primaryModule.h"
 
+EngineInstr transInstr(string instruction){
+    if(instruction == "start"){
+        return EngineInstr::start;
+    }
+    if(instruction == "end"){
+        return EngineInstr::end_i;
+    }
+    if(instruction == "post"){
+        return EngineInstr::post;
+    }
+    if(instruction == "triggers"){
+        return EngineInstr::triggers;
+    }
+    if(instruction == "run"){
+        return EngineInstr::run;
+    }
+    if(instruction == "if"){
+        return EngineInstr::if_i;
+    }
+    if(instruction == "else"){
+        return EngineInstr::else_i;
+    }
+    if(instruction == "continue"){
+        return EngineInstr::continue_i;
+    }
+    if(instruction == "break"){
+        return EngineInstr::break_i;
+    }
+    if(instruction == "return"){
+        return EngineInstr::return_i;
+    }
+    if(instruction == "reboot"){
+        return EngineInstr::reboot;
+    }
+    if(instruction == "power_off"){
+        return EngineInstr::power_off;
+    }
+    if(instruction == "delete_this_event"){
+        return EngineInstr::delete_this_event;
+    }
+    if(instruction == "reset_keyboard"){
+        return EngineInstr::reset_keyboard;
+    }
+    if(instruction == "dump_context_stack"){
+        return EngineInstr::dump_context_stack;
+    }
+    if(instruction == "first"){
+        return EngineInstr::first;
+    }
+    if(instruction == "last"){
+        return EngineInstr::last;
+    }
+    if(instruction == "all"){
+        return EngineInstr::all;
+    }
+    if(instruction == "random"){
+        return EngineInstr::random;
+    }
+    if(instruction == "index"){
+        return EngineInstr::index;
+    }
+    if(instruction == "sum"){
+        return EngineInstr::sum;
+    }
+    if(instruction == "intersection"){
+        return EngineInstr::intersection;
+    }
+    if(instruction == "difference"){
+        return EngineInstr::diff;
+    }
+    if(instruction == "+"){
+        return EngineInstr::add;
+    }
+    if(instruction == "-"){
+        return EngineInstr::sub;
+    }
+    if(instruction == "*"){
+        return EngineInstr::mul;
+    }
+    if(instruction == "/"){
+        return EngineInstr::div_i;
+    }
+    if(instruction == "%"){
+        return EngineInstr::mod;
+    }
+    if(instruction == "**"){
+        return EngineInstr::pow_i;
+    }
+    if(instruction == "="){
+        return EngineInstr::move;
+    }
+    if(instruction == "+="){
+        return EngineInstr::add_move;
+    }
+    if(instruction == "-="){
+        return EngineInstr::sub_move;
+    }
+    if(instruction == "*="){
+        return EngineInstr::mul_move;
+    }
+    if(instruction == "/="){
+        return EngineInstr::div_move;
+    }
+    if(instruction == "=="){
+        return EngineInstr::equal;
+    }
+    if(instruction == "!="){
+        return EngineInstr::not_equal;
+    }
+    if(instruction == ">"){
+        return EngineInstr::more;
+    }
+    if(instruction == "<"){
+        return EngineInstr::less;
+    }
+    if(instruction == ">="){
+        return EngineInstr::more_equal;
+    }
+    if(instruction == "<="){
+        return EngineInstr::less_equal;
+    }
+    if(instruction == "!"){
+        return EngineInstr::not_i;
+    }
+    if(instruction == "&&"){
+        return EngineInstr::and_i;
+    }
+    if(instruction == "||"){
+        return EngineInstr::or_i;
+    }
+    if(instruction == "igT"){
+        return EngineInstr::igT;
+    }
+    if(instruction == "igF"){
+        return EngineInstr::igF;
+    }
+    if(instruction == "in"){
+        return EngineInstr::in;
+    }
+    if(instruction == "find_by_id_2"){
+        return EngineInstr::find_by_id_2;
+    }
+    if(instruction == "++"){
+        return EngineInstr::inc;
+    }
+    if(instruction == "--"){
+        return EngineInstr::dec;
+    }
+    if(instruction == "delete"){
+        return EngineInstr::del;
+    }
+    if(instruction == "demolish"){
+        return EngineInstr::demolish;
+    }
+    if(instruction == "value"){
+        return EngineInstr::value;
+    }
+    if(instruction == "bool"){
+        return EngineInstr::bool_i;
+    }
+    if(instruction == "int"){
+        return EngineInstr::int_i;
+    }
+    if(instruction == "double"){
+        return EngineInstr::double_i;
+    }
+    if(instruction == "string"){
+        return EngineInstr::string_i;
+    }
+    if(instruction == "random_int"){
+        return EngineInstr::rand_int;
+    }
+    if(instruction == "find_by_id"){
+        return EngineInstr::find_by_id;
+    }
+    if(instruction == "let"){
+        return EngineInstr::let;
+    }
+    if(instruction == "clone"){
+        return EngineInstr::clone;
+    }
+    if(instruction == "new"){
+        return EngineInstr::new_i;
+    }
+    if(instruction == "bind"){
+        return EngineInstr::bind_i;
+    }
+    if(instruction == "build"){
+        return EngineInstr::build;
+    }
+    if(instruction == "load_build"){
+        return EngineInstr::load_build;
+    }
+    if(instruction == "build_subset"){
+        return EngineInstr::build_subset;
+    }
+    if(instruction == "inject_code"){
+        return EngineInstr::inject_code;
+    }
+    if(instruction == "inject_instr"){
+        return EngineInstr::inject_instr;
+    }
+    if(instruction == "fun"){
+        return EngineInstr::fun;
+    }
+    if(instruction == "env"){
+        return EngineInstr::env;
+    }
+    if(instruction == "edit_proc"){
+        return EngineInstr::edit_proc;
+    }
+    if(instruction == "load_bitmap"){
+        return EngineInstr::load_bitmap;
+    }
+    if(instruction == "mkdir"){
+        return EngineInstr::mkdir_i;
+    }
+    if(instruction == "rm"){
+        return EngineInstr::rm;
+    }
+    if(instruction == "rmll"){
+        return EngineInstr::rmll;
+    }
+    if(instruction == "rename"){
+        return EngineInstr::rename_i;
+    }
+    if(instruction == "print"){
+        return EngineInstr::print;
+    }
+    if(instruction == "load_text"){
+        return EngineInstr::load_text;
+    }
+    if(instruction == "save_text"){
+        return EngineInstr::save_text;
+    }
+    if(instruction == "ls"){
+        return EngineInstr::ls;
+    }
+    if(instruction == "new_proc"){
+        return EngineInstr::new_proc;
+    }
+    if(instruction == "var"){
+        return EngineInstr::var;
+    }
+    if(instruction == "tokenize"){
+        return EngineInstr::tokenize;
+    }
+    if(instruction == "tree"){
+        return EngineInstr::tree;
+    }
+    if(instruction == "len"){
+        return EngineInstr::len;
+    }
+    if(instruction == "size"){
+        return EngineInstr::size;
+    }
+    if(instruction == "substr"){
+        return EngineInstr::substr;
+    }
+    if(instruction == "load_font"){
+        return EngineInstr::load_font;
+    }
+    cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
+    return EngineInstr::null;
+}
+string transInstrToStr(EngineInstr instruction){
+    switch(instruction){
+        case null:
+            return "null";
+        case start:
+            return "start";
+        case end_i:
+            return "end";
+        case post:
+            return "post";
+        case triggers:
+            return "triggers";
+        case run:
+            return "run";
+        case if_i:
+            return "if";
+        case else_i:
+            return "else";
+        case continue_i:
+            return "continue";
+        case break_i:
+            return "break";
+        case return_i:
+            return "return";
+        case reboot:
+            return "reboot";
+        case power_off:
+            return "power_off";
+        case delete_this_event:
+            return "delete_this_event";
+        case reset_keyboard:
+            return "reset_keyboard";
+        case dump_context_stack:
+            return "dump_context_stack";
+        case first:
+            return "first";
+        case last:
+            return "last";
+        case all:
+            return "all";
+        case random:
+            return "random";
+        case index:
+            return "index";
+        case sum:
+            return "sum";
+        case intersection:
+            return "intersection";
+        case diff:
+            return "difference";
+        case add:
+            return "+";
+        case sub:
+            return "-";
+        case mul:
+            return "*";
+        case div_i:
+            return "/";
+        case mod:
+            return "%";
+        case pow_i:
+            return "**";
+        case move:
+            return "=";
+        case add_move:
+            return "+=";
+        case sub_move:
+            return "-=";
+        case mul_move:
+            return "*=";
+        case div_move:
+            return "/=";
+        case equal:
+            return "==";
+        case not_equal:
+            return "!=";
+        case more:
+            return ">";
+        case less:
+            return "<";
+        case more_equal:
+            return ">=";
+        case less_equal:
+            return "<=";
+        case not_i:
+            return "!";
+        case and_i:
+            return "&&";
+        case or_i:
+            return "||";
+        case igT:
+            return "igT";
+        case igF:
+            return "igF";
+        case in:
+            return "in";
+        case find_by_id_2:
+            return "find_by_id_2";
+        case inc:
+            return "++";
+        case dec:
+            return "--";
+        case del:
+            return "delete";
+        case demolish:
+            return "demolish";
+        case value:
+            return "value";
+        case bool_i:
+            return "bool";
+        case int_i:
+            return "int";
+        case double_i:
+            return "double";
+        case string_i:
+            return "string";
+        case rand_int:
+            return "random_int";
+        case find_by_id:
+            return "find_by_id";
+        case let:
+            return "let";
+        case clone:
+            return "clone";
+        case new_i:
+            return "new";
+        case bind_i:
+            return "bind";
+        case build:
+            return "build";
+        case load_build:
+            return "load_build";
+        case build_subset:
+            return "build_subset";
+        case inject_code:
+            return "inject_code";
+        case inject_instr:
+            return "inject_instr";
+        case fun:
+            return "fun";
+        case env:
+            return "env";
+        case edit_proc:
+            return "edit_proc";
+        case load_bitmap:
+            return "load_bitmap";
+        case mkdir_i:
+            return "mkdir";
+        case rm:
+            return "rm";
+        case rmll:
+            return "rmll";
+        case rename_i:
+            return "rename";
+        case print:
+            return "print";
+        case load_text:
+            return "load_text";
+        case save_text:
+            return "save_text";
+        case ls:
+            return "ls";
+        case new_proc:
+            return "new_proc";
+        case var:
+            return "var";
+        case tokenize:
+            return "tokenize";
+        case tree:
+            return "tree";
+        case len:
+            return "len";
+        case size:
+            return "size";
+        case substr:
+            return "substr";
+        case load_font:
+            return "load_font";
+    }
+    cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
+    return "null";
+}
 
 void PrimaryModule::primaryConstructor(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     if(listOfIDs != nullptr){
@@ -324,12 +771,12 @@ void BasePointersStruct::clear(){
     pString = nullptr;
 }
 template<typename LeftType, typename RightType>
-void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, const RightType * RightOperand, string instruction){
-    if(instruction == "++"){
+void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, const RightType * RightOperand, EngineInstr instruction){
+    if(instruction == EngineInstr::inc){
         (*LeftOperand)++;
         return;
     }
-    else if(instruction == "--"){
+    else if(instruction == EngineInstr::dec){
         (*LeftOperand)--;
         return;
     }
@@ -341,19 +788,19 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
         cout << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return;
     }
-    if(instruction == "=" || instruction == "clone"){
+    if(instruction == EngineInstr::move || instruction == EngineInstr::clone){
         *LeftOperand = *RightOperand;
     }
-    else if(instruction == "+="){
+    else if(instruction == EngineInstr::add_move){
         *LeftOperand += *RightOperand;
     }
-    else if(instruction == "-="){
+    else if(instruction == EngineInstr::sub_move){
         *LeftOperand -= *RightOperand;
     }
-    else if(instruction == "*="){
+    else if(instruction == EngineInstr::mul_move){
         *LeftOperand *= *RightOperand;
     }
-    else if(instruction == "/="){
+    else if(instruction == EngineInstr::div_move){
         if(*RightOperand != 0){
             *LeftOperand /= *RightOperand;
         }
@@ -362,7 +809,7 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << instruction << "\' is not a valid instruction.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(instruction) << "\' is not a valid instruction.\n";
     }
 }
 template<typename LeftType>
@@ -470,7 +917,7 @@ void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
 }
 
 template<typename RightType>
-void BasePointersStruct::moveFromTemp(const RightType * RightOperand, string instruction){
+void BasePointersStruct::moveFromTemp(const RightType * RightOperand, EngineInstr instruction){
     if(readOnly){
         cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
@@ -505,21 +952,21 @@ void BasePointersStruct::moveFromTemp(const RightType * RightOperand, string ins
         cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
     }
 }
-void BasePointersStruct::move(const BasePointersStruct &RightOperand, string instruction){
+void BasePointersStruct::move(const BasePointersStruct &RightOperand, EngineInstr instruction){
     if(readOnly){
         cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
     }
     if(type == "string" || RightOperand.type == "string"){
         if(type == "string"){
-            if(instruction == "="){
+            if(instruction == EngineInstr::move){
                 *pString = RightOperand.getString();
             }
-            else if(instruction == "+="){
+            else if(instruction == EngineInstr::add_move){
                 *pString += RightOperand.getString();
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+                cout << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
             }
         }
         else{
@@ -551,28 +998,28 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, string ins
     else if(RightOperand.type == "double"){
         moveFromTemp(RightOperand.pDouble, instruction);
     }
-    else if(instruction == "++" || instruction == "--"){
+    else if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         moveFromTemp((short*)nullptr, instruction);
     }
     else{
         cout << "Error: In " << __FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
     }
 }
-void BasePointersStruct::move(const BaseVariableStruct & RightOperand, string instruction){
+void BasePointersStruct::move(const BaseVariableStruct & RightOperand, EngineInstr instruction){
     if(readOnly){
         cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
     }
     if(type == "string" || RightOperand.type == "string"){
         if(type == "string"){
-            if(instruction == "="){
+            if(instruction == EngineInstr::move){
                 *pString = RightOperand.getString();
             }
-            else if(instruction == "+="){
+            else if(instruction == EngineInstr::add_move){
                 *pString += RightOperand.getString();
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+                cout << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
             }
         }
         else{
@@ -604,7 +1051,7 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, string in
     else if(RightOperand.type == "double"){
         moveFromTemp(&RightOperand.vDouble, instruction);
     }
-    else if(instruction == "++" || instruction == "--"){
+    else if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         moveFromTemp((short*)nullptr, instruction);
     }
     else{
@@ -612,7 +1059,7 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, string in
     }
 }
 template<typename LeftType, typename RightType>
-LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, string instruction){
+LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, EngineInstr instruction){
     if(LeftOperand == nullptr){
         cout << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
         return 0;
@@ -621,16 +1068,16 @@ LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightT
         cout << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return 0;
     }
-    if(instruction == "+"){
+    if(instruction == EngineInstr::add){
         return (*LeftOperand) + (*RightOperand);
     }
-    else if(instruction == "+"){
+    else if(instruction == EngineInstr::sub){
         return (*LeftOperand) - (*RightOperand);
     }
-    else if(instruction == "*"){
+    else if(instruction == EngineInstr::mul){
         return (*LeftOperand) * (*RightOperand);
     }
-    else if(instruction == "/"){
+    else if(instruction == EngineInstr::div_i){
         if(*RightOperand != 0){
             return (*LeftOperand) / (*RightOperand);
         }
@@ -639,13 +1086,13 @@ LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightT
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << instruction << "\' is not a valid instruction.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(instruction) << "\' is not a valid instruction.\n";
     }
     return 0;
 }
 template<typename LeftType>
-LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, string instruction){
-    if(RightOperand.type == "bool" && instruction != "ret_mul"){
+LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, EngineInstr instruction){
+    if(RightOperand.type == "bool" /*&& instruction != "ret_mul"*/){
         short right = *RightOperand.pBool;
         return tryArithmetics(LeftOperand, &right, instruction) > 0;
     }
@@ -673,12 +1120,12 @@ LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOpera
     cout << "Error: In " << __FUNCTION__ << ": About the right operand: \'" << RightOperand.type << "\' is not a valid type.\n"; 
     return 0;
 }
-BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStruct &RightOperand, string instruction){
+BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStruct &RightOperand, EngineInstr instruction){
     BaseVariableStruct result;
     result.type = type;
 
     if(type == "string" || RightOperand.type == "string"){
-        if(type == "string" && RightOperand.type == "string" && instruction == "+"){
+        if(type == "string" && RightOperand.type == "string" && instruction == EngineInstr::add){
             result.vString = *pString + *RightOperand.pString;
         }
         else{
@@ -718,7 +1165,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStru
     return result;
 }
 template<typename LeftType>
-LeftType BasePointersStruct::callTryArithmetics(LeftType * LeftOperand, const BaseVariableStruct & RightOperand, string instruction){
+LeftType BasePointersStruct::callTryArithmetics(LeftType * LeftOperand, const BaseVariableStruct & RightOperand, EngineInstr instruction){
     if(RightOperand.type == "bool"){
         short right = RightOperand.vBool;
         return tryArithmetics(LeftOperand, &right, instruction) > 0;
@@ -746,12 +1193,12 @@ LeftType BasePointersStruct::callTryArithmetics(LeftType * LeftOperand, const Ba
     }
     return 0;
 }
-BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStruct & RightOperand, string instruction){
+BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStruct & RightOperand, EngineInstr instruction){
     BaseVariableStruct result;
     result.type = type;
     
     if(type == "string" || RightOperand.type == "string"){
-        if(type == "string" && RightOperand.type == "string" && instruction == "+"){
+        if(type == "string" && RightOperand.type == "string" && instruction == EngineInstr::add){
             result.vString = *pString + RightOperand.vString;
         }
         else{

@@ -5,6 +5,23 @@
 
 using std::string;
 
+enum EngineInstr : char{
+    null, start, end_i, post, triggers, run, if_i, else_i, continue_i,
+    break_i, return_i, reboot, power_off, delete_this_event,
+    reset_keyboard, dump_context_stack, first, last, all,
+    random, index, sum, intersection, diff, add, sub, mul,
+    div_i, mod, pow_i, move, add_move, sub_move, mul_move, div_move,
+    equal, not_equal, more, less, more_equal, less_equal, not_i,
+    and_i, or_i, igT, igF, in, find_by_id_2, inc, dec, del, demolish,
+    value, bool_i, int_i, double_i, string_i, rand_int, find_by_id,
+    let, clone, new_i, bind_i, build, load_build, build_subset,
+    inject_code, inject_instr, fun, env, edit_proc, load_bitmap,
+    mkdir_i, rm, rmll, rename_i, print, load_text, save_text, ls,
+    new_proc, var, tokenize, tree, len, size, substr, load_font
+};
+EngineInstr transInstr(string instruction);
+string transInstrToStr(EngineInstr instruction);
+
 class BaseVariableStruct{
 public:
     string type;
@@ -39,20 +56,20 @@ public:
     BasePointersStruct();
     void clear();
     template<typename LeftType, typename RightType>
-    void executeMoveTypeInstruction(LeftType * LeftOperand, const RightType * RightOperand, string instruction);
+    void executeMoveTypeInstruction(LeftType * LeftOperand, const RightType * RightOperand, EngineInstr instruction);
     void tryToSetValue(const BaseVariableStruct & RightOperand);
     template<typename RightType>
-    void moveFromTemp(const RightType * RightOperand, string instruction);
-    void move(const BasePointersStruct & RightOperand, string instruction);
-    void move(const BaseVariableStruct & RightOperand, string instruction);
+    void moveFromTemp(const RightType * RightOperand, EngineInstr instruction);
+    void move(const BasePointersStruct & RightOperand, EngineInstr instruction);
+    void move(const BaseVariableStruct & RightOperand, EngineInstr instruction);
     template<typename LeftType, typename RightType>
-    LeftType tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, string instruction);
+    LeftType tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, EngineInstr instruction);
     template<typename LeftType>
-    LeftType callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, string instruction);
-    BaseVariableStruct executeArithmetics(const BasePointersStruct &RightOperand, string instruction);
+    LeftType callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, EngineInstr instruction);
+    BaseVariableStruct executeArithmetics(const BasePointersStruct &RightOperand, EngineInstr instruction);
     template<typename LeftType>
-    LeftType callTryArithmetics(LeftType * LeftOperand, const BaseVariableStruct & RightOperand, string instruction);
-    BaseVariableStruct executeArithmetics(const BaseVariableStruct & RightOperand, string instruction);
+    LeftType callTryArithmetics(LeftType * LeftOperand, const BaseVariableStruct & RightOperand, EngineInstr instruction);
+    BaseVariableStruct executeArithmetics(const BaseVariableStruct & RightOperand, EngineInstr instruction);
     void setPointer(bool*);
     void setPointer(char*);
     void setPointer(short*);

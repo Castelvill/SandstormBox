@@ -68,22 +68,22 @@ public:
     void negate();
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     template <typename condValueType>
-    bool isConditionMet(condValueType condVal, string operatorType, char valType);
-    bool isConditionMet(string condVal, string operatorType, char valType);
-    bool isConditionMet(string operatorType, VariableModule * OtherVariable);
-    bool isConditionMet(string operatorType, const BasePointersStruct & OtherVariable);
-    double floatingOperation(string operatorType, VariableModule * OtherVariable);
-    double floatingOperation(string operatorType, BasePointersStruct * OtherVariable);
-    int intOperation(string operatorType, VariableModule * OtherVariable);
-    int intOperation(string operatorType, BasePointersStruct * RightOperand);
-    string stringOperation(string operatorType, VariableModule * OtherVariable);
-    string stringOperation(string operatorType, BasePointersStruct * RightOperand);
+    bool isConditionMet(condValueType condVal, EngineInstr operatorType, char valType);
+    bool isConditionMet(string condVal, EngineInstr operatorType, char valType);
+    bool isConditionMet(EngineInstr operatorType, VariableModule * OtherVariable);
+    bool isConditionMet(EngineInstr operatorType, const BasePointersStruct & OtherVariable);
+    double floatingOperation(EngineInstr operatorType, VariableModule * OtherVariable);
+    double floatingOperation(EngineInstr operatorType, BasePointersStruct * OtherVariable);
+    int intOperation(EngineInstr operatorType, VariableModule * OtherVariable);
+    int intOperation(EngineInstr operatorType, BasePointersStruct * RightOperand);
+    string stringOperation(EngineInstr operatorType, VariableModule * OtherVariable);
+    string stringOperation(EngineInstr operatorType, BasePointersStruct * RightOperand);
     template<typename LeftType, typename RightType>
-    void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, string instruction);
+    void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, EngineInstr instruction);
     template<typename RightType>
-    void moveFromTemp(RightType * RightOperand, string instruction);
-    void move(VariableModule * RightOperand, string instruction);
-    void move(const BasePointersStruct *RightOperand, string instruction);
+    void moveFromTemp(RightType * RightOperand, EngineInstr instruction);
+    void move(VariableModule * RightOperand, EngineInstr instruction);
+    void move(const BasePointersStruct *RightOperand, EngineInstr instruction);
     BaseVariableStruct getVariableStruct() const;
     VariableModule & operator=(const VariableModule& original);
     template <typename T>

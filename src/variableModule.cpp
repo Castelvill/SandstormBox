@@ -432,8 +432,8 @@ void VariableModule::getContext(string attribute, vector <BasePointersStruct> & 
 }
 
 template <typename condValueType>
-bool VariableModule::isConditionMet(condValueType condVal, string operatorType, char valType){
-    if(operatorType == "||"){
+bool VariableModule::isConditionMet(condValueType condVal, EngineInstr operatorType, char valType){
+    if(operatorType == EngineInstr::or_i){
         if(valType == 'b'){
             return vBool || condVal;
         }
@@ -444,7 +444,7 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
             return vDouble || condVal;
         }
     }
-    else if(operatorType == "&&"){
+    else if(operatorType == EngineInstr::and_i){
         if(valType == 'b'){
             return vBool && condVal;
         }
@@ -455,7 +455,7 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
             return vDouble && condVal;
         }
     }
-    else if(operatorType == "=="){
+    else if(operatorType == EngineInstr::equal){
         if(valType == 'b'){
             return vBool == condVal;
         }
@@ -466,7 +466,7 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
             return vDouble == condVal;
         }
     }
-    else if(operatorType == "!="){
+    else if(operatorType == EngineInstr::not_equal){
         if(valType == 'b'){
             return vBool != condVal;
         }
@@ -477,7 +477,7 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
             return vDouble != condVal;
         }
     }
-    else if(operatorType == ">"){
+    else if(operatorType == EngineInstr::more){
         if(valType == 'b'){
             return vBool > condVal;
         }
@@ -488,7 +488,7 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
             return vDouble > condVal;
         }
     }
-    else if(operatorType == "<"){
+    else if(operatorType == EngineInstr::less){
         if(valType == 'b'){
             return vBool < condVal;
         }
@@ -499,7 +499,7 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
             return vDouble < condVal;
         }
     }
-    else if(operatorType == ">="){
+    else if(operatorType == EngineInstr::more_equal){
         if(valType == 'b'){
             return vBool >= condVal;
         }
@@ -510,7 +510,7 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
             return vDouble >= condVal;
         }
     }
-    else if(operatorType == "<="){
+    else if(operatorType == EngineInstr::less_equal){
         if(valType == 'b'){
             return vBool <= condVal;
         }
@@ -523,32 +523,30 @@ bool VariableModule::isConditionMet(condValueType condVal, string operatorType, 
     }
     return false;
 }
-bool VariableModule::isConditionMet(string condVal, string operatorType, char valType){
+bool VariableModule::isConditionMet(string condVal, EngineInstr operatorType, char valType){
     if(type != valType || valType != 's'){
         cout << "Error: In " << __FUNCTION__ << ": Comparison of two different variable types.\n";
         return false;
     }
-    if(operatorType == "=="){
-        return vString == condVal;
-    }
-    else if(operatorType == "!="){
-        return vString != condVal;
-    }
-    else if(operatorType == ">"){
-        return vString > condVal;
-    }
-    else if(operatorType == "<"){
-        return vString < condVal;
-    }
-    else if(operatorType == ">="){
-        return vString >= condVal;
-    }
-    else if(operatorType == "<="){
-        return vString <= condVal;
+    switch(operatorType){
+        case equal:
+            return vString == condVal;
+        case not_equal:
+            return vString != condVal;
+        case more:
+            return vString > condVal;
+        case less:
+            return vString < condVal;
+        case more_equal:
+            return vString >= condVal;
+        case less_equal:
+            return vString <= condVal;
+        default:
+            break;
     }
     return false;
 }
-bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherVariable){
+bool VariableModule::isConditionMet(EngineInstr operatorType, VariableModule * OtherVariable){
     if(isNumeric() && OtherVariable->isNumeric()){
         if(OtherVariable->getType() == 'b'){
             return isConditionMet(OtherVariable->getBool(), operatorType, OtherVariable->getType());
@@ -565,11 +563,11 @@ bool VariableModule::isConditionMet(string operatorType, VariableModule * OtherV
     }
     
     cout << "Error: In " << __FUNCTION__ << ": Invalid comparison: " << ID << ":" << type << ":" << getAnyValue()
-        << " " << operatorType << " " << OtherVariable->getID() << ":" << OtherVariable->getType() << ":" << OtherVariable->getAnyValue() << "\n";
+        << " " << transInstrToStr(operatorType) << " " << OtherVariable->getID() << ":" << OtherVariable->getType() << ":" << OtherVariable->getAnyValue() << "\n";
     
     return false;
 }
-bool VariableModule::isConditionMet(string operatorType, const BasePointersStruct & OtherVariable){
+bool VariableModule::isConditionMet(EngineInstr operatorType, const BasePointersStruct & OtherVariable){
     if(OtherVariable.isNumeric() && isNumeric()){
         if(type == 'b'){
             return isConditionMet(OtherVariable.getBool(), operatorType, type);
@@ -589,130 +587,130 @@ bool VariableModule::isConditionMet(string operatorType, const BasePointersStruc
     
     return false;
 }
-double VariableModule::floatingOperation(string operatorType, VariableModule * OtherVariable){
+double VariableModule::floatingOperation(EngineInstr operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){
         cout << "Error: " << __PRETTY_FUNCTION__ << ": You cannot use string variable in arithmetic operation.\n";
         return false;
     }
-    if(operatorType == "+"){
+    if(operatorType == EngineInstr::add){
         return getDouble() + OtherVariable->getDouble();
     }
-    else if(operatorType == "-"){
+    else if(operatorType == EngineInstr::sub){
         return getDouble() - OtherVariable->getDouble();
     }
-    else if(operatorType == "*"){
+    else if(operatorType == EngineInstr::mul){
         return getDouble() * OtherVariable->getDouble();
     }
-    else if(operatorType == "/"){
+    else if(operatorType == EngineInstr::div_i){
         return getDouble() / OtherVariable->getDouble();
     }
-    else if(operatorType == "%"){
+    else if(operatorType == EngineInstr::mod){
         return int(getDouble()) % int(OtherVariable->getDouble());
     }
-    else if(operatorType == "**"){
+    else if(operatorType == EngineInstr::pow_i){
         return pow(getDouble(), OtherVariable->getDouble());
     }
-    cout << "Error: " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    cout << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
     return 0.0;
 }
-double VariableModule::floatingOperation(string operatorType, BasePointersStruct * RightOperand){
+double VariableModule::floatingOperation(EngineInstr operatorType, BasePointersStruct * RightOperand){
     if(type == 's' || RightOperand->type == "string"){
         cout << "Error: " << __PRETTY_FUNCTION__ << ": You cannot use string variable in the arithmetic operation.\n";
         return false;
     }
-    if(operatorType == "+"){
+    if(operatorType == EngineInstr::add){
         return getDouble() + RightOperand->getDouble();
     }
-    else if(operatorType == "-"){
+    else if(operatorType == EngineInstr::sub){
         return getDouble() - RightOperand->getDouble();
     }
-    else if(operatorType == "*"){
+    else if(operatorType == EngineInstr::mul){
         return getDouble() * RightOperand->getDouble();
     }
-    else if(operatorType == "/"){
+    else if(operatorType == EngineInstr::div_i){
         return getDouble() / RightOperand->getDouble();
     }
-    else if(operatorType == "%"){
+    else if(operatorType == EngineInstr::mod){
         return int(getDouble()) % int(RightOperand->getDouble());
     }
-    else if(operatorType == "**"){
+    else if(operatorType == EngineInstr::pow_i){
         return pow(getDouble(), RightOperand->getDouble());
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    cout << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
     return 0.0;
 }
-int VariableModule::intOperation(string operatorType, VariableModule * OtherVariable){
+int VariableModule::intOperation(EngineInstr operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot use string variable in arithmetic operation.\n";
         return false;
     }
-    if(operatorType == "+"){
+    if(operatorType == EngineInstr::add){
         return getInt() + OtherVariable->getInt();
     }
-    else if(operatorType == "-"){
+    else if(operatorType == EngineInstr::sub){
         return getInt() - OtherVariable->getInt();
     }
-    else if(operatorType == "*"){
+    else if(operatorType == EngineInstr::mul){
         return getInt() * OtherVariable->getInt();
     }
-    else if(operatorType == "/"){
+    else if(operatorType == EngineInstr::div_i){
         return getInt() / OtherVariable->getInt();
     }
-    else if(operatorType == "%"){
+    else if(operatorType == EngineInstr::mod){
         return int(getInt()) % int(OtherVariable->getInt());
     }
-    else if(operatorType == "**"){
+    else if(operatorType == EngineInstr::pow_i){
         return pow(getInt(), OtherVariable->getInt());
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    cout << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
     return 0;
 }
-int VariableModule::intOperation(string operatorType, BasePointersStruct * RightOperand){
+int VariableModule::intOperation(EngineInstr operatorType, BasePointersStruct * RightOperand){
     if(type == 's' || RightOperand->type == "string"){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot use string variable in the arithmetic operation.\n";
         return false;
     }
-    if(operatorType == "+"){
+    if(operatorType == EngineInstr::add){
         return getInt() + RightOperand->getInt();
     }
-    else if(operatorType == "-"){
+    else if(operatorType == EngineInstr::sub){
         return getInt() - RightOperand->getInt();
     }
-    else if(operatorType == "*"){
+    else if(operatorType == EngineInstr::mul){
         return getInt() * RightOperand->getInt();
     }
-    else if(operatorType == "/"){
+    else if(operatorType == EngineInstr::div_i){
         return getInt() / RightOperand->getInt();
     }
-    else if(operatorType == "%"){
+    else if(operatorType == EngineInstr::mod){
         return int(getInt()) % int(RightOperand->getInt());
     }
-    else if(operatorType == "**"){
+    else if(operatorType == EngineInstr::pow_i){
         return pow(getInt(), RightOperand->getInt());
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    cout << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
     return 0;
 }
-string VariableModule::stringOperation(string operatorType, VariableModule * OtherVariable){
+string VariableModule::stringOperation(EngineInstr operatorType, VariableModule * OtherVariable){
     if(type != 's' || OtherVariable->getType() != 's'){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Two variables must be of string type.\n";
         return "";
     }
-    if(operatorType == "+"){
+    if(operatorType == EngineInstr::add){
         return getString() + OtherVariable->getString();
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    cout << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
     return 0;
 }
-string VariableModule::stringOperation(string operatorType, BasePointersStruct * RightOperand){
+string VariableModule::stringOperation(EngineInstr operatorType, BasePointersStruct * RightOperand){
     if(type != 's' || RightOperand->type != "string"){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Two variables must be of string type.\n";
         return "";
     }
-    if(operatorType == "+"){
+    if(operatorType == EngineInstr::add){
         return getString() + RightOperand->getString();
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Unrecognized operator.\n";
+    cout << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
     return 0;
 }
 BaseVariableStruct VariableModule::getVariableStruct() const{
@@ -742,12 +740,12 @@ BaseVariableStruct VariableModule::getVariableStruct() const{
     return Structure;
 }
 template<typename LeftType, typename RightType>
-void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, string instruction){
-    if(instruction == "++"){
+void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, EngineInstr instruction){
+    if(instruction == EngineInstr::inc){
         (*LeftOperand)++;
         return;
     }
-    else if(instruction == "--"){
+    else if(instruction == EngineInstr::dec){
        (*LeftOperand)--;
         return;
     }
@@ -759,19 +757,19 @@ void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightTyp
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return;
     }
-    if(instruction == "=" || instruction == "clone"){
+    if(instruction == EngineInstr::move || instruction == EngineInstr::clone){
         *LeftOperand = *RightOperand;
     }
-    else if(instruction == "+="){
+    else if(instruction == EngineInstr::add_move){
         *LeftOperand += *RightOperand;
     }
-    else if(instruction == "-="){
+    else if(instruction == EngineInstr::sub_move){
         *LeftOperand -= *RightOperand;
     }
-    else if(instruction == "*="){
+    else if(instruction == EngineInstr::mul_move){
         *LeftOperand *= *RightOperand;
     }
-    else if(instruction == "/="){
+    else if(instruction == EngineInstr::div_move){
         if(*RightOperand != 0){
             *LeftOperand /= *RightOperand;
         }
@@ -780,11 +778,11 @@ void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightTyp
         }
     }
     else{
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << instruction << "\' is not a valid instruction.\n";
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << transInstrToStr(instruction) << "\' is not a valid instruction.\n";
     }
 }
 template<typename RightType>
-void VariableModule::moveFromTemp(RightType * RightOperand, string instruction){
+void VariableModule::moveFromTemp(RightType * RightOperand, EngineInstr instruction){
     if(type == 'b'){
         short temp = vBool;
         executeMoveTypeInstruction(&temp, RightOperand, instruction);
@@ -800,17 +798,17 @@ void VariableModule::moveFromTemp(RightType * RightOperand, string instruction){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the left operand: \'" << type << "\' type is not valid.\n";
     }
 }
-void VariableModule::move(VariableModule *RightOperand, string instruction){
+void VariableModule::move(VariableModule *RightOperand, EngineInstr instruction){
     if(type == 's' || RightOperand->type == 's'){
         if(type == 's'){
-            if(instruction == "="){
+            if(instruction == EngineInstr::move){
                 vString = RightOperand->getString();
             }
-            else if(instruction == "+="){
+            else if(instruction == EngineInstr::add_move){
                 vString += RightOperand->getString();
             }
             else{
-                cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+                cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
             }
         }
         else{
@@ -827,24 +825,24 @@ void VariableModule::move(VariableModule *RightOperand, string instruction){
     else if(RightOperand->type == 'd'){
         moveFromTemp(&RightOperand->vDouble, instruction);
     }
-    else if(instruction == "++" || instruction == "--"){
+    else if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         moveFromTemp((int*)nullptr, instruction);
     }
     else{
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
     }
 }
-void VariableModule::move(const BasePointersStruct *RightOperand, string instruction){
+void VariableModule::move(const BasePointersStruct *RightOperand, EngineInstr instruction){
     if(type == 's' || RightOperand->type == "string"){
         if(type == 's'){
-            if(instruction == "="){
+            if(instruction == EngineInstr::move){
                 vString = RightOperand->getString();
             }
-            else if(instruction == "+="){
+            else if(instruction == EngineInstr::add_move){
                 vString += RightOperand->getString();
             }
             else{
-                cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << instruction << "\' instruction on string type values.\n";
+                cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
             }
         }
         else{
@@ -863,7 +861,7 @@ void VariableModule::move(const BasePointersStruct *RightOperand, string instruc
         double temp = RightOperand->getDouble();
         moveFromTemp(&temp, instruction);
     }
-    else if(instruction == "++" || instruction == "--"){
+    else if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         moveFromTemp((int*)nullptr, instruction);
     }
     else{

@@ -19,7 +19,7 @@ class ConditionClass{
 public:
     VariableModule Literal;
     ValueLocation Location;
-    vector <string> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
+    vector <EngineInstr> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
     ConditionClass(unsigned int newID);
     ConditionClass(string newID);
     ConditionClass();
@@ -30,7 +30,7 @@ public:
     vector <ConditionClass> ConditionalChain;
     vector <VariableModule> Literals;
     ValueLocation Location;
-    string instruction; //first, last, all, random, let, assigment, class method, run(), break, return
+    EngineInstr instruction; //first, last, all, random, let, assigment, class method, run(), break, return
     vector <string> dynamicIDs;
     string newContextID; //Assign an id to the result of operation.
     OperaClass();

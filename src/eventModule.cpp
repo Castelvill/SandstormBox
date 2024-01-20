@@ -5,7 +5,7 @@ ConditionClass::ConditionClass(string newID) : Literal(newID, nullptr, "", ""){}
 ConditionClass::ConditionClass() : Literal(){}
 
 OperaClass::OperaClass(){
-    instruction = "";
+    instruction = EngineInstr::null;
 }
 
 void EveModule::clone(const EveModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){

@@ -513,7 +513,9 @@ string findAndUseSpecialCharacters(string input){
 
     return output;
 }
-vector <string> tokenizeCode(string input){
+
+vector<string> tokenizeCode(string input)
+{
     std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
@@ -609,12 +611,12 @@ bool prepareNewInstruction(vector<string> words, EveModule & NewEvent, OperaClas
     }
     if(!postOperations){
         NewEvent.DependentOperations.push_back(OperaClass());
-        NewEvent.DependentOperations.back().instruction = words[0];
+        NewEvent.DependentOperations.back().instruction = transInstr(words[0]);
         Operation = &NewEvent.DependentOperations.back();
     }
     else{
         NewEvent.PostOperations.push_back(OperaClass());
-        NewEvent.PostOperations.back().instruction = words[0];
+        NewEvent.PostOperations.back().instruction = transInstr(words[0]);
         Operation = &NewEvent.PostOperations.back();
     }
     
@@ -740,7 +742,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Operator cannot be added to an empty expression.\n";
                 return false;
             }
-            Expression.back().operators.push_back(words[cursor]);
+            Expression.back().operators.push_back(transInstr(words[cursor]));
             cursor++;
         }
         else{

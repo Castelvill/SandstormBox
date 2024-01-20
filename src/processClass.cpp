@@ -656,127 +656,127 @@ string ContextClass::getValue(){
     }
     return buffer;
 }
-bool ContextClass::getUnsignedOrAbort(unsigned &number, string instruction){
+bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction){
     int temp = 0;
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         temp = Variables.back().getInt();
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         temp = BasePointers.back().getInt();
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         temp = Modules.Variables.back()->getInt();
     }
     else{
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context \'" << ID
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
     if(temp < 0){
         number = 0;
-        cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Value is not unsigned - returning 0.\n";
+        cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Value is not unsigned - returning 0.\n";
     }
     number = temp;
     return true;
 }
-bool ContextClass::getIntOrAbort(int &number, string instruction){
+bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction){
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         number = Variables.back().getInt();
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         number = BasePointers.back().getInt();
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         number = Modules.Variables.back()->getInt();
     }
     else{
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context \'" << ID
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
     return true;
 }
-bool ContextClass::getStringOrAbort(string & text, string instruction){
+bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction){
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         text = Variables.back().getString();
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         text = BasePointers.back().getString();
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context is empty.\n";
+            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         text = Modules.Variables.back()->getString();
     }
     else{
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << instruction << "\': Context \'" << ID
+        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
     return true;
 }
-bool ContextClass::getStringOrIgnore(string & text, string instruction){
+bool ContextClass::getStringOrIgnore(string & text, EngineInstr instruction){
     if(type == "value"){
         if(Variables.size() == 0 || Variables.back().getType() != 's'){
             return false;
@@ -1056,7 +1056,7 @@ bool ProcessClass::chooseRandomModule(ContextClass & NewContext){
 
 void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewContext, vector<Camera2D*> AggregatedCameras, const EngineClass & Engine, vector<ContextClass> &EventContext){
     Camera2D * Camera = nullptr;
-    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
+    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
         if(AggregatedCameras.size() > 0){
             Camera = lastNotDeletedInVector(AggregatedCameras);
         }
@@ -1099,7 +1099,7 @@ void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewCont
             Condition.Location.cameraID = Camera->getID();
         }
         if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, TempLayer, Engine, EventContext) == 't'){
-            if(Operation.instruction != "last"){
+            if(Operation.instruction != EngineInstr::last){
                 findContextInCamera(Operation.Location.attribute, NewContext, Camera);
             }
             else{
@@ -1110,7 +1110,7 @@ void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewCont
                 }
             }
         }
-        if(Operation.Location.cameraID != "" || (Operation.instruction == "first" && (NewContext.BasePointers.size() == 1 || NewContext.Cameras.size() == 1))){
+        if(Operation.Location.cameraID != "" || (Operation.instruction == EngineInstr::first && (NewContext.BasePointers.size() == 1 || NewContext.Cameras.size() == 1))){
             break;
         }
         i++;
@@ -1118,7 +1118,7 @@ void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewCont
 
     delete TempObject;
     delete TempLayer;
-    if(Operation.instruction == "random"){
+    if(Operation.instruction == EngineInstr::random){
         if(NewContext.type == "camera"){
             chooseRandomEntity(NewContext.Cameras);
         }
@@ -1129,7 +1129,7 @@ void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewCont
 }
 void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewContext, vector <LayerClass*> AggregatedLayers, const EngineClass & Engine, vector<ContextClass> &EventContext){
     LayerClass * Layer = nullptr;
-    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
+    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
         if(AggregatedLayers.size() > 0){
             Layer = lastNotDeletedInVector(AggregatedLayers);
         }
@@ -1170,7 +1170,7 @@ void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewCon
             Condition.Location.layerID = Layer->getID();
         }
         if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, TempObject, Layer, Engine, EventContext) == 't'){
-            if(Operation.instruction != "last"){
+            if(Operation.instruction != EngineInstr::last){
                 findContextInLayer(Operation.Location, NewContext, Layer);
             }
             else{
@@ -1181,14 +1181,14 @@ void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewCon
                 }
             }
         }
-        if(Operation.Location.layerID != "" || (Operation.instruction == "first" && (NewContext.BasePointers.size() == 1 || NewContext.Layers.size() == 1))){
+        if(Operation.Location.layerID != "" || (Operation.instruction == EngineInstr::first && (NewContext.BasePointers.size() == 1 || NewContext.Layers.size() == 1))){
             break;
         }
         i++;
     }
 
     delete TempObject;
-    if(Operation.instruction == "random"){
+    if(Operation.instruction == EngineInstr::random){
         if(NewContext.type == "layer"){
             chooseRandomEntity(NewContext.Layers);
         }
@@ -1204,7 +1204,7 @@ void ProcessClass::aggregateObjects(OperaClass & Operation, ContextClass & NewCo
     if(AggregatedObjects.size() == 0){
         return;
     }
-    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
+    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
         AncestorObject * Object = lastNotDeletedInVector(AggregatedObjects);
         if(Object != nullptr && (Operation.Location.objectID == "" || Operation.Location.objectID == Object->getID())){
             findContextInObject(Operation.Location, NewContext, Object);
@@ -1224,7 +1224,7 @@ void ProcessClass::aggregateObjects(OperaClass & Operation, ContextClass & NewCo
             Condition.Location.objectID = Object->getID();
         }
         if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, EmptyLayer, Engine, EventContext) == 't'){
-            if(Operation.instruction != "last"){
+            if(Operation.instruction != EngineInstr::last){
                 findContextInObject(Operation.Location, NewContext, Object);
             }
             else{
@@ -1235,12 +1235,12 @@ void ProcessClass::aggregateObjects(OperaClass & Operation, ContextClass & NewCo
                 }
             }
         }
-        if(Operation.instruction == "first" && (NewContext.BasePointers.size() == 1 || NewContext.Objects.size() == 1)){
+        if(Operation.instruction == EngineInstr::first && (NewContext.BasePointers.size() == 1 || NewContext.Objects.size() == 1)){
             break;
         }
     }
 
-    if(Operation.instruction == "random"){
+    if(Operation.instruction == EngineInstr::random){
         if(NewContext.type == "object"){
             chooseRandomEntity(NewContext.Objects);
         }
@@ -1266,7 +1266,7 @@ void ProcessClass::aggregateModuleContextFromVectors(vector<ModuleClass*> Aggreg
             Condition.Location.moduleID = Instance->getID();
         }
         if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Object, EmptyLayer, Engine, EventContext) == 't'){
-            if(Operation.instruction != "last"){
+            if(Operation.instruction != EngineInstr::last){
                 findContextInModule(aggregatedType, Operation.Location.attribute, NewContext, Instance);
             }
             else{
@@ -1277,7 +1277,7 @@ void ProcessClass::aggregateModuleContextFromVectors(vector<ModuleClass*> Aggreg
                 }
             }
         }
-        if(Operation.instruction == "first" && NewContext.Modules.hasInstanceOfAnyModule()){
+        if(Operation.instruction == EngineInstr::first && NewContext.Modules.hasInstanceOfAnyModule()){
             return;
         }
     }
@@ -1347,7 +1347,7 @@ ModuleClass * findLastModule(vector <ModuleClass*> & Vector, const string & modu
 }
 void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewContext, ContextClass * OldContext, vector<ContextClass> &EventContext, const EngineClass & Engine){
     ModulesPointers * AggregatedModules = &OldContext->Modules;
-    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == "last"){
+    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
         if(OldContext->type == "text" && AggregatedModules->Texts.size() > 0){
             findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Texts, Operation.Location.moduleID));
         }
@@ -1419,40 +1419,40 @@ void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewCo
     }
     delete EmptyObject;
 
-    if(Operation.instruction == "random"){
+    if(Operation.instruction == EngineInstr::random){
         if(!chooseRandomModule(NewContext)){
             NewContext.leaveOneRandomBasePointer();
         }
     }
 }
-void ProcessClass::aggregatePointers(string instruction, ContextClass & NewContext, vector <BasePointersStruct> & AggregatedPointers){
-    if(instruction == "first"){
+void ProcessClass::aggregatePointers(EngineInstr instruction, ContextClass & NewContext, vector <BasePointersStruct> & AggregatedPointers){
+    if(instruction == EngineInstr::first){
         NewContext.BasePointers.push_back(AggregatedPointers.front());
     }
-    else if(instruction == "last"){
+    else if(instruction == EngineInstr::last){
         NewContext.BasePointers.push_back(AggregatedPointers.back());
     }
-    else if(instruction == "all"){
+    else if(instruction == EngineInstr::all){
         NewContext.BasePointers.insert(NewContext.BasePointers.end(), AggregatedPointers.begin(), AggregatedPointers.end());
     }
-    else if(instruction == "random" && AggregatedPointers.size() > 0){
+    else if(instruction == EngineInstr::random && AggregatedPointers.size() > 0){
         NewContext.BasePointers.push_back(AggregatedPointers[rand() % AggregatedPointers.size()]);
     }
     if(NewContext.BasePointers.size() > 0){
         NewContext.type = "pointer";
     }
 }
-void ProcessClass::aggregateVariables(string instruction, ContextClass & NewContext, vector <VariableModule> & AggregatedVariables){
-    if(instruction == "first"){
+void ProcessClass::aggregateVariables(EngineInstr instruction, ContextClass & NewContext, vector <VariableModule> & AggregatedVariables){
+    if(instruction == EngineInstr::first){
         NewContext.Variables.push_back(AggregatedVariables.front());
     }
-    else if(instruction == "last"){
+    else if(instruction == EngineInstr::last){
         NewContext.Variables.push_back(AggregatedVariables.back());
     }
-    else if(instruction == "all"){
+    else if(instruction == EngineInstr::all){
         NewContext.Variables.insert(NewContext.Variables.end(), AggregatedVariables.begin(), AggregatedVariables.end());
     }
-    else if(instruction == "random" && AggregatedVariables.size() > 0){
+    else if(instruction == EngineInstr::random && AggregatedVariables.size() > 0){
         NewContext.Variables.push_back(AggregatedVariables[rand() % AggregatedVariables.size()]);
     }
     if(NewContext.Variables.size() > 0){
@@ -1985,18 +1985,18 @@ bool ProcessClass::getAllSelectedContexts(vector<ContextClass*> & SelectedContex
     return true;
 }
 bool ProcessClass::checkDefaultCondition(VariableModule * Left, VariableModule * Right){
-    return Left->isConditionMet("==", Right);
+    return Left->isConditionMet(EngineInstr::equal, Right);
 }
 bool ProcessClass::checkDefaultCondition(BasePointersStruct * Left, BasePointersStruct * Right){
     return Left->areEqual(Right);
 }
 template<class Entity>
-void ProcessClass::executeOperationsOnSets(string instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand){
-    if(instruction == "sum"){
+void ProcessClass::executeOperationsOnSets(EngineInstr instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand){
+    if(instruction == EngineInstr::sum){
         NewContext = LeftOperand;
         NewContext.insert(NewContext.end(), RightOperand.begin(), RightOperand.end());
     }
-    else if(instruction == "intersection"){
+    else if(instruction == EngineInstr::intersection){
         for(Entity * LeftEntity : LeftOperand){
             for(Entity * RightEntity : RightOperand){
                 if(LeftEntity->getID() != RightEntity->getID()){
@@ -2007,7 +2007,7 @@ void ProcessClass::executeOperationsOnSets(string instruction, vector<Entity*> &
             }
         }
     }
-    else if(instruction == "difference"){
+    else if(instruction == EngineInstr::diff){
         bool sameEntity;
         for(Entity * LeftEntity : LeftOperand){
             sameEntity = false;
@@ -2024,12 +2024,12 @@ void ProcessClass::executeOperationsOnSets(string instruction, vector<Entity*> &
     }
 }
 template<class Entity>
-void ProcessClass::executeOperationsOnSets(string instruction, vector<Entity> & NewContext, vector<Entity> & LeftOperand, vector<Entity> & RightOperand){
-    if(instruction == "sum"){
+void ProcessClass::executeOperationsOnSets(EngineInstr instruction, vector<Entity> & NewContext, vector<Entity> & LeftOperand, vector<Entity> & RightOperand){
+    if(instruction == EngineInstr::sum){
         NewContext = LeftOperand;
         NewContext.insert(NewContext.end(), RightOperand.begin(), RightOperand.end());
     }
-    else if(instruction == "intersection"){
+    else if(instruction == EngineInstr::intersection){
         for(Entity & LeftEntity : LeftOperand){
             for(Entity & RightEntity : RightOperand){
                 if(!checkDefaultCondition(&LeftEntity, &RightEntity)){
@@ -2040,7 +2040,7 @@ void ProcessClass::executeOperationsOnSets(string instruction, vector<Entity> & 
             }
         }
     }
-    else if(instruction == "difference"){
+    else if(instruction == EngineInstr::diff){
         bool sameEntity;
         for(Entity & LeftEntity : LeftOperand){
             sameEntity = false;
@@ -2210,18 +2210,18 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void moveRightToLeft(string instruction, ContextClass * LeftOperand, ContextClass * RightOperand){
+void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, ContextClass * RightOperand){
     if(LeftOperand->type != "pointer" && LeftOperand->type != "value" && LeftOperand->type != "variable"){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
         return;
     }
     else if(RightOperand->type != "pointer" && RightOperand->type != "value" && RightOperand->type != "variable"){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: Right operand has an invalid type: \'" << RightOperand->type << "\'.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Right operand has an invalid type: \'" << RightOperand->type << "\'.\n";
         return;
     }
 
     if(LeftOperand->readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: Left operand is read-only. Instruction \'" << instruction << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Left operand is read-only. Instruction \'" << transInstrToStr(instruction) << "\' failed.\n";
         return;
     }
 
@@ -2277,7 +2277,7 @@ void moveRightToLeft(string instruction, ContextClass * LeftOperand, ContextClas
             if(sameSize || i == 0){
                 RightVariable = RightOperand->Variables[i].getVariableStruct();
                 if(RightVariable.type == ""){
-                    cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: Failed to fetch a variable.\n";
+                    cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Failed to fetch a variable.\n";
                     if(!sameSize){
                         return;
                     }
@@ -2304,13 +2304,13 @@ void moveRightToLeft(string instruction, ContextClass * LeftOperand, ContextClas
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << instruction << "\' instruction: You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
 }
 void ProcessClass::moveOrRename(vector<ContextClass> & EventContext, ContextClass * NewContext, string newContextID){
     ContextClass * OldContext = getContextByID(EventContext, newContextID, false);
     if(OldContext != nullptr){
-        moveRightToLeft("=", OldContext, NewContext);
+        moveRightToLeft(EngineInstr::move, OldContext, NewContext);
     }
     else{
         addNewContext(EventContext, *NewContext, "value", newContextID);
@@ -2458,7 +2458,7 @@ void ProcessClass::moveValues(OperaClass & Operation, vector<ContextClass> &Even
     ContextClass * LeftOperand = nullptr;
     ContextClass * RightOperand = nullptr;
 
-    if(Operation.instruction == "++" || Operation.instruction == "--"){
+    if(Operation.instruction == EngineInstr::inc || Operation.instruction == EngineInstr::dec){
         if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)){
             return;
         }
@@ -2565,7 +2565,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
                 return;
             }
             for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
-                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], "clone");
+                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], EngineInstr::clone);
             }
         }
         else if(LeftOperand->type == "value"){
@@ -3037,7 +3037,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
         else if(LeftOperand->type == "value" && RightOperand->type == "pointer"){
             for(i = 0; i < LeftOperand->Variables.size(); i++){
                 for(j = 0; j < RightOperand->BasePointers.size(); j++){
-                    if(LeftOperand->Variables[i].isConditionMet("==", RightOperand->BasePointers[j])){
+                    if(LeftOperand->Variables[i].isConditionMet(EngineInstr::equal, RightOperand->BasePointers[j])){
                         result = true;
                         break;
                     }
@@ -3050,7 +3050,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
         else if(LeftOperand->type == "variable" && RightOperand->type == "pointer"){
             for(i = 0; i < LeftOperand->Modules.Variables.size(); i++){
                 for(j = 0; j < RightOperand->BasePointers.size(); j++){
-                    if(LeftOperand->Modules.Variables[i]->isConditionMet("==", RightOperand->BasePointers[j])){
+                    if(LeftOperand->Modules.Variables[i]->isConditionMet(EngineInstr::equal, RightOperand->BasePointers[j])){
                         result = true;
                         break;
                     }
@@ -3063,7 +3063,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
         else if(LeftOperand->type == "variable" && RightOperand->type == "value"){
             for(i = 0; i < LeftOperand->Modules.Variables.size(); i++){
                 for(j = 0; j < RightOperand->Variables.size(); j++){
-                    if(LeftOperand->Modules.Variables[i]->isConditionMet("==", &RightOperand->Variables[j])){
+                    if(LeftOperand->Modules.Variables[i]->isConditionMet(EngineInstr::equal, &RightOperand->Variables[j])){
                         result = true;
                         break;
                     }
@@ -3091,7 +3091,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
         else if(LeftOperand->type == "value"){
             for(i = 0; i < LeftOperand->Variables.size(); i++){
                 for(j = 0; j < RightOperand->Variables.size(); j++){
-                    if(LeftOperand->Variables[i].isConditionMet("==", &RightOperand->Variables[j])){
+                    if(LeftOperand->Variables[i].isConditionMet(EngineInstr::equal, &RightOperand->Variables[j])){
                         result = true;
                         break;
                     }
@@ -3233,7 +3233,7 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventCon
     }
     
     if(SizeContext != nullptr){
-        if(!SizeContext->getUnsignedOrAbort(newVectorSize, "new")){
+        if(!SizeContext->getUnsignedOrAbort(newVectorSize, EngineInstr::new_i)){
             cout << "Error: In" << __FUNCTION__ << ": Instruction \'new\' failed.\n";
             return false;
         }
@@ -3775,7 +3775,7 @@ void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vec
 
     if(getAllSelectedContexts(IndexContexts, EventContext, dynamicIDs)){
         for(ContextClass * Index : IndexContexts){
-            if(!Index->getIntOrAbort(singleIndex, "index")){
+            if(!Index->getIntOrAbort(singleIndex, EngineInstr::index)){
                 cout << "Error: In" << __FUNCTION__ << ": Instruction \'index\' failed.\n";
                 return;
             }
@@ -6128,170 +6128,253 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
     vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
 ){
+    string buffor;
     for(OperaClass & Operation : Operations){
-        if(isStringInGroup(Operation.instruction, 5, "continue", "break", "return", "reboot", "power_off")){
-            if(printOutInstructions){
-                cout << Operation.instruction << "\n";
-            }
-            return Operation;
+        switch(Operation.instruction){
+            case continue_i:
+                if(printOutInstructions){
+                    cout << Operation.instruction << "\n";
+                }
+                return Operation;
+            case break_i:
+                if(printOutInstructions){
+                    cout << Operation.instruction << "\n";
+                }
+                return Operation;
+            case return_i:
+                if(printOutInstructions){
+                    cout << Operation.instruction << "\n";
+                }
+                return Operation;
+            case reboot:
+                if(printOutInstructions){
+                    cout << Operation.instruction << "\n";
+                }
+                return Operation;
+            case power_off:
+                if(printOutInstructions){
+                    cout << Operation.instruction << "\n";
+                }
+                return Operation;
+            case first: //Aggregate entities and push them on the Variables Stack.
+                aggregateEntities(Operation, EventContext, Engine);
+                break;
+            case last: //Aggregate entities and push them on the Variables Stack.
+                aggregateEntities(Operation, EventContext, Engine);
+                break;
+            case all: //Aggregate entities and push them on the Variables Stack.
+                aggregateEntities(Operation, EventContext, Engine);
+                break;
+            case random: //Aggregate entities and push them on the Variables Stack.
+                aggregateEntities(Operation, EventContext, Engine);
+                break;
+            case index:
+                getReferenceByIndex(Operation, EventContext);
+                break;
+            case sum: //Execute operations on sets.
+                aggregateTwoSets(Operation, EventContext);
+                break;
+            case intersection: //Execute operations on sets.
+                aggregateTwoSets(Operation, EventContext);
+                break;
+            case diff: //Execute operations on sets.
+                aggregateTwoSets(Operation, EventContext);
+                break;
+            case value: //Get only values from the environment.
+                aggregateValues(EventContext, Operation, OwnerLayer, Owner, Engine, &Processes);
+                break;
+            case bool_i: //Get literals prepared in the event.
+                createLiteral(EventContext, Operation);
+                break;
+            case int_i: //Get literals prepared in the event.
+                createLiteral(EventContext, Operation);
+                break;
+            case double_i: //Get literals prepared in the event.
+                createLiteral(EventContext, Operation);
+                break;
+            case string_i: //Get literals prepared in the event.
+                createLiteral(EventContext, Operation);
+                break;
+            case rand_int: //Generate random int value between
+                generateRandomVariable(EventContext, Operation);
+                break;
+            case find_by_id: //Aggregate context only by id.
+                aggregateOnlyById(EventContext, Operation, OwnerLayer, Owner);
+                break;
+            case let: //Assign a name to the previously aggregated entities.
+                nameVariable(EventContext, Operation);
+                break;
+            case clone:
+                if(Operation.Literals.size() > 0){
+                    cloneEntities(Operation.dynamicIDs, Operation.Literals.back().getBoolUnsafe(true), EventContext, Layers);
+                }
+                else{
+                    cloneEntities(Operation.dynamicIDs, true, EventContext, Layers);
+                }
+                break;
+            case add:
+                executeArithmetics(Operation, EventContext);
+                break;
+            case sub:
+                executeArithmetics(Operation, EventContext);
+                break;
+            case mul:
+                executeArithmetics(Operation, EventContext);
+                break;
+            case div_i:
+                executeArithmetics(Operation, EventContext);
+                break;
+            case mod:
+                executeArithmetics(Operation, EventContext);
+                break;
+            case pow_i:
+                executeArithmetics(Operation, EventContext);
+                break;
+            case inc:
+                moveValues(Operation, EventContext);
+                break;
+            case dec:
+                moveValues(Operation, EventContext);
+                break;
+            case move:
+                moveValues(Operation, EventContext);
+                break;
+            case add_move:
+                moveValues(Operation, EventContext);
+                break;
+            case sub_move:
+                moveValues(Operation, EventContext);
+                break;
+            case mul_move:
+                moveValues(Operation, EventContext);
+                break;
+            case div_move:
+                moveValues(Operation, EventContext);
+                break;
+            case in:
+                checkIfVectorContainsVector(Operation, EventContext);
+                break;
+            case new_i:
+                createNewEntities(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, StartingEvent, Event, MemoryStack, Engine.focusedProcessID);
+                break;
+            case del:
+                markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, Engine.focusedProcessID);
+                if(OwnerLayer == nullptr || Owner == nullptr || Event->getIsDeleted()){
+                    return OperaClass();
+                }
+                break;
+            case delete_this_event:
+                Event->deleteLater();
+                wasDeleteExecuted = true;
+                if(printOutInstructions){
+                    cout << "delete_this_event\n";
+                }
+                return Operation;
+            case bind_i:
+                bindFilesToObjects(Operation, EventContext);
+                break;
+            case build:
+                buildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack);
+                break;
+            case load_build:
+                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'p');
+                break;
+            case build_subset:
+                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 's');
+                break;
+            case inject_code:
+                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'c');
+                break;
+            case inject_instr:
+                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'i');
+                break;
+            case demolish:
+                clearEventsInObjects(Operation, EventContext, Owner);
+                break;
+            case fun:
+                executeFunction(Operation, EventContext, Event, Engine);
+                break;
+            case env:
+                changeEngineVariables(Operation, Engine);
+                break;
+            case edit_proc:
+                changeProcessVariables(Operation, Engine.processIDs);
+                break;
+            case load_bitmap:
+                loadBitmap(Operation, Engine.BitmapContainer);
+                break;
+            case mkdir_i:
+                createDirectory(Operation);
+                break;
+            case rm:
+                removeFileOrDirectory(Operation);
+                break;
+            case rmll:
+                removeRecursivelyFileOrDirectory(Operation);
+                break;
+            case rename_i:
+                renameFileOrDirectory(Operation);
+                break;
+            case print:
+                executePrint(Operation, EventContext);
+                break;
+            case load_text:
+                loadFileAsString(Operation, EventContext);
+                break;
+            case save_text:
+                saveStringAsFile(Operation, EventContext);
+                break;
+            case ls:
+                listOutEntities(Operation, Processes, Engine);
+                break;
+            case new_proc:
+                createNewProcess(Operation, Processes, EventContext, Owner, TriggeredObjects,
+                    StartingEvent, Event, MemoryStack, Engine);
+                break;
+            case var:
+                createNewOwnerVariable(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack);
+                break;
+            case tokenize:
+                tokenizeString(Operation, EventContext);
+                break;
+            case tree:
+                printTree(Operation, EventContext, Processes);
+                break;
+            case len:
+                getStringSizeFromContext(Operation, EventContext);
+                break;
+            case size:
+                getSizeOfContext(Operation, EventContext);
+                break;
+            case substr:
+                getSubStringFromContext(Operation, EventContext);
+                break;
+            case load_font:
+                loadFontFromContext(Operation, EventContext, Engine);
+                break;
+            case reset_keyboard:
+                Engine.pressedKeys.clear();
+                Engine.releasedKeys.clear();
+                Engine.firstPressedKeys.clear();
+                break;
+            case find_by_id_2:
+                findByIDInEventContext(Operation, EventContext);
+                break;
+            case dump_context_stack:
+                buffor = "\nStack: ";
+                for(auto context : EventContext){
+                    buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
+                }
+                buffor += "\n\n";
+                printInColor(buffor, 11);
+                break;
+            default:
+                cout << "Error: In " << __FUNCTION__ << ": Instruction '" << Operation.instruction << "' does not exist.\n";
+                break;
         }
-        //Aggregate entities and push them on the Variables Stack.
-        else if(isStringInGroup(Operation.instruction, 4, "first", "last", "all", "random")){
-            aggregateEntities(Operation, EventContext, Engine);
-        }
-        else if(Operation.instruction == "index"){
-            getReferenceByIndex(Operation, EventContext);
-        }
-        //Execute operations on sets.
-        else if(isStringInGroup(Operation.instruction, 3, "sum", "intersection", "difference")){
-            aggregateTwoSets(Operation, EventContext);
-        }
-        //Get only values from the environment.
-        else if(Operation.instruction == "value"){
-            aggregateValues(EventContext, Operation, OwnerLayer, Owner, Engine, &Processes);
-        }
-        //Get literals prepared in the event.
-        else if(isStringInGroup(Operation.instruction, 4, "bool", "int", "double", "string")){
-            createLiteral(EventContext, Operation);
-        }
-        //Generate random int value between  
-        else if(Operation.instruction == "random_int"){
-            generateRandomVariable(EventContext, Operation);
-        }
-        //Aggregate context only by id.
-        else if(Operation.instruction == "find_by_id"){
-            aggregateOnlyById(EventContext, Operation, OwnerLayer, Owner);
-        }
-        //Assign a name to the previously aggregated entities.
-        else if(Operation.instruction == "let"){
-            nameVariable(EventContext, Operation);
-        }
-        else if(Operation.instruction == "clone"){
-            if(Operation.Literals.size() > 0){
-                cloneEntities(Operation.dynamicIDs, Operation.Literals.back().getBoolUnsafe(true), EventContext, Layers);
-            }
-            else{
-                cloneEntities(Operation.dynamicIDs, true, EventContext, Layers);
-            }
-        }
-        else if(isStringInGroup(Operation.instruction, 4, "+", "-", "*", "/")){
-            executeArithmetics(Operation, EventContext);
-        }
-        else if(isStringInGroup(Operation.instruction, 7, "++", "--", "=", "+=", "-=", "*=", "/=")){
-            moveValues(Operation, EventContext);
-        }
-        else if(Operation.instruction == "in"){
-            checkIfVectorContainsVector(Operation, EventContext);
-        }
-        else if(Operation.instruction == "new"){
-            createNewEntities(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, StartingEvent, Event, MemoryStack, Engine.focusedProcessID);
-        }
-        else if(Operation.instruction == "delete"){
-            markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, Engine.focusedProcessID);
-            if(OwnerLayer == nullptr || Owner == nullptr || Event->getIsDeleted()){
-                return OperaClass();
-            }
-        }
-        else if(Operation.instruction == "delete_this_event"){
-            Event->deleteLater();
-            wasDeleteExecuted = true;
-            if(printOutInstructions){
-                cout << "delete_this_event\n";
-            }
-            return Operation;
-        }
-        else if(Operation.instruction == "bind"){
-            bindFilesToObjects(Operation, EventContext);
-        }
-        else if(Operation.instruction == "build"){
-            buildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack);
-        }
-        else if(Operation.instruction == "load_build"){
-            customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'p');
-        }
-        else if(Operation.instruction == "build_subset"){
-            customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 's');
-        }
-        else if(Operation.instruction == "inject_code"){
-            customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'c');
-        }
-        else if(Operation.instruction == "inject_instr"){
-            customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'i');
-        }
-        else if(Operation.instruction == "demolish"){
-            clearEventsInObjects(Operation, EventContext, Owner);
-        }
-        else if(Operation.instruction == "fun"){
-            executeFunction(Operation, EventContext, Event, Engine);
-        }
-        else if(Operation.instruction == "env"){
-            changeEngineVariables(Operation, Engine);
-        }
-        else if(Operation.instruction == "edit_proc"){
-            changeProcessVariables(Operation, Engine.processIDs);
-        }
-        else if(Operation.instruction == "load_bitmap"){
-            loadBitmap(Operation, Engine.BitmapContainer);
-        }
-        else if(Operation.instruction == "mkdir"){
-            createDirectory(Operation);
-        }
-        else if(Operation.instruction == "rm"){
-            removeFileOrDirectory(Operation);
-        }
-        else if(Operation.instruction == "rmll"){
-            removeRecursivelyFileOrDirectory(Operation);
-        }
-        else if(Operation.instruction == "rename"){
-            renameFileOrDirectory(Operation);
-        }
-        else if(Operation.instruction == "print"){
-            executePrint(Operation, EventContext);
-        }
-        else if(Operation.instruction == "load_text"){
-            loadFileAsString(Operation, EventContext);
-        }
-        else if(Operation.instruction == "save_text"){
-            saveStringAsFile(Operation, EventContext);
-        }
-        else if(Operation.instruction == "ls"){
-            listOutEntities(Operation, Processes, Engine);
-        }
-        else if(Operation.instruction == "new_proc"){
-            createNewProcess(Operation, Processes, EventContext, Owner, TriggeredObjects,
-                StartingEvent, Event, MemoryStack, Engine);
-        }
-        else if(Operation.instruction == "var"){
-            createNewOwnerVariable(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack);
-        }
-        else if(Operation.instruction == "tokenize"){
-            tokenizeString(Operation, EventContext);
-        }
-        else if(Operation.instruction == "tree"){
-            printTree(Operation, EventContext, Processes);
-        }
-        else if(Operation.instruction == "len"){
-            getStringSizeFromContext(Operation, EventContext);
-        }
-        else if(Operation.instruction == "size"){
-            getSizeOfContext(Operation, EventContext);
-        }
-        else if(Operation.instruction == "substr"){
-            getSubStringFromContext(Operation, EventContext);
-        }
-        else if(Operation.instruction == "load_font"){
-            loadFontFromContext(Operation, EventContext, Engine);
-        }
-        else if(Operation.instruction == "reset_keyboard"){
-            Engine.pressedKeys.clear();
-            Engine.releasedKeys.clear();
-            Engine.firstPressedKeys.clear();
-        }
-        else if(Operation.instruction == "find_by_id_2"){
-            findByIDInEventContext(Operation, EventContext);
-        }
-        if((printOutInstructions && printOutStackAutomatically) || Operation.instruction == "dump_context_stack"){
-            string buffor = "\nStack: ";
+        
+        if(printOutInstructions && printOutStackAutomatically && Operation.instruction != EngineInstr::dump_context_stack){
+            buffor = "\nStack: ";
             for(auto context : EventContext){
                 buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
             }
@@ -6997,16 +7080,16 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
         if(resultStack.size() == 0){
             continue;
         }
-        for(string op : Condition.operators){
+        for(EngineInstr op : Condition.operators){
             if(ignoreFlagOr > 0 || ignoreFlagAnd > 0){
-                if(op == "||" && ignoreFlagOr > 0){
+                if(op == EngineInstr::or_i && ignoreFlagOr > 0){
                     ignoreFlagOr--;
                 }
-                if(op == "&&" && ignoreFlagAnd > 0){
+                if(op == EngineInstr::and_i && ignoreFlagAnd > 0){
                     ignoreFlagAnd--;
                 }
             }
-            else if(op == "!"){
+            else if(op == EngineInstr::not_i){
                 leftOperand = resultStack.back();
                 leftOperand.negate();
                 if(printOutLogicalEvaluations){
@@ -7016,16 +7099,16 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                 leftOperand.setID("!("+leftOperand.getID()+")", nullptr);
                 resultStack.push_back(leftOperand);
             }
-            else if(op == "igT"){
-                if(resultStack.back().isConditionMet<bool>(true, "==", 'b')){
+            else if(op == EngineInstr::igT){
+                if(resultStack.back().isConditionMet<bool>(true, EngineInstr::equal, 'b')){
                     if(printOutLogicalEvaluations){
                         cout << resultStack.back().getID() << ":" << "true || ... -> true\n";
                     }
                     ignoreFlagOr++;
                 }
             }
-            else if(op == "igF"){
-                if(resultStack.back().isConditionMet<bool>(false, "==", 'b')){
+            else if(op == EngineInstr::igF){
+                if(resultStack.back().isConditionMet<bool>(false, EngineInstr::equal, 'b')){
                     if(printOutLogicalEvaluations){
                         cout << resultStack.back().getID() << ":" << "false && ... -> false\n";
                     }
@@ -7033,12 +7116,6 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                 }
             }
             else if(resultStack.size() >= 2){
-
-                if(!isStringInGroup(op, 14, "&&", "||", "==", "!=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%", "**")){
-                    cout << "Error: In " << __FUNCTION__ << ": Unrecognized operator in the if statement.\n";
-                    continue;
-                }
-
                 rightOperand = resultStack.back();
                 resultStack.pop_back();
                 leftOperand = resultStack.back();
@@ -7052,7 +7129,10 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
 
                 resultStack.push_back(VariableModule(newID, nullptr, "", ""));
                 
-                if (isStringInGroup(op, 8, "&&", "||", "==", "!=", ">", "<", ">=", "<=")){
+                if(op == EngineInstr::and_i || op == EngineInstr::or_i || op == EngineInstr::equal
+                    || op == EngineInstr::not_equal || op == EngineInstr::more || op == EngineInstr::less
+                    || op == EngineInstr::more_equal || op == EngineInstr::less_equal
+                ){
                     comparasion = leftOperand.isConditionMet(op, &rightOperand);
                     
                     if(printOutLogicalEvaluations){
@@ -7061,7 +7141,9 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                     
                     resultStack.back().setBool(comparasion);
                 }
-                else if(isStringInGroup(op, 6, "+", "-", "*", "/", "%", "**")){
+                else if(op == EngineInstr::add || op == EngineInstr::sub || op == EngineInstr::mul
+                     || op == EngineInstr::div_i || op == EngineInstr::mod || op == EngineInstr::pow_i
+                ){
                     if(leftOperand.getType() == 'd' || rightOperand.getType() == 'd'){
                         resultDouble = leftOperand.floatingOperation(op, &rightOperand);
 
@@ -7080,6 +7162,9 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
 
                         resultStack.back().setInt(resultInt);
                     }
+                }
+                else{
+                    cout << "Error: In " << __FUNCTION__ << ": Operator '" << transInstrToStr(op) << "' unrecognized in the if statement.\n";
                 }
             }
         }
@@ -7376,24 +7461,24 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
             if(wereGlobalVariablesCreated){
                 addGlobalVariables(Context, Triggered->VariablesContainer);
             }
-            if(Event->conditionalStatus == 'n' && Interrupt.instruction != "break"){
+            if(Event->conditionalStatus == 'n' && Interrupt.instruction != EngineInstr::break_i){
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Engine, Context);
             }
-            if(Event->conditionalStatus == 't' && Interrupt.instruction != "break"){ //if true
+            if(Event->conditionalStatus == 't' && Interrupt.instruction != EngineInstr::break_i){ //if true
                 if(!Event->areDependentOperationsDone){
                     Interrupt = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
                         Processes, StartingEvent, Event, MemoryStack, Engine
                     );
-                    if(Interrupt.instruction == "power_off"){
+                    if(Interrupt.instruction == EngineInstr::power_off){
                         Engine.closeProgram = true;
                         return;
                     }
-                    else if(Interrupt.instruction == "reboot"){
+                    else if(Interrupt.instruction == EngineInstr::reboot){
                         rebooted = true;
                         return;
                     }
-                    else if(Interrupt.instruction == "return"){
-                        Interrupt.instruction = "";
+                    else if(Interrupt.instruction == EngineInstr::return_i){
+                        Interrupt.instruction = EngineInstr::null;
                         break;
                     }
                     if(TriggeredLayer == nullptr || Triggered == nullptr){
@@ -7402,13 +7487,13 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                     }
                     Event->areDependentOperationsDone = true;
                 }
-                if(!Event->checkIfAllChildrenFinished() && Interrupt.instruction != "break"){
+                if(!Event->checkIfAllChildrenFinished() && Interrupt.instruction != EngineInstr::break_i){
                     MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                     Event = FindUnfinishedEvent(Triggered, Event);
                     continue;
                 }
             }
-            else if(Event->conditionalStatus == 'f' && Interrupt.instruction != "break" && Event->elseChildID != "" && !Event->elseChildFinished){ //else
+            else if(Event->conditionalStatus == 'f' && Interrupt.instruction != EngineInstr::break_i && Event->elseChildID != "" && !Event->elseChildFinished){ //else
                 MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                 Event = FindElseEvent(Triggered, Event);
                 if(MemoryStack.back().Event->elseChildFinished){ //True if else event has been found.
@@ -7417,7 +7502,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 MemoryStack.pop_back();
             }
 
-            if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != "break"){ //loop back
+            if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != EngineInstr::break_i){ //loop back
                 if(MemoryStack.size() > 0){
                     if(MemoryStack.size() > 0 && MemoryStack.back().contextSize <= Context.size()){
                         Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
@@ -7437,22 +7522,22 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 continue;
             }
             if(Event->loop){
-                Interrupt.instruction = "";
+                Interrupt.instruction = EngineInstr::null;
             }
-            if(Interrupt.instruction != "break"){ //operations after loop/if
+            if(Interrupt.instruction != EngineInstr::break_i){ //operations after loop/if
                 Interrupt = executeInstructions(Event->PostOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
                     Processes, StartingEvent, Event, MemoryStack, Engine
                 );
-                if(Interrupt.instruction == "power_off"){
+                if(Interrupt.instruction == EngineInstr::power_off){
                     Engine.closeProgram = true;
                     return;
                 }
-                else if(Interrupt.instruction == "reboot"){
+                else if(Interrupt.instruction == EngineInstr::reboot){
                     rebooted = true;
                     return;
                 }
-                else if(Interrupt.instruction == "return"){
-                    Interrupt.instruction = "";
+                else if(Interrupt.instruction == EngineInstr::return_i){
+                    Interrupt.instruction = EngineInstr::null;
                     break;
                 }
                 if(TriggeredLayer == nullptr || Triggered == nullptr){

@@ -105,10 +105,10 @@ struct ContextClass{
     void setID(vector<ContextClass> &EventContext, string newID, const bool & printOutInstructions);
     size_t getVectorSize() const;
     string getValue();
-    bool getUnsignedOrAbort(unsigned & number, string instruction);
-    bool getIntOrAbort(int & number, string instruction);
-    bool getStringOrAbort(string & text, string instruction);
-    bool getStringOrIgnore(string & text, string instruction);
+    bool getUnsignedOrAbort(unsigned & number, EngineInstr instruction);
+    bool getIntOrAbort(int & number, EngineInstr instruction);
+    bool getStringOrAbort(string & text, EngineInstr instruction);
+    bool getStringOrIgnore(string & text, EngineInstr instruction);
     template<typename T>
     void addBasePointer(T * pointer);
     template<typename T>
@@ -268,8 +268,8 @@ public:
     template<class ModuleClass>
     void getContextFromModuleVectorById(string module, string moduleID, string attribute, ContextClass & NewContext, vector <ModuleClass*> AggregatedModules);
     void aggregateModules(OperaClass & Operation, ContextClass & NewVariable, ContextClass * OldContext, vector<ContextClass> &EventContext, const EngineClass & Engine);
-    void aggregatePointers(string instruction, ContextClass & NewContext, vector <BasePointersStruct> & AggregatedPointers);
-    void aggregateVariables(string instruction, ContextClass & NewContext, vector <VariableModule> & AggregatedVariables);
+    void aggregatePointers(EngineInstr instruction, ContextClass & NewContext, vector <BasePointersStruct> & AggregatedPointers);
+    void aggregateVariables(EngineInstr instruction, ContextClass & NewContext, vector <VariableModule> & AggregatedVariables);
     void findContextInCamera(string attribute, ContextClass & NewContext, Camera2D * Camera);
     void findContextInLayer(ValueLocation Location, ContextClass & NewContext, LayerClass * Layer);
     template <class Module>
@@ -284,9 +284,9 @@ public:
     bool getOneContext(ContextClass *& SelectedContext, vector<ContextClass> & AllContexts, vector<string> contextIDs);
     bool getAllSelectedContexts(vector<ContextClass*> & SelectedContexts, vector<ContextClass> & AllContexts, const vector<string> & contextIDs);
     template<class Entity>
-    void executeOperationsOnSets(string instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand);
+    void executeOperationsOnSets(EngineInstr instruction, vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand);
     template<class Entity>
-    void executeOperationsOnSets(string instruction, vector<Entity> & NewContext, vector<Entity> & LeftOperand, vector<Entity> & RightOperand);
+    void executeOperationsOnSets(EngineInstr instruction, vector<Entity> & NewContext, vector<Entity> & LeftOperand, vector<Entity> & RightOperand);
     void aggregateTwoSets(OperaClass & Operation, vector<ContextClass> & EventContext);
     void addNewContext(vector<ContextClass> & EventContext, const ContextClass & NewContext, string type, string newID);
     void aggregateEntities(OperaClass & Operation, vector<ContextClass> & EventContext, const EngineClass & Engine);
