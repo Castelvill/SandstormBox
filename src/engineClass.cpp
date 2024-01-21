@@ -107,20 +107,13 @@ void EngineClass::initAllegro(){
     al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST); //antialias stuff
     al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
 
-    int SCREEN_W;
-    int SCREEN_H;
-    getDesktopResolution(0, &SCREEN_W, &SCREEN_H);
+    int SCREEN_W = 640;
+    int SCREEN_H = 480;
+    //getDesktopResolution(0, &SCREEN_W, &SCREEN_H);
 
     display = al_create_display(SCREEN_W, SCREEN_H);
     al_set_window_title(display, windowTitle.c_str());
     al_set_window_position(display, 0, 0);
-    if(!al_resize_display(display, displaySize.x, displaySize.y)){
-        #if __WIN32__
-            cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
-        #else
-            //cout << "Warning: In " << __FUNCTION__ << ": al_resize_display() does not work on Linux systems when the flag ALLEGRO_RESIZABLE is used on a display.\n";
-        #endif
-    }
 
     EXE_PATH = "";
     ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
@@ -255,7 +248,10 @@ void EngineClass::loadNewFont(string path, int size, string newID){
     }
     path = EXE_PATH + path;
     FontContainer.push_back(SingleFont());
+    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
     FontContainer.back().font = al_load_ttf_font(path.c_str(), size, 0);
+    //al_set_new_bitmap_flags(ALLEGRO_VIDEO_BITMAP);
+    
     if(!FontContainer.back().font){
         FontContainer.pop_back();
         cout << "Error: In " << __FUNCTION__ << ": Failed to load a font from '" << path << "'.\n";

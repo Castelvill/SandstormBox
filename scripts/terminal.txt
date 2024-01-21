@@ -56,7 +56,7 @@ int [400] historySizeY
 int [70] commandLineSizeY
 int [0 410] commandLinePos
 int [20 428] commandLineTextPos
-var int 10 roundingSize
+var int 30 roundingSize
 
 new camera l 1 _ _ Window
 fun Window set_position int [0 0]

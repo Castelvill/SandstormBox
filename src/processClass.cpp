@@ -5078,11 +5078,12 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
         }
         Engine.displaySize.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
         if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
-            #if __WIN32__
+            cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
+            /*#if __WIN32__
                 cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
             #else
-                cout << "Warning: In " << __FUNCTION__ << ": al_resize_display() does not work on Linux systems when the flag ALLEGRO_RESIZABLE is used on a display.\n";
-            #endif
+                cout << "Warning: In " << __FUNCTION__ << ": al_resize_display() stops to work on Linux systems if the display resolution is set too high.\n";
+            #endif*/
         }
     }
     else if(Operation.Literals[0].getString() == "fullscreen"){
@@ -5950,7 +5951,11 @@ void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<Contex
         return;
     }
 
-    if(beginning + length > text.size()){
+    if(beginning >= text.size()){
+        beginning = 0;
+        length = 0;   
+    }
+    else if(beginning + length > text.size()){
         length = text.size() - beginning;
     }
 
