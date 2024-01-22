@@ -1,5 +1,5 @@
 start refreshWindow
-//triggers mouse_moved
+triggers mouse_moved
 if ([mouse_moved])
 
 value ([context me layer_id]) myLayerID
@@ -58,5 +58,21 @@ int [15] height
 += sxShift sx
 fun Primi set_position c sxShift c height
 fun Primi update_with_size
+end
 
+
+start exitWindow
+triggers mouse_released
+if ([mouse_released 0])
+value ([context me layer_id]) myLayerID
+all layer _ _ _ _ _ _ Layers
+find_by_id_2 Layers myLayerID Layer
+
+index c Layer [0 0 0] _ collision ExitCollision
+run checkExitWindow
+end
+
+start checkExitWindow
+if([context ExitCollision detected])
+print "xd\n"
 end

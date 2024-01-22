@@ -7106,6 +7106,30 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             }
             return *Context->Modules.Variables.back();
         }
+        if(Context->type == "collision"){
+            if(Context->Modules.Collisions.size() == 0){
+                cout << "Error: In " << __FUNCTION__ << ": There are no collisions in the context.\n";
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Context->Modules.Collisions.size() != 1){
+                cout << "Warning: In " << __FUNCTION__ << ": There are several collisions in the context. Program will proceed with the last added literal.\n";
+            }
+            if(Condition.Location.attribute == "detected"){
+                for(const DetectedCollision & Detected : Context->Modules.Collisions.back()->Detected){
+                    if(Detected.collisionType > 0){
+                        NewValue.setBool(true);
+                        return NewValue;
+                    }
+                }
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
+                << "' does not exist in the collision module.\n";
+            NewValue.setBool(false);
+            return NewValue;
+        }
         if(Context->type == "object"){
             if(Context->Objects.size() == 0){
                 cout << "Error: In " << __FUNCTION__ << ": There are no objects in the context.\n";

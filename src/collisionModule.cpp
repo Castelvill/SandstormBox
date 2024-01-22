@@ -280,6 +280,7 @@ void CollisionModule::getContext(string attribute, vector <BasePointersStruct> &
     }
 }
 
+
 bool CollisionModule::getIsSolid() const{
     return isSolid;
 }
