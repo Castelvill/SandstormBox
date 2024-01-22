@@ -699,6 +699,21 @@ save_text *path* *text*
 - path (string) - id of the context with a path to a text file;
 - text (string) - id of the context with a text to save.
 
+## ls
+
+**Syntax**
+
+ls [directory] [output]
+
+**Description**
+
+    Print out the list of files in the directory.
+
+**Parameters**
+
+- directory (string) - id of the context with the directory path;
+- directory (string) - id of the output context.
+
 ## lse
 
 **Syntax**
