@@ -638,6 +638,16 @@ bool optional(const vector<string> & words, unsigned & cursor, string & variable
     cursor++;
     return false;
 }
+bool optional(const vector<string> & words, unsigned & cursor, vector<string> & strVec){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor] != "_"){
+        strVec.push_back(words[cursor]);
+    }
+    cursor++;
+    return false;
+}
 bool nextCond(const vector<string> & words, unsigned & cursor, string & variable){
     if(words.size() < cursor + 1){
         return true;
@@ -1136,11 +1146,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
-            if(words.size() <= 1){
-                continue;
-            }
-            Operation->dynamicIDs.push_back(words[1]);
-            cursor = 2;
+            if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
         else if(words[0] == "value"){
@@ -1257,10 +1263,8 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             Operation->newContextID = words[1];
-            if(words.size() < 3){
-                continue;
-            }
-            Operation->dynamicIDs.push_back(words[2]);
+            cursor = 2;
+            if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
         }
         else if(words[0] == "clone"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
@@ -1312,20 +1316,8 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newInt(cstoi(words[cursor])));
             }
             cursor++;
-            if(words.size() <= cursor){
-                continue;
-            }
-            if(words[cursor] != "_"){
-                Operation->dynamicIDs.push_back(words[cursor]);
-            }
-            cursor++;
-            if(words.size() <= cursor){
-                continue;
-            }
-            if(words[cursor] != "_"){
-                Operation->dynamicIDs.push_back(words[cursor]);
-            }
-            cursor++;
+            if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
+            if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
         else if(words[0] == "bind"){
@@ -1377,16 +1369,8 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             Operation->dynamicIDs.push_back(words[1]);
-            if(words.size() == 2){
-                continue;
-            }
-            if(words[2] != "_"){
-                Operation->dynamicIDs.push_back(words[2]);
-            }
-            if(words.size() == 3){
-                continue;
-            }
-            cursor = 3;
+            cursor = 2;
+            if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
             if(!gatherLiterals(words, cursor, Operation->Literals, 's', lineNumber, scriptName)){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                 return;
@@ -1547,6 +1531,13 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->dynamicIDs.push_back(words[2]);
         }
         else if(words[0] == "ls"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
+        else if(words[0] == "lse"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }

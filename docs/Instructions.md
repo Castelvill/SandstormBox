@@ -699,15 +699,15 @@ save_text *path* *text*
 - path (string) - id of the context with a path to a text file;
 - text (string) - id of the context with a text to save.
 
-## ls
+## lse
 
 **Syntax**
 
-ls *source* *detail*
+lse *source* *detail*
 
 **Description**
 
-    Print out the list of items from the source on the standard output.
+    Print out the list of entities from the source on the standard output.
 
 **Parameters**
 

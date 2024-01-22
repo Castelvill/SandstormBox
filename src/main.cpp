@@ -1,12 +1,5 @@
 #include "processClass.h"
 
-vector<string> getAllFilesNamesWithinFolder(string folder){
-    vector<string> names;
-    for (const auto & entry : std::filesystem::directory_iterator(folder))
-        names.push_back(entry.path().string());
-    return names;
-}
-
 int main(){
     #if __WIN32__
         HANDLE  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -54,16 +47,6 @@ int main(){
         }
 
     }while(Engine.isRunning());
-
-    vector <string> fileNames;
-    //TODO: change "D:/Programming/Easy Game Maker" to EXE_PATH
-    #if _WIN32
-        fileNames = getAllFilesNamesWithinFolder("D:/Programming/Easy Game Maker");
-    #elif __linux__
-        fileNames = getAllFilesNamesWithinFolder(".");
-    #endif
-    //for(auto name : fileNames)
-    //    cout << name << std::endl;
 
     Processes.clear();
 

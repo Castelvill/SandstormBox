@@ -238,6 +238,9 @@ EngineInstr transInstr(string instruction){
     if(instruction == "ls"){
         return EngineInstr::ls;
     }
+    if(instruction == "lse"){
+        return EngineInstr::lse;
+    }
     if(instruction == "new_proc"){
         return EngineInstr::new_proc;
     }
@@ -427,6 +430,8 @@ string transInstrToStr(EngineInstr instruction){
             return "save_text";
         case ls:
             return "ls";
+        case lse:
+            return "lse";
         case new_proc:
             return "new_proc";
         case var:

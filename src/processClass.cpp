@@ -5533,6 +5533,10 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
         return;
     }
 
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.dynamicIDs[0] << " " << Operation.dynamicIDs[1] << "\n";
+    }
+
     std::ofstream File(EXE_PATH + pathToTheFile);
 
 	if(!File){
@@ -5554,7 +5558,7 @@ void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessC
     if(printOutInstructions){
         cout << Operation.instruction << " " << Operation.Literals[0].getString() << " " << printDetails << "\n";
     }
-    if(Operation.Literals[0].getString() == "processes"){
+    if(Operation.Literals[0].getString() == "p" || Operation.Literals[0].getString() == "processes"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tLayers\tCameras\n";
@@ -5572,7 +5576,7 @@ void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessC
             }
         }
     }
-    else if(Operation.Literals[0].getString() == "layers"){
+    else if(Operation.Literals[0].getString() == "l" || Operation.Literals[0].getString() == "layers"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tProcess\tActive\tObjects\n";
@@ -5596,7 +5600,7 @@ void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessC
             }
         }
     }
-    else if(Operation.Literals[0].getString() == "cameras"){
+    else if(Operation.Literals[0].getString() == "c" || Operation.Literals[0].getString() == "cameras"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tProcess\tActive\tPinned\n";
@@ -5620,7 +5624,7 @@ void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessC
             }
         }
     }
-    else if(Operation.Literals[0].getString() == "bitmaps"){
+    else if(Operation.Literals[0].getString() == "b" || Operation.Literals[0].getString() == "bitmaps"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tPath\n";
@@ -5636,7 +5640,7 @@ void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessC
             }
         }
     }
-    else if(Operation.Literals[0].getString() == "fonts"){
+    else if(Operation.Literals[0].getString() == "f" || Operation.Literals[0].getString() == "fonts"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tSize\n";
@@ -5672,6 +5676,10 @@ void ProcessClass::createNewProcess(OperaClass & Operation, vector<ProcessClass>
     }
     if(Operation.Literals.size() > 3 && Operation.Literals[3].getType() == 's'){
         script = Operation.Literals[3].getString();
+    }
+
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << layerID << " " << objectID << " " << script << "\n";
     }
     
     if(Processes.size() + 1 <= Processes.capacity()){
@@ -5788,18 +5796,31 @@ void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> &
     ContextClass NewContext;
     NewContext.type = "value";
     if(Operation.dynamicIDs.size() == 1){
+        if(printOutInstructions){
+            cout << Operation.instruction << " " << Operation.dynamicIDs[0] << "\n";
+        }
         for(string word : words){
             NewContext.Variables.push_back(VariableModule::newString(word));
         }
         addNewContext(EventContext, NewContext, "value", "");
     }
     else if(Operation.dynamicIDs.size() == 2){
+        if(printOutInstructions){
+            cout << Operation.instruction << " " << Operation.dynamicIDs[0] << " " << Operation.dynamicIDs[1] << "\n";
+        }
         for(string word : words){
             NewContext.Variables.push_back(VariableModule::newString(word));
         }
         addNewContext(EventContext, NewContext, "value", Operation.dynamicIDs[1]);
     }
     else{
+        if(printOutInstructions){
+            cout << Operation.instruction << " " << Operation.dynamicIDs[0] << " ";
+            for(size_t i = 0; i < words.size() && i+1 < Operation.dynamicIDs.size(); i++){
+                cout << Operation.dynamicIDs[i+1] << " ";
+            }
+            cout << "\n";
+        }
         NewContext.Variables.push_back(VariableModule::newString(""));
         for(size_t i = 0; i < words.size() && i+1 < Operation.dynamicIDs.size(); i++){
             NewContext.Variables.back().setString(words[i]);
@@ -5868,15 +5889,16 @@ void ProcessClass::printTree(OperaClass & Operation, vector<ContextClass> & Even
             }
         }
     }
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.newContextID << "\n";
+    }
     if(Operation.newContextID == ""){
         cout << buffor;
     }
-    else{
-        ContextClass NewContext;
-        NewContext.type = "value";
-        NewContext.Variables.push_back(VariableModule::newString(buffor));
-        moveOrRename(EventContext, &NewContext, Operation.newContextID);
-    }
+    ContextClass NewContext;
+    NewContext.type = "value";
+    NewContext.Variables.push_back(VariableModule::newString(buffor));
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 void ProcessClass::getStringSizeFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass * Context = nullptr;
@@ -5889,6 +5911,10 @@ void ProcessClass::getStringSizeFromContext(OperaClass & Operation, vector<Conte
     if(!Context->getStringOrAbort(text, Operation.instruction)){
         cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << Operation.instruction << "\' failed.\n";
         return;
+    }
+
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.dynamicIDs[0] << " " << "\n";
     }
 
     ContextClass NewContext;
@@ -5905,6 +5931,10 @@ void ProcessClass::getSizeOfContext(OperaClass & Operation, vector<ContextClass>
     
     int size = 0;
     size = Context->getVectorSize();
+
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.dynamicIDs[0] << "\n";
+    }
 
     ContextClass NewContext;
     NewContext.type = "value";
@@ -5959,6 +5989,10 @@ void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<Contex
         length = text.size() - beginning;
     }
 
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << Operation.dynamicIDs[0] << " " << beginning << " " << length << "\n";
+    }
+
     ContextClass NewContext;
     NewContext.type = "value";
     NewContext.Variables.push_back(VariableModule::newString(text.substr(beginning, length)));
@@ -6004,6 +6038,10 @@ void ProcessClass::loadFontFromContext(OperaClass & Operation, vector<ContextCla
         return;
     }
 
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << filePath << " " << fontSize << " " << fontID << "\n";
+    }
+
     Engine.loadNewFont(filePath, fontSize, fontID);
 }
 void ProcessClass::findByIDInEventContext(OperaClass & Operation, vector<ContextClass> & EventContext){
@@ -6016,6 +6054,10 @@ void ProcessClass::findByIDInEventContext(OperaClass & Operation, vector<Context
 
     ContextClass NewContext;
     NewContext.type = VectorContext->type;
+
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << VectorContext->type << " " << id << " " << Operation.newContextID << "\n";
+    }
 
     if(id == ""){
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
@@ -6127,6 +6169,59 @@ void ProcessClass::findByIDInEventContext(OperaClass & Operation, vector<Context
         }
     }
     addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
+}
+vector<string> getAllFilesNamesWithinFolder(string directory, char mode){
+    vector<string> names;
+    if(mode == 'f'){
+        for(const auto & entry : std::filesystem::directory_iterator(directory)){
+            names.push_back(entry.path().string());
+        }
+    }
+    else{
+        for(const auto & entry : std::filesystem::directory_iterator(directory)){
+            names.push_back(entry.path().filename().string());
+        }
+    }
+    return names;
+}
+void ProcessClass::listOutFiles(OperaClass & Operation, vector<ContextClass> & EventContext){
+    string directory = "";
+    
+    if(Operation.dynamicIDs.size() > 0){
+        ContextClass * DirContext = getContextByID(EventContext, Operation.dynamicIDs[0], 0);
+        if(DirContext != nullptr){
+            DirContext->getStringOrIgnore(directory, Operation.instruction);
+        }
+    }
+
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << directory << " " << Operation.newContextID << "\n";
+    }
+
+    vector <string> fileNames;
+    #if _WIN32
+        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + directory, 'n');
+    #elif __linux__
+        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + directory, 'n');
+    #endif
+
+    string buffer = "";
+    for(string file : fileNames){
+        for(char chara : file){
+            if(isspace(chara)){
+                file = "\"" + file + "\"";
+                break;
+            }
+        }
+        buffer += file + " ";
+    }
+    if(Operation.newContextID == ""){
+        cout << buffer;
+    }
+
+    ContextClass NewContext;
+    NewContext.Variables.push_back(VariableModule::newString(buffer));
+    addNewContext(EventContext, NewContext, "value", Operation.newContextID);
 }
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
@@ -6330,6 +6425,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 saveStringAsFile(Operation, EventContext);
                 break;
             case ls:
+                listOutFiles(Operation, EventContext);
+                break;
+            case lse:
                 listOutEntities(Operation, Processes, Engine);
                 break;
             case new_proc:

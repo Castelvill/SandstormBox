@@ -372,7 +372,7 @@ string [""] param7
 
 tokenize command param0 param1 param2 param3 param4 param5 param6 param7
 
-string [neofetch help hello sq cats sh fullscreen fs nw spawn 222 cls cat print exit edit sand] allowedPrograms
+string [neofetch help hello ls sq cats sh fullscreen fs nw spawn 222 cls cat print exit edit sand] allowedPrograms
 in param0 allowedPrograms isAllowed
 string ["_enter"] program
 run programCheck

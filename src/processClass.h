@@ -7,7 +7,7 @@ enum CAMERA_MOVE: unsigned char{NONE, CAMERA_FULL, CAMERA_N, CAMERA_NE, CAMERA_E
 
 void freeFontsFromContainer(vector <SingleFont> & FontContainer);
 
-vector<string> getAllFilesNamesWithinFolder(string folder);
+vector<string> getAllFilesNamesWithinFolder(string directory, char mode);
 
 template <class T>
 void getPointersFromVector(vector <T*> & Left, vector<T> & Right);
@@ -351,6 +351,7 @@ public:
     void getSubStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext);
     void loadFontFromContext(OperaClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine);
     void findByIDInEventContext(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void listOutFiles(OperaClass & Operation, vector<ContextClass> & EventContext);
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,

@@ -3,6 +3,7 @@ print _ result string ["cls
 print
 fullscreen
 fs
+ls
 hello
 222
 cat
@@ -18,6 +19,13 @@ sand
 exit
 "]
 string [""] program
+run printOnTerminal
+end
+
+
+start ls
+ls param1 result
+string ["_enter"] program
 run printOnTerminal
 end
 
