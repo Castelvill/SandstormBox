@@ -1,3 +1,9 @@
+23.01.2024
+-Tested new button idea with distance measuring.
+-Added "**" (power) instruction. 
+-Fixed regex again.
+-Fixed isConditionMet() - added type converting.
+
 22.01.2024
 -Added "ls" instruction for listing out files in the chosen directory.
 -Renamed "ls" into "lse" (listing out entities).

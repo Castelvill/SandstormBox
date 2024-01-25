@@ -67,12 +67,37 @@ if ([mouse_released 0])
 value ([context me layer_id]) myLayerID
 all layer _ _ _ _ _ _ Layers
 find_by_id_2 Layers myLayerID Layer
+index c Layer [0 0 3] _ primitives ExitButton
 
-index c Layer [0 0 0] _ collision ExitCollision
-run checkExitWindow
+all camera _ camera _ Cameras
+find_by_id_2 Cameras cameraID Camera
+
+value ([mouse_x]) mouseX
+value ([mouse_y]) mouseY
+
+value ([context Camera pos_x]) camPosX
+value ([context Camera pos_y]) camPosY
+
+-= mouseX camPosX
+-= mouseY camPosY
+
+value ([context ExitButton pos_x]) exitPosX
+value ([context ExitButton pos_y]) exitPosY
+
+-= mouseX exitPosX
+-= mouseY exitPosY
+*= mouseX mouseX
+*= mouseY mouseY
++= mouseX mouseY
+double [0.5] pow
+** mouseX pow dist
+
+run exitWindowCheck
 end
 
-start checkExitWindow
-if([context ExitCollision detected])
-print "xd\n"
+start exitWindowCheck
+if([c dist] [double 10] <=)
+print "CLICKED\n"
+delete Camera
+delete my_layer
 end

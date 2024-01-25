@@ -516,7 +516,7 @@ string findAndUseSpecialCharacters(string input){
 
 vector<string> tokenizeCode(string input)
 {
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>|<|>=|<=|-=|\\+=|/=|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|/=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
@@ -781,7 +781,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 }
                 if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
             }
-            else if(Expression.back().Location.source == "context"){
+            else if(Expression.back().Location.source == "context" || Expression.back().Location.source == "c"){
                 if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
                 if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
                 if(nextCond(words, cursor, Expression.back().Location.spareID)){ continue; };
@@ -1133,7 +1133,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(optional(words, cursor, Operation->Location.attribute)){ continue; }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(isStringInGroup(words[0], 14, "sum", "intersection", "difference", "+", "-", "*", "/", "=", "+=", "-=", "*=", "/=", "in", "find_by_id_2")){
+        else if(isStringInGroup(words[0], 15, "sum", "intersection", "difference", "+", "-", "*", "/", "**", "=", "+=", "-=", "*=", "/=", "in", "find_by_id_2")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }

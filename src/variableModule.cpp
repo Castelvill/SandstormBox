@@ -435,90 +435,90 @@ template <typename condValueType>
 bool VariableModule::isConditionMet(condValueType condVal, EngineInstr operatorType, char valType){
     if(operatorType == EngineInstr::or_i){
         if(valType == 'b'){
-            return vBool || condVal;
+            return getBoolUnsafe() || condVal;
         }
         else if(valType == 'i'){
-            return vInt || condVal;
+            return getIntUnsafe() || condVal;
         }
         else if(valType == 'd'){
-            return vDouble || condVal;
+            return getDoubleUnsafe() || condVal;
         }
     }
     else if(operatorType == EngineInstr::and_i){
         if(valType == 'b'){
-            return vBool && condVal;
+            return getBoolUnsafe() && condVal;
         }
         else if(valType == 'i'){
-            return vInt && condVal;
+            return getIntUnsafe() && condVal;
         }
         else if(valType == 'd'){
-            return vDouble && condVal;
+            return getDoubleUnsafe() && condVal;
         }
     }
     else if(operatorType == EngineInstr::equal){
         if(valType == 'b'){
-            return vBool == condVal;
+            return getBoolUnsafe() == condVal;
         }
         else if(valType == 'i'){
-            return vInt == condVal;
+            return getIntUnsafe() == condVal;
         }
         else if(valType == 'd'){
-            return vDouble == condVal;
+            return getDoubleUnsafe() == condVal;
         }
     }
     else if(operatorType == EngineInstr::not_equal){
         if(valType == 'b'){
-            return vBool != condVal;
+            return getBoolUnsafe() != condVal;
         }
         else if(valType == 'i'){
-            return vInt != condVal;
+            return getIntUnsafe() != condVal;
         }
         else if(valType == 'd'){
-            return vDouble != condVal;
+            return getDoubleUnsafe() != condVal;
         }
     }
     else if(operatorType == EngineInstr::more){
         if(valType == 'b'){
-            return vBool > condVal;
+            return getBoolUnsafe() > condVal;
         }
         else if(valType == 'i'){
-            return vInt > condVal;
+            return getIntUnsafe() > condVal;
         }
         else if(valType == 'd'){
-            return vDouble > condVal;
+            return getDoubleUnsafe() > condVal;
         }
     }
     else if(operatorType == EngineInstr::less){
         if(valType == 'b'){
-            return vBool < condVal;
+            return getBoolUnsafe() < condVal;
         }
         else if(valType == 'i'){
-            return vInt < condVal;
+            return getIntUnsafe() < condVal;
         }
         else if(valType == 'd'){
-            return vDouble < condVal;
+            return getDoubleUnsafe() < condVal;
         }
     }
     else if(operatorType == EngineInstr::more_equal){
         if(valType == 'b'){
-            return vBool >= condVal;
+            return getBoolUnsafe() >= condVal;
         }
         else if(valType == 'i'){
-            return vInt >= condVal;
+            return getIntUnsafe() >= condVal;
         }
         else if(valType == 'd'){
-            return vDouble >= condVal;
+            return getDoubleUnsafe() >= condVal;
         }
     }
     else if(operatorType == EngineInstr::less_equal){
         if(valType == 'b'){
-            return vBool <= condVal;
+            return getBoolUnsafe() <= condVal;
         }
         else if(valType == 'i'){
-            return vInt <= condVal;
+            return getIntUnsafe() <= condVal;
         }
         else if(valType == 'd'){
-            return vDouble <= condVal;
+            return getDoubleUnsafe() <= condVal;
         }
     }
     return false;

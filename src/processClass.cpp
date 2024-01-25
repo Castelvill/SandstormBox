@@ -6949,6 +6949,14 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             NewValue.setBool(Engine.Mouse.isReleased(Condition.Literal.getInt()));
             return NewValue;
         }
+        if(Condition.Location.source == "mouse_x"){
+            NewValue.setDouble(Engine.Mouse.getPos().x);
+            return NewValue;
+        }
+        if(Condition.Location.source == "mouse_y"){
+            NewValue.setDouble(Engine.Mouse.getPos().y);
+            return NewValue;
+        }
     }
     else{
         if(isStringInGroup(Condition.Location.source, 10, "key_pressed", "key_pressing",
@@ -7130,6 +7138,40 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             NewValue.setBool(false);
             return NewValue;
         }
+        if(Context->type == "primitives"){
+            if(Context->Modules.Primitives.size() == 0){
+                cout << "Error: In " << __FUNCTION__ << ": There are no Primitives in the context.\n";
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Context->Modules.Primitives.size() != 1){
+                cout << "Warning: In " << __FUNCTION__ << ": There are several Primitives in the context. Program will proceed with the last added literal.\n";
+            }
+            if(Condition.Location.attribute == "pos_x"){
+                NewValue.setDouble(Context->Modules.Primitives.back()->getPos(0).x);
+                return NewValue;
+            }
+            else  if(Condition.Location.attribute == "pos_y"){
+                NewValue.setDouble(Context->Modules.Primitives.back()->getPos(0).y);
+                return NewValue;
+            }
+            else if(Condition.Location.attribute == "clicked"){
+                string layerID = Context->Modules.Primitives.back()->getLayerID();
+                string objectID = Context->Modules.Primitives.back()->getObjectID();
+                if(layerID == ""){
+                    cout << "Error: In " << __FUNCTION__ << ": Image '" << Context->Modules.Primitives.back() << "' does not have its layer's ID.\n";
+                }
+                if(objectID == ""){
+                    cout << "Error: In " << __FUNCTION__ << ": Image '" << Context->Modules.Primitives.back() << "' does not have its object's ID.\n";
+                }
+                //NewValue.setBool(Engine.Mouse.firstPressedInRectangle());
+                return NewValue;
+            }
+            cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
+                << "' does not exist in the collision module.\n";
+            NewValue.setBool(false);
+            return NewValue;
+        }
         if(Context->type == "object"){
             if(Context->Objects.size() == 0){
                 cout << "Error: In " << __FUNCTION__ << ": There are no objects in the context.\n";
@@ -7169,6 +7211,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
             return NewValue;
         }
+        
         cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
         return NewValue;
     }
@@ -7263,7 +7306,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                     comparasion = leftOperand.isConditionMet(op, &rightOperand);
                     
                     if(printOutLogicalEvaluations){
-                        cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << op << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << comparasion << "\n";
+                        cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << transInstrToStr(op) << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << comparasion << "\n";
                     }
                     
                     resultStack.back().setBool(comparasion);
@@ -7275,7 +7318,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                         resultDouble = leftOperand.floatingOperation(op, &rightOperand);
 
                         if(printOutLogicalEvaluations){
-                            cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << op << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << resultDouble << "\n";
+                            cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << transInstrToStr(op) << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << resultDouble << "\n";
                         }
 
                         resultStack.back().setDouble(resultDouble);
@@ -7284,7 +7327,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                         resultInt = leftOperand.intOperation(op, &rightOperand);
 
                         if(printOutLogicalEvaluations){
-                            cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << op << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << resultInt << "\n";
+                            cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << transInstrToStr(op) << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << resultInt << "\n";
                         }
 
                         resultStack.back().setInt(resultInt);
