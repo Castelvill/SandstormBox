@@ -371,7 +371,7 @@ public:
         const EngineClass & Engine, vector<ContextClass> &EventContext);
     vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
-    bool deleteEntities();
+    bool deleteEntities(vector <AncestorObject*> & TriggeredObjects);
     void resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered);
     void triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes);
     void updateTreeOfCamerasFromSelectedRoot(Camera2D * Selected);

@@ -1,3 +1,4 @@
+-Fix: Deleting layers and objects corrupts pointers to objects in TriggeredObjects.
 -Add "cd" instruction or "proc_edit cd path" attribute to change EXE_PATH or add workDir (working directory) to each object.
 -Add "pwd" instruction.
 -Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.

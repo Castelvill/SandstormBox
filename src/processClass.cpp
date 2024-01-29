@@ -7413,7 +7413,7 @@ void deleteEventInstance(vector<EveModule> & Container, vector<string> & IDs, bo
         }
     }
 }
-bool ProcessClass::deleteEntities(){
+bool ProcessClass::deleteEntities(vector <AncestorObject*> & TriggeredObjects){
     bool layersWereModified = false;
     unsigned cameraIndex = 0;
     for(auto Camera = Cameras.begin(); Camera != Cameras.end(); cameraIndex++){
@@ -7513,7 +7513,10 @@ void addGlobalVariables(vector<ContextClass> & EventContext, vector<VariableModu
     }
 }
 void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes){
-    if(wasDeleteExecuted && deleteEntities()){
+    //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
+    //must wait with execution for the next iteration, unless run() command will be used.
+    vector <AncestorObject*> TriggeredObjects;
+    if(wasDeleteExecuted && deleteEntities(TriggeredObjects)){
         updateBaseOfTriggerableObjects();
         wasDeleteExecuted = false;
     }
@@ -7523,9 +7526,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         wasAnyEventUpdated = false;
     }
     
-    //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
-    //must wait with execution for the next iteration, unless run() command will be used.
-    vector <AncestorObject*> TriggeredObjects;
+    
     detectTriggeredEvents(Engine, TriggeredObjects);
 
     if(TriggeredObjects.size() == 0){
@@ -7652,7 +7653,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                         break;
                     }
                     if(TriggeredLayer == nullptr || Triggered == nullptr){
-                        cout << "Aborting! The owner of the event has been deleted.\n";
+                        //cout << "Aborting! The owner of the event has been deleted.\n";
                         break;
                     }
                     Event->areDependentOperationsDone = true;
@@ -7711,7 +7712,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                     break;
                 }
                 if(TriggeredLayer == nullptr || Triggered == nullptr){
-                    cout << "Aborting! The owner of the event has been deleted.\n";
+                    //cout << "Aborting! The owner of the event has been deleted.\n";
                     break;
                 }
             }
@@ -7751,7 +7752,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         Context.clear();
         MemoryStack.clear();
 
-        if(wasDeleteExecuted && deleteEntities()){
+        if(wasDeleteExecuted && deleteEntities(TriggeredObjects)){
             updateBaseOfTriggerableObjects();
             wasDeleteExecuted = false;
         }
