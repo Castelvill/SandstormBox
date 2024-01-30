@@ -366,6 +366,7 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
 }
 void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects){
     AncestorObject * tempObject = nullptr;
+    TriggeredObjects.clear();
     if(firstIteration){
         for(AncestorIndex & Index : BaseOfTriggerableObjects.BootTriggered){
             tempObject = Index.object(Layers);
@@ -7413,7 +7414,7 @@ void deleteEventInstance(vector<EveModule> & Container, vector<string> & IDs, bo
         }
     }
 }
-bool ProcessClass::deleteEntities(vector <AncestorObject*> & TriggeredObjects){
+bool ProcessClass::deleteEntities(){
     bool layersWereModified = false;
     unsigned cameraIndex = 0;
     for(auto Camera = Cameras.begin(); Camera != Cameras.end(); cameraIndex++){
@@ -7516,7 +7517,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
     //must wait with execution for the next iteration, unless run() command will be used.
     vector <AncestorObject*> TriggeredObjects;
-    if(wasDeleteExecuted && deleteEntities(TriggeredObjects)){
+    if(wasDeleteExecuted && deleteEntities()){
         updateBaseOfTriggerableObjects();
         wasDeleteExecuted = false;
     }
@@ -7550,14 +7551,15 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
     bool noTriggerableEvents = true;
     
 
-    unsigned i = 0;
+    unsigned i = 0, j = 0;
 
     unsigned preGeneratedContextSize = 0;
 
     LayerClass * TriggeredLayer;
     OperaClass Interrupt;
 
-    for(AncestorObject * Triggered : TriggeredObjects){
+    for(;j < TriggeredObjects.size(); j++){
+        AncestorObject * Triggered = TriggeredObjects[j];
         if(Triggered == nullptr || Triggered->getIsDeleted() || !Triggered->getIsActive()){
             continue;
         }
@@ -7752,10 +7754,22 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         Context.clear();
         MemoryStack.clear();
 
-        if(wasDeleteExecuted && deleteEntities(TriggeredObjects)){
-            updateBaseOfTriggerableObjects();
-            wasDeleteExecuted = false;
+        if(wasDeleteExecuted){
+            unsigned deletedBeforeIndex = 0;
+            for(unsigned k = 0; k <= j; k++){
+                if(TriggeredObjects[k] != nullptr && TriggeredObjects[k]->getIsDeleted()){
+                    deletedBeforeIndex++;
+                }
+            }
+            if(deleteEntities()){
+                updateBaseOfTriggerableObjects();
+                detectTriggeredEvents(Engine, TriggeredObjects);
+                j -= deletedBeforeIndex - 1;
+                wasDeleteExecuted = false;
+            }
         }
+
+        
 
         if(wasNewExecuted || wasAnyEventUpdated){
             updateBaseOfTriggerableObjects();
