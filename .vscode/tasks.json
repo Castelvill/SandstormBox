@@ -7,7 +7,6 @@
                 "command": "D:\\Programs\\MSYS64\\mingw64\\bin\\g++.exe",
                 "args": [
                     "-fdiagnostics-color=always",
-                    "-fsanitize=address",
                     "-g",
                     "-Wall",
                     "-std=c++20",

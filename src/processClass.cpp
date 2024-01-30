@@ -7415,14 +7415,33 @@ void deleteEventInstance(vector<EveModule> & Container, vector<string> & IDs, bo
     }
 }
 bool ProcessClass::deleteEntities(){
-    bool layersWereModified = false;
-    unsigned cameraIndex = 0;
+    bool layersWereModified = false, foundInOrder = false;
+    unsigned cameraIndex = 0, camPosInOrder = 0;
     for(auto Camera = Cameras.begin(); Camera != Cameras.end(); cameraIndex++){
         if(Camera->getIsDeleted()){
             removeFromVector(camerasIDs, Camera->getID());
             Camera->clear();
             Camera = Cameras.erase(Camera);
-            removeFromVector(camerasOrder, cameraIndex);
+            foundInOrder = false;
+            for(camPosInOrder = 0; camPosInOrder < camerasOrder.size(); camPosInOrder++){
+                if(camerasOrder[camPosInOrder] == cameraIndex){
+                    foundInOrder = true;
+                    break;
+                }
+            }
+            if(!foundInOrder || camerasOrder.size() == 0){
+                std::cout << "Warning: In " << __FUNCTION__ << ": Camera's index was not included in cameras' order.\n";
+                continue;
+            }
+            for(; camPosInOrder < camerasOrder.size()-1; camPosInOrder++){
+                camerasOrder[camPosInOrder] = camerasOrder[camPosInOrder + 1];
+            }
+            camerasOrder.pop_back();
+            for(camPosInOrder = 0; camPosInOrder < camerasOrder.size(); camPosInOrder++){
+                if(camerasOrder[camPosInOrder] > cameraIndex){
+                    camerasOrder[camPosInOrder]--;
+                }
+            }
         }
         else{
             ++Camera;
@@ -7551,15 +7570,16 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
     bool noTriggerableEvents = true;
     
 
-    unsigned i = 0, j = 0;
+    unsigned triObjIdx = 0;
 
     unsigned preGeneratedContextSize = 0;
 
     LayerClass * TriggeredLayer;
     OperaClass Interrupt;
+    AncestorObject * Triggered = nullptr;
 
-    for(;j < TriggeredObjects.size(); j++){
-        AncestorObject * Triggered = TriggeredObjects[j];
+    for(triObjIdx = 0; triObjIdx < TriggeredObjects.size(); triObjIdx++){
+        Triggered = TriggeredObjects[triObjIdx];
         if(Triggered == nullptr || Triggered->getIsDeleted() || !Triggered->getIsActive()){
             continue;
         }
@@ -7677,12 +7697,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
 
             if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != EngineInstr::break_i){ //loop back
                 if(MemoryStack.size() > 0){
-                    if(MemoryStack.size() > 0 && MemoryStack.back().contextSize <= Context.size()){
-                        Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
-                    }
-                    else{
-                        cout << "THIS SHOULD NOT HAPPENED\n";
-                    }
+                    Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
                 }
                 if(wereGlobalVariablesCreated){
                     addGlobalVariables(Context, Triggered->VariablesContainer);
@@ -7726,17 +7741,12 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
 
                 Event = MemoryStack.back().Event;
 
-                if(MemoryStack.back().contextSize <= Context.size()){
-                    Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
-                }
-                else{
-                    cout << "THIS SHOULD NOT HAPPENED\n";
-                }
+                Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
                 
                 MemoryStack.pop_back();
                 continue;
             }
-            for(i = preGeneratedContextSize; i < Context.size(); i++){
+            for(unsigned i = preGeneratedContextSize; i < Context.size(); i++){
                 Context[i].clear();
             }
             Context.erase(Context.begin() + preGeneratedContextSize, Context.end());
@@ -7756,20 +7766,18 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
 
         if(wasDeleteExecuted){
             unsigned deletedBeforeIndex = 0;
-            for(unsigned k = 0; k <= j; k++){
-                if(TriggeredObjects[k] != nullptr && TriggeredObjects[k]->getIsDeleted()){
+            for(unsigned objIdx = 0; objIdx <= triObjIdx; objIdx++){
+                if(TriggeredObjects[objIdx] != nullptr && TriggeredObjects[objIdx]->getIsDeleted()){
                     deletedBeforeIndex++;
                 }
             }
             if(deleteEntities()){
                 updateBaseOfTriggerableObjects();
                 detectTriggeredEvents(Engine, TriggeredObjects);
-                j -= deletedBeforeIndex - 1;
+                triObjIdx -= deletedBeforeIndex - 1;
                 wasDeleteExecuted = false;
             }
         }
-
-        
 
         if(wasNewExecuted || wasAnyEventUpdated){
             updateBaseOfTriggerableObjects();
@@ -7996,7 +8004,8 @@ void ProcessClass::bringCameraForward(unsigned index, Camera2D * ChosenCamera){
     
     for(unsigned j = 0; j < index;){
         if(camerasOrder[j] >= Cameras.size()){
-            cout << "Error: Index of camera is out of scope!\n";
+            cout << "Error: Camera index <" << camerasOrder[j] << "> in the cameras' order is out of scope of camera's Container<"
+                << Cameras.size() << ">.\n";
             j++;
             continue;
         }
@@ -8036,7 +8045,8 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
     }
     if(fromAltTab && isKeyPressed(ALLEGRO_KEY_LCTRL, pressedKeys) && isKeyReleased(ALLEGRO_KEY_TAB, releasedKeys)){
         if(camerasOrder[0] >= Cameras.size()){
-            cout << "Error: Index of camera is out of scope!\n";
+            cout << "Error: Camera index <" << camerasOrder[0] << "> in the cameras' order is out of scope of camera's Container<"
+                << Cameras.size() << ">.\n";
             return;
         }
         SelectedCamera = &Cameras[camerasOrder[0]];
@@ -8050,7 +8060,8 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
             
         for(int j = 0; j < i; j++){
             if(camerasOrder[j] >= Cameras.size()){
-                cout << "Error: Index of camera is out of scope!\n";
+                cout << "Error: Camera index <" << camerasOrder[j] << "> in the cameras' order is out of scope of camera's Container<"
+                    << Cameras.size() << ">.\n";
                 continue;
             }
             if(Cameras[camerasOrder[j]].isForcefullyPinned &&
@@ -8072,7 +8083,8 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
 
     for(int i = camerasOrder.size() - 1; i >= 0 ; i--){
         if(camerasOrder[i] >= Cameras.size()){
-            cout << "Error: Index of camera is out of scope!\n";
+            cout << "Error: Camera index <" << camerasOrder[i] << "> in the cameras' order is out of scope of camera's Container<"
+                << Cameras.size() << ">.\n";
             continue;
         }
         Camera = &Cameras[camerasOrder[i]];
@@ -8555,7 +8567,8 @@ void ProcessClass::drawEverything(EngineClass & Engine){
 
     for(const unsigned & cameraIndex : camerasOrder){
         if(cameraIndex >= Cameras.size()){
-            cout << "Error: Index of camera is out of scope!\n";
+            cout << "Error: Camera index <" << cameraIndex << "> in the cameras' order is out of scope of camera's Container<"
+                << Cameras.size() << ">.\n";
             continue;
         }
         Camera = &Cameras[cameraIndex];

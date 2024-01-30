@@ -16,6 +16,7 @@ class CollisionModule: public PrimaryModule{
 private:
     bool isSolid;
     bool canPenetrateSolids;
+    char mouseCollision; //n-no, p-pressing, f-first pressed, r-released
     vector <string> ignoredObjectsList;
     vector <string> ignoredGroupsOfObjectsList;
     vector <string> ignoredHitboxesList;

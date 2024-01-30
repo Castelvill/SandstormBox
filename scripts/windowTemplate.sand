@@ -97,8 +97,6 @@ end
 
 start exitWindowCheck
 if([c dist] [double 10] <=)
-print "CLICKED\n"
-print \n _ c my_layer
 delete Camera
 delete my_layer
 end

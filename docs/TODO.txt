@@ -1,4 +1,4 @@
--Fix: Deleting layers and objects corrupts pointers to objects in TriggeredObjects.
+-Add tab autocomplete: "inr" instruction that uses regex to find string in a string vector; using tab tokenizes current editable text and returns best match with "inr".
 -Add "cd" instruction or "proc_edit cd path" attribute to change EXE_PATH or add workDir (working directory) to each object.
 -Add "pwd" instruction.
 -Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.
