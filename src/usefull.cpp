@@ -19,7 +19,7 @@ double cstod(string text){
     }
 }
 string shortToStr(short integer){
-    char buff[6];
+    char buff[7];
     sprintf(buff, "%d", integer);
     return buff;
 }
