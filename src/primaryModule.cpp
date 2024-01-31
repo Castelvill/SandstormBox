@@ -265,6 +265,9 @@ EngineInstr transInstr(string instruction){
     if(instruction == "load_font"){
         return EngineInstr::load_font;
     }
+    if(instruction == "restart_drag"){
+        return EngineInstr::restart_drag;
+    }
     cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return EngineInstr::null;
 }
@@ -448,6 +451,8 @@ string transInstrToStr(EngineInstr instruction){
             return "substr";
         case load_font:
             return "load_font";
+        case restart_drag:
+            return "restart_drag";
     }
     cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return "null";

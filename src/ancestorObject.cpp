@@ -1062,7 +1062,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             NewEvent.elseChildID = words[1];
         }
-        else if(isStringInGroup(words[0], 8, "continue", "break", "return", "reboot", "power_off", "delete_this_event", "reset_keyboard", "dump_context_stack")){
+        else if(isStringInGroup(words[0], 9, "continue", "break", "return", "reboot", "power_off", "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }

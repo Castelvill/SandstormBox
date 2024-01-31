@@ -1,20 +1,18 @@
+-Add fullscreen mode to the window template.
+-Change deactivate and activate to tempDeactivate and tempActivate in minimize and bring_forward functions.
 -Add tab autocomplete: "inr" instruction that uses regex to find string in a string vector; using tab tokenizes current editable text and returns best match with "inr".
 -Add "cd" instruction or "proc_edit cd path" attribute to change EXE_PATH or add workDir (working directory) to each object.
 -Add "pwd" instruction.
 -Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.
 -Add global variables with vectors.
--Implement controls for the template of the window.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Add the limitless mode to editable text fields.
 -Add muting option to load_text or file_exists attribute to "value" instruction.
 -Fix: If the cursor is on the first line, down-arrow is moving cursor with an offset.
--Add borderless mode to the window template.
 -Ctrl+alt+t should open up a new terminal (clone the template)
--Fix: line number showing in eventAssembler.
--Command "sh print "xd\n"" does not work.
+-Fix: command "sh print "xd\n"" does not work.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: print command doesn't use special signs.
--Maybe print should add to the text and not set it?
 -Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
 -Add start, end, triggers instructions to the documentation.
 -Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
@@ -26,7 +24,6 @@
 -Add scrolling to the terminal: automatic and the scrollbar.
 -Fix: Reboot doesn't work.
 -Fix: after pasting text inside the command line, right arrow doesn't go behind the text.
--Copy some cool ui for the terminal.
 -Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
 
 MILESTONE: Terminal with printing, scrolling and a history of used commands.

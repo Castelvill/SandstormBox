@@ -196,6 +196,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             moveParticles(Engine.pressedKeys, Engine.releasedKeys);
             if(canUserInteract && SelectedCamera != nullptr && SelectedCamera->getIsActive()){
                 SelectedCamera->update(Engine.pressedKeys);
+                checkMouseCollisions(Engine);
             }
             
             triggerEve(Engine, Processes);
@@ -221,6 +222,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             ){
                 SelectedCamera->visionShift = Engine.Mouse.getZoomedPos(SelectedCamera) - dragCameraStaringPos;
             }
+            
             break;
         case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
             if(!canUserInteract){
@@ -236,6 +238,11 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             startScrollbarDragging(Engine.Mouse);
             if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
                 dragCameraStaringPos.set(Engine.Mouse.getZoomedPos(SelectedCamera)-SelectedCamera->visionShift);
+            }
+            break;
+        case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
+            if(SelectedCamera != nullptr){
+                SelectedCamera->grabbed = false;
             }
             break;
     }
@@ -264,6 +271,52 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
         && Engine.Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true, SelectedCamera)
     ){
         Engine.Mouse.updateZoomForCamera(SelectedCamera);
+    }
+}
+void ProcessClass::checkMouseCollisions(EngineClass &Engine){
+    for(LayerClass & Layer : Layers){
+        for(AncestorObject & Object : Layer.Objects){
+            for(CollisionModule & Collision : Object.CollisionContainer){
+                Collision.setMouseCollision('n');
+            }
+        }
+    }
+    if(!Engine.Mouse.isReleased()){
+        return;
+    }
+    for(LayerClass & Layer : Layers){
+        if(!Layer.getIsActive() || Layer.getIsDeleted()){
+            continue;
+        }
+        bool onCamera = false;
+        for(string layerID : SelectedCamera->accessibleLayersIDs){
+            if(Layer.getID() == layerID){
+                onCamera = true;
+                break;
+            }
+        }
+        if(!onCamera){
+            continue;
+        }
+        for(AncestorObject & Object : Layer.Objects){
+            if(!Object.getIsActive() || Object.getIsDeleted()){
+                continue;
+            }
+            for(CollisionModule & Collision : Object.CollisionContainer){
+                if(!Collision.getIsActive() || Collision.getIsDeleted()){
+                    continue;
+                }
+                Collision.setMouseCollision('n');
+                vec2d pos(Collision.getPos(Collision.getIsScrollable()));
+                pos.translate(Layer.pos + Object.getPos(Object.getIsScrollable()) + SelectedCamera->pos);
+                vec2d size(Collision.getSize());
+                if((Collision.getIsCircle() && Engine.Mouse.releasedInRadius(pos, size.x, 0, Collision.getIsAttachedToCamera(), SelectedCamera))
+                    || (!Collision.getIsCircle() && Engine.Mouse.releasedInRectangle(pos, size, 0, Collision.getIsAttachedToCamera(), SelectedCamera))
+                ){
+                    Collision.setMouseCollision('r');
+                }
+            }
+        }
     }
 }
 void ProcessClass::renderOnDisplay(EngineClass & Engine){
@@ -1201,7 +1254,8 @@ void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewCon
         }
     }
 }
-void ProcessClass::aggregateObjects(OperaClass & Operation, ContextClass & NewContext, vector <AncestorObject*> AggregatedObjects, const EngineClass & Engine, vector<ContextClass> &EventContext){
+void ProcessClass::aggregateObjects(OperaClass &Operation, ContextClass &NewContext, vector<AncestorObject *> AggregatedObjects, const EngineClass &Engine, vector<ContextClass> &EventContext)
+{
     if(AggregatedObjects.size() == 0){
         return;
     }
@@ -4719,6 +4773,9 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
         else if(Operation.Location.attribute == "set_samples" && Variables.size() > 0){
             Camera->setAntialiasingSamples(Variables[0].getIntUnsafe());
         }
+        else if(Operation.Location.attribute == "set_can_mouse_resize" && Variables.size() > 0){
+            Camera->canMouseResizeNow = Variables[0].getBoolUnsafe();
+        }
         else{
             cout << "Error: In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
@@ -6472,6 +6529,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 buffor += "\n\n";
                 printInColor(buffor, 11);
                 break;
+            case restart_drag:
+                detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
+                break;
             default:
                 cout << "Error: In " << __FUNCTION__ << ": Instruction '" << Operation.instruction << "' does not exist.\n";
                 break;
@@ -6958,6 +7018,10 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             NewValue.setDouble(Engine.Mouse.getPos().y);
             return NewValue;
         }
+        if(Condition.Location.source == "camera_grabbed"){
+            NewValue.setBool(SelectedCamera->grabbed);
+            return NewValue;
+        }
     }
     else{
         if(isStringInGroup(Condition.Location.source, 10, "key_pressed", "key_pressing",
@@ -7126,12 +7190,16 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             }
             if(Condition.Location.attribute == "detected"){
                 for(const DetectedCollision & Detected : Context->Modules.Collisions.back()->Detected){
-                    if(Detected.collisionType > 0){
+                    if(Detected.collisionType == Condition.Literal.getIntUnsafe()){
                         NewValue.setBool(true);
                         return NewValue;
                     }
                 }
                 NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Condition.Location.attribute == "release_on"){
+                NewValue.setBool(Context->Modules.Collisions.back()->getMouseCollision() == 'r');
                 return NewValue;
             }
             cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
@@ -7152,20 +7220,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 NewValue.setDouble(Context->Modules.Primitives.back()->getPos(0).x);
                 return NewValue;
             }
-            else  if(Condition.Location.attribute == "pos_y"){
+            else if(Condition.Location.attribute == "pos_y"){
                 NewValue.setDouble(Context->Modules.Primitives.back()->getPos(0).y);
-                return NewValue;
-            }
-            else if(Condition.Location.attribute == "clicked"){
-                string layerID = Context->Modules.Primitives.back()->getLayerID();
-                string objectID = Context->Modules.Primitives.back()->getObjectID();
-                if(layerID == ""){
-                    cout << "Error: In " << __FUNCTION__ << ": Image '" << Context->Modules.Primitives.back() << "' does not have its layer's ID.\n";
-                }
-                if(objectID == ""){
-                    cout << "Error: In " << __FUNCTION__ << ": Image '" << Context->Modules.Primitives.back() << "' does not have its object's ID.\n";
-                }
-                //NewValue.setBool(Engine.Mouse.firstPressedInRectangle());
                 return NewValue;
             }
             cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
@@ -8196,7 +8252,9 @@ void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, cons
     if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
         return;
     }
-    if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true, SelectedCamera)){
+    if(SelectedCamera->canMouseResizeNow
+        && Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, 0.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_N);
         activeCameraMoveType = CAMERA_N;
         wasMousePressedInSelectedObject = false;
@@ -8204,7 +8262,9 @@ void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, cons
         dragStartingPos2.set(Mouse.getPos() - SelectedCamera->pos);
         dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), true, SelectedCamera)){
+    else if(SelectedCamera->canMouseResizeNow
+        && Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 0.0), vec2d(5.0, 5.0), true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NE);
         activeCameraMoveType = CAMERA_NE;
         wasMousePressedInSelectedObject = false;
@@ -8212,25 +8272,35 @@ void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, cons
         dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
         dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), true, SelectedCamera)){
+    else if(SelectedCamera->canMouseResizeNow
+        && Mouse.inRectangle(SelectedCamera->pos + vec2d(SelectedCamera->size.x - 5.0, 5.0),
+        vec2d(5.0, SelectedCamera->size.y - 10.0), true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_E);
         activeCameraMoveType = CAMERA_E;
         wasMousePressedInSelectedObject = false;
         dragStartingPos.set(Mouse.getPos().x - SelectedCamera->size.x, Mouse.getPos().y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), true, SelectedCamera)){
+    else if(SelectedCamera->canMouseResizeNow
+        && Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->size - vec2d(5.0, 5.0), vec2d(5.0, 5.0), true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SE);
         activeCameraMoveType = CAMERA_SE;
         wasMousePressedInSelectedObject = false;
         dragStartingPos.set(Mouse.getPos().x - SelectedCamera->size.x, Mouse.getPos().y - SelectedCamera->size.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0), vec2d(SelectedCamera->size.x - 10.0, 5.0), true, SelectedCamera)){
+    else if(SelectedCamera->canMouseResizeNow
+        && Mouse.inRectangle(SelectedCamera->pos + vec2d(5.0, SelectedCamera->size.y - 5.0),
+        vec2d(SelectedCamera->size.x - 10.0, 5.0), true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_S);
         activeCameraMoveType = CAMERA_S;
         wasMousePressedInSelectedObject = false;
         dragStartingPos.set(Mouse.getPos().x, Mouse.getPos().y-SelectedCamera->size.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), true, SelectedCamera)){
+    else if(SelectedCamera->canMouseResizeNow
+        && Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, SelectedCamera->size.y - 5.0), vec2d(5.0, 5.0), true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_SW);
         activeCameraMoveType = CAMERA_SW;
         wasMousePressedInSelectedObject = false;
@@ -8238,7 +8308,9 @@ void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, cons
         dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
         dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), true, SelectedCamera)){
+    else if(SelectedCamera->canMouseResizeNow
+        && Mouse.inRectangle(SelectedCamera->pos + vec2d(0.0, 5.0), vec2d(5.0, SelectedCamera->size.y - 10.0), true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_W);
         activeCameraMoveType = CAMERA_W;
         wasMousePressedInSelectedObject = false;
@@ -8246,7 +8318,9 @@ void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, cons
         dragStartingPos2.set(Mouse.getPos() - SelectedCamera->pos);
         dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), true, SelectedCamera)){
+    else if(SelectedCamera->canMouseResizeNow
+        && Mouse.inRectangle(SelectedCamera->pos, vec2d(5.0, 5.0), true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_RESIZE_NW);
         activeCameraMoveType = CAMERA_NW;
         wasMousePressedInSelectedObject = false;
@@ -8258,6 +8332,7 @@ void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, cons
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_MOVE);
         activeCameraMoveType = CAMERA_FULL;
         wasMousePressedInSelectedObject = false;
+        SelectedCamera->grabbed = true;
         dragStartingPos.set(Mouse.getPos()-SelectedCamera->pos);
     }
 }
@@ -8832,7 +8907,6 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
                 continue;
             }
             newPos = Object.getPos(false) + Hitbox.getPos(false);
-
            
             newPos.set(Camera.translateWithZoom(newPos));
             hitboxSize = Hitbox.getSize();
@@ -8846,7 +8920,16 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
                     break;
                 }
             }
-            al_draw_rectangle(newPos.x, newPos.y, newPos.x+hitboxSize.x, newPos.y+hitboxSize.y, al_map_rgba(borderColor.val[0], borderColor.val[1], borderColor.val[2], borderColor.val[3]), 2);
+            if(Hitbox.getIsCircle()){
+                al_draw_circle(newPos.x, newPos.y, hitboxSize.x,
+                    al_map_rgba(borderColor.val[0], borderColor.val[1], borderColor.val[2], borderColor.val[3]), 2
+                );
+            }
+            else{
+                al_draw_rectangle(newPos.x, newPos.y, newPos.x+hitboxSize.x, newPos.y+hitboxSize.y,
+                    al_map_rgba(borderColor.val[0], borderColor.val[1], borderColor.val[2], borderColor.val[3]), 2
+                );
+            }
         }
     }
 

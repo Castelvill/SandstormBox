@@ -1,4 +1,11 @@
+31.01.2024
+-Implemented maximize and minimize button functionalities to windows' template.
+-Added resize blocking for cameras.
+-Added "restart_drag" instruction for recalculating the starting position of selected camera dragging.
+-Added mouse interactions and circle collision type to the collision module.
+
 30.01.2024
+-Implemented exit button functionality to windows' template.
 -Fixed TriggeredObjects vector corruption caused by deleting layers and objects.
 
 23.01.2024

@@ -249,6 +249,7 @@ public:
     bool isLayersUniquenessViolated();
     bool isCamerasUniquenessViolated();
     void executeIteration(EngineClass & Engine, vector<ProcessClass> & Processes);
+    void checkMouseCollisions(EngineClass & Engine);
     void renderOnDisplay(EngineClass & Engine);
     void unfocusCamera(string & focusedProcessID);
     void aggregateCameras(OperaClass & Operation, ContextClass & NewContext, vector <Camera2D*> AggregatedCameras,

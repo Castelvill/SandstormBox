@@ -27,6 +27,8 @@ void CollisionModule::setUpNewInstance(const string & newID, const vec2d & size,
     setSize(size);
     isSolid = true;
     canPenetrateSolids = false;
+    mouseCollision = 'n';
+    isCircle = false;
 }
 CollisionModule::CollisionModule(){
     setUpNewInstance("", vec2d(0.0, 0.0), nullptr, "", "");
@@ -288,10 +290,22 @@ bool CollisionModule::getCanPenetrateSolids() const{
     return canPenetrateSolids;
 }
 
+char CollisionModule::getMouseCollision() const{
+    return mouseCollision;
+}
+bool CollisionModule::getIsCircle() const{
+    return isCircle;
+}
+
 void CollisionModule::setIsSolid(bool newValue){
     isSolid = newValue;
 }
 void CollisionModule::setCanPenetrateSolids(bool newValue){
     canPenetrateSolids = newValue;
 }
-
+void CollisionModule::setMouseCollision(char newValue){
+    mouseCollision = newValue;
+}
+void CollisionModule::setIsCircle(bool newValue){
+    isCircle = newValue;
+}

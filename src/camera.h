@@ -37,6 +37,8 @@ public:
     bool drawOneFrame;
     bool clearBitmap;
     bool keepInsideScreen;
+    bool grabbed;
+    bool canMouseResizeNow;
 
     vec2d grabbingAreaPos, grabbingAreaSize;
 

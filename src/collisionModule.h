@@ -16,6 +16,7 @@ class CollisionModule: public PrimaryModule{
 private:
     bool isSolid;
     bool canPenetrateSolids;
+    bool isCircle;
     char mouseCollision; //n-no, p-pressing, f-first pressed, r-released
     vector <string> ignoredObjectsList;
     vector <string> ignoredGroupsOfObjectsList;
@@ -50,9 +51,13 @@ public:
 
     bool getIsSolid() const;
     bool getCanPenetrateSolids() const;
+    char getMouseCollision() const;
+    bool getIsCircle() const;
 
     void setIsSolid(bool);
     void setCanPenetrateSolids(bool);
+    void setMouseCollision(char);
+    void setIsCircle(bool);
 };
 
 

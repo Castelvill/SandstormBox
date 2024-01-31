@@ -489,6 +489,9 @@ void EveModule::controlCollision(CollisionModule * Collision, string attribute, 
     else if(attribute == "ignore_group_of_hitboxes" && Values.size() > 0){
         Collision->addToIgnoreList("groups_of_hitboxes", Values[0].getStringUnsafe());
     }
+    else if(attribute == "set_is_circle" && Values.size() > 0){
+        Collision->setIsCircle(Values[0].getBoolUnsafe());
+    }
     else{
         bool temp = false;
         if(Values.size() > 0){

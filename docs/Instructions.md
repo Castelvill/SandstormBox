@@ -820,3 +820,13 @@ substr text begin length [output]
 - begin (string) - id of the context with an integer value, the start of the sub-string in the text;
 - length (string) - id of the context with an integer value, the length of the sub-string;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+
+## restart_drag
+
+**Syntax**
+
+restart_drag
+
+**Description**
+
+    Recalculate the starting position of selected camera dragging.
