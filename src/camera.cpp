@@ -3,6 +3,7 @@
 void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift, int newSamples){
     setID(newID, camerasIDs);
     isActive = newIsActive;
+    isMinimized = false;
     deleted = false;
     relativePos = newPos;
     pos = newPos;
@@ -126,6 +127,10 @@ VariableModule Camera2D::getValue(string attribute) const{
         NewValue.setDouble(zoom);
         return NewValue;
     }
+    else if(attribute == "grabbed"){
+        NewValue.setBool(grabbed);
+        return NewValue;
+    }
     cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     return VariableModule();
 }
@@ -134,6 +139,12 @@ void Camera2D::setIsActive(bool newValue){
 }
 void Camera2D::activate(){
     isActive = true;
+}
+void Camera2D::minimize(){
+    isMinimized = true;
+}
+void Camera2D::bringBack(){
+    isMinimized = false;
 }
 void Camera2D::deleteLater(){
     isActive = false;
@@ -147,6 +158,9 @@ void Camera2D::toggleIsActive(){
 }
 bool Camera2D::getIsActive() const{
     return isActive;
+}
+bool Camera2D::getIsMinimized() const{
+    return isMinimized;
 }
 bool Camera2D::getIsDeleted() const{
     return deleted;

@@ -1,6 +1,8 @@
 start checkIfWindowMoved
 triggers mouse_pressing
 if ([mouse_moved])
+all camera _ camera _ Cameras
+find_by_id_2 Cameras cameraID Camera
 run revertWindowIfMoved refreshWindowWithCamera
 end
 
@@ -11,11 +13,9 @@ run refreshWindowWithDisplay
 end
 
 start revertWindowIfMoved
-if ([c isMaxed] [camera_grabbed] &&)
+if ([c isMaxed] [c Camera grabbed] &&)
 bool [false] false
 = isMaxed false
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
 fun Camera set_can_mouse_resize bool [true]
 value ([mouse_x]) MouseX
 value ([mouse_y]) MouseY

@@ -193,7 +193,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             selectCamera(true, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys, Engine.focusedProcessID);
             moveObjects(Engine.pressedKeys, Engine.Mouse);
             moveParticles(Engine.pressedKeys, Engine.releasedKeys);
-            if(canUserInteract && SelectedCamera != nullptr && SelectedCamera->getIsActive()){
+            if(canUserInteract && SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized()){
                 SelectedCamera->update(Engine.pressedKeys);
                 checkMouseCollisions(Engine);
             }
@@ -216,7 +216,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             changeCursor(Engine.display, Engine.Mouse);
             moveSelectedObject(Engine.Mouse);
             dragScrollbars(Engine.Mouse);
-            if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && SelectedCamera->canMoveWithMouse
+            if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized() && SelectedCamera->canMoveWithMouse
                 && Engine.Mouse.firstPositionInRectangle(SelectedCamera->pos, SelectedCamera->size, 2, true, SelectedCamera)
             ){
                 SelectedCamera->visionShift = Engine.Mouse.getZoomedPos(SelectedCamera) - dragCameraStaringPos;
@@ -235,7 +235,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
             detectStartPosOfDraggingObjects(Engine.Mouse);
             startScrollbarDragging(Engine.Mouse);
-            if(SelectedCamera != nullptr && SelectedCamera->getIsActive()){
+            if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized()){
                 dragCameraStaringPos.set(Engine.Mouse.getZoomedPos(SelectedCamera)-SelectedCamera->visionShift);
             }
             break;
@@ -266,7 +266,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
     }
 
     if(canUserInteract && Engine.focusedProcessID == getID() && Engine.Mouse.didMouseMove
-        && SelectedCamera != nullptr && SelectedCamera->getIsActive()
+        && SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized()
         && SelectedCamera->canZoomWithMouse
         && Engine.Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true, SelectedCamera)
     ){
@@ -4727,7 +4727,7 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
             Camera->allowsDrawingBorders = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "minimize"){
-            Camera->deactivate();
+            Camera->minimize();
             for(;cameraIndex < Cameras.size(); cameraIndex++){
                 if(Cameras[cameraIndex].getID() == Camera->getID()){
                     break;
@@ -4742,7 +4742,6 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
             }
         }
         else if(Operation.Location.attribute == "bring_forward"){
-            Camera->activate();
             for(;cameraIndex < Cameras.size(); cameraIndex++){
                 if(Cameras[cameraIndex].getID() == Camera->getID()){
                     break;
@@ -5664,13 +5663,14 @@ void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessC
     else if(Operation.Literals[0].getString() == "c" || Operation.Literals[0].getString() == "cameras"){
         if(printDetails){
             int i = 0;
-            cout << "Nr\tID\tProcess\tActive\tPinned\n";
+            cout << "Nr\tID\tProcess\tActive\tMinimized\tPinned\n";
             for(const ProcessClass & Process : Processes){
                 for(const Camera2D & Camera : Process.Cameras){
                     cout << i
                     << "\t" << Camera.getID()
                     << "\t" << Process.getID()
                     << "\t" << Camera.getIsActive()
+                    << "\t" << Camera.getIsMinimized()
                     << "\t" << Camera.pinnedCameraID
                     << "\n";
                     i++;
@@ -7021,10 +7021,6 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             NewValue.setDouble(Engine.Mouse.getPos().y);
             return NewValue;
         }
-        if(Condition.Location.source == "camera_grabbed"){
-            NewValue.setBool(SelectedCamera->grabbed);
-            return NewValue;
-        }
     }
     else{
         if(isStringInGroup(Condition.Location.source, 10, "key_pressed", "key_pressing",
@@ -7908,7 +7904,7 @@ void ProcessClass::keepPositionInsideScreen(vec2d & pos, vec2d & size, vec2i dis
     pos.y = std::min(pos.y, double(displaySize.y - size.y));
 }
 void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
-    if(!canUserInteract || SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
+    if(!canUserInteract || SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized() || !SelectedCamera->canInteractWithMouse){
         return;
     }
     if(!Engine.Mouse.isPressed(0) || activeCameraMoveType == NONE){
@@ -8050,6 +8046,10 @@ bool isALeaf(string leafID, string rootID, const vector <Camera2D> & Cameras){
     return isALeaf(Leaf->pinnedCameraID, rootID, Cameras);
 }
 void ProcessClass::bringCameraForward(unsigned index, Camera2D * ChosenCamera){
+    if(!ChosenCamera->getIsActive()){
+        return;
+    }
+    ChosenCamera->bringBack();
     auto it = camerasOrder.begin() + index;
     std::rotate(it, it + 1, camerasOrder.end());
 
@@ -8068,7 +8068,10 @@ void ProcessClass::bringCameraForward(unsigned index, Camera2D * ChosenCamera){
             j++;
             continue;
         }
-        if(j >= treshold && isALeaf(Cameras[camerasOrder[j]].getID(), ChosenCamera->getID(), Cameras)){
+        if(Cameras[camerasOrder[j]].getIsActive() && j >= treshold
+            && isALeaf(Cameras[camerasOrder[j]].getID(), ChosenCamera->getID(), Cameras)
+        ){
+            Cameras[camerasOrder[j]].bringBack();
             index--;
             auto it = camerasOrder.begin() + j;
             std::rotate(it, it + 1, camerasOrder.end());
@@ -8088,6 +8091,7 @@ void ProcessClass::bringCameraForward(unsigned index, Camera2D * ChosenCamera){
         }
         for(int k = j - 1; k >= 0; k--){
             if(Cameras[camerasOrder[j]].pinnedCameraID == Cameras[camerasOrder[k]].getID()){
+                Cameras[camerasOrder[j]].bringBack();
                 for(int l = k; l < j - 1; l++){
                     std::swap(camerasOrder[l], camerasOrder[l + 1]);
                 }
@@ -8103,28 +8107,44 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
         return;
     }
     if(fromAltTab && isKeyPressed(ALLEGRO_KEY_LCTRL, pressedKeys) && isKeyReleased(ALLEGRO_KEY_TAB, releasedKeys)){
-        if(camerasOrder[0] >= Cameras.size()){
-            cout << "Error: Camera index <" << camerasOrder[0] << "> in the cameras' order is out of scope of camera's Container<"
+        unsigned activeCameraIndex = 0;
+        for(; activeCameraIndex < camerasOrder.size(); activeCameraIndex++){
+            if(Cameras[camerasOrder[activeCameraIndex]].getIsActive()){
+                break;
+            }
+        }
+        
+        if(camerasOrder[activeCameraIndex] >= Cameras.size()){
+            cout << "Error: Camera index <" << camerasOrder[activeCameraIndex] << "> in the cameras' order is out of scope of camera's Container<"
                 << Cameras.size() << ">.\n";
             return;
         }
-        SelectedCamera = &Cameras[camerasOrder[0]];
+
+        if(!Cameras[camerasOrder[activeCameraIndex]].getIsActive()){
+            return;
+        }
+        
+        SelectedCamera = &Cameras[camerasOrder[activeCameraIndex]];
+        SelectedCamera->bringBack();
         focusedProcessID = getID();
+
+        //bringCameraForward(activeCameraIndex, SelectedCamera);
+
         auto it = camerasOrder.begin();
         std::rotate(it, it + 1, camerasOrder.end());
 
-        SelectedCamera->activate();
-
         int i = camerasOrder.size() - 1;
             
-        for(int j = 0; j < i; j++){
+        for(int j = activeCameraIndex; j < i; j++){
             if(camerasOrder[j] >= Cameras.size()){
                 cout << "Error: Camera index <" << camerasOrder[j] << "> in the cameras' order is out of scope of camera's Container<"
                     << Cameras.size() << ">.\n";
                 continue;
             }
-            if(Cameras[camerasOrder[j]].isForcefullyPinned &&
-                Cameras[camerasOrder[j]].pinnedCameraID == SelectedCamera->getID()){
+            if(Cameras[camerasOrder[j]].getIsActive() && Cameras[camerasOrder[j]].isForcefullyPinned
+                && Cameras[camerasOrder[j]].pinnedCameraID == SelectedCamera->getID()
+            ){
+                Cameras[camerasOrder[j]].bringBack();
                 i--;
                 auto it = camerasOrder.begin() + j;
                 std::rotate(it, it + 1, camerasOrder.end());
@@ -8147,7 +8167,7 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
             continue;
         }
         Camera = &Cameras[camerasOrder[i]];
-        if(!Camera->getIsActive()){
+        if(!Camera->getIsActive() || Camera->getIsMinimized()){
             continue;
         }
         if(Mouse.inRectangle(Camera->pos, Camera->size, true, SelectedCamera)){
@@ -8189,7 +8209,8 @@ void ProcessClass::detectStartPosOfDraggingObjects(const MouseClass & Mouse){
 
     if(activeCameraMoveType == NONE
         && SelectedCamera != nullptr && SelectedCamera->getIsActive()
-        && SelectedLayer != nullptr && SelectedObject != nullptr
+        && !SelectedCamera->getIsMinimized() && SelectedLayer != nullptr
+        && SelectedObject != nullptr
         && Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true, SelectedCamera)
         && SelectedCamera->isLayerVisible(SelectedLayer->getID())
         && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
@@ -8218,7 +8239,7 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
         return;
     }
     
-    if(!SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse || !SelectedCamera->canMouseResizeNow){
+    if(!SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized() || !SelectedCamera->canInteractWithMouse || !SelectedCamera->canMouseResizeNow){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
         return;
     }
@@ -8252,7 +8273,9 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
 }
 void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, const MouseClass & Mouse){
     activeCameraMoveType = NONE;
-    if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
+    if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive()
+        || SelectedCamera->getIsMinimized() || !SelectedCamera->canInteractWithMouse
+    ){
         return;
     }
     if(SelectedCamera->canMouseResizeNow
@@ -8342,7 +8365,7 @@ void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, cons
     }
 }
 void ProcessClass::startScrollbarDragging(const MouseClass & Mouse){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
         return;
     }
     for(LayerClass & Layer : Layers){
@@ -8612,7 +8635,7 @@ void ProcessClass::moveObjects(const vector<short> & pressedKeys, const MouseCla
                 adjustAndStopMomentum(Object, Movement);
             }
             for(Camera2D & Camera : Cameras){
-                if(!Camera.getIsActive() || !Camera.isLayerVisible(Layer.getID()))
+                if(!Camera.getIsActive() || Camera.getIsMinimized() || !Camera.isLayerVisible(Layer.getID()))
                     continue;
                 if(Camera.isFollowingObject && Camera.followedLayerID == Layer.getID() && Camera.followedObjectID == Object.getID()){
                     updateCameraPosition(Camera, &Object);
@@ -8625,6 +8648,7 @@ void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
     if(SelectedLayer != nullptr && SelectedObject != nullptr && Mouse.isPressed(0) && wasMousePressedInSelectedObject){
         if(
             SelectedCamera != nullptr && SelectedCamera->getIsActive()
+            && !SelectedCamera->getIsMinimized()
             && SelectedCamera->isLayerVisible(SelectedLayer->getID())
             && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
         ){
@@ -8652,7 +8676,7 @@ void ProcessClass::drawEverything(EngineClass & Engine){
             continue;
         }
         Camera = &Cameras[cameraIndex];
-        if(!Camera->getIsActive() || (!Camera->canDrawOnCamera && !Camera->drawOneFrame)){
+        if(!Camera->getIsActive() || Camera->getIsMinimized() || (!Camera->canDrawOnCamera && !Camera->drawOneFrame)){
             continue;
         }
         Camera->drawOneFrame = false;
@@ -8971,7 +8995,7 @@ void ProcessClass::delayEditableTextFields(){
     }
 }
 void ProcessClass::updateEditableTextFields(EngineClass & Engine){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
         return;
     }
     if(Engine.Mouse.isPressed()){
@@ -9049,7 +9073,7 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
     }
 }
 void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
         return;
     }
     
