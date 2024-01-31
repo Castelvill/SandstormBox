@@ -191,7 +191,6 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
         case ALLEGRO_EVENT_TIMER:
             delayEditableTextFields();
             selectCamera(true, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys, Engine.focusedProcessID);
-            updateCamerasPositions(Engine);
             moveObjects(Engine.pressedKeys, Engine.Mouse);
             moveParticles(Engine.pressedKeys, Engine.releasedKeys);
             if(canUserInteract && SelectedCamera != nullptr && SelectedCamera->getIsActive()){
@@ -222,7 +221,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             ){
                 SelectedCamera->visionShift = Engine.Mouse.getZoomedPos(SelectedCamera) - dragCameraStaringPos;
             }
-            
+            updateCamerasPositions(Engine);
             break;
         case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
             if(!canUserInteract){
@@ -244,6 +243,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             if(SelectedCamera != nullptr){
                 SelectedCamera->grabbed = false;
             }
+            changeCursor(Engine.display, Engine.Mouse);
             break;
     }
 
@@ -4755,6 +4755,9 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
                 }
             }
         }
+        else if(Operation.Location.attribute == "set_can_be_grabbed" && Variables.size() > 0){
+            Camera->canBeGrabbed = Variables[0].getBoolUnsafe();
+        }
         else if(Operation.Location.attribute == "set_grabbing_area_position" && Variables.size() > 1){
             Camera->setGrabbingAreaPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
         }
@@ -8215,7 +8218,7 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
         return;
     }
     
-    if(!SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse){
+    if(!SelectedCamera->getIsActive() || !SelectedCamera->canInteractWithMouse || !SelectedCamera->canMouseResizeNow){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
         return;
     }
@@ -8328,7 +8331,9 @@ void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, cons
         dragStartingPos2.set(Mouse.getPos()-SelectedCamera->pos);
         dragLimit.set(Mouse.getPos().x + SelectedCamera->size.x - SelectedCamera->minSize.x, Mouse.getPos().y + SelectedCamera->size.y - SelectedCamera->minSize.y);
     }
-    else if(Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->grabbingAreaPos, SelectedCamera->grabbingAreaSize, true, SelectedCamera)){
+    else if(SelectedCamera->canBeGrabbed
+        && Mouse.inRectangle(SelectedCamera->pos + SelectedCamera->grabbingAreaPos, SelectedCamera->grabbingAreaSize, true, SelectedCamera)
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_MOVE);
         activeCameraMoveType = CAMERA_FULL;
         wasMousePressedInSelectedObject = false;

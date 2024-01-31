@@ -6,11 +6,6 @@ end
 
 start revertWindowIfMoved
 if ([c isMaxed] [camera_grabbed] &&)
-all layer _ _ _ _ _ _ Layers
-value ([context me layer_id]) myLayerID
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 2] _ primitives Border
-fun Border activate
 bool [false] false
 = isMaxed false
 all camera _ camera _ Cameras
@@ -26,7 +21,17 @@ int [2] 2
 -= posX sizeXTemp
 int [10] 10
 -= posY 10
-run revertWindowFromMax
+run revertBorderIfPossible revertWindowFromMax
+end
+
+
+start revertBorderIfPossible
+if ([c isBorderless] ! [c isMaxed] ! &&)
+all layer _ _ _ _ _ _ Layers
+value ([context me layer_id]) myLayerID
+find_by_id_2 Layers myLayerID Layer
+index c Layer [0 0 2] _ primitives Border
+fun Border activate
 end
 
 
@@ -168,17 +173,13 @@ else revertWindowFromMax
 end
 
 start revertWindowFromMax
-all layer _ _ _ _ _ _ Layers
-value ([context me layer_id]) myLayerID
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 2] _ primitives Border
-fun Border activate
 all camera _ camera _ Cameras
 find_by_id_2 Cameras cameraID Camera
 fun Camera set_can_mouse_resize bool [true]
 fun Camera resize c sizeX c sizeY
 fun Camera set_relative_position c posX c posY
 restart_drag
+run revertBorderIfPossible
 end
 
 
@@ -194,7 +195,73 @@ find_by_id_2 Cameras cameraID Camera
 run minimizeWindowCheck
 end
 
+
 start minimizeWindowCheck
 if([c MinCollision release_on])
 fun Camera minimize
+end
+
+
+start switchBorderlessMode
+triggers key_pressed
+if ([key_pressed 57])
+fun isBorderless toggle_bool
+run switchToBorderless
+end
+
+start switchToBorderless
+if ([c isBorderless])
+all layer _ _ _ _ _ _ Layers
+value ([context me layer_id]) myLayerID
+find_by_id_2 Layers myLayerID Layer
+index c Layer [0 0 1] _ primitives Toolbar
+fun Toolbar deactivate
+index c Layer [0 0 2] _ primitives Border
+fun Border deactivate
+index c Layer [0 0 3] _ primitives ExitButton
+fun ExitButton deactivate
+index c Layer [0 0 4] _ primitives MaxButton
+fun MaxButton deactivate
+index c Layer [0 0 5] _ primitives MinButton
+fun MinButton deactivate
+index c Layer [0 0 0] _ text Title
+fun Title deactivate
+index c Layer [0 0 0] _ collision ExitCollision
+fun ExitCollision deactivate
+index c Layer [0 0 1] _ collision MaxCollision
+fun MaxCollision deactivate
+index c Layer [0 0 2] _ collision MinCollision
+fun MinCollision deactivate
+all camera _ camera _ Cameras
+find_by_id_2 Cameras cameraID Camera
+fun Camera set_can_be_grabbed bool [false]
+fun Camera set_can_mouse_resize bool [false]
+else switchFromBorderless
+end
+
+start switchFromBorderless
+all layer _ _ _ _ _ _ Layers
+value ([context me layer_id]) myLayerID
+find_by_id_2 Layers myLayerID Layer
+index c Layer [0 0 1] _ primitives Toolbar
+fun Toolbar activate
+index c Layer [0 0 3] _ primitives ExitButton
+fun ExitButton activate
+index c Layer [0 0 4] _ primitives MaxButton
+fun MaxButton activate
+index c Layer [0 0 5] _ primitives MinButton
+fun MinButton activate
+index c Layer [0 0 0] _ text Title
+fun Title activate
+index c Layer [0 0 0] _ collision ExitCollision
+fun ExitCollision activate
+index c Layer [0 0 1] _ collision MaxCollision
+fun MaxCollision activate
+index c Layer [0 0 2] _ collision MinCollision
+fun MinCollision activate
+all camera _ camera _ Cameras
+find_by_id_2 Cameras cameraID Camera
+fun Camera set_can_be_grabbed bool [true]
+fun Camera set_can_mouse_resize bool [true]
+run revertBorderIfPossible
 end

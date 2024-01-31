@@ -184,6 +184,9 @@ fun posX set_double double [0]
 new variable c NewWindowObject 1 _ _ posY
 fun posY set_id string ["posY"]
 fun posY set_double double [0]
+new variable c NewWindowObject 1 _ _ isBorderless
+fun isBorderless set_id string ["isBorderless"]
+fun isBorderless set_bool bool [false]
 
 new primitives c NewWindowObject 1 _ _ border1
 fun border1 set_id string [background]
@@ -267,9 +270,11 @@ fun title set_color double [1.0 1.0 1.0 0.0]
 fun title attach_to_camera
 end
 
+
 start nw
 run spawnNewWindow
 end
+
 
 start spawnNewWindow
 all camera _ camera _ Cameras
