@@ -1,0 +1,3 @@
+2448 bytes - allegro w/o al_flip_display
+3244 bytes - allegro with al_flip_display
+
