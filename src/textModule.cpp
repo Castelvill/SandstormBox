@@ -34,6 +34,7 @@ void TextModule::setUpNewInstance(){
     tabLength = 4;
     cursorPos = 0;
     secondCursorPos = 0;
+    ignoreSize = false;
 }
 TextModule::TextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -328,7 +329,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         if(temp == "\n"){ //enter handling
             currentLength = 0;
             currentHeight += fontHeight;
-            if(currentHeight + fontHeight > size.y){
+            if(!ignoreSize && currentHeight + fontHeight > size.y){
                 break;
             }
             textLines.back() += '\n';
@@ -356,7 +357,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                     }
                 }
                 futureLenght += smartCharLength;
-                if(futureLenght > size.x){
+                if(!ignoreSize && futureLenght > size.x){
                     currentLength = 0;
                     currentHeight += fontHeight;
                     textLines.back() += '\n';
@@ -378,7 +379,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
             }
         }
         //cropping text according to its dimensions and wrapping text when possible
-        if(currentLength + charLength > size.x){
+        if(!ignoreSize && currentLength + charLength > size.x){
             if(wrapped == 0){
                 break;
             }
@@ -386,7 +387,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
             currentHeight += fontHeight;
             lettersCountForTabs = -1;
             textLines.push_back(string());
-            if(currentHeight + fontHeight > size.y){
+            if(!ignoreSize && currentHeight + fontHeight > size.y){
                 break;
             }
         }

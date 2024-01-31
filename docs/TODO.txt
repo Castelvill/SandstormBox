@@ -1,3 +1,4 @@
+-Add the limitless mode to editable text fields.
 -Clone the "ranger" program.
 -Add tab autocomplete: "inr" instruction that uses regex to find string in a string vector; using tab tokenizes current editable text and returns best match with "inr".
 -Add "cd" instruction or "proc_edit cd path" attribute to change EXE_PATH or add workDir (working directory) to each object.
@@ -5,7 +6,6 @@
 -Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.
 -Add global variables with vectors.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
--Add the limitless mode to editable text fields.
 -Add muting option to load_text or file_exists attribute to "value" instruction.
 -Fix: If the cursor is on the first line, down-arrow is moving cursor with an offset.
 -Ctrl+alt+t should open up a new terminal (clone the template)

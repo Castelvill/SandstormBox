@@ -29,6 +29,7 @@ public:
     float minColorValue, maxColorValue;
     unsigned tabLength;
     unsigned cursorPos, secondCursorPos;
+    bool ignoreSize;
 
     short usedBitmapLayer;  //Text fields with numbers higher or equal to zero are drawn in ascending order. If the value is -1, text will be drawn on top of everything else.
 
@@ -87,6 +88,7 @@ private:
     bool canClearContentAfterSuccess; //If true, content is cleaned only when all operations succeeded.
     bool enterAcceptsChanges;
     bool useTabs;
+    bool ignoreContentSize;
     unsigned minContentSize;
     unsigned maxContentSize;
     float inputDelay, repetitionDelay;
