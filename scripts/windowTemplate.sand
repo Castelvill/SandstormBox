@@ -1,7 +1,13 @@
 start checkIfWindowMoved
 triggers mouse_pressing
 if ([mouse_moved])
-run revertWindowIfMoved refreshWindow
+run revertWindowIfMoved refreshWindowWithCamera
+end
+
+start checkIfDisplayResize
+triggers on_display_resize
+if ([c isMaxed] [on_display_resize] &&)
+run refreshWindowWithDisplay
 end
 
 start revertWindowIfMoved
@@ -34,27 +40,34 @@ index c Layer [0 0 2] _ primitives Border
 fun Border activate
 end
 
-
-start refreshWindow
-value ([context me layer_id]) myLayerID
+start refreshWindowWithDisplay
 all camera _ camera _ Cameras
 find_by_id_2 Cameras cameraID Camera
-all layer _ _ _ _ _ _ Layers
-find_by_id_2 Layers myLayerID Layer
+value ([window_w]) sx
+value ([window_h]) sy
+fun Camera resize c sx c sy
+run refreshWindow
+end
 
-//print ": " _ c Camera
-
+start refreshWindowWithCamera
+all camera _ camera _ Cameras
+find_by_id_2 Cameras cameraID Camera
 value ([context Camera size_x]) sx
 value ([context Camera size_y]) sy
+run refreshWindow
+end
 
+
+start refreshWindow
 int [-100] sxShift
 += sxShift sx
 int [30] height
 
 fun Camera set_grabbing_area_size c sxShift c height
 
-//print "x" _ c sx
-//print " " _ c sy
+value ([context me layer_id]) myLayerID
+all layer _ _ _ _ _ _ Layers
+find_by_id_2 Layers myLayerID Layer
 
 index c Layer [0 0 0] _ primitives Primi
 fun Primi set_size c sx c sy
@@ -152,7 +165,7 @@ end
 start maxWindowCheck
 if([c MaxCollision release_on])
 fun isMaxed toggle_bool
-run maxWindowIfTrue refreshWindow
+run maxWindowIfTrue refreshWindowWithCamera
 end
 
 start maxWindowIfTrue
