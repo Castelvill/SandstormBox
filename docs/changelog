@@ -1,3 +1,8 @@
+1.02.2024
+-Implemented "cd" and "pwd" instructions.
+-Added "isFocused" variable to cameras.
+-Created basic notepad. 
+
 31.01.2024
 -Added minimize and bringBack functions to cameras. Replaced deactivate and activate function with two new ones in camera selection and rearrangement.
 -Made borderless mode react to display size.

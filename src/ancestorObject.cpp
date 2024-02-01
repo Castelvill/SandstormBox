@@ -240,7 +240,9 @@ void AncestorObject::clearContainers(){
     ScrollbarContainer.clear();
     PrimitivesContainer.clear();
 }
-void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string EXE_PATH){
+void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects,
+    vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string workingDirectory
+){
     for(AncestorObject & Object : Objects){
         if(EditableText.connectedObject == Object.getID()
            || Object.isInAGroup(EditableText.connectedGroup)){
@@ -258,7 +260,7 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
             else if(EditableText.connectedModule == "image"){
                 for(auto & Image : Object.ImageContainer){
                     if(EditableText.connectedModuleID == Image.getID()){
-                        success = EditableText.controlImage(Image, BitmapContainer, Object.imageContainerIDs, EXE_PATH);
+                        success = EditableText.controlImage(Image, BitmapContainer, Object.imageContainerIDs, workingDirectory);
                     }
                 }
             }
@@ -1609,7 +1611,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 cursor++;
             }
         }
-        else if(words[0] == "tree"){
+        else if(words[0] == "tree" || words[0] == "pwd"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
@@ -1640,6 +1642,19 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->dynamicIDs.push_back(words[1]);
             Operation->dynamicIDs.push_back(words[2]);
             Operation->dynamicIDs.push_back(words[3]);
+        }
+        else if(words[0] == "cd"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(words.size() == 1){
+                continue;
+            }
+            if(words[1] != "_"){
+                Operation->Literals.push_back(VariableModule::newString(words[1]));
+            }
+            cursor++;
+            if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
         }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";

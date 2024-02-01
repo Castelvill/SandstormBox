@@ -18,7 +18,7 @@ public:
     string filePath, ID;
     ALLEGRO_BITMAP * bitmap;
     SingleBitmap();
-    void loadBitmap(string newID, string newFilePath, string EXE_PATH);
+    void loadBitmap(string newID, string newFilePath, string workingDirectory);
 };
 
 class ImageModule: public PrimaryModule {
@@ -49,11 +49,11 @@ public:
     ~ImageModule();
     void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
-    void loadImage(string newFilePath, string newImageID, string EXE_PATH);
-    void connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string EXE_PATH);
-    void loadLight(string newFilePath, string newLightID, string EXE_PATH);
-    void connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newLightID, string EXE_PATH);
-    void checkImage(ALLEGRO_DISPLAY * window, string EXE_PATH);
+    void loadImage(string newFilePath, string newImageID, string workingDirectory);
+    void connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string workingDirectory);
+    void loadLight(string newFilePath, string newLightID, string workingDirectory);
+    void connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newLightID, string workingDirectory);
+    void checkImage(ALLEGRO_DISPLAY * window, string workingDirectory);
     void drawImage(vec2d base, Camera2D Camera, bool outSourcing);
     void drawFrame(vec2d base);
     void setRotPos(vec2d newRotPos);

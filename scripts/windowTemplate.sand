@@ -1,6 +1,6 @@
 start checkIfWindowMoved
 triggers mouse_pressing
-if ([mouse_moved])
+if ([mouse_moved] [c isBorderless] ! &&)
 all camera _ camera _ Cameras
 find_by_id_2 Cameras cameraID Camera
 run revertWindowIfMoved refreshWindowWithCamera
@@ -250,6 +250,15 @@ all camera _ camera _ Cameras
 find_by_id_2 Cameras cameraID Camera
 fun Camera set_can_be_grabbed bool [false]
 fun Camera set_can_mouse_resize bool [false]
+value ([context Camera size_x]) cpx
+value ([context Camera size_y]) cpy
+int [10] shiftX
+int [80] shiftY
++= cpx shiftX
++= cpy shiftY
+index c Layer [0 0 0] _ primitives Background
+fun Background set_size c cpx c cpy
+fun Background update_with_size
 else switchFromBorderless
 end
 

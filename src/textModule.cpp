@@ -1861,16 +1861,16 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
 
     return success;
 }
-bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfIDs, string EXE_PATH){
+bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfIDs, string workingDirectory){
     bool success = false;
 
     string cContent = getContent(currentTextIdx);
     if(connectedVariable == "connect_bitmap_via_path"){
-        Image.connectBitmap(BitmapContainer, cContent, "", EXE_PATH);
+        Image.connectBitmap(BitmapContainer, cContent, "", workingDirectory);
         success = true;
     }
     else if(connectedVariable == "connect_bitmap_via_alias"){
-        Image.connectBitmap(BitmapContainer, "", cContent, EXE_PATH);
+        Image.connectBitmap(BitmapContainer, "", cContent, workingDirectory);
         success = true;
     }
 

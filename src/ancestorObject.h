@@ -54,7 +54,9 @@ public:
     void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID, const bool & changeOldID);
     void clearVectorsOfIDs();
     void clearContainers();
-    void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects, vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string EXE_PATH);
+    void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects,
+        vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string workingDirectory
+    );
     void refreshCoordinates();
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);

@@ -41,6 +41,7 @@ public:
     bool grabbed;
     bool canBeGrabbed;
     bool canMouseResizeNow;
+    bool isFocused;
 
     vec2d grabbingAreaPos, grabbingAreaSize;
 

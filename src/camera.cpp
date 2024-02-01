@@ -43,6 +43,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     grabbed = false;
     canBeGrabbed = true;
     canMouseResizeNow = true;
+    isFocused = false;
 
     grabbingAreaPos.set(0.0, 0.0);
     grabbingAreaSize.set(50.0, 50.0);
@@ -50,6 +51,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     std::fill_n(tint, 4, 1);
 
     samples = newSamples;
+
 }
 Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift, int newSamples){
     setUpInstance(newID, camerasIDs, newIsActive, newPos, newSize, newVisionShift, newSamples);
@@ -129,6 +131,10 @@ VariableModule Camera2D::getValue(string attribute) const{
     }
     else if(attribute == "grabbed"){
         NewValue.setBool(grabbed);
+        return NewValue;
+    }
+    else if(attribute == "is_focused"){
+        NewValue.setBool(isFocused);
         return NewValue;
     }
     cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";

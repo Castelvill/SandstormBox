@@ -126,6 +126,11 @@ var string "" param5
 var string "" param6
 var string "" param7
 var int 20 roundingSize
+
+
+
+var string "scripts" dir
+
 end
 
 
@@ -331,7 +336,8 @@ fun TextEditor set_text int [0] string [""]
 fun TextEditor activate
 fun TextEditor set_color double [1.0 0.0 0.0 1.0]
 fun TextEditor select_layer int [1]
-fun TextEditor set_wrapping int [1]
+fun TextEditor set_wrapping int [0]
+fun TextEditor set_size int [640 480]
 bind Object literal ["scripts/notepad.sand"]
 build Object false
 run loadTextFromFile
@@ -417,11 +423,16 @@ fun EditableText set_size c w c h
 end
 
 
-
 start enter
 triggers key_pressed
 if ([key_pressed 67] [context program] [string "sleep"] == &&)
+index camera [0] _ camera Camera
+run enter1
+end
 
+
+start enter1
+if ([c Camera is_focused])
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ editable_text EditableText
 first _ [EditableText] _ _ _ _ content _ userInput
@@ -440,7 +451,7 @@ string [""] param7
 
 tokenize command param0 param1 param2 param3 param4 param5 param6 param7
 
-string [neofetch help hello ls sq cats sh fullscreen fs nw note spawn 222 cls cat print exit edit sand] allowedPrograms
+string [neofetch help hello ls sq cats sh fullscreen fs nw note spawn 222 cls cat print exit edit sand cd pwd] allowedPrograms
 in param0 allowedPrograms isAllowed
 string ["_enter"] program
 run programCheck

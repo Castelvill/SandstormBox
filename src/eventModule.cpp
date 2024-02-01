@@ -230,7 +230,7 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
         controlText(EditableText, attribute, Values, IDs, FontContainer);
     }
 }
-void EveModule::controlImage(ImageModule *Image, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, vector<SingleBitmap> &BitmapContainer, string EXE_PATH){
+void EveModule::controlImage(ImageModule *Image, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, vector<SingleBitmap> &BitmapContainer, string workingDirectory){
     if(attribute == "set_id" && Values.size() > 0){
         Image->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -276,17 +276,17 @@ void EveModule::controlImage(ImageModule *Image, string attribute, const vector<
     }
     else if(attribute == "connect_bitmap" && Values.size() > 0){
         if(Values.size() == 1){
-            Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), "", EXE_PATH);
+            Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), "", workingDirectory);
         }
         else{
-            Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), Values[1].getStringUnsafe(), EXE_PATH);
+            Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), Values[1].getStringUnsafe(), workingDirectory);
         }   
     }
     else if(attribute == "connect_bitmap_via_path" && Values.size() > 0){
-        Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), "", EXE_PATH);  
+        Image->connectBitmap(BitmapContainer, Values[0].getStringUnsafe(), "", workingDirectory);  
     }
     else if(attribute == "connect_bitmap_via_alias" && Values.size() > 0){
-        Image->connectBitmap(BitmapContainer, "", Values[0].getStringUnsafe(), EXE_PATH);  
+        Image->connectBitmap(BitmapContainer, "", Values[0].getStringUnsafe(), workingDirectory);  
     }
     else if(attribute == "select_layer" && Values.size() > 0){
         Image->setUsedBitmapLayer(Values[0].getIntUnsafe());

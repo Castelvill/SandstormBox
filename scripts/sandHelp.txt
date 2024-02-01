@@ -275,3 +275,18 @@ end
 start exit
 power_off
 end
+
+
+start pwd
+string ["/"] result
+pwd workingDir
++= result workingDir
+string ["_enter"] program
+run printOnTerminal
+end
+
+
+start cd
+cd _ param1
+string [""] program
+end

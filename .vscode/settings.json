@@ -53,6 +53,7 @@
         "typeinfo": "cpp",
         "codecvt": "cpp",
         "ratio": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "chrono": "cpp"
     }
 }

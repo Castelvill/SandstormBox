@@ -200,6 +200,7 @@ private:
     float windowTint[4];
 
     string EXE_PATH;
+    string workingDirectory;
     
     vector <LayerClass> Layers;
     vector <Camera2D> Cameras;
@@ -353,6 +354,8 @@ public:
     void loadFontFromContext(OperaClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine);
     void findByIDInEventContext(OperaClass & Operation, vector<ContextClass> & EventContext);
     void listOutFiles(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void changeWorkingDirectory(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void printWorkingDirectory(OperaClass & Operation, vector<ContextClass> & EventContext);
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,

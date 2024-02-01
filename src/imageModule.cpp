@@ -44,22 +44,22 @@ SingleBitmap::SingleBitmap(){
     ID = "";
     bitmap = nullptr;
 }
-void SingleBitmap::loadBitmap(string newID, string newFilePath, string EXE_PATH){
+void SingleBitmap::loadBitmap(string newID, string newFilePath, string workingDirectory){
     if(bitmap)
         al_destroy_bitmap(bitmap);
     filePath = newFilePath;
     ID = newID;
-    bitmap = al_load_bitmap((EXE_PATH + filePath).c_str());
+    bitmap = al_load_bitmap((workingDirectory + filePath).c_str());
     if(!bitmap){
         cout << "Failed to load a bitmap: File \'" << filePath << "\' not found.\n";
         //al_show_native_message_box(window, "Error", "", "Can't load an image.", NULL, ALLEGRO_MESSAGEBOX_ERROR);
 
-        bitmap = al_load_bitmap((EXE_PATH + "images/error.png").c_str());
+        bitmap = al_load_bitmap((workingDirectory + "images/error.png").c_str());
         if(!bitmap){
-            bitmap = al_load_bitmap((EXE_PATH + "error.png").c_str());
+            bitmap = al_load_bitmap((workingDirectory + "error.png").c_str());
         }
         if(!bitmap){
-            cout << "File 'error.png' not found in \'" << EXE_PATH << "\'.\n";
+            cout << "File 'error.png' not found in \'" << workingDirectory << "\'.\n";
         }
         return;
     }
@@ -154,7 +154,7 @@ void ImageModule::clear(){
         lightBitmap = nullptr;
     }
 }
-void ImageModule::loadImage(string newFilePath, string newImageID, string EXE_PATH){
+void ImageModule::loadImage(string newFilePath, string newImageID, string workingDirectory){
     if(image && !isBitmapFromContainer[0])
         al_destroy_bitmap(image);
     else
@@ -168,7 +168,7 @@ void ImageModule::loadImage(string newFilePath, string newImageID, string EXE_PA
     isBitmapFromContainer[1] = false;
     imageID = newImageID;
     imageFilePath = newFilePath;
-    image = al_load_bitmap((EXE_PATH + imageFilePath).c_str());
+    image = al_load_bitmap((workingDirectory + imageFilePath).c_str());
     if(!image){
         cout << "Error: In " << __FUNCTION__ << ": Loading image failed: File \'" << imageFilePath << "\' does not exist.\n";
         return;
@@ -179,7 +179,7 @@ void ImageModule::loadImage(string newFilePath, string newImageID, string EXE_PA
     al_clear_to_color(al_map_rgb(255, 255, 255));
 
 }
-void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string EXE_PATH){
+void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string workingDirectory){
     //If the bitmap doesn't exist, return without changing the bitmap.
     unsigned int i = 0;
     bool bitmapExists = false;
@@ -250,7 +250,7 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     al_set_target_bitmap(lightBitmap);
     al_clear_to_color(al_map_rgb(255, 255, 255));
 }
-void ImageModule::loadLight(string newFilePath, string newLightID, string EXE_PATH){
+void ImageModule::loadLight(string newFilePath, string newLightID, string workingDirectory){
     if(lightBitmap && !isBitmapFromContainer[1]){
         al_destroy_bitmap(lightBitmap);
     }
@@ -262,13 +262,13 @@ void ImageModule::loadLight(string newFilePath, string newLightID, string EXE_PA
     lightID = newLightID;
 
     isBitmapFromContainer[1] = false;
-    lightBitmap = al_load_bitmap((EXE_PATH + lightFilePath).c_str());
+    lightBitmap = al_load_bitmap((workingDirectory + lightFilePath).c_str());
     if(!lightBitmap){
         cout << "Error: In " << __FUNCTION__ << ": Loading image failed: File \'" << imageFilePath << "\' does not exist.\n";
         return;
     }
 }
-void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newLightID, string EXE_PATH){
+void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newLightID, string workingDirectory){
     //If the bitmap doesn't exist, return without changing the bitmap.
     unsigned int i = 0;
     bool bitmapExists = false;
@@ -330,10 +330,10 @@ void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, st
         return;
     }
 }
-void ImageModule::checkImage(ALLEGRO_DISPLAY * window, string EXE_PATH){
+void ImageModule::checkImage(ALLEGRO_DISPLAY * window, string workingDirectory){
     if(!image) {
         al_show_native_message_box(window, "Error", "", "Can't load an image.", NULL, ALLEGRO_MESSAGEBOX_ERROR);
-        image = al_load_bitmap((EXE_PATH + "images/error.png").c_str());
+        image = al_load_bitmap((workingDirectory + "images/error.png").c_str());
         size.set(al_get_bitmap_width(image), al_get_bitmap_height(image));
         if(!image){
             al_show_native_message_box(window, "Error", "", "You're fucked.", NULL, ALLEGRO_MESSAGEBOX_ERROR);

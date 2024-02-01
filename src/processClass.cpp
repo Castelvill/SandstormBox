@@ -63,6 +63,7 @@ ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string
     canUserInteract = true;
     
     EXE_PATH = EXE_PATH_FROM_ENGINE;
+    workingDirectory = "";
     firstIteration = true;
     rebooted = false;
     wasDeleteExecuted = false;
@@ -341,7 +342,10 @@ void ProcessClass::renderOnDisplay(EngineClass & Engine){
     }
 }
 void ProcessClass::unfocusCamera(string &focusedProcessID){
-    SelectedCamera = nullptr;
+    if(SelectedCamera != nullptr){
+        SelectedCamera->isFocused = false;
+        SelectedCamera = nullptr;
+    }
     if(getID() == focusedProcessID){
         focusedProcessID = "";
     }
@@ -4228,10 +4232,10 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
                     cout << "\"" << Variable.getString() << "\", ";
                 }
                 if(isStringInGroup(Operation.Literals[0].getString(), 2, "literal", "l")){
-                    Object->bindedScripts.push_back(EXE_PATH + Variable.getString());
+                    Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable.getString());
                 }
                 else{
-                    removeFromStringVector(Object->bindedScripts, EXE_PATH + Variable.getString());
+                    removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Variable.getString());
                 }
             }
         }
@@ -4267,10 +4271,10 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
                         cout << "\"" << Pointer.getString() << "\", ";
                     }
                     if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
-                        Object->bindedScripts.push_back(EXE_PATH + Pointer.getString());
+                        Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Pointer.getString());
                     }
                     else{
-                        removeFromStringVector(Object->bindedScripts, EXE_PATH + Pointer.getString());
+                        removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Pointer.getString());
                     }
                 }
             }
@@ -4296,10 +4300,10 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
                         cout << "\"" << Variable.getString() << "\", ";
                     }
                     if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
-                        Object->bindedScripts.push_back(EXE_PATH + Variable.getString());
+                        Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable.getString());
                     }
                     else{
-                        removeFromStringVector(Object->bindedScripts, EXE_PATH + Variable.getString());
+                        removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Variable.getString());
                     }
                 }
             }
@@ -4325,10 +4329,10 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
                         cout << "\"" << Variable->getString() << "\", ";
                     }
                     if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
-                        Object->bindedScripts.push_back(EXE_PATH + Variable->getString());
+                        Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable->getString());
                     }
                     else{
-                        removeFromStringVector(Object->bindedScripts, EXE_PATH + Variable->getString());
+                        removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Variable->getString());
                     }
                 }
             }
@@ -4988,7 +4992,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
                 if(!findObjectForFunction(ModulesObject, Layers, Image->getObjectID(), Image->getLayerID())){
                     continue;
                 }
-                Event->controlImage(Image, Operation.Location.attribute, Variables, ModulesObject->imageContainerIDs, Engine.BitmapContainer, EXE_PATH);
+                Event->controlImage(Image, Operation.Location.attribute, Variables, ModulesObject->imageContainerIDs, Engine.BitmapContainer, EXE_PATH + workingDirectory);
                 if(Operation.Location.attribute != "set_id"){
                     ModulesObject->refreshCoordinates();
                 }
@@ -4996,7 +5000,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
             return;
         }
         for(ImageModule * Image : Context->Modules.Images){
-            Event->controlImage(Image, Operation.Location.attribute, Variables, emptyString, Engine.BitmapContainer, EXE_PATH);
+            Event->controlImage(Image, Operation.Location.attribute, Variables, emptyString, Engine.BitmapContainer, EXE_PATH + workingDirectory);
         }
     }
     else if(Context->type == "movement"){
@@ -5328,7 +5332,7 @@ void ProcessClass::loadBitmap(OperaClass & Operation, vector<SingleBitmap> & Bit
         }
     }
     BitmapContainer.push_back(SingleBitmap());
-    BitmapContainer.back().loadBitmap(Operation.Literals[1].getString(), Operation.Literals[0].getString(), EXE_PATH);
+    BitmapContainer.back().loadBitmap(Operation.Literals[1].getString(), Operation.Literals[0].getString(), EXE_PATH + workingDirectory);
 }
 void ProcessClass::createDirectory(OperaClass & Operation){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
@@ -5339,13 +5343,13 @@ void ProcessClass::createDirectory(OperaClass & Operation){
         cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
     }
     if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + Operation.Literals[0].getString() << "\'.\n"; 
     }
     try{
-        std::filesystem::create_directory(EXE_PATH + Operation.Literals[0].getString());
+        std::filesystem::create_directory(EXE_PATH + workingDirectory + Operation.Literals[0].getString());
     }
     catch(std::filesystem::filesystem_error const& ex){
-        cout << "In " << __FUNCTION__ << ": No such directory \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n";
+        cout << "In " << __FUNCTION__ << ": No such directory \'" << EXE_PATH + workingDirectory + Operation.Literals[0].getString() << "\'.\n";
     }
 }
 void ProcessClass::removeFileOrDirectory(OperaClass & Operation){
@@ -5357,10 +5361,10 @@ void ProcessClass::removeFileOrDirectory(OperaClass & Operation){
         cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
     }
     if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + Operation.Literals[0].getString() << "\'.\n"; 
     }
     try{
-        std::filesystem::remove(EXE_PATH + Operation.Literals[0].getString());
+        std::filesystem::remove(EXE_PATH + workingDirectory + Operation.Literals[0].getString());
     }
     catch(std::filesystem::filesystem_error const& ex){
         cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
@@ -5375,10 +5379,10 @@ void ProcessClass::removeRecursivelyFileOrDirectory(OperaClass & Operation){
         cout << Operation.instruction << " " << Operation.Literals[0].getString() << "\n";
     }
     if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + Operation.Literals[0].getString() << "\'.\n"; 
     }
     try{
-        std::filesystem::remove_all(EXE_PATH + Operation.Literals[0].getString());
+        std::filesystem::remove_all(EXE_PATH + workingDirectory + Operation.Literals[0].getString());
     }
     catch(std::filesystem::filesystem_error const& ex){
         cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
@@ -5393,13 +5397,13 @@ void ProcessClass::renameFileOrDirectory(OperaClass & Operation){
         cout << Operation.instruction << " " << Operation.Literals[0].getString() << " " << Operation.Literals[1].getString() << "\n";
     }
     if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[0].getString() << "\'.\n"; 
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + Operation.Literals[0].getString() << "\'.\n"; 
     }
     if(Operation.Literals[1].getString() == "" || Operation.Literals[1].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + Operation.Literals[1].getString() << "\'.\n"; 
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + Operation.Literals[1].getString() << "\'.\n"; 
     }
     try{
-        std::filesystem::rename(EXE_PATH + Operation.Literals[0].getString(), EXE_PATH + Operation.Literals[1].getString());
+        std::filesystem::rename(EXE_PATH + workingDirectory + Operation.Literals[0].getString(), EXE_PATH + workingDirectory + Operation.Literals[1].getString());
     }
     catch(std::filesystem::filesystem_error const& ex){
         cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
@@ -5556,7 +5560,7 @@ void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass>
 
     string loadedText = "";
 
-    std::ifstream File(EXE_PATH + pathToTheFile);
+    std::ifstream File(EXE_PATH + workingDirectory + pathToTheFile);
 
 	if(!File){
 		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << pathToTheFile << "\n";
@@ -5585,7 +5589,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
         return;
     }
     if(pathToTheFile == "" || pathToTheFile[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + pathToTheFile << "\'.\n"; 
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheFile << "\'.\n"; 
     }
     string textFromContext = "";
     if(!TextContext->getStringOrAbort(textFromContext, Operation.instruction)){
@@ -5597,10 +5601,10 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
         cout << Operation.instruction << " " << Operation.dynamicIDs[0] << " " << Operation.dynamicIDs[1] << "\n";
     }
 
-    std::ofstream File(EXE_PATH + pathToTheFile);
+    std::ofstream File(EXE_PATH + workingDirectory + pathToTheFile);
 
 	if(!File){
-		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << EXE_PATH + pathToTheFile << "\n";
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << EXE_PATH + workingDirectory + pathToTheFile << "\n";
         return;
     }
 	File << textFromContext;
@@ -5744,7 +5748,7 @@ void ProcessClass::createNewProcess(OperaClass & Operation, vector<ProcessClass>
     }
     
     if(Processes.size() + 1 <= Processes.capacity()){
-        Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(),
+        Processes.push_back(ProcessClass(Engine.EXE_PATH + workingDirectory, Engine.getDisplaySize(),
             script, Operation.Literals[0].getString(), layerID, objectID, Engine.processIDs
         ));
     }
@@ -6261,9 +6265,9 @@ void ProcessClass::listOutFiles(OperaClass & Operation, vector<ContextClass> & E
 
     vector <string> fileNames;
     #if _WIN32
-        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + directory, 'n');
+        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n');
     #elif __linux__
-        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + directory, 'n');
+        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n');
     #endif
 
     string buffer = "";
@@ -6283,6 +6287,62 @@ void ProcessClass::listOutFiles(OperaClass & Operation, vector<ContextClass> & E
     ContextClass NewContext;
     NewContext.Variables.push_back(VariableModule::newString(buffer));
     addNewContext(EventContext, NewContext, "value", Operation.newContextID);
+}
+void ProcessClass::changeWorkingDirectory(OperaClass & Operation, vector<ContextClass> & EventContext){
+    string newDirectory = "";
+    if(Operation.Literals.size() > 0){
+        newDirectory = Operation.Literals[0].getString();
+    }
+    else if(Operation.dynamicIDs.size() > 0){
+        ContextClass * NewDirectoryContext = getContextByID(EventContext, Operation.dynamicIDs[0], false);
+        if(NewDirectoryContext != nullptr){
+            NewDirectoryContext->getStringOrIgnore(newDirectory, Operation.instruction);
+        }
+    }
+
+    if(newDirectory == ""){
+        workingDirectory = "";
+        return;
+    }
+    else if(newDirectory == "."){
+        return;
+    }
+    else if(newDirectory == ".."){
+        if(workingDirectory == ""){
+            return;
+        }
+        if(workingDirectory[workingDirectory.size()-1] != '/' || workingDirectory.size() == 1){
+            workingDirectory = "";
+            return;
+        }
+        unsigned lastSlash = workingDirectory.size() - 2;
+        for(; lastSlash > 0; lastSlash--){
+            if(workingDirectory[lastSlash] == '/'){
+                break;
+            }
+        }
+        workingDirectory = workingDirectory.substr(0, lastSlash);
+        return;
+    }
+    else{
+        string testPath = workingDirectory + newDirectory + "/";
+        if(!std::filesystem::exists(EXE_PATH + testPath)){
+            cout << "Error: In " << __FUNCTION__ << ": Directory '" << EXE_PATH + testPath << "' does not exist.\n";
+            return;
+        }
+        workingDirectory = testPath;
+    }
+    
+}
+void ProcessClass::printWorkingDirectory(OperaClass & Operation, vector<ContextClass> & EventContext){
+    if(Operation.newContextID == ""){
+        cout << workingDirectory;
+        cout.flush();
+    }
+    ContextClass NewContext;
+    NewContext.type = "value";
+    NewContext.Variables.push_back(VariableModule::newString(workingDirectory));
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
@@ -6534,6 +6594,12 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 break;
             case restart_drag:
                 detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
+                break;
+            case cd:
+                changeWorkingDirectory(Operation, EventContext);
+                break;
+            case pwd:
+                printWorkingDirectory(Operation, EventContext);
                 break;
             default:
                 cout << "Error: In " << __FUNCTION__ << ": Instruction '" << Operation.instruction << "' does not exist.\n";
@@ -8124,7 +8190,11 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
             return;
         }
         
+        if(SelectedCamera != nullptr){
+            SelectedCamera->isFocused = false;
+        }
         SelectedCamera = &Cameras[camerasOrder[activeCameraIndex]];
+        SelectedCamera->isFocused = true;
         SelectedCamera->bringBack();
         focusedProcessID = getID();
 
@@ -8171,7 +8241,12 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
             continue;
         }
         if(Mouse.inRectangle(Camera->pos, Camera->size, true, SelectedCamera)){
+            if(SelectedCamera != nullptr){
+                SelectedCamera->isFocused = false;
+            }
             SelectedCamera = Camera;
+            SelectedCamera->isFocused = true;
+            
             focusedProcessID = getID();
 
             bringCameraForward(i, Camera);
@@ -9039,7 +9114,7 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
                         }
                     }
                     if(TextField.getEditingIsActive()){
-                        //Object.operateTextFieldUpdate(TextField, Layer.Objects, Engine.BitmapContainer, Layer.objectsIDs, EXE_PATH);
+                        //Object.operateTextFieldUpdate(TextField, Layer.Objects, Engine.BitmapContainer, Layer.objectsIDs, EXE_PATH + workingDirectory);
                     }
                     TextField.setEditingIsActive(false);
                 }
@@ -9063,7 +9138,7 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
                     if(!TextField.getUpdateConnectedVariable()){
                         continue;
                     }
-                    Object.operateTextFieldUpdate(TextField, Layer.Objects, Engine.BitmapContainer, Layer.objectsIDs, EXE_PATH);
+                    Object.operateTextFieldUpdate(TextField, Layer.Objects, Engine.BitmapContainer, Layer.objectsIDs, EXE_PATH + workingDirectory);
                     TextField.setUpdateConnectedVariable(false);
 
                     if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
@@ -9559,13 +9634,16 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vec
     if(SelectedCamera != nullptr){
         if(Cameras.size() <= selectedCameraIndex){
             cout << "Error: In " << __FUNCTION__ << ": selectedCameraIndex goes out of scope of Cameras.\n";
+            SelectedCamera->isFocused = false;
             SelectedCamera = nullptr;
             if(processID == focusedProcessID){
                 focusedProcessID = "";
             }
             return;
         }
+        SelectedCamera->isFocused = false;
         SelectedCamera = &Cameras[selectedCameraIndex];
+        SelectedCamera->isFocused = true;
         focusedProcessID = processID;
     }
 }
