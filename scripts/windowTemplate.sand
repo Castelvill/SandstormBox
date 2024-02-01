@@ -224,6 +224,7 @@ end
 
 start switchToBorderless
 if ([c isBorderless])
+fun me set_position int [-5 -30]
 all layer _ _ _ _ _ _ Layers
 value ([context me layer_id]) myLayerID
 find_by_id_2 Layers myLayerID Layer
@@ -254,6 +255,7 @@ end
 
 start switchFromBorderless
 all layer _ _ _ _ _ _ Layers
+fun me set_position int [0 0]
 value ([context me layer_id]) myLayerID
 find_by_id_2 Layers myLayerID Layer
 index c Layer [0 0 1] _ primitives Toolbar

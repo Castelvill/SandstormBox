@@ -8936,10 +8936,12 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
                 continue;
             }
             newPos = Object.getPos(false) + Hitbox.getPos(false);
-           
-            newPos.set(Camera.translateWithZoom(newPos));
             hitboxSize = Hitbox.getSize();
-            hitboxSize.multiply(Camera.zoom);
+            
+            if(!Hitbox.getIsAttachedToCamera()){
+                newPos.set(Camera.translateWithZoom(newPos));
+                hitboxSize.multiply(Camera.zoom);
+            }
             
             vec4d borderColor(0, 0, 255, 127);
             for(DetectedCollision Detection : Hitbox.Detected){
