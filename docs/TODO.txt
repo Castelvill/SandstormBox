@@ -1,13 +1,12 @@
--Add the limitless mode to editable text fields (ignoreSize and ignoreContentSize).
+-Add "exists" attribute to expressions for checking the existence of files and directories.
+-Use "if ([exists param])" before using load_text.
+-Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
 -Clone the "ranger" program.
 -Add tab autocomplete: "inr" instruction that uses regex to find string in a string vector; using tab tokenizes current editable text and returns best match with "inr".
--Add "cd" instruction or "proc_edit cd path" attribute to change EXE_PATH or add workDir (working directory) to each object.
--Add "pwd" instruction.
 -Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.
--Add global variables with vectors.
+-Add global context.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
--Add muting option to load_text or file_exists attribute to "value" instruction.
--Fix: If the cursor is on the first line, down-arrow is moving cursor with an offset.
+-Fix: if the cursor is on the first line, down-arrow is moving cursor with an offset.
 -Ctrl+alt+t should open up a new terminal (clone the template)
 -Fix: command "sh print "xd\n"" does not work.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
