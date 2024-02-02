@@ -267,10 +267,23 @@ end
 
 
 start cat
+if ([exists param1])
 load_text param1 result
 string ["_enter"] program
 run printOnTerminal
+else printNoSuchFile
 end
+
+
+start printNoSuchFile
+string ["_enter"] program
+string ["File '"] result
++= result param1
+string ["' does not exist."] notExist
++= result notExist
+run printOnTerminal
+end
+
 
 start exit
 power_off

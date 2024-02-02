@@ -504,7 +504,7 @@ run loadTextFromFile
 end
 
 start loadTextFromFile
-if ([context fileName] [string ""] !=)
+if ([exists fileName])
 load_text fileName loadedText
 int [0] 0
 fun TextEditor set_text c 0 c loadedText

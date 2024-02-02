@@ -1,3 +1,7 @@
+2.02.2024
+-Secured "load_text" instructions with "exists" check. 
+-Added "exists" source to expressions: checking if a file or directory exists.
+
 1.02.2024
 -Implemented "cd" and "pwd" instructions.
 -Added "isFocused" variable to cameras.

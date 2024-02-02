@@ -7031,6 +7031,18 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         NewValue.setBool(Engine.secondHasPassed());
         return NewValue;
     }
+    if(Condition.Location.source == "exists"){
+        ContextClass * Context = getContextByID(EventContext, Condition.Literal.getString(), true);
+        if(Context == nullptr){
+            NewValue.setBool(false);
+        }
+        else{
+            string file = "";
+            Context->getStringOrIgnore(file, EngineInstr::value);
+            NewValue.setBool(std::filesystem::exists(file));
+        }
+        return NewValue;
+    }
     if(Condition.Location.source == "used_os"){
         #if __WIN32__
             NewValue.setString("windows");
@@ -7208,7 +7220,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         return Process->findNextValueAmongObjects(Condition, Owner, OwnerLayer, Engine.Mouse);
     }
     if(Condition.Location.source == "context" || Condition.Location.source == "c"){
-        ContextClass * Context;
+        ContextClass * Context = nullptr;
         vector<string> dynamicIDs = {Condition.Literal.getStringUnsafe()};
         if(!getOneContext(Context, EventContext, dynamicIDs)){
             cout << "Error: In " << __FUNCTION__ << ": No context found.\n";

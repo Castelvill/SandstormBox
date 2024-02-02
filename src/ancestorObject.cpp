@@ -777,7 +777,15 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 }
                 if(nextCond(words, cursor, Expression.back().Literal, 'd')){ continue; };
             }
-            else if(Expression.back().Location.source == "string"){
+            else if(Expression.back().Location.source == "string"
+                || Expression.back().Location.source == "exists"
+            ){
+                if(words[cursor] == "]"){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
+                        << ": In " << __FUNCTION__ << ": source '" << Expression.back().Location.source
+                        << "' requires one string literal.\n";
+                    return false;
+                }
                 if(Expression.back().Location.source == "string"){
                     Expression.back().Location.source = "literal";
                 }
