@@ -93,7 +93,7 @@ new editable_text c me 1 _ _ TerminalTextField
 fun TerminalTextField set_id string [edi]
 fun TerminalTextField set_position c editableTextPos
 fun TerminalTextField set_font string [cascadia_code]
-fun TerminalTextField set_wrapping int [0]
+fun TerminalTextField set_wrapping int [1]
 fun TerminalTextField set_editable bool [1]
 fun TerminalTextField set_space_use bool [1]
 fun TerminalTextField set_max_content_length int [10000]

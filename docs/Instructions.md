@@ -830,3 +830,32 @@ restart_drag
 **Description**
 
     Recalculate the starting position of selected camera dragging.
+
+## cd
+
+**Syntax**
+
+cd [directory1] [directory2]
+
+**Description**
+
+    Change working directory.
+
+**Parameters**
+
+- directory1 (string) - directory that will be added to the end of the working directory. 
+- directory2 (string) - id of the context with the new directory. Ignored when first argument is different than "_".
+
+## pwd
+
+**Syntax**
+
+pwd [output]
+
+**Description**
+
+    Print working directory.
+
+**Parameters**
+
+- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.

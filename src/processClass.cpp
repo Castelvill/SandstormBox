@@ -6237,6 +6237,11 @@ void ProcessClass::findByIDInEventContext(OperaClass & Operation, vector<Context
 }
 vector<string> getAllFilesNamesWithinFolder(string directory, char mode){
     vector<string> names;
+    if(!std::filesystem::exists(directory)){
+        cout << "Error: In " << __FUNCTION__ << ": Directory '" << directory
+            << "' does not exist.\n";
+        return names;
+    }
     if(mode == 'f'){
         for(const auto & entry : std::filesystem::directory_iterator(directory)){
             names.push_back(entry.path().string());
