@@ -218,6 +218,14 @@ end
 start switchBorderlessMode
 triggers key_pressed
 if ([key_pressed 57])
+all camera _ camera _ Cameras
+find_by_id_2 Cameras cameraID Camera
+run switchBorderlessModeCheckFocus
+end
+
+
+start switchBorderlessModeCheckFocus
+if([c Camera is_focused])
 fun isBorderless toggle_bool
 run switchToBorderless
 end
