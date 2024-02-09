@@ -1,5 +1,3 @@
--Add "exists" attribute to expressions for checking the existence of files and directories.
--Use "if ([exists param])" before using load_text.
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
 -Clone the "ranger" program.
 -Add tab autocomplete: "inr" instruction that uses regex to find string in a string vector; using tab tokenizes current editable text and returns best match with "inr".
