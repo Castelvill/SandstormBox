@@ -65,7 +65,6 @@ ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string
     EXE_PATH = EXE_PATH_FROM_ENGINE;
     workingDirectory = "";
     firstIteration = true;
-    rebooted = false;
     wasDeleteExecuted = false;
     wasNewExecuted = false;
     wasAnyEventUpdated = false;
@@ -205,9 +204,10 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
                 return;
             }
             firstIteration = false;
-            if(rebooted){
-                rebooted = false;
-                firstIteration = true;
+            if(Engine.reboot){
+                //rebooted = false;
+                //firstIteration = true;
+                return;
             }
             break;
         case ALLEGRO_EVENT_MOUSE_AXES:
@@ -7805,7 +7805,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                         return;
                     }
                     else if(Interrupt.instruction == EngineInstr::reboot){
-                        rebooted = true;
+                        Engine.reboot = true;
                         return;
                     }
                     else if(Interrupt.instruction == EngineInstr::return_i){
@@ -7859,7 +7859,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                     return;
                 }
                 else if(Interrupt.instruction == EngineInstr::reboot){
-                    rebooted = true;
+                    Engine.reboot = true;
                     return;
                 }
                 else if(Interrupt.instruction == EngineInstr::return_i){
@@ -8818,10 +8818,10 @@ void ProcessClass::drawEverything(EngineClass & Engine){
                 al_draw_rectangle(Camera->pos.x, Camera->pos.y, Camera->pos.x + Camera->size.x, Camera->pos.y + Camera->size.y, al_map_rgb(62, 249, 239), 6);
             }
         }
-        if(Engine.Mouse.isPressed(0)){
-            //al_draw_rectangle(Engine.Mouse.getPressedPos().x, Engine.Mouse.getPressedPos().y,
-            //    Engine.Mouse.getPos().x, Engine.Mouse.getPos().y, al_map_rgb(200, 200, 200), 1);
-        }
+        /*if(Engine.Mouse.isPressed(0)){
+            al_draw_rectangle(Engine.Mouse.getPressedPos().x, Engine.Mouse.getPressedPos().y,
+                Engine.Mouse.getPos().x, Engine.Mouse.getPos().y, al_map_rgb(200, 200, 200), 1);
+        }*/
     }
 
     //draw_horizontal_gradient_rect(200, 200, 840, 680, al_map_rgba(255, 0, 255, 255), al_map_rgba(0, 255, 0, 255));

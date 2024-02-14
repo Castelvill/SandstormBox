@@ -49,7 +49,7 @@ public:
     bool fullscreen;
     bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
 
-    bool closeProgram, redraw, displayResized;
+    bool closeProgram, reboot, redraw, displayResized;
     string EXE_PATH;
 
     vector <SingleFont> FontContainer;
@@ -65,8 +65,11 @@ public:
 
     vector <unsigned> processDisplayOrder;
 
-    EngineClass(string title);
+    void resetState(string title);
+    EngineClass();
+    void prepare();
     void initAllegro();
+    void clear();
     void exitAllegro();
     void updateEvents();
     void endEvents();

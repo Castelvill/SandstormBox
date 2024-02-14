@@ -1,3 +1,6 @@
+14.02.2024
+-Fixed "reboot" instruction.
+
 2.02.2024
 -Secured "load_text" instructions with "exists" check. 
 -Added "exists" source to expressions: checking if a file or directory exists.

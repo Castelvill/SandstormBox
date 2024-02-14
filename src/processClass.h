@@ -216,7 +216,7 @@ private:
     vec2d dragCameraStaringPos, dragLimit;
     vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
-    bool firstIteration, rebooted;
+    bool firstIteration;
     bool wasDeleteExecuted, wasNewExecuted, wasAnyEventUpdated, wereGlobalVariablesCreated;
 
     bool wasMousePressedInSelectedObject;

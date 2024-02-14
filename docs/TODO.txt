@@ -18,7 +18,6 @@
 -Remove parentheses from "value", "if" and aggregating instructions.
 -Implement the functionality for up-down arrows inside the terminal.
 -Add scrolling to the terminal: automatic and the scrollbar.
--Fix: Reboot doesn't work.
 -Fix: after pasting text inside the command line, right arrow doesn't go behind the text.
 -Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
 

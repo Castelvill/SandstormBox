@@ -69,17 +69,19 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
     return releasedKeys;
 }
 
-EngineClass::EngineClass(string title){
+void EngineClass::resetState(string title){
     isPixelArt = false;
     cursorBitmap = NULL;
     windowTitle = title;
     displaySize.set(1280, 720);
     fullscreen = false;
     closeProgram = false;
+    reboot = false;
     redraw = false;
     displayResized = false;
+}
+EngineClass::EngineClass(){
     memset(key, 0, sizeof(key));
-    initAllegro();
 }
 void getDesktopResolution(int adapter, int *w, int *h){
     ALLEGRO_MONITOR_INFO info;
@@ -88,6 +90,7 @@ void getDesktopResolution(int adapter, int *w, int *h){
     *w = info.x2 - info.x1;
     *h = info.y2 - info.y1;
 }
+
 void EngineClass::initAllegro(){
     al_init();
     al_init_primitives_addon();
@@ -122,15 +125,6 @@ void EngineClass::initAllegro(){
     EXE_PATH = string(buffer);
 
 
-    //cursorBitmap = al_load_bitmap("images/cursor.png");
-    if(cursorBitmap){
-        mouseCursor = al_create_mouse_cursor(cursorBitmap, 0, 0);
-        al_set_mouse_cursor(display, mouseCursor);
-    }
-    else{
-        al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
-    }
-
     eventQueue = al_create_event_queue();
 
     timer = al_create_timer(1.0 / FPS);
@@ -148,26 +142,33 @@ void EngineClass::initAllegro(){
         al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR);
     }
 
-    iconBitmap = al_load_bitmap((EXE_PATH + "icon.png").c_str());
-    if(iconBitmap){
-        al_set_display_icon(display, iconBitmap);
-    }
-
-    //loadFontsToContainer(FontContainer, EXE_PATH);
-
     //Find out how much buttons the user has.
     Mouse.setUp();
 
     al_start_timer(timer);
 }
-void EngineClass::exitAllegro(){
+void EngineClass::prepare(){
+    //cursorBitmap = al_load_bitmap("images/cursor.png");
+    if(cursorBitmap){
+        mouseCursor = al_create_mouse_cursor(cursorBitmap, 0, 0);
+        al_set_mouse_cursor(display, mouseCursor);
+    }
+    else{
+        al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+    }
+    iconBitmap = al_load_bitmap((EXE_PATH + "icon.png").c_str());
+    if(iconBitmap){
+        al_set_display_icon(display, iconBitmap);
+    }
+}
+void EngineClass::clear(){
     processIDs.clear();
-    
+    freeFontsFromContainer(FontContainer);
+    freeBitmapsFromContainer(BitmapContainer);
+
     releasedKeys.clear();
     firstPressedKeys.clear();
     pressedKeys.clear();
-    
-    al_destroy_display(display);
     if(cursorBitmap){
         al_destroy_bitmap(cursorBitmap);
         al_destroy_mouse_cursor(mouseCursor);
@@ -175,11 +176,11 @@ void EngineClass::exitAllegro(){
     if(iconBitmap){
         al_destroy_bitmap(iconBitmap);
     }
+}
+void EngineClass::exitAllegro(){
+    al_destroy_display(display);
     al_destroy_timer(timer);
     al_destroy_event_queue(eventQueue);
-
-    freeFontsFromContainer(FontContainer);
-    freeBitmapsFromContainer(BitmapContainer);
 }
 void EngineClass::updateEvents(){
     switch(event.type){
