@@ -1,3 +1,4 @@
+-Instead of using "set_can_be_selected" on objects, add "can_select_objects" bool to cameras.
 -Create the "Mover" program: a program that lets you move objects in one layer in real time. 
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
 -Clone the "ranger" program.
