@@ -344,6 +344,38 @@ run loadTextFromFile
 end
 
 
+start mover
+int [0] NewWindowLayer
+string [""] selectedLayerID
+= selectedLayerID param1
+string ["Mover"] param1
+int [0] NewWindowCamera
+run spawnNewWindow spawnMover
+end
+
+
+start spawnMover
+index c me [0 1] _ editable_text Editable
+index c NewWindowLayer [0 0] _ object Object
+index c NewWindowLayer [0 0 0] _ primitives Background
+fun Background set_color double [0.0 0.0 0.0 1.0]
+//value ([context my_layer id]) selectedLayerID
+value ([context NewWindowCamera id]) windowCameraID
+dump_context_stack
+new camera l 1 _ _ InsideCamera
+fun InsideCamera activate
+fun InsideCamera add_visible_layer c selectedLayerID
+fun InsideCamera add_accessible_layer c selectedLayerID
+fun InsideCamera pin_to_camera c windowCameraID
+fun InsideCamera activate_pin
+fun InsideCamera set_relative_position int [5 30]
+fun InsideCamera resize int [630 440]
+//bind Object literal ["scripts/notepad.sand"]
+//build Object false
+//run loadTextFromFile
+end
+
+
 start interrupt
 triggers key_pressed
 if ([key_pressed 215] [key_pressed 3] &&) //217-ctrl, 215-shift, 3-c
@@ -451,7 +483,7 @@ string [""] param7
 
 tokenize command param0 param1 param2 param3 param4 param5 param6 param7
 
-string [neofetch help hello ls sq cats sh fullscreen fs nw note spawn 222 cls cat print exit edit sand cd pwd] allowedPrograms
+string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd] allowedPrograms
 in param0 allowedPrograms isAllowed
 string ["_enter"] program
 run programCheck
