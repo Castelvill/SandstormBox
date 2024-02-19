@@ -317,7 +317,7 @@ int [0] NewWindowLayer
 //dump_context_stack
 string [""] fileName
 = fileName param1
-string ["Notepad--"] param1
+string ["Note"] param1
 run spawnNewWindow spawnNotepad
 end
 
