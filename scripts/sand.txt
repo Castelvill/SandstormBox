@@ -48,7 +48,8 @@ start resizeDisplayLinux
 if ([used_os] [string "linux"] ==)
 ///env window_size 1366 568
 //edit_proc window_size 1366 568
-env window_size 800 300
+//env window_size 800 300
+env window_size 800 480
 edit_proc window_size 1920 1080
 end
 

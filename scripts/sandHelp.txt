@@ -40,25 +40,19 @@ end
 
 
 start neofetch
-print _ result string ["  . .   ..   .:*@@@@m;'     ... . .   Mateusz
-         @@@@@@   . .@@@@@@ .         -----------------------
-.    .@@@@@@.  @@@@@@   .@@@@@.. .    OS: Sandstorm Box
- .. @@@@ ..`@@@@@@@@@@@@@  @@@@@  .   Kernel: 0.1
-   @@  .@@@@@@@@@@@@@@@@@@@   @@@.    Shell: Sandbox 0.1
-..@@ .. )@@@@@@@@@@$@@@@@@@@@@  @@    Uptime: 420 hours, 4 mins
- @@@  @@  ..@@@@@@@@@@@@@@@  ..@@@@.  Resolution: 1920x1080
- @@@  @@@@@@   @@@@@mr.   ^@@@@@@@@   Theme: NewWorld
-.@@@  @$@@@@@@@.    }$@@@@@@@@@@@@@.  CPU: 12th Gen Intel i5-12600KF (16) @ 3.690GHz
-@@@@ .@@@@@@@@@@@ @@@@@ ..    @@@@@$  GPU: AMD Radeon RX 6700 XT
- @@@. @@@@@@@@@@@ @@@@M  @@@i. .k@@   Memory: 12819MiB / 32592MiB
- @@@ }@@@@@@@@@@@ @@@@@@   @@@[@@@@   
-.@@@' .W@@@@@@@@@.@v ..@@@   @@@@@@ 
-  @@@@@ .t@@@@@@@ @@ .  )@@  i@@@@  
-   @@@@@@p. .@@@@.@@@@@  .. /@@@@.  
-    @@@@@@@@@. @@ @@@@@@@@@@@@@@ .  
- .    @@@@@@@@@    @@@@@@@@@@@ .    
-      . .@@@@@@@@@@@@@@@@@@  ..     
-.     .. .   x~/QMMJf_r   .         
+print _ result string ["
+ XomomomomomomomomomX   Mateusz
+ 8   .  .  , .  ,   &   -----------------------
+ &. , , g+$$kg  . . 8   OS: Sandstorm Box
+ 8  .  d$$''?$b  .  &   Kernel: 0.1
+ & .,  d?x,  ''  ,  8   Shell: Sandbox 0.1
+ 8  ..  sR$$&Y  . . &   Uptime: 420 hours, 4 mins
+ &, .  ..  `T$i  ,  8   Resolution: 1920x1080
+ 8  ,  d$x,,$$i   . &   Theme: NewWorld
+ &,  . `*c$$+*  .   8   CPU: 12th Gen Intel i5-12600KF
+ 8  . , .  ,  . ,   &   GPU: AMD Radeon RX 6700 XT
+ X*^*^*^*^*^*^*^*^*^X   Memory: 12819MiB / 32592MiB   
+
 "]
 string [""] program
 run printOnTerminal
