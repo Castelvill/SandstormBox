@@ -9,10 +9,10 @@ class VariableModule{
     string layerID; //This ID is needed in events' trigger detection.
     string objectID;
     char type;
-    bool vBool, defaultBool;
-    int vInt, defaultInt;
-	double vDouble, defaultDouble;
-	string vString, defaultString;
+    bool vBool;
+    int vInt;
+	double vDouble;
+	string vString;
 public:
     VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
@@ -31,10 +31,6 @@ public:
     string getAnyValue();
     char getType() const;
     string getFullTypeName();
-    bool getDefaultBool();
-    int getDefaultInt();
-    double getDefaultDouble();
-    string getDefaultString();
     bool getBool() const;
     bool getBoolUnsafe() const;
     bool getBoolUnsafe(const bool & defaultValue) const;
@@ -49,22 +45,14 @@ public:
     void setObjectID(string);
     bool setType(char);
     bool tryToSetType(char newType);
-    bool setDefaultBool(bool);
-    bool toggleDefaultBool();
-    bool setDefaultInt(int);
-    bool setDefaultDouble(double);
-    bool setDefaultString(string);
     bool setBool(bool);
     bool toggleBool();
     bool setInt(int);
     bool setDouble(double);
     bool setString(string);
     bool setString(char);
-    bool addDefaultInt(int);
-    bool addDefaultDouble(double);
     bool addInt(int);
     bool addDouble(double);
-    void resetValue();
     void negate();
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     template <typename condValueType>

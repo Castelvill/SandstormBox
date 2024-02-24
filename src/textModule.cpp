@@ -2449,10 +2449,7 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
 bool EditableTextModule::controlVariable(VariableModule & Variable, vector <string> & listOfIDs){
     string cContent = getContent(currentTextIdx);
 
-    if(connectedVariable == "default_string"){
-        return Variable.setDefaultString(cContent);
-    }
-    else if(connectedVariable == "string"){
+    if(connectedVariable == "string"){
         return Variable.setString(cContent);
     }
 
@@ -2474,19 +2471,16 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
 
     if(cContent == "true" || cContent == "1" || cContent == "false" || cContent == "0"){
         bool bValue;
-        if(cContent == "true" || cContent == "1")
+        if(cContent == "true" || cContent == "1"){
             bValue = true;
-        if(cContent == "false" || cContent == "0")
-            bValue = false;
-
-        if(connectedVariable == "dafault_bool"){
-            return Variable.setDefaultBool(bValue);
         }
-        else if(connectedVariable == "bool"){
+        if(cContent == "false" || cContent == "0"){
+            bValue = false;
+        }
+        if(connectedVariable == "bool"){
             return Variable.setBool(bValue);
         }
     }
-
 
     if(!canConvertContentToNumber()){
         printNotNumericalWarning();
@@ -2496,13 +2490,7 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
     double dValue = cstod(cContent);
     int iValue = int(dValue);
 
-    if(connectedVariable == "default_int"){
-        return Variable.setDefaultInt(iValue);
-    }
-    else if(connectedVariable == "default_double"){
-        return Variable.setDefaultDouble(dValue);
-    }
-    else if(connectedVariable == "int"){
+    if(connectedVariable == "int"){
         return Variable.setInt(iValue);
     }
     else if(connectedVariable == "double"){

@@ -1,6 +1,7 @@
 #ifndef EVENTMODULE_H_INCLUDED
 #define EVENTMODULE_H_INCLUDED
 #include "textModule.h"
+#include "vectorModule.h"
 
 struct ValueLocation{
     string process;

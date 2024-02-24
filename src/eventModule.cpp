@@ -642,78 +642,6 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
     else if(attribute == "toggle_bool"){
         Variable->toggleBool();
     }
-    else if(attribute == "set_default_bool_random"){
-        if(rand() % 2 == 0){
-            Variable->toggleDefaultBool();
-        }
-    }
-    else if(attribute == "set_default_bool_probability" && Values.size() >= 3){
-        bool setBool;
-        if(Values[0].getDoubleUnsafe() == 0){
-            setBool = false;
-        }
-        else if(Values[0].getDoubleUnsafe() == 1){
-            setBool = true;
-        }
-        else{
-            return;
-        }
-
-        if(rand() % Values[2].getIntUnsafe() <= Values[1].getIntUnsafe()){
-            Variable->setDefaultBool(setBool);
-        }
-    }
-    else if(attribute == "set_default_bool_probability" && Values.size() >= 2){
-        bool setBool;
-        if(Values[0].getDoubleUnsafe() == 0){
-            setBool = false;
-        }
-        else if(Values[0].getDoubleUnsafe() == 1){
-            setBool = true;
-        }
-        else{
-            return;
-        }
-
-        if(rand() % 100 <= Values[1].getDoubleUnsafe()){
-            Variable->setDefaultBool(setBool);
-        }
-    }
-    else if(attribute == "set_default_bool" && Values.size() >= 1){
-        if(Values[0].getDoubleUnsafe() == 0){
-            Variable->setDefaultBool(false);
-        }
-        if(Values[0].getDoubleUnsafe() == 1){
-            Variable->setDefaultBool(true);
-        }
-    }
-    else if(attribute == "set_default_int" && Values.size() >= 1){
-        Variable->setDefaultInt(Values[0].getIntUnsafe());
-    }
-    else if(attribute == "set_default_int_interval" && Values.size() >= 2){
-        Variable->setDefaultInt(randomInt(Values[0].getIntUnsafe(), Values[1].getIntUnsafe()));
-    }
-    else if(attribute == "set_default_int_random" && Values.size() >= 1){
-        unsigned int dice = rand() % Values.size();
-        Variable->setDefaultInt(Values[dice].getIntUnsafe());
-    }
-    else if(attribute == "set_default_double" && Values.size() >= 1){
-        Variable->setDefaultDouble(Values[0].getDoubleUnsafe());;
-    }
-    else if(attribute == "set_default_double_interval" && Values.size() >= 2){
-        Variable->setDefaultDouble(randomDouble(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));;
-    }
-    else if(attribute == "set_default_double_random" && Values.size() >= 1){
-        unsigned int dice = rand() % Values.size();
-        Variable->setDefaultDouble(Values[dice].getDoubleUnsafe());
-    }
-    else if(attribute == "set_default_string" && Values.size() >= 1){
-        Variable->setDefaultString(Values[0].getString());
-    }
-    else if(attribute == "set_default_string_random" && Values.size() >= 1){
-        unsigned int dice = rand() % Values.size();
-        Variable->setDefaultString(Values[dice].getString());
-    }
     else if(attribute == "set_bool_random"){
         if(rand() % 2 == 0)
         Variable->toggleBool();
@@ -786,29 +714,6 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
         unsigned int dice = rand() % Values.size();
         cout << Variable->setString(Values[dice].getString()) << " ";
         cout << Variable->getString() << "\n";
-    }
-    else if(attribute == "set_to_default"){
-        Variable->resetValue();
-    }
-    else if(attribute == "add_default_int" && Values.size() >= 1){
-        Variable->addDefaultInt(Values[0].getIntUnsafe());
-    }
-    else if(attribute == "add_default_int_interval" && Values.size() >= 2){
-        Variable->addDefaultInt(randomInt(Values[0].getIntUnsafe(), Values[1].getIntUnsafe()));
-    }
-    else if(attribute == "add_default_int_random" && Values.size() >= 1){
-        unsigned int dice = rand() % Values.size();
-        Variable->addDefaultInt(Values[dice].getIntUnsafe());
-    }
-    else if(attribute == "add_default_double" && Values.size() >= 1){
-        Variable->addDefaultDouble(Values[0].getDoubleUnsafe());;
-    }
-    else if(attribute == "add_default_double_interval" && Values.size() >= 2){
-        Variable->addDefaultDouble(randomDouble(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));;
-    }
-    else if(attribute == "add_default_double_random" && Values.size() >= 1){
-        unsigned int dice = rand() % Values.size();
-        Variable->addDefaultDouble(Values[dice].getDoubleUnsafe());
     }
     else if(attribute == "add_int" && Values.size() >= 1){
         Variable->addInt(Values[0].getIntUnsafe());

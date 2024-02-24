@@ -41,17 +41,19 @@ end
 
 start neofetch
 print _ result string ["
- XomomomomomomomomomX   Mateusz
- 8   .  .  , .  ,   &   -----------------------
- &. , , g+$$kg  . . 8   OS: Sandstorm Box
- 8  .  d$$''?$b  .  &   Kernel: 0.1
- & .,  d?x,  ''  ,  8   Shell: Sandbox 0.1
- 8  ..  sR$$&Y  . . &   Uptime: 420 hours, 4 mins
- &, .  ..  `T$i  ,  8   Resolution: 1920x1080
- 8  ,  d$x,,$$i   . &   Theme: NewWorld
- &,  . `*c$$+*  .   8   CPU: 12th Gen Intel i5-12600KF
- 8  . , .  ,  . ,   &   GPU: AMD Radeon RX 6700 XT
- X*^*^*^*^*^*^*^*^*^X   Memory: 12819MiB / 32592MiB   
+ XX==================XX   Mateusz
+ XXomomomomomomomomomXX   -----------------------
+ |8   .  .  , .  ,   &|   OS: Sandstorm Box
+ |&. , , g+$$kg  . . 8|   Kernel: 0.1
+ |8  .  d$$''?$b  .  &|   Shell: Sandbox 0.1
+ |& .,  d?x,  ''  ,  8|   Uptime: 420 hours, 4 mins
+ |8  ..  sR$$&Y  . . &|   Resolution: 1920x1080
+ |&, .  ..  `T$i  ,  8|   Theme: NewWorld
+ |8  ,  d$x,,$$i   . &|   CPU: 12th Gen Intel i5-12600KF
+ |&,  . `*c$$+*  .   8|   GPU: AMD Radeon RX 6700 XT
+ |8  . , .  ,  . ,   &|   Memory: 12819MiB / 32592MiB   
+ XX*^*^*^*^*^*^*^*^*^XX   
+ XX==================XX
 
 "]
 string [""] program

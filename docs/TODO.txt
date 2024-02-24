@@ -1,3 +1,5 @@
+-Create the variable vector module.
+-Implement the functionality for up-down arrows inside the terminal.
 -Instead of using "set_can_be_selected" on objects, add "can_select_objects" bool to cameras.
 -Create the "Mover" program: a program that lets you move objects in one layer in real time. 
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
@@ -7,9 +9,9 @@
 -Add global context.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Fix: if the cursor is on the first line, down-arrow is moving cursor with an offset.
--Ctrl+alt+t should open up a new terminal (clone the template)
--Fix: command "sh print "xd\n"" does not work.
+-Create Termial Window.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
+-Fix: command "sh print "xd\n"" does not work.
 -Fix: print command doesn't use special signs.
 -Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
 -Add start, end, triggers instructions to the documentation.
@@ -18,7 +20,6 @@
 -Implement "set_if *event* *expression*" instruction.
 -Add "mute" instruction, or "mute" parameter to "index" and "=" (and actually to all others) instructions: mute errors. 
 -Remove parentheses from "value", "if" and aggregating instructions.
--Implement the functionality for up-down arrows inside the terminal.
 -Add scrolling to the terminal: automatic and the scrollbar.
 -Fix: after pasting text inside the command line, right arrow doesn't go behind the text.
 -Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
@@ -37,6 +38,7 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 -Think about better way of getting attributes from module contexts.
 -Evolve "random_int" instruction into "random".
 -Add more milestones.
+-Remember: inside the map editor, instead of making a lot of "solid" objects, you just need a single object with many images and collisions.
 -Copy tilemap editor from Godot.
 -Connect primitives to cameras.
 -Add selection rectangle to the mouse.

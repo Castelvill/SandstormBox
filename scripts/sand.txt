@@ -128,7 +128,8 @@ var string "" param6
 var string "" param7
 var int 20 roundingSize
 
-
+var int 0 commandNumber
+var int 0 currentCommandNumber
 
 var string "scripts" dir
 

@@ -14,41 +14,6 @@ void getPointersFromVector(vector <T*> & Left, vector<T> & Right);
 
 bool checkForVectorSize(size_t leftSize, size_t rightSize, bool & sameSize, string functionName);
 
-struct EditorWindowArrangement{
-    double windowWidth;
-    vec2d buttonSize;
-    vec2d margin;
-    double buttonMargin;
-    string labelFontID;
-    string attributeFontID;
-    double labelHeight;
-    double attributeStart;
-    double labelMargin;
-    double attributeMargin;
-    vec2d attributePadding;
-    vec2d attributeSize;
-    vec2d editablePadding;
-
-    double containerHeight;
-    vec2d wraperSize;
-    double wraperMargin;
-
-    double labelMoveAhead;
-    double attributeMoveBack;
-    double indentation;
-    vec2d scrollbarMargin;
-
-    vec2d thumbSize;
-
-    EditorWindowArrangement();
-};
-
-void prepareEditorWindow(vector <AncestorObject> & Objects, string layerID, vector<string> &listOfIDs, vector <SingleFont> FontContainer, vector <SingleBitmap> & BitmapContainer);
-void prepareEditorWindowGeneral(AncestorObject *, vector <SingleFont>, vector <SingleBitmap> &, EditorWindowArrangement);
-void removeListsInEditorWindow(AncestorObject * EditorWindow);
-char getActiveEditorWindowCategory(AncestorObject * EditorWindow);
-
-
 vector <short> getPressedKeys(unsigned char key[]);
 vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys);
 
@@ -409,8 +374,6 @@ public:
     void updateEditableTextFields(EngineClass & Engine);
     void selectObject(const MouseClass & Mouse, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer);
     void unselectObject();
-    void updateEditorWindowOnSelection(vector <EditableTextModule> & EditableTextContainer);
-    void updateEditorWindowOnAxisChange(vector <EditableTextModule> & EditableTextContainer);
     void drawSelectionBorder(Camera2D Camera);
     void startScrollbarDragging(const MouseClass & Mouse);
     void dragScrollbars(const MouseClass & Mouse);
@@ -429,8 +392,5 @@ struct ProcessSkeleton{
     string firstLayerID;
     string firstObjectID;
 };
-
-
-
 
 #endif // PROCESSCLASS_H_INCLUDED

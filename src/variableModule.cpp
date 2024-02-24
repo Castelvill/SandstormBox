@@ -27,11 +27,8 @@ bool VariableModule::getIsDeleted() const{
 void VariableModule::clear(){
     type = 'n';
     vInt = 0;
-    defaultInt = 0;
     vDouble = 0.0;
-    defaultDouble = 0.0;
     vString = "";
-    defaultString = "";
 }
 void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
@@ -93,20 +90,7 @@ string VariableModule::getFullTypeName(){
     if(type == 's'){
         return "string";
     }
-    return "";
-}
-bool VariableModule::getDefaultBool()
-{
-    return defaultBool;
-}
-int VariableModule::getDefaultInt(){
-    return defaultInt;
-}
-double VariableModule::getDefaultDouble(){
-    return defaultDouble;
-}
-string VariableModule::getDefaultString(){
-    return defaultString;
+    return "null";
 }
 bool VariableModule::getBool() const{
     if(type == 'i'){
@@ -129,7 +113,6 @@ bool VariableModule::getBoolUnsafe() const{
         return vDouble > 0;
     }
     else if(type != 'b'){
-        cout << "Error [VariableModule]: You can't access boolean variable.\n";
         return false;
     }
     return vBool;
@@ -225,8 +208,7 @@ string VariableModule::getStringUnsafe() const{
     
     return "";
 }
-void VariableModule::setID(string newID, vector<string> *listOfIDs)
-{
+void VariableModule::setID(string newID, vector<string> *listOfIDs){
     if(isStringInVector(reservedIDs, ID)){
         cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
@@ -246,12 +228,12 @@ void VariableModule::setLayerID(string newID){
 void VariableModule::setObjectID(string newID){
     objectID = newID;
 }
-bool VariableModule::setType(char newType)
-{
+bool VariableModule::setType(char newType){
     if(isCharInGroup(newType, 4, 'b', 'i', 'd', 's')){
         type = newType;
         return true;
     }
+    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Variable type '" << newType << "' does not exist.\n";
     return false;
 }
 bool VariableModule::tryToSetType(char newType){
@@ -259,48 +241,12 @@ bool VariableModule::tryToSetType(char newType){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": You can't change the type of already initialized variable.\n";
         return false;
     }
+    if(!isCharInGroup(newType, 4, 'b', 'i', 'd', 's')){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Variable type '" << newType << "' does not exist.\n";
+        return false;
+    }
     type = newType;
     return true;
-}
-bool VariableModule::setDefaultBool(bool newValue){
-    if(tryToSetType('b')){
-        defaultBool = newValue;
-        vBool = defaultBool;
-        return true;
-    }
-    return false;
-}
-bool VariableModule::toggleDefaultBool(){
-    if(tryToSetType('b')){
-        defaultBool = !defaultBool;
-        vBool = defaultBool;
-        return true;
-    }
-    return false;
-}
-bool VariableModule::setDefaultInt(int newValue){
-    if(tryToSetType('i')){
-        defaultInt = newValue;
-        vInt = defaultInt;
-        return true;
-    }
-    return false;
-}
-bool VariableModule::setDefaultDouble(double newValue){
-    if(tryToSetType('d')){
-        defaultDouble = newValue;
-        vDouble = newValue;
-        return true;
-    }
-    return false;
-}
-bool VariableModule::setDefaultString(string newValue){
-    if(tryToSetType('s')){
-        defaultString = newValue;
-        vString = newValue;
-        return true;
-    }
-    return false;
 }
 bool VariableModule::setBool(bool newValue){
     if(tryToSetType('b')){
@@ -344,31 +290,11 @@ bool VariableModule::setString(char newValue){
     }
     return false;
 }
-bool VariableModule::addDefaultInt(int newValue){
-    return setDefaultInt(getDefaultInt()+newValue);
-}
-bool VariableModule::addDefaultDouble(double newValue){
-    return setDefaultDouble(getDefaultDouble()+newValue);
-}
 bool VariableModule::addInt(int newValue){
     return setInt(getInt()+newValue);
 }
 bool VariableModule::addDouble(double newValue){
     return setDouble(getDouble()+newValue);
-}
-void VariableModule::resetValue(){
-    if(type == 'b'){
-        vBool = defaultBool;
-    }
-    else if(type == 'i'){
-        vInt = defaultInt;
-    }
-    else if(type == 'd'){
-        vDouble = defaultDouble;
-    }
-    else if(type == 's'){
-        vString = defaultString;
-    }
 }
 void VariableModule::negate(){
     if(type == 'b'){
@@ -404,26 +330,14 @@ void VariableModule::getContext(string attribute, vector <BasePointersStruct> & 
     else if(attribute == "bool"){
         BasePointers.back().setPointer(&vBool);
     }
-    else if(attribute == "default_bool"){
-        BasePointers.back().setPointer(&defaultBool);
-    }
     else if(attribute == "int"){
         BasePointers.back().setPointer(&vInt);
-    }
-    else if(attribute == "default_int"){
-        BasePointers.back().setPointer(&defaultInt);
     }
     else if(attribute == "double"){
         BasePointers.back().setPointer(&vDouble);
     }
-    else if(attribute == "default_double"){
-        BasePointers.back().setPointer(&defaultDouble);
-    }
     else if(attribute == "string"){
         BasePointers.back().setPointer(&vString);
-    }
-    else if(attribute == "default_string"){
-        BasePointers.back().setPointer(&defaultString);
     }
     else{
         BasePointers.pop_back();

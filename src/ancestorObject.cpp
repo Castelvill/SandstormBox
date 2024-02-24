@@ -138,6 +138,9 @@ void AncestorObject::deleteLater(){
     for(PrimitivesModule & Primitives : PrimitivesContainer){
         Primitives.deleteLater();
     }
+    for(VectorModule & Vector : VectorContainer){
+        Vector.deleteLater();
+    }
 }
 void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, string newLayerID, const bool & changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
@@ -191,6 +194,10 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         PrimitivesContainer.push_back(PrimitivesModule());
         PrimitivesContainer.back().clone(Primitives, primitivesContainerIDs, newLayerID, getID(), true);
     }
+    for(const VectorModule & Vector : Original.VectorContainer){
+        VectorContainer.push_back(VectorModule());
+        VectorContainer.back().clone(Vector, vectorContainerIDs, newLayerID, getID(), true);
+    }
 }
 void AncestorObject::clearVectorsOfIDs(){
     textContainerIDs.clear();
@@ -204,6 +211,7 @@ void AncestorObject::clearVectorsOfIDs(){
     variablesContainerIDs.clear();
     scrollbarContainerIDs.clear();
     primitivesContainerIDs.clear();
+    vectorContainerIDs.clear();
 }
 void AncestorObject::clearContainers(){
     for(auto & Text : TextContainer){
@@ -239,6 +247,7 @@ void AncestorObject::clearContainers(){
     VariablesContainer.clear();
     ScrollbarContainer.clear();
     PrimitivesContainer.clear();
+    VectorContainer.clear();
 }
 void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects,
     vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string workingDirectory
@@ -359,6 +368,9 @@ void AncestorObject::createVectorsOfIds(){
     for(const PrimitivesModule & content : PrimitivesContainer){
         primitivesContainerIDs.push_back(content.getID());
     }
+    for(const VectorModule & content : VectorContainer){
+        vectorContainerIDs.push_back(content.getID());
+    }
 }
 vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
     vec2d finalPos(getPos(false));
@@ -412,6 +424,10 @@ string AncestorObject::addModuleInstance(string module, string newID){
         PrimitivesContainer.push_back(PrimitivesModule(newID, &primitivesContainerIDs, getLayerID(), getID()));
         return SuccessInstanceAdded(module, PrimitivesContainer.back().getID());
     }
+    if(module == "vector"){
+        VectorContainer.push_back(VectorModule(newID, &vectorContainerIDs, getLayerID(), getID()));
+        return SuccessInstanceAdded(module, VectorContainer.back().getID());
+    }
     return "Error: Module \'" + module + "\' does not exist!\n";
 }
 string ErrorNoInstance(string module, string ID){
@@ -450,6 +466,9 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
     }
     if(module == "primitives"){
         return tryRemovingModuleInstance(module, PrimitivesContainer, primitivesContainerIDs, destroyID);
+    }
+    if(module == "vector"){
+        return tryRemovingModuleInstance(module, VectorContainer, vectorContainerIDs, destroyID);
     }
     return "Error: " + module + "Module does not exist!\n";
 }
@@ -1791,6 +1810,9 @@ void AncestorObject::propagateLayerID(){
     for(PrimitivesModule & Primitives : PrimitivesContainer){
         Primitives.setLayerID(layerID);
     }
+    for(VectorModule & Vector : VectorContainer){
+        Vector.setLayerID(layerID);
+    }
 }
 void AncestorObject::propagateObjectID(){
     for(TextModule & Text : TextContainer){
@@ -1823,197 +1845,20 @@ void AncestorObject::propagateObjectID(){
     for(PrimitivesModule & Primitives : PrimitivesContainer){
         Primitives.setObjectID(layerID);
     }
+    for(VectorModule & Vector : VectorContainer){
+        Vector.setObjectID(layerID);
+    }
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule() const{
     return Texts.size() > 0 || EditableTexts.size() > 0 || Images.size() > 0
         || Movements.size() > 0 || Collisions.size() > 0 || Particles.size() > 0
         || Events.size() > 0 || Variables.size() > 0 || Scrollbars.size() > 0
-        || Primitives.size() > 0;
+        || Primitives.size() > 0 || Vectors.size() > 0;
 }
 unsigned ModulesPointers::size() const{
     return Texts.size() + EditableTexts.size() + Images.size() +
         Movements.size() + Collisions.size() + Particles.size() +
         Events.size() + Variables.size() + Scrollbars.size()
-        + Primitives.size();
-}
-
-void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow){
-    for_each_if(EditorWindow->TextContainer.begin(), EditorWindow->TextContainer.end(), isStringInGroupModule<TextModule>(), deactivateModule<TextModule>());
-    for_each_if(EditorWindow->ImageContainer.begin(), EditorWindow->ImageContainer.end(), isStringInGroupModule<ImageModule>(), deactivateModule<ImageModule>());
-    for_each_if(EditorWindow->CollisionContainer.begin(), EditorWindow->CollisionContainer.end(), isStringInGroupModule<CollisionModule>(), deactivateModule<CollisionModule>());
-    for_each_if(EditorWindow->EditableTextContainer.begin(), EditorWindow->EditableTextContainer.end(), isStringInGroupModule<EditableTextModule>(), deactivateModule<EditableTextModule>());
-    for_each_if(EditorWindow->EveContainer.begin(), EditorWindow->EveContainer.end(), isStringInGroupModule<EveModule>(), deactivateModule<EveModule>());
-    for_each_if(EditorWindow->ScrollbarContainer.begin(), EditorWindow->ScrollbarContainer.end(), isStringInGroupModule<ScrollbarModule>(), deactivateModule<ScrollbarModule>());
-}
-void activateBasedOnId(AncestorObject * EditorWindow, string activateID){
-    for_each_if(EditorWindow->TextContainer.begin(), EditorWindow->TextContainer.end(), isIDEqualString<TextModule>(activateID), activateModule<TextModule>());
-    for_each_if(EditorWindow->ImageContainer.begin(), EditorWindow->ImageContainer.end(), isIDEqualString<ImageModule>(activateID), activateModule<ImageModule>());
-    for_each_if(EditorWindow->CollisionContainer.begin(), EditorWindow->CollisionContainer.end(), isIDEqualString<CollisionModule>(activateID), activateModule<CollisionModule>());
-    for_each_if(EditorWindow->EditableTextContainer.begin(), EditorWindow->EditableTextContainer.end(), isIDEqualString<EditableTextModule>(activateID), activateModule<EditableTextModule>());
-    for_each_if(EditorWindow->ScrollbarContainer.begin(), EditorWindow->ScrollbarContainer.end(), isIDEqualString<ScrollbarModule>(activateID), activateModule<ScrollbarModule>());
-}
-void activateBasedOnFirstChar(AncestorObject * EditorWindow, char activateID){
-    for_each_if(EditorWindow->TextContainer.begin(), EditorWindow->TextContainer.end(), isIDEqualChar<TextModule>(activateID), activateModule<TextModule>());
-    for_each_if(EditorWindow->ImageContainer.begin(), EditorWindow->ImageContainer.end(), isIDEqualChar<ImageModule>(activateID), activateModule<ImageModule>());
-    for_each_if(EditorWindow->CollisionContainer.begin(), EditorWindow->CollisionContainer.end(), isIDEqualChar<CollisionModule>(activateID), activateModule<CollisionModule>());
-    for_each_if(EditorWindow->EditableTextContainer.begin(), EditorWindow->EditableTextContainer.end(), isIDEqualChar<EditableTextModule>(activateID), activateModule<EditableTextModule>());
-    for_each_if(EditorWindow->ScrollbarContainer.begin(), EditorWindow->ScrollbarContainer.end(), isIDEqualChar<ScrollbarModule>(activateID), activateModule<ScrollbarModule>());
-}
-
-void deactivateWrapped(int categoryIndex, AncestorObject * EditorWindow){
-    vec2d newPos;
-    bool wrapContent = false;
-    unsigned int index = 0;
-    string wrapperVariableID;
-    int wrapperIndex = 0;
-    for(VariableModule Variable : EditorWindow->VariablesContainer){
-        wrapperVariableID = std::to_string(categoryIndex) + "_wrapper_" + std::to_string(wrapperIndex+1);
-        if(Variable.getID() == wrapperVariableID){
-            wrapContent = Variable.getBool();
-            if(wrapContent){
-                for(index = 0; index < EditorWindow->TextContainer.size(); index++){
-                    if(EditorWindow->TextContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
-                        index+=1;
-                        index += wrapperIndex * (3) + 1;
-                        for(unsigned int i = 0; i < 2; i++){
-                            EditorWindow->TextContainer[index].deactivate();
-                            index++;
-                        }
-                        break;
-                    }
-                }
-
-                for(index = 0; index < EditorWindow->ImageContainer.size(); index++){
-                    if(EditorWindow->ImageContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
-                        index+=3;
-                        index += wrapperIndex * (5) + 1;
-                        for(unsigned int i = 0; i < 2; i++){
-                            EditorWindow->ImageContainer[index].deactivate();
-                            index++;
-                        }
-                        break;
-                    }
-                }
-
-                for(index = 0; index < EditorWindow->EditableTextContainer.size(); index++){
-                    if(EditorWindow->EditableTextContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
-                        index+=0;
-                        index += wrapperIndex * (2);
-                        for(unsigned int i = 0; i < 2; i++){
-                            EditorWindow->EditableTextContainer[index].deactivate();
-                            index++;
-                        }
-                        break;
-                    }
-                }
-            }
-            wrapperIndex++;
-        }
-    }
-}
-
-void manageWrapper(int categoryIndex, int wrapperIndex, AncestorObject * EditorWindow, double containerHeight){
-    vec2d newPos;
-    bool wrapContent = false;
-    unsigned int index = 0;
-    string wrapperVariableID = std::to_string(categoryIndex) + "_wrapper_" + std::to_string(wrapperIndex+1);
-    for(VariableModule Variable : EditorWindow->VariablesContainer){
-        if(Variable.getID() == wrapperVariableID){
-            wrapContent = Variable.getBool();
-            break;
-        }
-    }
-
-    for(index = 0; index < EditorWindow->TextContainer.size(); index++){
-        if(EditorWindow->TextContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
-            index+=1;
-            index += wrapperIndex * (3) + 1;
-            for(unsigned int i = 0; i < 2; i++){
-                EditorWindow->TextContainer[index].toggleIsActive();
-                index++;
-            }
-
-            for(; index < EditorWindow->TextContainer.size(); index++){
-                if(EditorWindow->TextContainer[index].getID()[0] != std::to_string(categoryIndex)[0])
-                    break;
-                newPos = EditorWindow->TextContainer[index].getPos(false);
-                if(wrapContent){
-                    newPos.y += containerHeight*4;
-                }
-                else{
-                    newPos.y -= containerHeight*4;
-                }
-                EditorWindow->TextContainer[index].setPos(newPos);
-            }
-            break;
-        }
-    }
-
-    for(index = 0; index < EditorWindow->ImageContainer.size(); index++){
-        if(EditorWindow->ImageContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
-            index+=3;
-            index += wrapperIndex * (5) + 1;
-            for(unsigned int i = 0; i < 2; i++){
-                EditorWindow->ImageContainer[index].toggleIsActive();
-                index++;
-            }
-            for(; index < EditorWindow->ImageContainer.size(); index++){
-                if(EditorWindow->ImageContainer[index].getID()[0] != std::to_string(categoryIndex)[0])
-                    break;
-                newPos = EditorWindow->ImageContainer[index].getPos(false);
-                if(wrapContent){
-                    newPos.y += containerHeight*4;
-                }
-                else{
-                    newPos.y -= containerHeight*4;
-                }
-                EditorWindow->ImageContainer[index].setPos(newPos);
-            }
-            break;
-        }
-    }
-
-    for(index = 0; index < EditorWindow->EditableTextContainer.size(); index++){
-        if(EditorWindow->EditableTextContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
-            index+=0;
-            index += wrapperIndex * (2);
-            for(unsigned int i = 0; i < 2; i++){
-                EditorWindow->EditableTextContainer[index].toggleIsActive();
-                index++;
-            }
-            for(; index < EditorWindow->EditableTextContainer.size(); index++){
-                if(EditorWindow->EditableTextContainer[index].getID()[0] != std::to_string(categoryIndex)[0])
-                    break;
-                newPos = EditorWindow->EditableTextContainer[index].getPos(false);
-                if(wrapContent){
-                    newPos.y += containerHeight*4;
-                }
-                else{
-                    newPos.y -= containerHeight*4;
-                }
-                EditorWindow->EditableTextContainer[index].setPos(newPos);
-            }
-            break;
-        }
-    }
-
-    /*for(index = 0; index < EditorWindow->EventsContainer.size(); index++){
-        if(EditorWindow->EventsContainer[index].getID()[0] == std::to_string(categoryIndex)[0]){
-            index += wrapperIndex+1;
-            for(; index < EditorWindow->EventsContainer.size(); index++){
-                if(EditorWindow->EventsContainer[index].getID()[0] != std::to_string(categoryIndex)[0])
-                    break;
-                newPos = EditorWindow->EventsContainer[index].getPos(false);
-                if(wrapContent){
-                    newPos.y += containerHeight*4;
-                }
-                else{
-                    newPos.y -= containerHeight*4;
-                }
-                EditorWindow->EventsContainer[index].setPos(newPos);
-            }
-            break;
-        }
-    }*/
+        + Primitives.size() + Vectors.size();
 }

@@ -6342,7 +6342,6 @@ void ProcessClass::changeWorkingDirectory(OperaClass & Operation, vector<Context
 void ProcessClass::printWorkingDirectory(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.newContextID == ""){
         cout << workingDirectory;
-        cout.flush();
     }
     ContextClass NewContext;
     NewContext.type = "value";
@@ -6610,6 +6609,8 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 cout << "Error: In " << __FUNCTION__ << ": Instruction '" << Operation.instruction << "' does not exist.\n";
                 break;
         }
+
+        cout.flush();
         
         if(printOutInstructions && printOutStackAutomatically && Operation.instruction != EngineInstr::dump_context_stack){
             buffor = "\nStack: ";
@@ -9205,32 +9206,6 @@ void ProcessClass::unselectObject(){
     SelectedObject = nullptr;
 }
 
-void ProcessClass::updateEditorWindowOnSelection(vector <EditableTextModule> & EditableTextContainer){
-    for(EditableTextModule & Text : EditableTextContainer){
-        Text.setConnectedObjectID(SelectedObject->getID());
-    }
-    EditableTextContainer[0].modifyContent(0, SelectedObject->getID());
-    EditableTextContainer[1].modifyContent(0, std::to_string(SelectedObject->getPos(false).x));
-    EditableTextContainer[2].modifyContent(0, std::to_string(SelectedObject->getPos(false).y));
-    EditableTextContainer[3].modifyContent(0, std::to_string(SelectedObject->getSize().x));
-    EditableTextContainer[4].modifyContent(0, std::to_string(SelectedObject->getSize().y));
-    EditableTextContainer[5].modifyContent(0, std::to_string(SelectedObject->getIsScaledFromCenter()));
-    EditableTextContainer[6].modifyContent(0, std::to_string(SelectedObject->getIsAttachedToCamera()));
-}
-//Updates coordinates of the selected object in the editor's text fields. 
-void ProcessClass::updateEditorWindowOnAxisChange(vector <EditableTextModule> & EditableTextContainer){
-    if(EditableTextContainer.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": Editable text container is empty.\n";
-        return;
-    }
-    if(!EditableTextContainer[0].getIsActive()){
-        return;
-    }
-
-    EditableTextContainer[1].modifyContent(0, std::to_string(SelectedObject->getPos(false).x));
-    EditableTextContainer[2].modifyContent(0, std::to_string(SelectedObject->getPos(false).y));
-}
-
 void ProcessClass::drawSelectionBorder(Camera2D Camera){
     if(SelectedObject == nullptr){
         return;
@@ -9244,74 +9219,6 @@ void ProcessClass::drawSelectionBorder(Camera2D Camera){
     }
     else{
         al_draw_rectangle(borderPos.x, borderPos.y, borderPos.x + borderSize.x, borderPos.y + borderSize.y, al_map_rgb(216, 78, 213), 6);
-    }
-}
-
-EditorWindowArrangement::EditorWindowArrangement(){
-    windowWidth = 500.0;
-    buttonSize.set(42.0, 42.0);
-    margin.set(20.0, 20.0);
-    buttonMargin = 10.0;
-    labelFontID = "Minecraft24";
-    attributeFontID = "Minecraft24";
-    labelHeight = 0;
-    attributeStart = 150.0;
-    labelMargin = 10.0;
-    attributeMargin = 30.0;
-    attributePadding.set(0.0, 8.0);
-    attributeSize.set(windowWidth-margin.x*2.0, 0);
-    editablePadding.set(8.0, 2.0);
-    containerHeight = 45;
-    wraperSize.set(40.0, 40.0);
-    wraperMargin = 3.0;
-
-    labelMoveAhead = 6.0;
-    attributeMoveBack = 8.0;
-    indentation = 0.0;
-
-    scrollbarMargin.set(30.0, 30.0);
-
-    thumbSize.set(32.0, 32.0);
-}
-
-char getActiveEditorWindowCategory(AncestorObject * EditorWindow){
-    for(TextModule & Text : EditorWindow->TextContainer){
-        if(Text.getIsActive() && isCharInGroup(Text.getID()[0], 9, "1", "2", "3", "4", "5", "6", "7", "8", "9")){
-            return Text.getID()[0];
-        }
-    }
-    return '0';
-}
-void removeListsInEditorWindow(AncestorObject * EditorWindow){
-    for(unsigned int i = 0; i < EditorWindow->TextContainer.size(); i++){
-        if(isCharInGroup(EditorWindow->TextContainer[i].getID()[0], 8, "2", "3", "4", "5", "6", "7", "8", "9")){
-            EditorWindow->TextContainer.resize(i, TextModule());
-            break;
-        }
-    }
-    for(unsigned int i = 0; i < EditorWindow->ImageContainer.size(); i++){
-        if(isCharInGroup(EditorWindow->ImageContainer[i].getID()[0], 8, "2", "3", "4", "5", "6", "7", "8", "9")){
-            EditorWindow->ImageContainer.resize(i, ImageModule());
-            break;
-        }
-    }
-    for(unsigned int i = 0; i < EditorWindow->EditableTextContainer.size(); i++){
-        if(isCharInGroup(EditorWindow->EditableTextContainer[i].getID()[0], 8, "2", "3", "4", "5", "6", "7", "8", "9")){
-            EditorWindow->EditableTextContainer.resize(i, EditableTextModule());
-            break;
-        }
-    }
-    for(unsigned int i = 0; i < EditorWindow->CollisionContainer.size(); i++){
-        if(isCharInGroup(EditorWindow->CollisionContainer[i].getID()[0], 8, "2", "3", "4", "5", "6", "7", "8", "9")){
-            EditorWindow->CollisionContainer.resize(i, CollisionModule());
-            break;
-        }
-    }
-    for(unsigned int i = 0; i < EditorWindow->VariablesContainer.size(); i++){
-        if(isCharInGroup(EditorWindow->VariablesContainer[i].getID()[0], 8, "2", "3", "4", "5", "6", "7", "8", "9")){
-            EditorWindow->VariablesContainer.resize(i, VariableModule());
-            break;
-        }
     }
 }
 

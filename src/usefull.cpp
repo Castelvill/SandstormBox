@@ -89,7 +89,7 @@ bool isCharInGroup(char ID, int count, ...){
     va_list args;
     va_start(args, count);
     for (int i = 0; i < count; i++){
-        char temp = va_arg(args, const char*)[0];
+        char temp = va_arg(args, int);
         if(ID == temp){
             return true;
         }

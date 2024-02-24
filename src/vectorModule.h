@@ -1,0 +1,57 @@
+#ifndef VECTORMODULE_H_INCLUDED
+#define VECTORMODULE_H_INCLUDED
+#include "usefull.h"
+
+class VectorModule{
+    bool deleted;
+    string ID;
+    string layerID;
+    string objectID;
+    char type;
+    vector <bool> vBool;
+    vector <int> vInt;
+	vector <double> vDouble;
+	vector <string> vString;
+public:
+    VectorModule();
+    VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    void clear();
+    void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const VectorModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void deleteLater();
+    void setID(string newID, vector<string> * listOfIDs);
+    void setLayerID(string);
+    void setObjectID(string);
+    bool setType(char newType);
+    bool pushBool(bool newValue);
+    bool pushInt(int newValue);
+    bool pushDouble(double newValue);
+    bool pushString(string newValue);
+    bool popBack();
+    bool removeIndex(size_t index);
+
+    bool getIsDeleted() const;
+    string getID() const;
+    string & getIDAddr();
+    string getLayerID() const;
+    string getObjectID() const;
+    char getType() const;
+    string getFullTypeName() const;
+    string getValue(size_t index) const;
+    string getValueUnsafe(long index) const;
+    bool getBool(size_t index) const;
+    bool getBoolUnsafe(long index) const;
+    int getInt(size_t index) const;
+    int getIntUnsafe(long index) const;
+    double getDouble(size_t index) const;
+    double getDoubleUnsafe(long index) const;
+    string getString(size_t index) const;
+    string getStringUnsafe(long index) const;
+    string getLastValue() const;
+    bool getLastBool() const;
+    int getLastInt() const;
+    double getLastDouble() const;
+    string getLastString() const;
+};
+
+#endif // VECTORMODULE_H_INCLUDED

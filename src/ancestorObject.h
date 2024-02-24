@@ -15,6 +15,7 @@ struct ModulesPointers{
     vector <VariableModule*> Variables;
     vector <ScrollbarModule*> Scrollbars;
     vector <PrimitivesModule*> Primitives;
+    vector <VectorModule*> Vectors;
     bool hasInstanceOfAnyModule() const;
     unsigned size() const;
 };
@@ -34,6 +35,7 @@ public:
     vector <VariableModule> VariablesContainer;
     vector <ScrollbarModule> ScrollbarContainer;
     vector <PrimitivesModule> PrimitivesContainer;
+    vector <VectorModule> VectorContainer;
     vector <string> textContainerIDs;
     vector <string> editableTextContainerIDs;
     vector <string> imageContainerIDs;
@@ -45,6 +47,8 @@ public:
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
     vector <string> primitivesContainerIDs;
+    vector <string> vectorContainerIDs;
+
     vector <string> bindedScripts;
 
     AncestorObject();
@@ -77,13 +81,6 @@ public:
 
 vector <string> tokenizeCode(string input);
 
-void deactivateAllVectorsInEditorWindow(AncestorObject * EditorWindow);
-void activateBasedOnId(AncestorObject * EditorWindow, string activateID);
-void activateBasedOnFirstChar(AncestorObject * EditorWindow, char activateID);
-
-void deactivateWrapped(int categoryIndex, AncestorObject * EditorWindow);
-void manageWrapper(int categoryIndex, int wrapperIndex, AncestorObject * EditorWindow, double containerHeight);
-
 
 template<class Module>
 bool removeModuleInstanceByID(vector <Module> & Container, string destroyID){
@@ -115,7 +112,7 @@ string tryRemovingModuleInstance(string module, vector <Module> & Container, vec
 template<class Module>
 struct isStringInGroupModule {
     bool operator()(Module& Object) {
-        return isCharInGroup(Object.getID()[0], 10, "l" /*It's L*/, "1", "2", "3", "4", "5", "6", "7", "8", "9");
+        return isCharInGroup(Object.getID()[0], 10, 'l' /*It's L*/, '1', '2', '3', '4', '5', '6', '7', '8', '9');
     }
 };
 template<class Module>
