@@ -1,0 +1,3 @@
+Enter: comNum++; curComNum = comNum; ComHist.texts[curComNum] = currentLine; ComHist.addText;
+ArowUp: if curComNum > 0: ComHist.texts[curComNum] = currentLine; curComNum--; History.cutEnd; History.text += ComHist.texts[curComNum];
+ArowDown: if curComNum < comNum: ComHist.texts[curComNum] = currentLine; curComNum++; History.cutEnd; History.text += ComHist.texts[curComNum];
