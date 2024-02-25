@@ -220,11 +220,17 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
     else if(attribute == "set_protected_area" && Values.size() > 0){
         EditableText->setProtectedArea(Values[0].getIntUnsafe());
     }
+    else if(attribute == "cut_unprotected_area"){
+        EditableText->cutCurrentContent(EditableText->getProtectedArea());
+    }
     else if(attribute == "stop_editing"){
         EditableText->setEditingIsActive(false);
     }
     else if(attribute == "start_editing"){
         EditableText->setEditingIsActive(true);
+    }
+    else if(attribute == "set_ignore_vertical_arrows"){
+        EditableText->ignoreVerticalArrows = Values[0].getBoolUnsafe();
     }
     else{
         controlText(EditableText, attribute, Values, IDs, FontContainer);
@@ -791,6 +797,58 @@ void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribut
             temp = Values[0].getBoolUnsafe();
         }
         Primitives->control(attribute, temp, Values.size());
+    }
+}
+void EveModule::controlVector(VectorModule * Vector, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+    if(attribute == "set_id" && Values.size() > 0){
+        Vector->setID(Values[0].getStringUnsafe(), &IDs);
+    }
+    else if(attribute == "push_back" && Values.size() >= 1){
+        if(Values[0].getType() == 'b'){
+            Vector->pushBool(Values[0].getBoolUnsafe());
+        }
+        else if(Values[0].getType() == 'i'){
+            Vector->pushInt(Values[0].getIntUnsafe());
+        }
+        else if(Values[0].getType() == 'd'){
+            Vector->pushDouble(Values[0].getDoubleUnsafe());
+        }
+        else if(Values[0].getType() == 's'){
+            Vector->pushString(Values[0].getStringUnsafe());
+        }
+        else{
+            cout << "Error: In " << __FUNCTION__ << ": Value of '" << Values[0].getType()
+                << "' type cannot be pushed back into the vector '" << Vector->getID()
+                << "' of '" << Vector->getType() << "' type.\n";
+        }
+    }
+    else if(attribute == "pop_back"){
+        Vector->popBack();
+    }
+    else if(attribute == "remove" && Values.size() >= 1){
+        Vector->removeIndex(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set" && Values.size() >= 2){
+        if(Values[1].getType() == 'b'){
+            Vector->setBool(Values[0].getIntUnsafe(), Values[1].getBoolUnsafe());
+        }
+        else if(Values[1].getType() == 'i'){
+            Vector->setInt(Values[0].getIntUnsafe(), Values[1].getIntUnsafe());
+        }
+        else if(Values[1].getType() == 'd'){
+            Vector->setDouble(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+        }
+        else if(Values[1].getType() == 's'){
+            Vector->setString(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
+        }
+        else{
+            cout << "Error: In " << __FUNCTION__ << ": Value of '" << Values[0].getType()
+                << "' type cannot be assign to the vector '" << Vector->getID()
+                << "' of '" << Vector->getType() << "' type.\n";
+        }
+    }
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": Function " << attribute << "<" << Values.size() << "> does not exist.\n";
     }
 }
 

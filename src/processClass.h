@@ -88,6 +88,7 @@ struct ContextClass{
     void addModule(VariableModule * Module);
     void addModule(ScrollbarModule * Module);
     void addModule(PrimitivesModule * Module);
+    void addModule(VectorModule * Module);
 
     void setFirstModule(TextModule * Module);
     void setFirstModule(EditableTextModule * Module);
@@ -99,6 +100,7 @@ struct ContextClass{
     void setFirstModule(VariableModule * Module);
     void setFirstModule(ScrollbarModule * Module);
     void setFirstModule(PrimitivesModule * Module);
+    void setFirstModule(VectorModule * Module);
 
     void leaveOneRandomBasePointer();
 
@@ -309,6 +311,9 @@ public:
         vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
     );
     void createNewOwnerVariable(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    );
+    void createNewOwnerVector(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
     );
     void tokenizeString(OperaClass & Operation, vector<ContextClass> & EventContext);

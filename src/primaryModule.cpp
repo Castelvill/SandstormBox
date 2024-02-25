@@ -247,6 +247,9 @@ EngineInstr transInstr(string instruction){
     if(instruction == "var"){
         return EngineInstr::var;
     }
+    if(instruction == "vec"){
+        return EngineInstr::vec;
+    }
     if(instruction == "tokenize"){
         return EngineInstr::tokenize;
     }
@@ -445,6 +448,8 @@ string transInstrToStr(EngineInstr instruction){
             return "new_proc";
         case var:
             return "var";
+        case vec:
+            return "vec";
         case tokenize:
             return "tokenize";
         case tree:

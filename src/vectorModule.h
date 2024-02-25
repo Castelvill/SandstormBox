@@ -1,6 +1,11 @@
 #ifndef VECTORMODULE_H_INCLUDED
 #define VECTORMODULE_H_INCLUDED
-#include "usefull.h"
+#include "variableModule.h"
+
+//Vector<bool> optimalisation does not allow getting a reference to its bool instances thus a wrapper is needed.
+struct stupidBool{
+    bool value;
+};
 
 class VectorModule{
     bool deleted;
@@ -8,7 +13,7 @@ class VectorModule{
     string layerID;
     string objectID;
     char type;
-    vector <bool> vBool;
+    vector <stupidBool> vBool;
     vector <int> vInt;
 	vector <double> vDouble;
 	vector <string> vString;
@@ -27,6 +32,11 @@ public:
     bool pushInt(int newValue);
     bool pushDouble(double newValue);
     bool pushString(string newValue);
+    bool setBool(size_t index, bool newValue);
+    bool setInt(size_t index, int newValue);
+    bool setDouble(size_t index, double newValue);
+    bool setString(size_t index, string newValue);
+
     bool popBack();
     bool removeIndex(size_t index);
 
@@ -37,8 +47,10 @@ public:
     string getObjectID() const;
     char getType() const;
     string getFullTypeName() const;
-    string getValue(size_t index) const;
-    string getValueUnsafe(long index) const;
+
+    VariableModule getValue(string attribute, size_t index) const;
+    string getAnyStringValue(size_t index) const;
+    string getAnyStringValueUnsafe(long index) const;
     bool getBool(size_t index) const;
     bool getBoolUnsafe(long index) const;
     int getInt(size_t index) const;
@@ -52,6 +64,12 @@ public:
     int getLastInt() const;
     double getLastDouble() const;
     string getLastString() const;
+    bool getFirstBool() const;
+    int getFirstInt() const;
+    double getFirstDouble() const;
+    string getFirstString() const;
+    size_t getSize() const;
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
 
 #endif // VECTORMODULE_H_INCLUDED

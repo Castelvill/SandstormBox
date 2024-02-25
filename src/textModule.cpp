@@ -35,6 +35,7 @@ void TextModule::setUpNewInstance(){
     cursorPos = 0;
     secondCursorPos = 0;
     ignoreSize = false;
+    ignoreVerticalArrows = false;
 }
 TextModule::TextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -149,6 +150,9 @@ void TextModule::deleteContent(unsigned int textNumber){
         currentTextIdx--;
     }
     adjustCursorPos();
+}
+void TextModule::cutCurrentContent(size_t newSize){
+    content[currentTextIdx] = content[currentTextIdx].substr(0, newSize);
 }
 void TextModule::clear(){
     content.clear();
@@ -1455,7 +1459,7 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
     for(char pKey : pressedKeys){
         text = getContent(currentTextIdx);
 
-        if(pKey == ALLEGRO_KEY_UP){
+        if(!ignoreVerticalArrows && pKey == ALLEGRO_KEY_UP){
             if(cursorPos == 0){
                 continue;
             }
@@ -1472,7 +1476,7 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             }
             continue;
         }
-        else if(pKey == ALLEGRO_KEY_DOWN){
+        else if(!ignoreVerticalArrows && pKey == ALLEGRO_KEY_DOWN){
             if(cursorPos >= text.size()){
                 continue;
             }

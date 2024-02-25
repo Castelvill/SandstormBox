@@ -1,22 +1,5 @@
 start help
-print _ result string ["cls
-print
-fullscreen
-fs
-ls
-hello
-222
-cat
-cats
-sq
-neofetch
-sh
-nw
-spawn
-cat
-edit
-sand
-exit
+print _ result string ["help neofetch cls print fs ls pwd cd cat exit reboot edit sand hello 222 cat cats sq sh nw spawn note mover
 "]
 string [""] program
 run printOnTerminal

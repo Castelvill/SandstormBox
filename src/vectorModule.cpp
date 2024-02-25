@@ -67,7 +67,7 @@ bool VectorModule::setType(char newType){
 }
 bool VectorModule::pushBool(bool newValue){
     if(type == 'b'){
-        vBool.push_back(newValue);
+        vBool.push_back(stupidBool(newValue));
         return true;
     }
     else if(type == 'i'){
@@ -76,6 +76,10 @@ bool VectorModule::pushBool(bool newValue){
     }
     else if(type == 'd'){
         vDouble.push_back(newValue);
+        return true;
+    }
+    else if(type == 's'){
+        vString.push_back(intToStr(newValue));
         return true;
     }
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'bool' type to a '" << type << "' vector.\n";
@@ -83,7 +87,7 @@ bool VectorModule::pushBool(bool newValue){
 }
 bool VectorModule::pushInt(int newValue){
     if(type == 'b'){
-        vBool.push_back(newValue);
+        vBool.push_back(stupidBool(newValue));
         return true;
     }
     else if(type == 'i'){
@@ -92,6 +96,10 @@ bool VectorModule::pushInt(int newValue){
     }
     else if(type == 'd'){
         vDouble.push_back(newValue);
+        return true;
+    }
+    else if(type == 's'){
+        vString.push_back(intToStr(newValue));
         return true;
     }
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'int' type to a '" << type << "' vector.\n";
@@ -99,7 +107,7 @@ bool VectorModule::pushInt(int newValue){
 }
 bool VectorModule::pushDouble(double newValue){
     if(type == 'b'){
-        vBool.push_back(newValue);
+        vBool.push_back(stupidBool(newValue));
         return true;
     }
     else if(type == 'i'){
@@ -108,6 +116,10 @@ bool VectorModule::pushDouble(double newValue){
     }
     else if(type == 'd'){
         vDouble.push_back(newValue);
+        return true;
+    }
+    else if(type == 's'){
+        vString.push_back(doubleToStr(newValue));
         return true;
     }
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'double' type to a '" << type << "' vector.\n";
@@ -161,6 +173,79 @@ bool VectorModule::removeIndex(size_t index){
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index << ") is out of scope of vector '" << ID << "'.\n";
     return false;
 }
+bool VectorModule::setBool(size_t index, bool newValue){
+    if(index < vBool.size()){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
+            << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
+        return false;
+    }
+    if(type == 'b'){
+        vBool[index].value = newValue;
+    }
+    else if(type == 'i'){
+        vInt[index] = newValue;
+    }
+    else if(type == 'd'){
+        vDouble[index] = newValue;
+    }
+    else if(type == 's'){
+        vString[index] = newValue;
+    }
+    return true;
+}
+bool VectorModule::setInt(size_t index, int newValue){
+    if(index < vBool.size()){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
+            << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
+        return false;
+    }
+    if(type == 'b'){
+        vBool[index].value = newValue;
+    }
+    else if(type == 'i'){
+        vInt[index] = newValue;
+    }
+    else if(type == 'd'){
+        vDouble[index] = newValue;
+    }
+    else if(type == 's'){
+        vString[index] = newValue;
+    }
+    return true;
+}
+bool VectorModule::setDouble(size_t index, double newValue){
+    if(index < vBool.size()){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
+            << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
+        return false;
+    }
+    if(type == 'b'){
+        vBool[index].value = newValue;
+    }
+    else if(type == 'i'){
+        vInt[index] = newValue;
+    }
+    else if(type == 'd'){
+        vDouble[index] = newValue;
+    }
+    else if(type == 's'){
+        vString[index] = newValue;
+    }
+    return true;
+}
+bool VectorModule::setString(size_t index, string newValue){
+    if(index < vBool.size()){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
+            << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
+        return false;
+    }
+    if(type != 's'){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot assign a string value to a vector of '" << type << "' type.\n";
+        return false;
+    }
+    vString[index] = newValue;
+    return true;
+}
 
 bool VectorModule::getIsDeleted() const{
     return deleted;
@@ -195,9 +280,48 @@ string VectorModule::getFullTypeName() const{
     }
     return "null";
 }
-string VectorModule::getValue(size_t index) const{
+VariableModule VectorModule::getValue(string attribute, size_t index) const{
+    if(attribute == "back" || attribute == "b"){
+        if(type == 'b'){
+            return VariableModule::newBool(getLastBool());
+        }
+        if(type == 'i'){
+            return VariableModule::newInt(getLastInt());
+        }
+        if(type == 'd'){
+            return VariableModule::newDouble(getLastDouble());
+        }
+        if(type == 's'){
+            return VariableModule::newString(getLastString());
+        }
+        cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Type '" << type << "' is not valid for last value extraction.\n";
+    }
+    else if(attribute == "value" || attribute == "v"){
+        if(type == 'b'){
+            return VariableModule::newBool(getBool(index));
+        }
+        if(type == 'i'){
+            return VariableModule::newInt(getInt(index));
+        }
+        if(type == 'd'){
+            return VariableModule::newDouble(getDouble(index));
+        }
+        if(type == 's'){
+            return VariableModule::newString(getString(index));
+        }
+        cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Type '" << type << "' is not valid for value extraction.\n";
+    }
+    else if(attribute == "size"){
+        return VariableModule::newInt(getSize());
+    }
+    else{
+        cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Attribute '" << attribute << "' does not exist in the context of Vector module.\n";
+    }
+    return VariableModule::newBool(false, "null");
+}
+string VectorModule::getAnyStringValue(size_t index) const{
     if(type == 'b' && index < vBool.size()){
-        if(vBool[index]){
+        if(vBool[index].value){
             return "true";
         }
         return "false";
@@ -214,7 +338,7 @@ string VectorModule::getValue(size_t index) const{
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
     return "";
 }
-string VectorModule::getValueUnsafe(long index) const{
+string VectorModule::getAnyStringValueUnsafe(long index) const{
     if(type == 'b'){
         if(getBoolUnsafe(index)){
             return "true";
@@ -239,7 +363,7 @@ bool VectorModule::getBool(size_t index) const{
             << " is out of scope of the vector '" << ID << "' of size " << vBool.size() << ".\n";
         return false;
     }
-    return vBool[index];
+    return vBool[index].value;
 }
 bool VectorModule::getBoolUnsafe(long index) const{
     if(vBool.size() == 0){
@@ -254,7 +378,7 @@ bool VectorModule::getBoolUnsafe(long index) const{
         index = vBool.size() - ((-index) % vBool.size());
     }
 
-    return vBool[index];
+    return vBool[index].value;
 }
 int VectorModule::getInt(size_t index) const{
     if(index >= vInt.size()){
@@ -327,7 +451,7 @@ string VectorModule::getStringUnsafe(long index) const{
 }
 string VectorModule::getLastValue() const{
     if(type == 'b' && vBool.size() > 0){
-        if(vBool.back()){
+        if(vBool.back().value){
             return "true";
         }
         return "false";
@@ -349,7 +473,7 @@ bool VectorModule::getLastBool() const{
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return false;
     }
-    return vBool.back();
+    return vBool.back().value;
 }
 int VectorModule::getLastInt() const{
     if(vInt.size() == 0){
@@ -371,4 +495,114 @@ string VectorModule::getLastString() const{
         return "";
     }
     return vString.back();
+}
+bool VectorModule::getFirstBool() const{
+    if(vBool.size() == 0){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        return false;
+    }
+    return vBool[0].value;
+}
+int VectorModule::getFirstInt() const{
+    if(vBool.size() == 0){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        return 0;
+    }
+    return vInt[0];
+}
+double VectorModule::getFirstDouble() const{
+    if(vBool.size() == 0){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        return 0.0;
+    }
+    return vDouble[0];
+}
+string VectorModule::getFirstString() const{
+    if(vBool.size() == 0){
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        return "";
+    }
+    return vString[0];
+}
+size_t VectorModule::getSize() const{
+    if(type == 'b'){
+        return vBool.size();
+    }
+    if(type == 'i'){
+        return vInt.size();
+    }
+    if(type == 'd'){
+        return vDouble.size();
+    }
+    if(type == 's'){
+        return vString.size();
+    }
+    return 0;
+}
+
+void VectorModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
+    BasePointers.push_back(BasePointersStruct());
+    if(attribute == "id"){
+        if(isStringInVector(reservedIDs, ID)){
+            cout << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
+            BasePointers.pop_back();
+            return;
+        }
+        BasePointers.back().setPointer(&ID);
+        BasePointers.back().readOnly = true;
+    }
+    else if(attribute == "type"){
+        BasePointers.back().setPointer(&type);
+    }
+    else if(getSize() > 0){
+        if(attribute == "last_bool"){
+            BasePointers.back().setPointer(&vBool.back().value);
+        }
+        else if(attribute == "last_int"){
+            BasePointers.back().setPointer(&vInt.back());
+        }
+        else if(attribute == "last_double"){
+            BasePointers.back().setPointer(&vDouble.back());
+        }
+        else if(attribute == "last_string"){
+            BasePointers.back().setPointer(&vString.back());
+        }
+        else if(attribute == "first_bool"){
+            BasePointers.back().setPointer(&vBool[0].value);
+        }
+        else if(attribute == "first_int"){
+            BasePointers.back().setPointer(&vInt[0]);
+        }
+        else if(attribute == "first_double"){
+            BasePointers.back().setPointer(&vDouble[0]);
+        }
+        else if(attribute == "first_string"){
+            BasePointers.back().setPointer(&vString[0]);
+        }
+        else if(attribute == "random_bool"){
+            BasePointers.back().setPointer(&vBool[rand() % vBool.size()].value);
+        }
+        else if(attribute == "random_int"){
+            BasePointers.back().setPointer(&vInt[rand() % vInt.size()]);
+        }
+        else if(attribute == "random_double"){
+            BasePointers.back().setPointer(&vDouble[rand() % vDouble.size()]);
+        }
+        else if(attribute == "random_string"){
+            BasePointers.back().setPointer(&vString[rand() % vString.size()]);
+        }
+        else{
+            BasePointers.pop_back();
+            cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+        }
+    }
+    else{
+        BasePointers.pop_back();
+        if(getSize() == 0){
+            cout << "Error: In " << __FUNCTION__ << ": Vector '" << ID << "' is empty.\n";
+        }
+        else{
+            cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+        }
+    }
 }

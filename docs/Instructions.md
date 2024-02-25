@@ -745,6 +745,22 @@ var *type* *value* *id*
 - value (VariableModule);
 - id (string) - id of the new variable and a new context.
 
+## vec
+
+**Syntax**
+
+vec *type* *literals* *id*
+
+**Description**
+
+    Create a vector of variables for the current event's owner and add it to the context stack.
+
+**Parameters**
+
+- type (string): bool, int, double, string;
+- literals (VariableModule vector): bool, int, double, string;
+- id (string) - id of the new variable and a new context.
+
 ## tokenize
 
 **Syntax**

@@ -30,6 +30,7 @@ public:
     unsigned tabLength;
     unsigned cursorPos, secondCursorPos;
     bool ignoreSize;
+    bool ignoreVerticalArrows;
 
     short usedBitmapLayer;  //Text fields with numbers higher or equal to zero are drawn in ascending order. If the value is -1, text will be drawn on top of everything else.
 
@@ -49,6 +50,7 @@ public:
     void modifyContent(unsigned int textID, string modifiedContent);
     void modifyContentAndResize(unsigned int textID, string modifiedContent, vector <SingleFont> FontContainer);
     void deleteContent(unsigned int textID);
+    void cutCurrentContent(size_t newSize);
     void clear();
     void setColors(float r, float g, float b, float a);
     void setRandomColors();

@@ -801,7 +801,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
             ){
                 if(words[cursor] == "]"){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
-                        << ": In " << __FUNCTION__ << ": source '" << Expression.back().Location.source
+                        << ": In " << __FUNCTION__ << ": Source '" << Expression.back().Location.source
                         << "' requires one string literal.\n";
                     return false;
                 }
@@ -809,6 +809,29 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                     Expression.back().Location.source = "literal";
                 }
                 if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+            }
+            else if(Expression.back().Location.source == "vector" || Expression.back().Location.source == "v"){
+                if(nextCond(words, cursor, Expression.back().Location.moduleID)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+                if(Expression.back().Location.attribute == "i" || Expression.back().Location.attribute == "index"){
+                    if(nextCond(words, cursor, Expression.back().Literal, 'i')){ continue; };
+                    Expression.back().Location.attribute = "value";
+                }
+                else if(Expression.back().Location.attribute == "c" || Expression.back().Location.attribute == "context"){
+                    if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+                    Expression.back().Location.attribute = "value";
+                }
+                else if(Expression.back().Location.attribute == "s" || Expression.back().Location.attribute == "size"){
+                    Expression.back().Location.attribute = "size";
+                }
+                else if(Expression.back().Location.attribute == "b" || Expression.back().Location.attribute == "back"){
+                    Expression.back().Location.attribute = "back";
+                }
+                else{
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
+                        << ": In " << __FUNCTION__ << ": Invalid attribute.\n";
+                    return false;
+                }
             }
             else if(Expression.back().Location.source == "context" || Expression.back().Location.source == "c"){
                 if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
@@ -1627,6 +1650,43 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 continue;
             }
             Operation->newContextID = words[3];
+        }
+        else if(words[0] == "vec"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            cursor = 2;
+            if(words[1] == "bool" || words[1] == "b"){
+                if(!gatherLiterals(words, cursor, Operation->Literals, 'b', lineNumber, scriptName)){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    return;
+                }
+            }
+            else if(words[1] == "int" || words[1] == "i"){
+                if(!gatherLiterals(words, cursor, Operation->Literals, 'i', lineNumber, scriptName)){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    return;
+                }
+            }
+            else if(words[1] == "double" || words[1] == "d"){
+                if(!gatherLiterals(words, cursor, Operation->Literals, 'd', lineNumber, scriptName)){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    return;
+                }
+            }
+            else if(words[1] == "string" || words[1] == "s"){
+                if(!gatherLiterals(words, cursor, Operation->Literals, 's', lineNumber, scriptName)){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
+                    return;
+                }
+            }
+            else{
+                cout << "Error: In script: " << scriptName << ":\n\tIn line " << lineNumber << ": In "
+                    << __FUNCTION__ << ": In instruction \'" << words[0] << "\' the type \'" << words[1] << "\' does not exist.\n";
+                continue;
+            }
+            Operation->newContextID = words[cursor];
         }
         else if(words[0] == "tokenize"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){

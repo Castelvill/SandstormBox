@@ -99,7 +99,7 @@ fun TerminalTextField set_editable bool [1]
 fun TerminalTextField set_space_use bool [1]
 fun TerminalTextField set_max_content_length int [10000]
 fun TerminalTextField add_new_and_update string ["Welcome in Sandstorm Box terminal!"]
-fun TerminalTextField set_size int [1920 1080]
+fun TerminalTextField set_size c ww c wh
 fun TerminalTextField select_layer int [1]
 fun TerminalTextField set_color double [0.0 1.0 0.0 1.0]
 fun TerminalTextField set_input_delay double [0.3]
@@ -108,6 +108,7 @@ fun TerminalTextField set_use_tabs bool [1]
 fun TerminalTextField set_enter_use bool [0]
 fun TerminalTextField set_can_enter_accept bool [0]
 fun TerminalTextField set_protected_area int [37]
+fun TerminalTextField set_ignore_vertical_arrows bool [true]
 
 new editable_text c me 1 _ _ TextEditor
 clone TextEditor TerminalTextField
@@ -130,6 +131,8 @@ var int 20 roundingSize
 
 var int 0 commandNumber
 var int 0 currentCommandNumber
+
+vec string [""] commandHistory
 
 var string "scripts" dir
 
@@ -474,6 +477,8 @@ first _ [EditableText] _ _ _ _ protected_area _ protectedArea
 len userInput userInputSize
 substr userInput protectedArea userInputSize command
 
+len command commandLength
+
 string [""] param0
 string [""] param1
 string [""] param2
@@ -485,11 +490,71 @@ string [""] param7
 
 tokenize command param0 param1 param2 param3 param4 param5 param6 param7
 
-string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd] allowedPrograms
+string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot] allowedPrograms
 in param0 allowedPrograms isAllowed
 string ["_enter"] program
-run programCheck
+run saveCommand programCheck
 end
+
+start reboot
+reboot
+end
+
+
+start saveCommand
+if ([c commandLength] [int 0] >)
+fun commandHistory set c commandNumber c command
+fun commandHistory push_back string [""]
+++ commandNumber
+= currentCommandNumber commandNumber
+end
+
+
+start upArrow
+triggers key_pressed
+if ([key_pressed 84] [c program] [string "sleep"] == [c currentCommandNumber] [int 0] > && &&)
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ editable_text EditableText
+first _ [EditableText] _ _ _ _ content _ userInput
+first _ [EditableText] _ _ _ _ protected_area _ protectedArea
+len userInput userInputSize
+substr userInput protectedArea userInputSize command
+fun commandHistory set c currentCommandNumber c command
+
+-- currentCommandNumber
+
+fun EditableText cut_unprotected_area
+value ([v commandHistory c currentCommandNumber]) diffCommand
+int [0] zero
+fun EditableText add_text context zero context diffCommand
+first _ [EditableText] _ _ _ _ content _ history
+len history historySize
+fun EditableText set_cursor_pos c historySize
+end
+
+
+start downArrow
+triggers key_pressed
+if ([key_pressed 85] [c program] [string "sleep"] == [c currentCommandNumber] [c commandNumber] < && &&)
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ editable_text EditableText
+first _ [EditableText] _ _ _ _ content _ userInput
+first _ [EditableText] _ _ _ _ protected_area _ protectedArea
+len userInput userInputSize
+substr userInput protectedArea userInputSize command
+fun commandHistory set c currentCommandNumber c command
+
+++ currentCommandNumber
+
+fun EditableText cut_unprotected_area
+value ([v commandHistory c currentCommandNumber]) diffCommand
+int [0] zero
+fun EditableText add_text context zero context diffCommand
+first _ [EditableText] _ _ _ _ content _ history
+len history historySize
+fun EditableText set_cursor_pos c historySize
+end
+
 
 start programCheck
 if ([context isAllowed])
