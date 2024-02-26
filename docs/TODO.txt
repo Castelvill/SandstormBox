@@ -1,3 +1,4 @@
+-Is isAttachedToCamera variable necessary in the modules? Maybe giving it only to the ancestor is good enough? That would ease moving the interface around in the editor.
 -Delete the additional camera while deleting the "Mover" window.
 -Create the "Mover" window: a program that lets you move objects in one layer in real time. 
 -Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
