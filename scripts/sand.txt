@@ -77,6 +77,8 @@ fun Cam set_can_move_with_keyboard bool [0]
 fun Cam set_can_zoom_with_keyboard bool [0]
 fun Cam set_drawing_borders bool [0]
 fun Cam set_samples int [4]
+//fun Cam set_can_edit_text bool [false]
+fun Cam set_can_move_objects bool [false]
 
 new image c me 1 _ _ background
 //fun background deactivate
@@ -375,6 +377,9 @@ fun InsideCamera pin_to_camera c windowCameraID
 fun InsideCamera activate_pin
 fun InsideCamera set_relative_position int [5 30]
 fun InsideCamera resize int [630 440]
+fun InsideCamera set_can_move_objects bool [true]
+fun InsideCamera set_can_edit_text bool [false]
+
 //bind Object literal ["scripts/notepad.sand"]
 //build Object false
 //run loadTextFromFile

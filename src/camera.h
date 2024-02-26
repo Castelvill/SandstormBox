@@ -29,9 +29,9 @@ public:
     bool isFollowingObject; //Camera's position on screen won't change by following an object.
     bool isUsingKeyboardToMove;
     bool isUsingKeyboardToZoom;
-    bool canMoveWithMouse;
+    bool canMoveWithMouse; //can modify visionShift
     bool canZoomWithMouse;
-    bool canInteractWithMouse;
+    bool canInteractWithMouse; //can move camera using mouse
     bool allowsDrawingBorders;
     bool canDrawOnCamera;
     bool canClearBitmap;
@@ -42,6 +42,8 @@ public:
     bool canBeGrabbed;
     bool canMouseResizeNow;
     bool isFocused;
+    bool canMoveObjects;
+    bool canEditText;
 
     vec2d grabbingAreaPos, grabbingAreaSize;
 
@@ -110,6 +112,8 @@ public:
     void activatePin();
     void deactivatePin();
     void togglePin();
+    void setCanMoveObjects(bool newValue);
+    void setCanEditText(bool newValue);
     void setGrabbingAreaPos(vec2d newValue);
     void setGrabbingAreaSize(vec2d newValue);
     void setGrabbingAreaPos(double x, double y);

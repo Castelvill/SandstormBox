@@ -1467,11 +1467,14 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             continue;
         }
         else if(pKey == ALLEGRO_KEY_RIGHT){
-            if(cursorPos >= text.size()){
-                continue;
+            if(shift){
+                if(cursorPos < text.size()){
+                    cursorPos++;
+                }
             }
-            cursorPos += 1;
-            if(!shift){
+            else{
+                cursorPos = std::max(cursorPos, secondCursorPos) + 1;
+                cursorPos = std::min(cursorPos, unsigned(text.size()));
                 secondCursorPos = cursorPos;
             }
             continue;
@@ -1484,11 +1487,14 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             continue;
         }
         else if(pKey == ALLEGRO_KEY_LEFT){
-            if(cursorPos == 0 || cursorPos <= protectedArea){
-                continue;
+            if(shift){
+                if(cursorPos > protectedArea){
+                    cursorPos--;
+                }
             }
-            cursorPos -= 1;
-            if(!shift){
+            else{
+                cursorPos = std::min(cursorPos, secondCursorPos) - 1;
+                cursorPos = std::max(cursorPos, protectedArea);
                 secondCursorPos = cursorPos;
             }
             continue;

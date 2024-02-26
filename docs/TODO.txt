@@ -1,14 +1,15 @@
+-Add "history" instruction that prints every instance of history vector.
 -Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
 -Instead of using "set_can_be_selected" on objects, add "can_select_objects" bool to cameras.
+-Add "can_edit_text" variable to cameras.
 -Create the "Mover" program: a program that lets you move objects in one layer in real time. 
+-Think about renaming canMoveWithMouse and canInteractWithMouse.
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
--Clone the "ranger" program.
 -Add tab autocomplete: "inr" instruction that uses regex to find string in a string vector; using tab tokenizes current editable text and returns best match with "inr".
 -Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.
 -Add global context.
 -Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Fix: if the cursor is on the first line, down-arrow is moving cursor with an offset.
--Create Termial Window.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: command "sh print "xd\n"" does not work.
 -Fix: print command doesn't use special signs.
@@ -20,13 +21,12 @@
 -Add "mute" instruction, or "mute" parameter to "index" and "=" (and actually to all others) instructions: mute errors. 
 -Remove parentheses from "value", "if" and aggregating instructions.
 -Add scrolling to the terminal: automatic and the scrollbar.
--Fix: after pasting text inside the command line, right arrow doesn't go behind the text.
--Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
 
 MILESTONE: Terminal with printing, scrolling and a history of used commands.
 
 -Add "instruction" MODE to the Terminal.
 -Fix: zooming edited text can move its position.
+-Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
 -Add module scalling from the edge of the camera.
 -Add a backdoor that will disable all each_iteration triggers to fight the infinite loops.
 -Finish implementing "new_proc" instruction – new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
@@ -45,16 +45,18 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 -Add an interactive grid to cameras.
 -Add instruction “clone_to_process <context_id> <thread_id> [activate_sim]” – clones layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
 -Add instruction “move_to_process <context_id> <thread_id> [activate_sim]” – moves (clone and delete) layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
--Add Window: Options - shows the list of options/functions of the entity/window, every list item is a button, camera is immobilized, minimizes when mouse is out of focus.
--Add Window: Filesystem – displays container for entities (threads, projects, layers, cameras, objects, modules, images, text, etc.). You cannot move camera freely. You can scroll up and down. Right clicking on the entity brings up the Options window. Filesystem has many display mods: list, icons, movable icons (like in old macs, very easy to implement because icons are just objects), tree (like in vs code). You can also open different threads like different partitions, but that might be problematic.
--Add Window: ImagePlacement - only draws images of a one object, you can move images around, you can also move camera. On technical plane, objects in this window directly correspond/point to images from the chosen object.
--Add Window: CollisionPlacement – gives access to collision borders of a one object, you can move them around, you can also move camera. Aside from borders, window also draws chosen object images. On technical plane, objects in this window directly correspond/point to collision borders and images from the chosen object, but you can only interact with collisions.
--Add Window: EditEntity - custom for every other entity, lists all editable parameters (EditableTexts) and eventual sliders, has up-down scrollbar, camera is immobilized.
--Add Window: Wim - text editor, has four directional scrollbar, camera is... idk.
--Add Window: Logs – the list of text fields, up-down scrollbar. Lists logs from its process.
--Add Window: DisplayCameras – shows a vertical list of cameras in the order of display. Does not include this window. User can filter out cameras based on access level and groups. User can move cameras around, switching their order of display. Window’s camera is immobilized. There is up-down scrollbar.
--Add Window: GameRunner/VirtualMachine/Simulator/Streamer/SSH - takes layers and cameras from a different process and allows user to interact with it in the current process. Its main goal is to run/test a game/program independently from the current development session. For example if you are in the process of creating a game, you press run button and this window is created. You can now play this game safely, make progress, have fun, test some new feature. If finish playing, just close the window and you will see that nothing changed in the game editor, because the game you played was just a clone of your game.
--Add Window: DuctTape – Paint. Why Tape? Because Paint keeps the world in one piece like tape.
+-Add window: Terminal.
+-Add window: Ranger based filesystem. 
+-Add window: Options - shows the list of options/functions of the entity/window, every list item is a button, camera is immobilized, minimizes when mouse is out of focus.
+-Add window: Filesystem – displays container for entities (threads, projects, layers, cameras, objects, modules, images, text, etc.). You cannot move camera freely. You can scroll up and down. Right clicking on the entity brings up the Options window. Filesystem has many display mods: list, icons, movable icons (like in old macs, very easy to implement because icons are just objects), tree (like in vs code). You can also open different threads like different partitions, but that might be problematic.
+-Add window: ImagePlacement - only draws images of a one object, you can move images around, you can also move camera. On technical plane, objects in this window directly correspond/point to images from the chosen object.
+-Add window: CollisionPlacement – gives access to collision borders of a one object, you can move them around, you can also move camera. Aside from borders, window also draws chosen object images. On technical plane, objects in this window directly correspond/point to collision borders and images from the chosen object, but you can only interact with collisions.
+-Add window: EditEntity - custom for every other entity, lists all editable parameters (EditableTexts) and eventual sliders, has up-down scrollbar, camera is immobilized.
+-Add window: Wim - text editor, has four directional scrollbar, camera is... idk.
+-Add window: Logs – the list of text fields, up-down scrollbar. Lists logs from its process.
+-Add window: DisplayCameras – shows a vertical list of cameras in the order of display. Does not include this window. User can filter out cameras based on access level and groups. User can move cameras around, switching their order of display. Window’s camera is immobilized. There is up-down scrollbar.
+-Add window: GameRunner/VirtualMachine/Simulator/Streamer/SSH - takes layers and cameras from a different process and allows user to interact with it in the current process. Its main goal is to run/test a game/program independently from the current development session. For example if you are in the process of creating a game, you press run button and this window is created. You can now play this game safely, make progress, have fun, test some new feature. If finish playing, just close the window and you will see that nothing changed in the game editor, because the game you played was just a clone of your game.
+-Add window: DuctTape – Paint. Why Tape? Because Paint keeps the world in one piece like tape.
 -Implement access to windows based on “access to engine windows.PNG” or find it in Miro.
 
 -Create SuperTextModule - instead of using a vector of strings, use Letter vector. Letter( char ch; AllegroColor color; bool bold; bool italic; bool crossed; bool rainbow;). This basically creats multi-color, all-purpouse text printer.

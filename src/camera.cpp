@@ -31,7 +31,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     isFollowingObject = false;
     isUsingKeyboardToMove = true;
     isUsingKeyboardToZoom = true;
-    canMoveWithMouse = true;
+    canMoveWithMouse = true; //can modify visionShift
     canZoomWithMouse = true;
     canInteractWithMouse = false;
     allowsDrawingBorders = false;
@@ -44,6 +44,8 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     canBeGrabbed = true;
     canMouseResizeNow = true;
     isFocused = false;
+    canMoveObjects = true;
+    canEditText = true;
 
     grabbingAreaPos.set(0.0, 0.0);
     grabbingAreaSize.set(50.0, 50.0);
@@ -51,7 +53,6 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     std::fill_n(tint, 4, 1);
 
     samples = newSamples;
-
 }
 Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift, int newSamples){
     setUpInstance(newID, camerasIDs, newIsActive, newPos, newSize, newVisionShift, newSamples);
@@ -378,6 +379,12 @@ void Camera2D::deactivatePin(){
 }
 void Camera2D::togglePin(){
     isPinnedToCamera = !isPinnedToCamera;
+}
+void Camera2D::setCanMoveObjects(bool newValue){
+    canMoveObjects = newValue;
+}
+void Camera2D::setCanEditText(bool newValue){
+    canEditText = newValue;
 }
 void Camera2D::setGrabbingAreaPos(vec2d newValue){
     grabbingAreaPos = newValue;

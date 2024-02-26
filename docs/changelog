@@ -1,3 +1,6 @@
+26.02.2024
+-Added moving cursor to the front or behind the marked text fragment based on arrow key direction.
+
 25.02.2024
 -Implement the functionality for up-down arrows inside the terminal.
 -Finished the vector module.

@@ -1677,6 +1677,12 @@ void ProcessClass::findContextInCamera(string attribute, ContextClass & NewConte
     else if(attribute == "is_using_cursor_position_to_move"){
         NewContext.addBasePointer(&Camera->canInteractWithMouse);
     }
+    else if(attribute == "can_move_objects"){
+        NewContext.addBasePointer(&Camera->canMoveObjects);
+    }
+    else if(attribute == "can_edit_text"){
+        NewContext.addBasePointer(&Camera->canEditText);
+    }
     else{
         cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     }
@@ -4809,6 +4815,12 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
         }
         else if(Operation.Location.attribute == "set_can_interact_with_mouse" && Variables.size() > 0){
             Camera->canInteractWithMouse = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "set_can_move_objects" && Variables.size() > 0){
+            Camera->setCanMoveObjects(Variables[0].getBoolUnsafe());
+        }
+        else if(Operation.Location.attribute == "set_can_edit_text" && Variables.size() > 0){
+            Camera->setCanEditText(Variables[0].getBoolUnsafe());
         }
         else if(Operation.Location.attribute == "add_visible_layer" && Variables.size() > 0){
             Camera->addVisibleLayer(Variables[0].getStringUnsafe());
@@ -8288,7 +8300,9 @@ void ProcessClass::keepPositionInsideScreen(vec2d & pos, vec2d & size, vec2i dis
     pos.y = std::min(pos.y, double(displaySize.y - size.y));
 }
 void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
-    if(!canUserInteract || SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized() || !SelectedCamera->canInteractWithMouse){
+    if(!canUserInteract || SelectedCamera == nullptr || !SelectedCamera->getIsActive()
+        || SelectedCamera->getIsMinimized() || !SelectedCamera->canInteractWithMouse
+    ){
         return;
     }
     if(!Engine.Mouse.isPressed(0) || activeCameraMoveType == NONE){
@@ -8632,7 +8646,9 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
         return;
     }
     
-    if(!SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized() || !SelectedCamera->canInteractWithMouse || !SelectedCamera->canMouseResizeNow){
+    if(!SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()
+        || !SelectedCamera->canInteractWithMouse || !SelectedCamera->canMouseResizeNow
+    ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
         return;
     }
@@ -9390,7 +9406,8 @@ void ProcessClass::delayEditableTextFields(){
     }
 }
 void ProcessClass::updateEditableTextFields(EngineClass & Engine){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()
+        || SelectedCamera->getIsMinimized() || !SelectedCamera->canEditText){
         return;
     }
     if(Engine.Mouse.isPressed()){
@@ -9468,7 +9485,8 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
     }
 }
 void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()
+        || SelectedCamera->getIsMinimized() || !SelectedCamera->canMoveObjects){
         return;
     }
     
