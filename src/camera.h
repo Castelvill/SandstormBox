@@ -29,9 +29,9 @@ public:
     bool isFollowingObject; //Camera's position on screen won't change by following an object.
     bool isUsingKeyboardToMove;
     bool isUsingKeyboardToZoom;
-    bool canMoveWithMouse; //can modify visionShift
+    bool isVisionAffectedByMouse; //Can the vision be modified by the mouse while pressing the scrollbar.
     bool canZoomWithMouse;
-    bool canInteractWithMouse; //can move camera using mouse
+    bool canBeModifiedByMouse; //Can position and size be modified with mouse.
     bool allowsDrawingBorders;
     bool canDrawOnCamera;
     bool canClearBitmap;

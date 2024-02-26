@@ -31,9 +31,9 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     isFollowingObject = false;
     isUsingKeyboardToMove = true;
     isUsingKeyboardToZoom = true;
-    canMoveWithMouse = true; //can modify visionShift
+    isVisionAffectedByMouse = true;
     canZoomWithMouse = true;
-    canInteractWithMouse = false;
+    canBeModifiedByMouse = false;
     allowsDrawingBorders = false;
     canDrawOnCamera = true;
     drawOneFrame = false;
@@ -261,7 +261,7 @@ void Camera2D::setIsUsingKeyboardToZoom(bool isUsingKeyboard){
     isUsingKeyboardToZoom = isUsingKeyboard;
 }
 void Camera2D::setCanInteractWithMouse(bool newValue){
-    canInteractWithMouse = newValue;
+    canBeModifiedByMouse = newValue;
 }
 void Camera2D::setTint(float r, float g, float b, float a){
     tint[0] = r;

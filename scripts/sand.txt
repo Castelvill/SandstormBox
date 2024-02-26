@@ -71,7 +71,7 @@ fun Cam set_zoom_increase double [0.02]
 fun Cam add_visible_layer string [KERNEL]
 fun Cam add_accessible_layer string [KERNEL]
 fun Cam set_tint double [1.0 1.0 1.0 1.0]
-fun Cam set_can_move_with_mouse bool [1]
+fun Cam set_is_vision_affected_by_mouse bool [1]
 fun Cam set_can_zoom_with_mouse bool [0]
 fun Cam set_can_move_with_keyboard bool [0]
 fun Cam set_can_zoom_with_keyboard bool [0]
@@ -160,8 +160,8 @@ fun WindowCamera set_zoom_increase double [0.02]
 fun WindowCamera bind_keys int [15 21 13 9 12 11 10]
 fun WindowCamera set_tint double [1.0 1.0 1.0 1.0]
 fun WindowCamera set_drawing_borders bool [0]
-fun WindowCamera set_can_interact_with_mouse bool [1]
-fun WindowCamera set_can_move_with_mouse bool [1]
+fun WindowCamera set_can_be_modified_by_mouse bool [1]
+fun WindowCamera set_is_vision_affected_by_mouse bool [1]
 //fun WindowCamera add_visible_layer string [WindowLayer]
 //fun WindowCamera add_accessible_layer string [WindowLayer]
 fun WindowCamera set_grabbing_area_size int [540 50]
@@ -368,7 +368,7 @@ index c NewWindowLayer [0 0 0] _ primitives Background
 fun Background set_color double [0.0 0.0 0.0 1.0]
 //value ([context my_layer id]) selectedLayerID
 value ([context NewWindowCamera id]) windowCameraID
-dump_context_stack
+//dump_context_stack
 new camera l 1 _ _ InsideCamera
 fun InsideCamera activate
 fun InsideCamera add_visible_layer c selectedLayerID
@@ -495,7 +495,7 @@ string [""] param7
 
 tokenize command param0 param1 param2 param3 param4 param5 param6 param7
 
-string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot] allowedPrograms
+string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history] allowedPrograms
 in param0 allowedPrograms isAllowed
 string ["_enter"] program
 run saveCommand programCheck

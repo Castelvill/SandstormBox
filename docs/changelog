@@ -1,4 +1,6 @@
 26.02.2024
+-Renamed "canMoveWithMouse" and "canInteractWithMouse" camera variables with "isVisionAffectedByMouse" and "canBeModifiedByMouse".
+-Created "history" command that prints out every instance of command history vector.
 -Added moving cursor to the front or behind the marked text fragment based on arrow key direction.
 
 25.02.2024

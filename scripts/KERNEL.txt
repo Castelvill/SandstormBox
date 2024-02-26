@@ -313,8 +313,8 @@ fun cam add_visible_layer string [KERNEL]
 //fun cam add_accessible_layer string [L1]
 fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders bool [0]
-fun cam set_can_interact_with_mouse bool [1]
-fun cam set_can_move_with_mouse bool [1]
+fun cam set_can_be_modified_by_mouse bool [1]
+fun cam set_is_vision_affected_by_mouse bool [1]
 
 new camera l 1 _ _ cam
 fun cam set_id string [C2]
@@ -331,7 +331,7 @@ fun cam add_visible_layer string [L2]
 fun cam add_accessible_layer string [L2]
 fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders int [0]
-fun cam set_can_interact_with_mouse bool [true]
+fun cam set_can_be_modified_by_mouse bool [true]
 fun cam set_min_size int [200 200]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
@@ -359,7 +359,7 @@ fun cam set_drawing_borders bool [0]
 fun cam pin_to_camera string [Desktop]
 fun cam activate_pin
 fun cam set_relative_position int [600 100]
-fun cam set_can_interact_with_mouse bool [true]
+fun cam set_can_be_modified_by_mouse bool [true]
 fun cam set_grabbing_area_size int [1000 50]
 fun cam set_keep_inside_screen bool [false]
 //fun cam minimize
@@ -406,7 +406,7 @@ fun cam add_visible_layer string [L1]
 fun cam add_accessible_layer string [L1]
 fun cam set_tint double [1.0 1.0 1.0 1.0]
 fun cam set_drawing_borders int [1]
-fun cam set_can_interact_with_mouse bool [true]
+fun cam set_can_be_modified_by_mouse bool [true]
 fun cam minimize
 //fun cam bring_forward
 fun cam set_grabbing_area_position int [0 10]

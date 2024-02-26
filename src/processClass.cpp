@@ -217,7 +217,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             changeCursor(Engine.display, Engine.Mouse);
             moveSelectedObject(Engine.Mouse);
             dragScrollbars(Engine.Mouse);
-            if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized() && SelectedCamera->canMoveWithMouse
+            if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized() && SelectedCamera->isVisionAffectedByMouse
                 && Engine.Mouse.firstPositionInRectangle(SelectedCamera->pos, SelectedCamera->size, 2, true, SelectedCamera)
             ){
                 SelectedCamera->visionShift = Engine.Mouse.getZoomedPos(SelectedCamera) - dragCameraStaringPos;
@@ -1674,8 +1674,8 @@ void ProcessClass::findContextInCamera(string attribute, ContextClass & NewConte
     else if(attribute == "is_using_keyboard_to_zoom"){
         NewContext.addBasePointer(&Camera->isUsingKeyboardToZoom);
     }
-    else if(attribute == "is_using_cursor_position_to_move"){
-        NewContext.addBasePointer(&Camera->canInteractWithMouse);
+    else if(attribute == "can_be_modified_by_mouse"){
+        NewContext.addBasePointer(&Camera->canBeModifiedByMouse);
     }
     else if(attribute == "can_move_objects"){
         NewContext.addBasePointer(&Camera->canMoveObjects);
@@ -4807,14 +4807,14 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
         else if(Operation.Location.attribute == "set_can_zoom_with_keyboard" && Variables.size() > 0){
             Camera->isUsingKeyboardToZoom = Variables[0].getBoolUnsafe();
         }
-        else if(Operation.Location.attribute == "set_can_move_with_mouse" && Variables.size() > 0){
-            Camera->canMoveWithMouse = Variables[0].getBoolUnsafe();
+        else if(Operation.Location.attribute == "set_is_vision_affected_by_mouse" && Variables.size() > 0){
+            Camera->isVisionAffectedByMouse = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "set_can_zoom_with_mouse" && Variables.size() > 0){
             Camera->canZoomWithMouse = Variables[0].getBoolUnsafe();
         }
-        else if(Operation.Location.attribute == "set_can_interact_with_mouse" && Variables.size() > 0){
-            Camera->canInteractWithMouse = Variables[0].getBoolUnsafe();
+        else if(Operation.Location.attribute == "set_can_be_modified_by_mouse" && Variables.size() > 0){
+            Camera->canBeModifiedByMouse = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "set_can_move_objects" && Variables.size() > 0){
             Camera->setCanMoveObjects(Variables[0].getBoolUnsafe());
@@ -8301,7 +8301,7 @@ void ProcessClass::keepPositionInsideScreen(vec2d & pos, vec2d & size, vec2i dis
 }
 void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
     if(!canUserInteract || SelectedCamera == nullptr || !SelectedCamera->getIsActive()
-        || SelectedCamera->getIsMinimized() || !SelectedCamera->canInteractWithMouse
+        || SelectedCamera->getIsMinimized() || !SelectedCamera->canBeModifiedByMouse
     ){
         return;
     }
@@ -8647,7 +8647,7 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
     }
     
     if(!SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()
-        || !SelectedCamera->canInteractWithMouse || !SelectedCamera->canMouseResizeNow
+        || !SelectedCamera->canBeModifiedByMouse || !SelectedCamera->canMouseResizeNow
     ){
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
         return;
@@ -8683,7 +8683,7 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
 void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, const MouseClass & Mouse){
     activeCameraMoveType = NONE;
     if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive()
-        || SelectedCamera->getIsMinimized() || !SelectedCamera->canInteractWithMouse
+        || SelectedCamera->getIsMinimized() || !SelectedCamera->canBeModifiedByMouse
     ){
         return;
     }

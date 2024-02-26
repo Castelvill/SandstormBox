@@ -1,9 +1,6 @@
--Add "history" instruction that prints every instance of history vector.
+-Delete the additional camera while deleting the "Mover" window.
+-Create the "Mover" window: a program that lets you move objects in one layer in real time. 
 -Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
--Instead of using "set_can_be_selected" on objects, add "can_select_objects" bool to cameras.
--Add "can_edit_text" variable to cameras.
--Create the "Mover" program: a program that lets you move objects in one layer in real time. 
--Think about renaming canMoveWithMouse and canInteractWithMouse.
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
 -Add tab autocomplete: "inr" instruction that uses regex to find string in a string vector; using tab tokenizes current editable text and returns best match with "inr".
 -Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.

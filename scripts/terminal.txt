@@ -41,7 +41,7 @@ fun Cam bind_keys int [15 21 13 9 12 11 10]
 fun Cam add_visible_layer string [KERNEL]
 fun Cam add_accessible_layer string [KERNEL]
 fun Cam set_tint double [1.0 1.0 1.0 1.0]
-//fun Cam set_can_move_with_mouse bool [1]
+//fun Cam set_is_vision_affected_by_mouse bool [1]
 fun Cam set_drawing_borders bool [0]
 
 new layer l 1 _ _ TerminalLayer
@@ -74,7 +74,7 @@ fun Window set_can_zoom_with_keyboard bool [0]
 fun Window add_visible_layer string [TerminalLayer]
 fun Window add_accessible_layer string [TerminalLayer]
 fun Window set_tint double [1.0 1.0 1.0 1.0]
-fun Window set_can_interact_with_mouse bool [1]
+fun Window set_can_be_modified_by_mouse bool [1]
 fun Window set_drawing_borders bool [0]
 fun Window pin_to_camera string [Desktop]
 fun Window activate_pin

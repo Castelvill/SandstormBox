@@ -160,8 +160,8 @@ fun NewWindow set_zoom_increase double [0.02]
 fun NewWindow bind_keys int [15 21 13 9 12 11 10]
 fun NewWindow set_tint double [1.0 1.0 1.0 1.0]
 fun NewWindow set_drawing_borders bool [0]
-fun NewWindow set_can_interact_with_mouse bool [1]
-fun NewWindow set_can_move_with_mouse bool [1]
+fun NewWindow set_can_be_modified_by_mouse bool [1]
+fun NewWindow set_is_vision_affected_by_mouse bool [1]
 fun NewWindow add_visible_layer c newLayerID
 fun NewWindow add_accessible_layer c newLayerID
 fun NewWindow set_grabbing_area_size int [640 50]
@@ -281,4 +281,30 @@ end
 start cd
 cd _ param1
 string [""] program
+end
+
+
+start history
+int [0] i
+value ([v commandHistory size]) commandHistorySize
+-- commandHistorySize
+string [""] program
+string ["\t"] space
+run printHistory
+end
+
+start printHistory true
+if ([c i] [c commandHistorySize] <)
+string [""] result
+int [0] j
+= j i
+++ j
++= result j
++= result space
+value ([v commandHistory c i]) nextCommand
++= result nextCommand
+string ["\n"] endl
++= result endl
+++ i
+run printOnTerminal
 end

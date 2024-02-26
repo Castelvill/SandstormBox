@@ -9,7 +9,7 @@
     },
     "linux": {
         "args" : [
-            "/home/mateusz/Desktop/Easy-Game-Maker"
+            "/home/mateusz/Programming/Easy-Game-Maker"
         ]
     },
     "program": "${workspaceFolder}${pathSeparator}EGM.exe",
