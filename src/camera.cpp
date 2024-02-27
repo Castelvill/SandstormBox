@@ -172,6 +172,9 @@ bool Camera2D::getIsMinimized() const{
 bool Camera2D::getIsDeleted() const{
     return deleted;
 }
+bool Camera2D::getCanMoveObjects() const{
+    return canMoveObjects;
+}
 void Camera2D::setPos(vec2d newPos){
     pos.set(newPos);
 }

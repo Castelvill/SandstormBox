@@ -3,8 +3,9 @@ triggers on_boot
 if ([on_boot])
 new object l KERNEL 1 _ _ First
 fun First set_id string [KERNEL]
-fun First set_can_be_selected bool [0]
-//fun me set_can_be_selected bool [0]
+fun First set_can_be_selected bool [1]
+fun First attach_to_camera
+fun me set_can_be_selected bool [false]
 bind First reset
 //bind First literal ["scripts/terminal.txt" "scripts/terminalHelp.txt"]
 bind First literal ["scripts/sand.txt" "scripts/sandHelp.txt"]

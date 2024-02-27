@@ -83,7 +83,7 @@ fun Cam set_can_move_objects bool [false]
 new image c me 1 _ _ background
 //fun background deactivate
 fun background connect_bitmap_via_alias string [background2]
-fun background attach_to_camera
+fun background detach_from_camera
 fun background resize c ww c wh
 fun background set_color double [0.5 0.5 0.5 0.5]
 
@@ -92,7 +92,8 @@ int [480] windowSizeY
 int [0 0] editableTextPos
 
 new editable_text c me 1 _ _ TerminalTextField
-//fun TerminalTextField attach_to_camera
+fun TerminalTextField attach_to_camera
+fun TerminalTextField detach_from_camera
 fun TerminalTextField set_id string [edi]
 fun TerminalTextField set_position c editableTextPos
 fun TerminalTextField set_font string [cascadia_code]

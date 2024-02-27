@@ -9054,19 +9054,19 @@ void ProcessClass::moveObjects(const vector<short> & pressedKeys, const MouseCla
     }
 }
 void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
-    if(SelectedLayer != nullptr && SelectedObject != nullptr && Mouse.isPressed(0) && wasMousePressedInSelectedObject){
-        if(
-            SelectedCamera != nullptr && SelectedCamera->getIsActive()
-            && !SelectedCamera->getIsMinimized()
-            && SelectedCamera->isLayerVisible(SelectedLayer->getID())
-            && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
-        ){
-            if(SelectedObject->getIsAttachedToCamera()){
-                SelectedObject->setPos(Mouse.getPos()-dragStartingPos);
-            }
-            else{
-                SelectedObject->setPos(Mouse.getZoomedPos(SelectedCamera)-SelectedCamera->visionShift-dragStartingPos);
-            }
+    if(SelectedLayer != nullptr && SelectedObject != nullptr
+        && Mouse.isPressed(0) && wasMousePressedInSelectedObject
+        && SelectedCamera != nullptr && SelectedCamera->getIsActive()
+        && SelectedCamera->getCanMoveObjects()
+        && !SelectedCamera->getIsMinimized()
+        && SelectedCamera->isLayerVisible(SelectedLayer->getID())
+        && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
+    ){
+        if(SelectedObject->getIsAttachedToCamera()){
+            SelectedObject->setPos(Mouse.getPos()-dragStartingPos);
+        }
+        else{
+            SelectedObject->setPos(Mouse.getZoomedPos(SelectedCamera)-SelectedCamera->visionShift-dragStartingPos);
         }
     }
 }
@@ -9525,7 +9525,7 @@ void ProcessClass::unselectObject(){
 }
 
 void ProcessClass::drawSelectionBorder(Camera2D Camera){
-    if(SelectedObject == nullptr){
+    if(SelectedObject == nullptr || !Camera.getCanMoveObjects()){
         return;
     }
     vec2d borderPos(SelectedObject->getPos(false));

@@ -73,6 +73,7 @@ public:
     bool getIsActive() const;
     bool getIsMinimized() const;
     bool getIsDeleted() const;
+    bool getCanMoveObjects() const;
     void setPos(vec2d newPos);
     void setPos(double x, double y);
     void setRelativePos(vec2d newPos);
