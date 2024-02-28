@@ -1,4 +1,4 @@
--Implement moving instructions and function for vector module.
+-Implement arithmetic instructions and function for vector module (+=, -=, etc.).
 -Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
 -Fix: if the cursor is on the first line, down-arrow is moving cursor with an offset.
@@ -10,8 +10,7 @@
 -Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
 -Implement "set_if *event* *expression*" instruction.
--Add "mute" instruction, or "mute" parameter to "index" and "=" (and actually to all others) instructions: mute errors. 
--Remove parentheses from "value", "if" and aggregating instructions.
+-Remove parenthesis from "value", "if" and aggregating instructions.
 -Add scrolling to the terminal: automatic and the scrollbar.
 
 MILESTONE: Terminal with printing, scrolling and a history of used commands.
