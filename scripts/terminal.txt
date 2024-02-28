@@ -93,7 +93,6 @@ fun Border add_point c roundingSize c roundingSize
 fun Border set_color double [0.0 0.0 0.0 0.7]
 fun Border set_position double [0 0]
 fun Border set_thickness double [10.0]
-fun Border select_layer int [0]
 fun Border set_size c windowSizeX c historySizeY
 fun Border update_with_size
 
@@ -111,7 +110,6 @@ fun History set_font string [fira_mono24]
 fun History set_wrapping int [1]
 fun History add_new_and_update string ["Welcome in Sandstorm Box Terminal!\n"]
 fun History set_size int [1260 4320]
-fun History select_layer int [1]
 fun History set_color double [0.0 1.0 0.0 1.0]
 
 new editable_text c Terminal 1 _ _ Editable
@@ -125,7 +123,6 @@ fun Editable set_space_use bool [1]
 fun Editable set_max_content_length int [10000]
 fun Editable add_new_and_update string [""]//["print _ _ string [\"hello world!\"]"]
 fun Editable set_size int [1260 800]
-fun Editable select_layer int [1]
 fun Editable set_color double [0.0 1.0 0.0 1.0]
 fun Editable set_input_delay double [0.3]
 fun Editable set_repetition_delay double [0.05]
@@ -168,7 +165,6 @@ fun title set_font string [arial24]
 fun title set_wrapping int [0]
 fun title add_new_and_update string ["TextEditor"]
 fun title set_size int [400 50]
-fun title select_layer int [1]
 fun title set_color double [1.0 1.0 1.0 0.0]
 fun title attach_to_camera
 fun title set_random_change_speed double [0.1]
@@ -181,7 +177,6 @@ fun PrimiFun add_point double [880 980]
 fun PrimiFun add_point double [10.0 10.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.7]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun select_layer int [0]
 fun PrimiFun set_size int [640 480]
 fun PrimiFun update_with_size
 new primitives c TextEditor 1 _ _ PrimiFun
@@ -192,7 +187,6 @@ fun PrimiFun add_point double [880 980]
 fun PrimiFun add_point double [10.0 10.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.8]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun select_layer int [0]
 fun PrimiFun set_size int [640 50]
 fun PrimiFun update_with_size
 new variable c TextEditor 1 _ _ Var
@@ -213,7 +207,6 @@ string ["randomString.txt"] path
 load_text path loaded
 fun Editable add_new_and_update context loaded
 fun Editable set_size int [1920 1080]
-fun Editable select_layer int [1]
 fun Editable set_color double [0.0 1.0 0.0 1.0]
 fun Editable set_input_delay double [0.3]
 fun Editable set_repetition_delay double [0.05]

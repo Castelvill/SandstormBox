@@ -163,9 +163,6 @@ void PrimitivesModule::getContext(string attribute, vector <BasePointersStruct> 
         getPrimaryContext(attribute, BasePointers);
     }
 }
-int PrimitivesModule::getUsedBitmapLayer() const{
-    return usedBitmapLayer;
-}
 PrimitiveType getPrimitiveType(string type){
     if(type == "line"){
         return prim_line;

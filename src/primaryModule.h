@@ -104,7 +104,7 @@ class PrimaryModule{
     bool isActive; //deactivated object doesn't interact with the program, you can only activate it.
     bool deleted;
     bool isScaledFromCenter;
-    bool isAttachedToCamera;
+    bool isAttachedToCamera; //Is a part of the user interface. Setting this value for the object propagates this value onto all its modules. New modules copy this value from their object.
     bool canBeSelected;
     bool isScrollable;
 

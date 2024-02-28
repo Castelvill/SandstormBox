@@ -25,6 +25,7 @@ double randomDouble(double minValue, double maxValue);
 short translateToAllegroKey(char key);
 bool isStringInGroup(string ID, int count, ...);
 bool isCharInGroup(char ID, int count, ...);
+bool stringToBool(string text);
 
 void addUniqueToStringVector(vector <string> & stringVec, string newString);
 void removeFromStringVector(vector <string> & stringVec, std::string selectedString);

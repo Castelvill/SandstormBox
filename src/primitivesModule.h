@@ -21,7 +21,6 @@ class PrimitivesModule : public PrimaryModule{
     ALLEGRO_COLOR color;
     float thickness;
     float radius;
-    int usedBitmapLayer;
 
     void setUpNewInstance();
     PrimitivesModule();
@@ -32,7 +31,6 @@ class PrimitivesModule : public PrimaryModule{
     void draw(vec2d base, Camera2D Camera, bool outSourcing);
     void updateWithSize();
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
-    int getUsedBitmapLayer() const;
 };
 
 #endif // PRIMITIVESMODULE_H_INCLUDED

@@ -27,7 +27,6 @@ void TextModule::setUpNewInstance(){
     rotation = 0.0;
     scale.set(1.0, 1.0);
     currentTextIdx = 0;
-    usedBitmapLayer = 0;
     randomChangeSpeed = 0.001;
     minColorValue = 0.0f;
     maxColorValue = 1.0f;
@@ -194,9 +193,6 @@ void TextModule::incrementRandomColor(){
 }
 void TextModule::setRotation(double newAngle){
     rotation = newAngle;
-}
-void TextModule::setUsedBitmapLayer(int newLayer){
-    usedBitmapLayer = newLayer;
 }
 void TextModule::addRotation(double newAngle){
     rotation += newAngle;
@@ -711,9 +707,6 @@ void TextModule::getContext(string attribute, vector <BasePointersStruct> & Base
     }
     else if(attribute == "rotate_angle"){
         BasePointers.back().setPointer(&rotation);
-    }
-    else if(attribute == "used_bitmap_layer"){
-        BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else{
         getPrimaryContext(attribute, BasePointers);
@@ -1687,11 +1680,7 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
 
     if(cContent == "true" || cContent == "1" || cContent == "false" || cContent == "0"){
         success = true;
-        bool bValue;
-        if(cContent == "true" || cContent == "1")
-            bValue = true;
-        if(cContent == "false" || cContent == "0")
-            bValue = false;
+        bool bValue = stringToBool(cContent);
 
         if(connectedVariable == "is_active"){
             Primary.setIsActive(bValue);
@@ -1699,7 +1688,7 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
         else if(connectedVariable == "is_scaled_from_center"){
             Primary.setIsScaledFromCenter(bValue);
         }
-        else if(connectedVariable == "is_attached_to_camera"){
+        else if(connectedVariable == "is_attached_to_camera_no_propagation"){
             Primary.setIsAttachedToCamera(bValue);
         }
         else{
@@ -1854,9 +1843,6 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     else if(connectedVariable == "vertical_align"){
         Text.verticalAlign = shValue;
     }
-    else if(connectedVariable == "bitmap_layer"){
-        Text.usedBitmapLayer = shValue;
-    }
     else{
         success = false;
     }
@@ -1897,11 +1883,7 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
 
     if(cContent == "true" || cContent == "1" || cContent == "false" || cContent == "0"){
         success = true;
-        bool bValue;
-        if(cContent == "true" || cContent == "1")
-            bValue = true;
-        if(cContent == "false" || cContent == "0")
-            bValue = false;
+        bool bValue = stringToBool(cContent);
 
         if(connectedVariable == "mirror_x"){
             Image.setMirrorX(bValue);
@@ -1950,9 +1932,6 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
     }
     else if(connectedVariable == "resize_y"){
         Image.resizeY(dValue);
-    }
-    else if(connectedVariable == "layer"){
-        Image.setUsedBitmapLayer(int(dValue));
     }
     else if(connectedVariable == "center_x"){
         Image.setCenterX(dValue);
@@ -2032,11 +2011,7 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
 
     if(cContent == "true" || cContent == "1" || cContent == "false" || cContent == "0"){
         success = true;
-        bool bValue;
-        if(cContent == "true" || cContent == "1")
-            bValue = true;
-        if(cContent == "false" || cContent == "0")
-            bValue = false;
+        bool bValue = stringToBool(cContent);
 
         if(connectedVariable == "can_move_diagonally"){
             Movement.setCanMoveDiagonally(bValue);
@@ -2208,11 +2183,7 @@ bool EditableTextModule::controlCollision(CollisionModule & Collision, vector <s
 
     if(cContent == "true" || cContent == "1" || cContent == "false" || cContent == "0"){
         success = true;
-        bool bValue;
-        if(cContent == "true" || cContent == "1")
-            bValue = true;
-        if(cContent == "false" || cContent == "0")
-            bValue = false;
+        bool bValue = stringToBool(cContent);
 
         if(connectedVariable == "is_solid"){
             Collision.setIsSolid(bValue);
@@ -2272,11 +2243,7 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
     if(cContent == "true" || cContent == "1" || cContent == "false" || cContent == "0"){
         success = true;
 
-        bool bValue;
-        if(cContent == "true" || cContent == "1")
-            bValue = true;
-        if(cContent == "false" || cContent == "0")
-            bValue = false;
+        bool bValue = stringToBool(cContent);
 
         if(connectedVariable == "particles_moving"){
             Particles.setAreParticlesMoving(bValue);
@@ -2479,17 +2446,10 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
         return Variable.setType(cContent[0]);
     }
 
-    if(cContent == "true" || cContent == "1" || cContent == "false" || cContent == "0"){
-        bool bValue;
-        if(cContent == "true" || cContent == "1"){
-            bValue = true;
-        }
-        if(cContent == "false" || cContent == "0"){
-            bValue = false;
-        }
-        if(connectedVariable == "bool"){
-            return Variable.setBool(bValue);
-        }
+    if((cContent == "true" || cContent == "1" || cContent == "false"
+        || cContent == "0") && connectedVariable == "bool"
+    ){
+        return Variable.setBool(stringToBool(cContent));
     }
 
     if(!canConvertContentToNumber()){
@@ -2548,9 +2508,6 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
     }
     else if(attribute == "rotation"){
         BasePointers.back().setPointer(&rotation);
-    }
-    else if(attribute == "used_bitmap_layer"){
-        BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else if(attribute == "can_be_edited"){
         BasePointers.back().setPointer(&canBeEdited);

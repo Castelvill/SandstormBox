@@ -84,7 +84,6 @@ void ImageModule::setUpNewInstance(){
     lightBitmap = nullptr;
     isBitmapFromContainer[0] = false;
     isBitmapFromContainer[1] = false;
-    usedBitmapLayer = 0;
 }
 ImageModule::ImageModule(){
     primaryConstructor("", nullptr, "", "");
@@ -115,7 +114,6 @@ void ImageModule::clone(const ImageModule &Image, vector<string> &listOfIDs, str
     std::copy(Image.imageColor, Image.imageColor+4, imageColor);
     lightLevel = Image.lightLevel;
     std::copy(Image.lightColor, Image.lightColor+4, lightColor);
-    usedBitmapLayer = Image.usedBitmapLayer;
     image = nullptr;
     lightBitmap = nullptr;
     if(Image.image){
@@ -585,9 +583,6 @@ void ImageModule::setLightColor(float newLightColor, char whichLight){
         cout << "Error: In " << __FUNCTION__ << ": Light channel '" << whichLight << "' does not exist.\n";
     }
 }
-void ImageModule::setUsedBitmapLayer(int newLayer){
-    usedBitmapLayer = newLayer;
-}
 float ImageModule::getLightLevel() const{
     return lightLevel;
 }
@@ -664,9 +659,6 @@ void ImageModule::getContext(string attribute, vector <BasePointersStruct> & Bas
     }
     else if(attribute == "light_color_b"){
         BasePointers.back().setPointer(&lightColor[2]);
-    }
-    else if(attribute == "used_bitmap_layer"){
-        BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else{
         BasePointers.pop_back();

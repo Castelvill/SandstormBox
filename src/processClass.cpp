@@ -106,7 +106,6 @@ ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string
     loadInitProcess(newLayerID, newObjectID, screenSize, initFilePath);
 }
 ProcessClass::~ProcessClass(){
-    foregroundOfObjects.clear();
     BaseOfTriggerableObjects.clear();
     
     for(LayerClass & Layer : Layers){
@@ -1301,8 +1300,7 @@ void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewCon
         }
     }
 }
-void ProcessClass::aggregateObjects(OperaClass &Operation, ContextClass &NewContext, vector<AncestorObject *> AggregatedObjects, const EngineClass &Engine, vector<ContextClass> &EventContext)
-{
+void ProcessClass::aggregateObjects(OperaClass &Operation, ContextClass &NewContext, vector<AncestorObject *> AggregatedObjects, const EngineClass &Engine, vector<ContextClass> &EventContext){
     if(AggregatedObjects.size() == 0){
         return;
     }
@@ -1841,12 +1839,6 @@ bool ProcessClass::findLayerAndObject(ValueLocation & Location, AncestorObject *
 
     return true;
 }
-template <class T>
-void getPointersFromVector(vector <T*> & Left, vector<T> & Right){
-    for(T & Instance : Right){
-        Left.push_back(&Instance);
-    }
-}
 template <class Entity>
 Entity *lastNotDeletedInVector(vector<Entity> &Vector){
     for(typename vector<Entity>::reverse_iterator Instance = Vector.rbegin(); Instance != Vector.rend(); ++Instance){
@@ -1864,41 +1856,6 @@ Entity * lastNotDeletedInVector(vector<Entity*> &Vector){
         }
     }
     return nullptr;
-}
-void extractPointersFromModules(ModulesPointers &ContextModules, AncestorObject *Object, string moduleType){
-    if(moduleType == "text"){
-        getPointersFromVector(ContextModules.Texts, Object->TextContainer);
-    }
-    else if(moduleType == "editable_text"){
-        getPointersFromVector(ContextModules.EditableTexts, Object->EditableTextContainer);
-    }
-    else if(moduleType == "image"){
-        getPointersFromVector(ContextModules.Images, Object->ImageContainer);
-    }
-    else if(moduleType == "movement"){
-        getPointersFromVector(ContextModules.Movements, Object->MovementContainer);
-    }
-    else if(moduleType == "collision"){
-        getPointersFromVector(ContextModules.Collisions, Object->CollisionContainer);
-    }
-    else if(moduleType == "particles"){
-        getPointersFromVector(ContextModules.Particles, Object->ParticlesContainer);
-    }
-    else if(moduleType == "event"){
-        getPointersFromVector(ContextModules.Events, Object->EveContainer);
-    }
-    else if(moduleType == "variable"){
-        getPointersFromVector(ContextModules.Variables, Object->VariablesContainer);
-    }
-    else if(moduleType == "scrollbar"){
-        getPointersFromVector(ContextModules.Scrollbars, Object->ScrollbarContainer);
-    }
-    else if(moduleType == "primitives"){
-        getPointersFromVector(ContextModules.Primitives, Object->PrimitivesContainer);
-    }
-    else if(moduleType == "vector"){
-        getPointersFromVector(ContextModules.Vectors, Object->VectorContainer);
-    }
 }
 void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, ContextClass & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer){
     if(Location.source == "layer"){
@@ -3590,31 +3547,49 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
         createNewModule(CurrentObject->TextContainer, CurrentObject->textContainerIDs, NewContext.Modules.Texts,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
+        for(long i = CurrentObject->TextContainer.size() - 1; i >= long(CurrentObject->TextContainer.size() - newVectorSize); i--){
+            CurrentObject->TextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
     }
     else if(Operation.Location.source == "editable_text"){
         createNewModule(CurrentObject->EditableTextContainer, CurrentObject->editableTextContainerIDs, NewContext.Modules.EditableTexts,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
+        for(long i = CurrentObject->EditableTextContainer.size() - 1; i >= long(CurrentObject->EditableTextContainer.size() - newVectorSize); i--){
+            CurrentObject->EditableTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
     }
     else if(Operation.Location.source == "image"){
         createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
+        for(long i = CurrentObject->ImageContainer.size() - 1; i >= long(CurrentObject->ImageContainer.size() - newVectorSize); i--){
+            CurrentObject->ImageContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
     }
     else if(Operation.Location.source == "movement"){
         createNewModule(CurrentObject->MovementContainer, CurrentObject->movementContainerIDs, NewContext.Modules.Movements,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
+        for(long i = CurrentObject->MovementContainer.size() - 1; i >= long(CurrentObject->MovementContainer.size() - newVectorSize); i--){
+            CurrentObject->MovementContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
     }
     else if(Operation.Location.source == "collision"){
         createNewModule(CurrentObject->CollisionContainer, CurrentObject->collisionContainerIDs, NewContext.Modules.Collisions,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
+        for(long i = CurrentObject->CollisionContainer.size() - 1; i >= long(CurrentObject->CollisionContainer.size() - newVectorSize); i--){
+            CurrentObject->CollisionContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
     }
     else if(Operation.Location.source == "particles"){
         createNewModule(CurrentObject->ParticlesContainer, CurrentObject->particlesContainerIDs, NewContext.Modules.Particles,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
+        for(long i = CurrentObject->ParticlesContainer.size() - 1; i >= long(CurrentObject->ParticlesContainer.size() - newVectorSize); i--){
+            CurrentObject->ParticlesContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
     }
     else if(Operation.Location.source == "event"){
         createNewModule(CurrentObject->EveContainer, CurrentObject->eveContainerIDs, NewContext.Modules.Events,
@@ -3630,11 +3605,17 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
         createNewModule(CurrentObject->ScrollbarContainer, CurrentObject->scrollbarContainerIDs, NewContext.Modules.Scrollbars,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
+        for(long i = CurrentObject->ScrollbarContainer.size() - 1; i >= long(CurrentObject->ScrollbarContainer.size() - newVectorSize); i--){
+            CurrentObject->ScrollbarContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
     }
     else if(Operation.Location.source == "primitives"){
         createNewModule(CurrentObject->PrimitivesContainer, CurrentObject->primitivesContainerIDs, NewContext.Modules.Primitives,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
         );
+        for(long i = CurrentObject->PrimitivesContainer.size() - 1; i >= long(CurrentObject->PrimitivesContainer.size() - newVectorSize); i--){
+            CurrentObject->PrimitivesContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
     }
     else if(Operation.Location.source == "vector"){
         createNewModule(CurrentObject->VectorContainer, CurrentObject->vectorContainerIDs, NewContext.Modules.Vectors,
@@ -4990,6 +4971,15 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
         }
         else if(Operation.Location.attribute == "remove_group"){
             Object->clearGroups();
+        }
+        else if(Operation.Location.attribute == "enable_interface"){
+            Object->setIsAttachedToCamera(true);
+        }
+        else if(Operation.Location.attribute == "disable_interface"){
+            Object->setIsAttachedToCamera(false);
+        }
+        else if(Operation.Location.attribute == "set_interface"){
+            Object->setIsAttachedToCamera(Variables[0].getBoolUnsafe());
         }
         else{
             bool temp = false;
@@ -9073,9 +9063,7 @@ void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
 void ProcessClass::drawEverything(EngineClass & Engine){
     al_set_clipping_rectangle(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
     
-    int numberOfDrawnObjects;
-    unsigned int i;
-    int currentlyDrawnLayer;
+    size_t numberOfDrawnObjects;
     Camera2D * Camera;
 
     for(const unsigned & cameraIndex : camerasOrder){
@@ -9099,19 +9087,12 @@ void ProcessClass::drawEverything(EngineClass & Engine){
             }
             
             numberOfDrawnObjects = 0;
-            foregroundOfObjects.clear();
 
-            for(currentlyDrawnLayer = 0; currentlyDrawnLayer < totalNumberOfBitmapLayers; currentlyDrawnLayer++){
-                for(i = 0; i < Layer.Objects.size(); i++){
-                    if(Layer.Objects[i].getIsActive()){
-                        drawModules(Layer.Objects[i], i, *Camera, Engine.FontContainer, currentlyDrawnLayer, numberOfDrawnObjects, foregroundOfObjects, false, Engine.displaySize);
-                    }
+            for(size_t i = 0; i < Layer.Objects.size(); i++){
+                if(!Layer.Objects[i].getIsActive()){
+                    continue;
                 }
-            }
-            for(i = 0; i < foregroundOfObjects.size(); i++){
-                if(Layer.Objects[foregroundOfObjects[i]].getIsActive()){
-                    drawModules(Layer.Objects[foregroundOfObjects[i]], i, *Camera, Engine.FontContainer, -1, numberOfDrawnObjects, foregroundOfObjects, true, Engine.displaySize);
-                }
+                drawModules(Layer.Objects[i], i, *Camera, Engine.FontContainer, numberOfDrawnObjects, Engine.displaySize);
             }
             if(SelectedLayer == &Layer){
                 drawSelectionBorder(*Camera);
@@ -9124,9 +9105,6 @@ void ProcessClass::drawEverything(EngineClass & Engine){
             windowPos.x + Camera->pos.x, windowPos.y + Camera->pos.y, 0);
         al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
         
-        foregroundOfObjects.clear();
-        //vector<unsigned int>().swap(foregroundOfObjects);
-        //foregroundOfObjects.shrink_to_fit();
         if(drawCameraBorders && Camera->allowsDrawingBorders){
             if(SelectedCamera != Camera){
                 al_draw_rectangle(Camera->pos.x, Camera->pos.y, Camera->pos.x + Camera->size.x, Camera->pos.y + Camera->size.y, al_map_rgb(0, 155, 145), 6);
@@ -9145,28 +9123,45 @@ void ProcessClass::drawEverything(EngineClass & Engine){
 
     al_reset_clipping_rectangle();
 }
-void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Camera, vector <SingleFont> & FontContainer, int currentlyDrawnLayer, int & numberOfDrawnObjects,
-                             vector <unsigned int> & foregroundOfObjects, bool isTimeForForeground, vec2i displaySize){
+void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera2D & Camera,
+    vector <SingleFont> & FontContainer, size_t & numberOfDrawnObjects, vec2i displaySize
+){
     vec2d newPos;
     vec2d objectSize;
     vec2d scaledObjectSize;
     bool isScrollable;
-    bool wasForegroundUpdated = false; //If any module is already drawn in the foreground, don't add its object again.
 
+    for(PrimitivesModule & Primitives : Object.PrimitivesContainer){
+        if(!Primitives.getIsActive()){
+            continue;
+        }
+        
+        isScrollable = Primitives.getIsScrollable();
+        if(drawOnlyVisibleObjects && !Primitives.getIsAttachedToCamera()){
+            newPos.set(Object.getPos(isScrollable));
+            newPos.translate(Primitives.getPos(false));
+            objectSize.set(Primitives.getSize());
+            scaledObjectSize.set(objectSize);
+            scaledObjectSize.multiply(Primitives.getScale());
+            if(!Primitives.getIsScaledFromCenter()){
+                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
+            }
+            else{
+                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
+            }
+
+            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
+                continue;
+            }
+        }
+        Primitives.draw(Object.getPos(isScrollable), Camera, false);
+        numberOfDrawnObjects++;
+    }
 
     for(ImageModule & Image : Object.ImageContainer){
         if(!Image.getIsActive()){
             continue;
         }
-        if(Image.usedBitmapLayer == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
-            if(wasForegroundUpdated)
-                continue;
-            foregroundOfObjects.push_back(iteration);
-            wasForegroundUpdated = true;
-            continue;
-        }
-        if(Image.usedBitmapLayer != currentlyDrawnLayer)
-            continue;
         isScrollable = Image.getIsScrollable();
         //Image.drawFrame(x, y);
         if(drawOnlyVisibleObjects && !Image.getIsAttachedToCamera()){
@@ -9175,34 +9170,52 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
             objectSize.set(Image.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(Image.getScale());
-            if(!Image.getIsScaledFromCenter())
+            if(!Image.getIsScaledFromCenter()){
                 newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
-            else
+            }
+            else{
                 newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
+            }
 
             if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
                 continue;
             }
-                
         }
         Image.drawImage(Object.getPos(isScrollable), Camera, false);
         numberOfDrawnObjects++;
     }
+
+    for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
+        if(!Scrollbar.getIsActive()){
+            continue;
+        }
+
+        isScrollable = Scrollbar.getIsScrollable();
+        if(drawOnlyVisibleObjects && !Scrollbar.getIsAttachedToCamera()){
+            newPos.set(Object.getPos(isScrollable));
+            newPos.translate(Scrollbar.getPos(false));
+            objectSize.set(Scrollbar.getSize());
+            scaledObjectSize.set(objectSize);
+            scaledObjectSize.multiply(Scrollbar.getScale());
+            if(!Scrollbar.getIsScaledFromCenter()){
+                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
+            }
+            else{
+                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
+            }
+
+            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
+                continue;
+            }
+        }
+        Scrollbar.draw(Object.getPos(isScrollable), Object.ImageContainer, Camera);
+        numberOfDrawnObjects++;
+    }
+
     for(TextModule & Text : Object.TextContainer){
         if(!Text.getIsActive()){
             continue;
         }
-        if(Text.usedBitmapLayer == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
-            if(wasForegroundUpdated)
-                continue;
-            foregroundOfObjects.push_back(iteration);
-            wasForegroundUpdated = true;
-            continue;
-        }
-
-        if(Text.usedBitmapLayer != currentlyDrawnLayer)
-            continue;
-
         isScrollable = Text.getIsScrollable();
         if(drawOnlyVisibleObjects && !Text.getIsAttachedToCamera()){
             newPos.set(Object.getPos(isScrollable));
@@ -9210,13 +9223,16 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
             objectSize.set(Text.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(Text.getScale());
-            if(!Text.getIsScaledFromCenter())
+            if(!Text.getIsScaledFromCenter()){
                 newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
-            else
+            }
+            else{
                 newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
+            }
 
-            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize))
+            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
                 continue;
+            }
         }
 
         //If a font exists in FontContainer, draw the text on screen.
@@ -9234,17 +9250,6 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
         if(!Editable.getIsActive()){
             continue;
         }
-        if(Editable.usedBitmapLayer == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
-            if(wasForegroundUpdated)
-                continue;
-            foregroundOfObjects.push_back(iteration);
-            wasForegroundUpdated = true;
-            continue;
-        }
-
-
-        if(Editable.usedBitmapLayer != currentlyDrawnLayer)
-            continue;
 
         isScrollable = Editable.getIsScrollable();
         if(drawOnlyVisibleObjects && !Editable.getIsAttachedToCamera()){
@@ -9253,88 +9258,26 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
             objectSize.set(Editable.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(Editable.getScale());
-            if(!Editable.getIsScaledFromCenter())
+            if(!Editable.getIsScaledFromCenter()){
                 newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
-            else
+            }
+            else{
                 newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
+            }
 
-            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize))
+            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
                 continue;
+            }
         }
 
         //If a font exists in FontContainer, draw the text on screen.
         for(auto font : FontContainer){
             if(Editable.getFontID() == font.ID){
-                Editable.drawText(Object.getPos(isScrollable), font.font,
-                    drawTextFieldBorders, Camera, Editable.getCursorPos(), Editable.secondCursorPos, Editable.getEditingIsActive());
+                Editable.drawText(Object.getPos(isScrollable), font.font, drawTextFieldBorders,
+                    Camera, Editable.getCursorPos(), Editable.secondCursorPos, Editable.getEditingIsActive()
+                );
             }
         }
-        numberOfDrawnObjects++;
-    }
-
-    for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
-        if(!Scrollbar.getIsActive()){
-            continue;
-        }
-        if(Scrollbar.getUsedBitmapLayer() == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
-            if(wasForegroundUpdated)
-                continue;
-            foregroundOfObjects.push_back(iteration);
-            wasForegroundUpdated = true;
-            continue;
-        }
-        if(Scrollbar.getUsedBitmapLayer() != currentlyDrawnLayer)
-            continue;
-
-        isScrollable = Scrollbar.getIsScrollable();
-        if(drawOnlyVisibleObjects && !Scrollbar.getIsAttachedToCamera()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(Scrollbar.getPos(false));
-            objectSize.set(Scrollbar.getSize());
-            scaledObjectSize.set(objectSize);
-            scaledObjectSize.multiply(Scrollbar.getScale());
-            if(!Scrollbar.getIsScaledFromCenter())
-                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
-            else
-                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
-
-            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize))
-                continue;
-        }
-        Scrollbar.draw(Object.getPos(isScrollable), Object.ImageContainer, Camera);
-        numberOfDrawnObjects++;
-    }
-
-    for(PrimitivesModule & Primitives : Object.PrimitivesContainer){
-        if(!Primitives.getIsActive()){
-            continue;
-        }
-        if(Primitives.getUsedBitmapLayer() == -1 && !isTimeForForeground && currentlyDrawnLayer == 0){
-            if(wasForegroundUpdated)
-                continue;
-            foregroundOfObjects.push_back(iteration);
-            wasForegroundUpdated = true;
-            continue;
-        }
-        if(Primitives.getUsedBitmapLayer() != currentlyDrawnLayer)
-            continue;
-
-        isScrollable = Primitives.getIsScrollable();
-        if(drawOnlyVisibleObjects && !Primitives.getIsAttachedToCamera()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(Primitives.getPos(false));
-            objectSize.set(Primitives.getSize());
-            scaledObjectSize.set(objectSize);
-            scaledObjectSize.multiply(Primitives.getScale());
-            if(!Primitives.getIsScaledFromCenter())
-                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
-            else
-                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
-
-            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize))
-                continue;
-        }
-        Primitives.draw(Object.getPos(isScrollable), Camera, false);
         numberOfDrawnObjects++;
     }
 
@@ -9373,16 +9316,10 @@ void ProcessClass::drawModules(AncestorObject & Object, unsigned int iteration, 
         }
     }
 
-    if(isTimeForForeground)
-        return;
-
     for(ParticleEffectModule & ParticleEffect : Object.ParticlesContainer){
         if(!ParticleEffect.getIsActive()){
             continue;
         }
-        if(ParticleEffect.usedBitmapLayer != currentlyDrawnLayer)
-            continue;
-        
         ParticleEffect.drawParticles(Object.ImageContainer, displaySize, Camera);
         numberOfDrawnObjects++;
     }

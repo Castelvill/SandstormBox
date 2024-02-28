@@ -140,13 +140,20 @@ value ([context me layer_id]) myLayerID
 all layer _ _ _ _ _ _ Layers
 find_by_id_2 Layers myLayerID Layer
 index c Layer [0 0 0] _ collision ExitCollision
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
 run exitWindowCheck
 end
 
 start exitWindowCheck
 if([c ExitCollision release_on])
+bool [true] true
+= delete true
+end
+
+start deleteWindow
+triggers each_iteration
+if ([c delete] [c has_friends] ! [c deleted_friends] || &&)
+all camera _ camera _ Cameras
+find_by_id_2 Cameras cameraID Camera
 delete Camera
 delete my_layer
 end

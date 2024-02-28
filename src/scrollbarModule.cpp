@@ -6,7 +6,6 @@ void ScrollbarModule::clear(){
     scrollingArea.set(0.0, 0.0);
     dragStartingPos.set(0.0, 0.0);
     thumbImageID = "";
-    usedBitmapLayer = 0;
     FocusedCamera = nullptr;
 }
 ScrollbarModule::ScrollbarModule(){
@@ -160,9 +159,6 @@ void ScrollbarModule::getContext(string attribute, vector <BasePointersStruct> &
     else if(attribute == "trackImageID"){
         BasePointers.back().setPointer(&trackImageID);
     }
-    else if(attribute == "usedBitmapLayer"){
-        BasePointers.back().setPointer(&usedBitmapLayer);
-    }
     else{
         BasePointers.pop_back();
         getPrimaryContext(attribute, BasePointers);
@@ -199,9 +195,6 @@ void ScrollbarModule::setThumbImageID(string newValue){
 void ScrollbarModule::setTrackImageID(string newValue){
     trackImageID = newValue;
 }
-void ScrollbarModule::setUsedBitmapLayer(int newValue){
-    usedBitmapLayer = newValue;
-}
 
 vec2d ScrollbarModule::getThumbPos(){
     return thumbPos;
@@ -226,9 +219,6 @@ string ScrollbarModule::getThumbImageID(){
 }
 string ScrollbarModule::getTrackImageID(){
     return trackImageID;
-}
-int ScrollbarModule::getUsedBitmapLayer(){
-    return usedBitmapLayer;
 }
 void ScrollbarModule::nullifyFocusedCameraPointer(){
     FocusedCamera = nullptr;

@@ -136,9 +136,6 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "set_resize_text" && Values.size() > 1){
         Text->modifyContentAndResize(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(), FontContainer);
     }
-    else if(attribute == "select_layer" && Values.size() > 0){
-        Text->setUsedBitmapLayer(Values[0].getIntUnsafe());
-    }
     else if(attribute == "set_wrapping" && Values.size() > 0){
         Text->setWrapping(Values[0].getIntUnsafe());
     }
@@ -293,9 +290,6 @@ void EveModule::controlImage(ImageModule *Image, string attribute, const vector<
     }
     else if(attribute == "connect_bitmap_via_alias" && Values.size() > 0){
         Image->connectBitmap(BitmapContainer, "", Values[0].getStringUnsafe(), workingDirectory);  
-    }
-    else if(attribute == "select_layer" && Values.size() > 0){
-        Image->setUsedBitmapLayer(Values[0].getIntUnsafe());
     }
     else{
         bool temp = false;
@@ -787,9 +781,6 @@ void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribut
     }
     else if(attribute == "set_radius" && Values.size() >= 1){
         Primitives->radius = Values[0].getDoubleUnsafe();
-    }
-    else if(attribute == "select_layer" && Values.size() >= 1){
-        Primitives->usedBitmapLayer = Values[0].getIntUnsafe();
     }
     else{
         bool temp = false;

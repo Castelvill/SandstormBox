@@ -9,9 +9,6 @@ void freeFontsFromContainer(vector <SingleFont> & FontContainer);
 
 vector<string> getAllFilesNamesWithinFolder(string directory, char mode);
 
-template <class T>
-void getPointersFromVector(vector <T*> & Left, vector<T> & Right);
-
 bool checkForVectorSize(size_t leftSize, size_t rightSize, bool & sameSize, string functionName);
 
 vector <short> getPressedKeys(unsigned char key[]);
@@ -181,7 +178,6 @@ private:
     AncestorObject * SelectedObject;
     vec2d dragStartingPos, dragStartingPos2;
     vec2d dragCameraStaringPos, dragLimit;
-    vector <unsigned int> foregroundOfObjects;
     EventsLookupTable BaseOfTriggerableObjects;
     bool firstIteration;
     bool wasDeleteExecuted, wasNewExecuted, wasAnyEventUpdated, wereGlobalVariablesCreated;
@@ -364,9 +360,9 @@ public:
     void changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mouse);
     void detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, const MouseClass & Mouse);
     void drawEverything(EngineClass & Engine);
-    void drawModules(AncestorObject & Object, unsigned int iteration, Camera2D & Cameras, vector <SingleFont> & FontContainer,
-        int currentlyDrawnLayer, int & numberOfDrawnObjects, vector <unsigned int> & foregroundOfObjects,
-        bool isTimeForForeground, vec2i displaySize);
+    void drawModules(AncestorObject & Object, size_t iteration, Camera2D & Cameras,
+        vector <SingleFont> & FontContainer, size_t & numberOfDrawnObjects, vec2i displaySize
+    );
     void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, vec2d momentum);
     bool shouldCheckOverlapingOnly(CollisionModule & Collision, AncestorObject & SolidObject, CollisionModule & SolidCollision);
     void detectRealCollisions(LayerClass & Layer, AncestorObject & Object, MovementModule & Movement);

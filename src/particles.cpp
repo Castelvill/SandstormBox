@@ -201,7 +201,6 @@ void ParticleEffectModule::setUpNewInstance(const string & newID, vector<string>
     maxTimeToSpawn = 0.0;
     spawnKeyBind = ALLEGRO_KEY_P;
     spawnOnKeyRelease = false;
-    usedBitmapLayer = 0;
 }
 ParticleEffectModule::ParticleEffectModule(){
     setUpNewInstance("", nullptr, "", "");
@@ -434,9 +433,6 @@ void ParticleEffectModule::setEnvironmentSpeed(vec2d newEnvironmentSpeed){
 void ParticleEffectModule::setEnvironmentSpeed(double x, double y){
     environmentSpeed.set(x, y);
 }
-void ParticleEffectModule::setUsedBitmapLayer(int newLayer){
-    usedBitmapLayer = newLayer;
-}
 void ParticleEffectModule::switchUseImageAsParticles(){
     useImageAsParticles = !useImageAsParticles;
 }
@@ -620,9 +616,6 @@ void ParticleEffectModule::getContext(string attribute, vector <BasePointersStru
     }
     else if(attribute == "spawn_on_key_release"){
         BasePointers.back().setPointer(&spawnOnKeyRelease);
-    }
-    else if(attribute == "used_bitmap_layer"){
-        BasePointers.back().setPointer(&usedBitmapLayer);
     }
     else{
         getPrimaryContext(attribute, BasePointers);

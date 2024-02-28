@@ -97,6 +97,16 @@ bool isCharInGroup(char ID, int count, ...){
     va_end(args);
     return false;
 }
+bool stringToBool(string text){
+    if(text == "true" || text == "1"){
+        return true;
+    }
+    if(text == "false" || text == "0"){
+        return false;
+    }
+    cout << "Error: In " << __FUNCTION__ << ": Provided string of value '" << text << "' cannot be transform into a bool value.";
+    return false;
+}
 
 void addUniqueToStringVector(vector <string> & stringVec, string newString){
     auto findString = std::find(begin(stringVec), end(stringVec), newString);

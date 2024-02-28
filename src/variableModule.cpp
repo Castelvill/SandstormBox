@@ -722,11 +722,11 @@ void VariableModule::move(VariableModule *RightOperand, EngineInstr instruction)
                 vString += RightOperand->getString();
             }
             else{
-                cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
+                cout << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
             }
         }
         else{
-            cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+            cout << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': You cannot execute any instructions if only the right operand is of a string type.\n";
         }
     }
     else if(RightOperand->type == 'b'){
@@ -743,7 +743,7 @@ void VariableModule::move(VariableModule *RightOperand, EngineInstr instruction)
         moveFromTemp((int*)nullptr, instruction);
     }
     else{
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
     }
 }
 void VariableModule::move(const BasePointersStruct *RightOperand, EngineInstr instruction){
@@ -756,11 +756,11 @@ void VariableModule::move(const BasePointersStruct *RightOperand, EngineInstr in
                 vString += RightOperand->getString();
             }
             else{
-                cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
+                cout << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
             }
         }
         else{
-            cout << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+            cout << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': You cannot execute any instructions if only the right operand is of a string type.\n";
         }
     }
     else if(RightOperand->type == "bool"){
@@ -779,7 +779,7 @@ void VariableModule::move(const BasePointersStruct *RightOperand, EngineInstr in
         moveFromTemp((int*)nullptr, instruction);
     }
     else{
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
     }
 }
 VariableModule &VariableModule::operator=(const VariableModule &original){

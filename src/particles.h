@@ -73,8 +73,6 @@ private:
     short spawnKeyBind;
     bool spawnOnKeyRelease;
 public:
-    int usedBitmapLayer;
-
     void setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID);
     ParticleEffectModule();
     ParticleEffectModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
@@ -152,7 +150,6 @@ public:
     bool getSpawnOnKeyRelease();
 
     void setShape(short newShape);
-    void setUsedBitmapLayer(int newLayer);
     void setEnvironment(vec2d newEnvironment);
     void setEnvironment(double x, double y);
     void setEnvironmentX(double);

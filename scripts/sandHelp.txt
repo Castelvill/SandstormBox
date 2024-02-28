@@ -184,7 +184,6 @@ fun border1 add_point double [880 980]
 fun border1 add_point c roundingSize c roundingSize
 fun border1 set_color double [0.0 0.0 0.0 0.7]
 fun border1 set_thickness double [10.0]
-fun border1 select_layer int [0]
 fun border1 set_size int [640 480]
 fun border1 update_with_size
 
@@ -192,7 +191,6 @@ new primitives c NewWindowObject 1 _ _ border2
 clone border2 border1
 fun border2 set_id string [toolbar]
 fun border2 set_color double [0.0 0.0 0.0 0.8]
-fun border2 select_layer int [2]
 fun border2 set_size int [640 50]
 fun border2 update_with_size
 
@@ -203,9 +201,7 @@ fun title set_font string [cascadia_code]
 fun title set_wrapping int [0]
 fun title add_new_and_update c param1
 fun title set_size int [400 50]
-fun title select_layer int [-1]
 fun title set_color double [1.0 1.0 1.0 0.0]
-fun title attach_to_camera
 
 new object c AmogusLayer 1 _ _ NewAmo
 fun NewAmo set_id string [Amongus]
@@ -213,7 +209,6 @@ fun NewAmo set_position double [0 80]
 new image c NewAmo 1 _ _ redAstronaut
 fun redAstronaut set_id string [amongus]
 fun redAstronaut connect_bitmap_via_alias c param1
-fun redAstronaut select_layer int [1]
 fun redAstronaut set_scale double [0.6 0.6]
 string [""] program
 end

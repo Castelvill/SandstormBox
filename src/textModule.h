@@ -32,8 +32,6 @@ public:
     bool ignoreSize;
     bool ignoreVerticalArrows;
 
-    short usedBitmapLayer;  //Text fields with numbers higher or equal to zero are drawn in ascending order. If the value is -1, text will be drawn on top of everything else.
-
     void setUpNewInstance();
     TextModule();
     TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
@@ -56,7 +54,6 @@ public:
     void setRandomColors();
     void incrementRandomColor();
     void setRotation(double newAngle);
-    void setUsedBitmapLayer(int newLayer);
     void addRotation(double newAngle);
     void setAlpha(float newValue);
     void setFontID(string);

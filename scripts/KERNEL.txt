@@ -53,7 +53,6 @@ fun FPS_text add_new_and_update string ["FPS: "]
 fun FPS_text set_color double [1.0 0.0 0.0 0.0]
 fun FPS_text set_wrapping int [2]
 fun FPS_text attach_to_camera
-fun FPS_text select_layer int [-1]
 fun FPS_text deactivate
 /*new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [triangle]
@@ -62,7 +61,6 @@ fun PrimiFun add_point double [1300.0 200.0]
 fun PrimiFun add_point double [600.0 1000.0]
 fun PrimiFun set_color double [1.0 0.0 0.0 1.0]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun select_layer int [2]
 new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [triangle]
 fun PrimiFun add_point double [800.0 100.0]
@@ -70,14 +68,12 @@ fun PrimiFun add_point double [1300.0 200.0]
 fun PrimiFun add_point double [600.0 1000.0]
 fun PrimiFun set_color double [0.9 0.0 0.0 0.8]
 fun PrimiFun set_thickness double [11.0]
-fun PrimiFun select_layer int [2]
 new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [circle]
 fun PrimiFun add_point double [900.0 400.0]
 fun PrimiFun set_color double [0.0 0.0 1.0 1.0]
 fun PrimiFun set_thickness double [20.0]
 fun PrimiFun set_radius double [350.0]
-fun PrimiFun select_layer int [2]
 new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [filled_rounded_rectangle]
 fun PrimiFun add_point double [920.0 20.0]
@@ -85,7 +81,6 @@ fun PrimiFun add_point double [1900.0 500.0]
 fun PrimiFun add_point double [30.0 30.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.5]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun select_layer int [2]
 new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [filled_rounded_rectangle]
 fun PrimiFun add_point double [920.0 520.0]
@@ -93,7 +88,7 @@ fun PrimiFun add_point double [1900.0 1000.0]
 fun PrimiFun add_point double [30.0 30.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.5]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun select_layer int [2]*/
+*/
 
 new layer l 1 _ _ L1
 fun L1 set_id string [L1]
@@ -110,7 +105,7 @@ fun border add_point double [880 980]
 fun border add_point double [20.0 20.0]
 fun border set_color double [0.0 0.0 0.0 0.7]
 fun border set_thickness double [10.0]
-fun border select_layer int [0]
+
 fun border set_size int [400 700]
 fun border update_with_size
 new primitives c Window 1 _ _ border
@@ -121,7 +116,6 @@ fun border add_point double [880 980]
 fun border add_point double [20.0 20.0]
 fun border set_color double [0.0 0.0 0.0 0.8]
 fun border set_thickness double [10.0]
-fun border select_layer int [2]
 fun border set_size int [400 50]
 fun border update_with_size
 new text c Window 1 _ _ title
@@ -131,7 +125,6 @@ fun title set_font string [arial24]
 fun title set_wrapping int [0]
 fun title add_new_and_update string ["Okienko"]
 fun title set_size int [400 50]
-fun title select_layer int [-1]
 fun title set_color double [1.0 1.0 1.0 0.0]
 fun title attach_to_camera
 
@@ -141,13 +134,11 @@ fun NewAmo set_position double [0 80]
 new image l L1 Amongus 1 _ _ redAstronaut
 fun redAstronaut set_id string [amongus]
 fun redAstronaut connect_bitmap_via_alias string [amongus_3]
-fun redAstronaut select_layer int [1]
 fun redAstronaut set_scale double [0.6 0.6]
 new image l L1 Amongus 1 _ _ insanity
 fun insanity set_id string [insanity]
 fun insanity connect_bitmap_via_alias string [insanity1]
 fun insanity set_position double [100 300]
-fun insanity select_layer int [2]
 fun insanity set_scale double [0.1 0.1]
 fun insanity deactivate
 new variable l L1 Amongus 1 _ _ var
@@ -183,12 +174,10 @@ fun ObjPar set_position double [600 500]
 new image c ObjPar 1 _ _ steveImg
 fun steveImg set_id string [lel]
 fun steveImg connect_bitmap_via_alias string [steve]
-fun steveImg select_layer int [1]
 fun steveImg deactivate
 new image c ObjPar 1 _ _ insaneImg
 fun insaneImg set_id string [insane]
 fun insaneImg connect_bitmap_via_alias string [sword]
-fun insaneImg select_layer int [2]
 fun insaneImg set_scale double [0.1 0.1]
 fun insaneImg deactivate
 new particles c ObjPar 1 _ _ Particles
@@ -233,7 +222,6 @@ fun title set_font string [arial24]
 fun title set_wrapping int [0]
 fun title add_new_and_update string ["Terminal"]
 fun title set_size int [400 50]
-fun title select_layer int [1]
 fun title set_color double [1.0 1.0 1.0 0.0]
 fun title attach_to_camera
 fun title set_random_change_speed double [0.1]
@@ -246,7 +234,6 @@ fun PrimiFun add_point double [880 980]
 fun PrimiFun add_point double [20.0 20.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.7]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun select_layer int [0]
 fun PrimiFun set_size int [400 700]
 fun PrimiFun update_with_size
 new primitives c Terminal 1 _ _ PrimiFun
@@ -257,7 +244,6 @@ fun PrimiFun add_point double [880 980]
 fun PrimiFun add_point double [20.0 20.0]
 fun PrimiFun set_color double [0.0 0.0 0.0 0.8]
 fun PrimiFun set_thickness double [10.0]
-fun PrimiFun select_layer int [0]
 fun PrimiFun set_size int [400 50]
 fun PrimiFun update_with_size
 new variable c Terminal 1 _ _ Var
@@ -284,7 +270,6 @@ magna aliqua. Ut enim ad minim veniam, quis nostrud
 exercitation ullamco labori nisi ut aliquip ex ea
 commodo consequat."]*/
 fun Editable set_size int [1920 1080]
-fun Editable select_layer int [1]
 fun Editable set_color double [0.0 1.0 0.0 1.0]
 fun Editable set_input_delay double [0.3]
 fun Editable set_repetition_delay double [0.05]

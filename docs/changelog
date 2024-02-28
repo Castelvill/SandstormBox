@@ -1,3 +1,8 @@
+28.02.2024
+-Create "Mover" program - basic tool to move objects around in the selected layer.
+-Added a propagation of "isAttachedToCamera" variable value from the object to its modules. 
+-Removed drawing-order layers from the drawing function.
+
 26.02.2024
 -Renamed "canMoveWithMouse" and "canInteractWithMouse" camera variables with "isVisionAffectedByMouse" and "canBeModifiedByMouse".
 -Created "history" command that prints out every instance of command history vector.

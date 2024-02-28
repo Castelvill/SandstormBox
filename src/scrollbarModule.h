@@ -12,7 +12,6 @@ class ScrollbarModule : public PrimaryModule{
     bool mousePressed;
     string thumbImageID;
     string trackImageID;
-    int usedBitmapLayer;
     Camera2D * FocusedCamera;
 public:
     void clear();
@@ -38,7 +37,6 @@ public:
     void setMousePressed(bool newValue);
     void setThumbImageID(string newValue);
     void setTrackImageID(string newValue);
-    void setUsedBitmapLayer(int newValue);
 
     vec2d getThumbPos();
     vec2d getThumbSize();
@@ -48,7 +46,6 @@ public:
     bool getMousePressed();
     string getThumbImageID();
     string getTrackImageID();
-    int getUsedBitmapLayer();
     void nullifyFocusedCameraPointer();
 };
 

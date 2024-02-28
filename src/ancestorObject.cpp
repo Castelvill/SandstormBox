@@ -182,9 +182,9 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         EveContainer.push_back(EveModule());
         EveContainer.back().clone(Event, eveContainerIDs, newLayerID, getID(), true);
     }
-    for(const VariableModule & Collision : Original.VariablesContainer){
+    for(const VariableModule & Variable : Original.VariablesContainer){
         VariablesContainer.push_back(VariableModule());
-        VariablesContainer.back().clone(Collision, variablesContainerIDs, newLayerID, getID(), true);
+        VariablesContainer.back().clone(Variable, variablesContainerIDs, newLayerID, getID(), true);
     }
     for(const ScrollbarModule & Scrollbar : Original.ScrollbarContainer){
         ScrollbarContainer.push_back(ScrollbarModule());
@@ -257,7 +257,13 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
            || Object.isInAGroup(EditableText.connectedGroup)){
             bool success = false;
             if(EditableText.connectedModule == "ancestor"){
-                success = EditableText.controlAncestor(Object, listOfAncestorIDs);
+                if(EditableText.connectedVariable == "is_attached_to_camera"){
+                    Object.setIsAttachedToCamera(stringToBool(EditableText.getCurrentContent()));
+                    success = true;
+                }
+                else{
+                    success = EditableText.controlAncestor(Object, listOfAncestorIDs);
+                }
             }
             else if(EditableText.connectedModule == "text"){
                 for(auto & Text : Object.TextContainer){
@@ -374,10 +380,12 @@ void AncestorObject::createVectorsOfIds(){
 }
 vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
     vec2d finalPos(getPos(false));
-    if(!getIsAttachedToCamera())
+    if(!getIsAttachedToCamera()){
         finalPos.translate(SelectedCamera->pos/SelectedCamera->zoom + SelectedCamera->visionShift);
-    else
+    }
+    else{
         finalPos.translate(SelectedCamera->pos);
+    }
     return finalPos;
 }
 string SuccessInstanceAdded(string module, string ID){
@@ -471,6 +479,34 @@ string AncestorObject::destroyModuleInstance(string module, string destroyID){
         return tryRemovingModuleInstance(module, VectorContainer, vectorContainerIDs, destroyID);
     }
     return "Error: " + module + "Module does not exist!\n";
+}
+
+void AncestorObject::setIsAttachedToCamera(bool newValue){
+    isAttachedToCamera = newValue;
+    for(TextModule & Text : TextContainer){
+        Text.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(EditableTextModule & Editable : EditableTextContainer){
+        Editable.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(ImageModule & Image : ImageContainer){
+        Image.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(MovementModule & Movement : MovementContainer){
+        Movement.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(CollisionModule & Collision : CollisionContainer){
+        Collision.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(ParticleEffectModule & Particle : ParticlesContainer){
+        Particle.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(ScrollbarModule & Scrollbar : ScrollbarContainer){
+        Scrollbar.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(PrimitivesModule & Primitives : PrimitivesContainer){
+        Primitives.setIsAttachedToCamera(isAttachedToCamera);
+    }
 }
 
 VariableModule AncestorObject::getAttributeValue(const string &attribute, const string & detail){

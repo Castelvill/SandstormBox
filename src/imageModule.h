@@ -38,8 +38,6 @@ private:
     float lightLevel;
     float lightColor[3];
 public:
-    int usedBitmapLayer; //Images with numbers higher or equal to zero are drawn in ascending order, but if the value is -1, image will be drawn on top of everything else.
-
     float getLightLevel() const;
 
     void setUpNewInstance();
@@ -77,7 +75,6 @@ public:
     void setImageColor(float newImageColor, char whichColor);
     void setLightColor(vec3d newLightColor, float newLightLevel);
     void setLightColor(float newLightColor, char whichLight);
-    void setUsedBitmapLayer(int newLayer);
     void modifyFrames(vec2d newFrameSize);
     void chooseFrames(vec2i newCurrentFrame);
     void clear();

@@ -83,17 +83,15 @@ fun Cam set_can_move_objects bool [false]
 new image c me 1 _ _ background
 //fun background deactivate
 fun background connect_bitmap_via_alias string [background2]
-fun background detach_from_camera
 fun background resize c ww c wh
 fun background set_color double [0.5 0.5 0.5 0.5]
+fun background attach_to_camera
 
 int [640] windowSizeX
 int [480] windowSizeY
 int [0 0] editableTextPos
 
 new editable_text c me 1 _ _ TerminalTextField
-fun TerminalTextField attach_to_camera
-fun TerminalTextField detach_from_camera
 fun TerminalTextField set_id string [edi]
 fun TerminalTextField set_position c editableTextPos
 fun TerminalTextField set_font string [cascadia_code]
@@ -103,7 +101,6 @@ fun TerminalTextField set_space_use bool [1]
 fun TerminalTextField set_max_content_length int [10000]
 fun TerminalTextField add_new_and_update string ["Welcome in Sandstorm Box terminal!"]
 fun TerminalTextField set_size c ww c wh
-fun TerminalTextField select_layer int [1]
 fun TerminalTextField set_color double [0.0 1.0 0.0 1.0]
 fun TerminalTextField set_input_delay double [0.3]
 fun TerminalTextField set_repetition_delay double [0.05]
@@ -119,6 +116,7 @@ fun TextEditor set_id string [TextEditor]
 fun TextEditor set_protected_area int [0]
 fun TextEditor set_enter_use bool [1]
 fun TextEditor set_text int [0] string [""]
+fun TextEditor set_ignore_vertical_arrows bool [false]
 fun TextEditor deactivate
 
 var string "_enter" program
@@ -175,6 +173,7 @@ fun WindowCamera deactivate
 new object c WindowLayer 1 _ _ NewWindowObject
 fun NewWindowObject set_id string [WindowObject]
 fun NewWindowObject set_can_be_selected bool [0]
+fun NewWindowObject enable_interface
 bind NewWindowObject literal ["scripts/windowTemplate.sand"]
 build NewWindowObject true
 
@@ -201,13 +200,24 @@ new variable c NewWindowObject 1 _ _ isBorderless
 fun isBorderless set_id string ["isBorderless"]
 fun isBorderless set_bool bool [false]
 
+new variable c NewWindowObject 1 _ _ newVal
+fun newVal set_id string ["delete"]
+fun newVal set_bool bool [false]
+
+new variable c NewWindowObject 1 _ _ newVal
+fun newVal set_id string ["has_friends"]
+fun newVal set_bool bool [false]
+
+new variable c NewWindowObject 1 _ _ newVal
+fun newVal set_id string ["deleted_friends"]
+fun newVal set_bool bool [false]
+
 new primitives c NewWindowObject 1 _ _ border1
 fun border1 set_id string [background]
 fun border1 set_type string [filled_rectangle]
 fun border1 add_point double [0.0 0.0]
 fun border1 add_point double [640 480]
 fun border1 set_color double [1.0 1.0 1.0 0.7]
-fun border1 select_layer int [0]
 fun border1 set_size int [640 480]
 fun border1 update_with_size
 
@@ -215,7 +225,6 @@ new primitives c NewWindowObject 1 _ _ border2
 clone border2 border1
 fun border2 set_id string [toolbar]
 fun border2 set_color double [0.109 0.537 0.2039 1.0]
-fun border2 select_layer int [1]
 fun border2 set_size int [640 30]
 fun border2 update_with_size
 
@@ -227,7 +236,6 @@ fun border3 set_color double [0.109 0.537 0.2039 1.0]
 fun border3 set_position int [2 2]
 fun border3 set_size int [636 476]
 fun border3 set_thickness double [5.0]
-fun border3 select_layer int [0]
 fun border3 update_with_size
 
 new primitives c NewWindowObject 1 _ _ exitButton
@@ -236,13 +244,11 @@ fun exitButton set_type string [filled_circle]
 fun exitButton add_point double [0.0 0.0]
 fun exitButton add_point double [5 5]
 fun exitButton set_color double [1.0 0.0 0.0 1.0]
-fun exitButton select_layer int [2]
 fun exitButton set_position int [620 15]
 fun exitButton set_size int [20 20]
 fun exitButton update_with_size
 
 new collision c NewWindowObject 1 _ _ ExitCollision
-fun ExitCollision attach_to_camera
 fun ExitCollision set_position double [620 15]
 fun ExitCollision set_size double [10 10]
 fun ExitCollision set_is_circle bool [true]
@@ -254,7 +260,6 @@ fun MaxButton set_position int [590 15]
 fun MaxButton set_color double [1.0 1.0 0.0 1.0]
 
 new collision c NewWindowObject 1 _ _ MaxCollision
-fun MaxCollision attach_to_camera
 fun MaxCollision set_position double [590 15]
 fun MaxCollision set_size double [10 10]
 fun MaxCollision set_is_circle bool [true]
@@ -266,7 +271,6 @@ fun minimizeButton set_position int [560 15]
 fun minimizeButton set_color double [0.0 1.0 0.0 1.0]
 
 new collision c NewWindowObject 1 _ _ MinCollision
-fun MinCollision attach_to_camera
 fun MinCollision set_position double [560 15]
 fun MinCollision set_size double [10 10]
 fun MinCollision set_is_circle bool [true]
@@ -278,9 +282,7 @@ fun title set_font string [cascadia_code]
 fun title set_wrapping int [0]
 fun title add_new_and_update s ["Template Window"]
 fun title set_size int [400 50]
-fun title select_layer int [-1]
 fun title set_color double [1.0 1.0 1.0 0.0]
-fun title attach_to_camera
 end
 
 
@@ -337,13 +339,11 @@ index c NewWindowLayer [0 0 0] _ primitives Background
 fun Background set_color double [0.0 0.0 0.0 1.0]
 new editable_text c Object 1 _ _ TextEditor
 clone TextEditor Editable
-fun TextEditor attach_to_camera
 fun TextEditor set_id string ["Notepad"]
 fun TextEditor set_position int [5 30]
 fun TextEditor set_text int [0] string [""]
 fun TextEditor activate
 fun TextEditor set_color double [1.0 0.0 0.0 1.0]
-fun TextEditor select_layer int [1]
 fun TextEditor set_wrapping int [0]
 fun TextEditor set_size int [640 480]
 bind Object literal ["scripts/notepad.sand"]
@@ -364,7 +364,11 @@ end
 
 start spawnMover
 index c me [0 1] _ editable_text Editable
-index c NewWindowLayer [0 0] _ object Object
+index c NewWindowLayer [0 0] _ object NewObject
+first context [NewObject] _ _ variable has_friends bool _ has_friends
+bool [true] true
+= has_friends true
+find_by_id_2 NewObject has_friends 
 index c NewWindowLayer [0 0 0] _ primitives Background
 fun Background set_color double [0.0 0.0 0.0 1.0]
 //value ([context my_layer id]) selectedLayerID
@@ -380,10 +384,18 @@ fun InsideCamera set_relative_position int [5 30]
 fun InsideCamera resize int [630 440]
 fun InsideCamera set_can_move_objects bool [true]
 fun InsideCamera set_can_edit_text bool [false]
+fun InsideCamera set_id string ["insideCamera"]
+fun InsideCamera set_min_size int [0 0]
 
-//bind Object literal ["scripts/notepad.sand"]
-//build Object false
-//run loadTextFromFile
+value ([c InsideCamera id]) newCameraID
+
+new variable c NewObject 1 _ _ cameraID
+fun cameraID set_id string ["insideCameraID"]
+fun cameraID set_string c newCameraID
+
+
+bind NewObject literal ["scripts/mover.sand"]
+build NewObject false
 end
 
 
