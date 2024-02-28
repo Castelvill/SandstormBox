@@ -1,4 +1,6 @@
 28.02.2024
+-Implemented tab autocomplete inside the terminal.
+-Added "similar" instruction.
 -Create "Mover" program - basic tool to move objects around in the selected layer.
 -Added a propagation of "isAttachedToCamera" variable value from the object to its modules. 
 -Removed drawing-order layers from the drawing function.

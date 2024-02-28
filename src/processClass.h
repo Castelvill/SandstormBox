@@ -71,6 +71,7 @@ struct ContextClass{
     bool getIntOrAbort(int & number, EngineInstr instruction);
     bool getStringOrAbort(string & text, EngineInstr instruction);
     bool getStringOrIgnore(string & text, EngineInstr instruction);
+    bool getStringVectorOrIgnore(vector<string> & result, EngineInstr instruction);
     template<typename T>
     void addBasePointer(T * pointer);
     template<typename T>
@@ -322,6 +323,7 @@ public:
     void listOutFiles(OperaClass & Operation, vector<ContextClass> & EventContext);
     void changeWorkingDirectory(OperaClass & Operation, vector<ContextClass> & EventContext);
     void printWorkingDirectory(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void findSimilarStrings(OperaClass & Operation, vector<ContextClass> & EventContext);
     OperaClass executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,

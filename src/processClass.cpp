@@ -880,6 +880,33 @@ bool ContextClass::getStringOrIgnore(string & text, EngineInstr instruction){
     }
     return true;
 }
+bool ContextClass::getStringVectorOrIgnore(vector<string> & result, EngineInstr instruction){
+    if(type == "value"){
+        for(const VariableModule & Variable : Variables){
+            result.push_back(Variable.getAnyValue());
+        }
+    }
+    else if(type == "pointer"){
+        for(const BasePointersStruct & Pointer : BasePointers){
+            result.push_back(Pointer.getString());
+        }
+    }
+    else if(type == "variable"){
+        for(VariableModule * Variable : Modules.Variables){
+            result.push_back(Variable->getAnyValue());
+        }
+    }
+    else if(type == "vector"){
+        for(VectorModule * Vector : Modules.Vectors){
+            vector <string> extractedVector = Vector->getAllStrings();
+            result.insert(result.end(), extractedVector.begin(), extractedVector.end());
+        }
+    }
+    else{
+        return false;
+    }
+    return true;
+}
 ContextClass::ContextClass()
 {
     ID = "";
@@ -2300,17 +2327,24 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
     }
 }
 void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, ContextClass * RightOperand){
-    if(LeftOperand->type != "pointer" && LeftOperand->type != "value" && LeftOperand->type != "variable"){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
+    if(LeftOperand->type != "pointer" && LeftOperand->type != "value"
+        && LeftOperand->type != "variable" && LeftOperand->type != "vector"
+    ){
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
+            << "\' instruction: Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
         return;
     }
-    else if(RightOperand->type != "pointer" && RightOperand->type != "value" && RightOperand->type != "variable"){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Right operand has an invalid type: \'" << RightOperand->type << "\'.\n";
+    else if(RightOperand->type != "pointer" && RightOperand->type != "value"
+        && RightOperand->type != "variable" && RightOperand->type != "vector"
+    ){
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
+            << "\' instruction: Right operand has an invalid type: \'" << RightOperand->type << "\'.\n";
         return;
     }
 
     if(LeftOperand->readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Left operand is read-only. Instruction \'" << transInstrToStr(instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
+            << "\' instruction: Left operand is read-only. Instruction \'" << transInstrToStr(instruction) << "\' failed.\n";
         return;
     }
 
@@ -2339,6 +2373,15 @@ void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, Contex
         }
         for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
             LeftOperand->Modules.Variables[i]->move(RightOperand->Modules.Variables[j], instruction);
+        }
+    }
+    else if(LeftOperand->type == "vector" && RightOperand->type == "vector"){
+        if(!checkForVectorSize(LeftOperand->Modules.Vectors.size(), RightOperand->Modules.Vectors.size(), sameSize, __FUNCTION__)){
+            return;
+        }
+        cout << "Not yet implemented!\n";
+        for(; i < LeftOperand->Modules.Vectors.size(); i++, j+=sameSize){
+            //LeftOperand->Modules.Vectors[i]->move(RightOperand->Modules.Variables[j], instruction);
         }
     }
     else if(LeftOperand->type == "value" && RightOperand->type == "variable"){
@@ -2551,7 +2594,7 @@ void ProcessClass::moveValues(OperaClass & Operation, vector<ContextClass> &Even
         if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)){
             return;
         }
-        if(LeftOperand->type != "pointer" && LeftOperand->type != "value" && LeftOperand->type != "variable"){
+        if(LeftOperand->type != "pointer" && LeftOperand->type != "value" && LeftOperand->type != "variable" && LeftOperand->type != "vector"){
             cout << "Error: In " << __FUNCTION__ << ": Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
         }
         RightOperand = LeftOperand; //Cloning the left operand allows to reuse this function for incrementing and decrementing.
@@ -6581,10 +6624,46 @@ void ProcessClass::printWorkingDirectory(OperaClass & Operation, vector<ContextC
     NewContext.Variables.push_back(VariableModule::newString(workingDirectory));
     moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
-OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *& OwnerLayer,
-    AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
-    vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
+void ProcessClass::findSimilarStrings(OperaClass &Operation, vector<ContextClass> &EventContext){
+    ContextClass * Pattern = nullptr, * StringVector = nullptr;
+    if(!getPairOfContexts(Pattern, StringVector, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In" << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        return;
+    }
+    string pattern = "";
+    if(!Pattern->getStringOrAbort(pattern, Operation.instruction)){
+        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed. First parameter must be a string.\n";
+        return;
+    }
+    vector <string> stringVector;
+    if(!StringVector->getStringVectorOrIgnore(stringVector, Operation.instruction)){
+        cout << "Warning: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed. Vector of strings not found.\n";
+        return;
+    }
+    ContextClass NewContext;
+    NewContext.type = "value";
+    bool match;
+    for(string text : stringVector){
+        if(text.size() < pattern.size()){
+            continue;
+        }
+        match = true;
+        for(size_t i = 0; i < pattern.size(); i++){
+            if(pattern[i] != text[i]){
+                match = false;
+                break;
+            }
+        }
+        if(match){
+            NewContext.Variables.push_back(VariableModule::newString(text));
+        }
+    }
+    moveOrRename(EventContext, &NewContext, Operation.newContextID);
+}
+OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, LayerClass *&OwnerLayer,
+    AncestorObject *&Owner, vector<ContextClass> &EventContext, vector<AncestorObject *> &TriggeredObjects,
+    vector<ProcessClass> &Processes, vector<EveModule>::iterator &StartingEvent,
+    vector<EveModule>::iterator &Event, vector<MemoryStackStruct> &MemoryStack, EngineClass &Engine
 ){
     string buffor;
     for(OperaClass & Operation : Operations){
@@ -6840,6 +6919,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 break;
             case pwd:
                 printWorkingDirectory(Operation, EventContext);
+                break;
+            case similar:
+                findSimilarStrings(Operation, EventContext);
                 break;
             default:
                 cout << "Error: In " << __FUNCTION__ << ": Instruction '" << transInstrToStr(Operation.instruction) << "' does not exist.\n";
@@ -7498,6 +7580,9 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
         if(Context->type == "value"){
+            if(Condition.Location.attribute == "size"){
+                return VariableModule::newInt(Context->Variables.size());
+            }
             if(Context->Variables.size() == 0){
                 cout << "Error: In " << __FUNCTION__ << ": There are no literals in the context.\n";
                 NewValue.setBool(false);
@@ -7509,6 +7594,9 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return Context->Variables.back();
         }
         if(Context->type == "pointer"){
+            if(Condition.Location.attribute == "size"){
+                return VariableModule::newInt(Context->BasePointers.size());
+            }
             if(Context->BasePointers.size() == 0){
                 cout << "Error: In " << __FUNCTION__ << ": There are no pointers in the context.\n";
                 NewValue.setBool(false);
@@ -7521,6 +7609,9 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
         if(Context->type == "variable"){
+            if(Condition.Location.attribute == "size"){
+                return VariableModule::newInt(Context->Modules.Variables.size());
+            }
             if(Context->Modules.Variables.size() == 0){
                 cout << "Error: In " << __FUNCTION__ << ": There are no variables in the context.\n";
                 NewValue.setBool(false);

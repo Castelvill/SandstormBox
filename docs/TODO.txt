@@ -1,9 +1,6 @@
+-Implement moving instructions and function for vector module.
 -Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
--Add tab autocomplete: "inr" instruction that uses regex to find string in a string vector; using tab tokenizes current editable text and returns best match with "inr".
--Make ImageModuleWindow: editing the parameters of only one selected image. Later do the same with other modules.
--Add global context.
--Important: add "find" instruction that will use regex to find a particular string inside the vector of strings OR inside a choosen string. 
 -Fix: if the cursor is on the first line, down-arrow is moving cursor with an offset.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: command "sh print "xd\n"" does not work.

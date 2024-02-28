@@ -109,6 +109,7 @@ fun TerminalTextField set_enter_use bool [0]
 fun TerminalTextField set_can_enter_accept bool [0]
 fun TerminalTextField set_protected_area int [37]
 fun TerminalTextField set_ignore_vertical_arrows bool [true]
+fun TerminalTextField set_use_tabs bool [false]
 
 new editable_text c me 1 _ _ TextEditor
 clone TextEditor TerminalTextField
@@ -118,6 +119,7 @@ fun TextEditor set_enter_use bool [1]
 fun TextEditor set_text int [0] string [""]
 fun TextEditor set_ignore_vertical_arrows bool [false]
 fun TextEditor deactivate
+fun TextEditor set_use_tabs bool [true]
 
 var string "_enter" program
 var string "" param0
@@ -133,6 +135,7 @@ var int 20 roundingSize
 var int 0 commandNumber
 var int 0 currentCommandNumber
 
+vec string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history] allowedPrograms2
 vec string [""] commandHistory
 
 var string "scripts" dir
@@ -405,6 +408,62 @@ if ([key_pressed 215] [key_pressed 3] &&) //217-ctrl, 215-shift, 3-c
 string ["_enter"] program
 end
 
+start autoComplete
+triggers key_pressed
+if ([key_pressed 64])
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ editable_text EditableText
+first _ [EditableText] _ _ _ _ content _ userInput
+first _ [EditableText] _ _ _ _ protected_area _ protectedArea
+len userInput userInputSize
+substr userInput protectedArea userInputSize command
+similar command allowedPrograms2 completes
+string ["\n"] result
+//+= result completes
+value ([c completes size]) sizeee
+int [0] i
+run replaceWithAutoComplete
+end
+
+start replaceWithAutoComplete
+if ([c completes size] [int 1] ==)
+fun EditableText cut_unprotected_area
+index context completes [0] _ value instance
+int [0] zero
+fun EditableText add_text context zero context instance
+first _ [EditableText] _ _ _ _ content _ history
+len history historySize
+fun EditableText set_cursor_pos c historySize
+else printPossibleCompletes
+end
+
+start printPossibleCompletes
+run addAllCompletes addNewPrompt printOnTerminal rewriteLastCommand
+end
+
+start addAllCompletes true
+if ([c i] [c completes size] <)
+index context completes _ [i] value instance
++= result instance
+string [" "] space
++= result space
+++ i
+end
+
+start addNewPrompt
+string ["\n$ "] newPrompt
++= result newPrompt
+end
+
+
+start rewriteLastCommand
+index layer [0 1] _ object Terminal
+int [0] zero
+fun EditableText add_text context zero context command
+first _ [EditableText] _ _ _ _ content _ history
+len history historySize
+fun EditableText set_cursor_pos c historySize
+end
 
 
 start controler
@@ -596,7 +655,6 @@ start printOnTerminal
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ editable_text EditableText
 int [0] zero
-//fun EditableText add_text int [0] string ["\n"]
 fun EditableText add_text context zero context result
 first _ [EditableText] _ _ _ _ content _ history
 len history historySize

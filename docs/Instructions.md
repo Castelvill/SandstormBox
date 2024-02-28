@@ -875,3 +875,19 @@ pwd [output]
 **Parameters**
 
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+
+## similar
+
+**Syntax**
+
+similar pattern vector [output]
+
+**Description**
+
+    Returns a vector of strings that start with the provided pattern.
+
+**Parameters**
+
+- pattern (string) - id of the context with a string value;
+- vector (string) - id of the context with a vector of strings to be checked;
+- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.

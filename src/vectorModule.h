@@ -60,6 +60,7 @@ public:
     string getString(size_t index) const;
     string getStringUnsafe(long index) const;
     string getLastValue() const;
+    vector <string> getAllStrings() const;
     bool getLastBool() const;
     int getLastInt() const;
     double getLastDouble() const;

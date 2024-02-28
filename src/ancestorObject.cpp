@@ -1779,6 +1779,15 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             cursor++;
             if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
         }
+        else if(words[0] == "similar"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1]);
+            Operation->dynamicIDs.push_back(words[2]);
+            cursor+=2;
+            if(optional(words, cursor, Operation->newContextID)){ continue; }
+        }
         else{
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
         }

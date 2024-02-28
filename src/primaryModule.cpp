@@ -277,6 +277,9 @@ EngineInstr transInstr(string instruction){
     if(instruction == "pwd"){
         return EngineInstr::pwd;
     }
+    if(instruction == "similar"){
+        return EngineInstr::similar;
+    }
     cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return EngineInstr::null;
 }
@@ -468,6 +471,8 @@ string transInstrToStr(EngineInstr instruction){
             return "cd";
         case pwd:
             return "pwd";
+        case similar:
+            return "similar";
     }
     cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return "null";

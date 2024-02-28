@@ -468,7 +468,11 @@ string VectorModule::getLastValue() const{
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
     return "";
 }
-bool VectorModule::getLastBool() const{
+vector<string> VectorModule::getAllStrings() const{
+    return vString;
+}
+bool VectorModule::getLastBool() const
+{
     if(vBool.size() == 0){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return false;

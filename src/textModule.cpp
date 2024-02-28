@@ -1324,7 +1324,7 @@ void EditableTextModule::getLetters(char pKey, char & character, bool shift){
     else if(pKey == ALLEGRO_KEY_SPACE && getCanUseSpace()){
         character = ' ';
     }
-    else if(pKey == ALLEGRO_KEY_TAB){
+    else if(pKey == ALLEGRO_KEY_TAB && useTabs){
         character = '\t';
     }
     else if(pKey == ALLEGRO_KEY_ENTER && getCanUseEnter()){
@@ -1567,7 +1567,7 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
         
         unsigned selectionStart = std::min(cursorPos, secondCursorPos);
         string newContent = text.substr(0, selectionStart);
-        if(character != '\t' || useTabs){
+        if(character != '\t'){
             newContent += character;
             if(cursorPos != secondCursorPos){
                 unsigned selectionEnd = std::max(cursorPos, secondCursorPos);

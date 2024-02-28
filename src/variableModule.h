@@ -28,7 +28,7 @@ public:
     string getLayerID() const;
     string getObjectID() const;
     string &getIDAddr();
-    string getAnyValue();
+    string getAnyValue() const;
     char getType() const;
     string getFullTypeName();
     bool getBool() const;

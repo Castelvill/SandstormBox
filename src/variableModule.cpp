@@ -56,7 +56,7 @@ string &VariableModule::getIDAddr()
 {
     return ID;
 }
-string VariableModule::getAnyValue(){
+string VariableModule::getAnyValue() const{
     if(type == 'b'){
         if(vBool){
             return "true";
