@@ -29,7 +29,6 @@ public:
     float minColorValue, maxColorValue;
     unsigned tabLength;
     unsigned cursorPos, secondCursorPos;
-    bool ignoreVerticalArrows;
 
     void setUpNewInstance();
     TextModule();
@@ -102,6 +101,7 @@ public:
     string connectedModuleID;
     string connectedVariable;
     float currentInputDelay;
+    bool ignoreVerticalArrows;
 
     void setUpNewInstance();
     EditableTextModule();

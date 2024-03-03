@@ -1,6 +1,6 @@
 #ifndef EVENTMODULE_H_INCLUDED
 #define EVENTMODULE_H_INCLUDED
-#include "textModule.h"
+#include "superTextModule.h"
 #include "vectorModule.h"
 
 struct ValueLocation{

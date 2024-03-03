@@ -33,7 +33,6 @@ void TextModule::setUpNewInstance(){
     tabLength = 4;
     cursorPos = 0;
     secondCursorPos = 0;
-    ignoreVerticalArrows = false;
 }
 TextModule::TextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -810,6 +809,7 @@ void EditableTextModule::setUpNewInstance(){
     enterAcceptsChanges = false;
     useTabs = false;
     autoResizeAxisY = false;
+    ignoreVerticalArrows = false;
     cursorPos = 0;
     secondCursorPos = 0;
     minContentSize = 0;
