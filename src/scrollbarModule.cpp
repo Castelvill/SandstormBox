@@ -4,6 +4,7 @@ void ScrollbarModule::clear(){
     thumbPos.set(0.0, 0.0);
     thumbSize.set(0.0, 0.0);
     scrollingArea.set(0.0, 0.0);
+    realScrollingArea.set(0.0, 0.0);
     dragStartingPos.set(0.0, 0.0);
     thumbImageID = "";
     FocusedCamera = nullptr;
@@ -30,7 +31,7 @@ void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &lis
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 
-void ScrollbarModule::draw(vec2d basePos ,vector <ImageModule> & ImageContainer, Camera2D Camera){
+void ScrollbarModule::draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera){
     vec2d newPos(basePos+pos);
     for(ImageModule & Image : ImageContainer){
         if(Image.getID() == trackImageID){
@@ -118,7 +119,7 @@ vec2d ScrollbarModule::countScrollShift(){
     if(scrollingArea.y-thumbSize.y != 0){
         scrollShift.y = (thumbPos.y/(scrollingArea.y-thumbSize.y))*realScrollingArea.y;
     }
-    cout << scrollShift.x << " " << scrollShift.y << "\n";
+    //cout << scrollShift.x << " " << scrollShift.y << "\n";
     return scrollShift;
 }
 void ScrollbarModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
@@ -176,12 +177,18 @@ void ScrollbarModule::setScrollingArea(vec2d newValue){
 }
 void ScrollbarModule::setRealScrollingArea(vec2d newValue){
     realScrollingArea = newValue;
+    realScrollingArea.x = std::max(realScrollingArea.x, 0.0);
+    realScrollingArea.y = std::max(realScrollingArea.y, 0.0);
 }
 void ScrollbarModule::addRealScrollingArea(vec2d newValue){
     realScrollingArea.translate(newValue);
+    realScrollingArea.x = std::max(realScrollingArea.x, 0.0);
+    realScrollingArea.y = std::max(realScrollingArea.y, 0.0);
 }
 void ScrollbarModule::addRealScrollingArea(double x, double y){
     realScrollingArea.translate(x, y);
+    realScrollingArea.x = std::max(realScrollingArea.x, 0.0);
+    realScrollingArea.y = std::max(realScrollingArea.y, 0.0);
 }
 void ScrollbarModule::setDragStaringPos(vec2d newValue){
     dragStartingPos = newValue;

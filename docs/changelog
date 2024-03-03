@@ -1,3 +1,6 @@
+1.03.2024
+-Fixed "exists" attribute in "findNextValue" function.
+
 28.02.2024
 -Implemented tab autocomplete inside the terminal.
 -Added "similar" instruction.

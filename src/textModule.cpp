@@ -33,7 +33,6 @@ void TextModule::setUpNewInstance(){
     tabLength = 4;
     cursorPos = 0;
     secondCursorPos = 0;
-    ignoreSize = false;
     ignoreVerticalArrows = false;
 }
 TextModule::TextModule(){
@@ -88,7 +87,19 @@ void TextModule::fitSizeToText(vector <SingleFont> FontContainer){
     if(Font->sizeF < 0 || Font->sizeF > 1000){
         cout << "Error: In " << __FUNCTION__ << ": Font size equal to " << Font->sizeF << " is not a valid size.\n";
     }
-    vec2d newSize(0.0, al_get_font_line_height(Font->font));
+
+    vec2d newSize(0.0, 0.0);
+    //al_get_font_line_height(Font->font)
+
+    string currentContent = getCurrentContent();
+    long lineLength = 0;
+
+    if(wrapped == 0){
+        for(char character : currentContent){
+            //if(character )
+        }
+    }
+    
     for(string text : content){
         if(newSize.x < al_get_text_width(Font->font, text.c_str())){
             newSize.x = al_get_text_width(Font->font, text.c_str());
@@ -329,7 +340,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
         if(temp == "\n"){ //enter handling
             currentLength = 0;
             currentHeight += fontHeight;
-            if(!ignoreSize && currentHeight + fontHeight > size.y){
+            if(currentHeight + fontHeight > size.y){
                 break;
             }
             textLines.back() += '\n';
@@ -357,7 +368,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                     }
                 }
                 futureLenght += smartCharLength;
-                if(!ignoreSize && futureLenght > size.x){
+                if(futureLenght > size.x){
                     currentLength = 0;
                     currentHeight += fontHeight;
                     textLines.back() += '\n';
@@ -379,7 +390,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
             }
         }
         //cropping text according to its dimensions and wrapping text when possible
-        if(!ignoreSize && currentLength + charLength > size.x){
+        if(currentLength + charLength > size.x){
             if(wrapped == 0){
                 break;
             }
@@ -387,7 +398,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
             currentHeight += fontHeight;
             lettersCountForTabs = -1;
             textLines.push_back(string());
-            if(!ignoreSize && currentHeight + fontHeight > size.y){
+            if(currentHeight + fontHeight > size.y){
                 break;
             }
         }
@@ -798,6 +809,7 @@ void EditableTextModule::setUpNewInstance(){
     canClearContentAfterSuccess = false;
     enterAcceptsChanges = false;
     useTabs = false;
+    autoResizeAxisY = false;
     cursorPos = 0;
     secondCursorPos = 0;
     minContentSize = 0;
@@ -859,7 +871,9 @@ void EditableTextModule::setCanEnterAcceptChanges(bool newValue){
 void EditableTextModule::setProtectedArea(unsigned cursor){
     protectedArea = cursor;
 }
-
+void EditableTextModule::setAutoResizeAxisY(bool newValue){
+    autoResizeAxisY = newValue;
+}
 void EditableTextModule::setMinContentSize(unsigned int newMinContentSize){
     minContentSize = newMinContentSize;
 }
@@ -1559,6 +1573,10 @@ void EditableTextModule::editText(vector <short> releasedKeys, vector <short> pr
             continue;
         }
 
+        if(pKey == ALLEGRO_KEY_ENTER && autoResizeAxisY){
+            size.translate(0, getFontHeight(FontContainer, fontID));
+        }
+
         getLetters(pKey, character, shift);
 
         if(character == '\0'){
@@ -1631,8 +1649,10 @@ bool EditableTextModule::canConvertContentToNumber(){
 unsigned EditableTextModule::getProtectedArea() const{
     return protectedArea;
 }
-bool EditableTextModule::tryUpdatingID(vector<string> &listOfIDs, string &currentID, string newID)
-{
+bool EditableTextModule::getAutoResizeAxisY() const{
+    return autoResizeAxisY;
+}
+bool EditableTextModule::tryUpdatingID(vector<string> &listOfIDs, string &currentID, string newID){
     if(currentID == newID)
         return false;
     //if the algorithm finds the same ID, function returns false
@@ -2559,7 +2579,22 @@ void EditableTextModule::getContext(string attribute, vector <BasePointersStruct
     }
 }
 VariableModule EditableTextModule::getAttributeValue(const string &attribute, const string &detail) const{
-    if(attribute == "in_group"){
+    if(attribute == "id"){
+        return VariableModule::newString(ID);
+    }
+    else if(attribute == "pos_x"){
+        return VariableModule::newDouble(pos.x);
+    }
+    else if(attribute == "pos_y"){
+        return VariableModule::newDouble(pos.y);
+    }
+    else if(attribute == "size_x"){
+        return VariableModule::newDouble(size.x);
+    }
+    else if(attribute == "size_y"){
+        return VariableModule::newDouble(size.y);
+    }
+    else if(attribute == "in_group"){
         return VariableModule::newBool(isInAGroup(detail));
     }
     else if(attribute == "content"){

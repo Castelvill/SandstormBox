@@ -15,6 +15,8 @@ load_bitmap "images/terry.png" terry
 load_bitmap "images/arch.jpg" arch
 load_bitmap "images/cobblestone.png" cobblestone
 load_bitmap "images/elephant.jpg" elephant
+load_bitmap "gui/thumb_track_h3.png" thumb_track_h3
+load_bitmap "gui/thumb_h3.png" thumb_h3
 
 string ["fonts/fira_mono.ttf"] path
 int [20] size
@@ -77,11 +79,11 @@ fun Cam set_can_move_with_keyboard bool [0]
 fun Cam set_can_zoom_with_keyboard bool [0]
 fun Cam set_drawing_borders bool [0]
 fun Cam set_samples int [4]
+
 //fun Cam set_can_edit_text bool [false]
 fun Cam set_can_move_objects bool [false]
 
 new image c me 1 _ _ background
-//fun background deactivate
 fun background connect_bitmap_via_alias string [background2]
 fun background resize c ww c wh
 fun background set_color double [0.5 0.5 0.5 0.5]
@@ -110,6 +112,8 @@ fun TerminalTextField set_can_enter_accept bool [0]
 fun TerminalTextField set_protected_area int [37]
 fun TerminalTextField set_ignore_vertical_arrows bool [true]
 fun TerminalTextField set_use_tabs bool [false]
+fun TerminalTextField allow_scrolling
+//fun TerminalTextField set_can_auto_resize_axis_y bool [true]
 
 new editable_text c me 1 _ _ TextEditor
 clone TextEditor TerminalTextField
@@ -120,6 +124,36 @@ fun TextEditor set_text int [0] string [""]
 fun TextEditor set_ignore_vertical_arrows bool [false]
 fun TextEditor deactivate
 fun TextEditor set_use_tabs bool [true]
+
+
+new image c me 1 _ _ thumb
+fun thumb set_id string [thumb]
+fun thumb deactivate
+fun thumb set_position int [2 2]
+fun thumb set_size int [16 16]
+fun thumb resize int [26 26]
+fun thumb connect_bitmap_via_alias string [thumb_h3]
+fun thumb attach_to_camera
+
+new image c me 1 _ _ thumbTrack
+fun thumbTrack set_id string [thumb_track]
+fun thumbTrack deactivate
+fun thumbTrack set_size int [100 500]
+fun thumbTrack resize int [30 480]
+fun thumbTrack connect_bitmap_via_alias string [thumb_track_h3]
+fun thumbTrack attach_to_camera
+
+new scrollbar c me 1 _ _ MainScrollbar
+fun MainScrollbar attach_to_camera
+fun MainScrollbar activate
+fun MainScrollbar set_id string [MainScrollbar]
+fun MainScrollbar set_position int [768 0]
+fun MainScrollbar set_thumb_position double [0 0]
+fun MainScrollbar set_thumb_size double [26 26]
+fun MainScrollbar set_scrolling_area double [26 476]
+fun MainScrollbar set_real_scrolling_area double [0 0]
+fun MainScrollbar set_thumb_image_id string [thumb]
+fun MainScrollbar set_track_image_id string [thumb_track]
 
 var string "_enter" program
 var string "" param0
@@ -533,7 +567,15 @@ fun background resize c w c h
 
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ editable_text EditableText
-fun EditableText set_size c w c h
+index context Terminal [0 1] _ editable_text EditProgramTextField
+//fun EditableText set_size c w c h
+fun EditProgramTextField set_size c w c h
+index context Terminal [0 0] _ scrollbar MainScrollbar
+int [0] 0
+value ([c EditableText size_y]) TerminalSizeY
+-= TerminalSizeY h
+print \n _ c TerminalSizeY
+fun MainScrollbar set_real_scrolling_area c 0 c TerminalSizeY
 end
 
 
@@ -656,6 +698,7 @@ index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ editable_text EditableText
 int [0] zero
 fun EditableText add_text context zero context result
+//fun EditableText update_size
 first _ [EditableText] _ _ _ _ content _ history
 len history historySize
 fun EditableText set_protected_area c historySize

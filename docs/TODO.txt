@@ -1,6 +1,10 @@
--Implement arithmetic instructions and function for vector module (+=, -=, etc.).
--Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
+-Fix "fitSizeToText" based on "setCursorPos" to be able to correctly use "update_size" function in the Terminal.
+-Move "set_real_scrolling_area" function to the "enter" procedure in the script.
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
+-Add scrolling to the terminal: automatic and the scrollbar.
+-Implement arithmetic instructions and function for vector module (+=, -=, etc.).
+-With updated arithmetic instructions improve the auto-complete (remove the loop).
+-Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
 -Fix: if the cursor is on the first line, down-arrow is moving cursor with an offset.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: command "sh print "xd\n"" does not work.
@@ -11,7 +15,6 @@
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
 -Implement "set_if *event* *expression*" instruction.
 -Remove parenthesis from "value", "if" and aggregating instructions.
--Add scrolling to the terminal: automatic and the scrollbar.
 
 MILESTONE: Terminal with printing, scrolling and a history of used commands.
 

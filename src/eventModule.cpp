@@ -118,7 +118,7 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     else if(attribute == "add_new_and_update" && Values.size() > 0){
         Text->addNewContentAndResize(Values[0].getStringUnsafe(), FontContainer);
     }
-    else if(attribute == "update_size" && Values.size() > 0){
+    else if(attribute == "update_size"){
         Text->fitSizeToText(FontContainer);
     }
     else if(attribute == "select_content" && Values.size() > 0){
@@ -226,8 +226,11 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
     else if(attribute == "start_editing"){
         EditableText->setEditingIsActive(true);
     }
-    else if(attribute == "set_ignore_vertical_arrows"){
+    else if(attribute == "set_ignore_vertical_arrows" && Values.size() > 0){
         EditableText->ignoreVerticalArrows = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_can_auto_resize_axis_y" && Values.size() > 0){
+        EditableText->setAutoResizeAxisY(Values[0].getBoolUnsafe());
     }
     else{
         controlText(EditableText, attribute, Values, IDs, FontContainer);
@@ -743,8 +746,29 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
     if(attribute == "set_id" && Values.size() > 0){
         Scrollbar->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "add_real_area" && Values.size() >= 2){
+    else if(attribute == "set_position" && Values.size() >= 2){
+        Scrollbar->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "set_thumb_position" && Values.size() >= 2){
+        Scrollbar->setThumbPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "set_thumb_size" && Values.size() >= 2){
+        Scrollbar->setThumbSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "set_scrolling_area" && Values.size() >= 2){
+        Scrollbar->setScrollingArea(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "set_real_scrolling_area" && Values.size() >= 2){
+        Scrollbar->setRealScrollingArea(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "add_real_scrolling_area" && Values.size() >= 2){
         Scrollbar->addRealScrollingArea(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_thumb_image_id" && Values.size() >= 1){
+        Scrollbar->setThumbImageID(Values[0].getString());
+    }
+    else if(attribute == "set_track_image_id" && Values.size() >= 1){
+        Scrollbar->setTrackImageID(Values[0].getString());
     }
     else{
         bool temp = false;

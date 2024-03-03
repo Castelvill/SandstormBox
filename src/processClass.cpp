@@ -5721,7 +5721,7 @@ void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass>
         cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString() << " " << Operation.newContextID << "\n";
     }
     if(pathToTheFile == "" || pathToTheFile[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + pathToTheFile << "\'.\n"; 
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheFile << "\'.\n"; 
     }
 
     string loadedText = "";
@@ -5729,7 +5729,7 @@ void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass>
     std::ifstream File(EXE_PATH + workingDirectory + pathToTheFile);
 
 	if(!File){
-		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << pathToTheFile << "\n";
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << EXE_PATH + workingDirectory + pathToTheFile << "\n";
         return;
     }
     for(string line; std::getline(File, line);){
@@ -7358,6 +7358,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         else{
             string file = "";
             Context->getStringOrIgnore(file, EngineInstr::value);
+            file = EXE_PATH + workingDirectory + file;
             NewValue.setBool(std::filesystem::exists(file));
         }
         return NewValue;
@@ -7671,6 +7672,17 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 << "' does not exist in the " << Context->type << " module.\n";
             NewValue.setBool(false);
             return NewValue;
+        }
+        if(Context->type == "editable_text"){
+            if(Context->Modules.EditableTexts.size() == 0){
+                cout << "Error: In " << __FUNCTION__ << ": There are no EditableTexts in the context.\n";
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Context->Modules.EditableTexts.size() != 1){
+                cout << "Warning: In " << __FUNCTION__ << ": There are several EditableTexts in the context. Program will proceed with the last added literal.\n";
+            }
+            return Context->Modules.EditableTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
         }
         if(Context->type == "vector"){
             if(Context->Modules.Vectors.size() == 0){

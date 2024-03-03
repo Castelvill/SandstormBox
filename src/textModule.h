@@ -29,7 +29,6 @@ public:
     float minColorValue, maxColorValue;
     unsigned tabLength;
     unsigned cursorPos, secondCursorPos;
-    bool ignoreSize;
     bool ignoreVerticalArrows;
 
     void setUpNewInstance();
@@ -87,7 +86,7 @@ private:
     bool canClearContentAfterSuccess; //If true, content is cleaned only when all operations succeeded.
     bool enterAcceptsChanges;
     bool useTabs;
-    bool ignoreContentSize;
+    bool autoResizeAxisY;
     unsigned minContentSize;
     unsigned maxContentSize;
     float inputDelay, repetitionDelay;
@@ -127,6 +126,7 @@ public:
     void setCanClearContentAfterSuccess(bool);
     void setCanEnterAcceptChanges(bool);
     void setProtectedArea(unsigned cursor);
+    void setAutoResizeAxisY(bool newValue);
     bool getCanBeEdited() const;
     bool getEditingIsActive() const;
     bool getCanUseSpace();
@@ -140,6 +140,7 @@ public:
     string getConnectedObjectID();
     bool canConvertContentToNumber();
     unsigned getProtectedArea() const;
+    bool getAutoResizeAxisY() const;
     void clearContentAfterSuccess(bool success);
     void moveCursorUp(const string & text, bool shift);
     void moveCursorDown(const string & text, bool shift);
