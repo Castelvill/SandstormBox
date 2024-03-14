@@ -1,3 +1,4 @@
+#define ALLEGRO_UNSTABLE
 #include "engineClass.h"
 
 #if __linux__
@@ -110,6 +111,7 @@ void EngineClass::initAllegro(){
     al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST); //antialias stuff
     al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
 
+
     int SCREEN_W = 640;
     int SCREEN_H = 480;
     //getDesktopResolution(0, &SCREEN_W, &SCREEN_H);
@@ -146,6 +148,11 @@ void EngineClass::initAllegro(){
     Mouse.setUp();
 
     al_start_timer(timer);
+
+    al_set_new_bitmap_samples(8);
+    backbuffer = al_create_bitmap(1920, 1080);
+    al_set_target_bitmap(backbuffer);
+    al_set_new_bitmap_samples(0);
 }
 void EngineClass::prepare(){
     //cursorBitmap = al_load_bitmap("images/cursor.png");
@@ -178,6 +185,7 @@ void EngineClass::clear(){
     }
 }
 void EngineClass::exitAllegro(){
+    al_destroy_bitmap(backbuffer);
     al_destroy_display(display);
     al_destroy_timer(timer);
     al_destroy_event_queue(eventQueue);
@@ -249,7 +257,7 @@ void EngineClass::loadNewFont(string path, int size, string newID){
     }
     path = EXE_PATH + path;
     FontContainer.push_back(SingleFont());
-    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
+    //al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
     FontContainer.back().font = al_load_ttf_font(path.c_str(), size, 0);
     //al_set_new_bitmap_flags(ALLEGRO_VIDEO_BITMAP);
     

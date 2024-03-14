@@ -357,7 +357,7 @@ void ParticleEffectModule::drawParticles(vector <ImageModule> ImageContainer, ve
                 Particle.colorIntensity
             ));
 
-            LastImage->drawImage(Particle.pos, Camera, true);
+            LastImage->drawImage(Particle.pos+Camera.pos, Camera, true);
         }
     }
 }

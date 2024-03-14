@@ -1,4 +1,5 @@
 -Minimize RAM usage.
+-Fix the memory leak in the reboot instruction.
 -Implement in SuperTextModule: tabs, letter colors, cursor, selection, auto-size-detection. Try to minimize drawing text complexity.
 -Fix "fitSizeToText" based on "setCursorPos" to be able to correctly use "update_size" function in the Terminal.
 -Move "set_real_scrolling_area" function to the "enter" procedure in the script.

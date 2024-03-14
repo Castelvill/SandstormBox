@@ -363,15 +363,8 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
             base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
 
         if(lightLevel > 0.0){
-            //Blending allows to mix colors of different bitmaps
-            //Starting the blending process
-            al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
-
             draw_bitmap(lightBitmap, start.x, start.y, size.x, size.y, lightColor[0], lightColor[1], lightColor[2], lightLevel, rotPos.x, rotPos.y,
                 base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
-
-            //Ending the blending process
-            al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
         }
     }
     else{
@@ -386,15 +379,8 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
             base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
 
         if(lightLevel > 0.0){
-            //Blending allows to mix colors of different bitmaps
-            //Starting the blending process
-            al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
-
             draw_bitmap(lightBitmap, start.x, start.y, size.x, size.y, lightColor[0], lightColor[1], lightColor[2], lightLevel, rotPos.x, rotPos.y,
                 base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
-
-            //Ending the blending process
-            al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
         }
     }
 }
@@ -435,10 +421,6 @@ void ImageModule::drawFrame(vec2d base){
             al_draw_tinted_scaled_rotated_bitmap_region(image, start2.x, start2.y, size.x, size.y, al_map_rgba_f(red, green, blue, alpha), add.x, add.y, base.x+pos.x+add.x, base.y+pos.y+add.y, scale.x, scale.y, radians, ALLEGRO_FLIP_VERTICAL | ALLEGRO_FLIP_HORIZONTAL);
 
         if(lightLevel > 0.0){
-            //Blending allows us to mix colors of different bitmaps
-            //Starting the blending process
-            al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
-
             if(!mirrorX && !mirrorY)
                 al_draw_tinted_scaled_rotated_bitmap_region(lightBitmap, start2.x, start2.y, size.x, size.y, al_map_rgba_f(lightColor[0], lightColor[1], lightColor[2], lightLevel), add.x, add.y, base.x+pos.x+add.x, base.y+pos.y+add.y, scale.x, scale.y, radians, 0);
             else if(mirrorX && !mirrorY)
@@ -447,9 +429,6 @@ void ImageModule::drawFrame(vec2d base){
                 al_draw_tinted_scaled_rotated_bitmap_region(lightBitmap, start2.x, start2.y, size.x, size.y, al_map_rgba_f(lightColor[0], lightColor[1], lightColor[2], lightLevel), add.x, add.y, base.x+pos.x+add.x, base.y+pos.y+add.y, scale.x, scale.y, radians, ALLEGRO_FLIP_HORIZONTAL);
             else
                 al_draw_tinted_scaled_rotated_bitmap_region(lightBitmap, start2.x, start2.y, size.x, size.y, al_map_rgba_f(lightColor[0], lightColor[1], lightColor[2], lightLevel), add.x, add.y, base.x+pos.x+add.x, base.y+pos.y+add.y, scale.x, scale.y, radians, ALLEGRO_FLIP_VERTICAL | ALLEGRO_FLIP_HORIZONTAL);
-
-            //Ending the blending process
-            al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
         }
     }
     else{
@@ -465,10 +444,6 @@ void ImageModule::drawFrame(vec2d base){
             al_draw_tinted_scaled_rotated_bitmap_region(image, start2.x, start2.y, size.x, size.y, al_map_rgba_f(red, green, blue, alpha), add.x, add.y, base.x+pos.x+add2.x, base.y+pos.y+add2.y, scale.x, scale.y, radians, ALLEGRO_FLIP_VERTICAL | ALLEGRO_FLIP_HORIZONTAL);
 
         if(lightLevel > 0.0){
-            //Blending allows us to mix colors of different bitmaps
-            //Starting the blending process
-            al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
-
             if(!mirrorX && !mirrorY)
                 al_draw_tinted_scaled_rotated_bitmap_region(lightBitmap, start2.x, start2.y, size.x, size.y, al_map_rgba_f(lightColor[0], lightColor[1], lightColor[2], lightLevel), add.x, add.y, base.x+pos.x+add2.x, base.y+pos.y+add2.y, scale.x, scale.y, radians, 0);
             else if(mirrorX && !mirrorY)
@@ -477,9 +452,6 @@ void ImageModule::drawFrame(vec2d base){
                 al_draw_tinted_scaled_rotated_bitmap_region(lightBitmap, start2.x, start2.y, size.x, size.y, al_map_rgba_f(lightColor[0], lightColor[1], lightColor[2], lightLevel), add.x, add.y, base.x+pos.x+add2.x, base.y+pos.y+add2.y, scale.x, scale.y, radians, ALLEGRO_FLIP_HORIZONTAL);
             else
                 al_draw_tinted_scaled_rotated_bitmap_region(lightBitmap, start2.x, start2.y, size.x, size.y, al_map_rgba_f(lightColor[0], lightColor[1], lightColor[2], lightLevel), add.x, add.y, base.x+pos.x+add2.x, base.y+pos.y+add2.y, scale.x, scale.y, radians, ALLEGRO_FLIP_VERTICAL | ALLEGRO_FLIP_HORIZONTAL);
-
-            //Ending the blending process
-            al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
         }
     }
 }

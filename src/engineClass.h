@@ -38,6 +38,7 @@ public:
     ALLEGRO_DISPLAY * display;
     ALLEGRO_BITMAP * cursorBitmap;
     ALLEGRO_BITMAP * iconBitmap;
+    ALLEGRO_BITMAP * backbuffer;
     ALLEGRO_MOUSE_CURSOR * mouseCursor;
     ALLEGRO_TIMER * timer;
     ALLEGRO_EVENT_QUEUE * eventQueue;

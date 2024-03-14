@@ -78,7 +78,6 @@ fun Cam set_can_zoom_with_mouse bool [0]
 fun Cam set_can_move_with_keyboard bool [0]
 fun Cam set_can_zoom_with_keyboard bool [0]
 fun Cam set_drawing_borders bool [0]
-fun Cam set_samples int [4]
 
 //fun Cam set_can_edit_text bool [false]
 fun Cam set_can_move_objects bool [false]
@@ -203,7 +202,6 @@ fun WindowCamera set_is_vision_affected_by_mouse bool [1]
 fun WindowCamera set_grabbing_area_size int [540 50]
 fun WindowCamera pin_to_camera string [Desktop]
 fun WindowCamera activate_pin
-fun WindowCamera set_samples int [8]
 fun WindowCamera set_min_size int [300 34]
 fun WindowCamera deactivate
 
@@ -319,7 +317,7 @@ fun title set_font string [cascadia_code]
 fun title set_wrapping int [0]
 fun title add_new_and_update s ["Template Window"]
 fun title set_size int [400 50]
-fun title set_color double [1.0 1.0 1.0 0.0]
+fun title set_color double [1.0 1.0 1.0 1.0]
 end
 
 

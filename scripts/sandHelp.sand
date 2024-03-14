@@ -167,7 +167,6 @@ fun NewWindow add_accessible_layer c newLayerID
 fun NewWindow set_grabbing_area_size int [640 50]
 fun NewWindow pin_to_camera string [Desktop]
 fun NewWindow activate_pin
-fun NewWindow set_samples int [8]
 value ([context NewWindow id]) newWindowID
 
 //print \n _ c NewWindow
@@ -201,7 +200,7 @@ fun title set_font string [cascadia_code]
 fun title set_wrapping int [0]
 fun title add_new_and_update c param1
 fun title set_size int [400 50]
-fun title set_color double [1.0 1.0 1.0 0.0]
+fun title set_color double [1.0 1.0 1.0 1.0]
 
 new object c AmogusLayer 1 _ _ NewAmo
 fun NewAmo set_id string [Amongus]

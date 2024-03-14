@@ -328,9 +328,16 @@ void ProcessClass::renderOnDisplay(EngineClass & Engine){
 
     timeToInterruptParticles = 500;
 
-    //al_set_target_bitmap(al_get_backbuffer(window));
+    al_set_target_bitmap(Engine.backbuffer);
+
+    al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
     
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
     drawEverything(Engine);
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
+
+    al_set_target_backbuffer(Engine.display);
+    al_draw_bitmap(Engine.backbuffer, 0, 0, 0);
 
     string updatedFpsLabel = "FPS: " + intToStr(Engine.fps.get());
 
@@ -3545,7 +3552,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             if(i < newIDs.size()){
                 ID = newIDs[i];
             }
-            Cameras.push_back(Camera2D(ID, camerasIDs, 0));
+            Cameras.push_back(Camera2D(ID, camerasIDs));
             NewContext.Cameras.push_back(&Cameras.back());
             camerasOrder.push_back(camerasOrder.size());
         }
@@ -4915,9 +4922,6 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
         }
         else if(Operation.Location.attribute == "set_keep_inside_screen" && Variables.size() > 0){
             Camera->keepInsideScreen = Variables[0].getBoolUnsafe();
-        }
-        else if(Operation.Location.attribute == "set_samples" && Variables.size() > 0){
-            Camera->setAntialiasingSamples(Variables[0].getIntUnsafe());
         }
         else if(Operation.Location.attribute == "set_can_mouse_resize" && Variables.size() > 0){
             Camera->canMouseResizeNow = Variables[0].getBoolUnsafe();
@@ -9164,7 +9168,7 @@ void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
     }
 }
 void ProcessClass::drawEverything(EngineClass & Engine){
-    al_set_clipping_rectangle(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
+    //al_set_clipping_rectangle(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
     
     size_t numberOfDrawnObjects;
     Camera2D * Camera;
@@ -9180,9 +9184,9 @@ void ProcessClass::drawEverything(EngineClass & Engine){
             continue;
         }
         Camera->drawOneFrame = false;
-        al_set_target_bitmap(Camera->bitmapBuffer);
+        al_set_clipping_rectangle(Camera->pos.x, Camera->pos.y, Camera->size.x, Camera->size.y);
         if(Camera->canClearBitmap || Camera->clearBitmap){
-            al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
+            //al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
         }
         for(LayerClass & Layer : Layers){
             if(!Layer.getIsActive() || !Camera->isLayerVisible(Layer.getID())){
@@ -9201,12 +9205,7 @@ void ProcessClass::drawEverything(EngineClass & Engine){
                 drawSelectionBorder(*Camera);
             }
         }
-        al_set_target_backbuffer(Engine.display);
-        //al_draw_bitmap(Camera->bitmapBuffer, Camera->pos.x, Camera->pos.y, 0);
-        al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
-        al_draw_tinted_bitmap(Camera->bitmapBuffer, al_map_rgba_f(Camera->tint[0], Camera->tint[1], Camera->tint[2], Camera->tint[3]),
-            windowPos.x + Camera->pos.x, windowPos.y + Camera->pos.y, 0);
-        al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
+        al_reset_clipping_rectangle();
         
         if(drawCameraBorders && Camera->allowsDrawingBorders){
             if(SelectedCamera != Camera){
@@ -9223,8 +9222,6 @@ void ProcessClass::drawEverything(EngineClass & Engine){
     }
 
     //draw_horizontal_gradient_rect(200, 200, 840, 680, al_map_rgba(255, 0, 255, 255), al_map_rgba(0, 255, 0, 255));
-
-    al_reset_clipping_rectangle();
 }
 void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera2D & Camera,
     vector <SingleFont> & FontContainer, size_t & numberOfDrawnObjects, vec2i displaySize
@@ -9257,7 +9254,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
                 continue;
             }
         }
-        Primitives.draw(Object.getPos(isScrollable), Camera, false);
+        Primitives.draw(Object.getPos(isScrollable)+Camera.pos, Camera, false);
         numberOfDrawnObjects++;
     }
 
@@ -9284,7 +9281,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
                 continue;
             }
         }
-        Image.drawImage(Object.getPos(isScrollable), Camera, false);
+        Image.drawImage(Object.getPos(isScrollable)+Camera.pos, Camera, false);
         numberOfDrawnObjects++;
     }
 
@@ -9311,7 +9308,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
                 continue;
             }
         }
-        Scrollbar.draw(Object.getPos(isScrollable), Object.ImageContainer, Camera);
+        Scrollbar.draw(Object.getPos(isScrollable)+Camera.pos, Object.ImageContainer, Camera);
         numberOfDrawnObjects++;
     }
 
@@ -9341,7 +9338,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         //If a font exists in FontContainer, draw the text on screen.
         for(SingleFont font : FontContainer){
             if(Text.getFontID() == font.ID){
-                Text.drawText(Object.getPos(isScrollable), font.font, drawTextFieldBorders, Camera, 0, 0, false);
+                Text.drawText(Object.getPos(isScrollable)+Camera.pos, font.font, drawTextFieldBorders, Camera, 0, 0, false);
                 break;
             }
         }
@@ -9376,7 +9373,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         //If a font exists in FontContainer, draw the text on screen.
         for(auto font : FontContainer){
             if(Editable.getFontID() == font.ID){
-                Editable.drawText(Object.getPos(isScrollable), font.font, drawTextFieldBorders,
+                Editable.drawText(Object.getPos(isScrollable)+Camera.pos, font.font, drawTextFieldBorders,
                     Camera, Editable.getCursorPos(), Editable.secondCursorPos, Editable.getEditingIsActive()
                 );
             }
@@ -9407,12 +9404,12 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
                 }
             }
             if(Hitbox.getIsCircle()){
-                al_draw_circle(newPos.x, newPos.y, hitboxSize.x,
+                al_draw_circle(newPos.x+Camera.pos.x, newPos.y+Camera.pos.y, hitboxSize.x,
                     al_map_rgba(borderColor.val[0], borderColor.val[1], borderColor.val[2], borderColor.val[3]), 2
                 );
             }
             else{
-                al_draw_rectangle(newPos.x, newPos.y, newPos.x+hitboxSize.x, newPos.y+hitboxSize.y,
+                al_draw_rectangle(newPos.x+Camera.pos.x, newPos.y+Camera.pos.y, newPos.x+Camera.pos.x+hitboxSize.x, newPos.y+Camera.pos.y+hitboxSize.y,
                     al_map_rgba(borderColor.val[0], borderColor.val[1], borderColor.val[2], borderColor.val[3]), 2
                 );
             }
