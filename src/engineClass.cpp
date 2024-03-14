@@ -149,7 +149,7 @@ void EngineClass::initAllegro(){
 
     al_start_timer(timer);
 
-    al_set_new_bitmap_samples(8);
+    //al_set_new_bitmap_samples(8);
     backbuffer = al_create_bitmap(1920, 1080);
     al_set_target_bitmap(backbuffer);
     al_set_new_bitmap_samples(0);

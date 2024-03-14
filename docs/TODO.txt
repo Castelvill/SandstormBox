@@ -1,4 +1,4 @@
--Minimize RAM usage.
+-Make a flag that enables/disables backbuffer bitmap sampling.
 -Fix the memory leak in the reboot instruction.
 -Implement in SuperTextModule: tabs, letter colors, cursor, selection, auto-size-detection. Try to minimize drawing text complexity.
 -Fix "fitSizeToText" based on "setCursorPos" to be able to correctly use "update_size" function in the Terminal.
@@ -30,7 +30,6 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 -Upgrade “edit_proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
 -Implement “clone_to_proc” – cloning (adding) a context into the selected process.
--Add buffers(bitmaps) to processes instead of cropping rectangle.
 -Think about better way of getting attributes from module contexts.
 -Evolve "random_int" instruction into "random".
 -Add more milestones.
