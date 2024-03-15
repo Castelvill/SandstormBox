@@ -1,4 +1,5 @@
 15.03.2024
+-Fixed memory leaks by removing bitmap loading and creation in image module. Allegro5 is not very good at destroying bitmaps instatly.
 -Made a simple config file with backbuffer bitmap sampling and size.
 
 14.03.2024

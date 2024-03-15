@@ -81,8 +81,6 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string 
     minWindowSize.set(50, 50);
     std::fill_n(windowTint, 4, 1);
 
-    WindowBuffer = al_create_bitmap(windowSize.x, windowSize.y);
-
     Layers.push_back(LayerClass(newLayerID, layersIDs, true, vec2d(0.0, 0.0), screenSize));
     Layers.back().Objects.push_back(AncestorObject());
     Layers.back().Objects.back().primaryConstructor(newObjectID, &Layers.back().objectsIDs, Layers.back().getID(), "");
@@ -107,7 +105,6 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string 
     updateBaseOfTriggerableObjects();
 }
 void ProcessClass::clear(){
-    al_destroy_bitmap(WindowBuffer);
     SelectedLayer = nullptr;
     for(LayerClass & Layer : Layers){
         Layer.clear();
@@ -131,8 +128,6 @@ void ProcessClass::resizeWindow(vec2d newSize){
     if(windowSize.y < minWindowSize.y){
         windowSize.y = minWindowSize.y;
     }
-    al_destroy_bitmap(WindowBuffer);
-    WindowBuffer = al_create_bitmap(windowSize.x, windowSize.y);
 }
 void ProcessClass::resizeWindow(double x, double y){
     resizeWindow(vec2d(x, y));
@@ -5499,8 +5494,13 @@ void ProcessClass::loadBitmap(OperaClass & Operation, vector<SingleBitmap> & Bit
             return;
         }
     }
+    bool createLightBitmap = false;
+    if(Operation.Literals.size() > 2){
+        createLightBitmap = Operation.Literals[2].getBool();
+    }
+
     BitmapContainer.push_back(SingleBitmap());
-    BitmapContainer.back().loadBitmap(Operation.Literals[1].getString(), Operation.Literals[0].getString(), EXE_PATH + workingDirectory);
+    BitmapContainer.back().loadBitmap(Operation.Literals[1].getString(), Operation.Literals[0].getString(), EXE_PATH + workingDirectory, createLightBitmap);
 }
 void ProcessClass::createDirectory(OperaClass & Operation){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
@@ -6375,6 +6375,14 @@ void ProcessClass::loadFontFromContext(OperaClass & Operation, vector<ContextCla
     if(!IDContext->getStringOrAbort(fontID, Operation.instruction)){
         cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
+    }
+
+    for(const SingleFont & Font : Engine.FontContainer){
+        if(Font.ID == fontID){
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\' instruction: "
+                << "Loading failed. Font with the id \'" << Font.ID << "\' already exists.\n";
+            return;
+        }
     }
 
     if(printOutInstructions){

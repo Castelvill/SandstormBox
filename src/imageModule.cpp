@@ -44,9 +44,11 @@ SingleBitmap::SingleBitmap(){
     ID = "";
     bitmap = nullptr;
 }
-void SingleBitmap::loadBitmap(string newID, string newFilePath, string workingDirectory){
-    if(bitmap)
+void SingleBitmap::loadBitmap(string newID, string newFilePath, string workingDirectory, bool createLightBitmap){
+    if(bitmap){
         al_destroy_bitmap(bitmap);
+        cout << "Bitmap '" << ID << "' destroyed! Prepare for memory leaks :)\n";
+    }
     filePath = newFilePath;
     ID = newID;
     bitmap = al_load_bitmap((workingDirectory + filePath).c_str());
@@ -62,6 +64,12 @@ void SingleBitmap::loadBitmap(string newID, string newFilePath, string workingDi
             cout << "File 'error.png' not found in \'" << workingDirectory << "\'.\n";
         }
         return;
+    }
+    lightBitmap = nullptr;
+    if(bitmap && createLightBitmap){
+        lightBitmap = al_create_bitmap(al_get_bitmap_width(bitmap), al_get_bitmap_height(bitmap));
+        al_set_target_bitmap(lightBitmap);
+        al_clear_to_color(al_map_rgb(255, 255, 255));
     }
 }
 
@@ -82,8 +90,6 @@ void ImageModule::setUpNewInstance(){
     isScaledFromCenter = false;
     image = nullptr;
     lightBitmap = nullptr;
-    isBitmapFromContainer[0] = false;
-    isBitmapFromContainer[1] = false;
 }
 ImageModule::ImageModule(){
     primaryConstructor("", nullptr, "", "");
@@ -106,76 +112,18 @@ void ImageModule::clone(const ImageModule &Image, vector<string> &listOfIDs, str
     start = Image.start;
     frameSize = Image.frameSize;
     currentFrame = Image.currentFrame;
-    isBitmapFromContainer[0] = Image.isBitmapFromContainer[0];
-    isBitmapFromContainer[1] = Image.isBitmapFromContainer[1];
     rotateAngle = Image.rotateAngle;
     mirrorX = Image.mirrorX;
     mirrorY = Image.mirrorY;
     std::copy(Image.imageColor, Image.imageColor+4, imageColor);
     lightLevel = Image.lightLevel;
     std::copy(Image.lightColor, Image.lightColor+4, lightColor);
-    image = nullptr;
-    lightBitmap = nullptr;
-    if(Image.image){
-        if(!Image.isBitmapFromContainer[0]){
-            image = al_clone_bitmap(Image.image);
-        }
-        else{
-            image = Image.image;
-        }
-    }
-    if(Image.lightBitmap){
-        if(!Image.isBitmapFromContainer[1]){
-            lightBitmap = al_clone_bitmap(Image.lightBitmap);
-        }
-        else{
-            lightBitmap = Image.lightBitmap;
-        }
-    }
-    if(image || lightBitmap){
-        //cout << "Copy has been made!\n";
-    }
+    image = Image.image;
+    lightBitmap = Image.lightBitmap;
 }
 void ImageModule::clear(){
-    if(image){
-        if(!isBitmapFromContainer[0]){
-            al_destroy_bitmap(image);
-            cout << "Bitmap '"<< ID <<"' destroyed! (by ImageModule)\n";
-        }
-        image = nullptr;
-    }
-    if(lightBitmap){
-        if(!isBitmapFromContainer[1]){
-            al_destroy_bitmap(lightBitmap);
-            cout << "Light bitmap '"<< ID <<"' destroyed! (by ImageModule)\n";
-        }
-        lightBitmap = nullptr;
-    }
-}
-void ImageModule::loadImage(string newFilePath, string newImageID, string workingDirectory){
-    if(image && !isBitmapFromContainer[0])
-        al_destroy_bitmap(image);
-    else
-        image = nullptr;
-    if(lightBitmap && !isBitmapFromContainer[1])
-        al_destroy_bitmap(lightBitmap);
-    else
-        lightBitmap = nullptr;
-
-    isBitmapFromContainer[0] = false;
-    isBitmapFromContainer[1] = false;
-    imageID = newImageID;
-    imageFilePath = newFilePath;
-    image = al_load_bitmap((workingDirectory + imageFilePath).c_str());
-    if(!image){
-        cout << "Error: In " << __FUNCTION__ << ": Loading image failed: File \'" << imageFilePath << "\' does not exist.\n";
-        return;
-    }
-    size.set(al_get_bitmap_width(image), al_get_bitmap_height(image));
-    lightBitmap = al_create_bitmap(al_get_bitmap_width(image), al_get_bitmap_height(image));
-    al_set_target_bitmap(lightBitmap);
-    al_clear_to_color(al_map_rgb(255, 255, 255));
-
+    image = nullptr;
+    lightBitmap = nullptr;
 }
 void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string workingDirectory){
     //If the bitmap doesn't exist, return without changing the bitmap.
@@ -215,26 +163,10 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     imageFilePath = newFilePath;
     imageID = newImageID;
 
-    if(image && !isBitmapFromContainer[0]){
-        al_destroy_bitmap(image);
-    }
-    else{
-        image = nullptr;
-    }
-    if(lightBitmap && !isBitmapFromContainer[1]){
-        al_destroy_bitmap(lightBitmap);
-    } 
-    else{
-        lightBitmap = nullptr;
-    }
-        
-    isBitmapFromContainer[0] = true;
-    isBitmapFromContainer[1] = true;
-
     image = BitmapContainer[i].bitmap;
+    lightBitmap = BitmapContainer[i].lightBitmap;
 
     if(!image){
-        image = al_create_bitmap(100, 100);
         if(newImageID != ""){
             cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not found.\n";
         }
@@ -243,90 +175,8 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
         }
         return;
     }
+
     size.set(al_get_bitmap_width(image), al_get_bitmap_height(image));
-    lightBitmap = al_create_bitmap(al_get_bitmap_width(image), al_get_bitmap_height(image));
-    al_set_target_bitmap(lightBitmap);
-    al_clear_to_color(al_map_rgb(255, 255, 255));
-}
-void ImageModule::loadLight(string newFilePath, string newLightID, string workingDirectory){
-    if(lightBitmap && !isBitmapFromContainer[1]){
-        al_destroy_bitmap(lightBitmap);
-    }
-    else{
-        lightBitmap = nullptr;
-    }
-        
-    lightFilePath = newFilePath;
-    lightID = newLightID;
-
-    isBitmapFromContainer[1] = false;
-    lightBitmap = al_load_bitmap((workingDirectory + lightFilePath).c_str());
-    if(!lightBitmap){
-        cout << "Error: In " << __FUNCTION__ << ": Loading image failed: File \'" << imageFilePath << "\' does not exist.\n";
-        return;
-    }
-}
-void ImageModule::connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newLightID, string workingDirectory){
-    //If the bitmap doesn't exist, return without changing the bitmap.
-    unsigned int i = 0;
-    bool bitmapExists = false;
-    
-    if(newFilePath != ""){
-        for(; i < BitmapContainer.size(); i++){
-            if(BitmapContainer[i].filePath == newFilePath){
-                bitmapExists = true;
-                break;
-            }
-        }
-    }
-    else if(newLightID != ""){
-        for(; i < BitmapContainer.size(); i++){
-            if(BitmapContainer[i].ID == newLightID){
-                bitmapExists = true;
-                break;
-            }
-        }
-    }
-    
-    if(!bitmapExists){
-        if(newLightID != ""){
-            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newLightID << "\' not found.\n";
-        }
-        else if(newFilePath != ""){
-            cout << "Error: In " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
-        }
-        else{
-            cout << "Error: In " << __FUNCTION__ << ": Path to the file and the alias of the bitmap were not provided.\n";
-        }
-        return;
-    }
-
-    lightFilePath = newFilePath;
-    lightID = newLightID;
-
-
-    if(lightBitmap && !isBitmapFromContainer[1]){
-        al_destroy_bitmap(lightBitmap);
-    } 
-    else{
-        lightBitmap = nullptr;
-    }
-        
-    isBitmapFromContainer[0] = true;
-    isBitmapFromContainer[1] = true;
-
-    lightBitmap = BitmapContainer[i].bitmap;
-
-    if(!lightBitmap){
-        lightBitmap = al_create_bitmap(100, 100);
-        if(newLightID != ""){
-            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newLightID << "\' not found.\n";
-        }
-        else{
-            cout << "Error: In " << __FUNCTION__ << ": File \'" << lightFilePath << "\' not loaded into memory.\n";
-        }
-        return;
-    }
 }
 void ImageModule::checkImage(ALLEGRO_DISPLAY * window, string workingDirectory){
     if(!image) {
@@ -362,7 +212,7 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
         draw_bitmap(image, start.x, start.y, size.x, size.y, red, green, blue, alpha, rotPos.x, rotPos.y,
             base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
 
-        if(lightLevel > 0.0){
+        if(lightBitmap != nullptr && lightLevel > 0.0){
             draw_bitmap(lightBitmap, start.x, start.y, size.x, size.y, lightColor[0], lightColor[1], lightColor[2], lightLevel, rotPos.x, rotPos.y,
                 base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
         }
@@ -378,7 +228,7 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
         draw_bitmap(image, start.x, start.y, size.x, size.y, red, green, blue, alpha, rotPos.x, rotPos.y,
             base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
 
-        if(lightLevel > 0.0){
+        if(lightBitmap != nullptr && lightLevel > 0.0){
             draw_bitmap(lightBitmap, start.x, start.y, size.x, size.y, lightColor[0], lightColor[1], lightColor[2], lightLevel, rotPos.x, rotPos.y,
                 base.x, base.y, newScale.x, newScale.y, radians, mirrorX, mirrorY);
         }
@@ -443,7 +293,7 @@ void ImageModule::drawFrame(vec2d base){
         else
             al_draw_tinted_scaled_rotated_bitmap_region(image, start2.x, start2.y, size.x, size.y, al_map_rgba_f(red, green, blue, alpha), add.x, add.y, base.x+pos.x+add2.x, base.y+pos.y+add2.y, scale.x, scale.y, radians, ALLEGRO_FLIP_VERTICAL | ALLEGRO_FLIP_HORIZONTAL);
 
-        if(lightLevel > 0.0){
+        if(lightBitmap != nullptr && lightLevel > 0.0){
             if(!mirrorX && !mirrorY)
                 al_draw_tinted_scaled_rotated_bitmap_region(lightBitmap, start2.x, start2.y, size.x, size.y, al_map_rgba_f(lightColor[0], lightColor[1], lightColor[2], lightLevel), add.x, add.y, base.x+pos.x+add2.x, base.y+pos.y+add2.y, scale.x, scale.y, radians, 0);
             else if(mirrorX && !mirrorY)

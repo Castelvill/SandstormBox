@@ -583,7 +583,7 @@ fun *context* *attribute* [[type] [value] … ]
 
 **Syntax**
 
-load_bitmap *path* *name*
+load_bitmap *path* *name* [light]
 
 **Description**
 
@@ -592,7 +592,8 @@ load_bitmap *path* *name*
 **Parameters**
 
 - path (string) - path to an image file;
-- name (string) - name for the new bitmap.
+- name (string) - name for the new bitmap;
+- light (bool) - if true, create a light bitmap for the loaded bitmap. False by default.
 
 ## load_font
 

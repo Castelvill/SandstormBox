@@ -1561,6 +1561,9 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             Operation->Literals.push_back(VariableModule::newString(words[1]));
             Operation->Literals.push_back(VariableModule::newString(words[2]));
+            if(words.size() > 3){
+                Operation->Literals.push_back(VariableModule::newBool(stringToBool(words[3])));
+            }
         }
         else if(words[0] == "mkdir" || words[0] == "rm" || words[0] == "rmll"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){

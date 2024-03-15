@@ -104,7 +104,8 @@ bool stringToBool(string text){
     if(text == "false" || text == "0"){
         return false;
     }
-    cout << "Error: In " << __FUNCTION__ << ": Provided string of value '" << text << "' cannot be transform into a bool value.";
+    cout << "Error: In " << __FUNCTION__ << ": Provided string of value '"
+        << text << "' cannot be transform into a bool value.\n";
     return false;
 }
 

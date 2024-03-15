@@ -17,8 +17,9 @@ class SingleBitmap{
 public:
     string filePath, ID;
     ALLEGRO_BITMAP * bitmap;
+    ALLEGRO_BITMAP * lightBitmap;
     SingleBitmap();
-    void loadBitmap(string newID, string newFilePath, string workingDirectory);
+    void loadBitmap(string newID, string newFilePath, string workingDirectory, bool createLightBitmap);
 };
 
 class ImageModule: public PrimaryModule {
@@ -29,7 +30,6 @@ private:
     vec2i currentFrame;
     ALLEGRO_BITMAP * image;
     ALLEGRO_BITMAP * lightBitmap;
-    bool isBitmapFromContainer[2];
     string imageFilePath, imageID;
     string lightFilePath, lightID;
     double rotateAngle;
@@ -47,10 +47,7 @@ public:
     ~ImageModule();
     void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
-    void loadImage(string newFilePath, string newImageID, string workingDirectory);
     void connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string workingDirectory);
-    void loadLight(string newFilePath, string newLightID, string workingDirectory);
-    void connectLightBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newLightID, string workingDirectory);
     void checkImage(ALLEGRO_DISPLAY * window, string workingDirectory);
     void drawImage(vec2d base, Camera2D Camera, bool outSourcing);
     void drawFrame(vec2d base);

@@ -160,7 +160,6 @@ private:
     bool isActive;
     bool canUserInteract; 
     bool isRendering;
-    ALLEGRO_BITMAP * WindowBuffer;
     vec2d windowPos, windowSize, minWindowSize;
     float windowTint[4];
 

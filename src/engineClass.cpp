@@ -46,6 +46,9 @@ void freeBitmapsFromContainer(vector <SingleBitmap> & BitmapContainer){
         if(BitmapContainer[i].bitmap){
             al_destroy_bitmap(BitmapContainer[i].bitmap);
         }
+        if(BitmapContainer[i].lightBitmap != nullptr){
+            al_destroy_bitmap(BitmapContainer[i].lightBitmap);
+        }
     }
     BitmapContainer.clear();
 }
@@ -186,9 +189,7 @@ void EngineClass::initAllegro(){
     backbuffer = al_create_bitmap(bufferSizeX, bufferSizeY);
     al_set_target_bitmap(backbuffer);
     al_set_new_bitmap_samples(0);
-}
-void EngineClass::prepare(){
-    //cursorBitmap = al_load_bitmap("images/cursor.png");
+
     if(cursorBitmap){
         mouseCursor = al_create_mouse_cursor(cursorBitmap, 0, 0);
         al_set_mouse_cursor(display, mouseCursor);
@@ -201,14 +202,22 @@ void EngineClass::prepare(){
         al_set_display_icon(display, iconBitmap);
     }
 }
+void EngineClass::prepare(){
+
+}
 void EngineClass::clear(){
     processIDs.clear();
-    freeFontsFromContainer(FontContainer);
-    freeBitmapsFromContainer(BitmapContainer);
-
     releasedKeys.clear();
     firstPressedKeys.clear();
     pressedKeys.clear();
+}
+void EngineClass::exitAllegro(){
+    freeFontsFromContainer(FontContainer);
+    freeBitmapsFromContainer(BitmapContainer);
+    al_destroy_bitmap(backbuffer);
+    al_destroy_display(display);
+    al_destroy_timer(timer);
+    al_destroy_event_queue(eventQueue);
     if(cursorBitmap){
         al_destroy_bitmap(cursorBitmap);
         al_destroy_mouse_cursor(mouseCursor);
@@ -216,12 +225,6 @@ void EngineClass::clear(){
     if(iconBitmap){
         al_destroy_bitmap(iconBitmap);
     }
-}
-void EngineClass::exitAllegro(){
-    al_destroy_bitmap(backbuffer);
-    al_destroy_display(display);
-    al_destroy_timer(timer);
-    al_destroy_event_queue(eventQueue);
 }
 void EngineClass::updateEvents(){
     switch(event.type){
