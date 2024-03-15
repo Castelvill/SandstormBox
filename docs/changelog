@@ -1,3 +1,6 @@
+15.03.2024
+-Made a simple config file with backbuffer bitmap sampling and size.
+
 14.03.2024
 -Optimized RAM and CPU usage by removing bitmaps from cameras, tweaking sampling and flags.
 

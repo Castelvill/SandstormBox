@@ -149,8 +149,41 @@ void EngineClass::initAllegro(){
 
     al_start_timer(timer);
 
-    //al_set_new_bitmap_samples(8);
-    backbuffer = al_create_bitmap(1920, 1080);
+    std::ifstream File(EXE_PATH+"config");
+    unsigned short samples = 0;
+    unsigned bufferSizeX = 1920, bufferSizeY = 1080;
+
+	if(File){
+        string name;
+        while(File >> name){
+            if(name == "SAMPLES"){
+                File >> samples;
+            }
+            else if(name == "BUFFER_SIZE"){
+                File >> bufferSizeX;
+                File >> bufferSizeY;
+            }
+        }
+        File.close();
+	}
+    
+    if(samples > 8){
+        samples = 8;
+    }
+    if(bufferSizeX > 3840){
+        bufferSizeX = 3840;
+    }
+    if(bufferSizeX < 100){
+        bufferSizeX = 100;
+    }
+    if(bufferSizeY > 2160){
+        bufferSizeY = 2160;
+    }
+    if(bufferSizeY < 100){
+        bufferSizeY = 100;
+    }
+    al_set_new_bitmap_samples(samples);
+    backbuffer = al_create_bitmap(bufferSizeX, bufferSizeY);
     al_set_target_bitmap(backbuffer);
     al_set_new_bitmap_samples(0);
 }
