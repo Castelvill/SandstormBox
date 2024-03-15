@@ -18,10 +18,6 @@ load_bitmap "images/elephant.jpg" elephant
 load_bitmap "gui/thumb_track_h3.png" thumb_track_h3
 load_bitmap "gui/thumb_h3.png" thumb_h3
 
-string ["fonts/fira_mono.ttf"] path
-int [20] size
-string ["fira_mono"] name
-load_font path size name
 
 string ["fonts/CascadiaCode.ttf"] path
 int [20] size
@@ -32,6 +28,12 @@ string ["fonts/CascadiaCode-Bold.ttf"] path
 int [20] size
 string ["cascadia_code_bold"] name
 load_font path size name
+
+string ["fonts/fira_mono.ttf"] path
+int [20] size
+string ["fira_mono"] name
+load_font path size name
+
 
 run resizeDisplay buildTerminal createWindowTemplate
 end

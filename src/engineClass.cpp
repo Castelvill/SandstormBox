@@ -202,7 +202,14 @@ void EngineClass::updateEvents(){
             releasedKeys = getReleasedKeys(key, pressedKeys);
             pressedKeys.clear();
             pressedKeys = getPressedKeys(key);
-            if(key[ALLEGRO_KEY_LCTRL] && key[ALLEGRO_KEY_ESCAPE]){
+            if(key[ALLEGRO_KEY_LCTRL] && key[ALLEGRO_KEY_LSHIFT] && key[ALLEGRO_KEY_R]){
+                reboot = true;
+                key[ALLEGRO_KEY_LCTRL] = false;
+                key[ALLEGRO_KEY_LSHIFT] = false;
+                key[ALLEGRO_KEY_R] = false;
+                cout << "Rebooting...\n";
+            }
+            else if(key[ALLEGRO_KEY_LCTRL] && key[ALLEGRO_KEY_ESCAPE]){
                 closeProgram = true;
             }
             break;

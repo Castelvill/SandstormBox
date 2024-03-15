@@ -26,7 +26,7 @@ LayerClass::~LayerClass(){
 }
 void LayerClass::clear(){
     for(AncestorObject & Object : Objects){
-        Object.clearContainers();
+        Object.clear();
     }
     Objects.clear();
     objectsIDs.clear();

@@ -23,27 +23,7 @@ void EventsLookupTable::clear(){
 }
 
 void ProcessClass::loadInitProcess(string layerID, string objectID, vec2i screenSize, string initFilePath){
-    Layers.push_back(LayerClass(layerID, layersIDs, true, vec2d(0.0, 0.0), screenSize));
-    Layers.back().Objects.push_back(AncestorObject(objectID, Layers.back().objectsIDs, Layers.back().getID()));
-    if(initFilePath != ""){
-        Layers.back().Objects.back().bindedScripts.push_back(EXE_PATH + initFilePath);
-        Layers.back().Objects.back().translateAllScripts(true);
-    }
     
-    if(isLayersUniquenessViolated()){
-        cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
-    }
-
-    for(LayerClass & Layer : Layers){
-        for(AncestorObject & obj : Layer.Objects){
-            obj.createVectorsOfIds();
-        }
-        if(Layer.isObjectsUniquenessViolated()){
-            cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
-        }
-    }
-
-    updateBaseOfTriggerableObjects();
 }
 string ProcessClass::getID() const{
     return ID;
@@ -57,7 +37,7 @@ void ProcessClass::setID(string newID, vector<string> &listOfIDs){
     ID = findNewUniqueID(listOfIDs, newID);
     listOfIDs.push_back(ID);
 }
-ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs){
+void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs){
     setID(newID, listOfIDs);
     isActive = true;
     canUserInteract = true;
@@ -103,26 +83,45 @@ ProcessClass::ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string
 
     WindowBuffer = al_create_bitmap(windowSize.x, windowSize.y);
 
-    loadInitProcess(newLayerID, newObjectID, screenSize, initFilePath);
-}
-ProcessClass::~ProcessClass(){
-    BaseOfTriggerableObjects.clear();
+    Layers.push_back(LayerClass(newLayerID, layersIDs, true, vec2d(0.0, 0.0), screenSize));
+    Layers.back().Objects.push_back(AncestorObject());
+    Layers.back().Objects.back().primaryConstructor(newObjectID, &Layers.back().objectsIDs, Layers.back().getID(), "");
+    if(initFilePath != ""){
+        Layers.back().Objects.back().bindedScripts.push_back(EXE_PATH + initFilePath);
+        Layers.back().Objects.back().translateAllScripts(true);
+    }
     
+    if(isLayersUniquenessViolated()){
+        cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
+    }
+
     for(LayerClass & Layer : Layers){
         for(AncestorObject & obj : Layer.Objects){
-            obj.clearContainers();
+            obj.createVectorsOfIds();
         }
-        Layer.Objects.clear();
+        if(Layer.isObjectsUniquenessViolated()){
+            cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
+        }
+    }
+
+    updateBaseOfTriggerableObjects();
+}
+void ProcessClass::clear(){
+    al_destroy_bitmap(WindowBuffer);
+    SelectedLayer = nullptr;
+    for(LayerClass & Layer : Layers){
         Layer.clear();
     }
     Layers.clear();
+    SelectedCamera = nullptr;
+    SelectedObject = nullptr;
     for(Camera2D & Camera : Cameras){
         Camera.clear();
     }
     Cameras.clear();
-}
-void ProcessClass::clear(){
-    al_destroy_bitmap(WindowBuffer);
+    layersIDs.clear();
+    camerasIDs.clear();
+    BaseOfTriggerableObjects.clear();
 }
 void ProcessClass::resizeWindow(vec2d newSize){
     windowSize.set(newSize);
@@ -3552,7 +3551,8 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             if(i < newIDs.size()){
                 ID = newIDs[i];
             }
-            Cameras.push_back(Camera2D(ID, camerasIDs));
+            Cameras.push_back(Camera2D());
+            Cameras.back().setUpInstance(ID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0));
             NewContext.Cameras.push_back(&Cameras.back());
             camerasOrder.push_back(camerasOrder.size());
         }
@@ -3589,7 +3589,8 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             if(i < newIDs.size()){
                 ID = newIDs[i];
             }
-            CurrentLayer->Objects.push_back(AncestorObject(ID, CurrentLayer->objectsIDs, layerID));
+            CurrentLayer->Objects.push_back(AncestorObject());
+            CurrentLayer->Objects.back().primaryConstructor(ID, &CurrentLayer->objectsIDs, layerID, "");
             NewContext.Objects.push_back(&CurrentLayer->Objects.back());
         }
     }
@@ -5918,9 +5919,10 @@ void ProcessClass::createNewProcess(OperaClass & Operation, vector<ProcessClass>
     }
     
     if(Processes.size() + 1 <= Processes.capacity()){
-        Processes.push_back(ProcessClass(Engine.EXE_PATH + workingDirectory, Engine.getDisplaySize(),
+        Processes.push_back(ProcessClass());
+        Processes.back().create(Engine.EXE_PATH + workingDirectory, Engine.getDisplaySize(),
             script, Operation.Literals[0].getString(), layerID, objectID, Engine.processIDs
-        ));
+        );
     }
     else{
         
@@ -7985,7 +7987,7 @@ bool ProcessClass::deleteEntities(){
                 if(Object->getIsDeleted()){
                     removeFromVector(Layer->objectsIDs, Object->getID());
                     layersWereModified = true;
-                    Object->clearContainers();
+                    Object->clear();
                     Object = Layer->Objects.erase(Object);
                 }
                 else{

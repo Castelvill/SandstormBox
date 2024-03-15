@@ -91,12 +91,12 @@ void TextModule::fitSizeToText(vector <SingleFont> FontContainer){
     //al_get_font_line_height(Font->font)
 
     string currentContent = getCurrentContent();
-    long lineLength = 0;
+    //long lineLength = 0;
 
     if(wrapped == 0){
-        for(char character : currentContent){
+        //for(char character : currentContent){
             //if(character )
-        }
+        //}
     }
     
     for(string text : content){

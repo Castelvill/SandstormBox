@@ -206,8 +206,7 @@ public:
     void loadInitProcess(string layerID, string objectID, vec2i screenSize, string initFilePath);
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
-    ProcessClass(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
-    ~ProcessClass();
+    void create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
     void clear();
     void resizeWindow(vec2d newSize);
     void resizeWindow(double x, double y);

@@ -52,15 +52,6 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
 
     std::fill_n(tint, 4, 1);
 }
-Camera2D::Camera2D(string newID, vector <string> & camerasIDs, bool newIsActive, vec2d newPos, vec2d newSize, vec2d newVisionShift){
-    setUpInstance(newID, camerasIDs, newIsActive, newPos, newSize, newVisionShift);
-}
-Camera2D::Camera2D(string newID, vector <string> & camerasIDs){
-    setUpInstance(newID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0));
-}
-Camera2D::~Camera2D(){
-
-}
 void Camera2D::clone(const Camera2D &Original, vector<string> &camerasIDs, bool changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
         cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";

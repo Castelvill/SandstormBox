@@ -17,8 +17,10 @@ int main(){
     do{
         Engine.resetState("EGM");
         Engine.prepare();
-        Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init.txt", "Init", "KERNEL", "Init", Engine.processIDs));
-        Processes.push_back(ProcessClass(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init1.txt", "Init1", "KERNEL", "Init", Engine.processIDs));
+        Processes.push_back(ProcessClass());
+        Processes.back().create(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init.txt", "Init", "KERNEL", "Init", Engine.processIDs);
+        Processes.push_back(ProcessClass());
+        Processes.back().create(Engine.EXE_PATH, Engine.getDisplaySize(), "init/init1.txt", "Init1", "KERNEL", "Init", Engine.processIDs);
         do{
             Engine.redraw = false;
             do{

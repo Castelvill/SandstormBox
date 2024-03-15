@@ -99,12 +99,6 @@ AncestorObject::AncestorObject(){
     //blank object
     //cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
-AncestorObject::AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID){
-    primaryConstructor(newID, &listOfIDs, newLayerID, "");
-}
-AncestorObject::AncestorObject(unsigned newID, vector<string> &listOfIDs, string newLayerID){
-    primaryConstructor(newID, &listOfIDs, newLayerID, "");
-}
 void AncestorObject::deleteLater(){
     deleted = true;
     deactivate();
@@ -152,7 +146,7 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         return;
     }
     clearVectorsOfIDs();
-    clearContainers();
+    clear();
     PrimaryModule::clone(Original, listOfUniqueIDs, newLayerID, "", changeOldID);
     for(const TextModule & Text : Original.TextContainer){
         TextContainer.push_back(TextModule());
@@ -213,27 +207,39 @@ void AncestorObject::clearVectorsOfIDs(){
     primitivesContainerIDs.clear();
     vectorContainerIDs.clear();
 }
-void AncestorObject::clearContainers(){
-    for(auto & Text : TextContainer){
+void AncestorObject::clear(){
+    for(TextModule & Text : TextContainer){
         Text.clear();
     }
-    for(auto & Editable : EditableTextContainer){
+    for(EditableTextModule & Editable : EditableTextContainer){
         Editable.clear();
     }
-    for(auto & Image : ImageContainer){
+    for(ImageModule & Image : ImageContainer){
         Image.clear();
     }
-    for(auto & Movement : MovementContainer){
+    for(MovementModule & Movement : MovementContainer){
         Movement.clear();
     }
-    for(auto & Collision : CollisionContainer){
+    for(CollisionModule & Collision : CollisionContainer){
         Collision.clear();
     }
-    for(auto & Particle : ParticlesContainer){
+    for(ParticleEffectModule & Particle : ParticlesContainer){
         Particle.clear();
     }
-    for(auto & Event : EveContainer){
+    for(EveModule & Event : EveContainer){
         Event.clear();
+    }
+    for(VariableModule & Variable : VariablesContainer){
+        Variable.clear();
+    }
+    for(ScrollbarModule & Scrollbar : ScrollbarContainer){
+        Scrollbar.clear();
+    }
+    for(PrimitivesModule & Primitive : PrimitivesContainer){
+        Primitive.clear();
+    }
+    for(VectorModule & Vector : VectorContainer){
+        Vector.clear();
     }
 
     clearVectorsOfIDs();

@@ -52,12 +52,10 @@ public:
     vector <string> bindedScripts;
 
     AncestorObject();
-    AncestorObject(string newID, vector<string> &listOfIDs, string newLayerID);
-    AncestorObject(unsigned newID, vector<string> &listOfIDs, string newLayerID);
     void deleteLater();
     void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID, const bool & changeOldID);
     void clearVectorsOfIDs();
-    void clearContainers();
+    void clear();
     void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects,
         vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string workingDirectory
     );
