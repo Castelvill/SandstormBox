@@ -83,8 +83,8 @@ void TextModule::fitSizeToText(vector <SingleFont> FontContainer){
     if(Font == nullptr){
         return;
     }
-    if(Font->sizeF < 0 || Font->sizeF > 1000){
-        cout << "Error: In " << __FUNCTION__ << ": Font size equal to " << Font->sizeF << " is not a valid size.\n";
+    if(Font->size < 0 || Font->size > 1000){
+        cout << "Error: In " << __FUNCTION__ << ": Font size equal to " << Font->size << " is not a valid size.\n";
     }
 
     vec2d newSize(0.0, 0.0);

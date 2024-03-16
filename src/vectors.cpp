@@ -288,3 +288,75 @@ void vec2i::normalize() {
 	x *= (1.0 / countLength());
 	y *= (1.0 / countLength());
 }
+
+
+vec2f::vec2f(){
+    x = 0.0;
+    y = 0.0;
+    length = 0.0;
+}
+vec2f::vec2f(float x1, float y1){
+    x = x1;
+    y = y1;
+    length = 0.0;
+}
+vec2f::vec2f(float x1, float y1, float x2, float y2){
+    x = x2 - x1;
+    y = y2 - y1;
+    length = countLength();
+}
+void vec2f::set(vec2f vec){
+    x = vec.x;
+    y = vec.y;
+    length = 0.0;
+}
+void vec2f::set(float x1, float y1){
+    x = x1;
+    y = y1;
+    length = 0.0;
+}
+void vec2f::set(float x1, float y1, float x2, float y2){
+    x = x2 - x1;
+    y = y2 - y1;
+    length = countLength();
+}
+bool vec2f::isEqual(float x1, float y1){
+    if(x == x1 && y == y1)
+        return true;
+    return false;
+}
+float vec2f::countLength(){
+    return sqrt(pow(x, 2) + pow(y, 2));
+}
+void vec2f::translate(vec2f vec){
+    x += vec.x;
+    y += vec.y;
+}
+void vec2f::translate(float tx, float ty){
+    x += tx;
+    y += ty;
+}
+void vec2f::setLength(float newLength){
+    length = newLength;
+}
+void vec2f::rotate(float degrees) {
+	if(degrees == 0.0)
+        return;
+	float theta = degrees / 180.0 * M_PI;
+	float c = cos(theta);
+	float s = sin(theta);
+	float tx = x * c - y * s;
+	float ty = x * s + y * c;
+	x = tx;
+	y = ty;
+
+	if(x < 0.0001 && x > 0.0)
+        x = 0.0;
+    if(y < 0.0001 && y > 0.0)
+        y = 0.0;
+}
+void vec2f::normalize() {
+	if (countLength() == 0) return;
+	x *= (1.0 / countLength());
+	y *= (1.0 / countLength());
+}

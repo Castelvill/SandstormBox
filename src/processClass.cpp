@@ -602,6 +602,7 @@ void ContextClass::clear(){
     BasePointers.clear();
     Modules.Texts.clear();
     Modules.EditableTexts.clear();
+    Modules.SuperTexts.clear();
     Modules.Images.clear();
     Modules.Movements.clear();
     Modules.Collisions.clear();
@@ -944,7 +945,13 @@ void ContextClass::addModule(EditableTextModule * Module){
         Modules.EditableTexts.push_back(Module);
     }
 }
-void ContextClass::addModule(ImageModule * Module){
+void ContextClass::addModule(SuperTextModule *Module){
+    if(Module != nullptr){
+        Modules.SuperTexts.push_back(Module);
+    }
+}
+void ContextClass::addModule(ImageModule *Module)
+{
     if(Module != nullptr){
         Modules.Images.push_back(Module);
     }
@@ -1013,7 +1020,20 @@ void ContextClass::setFirstModule(EditableTextModule * Module){
         Modules.EditableTexts.back() = Module;
     }
 }
-void ContextClass::setFirstModule(ImageModule * Module){
+void ContextClass::setFirstModule(SuperTextModule *Module){
+    if(Module == nullptr){
+        return;
+    }
+    if(Modules.SuperTexts.size() == 0){
+        type = "super_text";
+        addModule(Module);
+    }
+    else{
+        Modules.SuperTexts.back() = Module;
+    }
+}
+void ContextClass::setFirstModule(ImageModule *Module)
+{
     if(Module == nullptr){
         return;
     }
@@ -1147,6 +1167,9 @@ bool ProcessClass::chooseRandomModule(ContextClass & NewContext){
     }
     else if(NewContext.type == "editable_text"){
         chooseRandomEntity(NewContext.Modules.EditableTexts);
+    }
+    else if(NewContext.type == "super_text"){
+        chooseRandomEntity(NewContext.Modules.SuperTexts);
     }
     else if(NewContext.type == "image"){
         chooseRandomEntity(NewContext.Modules.Images);
@@ -1415,7 +1438,7 @@ void ProcessClass::findContextInModule(string type, string attribute, ContextCla
     if(Module == nullptr){
         return;
     }
-    if(attribute == "" || isStringInGroup(attribute, 11, "text", "editable_text", "image", "movement",
+    if(attribute == "" || isStringInGroup(attribute, 12, "text", "editable_text", "super_text", "image", "movement",
         "collision", "particles", "event", "variable", "scrollbar", "primitives", "vector"
     )){
         NewContext.type = type;
@@ -1484,6 +1507,9 @@ void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewCo
         else if(OldContext->type == "editable_text" && AggregatedModules->EditableTexts.size() > 0){
             findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->EditableTexts, Operation.Location.moduleID));
         }
+        else if(OldContext->type == "super_text" && AggregatedModules->SuperTexts.size() > 0){
+            findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->SuperTexts, Operation.Location.moduleID));
+        }
         else if(OldContext->type == "image" && AggregatedModules->Images.size() > 0){
             findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Images, Operation.Location.moduleID));
         }
@@ -1520,6 +1546,9 @@ void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewCo
     }
     else if(OldContext->type == "editable_text"){
         aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext);
+    }
+    else if(OldContext->type == "super_text"){
+        aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext);
     }
     else if(OldContext->type == "image"){
         aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext);
@@ -1785,6 +1814,9 @@ void ProcessClass::findContextInObject(ValueLocation Location, ContextClass & Ne
         else if(Location.moduleType == "editable_text"){
             findContextInModuleVector(Location, NewContext, Object->EditableTextContainer);
         }
+        else if(Location.moduleType == "super_text"){
+            findContextInModuleVector(Location, NewContext, Object->SuperTextContainer);
+        }
         else if(Location.moduleType == "image"){
             findContextInModuleVector(Location, NewContext, Object->ImageContainer);
         }
@@ -1923,6 +1955,9 @@ void ProcessClass::aggregateModulesById(string moduleType, string moduleID, stri
     else if(moduleType == "editable_text" && AggregatedModules.EditableTexts.size() > 0){
         getContextFromModuleVectorById<EditableTextModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.EditableTexts);
     }
+    else if(moduleType == "super_text" && AggregatedModules.SuperTexts.size() > 0){
+        getContextFromModuleVectorById<SuperTextModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.SuperTexts);
+    }
     else if(moduleType == "image" && AggregatedModules.Images.size() > 0){
         getContextFromModuleVectorById<ImageModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Images);
     }
@@ -1968,7 +2003,7 @@ void ProcessClass::findLowerContextById(ValueLocation & Location, ContextClass &
             }
         }
     }
-    else if(isStringInGroup(OldContext->type, 11, "text", "editable_text" , "image", "movement", "collision",
+    else if(isStringInGroup(OldContext->type, 12, "text", "editable_text", "super_text", "image", "movement", "collision",
         "particles", "event", "variable", "scrollbar", "primitives", "vector")
     ){
         aggregateModulesById(OldContext->type, Location.moduleID, Location.attribute, NewContext, OldContext->Modules);
@@ -2215,6 +2250,9 @@ void ProcessClass::aggregateTwoSets(OperaClass & Operation, vector<ContextClass>
     else if(LeftOperand->type == "editable_text"){
         executeOperationsOnSets(Operation.instruction, NewContext.Modules.EditableTexts, LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts);
     }
+    else if(LeftOperand->type == "super_text"){
+        executeOperationsOnSets(Operation.instruction, NewContext.Modules.SuperTexts, LeftOperand->Modules.SuperTexts, RightOperand->Modules.SuperTexts);
+    }
     else if(LeftOperand->type == "image"){
         executeOperationsOnSets(Operation.instruction, NewContext.Modules.Images, LeftOperand->Modules.Images, RightOperand->Modules.Images);
     }
@@ -2296,7 +2334,7 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
                     aggregateObjects(Operation, NewContext, SourceContext->Objects, Engine, EventContext);
                 }
             }
-            else if(isStringInGroup(SourceContext->type, 11, "text", "editable_text" , "image", "movement", "collision",
+            else if(isStringInGroup(SourceContext->type, 12, "text", "editable_text", "super_text", "image", "movement", "collision",
                 "particles", "event", "variable", "scrollbar", "primitives", "vector")
             ){
                 if(SourceContext->Modules.hasInstanceOfAnyModule()){
@@ -2746,6 +2784,9 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
         }
         else if(LeftOperand->type == "editable_text"){
             cloneRightToLeft(LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts, Layers, changeOldID);
+        }
+        else if(LeftOperand->type == "super_text"){
+            cloneRightToLeft(LeftOperand->Modules.SuperTexts, RightOperand->Modules.SuperTexts, Layers, changeOldID);
         }
         else if(LeftOperand->type == "image"){
             cloneRightToLeft(LeftOperand->Modules.Images, RightOperand->Modules.Images, Layers, changeOldID);
@@ -3284,6 +3325,9 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
         else if(LeftOperand->type == "editable_text"){
             result = containsTheSameModule(LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts);
         }
+        else if(LeftOperand->type == "super_text"){
+            result = containsTheSameModule(LeftOperand->Modules.SuperTexts, RightOperand->Modules.SuperTexts);
+        }
         else if(LeftOperand->type == "image"){
             result = containsTheSameModule(LeftOperand->Modules.Images, RightOperand->Modules.Images);
         }
@@ -3605,6 +3649,14 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             CurrentObject->EditableTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
         }
     }
+    else if(Operation.Location.source == "super_text"){
+        createNewModule(CurrentObject->SuperTextContainer, CurrentObject->superTextContainerIDs, NewContext.Modules.SuperTexts,
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+        );
+        for(long i = CurrentObject->SuperTextContainer.size() - 1; i >= long(CurrentObject->SuperTextContainer.size() - newVectorSize); i--){
+            CurrentObject->SuperTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+        }
+    }
     else if(Operation.Location.source == "image"){
         createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
@@ -3766,6 +3818,13 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
             }
         }
     }
+    else if(DeletedContext->type == "super_text"){
+        for(SuperTextModule * SuperText : DeletedContext->Modules.SuperTexts){
+            if(SuperText != nullptr){
+                SuperText->deleteLater();
+            }
+        }
+    }
     else if(DeletedContext->type == "image"){
         for(ImageModule * Image : DeletedContext->Modules.Images){
             if(Image != nullptr){
@@ -3849,7 +3908,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
         }
     }
 
-    if(isStringInGroup(DeletedContext->type, 13, "layer", "object", "text", "editable_text", "image", "movement",
+    if(isStringInGroup(DeletedContext->type, 14, "layer", "object", "text", "editable_text", "super_text", "image", "movement",
         "collision", "particles", "event", "variable", "scrollbar", "primitives", "vector")
     ){
         for(ContextClass & Context : EventContext){
@@ -3858,6 +3917,9 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
             }
             else if(Context.type == "editable_text"){
                 clearDeletedPointersFromVector(Context.Modules.EditableTexts);
+            }
+            else if(Context.type == "super_text"){
+                clearDeletedPointersFromVector(Context.Modules.SuperTexts);
             }
             else if(Context.type == "image"){
                 clearDeletedPointersFromVector(Context.Modules.Images);
@@ -4002,7 +4064,7 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
             if(Operation.Location.attribute == "layer" || Operation.Location.attribute == ""){
                 findInstanceInVectorByIndex(indexes, Layers, "layer", NewContext.Layers, NewContext.type);
             }
-            else if(isStringInGroup(Operation.Location.attribute, 12, "object", "text", "editable_text", "image", "movement",
+            else if(isStringInGroup(Operation.Location.attribute, 13, "object", "text", "editable_text", "super_text", "image", "movement",
                 "collision", "particles", "event", "variable", "scrollbar", "primitives", "vector")
             ){
                 if(indexes.size() < 2){
@@ -4052,6 +4114,9 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                     }
                     else if(Operation.Location.attribute == "editable_text"){
                         findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->EditableTextContainer, Operation.Location.attribute, NewContext.Modules.EditableTexts, NewContext.type);
+                    }
+                    else if(Operation.Location.attribute == "super_text"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->SuperTextContainer, Operation.Location.attribute, NewContext.Modules.SuperTexts, NewContext.type);
                     }
                     else if(Operation.Location.attribute == "image"){
                         findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->ImageContainer, Operation.Location.attribute, NewContext.Modules.Images, NewContext.type);
@@ -4182,6 +4247,9 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                     else if(Operation.Location.attribute == "editable_text"){
                         findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->EditableTextContainer, Operation.Location.attribute, NewContext.Modules.EditableTexts, NewContext.type);
                     }
+                    else if(Operation.Location.attribute == "super_text"){
+                        findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->SuperTextContainer, Operation.Location.attribute, NewContext.Modules.SuperTexts, NewContext.type);
+                    }
                     else if(Operation.Location.attribute == "image"){
                         findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->ImageContainer, Operation.Location.attribute, NewContext.Modules.Images, NewContext.type);
                     }
@@ -4247,6 +4315,9 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                 else if(Operation.Location.attribute == "editable_text"){
                     findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->EditableTextContainer, Operation.Location.attribute, NewContext.Modules.EditableTexts, NewContext.type);
                 }
+                else if(Operation.Location.attribute == "super_text"){
+                    findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->SuperTextContainer, Operation.Location.attribute, NewContext.Modules.SuperTexts, NewContext.type);
+                }
                 else if(Operation.Location.attribute == "image"){
                     findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->ImageContainer, Operation.Location.attribute, NewContext.Modules.Images, NewContext.type);
                 }
@@ -4285,6 +4356,9 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
         }
         else if(Context->type == "editable_text"){
             findInstanceInVectorByIndex(indexes, Context->Modules.EditableTexts, Context->type, NewContext.Modules.EditableTexts, NewContext.type);
+        }
+        else if(Context->type == "super_text"){
+            findInstanceInVectorByIndex(indexes, Context->Modules.SuperTexts, Context->type, NewContext.Modules.SuperTexts, NewContext.type);
         }
         else if(Context->type == "image"){
             findInstanceInVectorByIndex(indexes, Context->Modules.Images, Context->type, NewContext.Modules.Images, NewContext.type);
@@ -5135,6 +5209,20 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
             Event->controlEditableText(EditableText, Operation.Location.attribute, Variables, emptyString, Engine.FontContainer);
         }
     }
+    else if(Context->type == "super_text"){
+        if(Operation.Location.attribute == "set_id"){
+            for(SuperTextModule * SuperText : Context->Modules.SuperTexts){
+                if(!findObjectForFunction(ModulesObject, Layers, SuperText->getObjectID(), SuperText->getLayerID())){
+                    continue;
+                }
+                Event->controlSuperText(SuperText, Operation.Location.attribute, Variables, ModulesObject->superTextContainerIDs, Engine.FontContainer);
+            }
+            return;
+        }
+        for(SuperTextModule * SuperText : Context->Modules.SuperTexts){
+            Event->controlSuperText(SuperText, Operation.Location.attribute, Variables, emptyString, Engine.FontContainer);
+        }
+    }
     else if(Context->type == "image"){
         if(isStringInGroup(Operation.Location.attribute, 6, "set_id", "set_position", "set_size", "set_scale", "resize", "connect_bitmap")){
             for(ImageModule * Image : Context->Modules.Images){
@@ -5662,6 +5750,9 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
         else if(ContextValues->type == "editable_text"){
             buffer += getStringOfIDs(ContextValues->Modules.EditableTexts, delimeter);
         }
+        else if(ContextValues->type == "super_text"){
+            buffer += getStringOfIDs(ContextValues->Modules.SuperTexts, delimeter);
+        }
         else if(ContextValues->type == "image"){
             buffer += getStringOfIDs(ContextValues->Modules.Images, delimeter);
         }
@@ -5882,7 +5973,7 @@ void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessC
             cout << "Nr\tID\tSize\n";
             for(const SingleFont & Font : Engine.FontContainer){
                 cout << i << "\t" << Font.ID
-                    << "\t" << Font.sizeF << "\n";
+                    << "\t" << Font.size << "\n";
                 i++;
             }
         }
@@ -6188,6 +6279,9 @@ void ProcessClass::printTree(OperaClass & Operation, vector<ContextClass> & Even
                 for(const EditableTextModule & Text : Object.EditableTextContainer){
                     buffor += "\t\t\tEditableText " + Text.getID() + "\n";
                 }
+                for(const SuperTextModule & SuperText : Object.SuperTextContainer){
+                    buffor += "\t\t\tSuperText " + SuperText.getID() + "\n";
+                }
                 for(const ImageModule & Image : Object.ImageContainer){
                     buffor += "\t\t\tImage " + Image.getID() + "\n";
                 }
@@ -6455,6 +6549,14 @@ void ProcessClass::findByIDInEventContext(OperaClass & Operation, vector<Context
         for(EditableTextModule * EditableText : VectorContext->Modules.EditableTexts){
             if(EditableText->getID() == id){
                 NewContext.Modules.EditableTexts.push_back(EditableText);
+                break;
+            }
+        }
+    }
+    else if(VectorContext->type == "super_text"){
+        for(SuperTextModule * SuperText : VectorContext->Modules.SuperTexts){
+            if(SuperText->getID() == id){
+                NewContext.Modules.SuperTexts.push_back(SuperText);
                 break;
             }
         }
@@ -7341,6 +7443,17 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
         }
         cout << "Error: In " << __FUNCTION__ << ": There is no editable text with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
+    else if(Condition.Location.moduleType == "super_text"){
+        for(const SuperTextModule & SuperText : CurrentObject->SuperTextContainer){
+            if(SuperText.getID() == Condition.Location.moduleID){
+                if(SuperText.getIsDeleted()){
+                    break;
+                }
+                return SuperText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
+            }
+        }
+        cout << "Error: In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
+    }
     else if(Condition.Location.moduleType == "collision"){
         return getValueFromObjectInCollision(Condition, CurrentObject, CurrentLayer);
     }
@@ -7698,6 +7811,17 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             }
             return Context->Modules.EditableTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
         }
+        if(Context->type == "super_text"){
+            if(Context->Modules.SuperTexts.size() == 0){
+                cout << "Error: In " << __FUNCTION__ << ": There are no SuperTexts in the context.\n";
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Context->Modules.SuperTexts.size() != 1){
+                cout << "Warning: In " << __FUNCTION__ << ": There are several SuperTexts in the context. Program will proceed with the last added literal.\n";
+            }
+            return Context->Modules.SuperTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
+        }
         if(Context->type == "vector"){
             if(Context->Modules.Vectors.size() == 0){
                 cout << "Error: In " << __FUNCTION__ << ": There are no Vectors in the context.\n";
@@ -8001,6 +8125,7 @@ bool ProcessClass::deleteEntities(){
                 else{
                     deleteModuleInstance(Object->TextContainer, Object->textContainerIDs, layersWereModified);
                     deleteModuleInstance(Object->EditableTextContainer, Object->editableTextContainerIDs, layersWereModified);
+                    deleteModuleInstance(Object->SuperTextContainer, Object->superTextContainerIDs, layersWereModified);
                     deleteModuleInstance(Object->ImageContainer, Object->imageContainerIDs, layersWereModified);
                     deleteModuleInstance(Object->MovementContainer, Object->movementContainerIDs, layersWereModified);
                     deleteModuleInstance(Object->CollisionContainer, Object->collisionContainerIDs, layersWereModified);
@@ -9356,6 +9481,34 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         numberOfDrawnObjects++;
     }
 
+    for(SuperTextModule & SuperText : Object.SuperTextContainer){
+        if(!SuperText.getIsActive()){
+            continue;
+        }
+        isScrollable = SuperText.getIsScrollable();
+        if(drawOnlyVisibleObjects && !SuperText.getIsAttachedToCamera()){
+            newPos.set(Object.getPos(isScrollable));
+            newPos.translate(SuperText.getPos(false));
+            objectSize.set(SuperText.getSize());
+            scaledObjectSize.set(objectSize);
+            scaledObjectSize.multiply(SuperText.getScale());
+            if(!SuperText.getIsScaledFromCenter()){
+                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
+            }
+            else{
+                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
+            }
+
+            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
+                continue;
+            }
+        }
+
+        SuperText.draw(Object.getPos(isScrollable)+Camera.pos, FontContainer, drawTextFieldBorders, Camera, 0, 0, false);
+
+        numberOfDrawnObjects++;
+    }
+
     for(EditableTextModule & Editable : Object.EditableTextContainer){
         if(!Editable.getIsActive()){
             continue;
@@ -9622,6 +9775,13 @@ Module * ModuleIndex::module(vector<LayerClass> &Layers){
         }
         return &Layers[layerIndex].Objects[objectIndex].EditableTextContainer[moduleIndex];
     }
+    if constexpr (std::is_same<Module, SuperTextModule>::value){
+        if(Layers[layerIndex].Objects[objectIndex].SuperTextContainer.size() <= moduleIndex){
+            cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
+            return nullptr;
+        }
+        return &Layers[layerIndex].Objects[objectIndex].SuperTextContainer[moduleIndex];
+    }
     else if constexpr (std::is_same<Module, ImageModule>::value){
         if(Layers[layerIndex].Objects[objectIndex].ImageContainer.size() <= moduleIndex){
             cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
@@ -9813,6 +9973,9 @@ ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass>
             else if constexpr (std::is_same<Module, EditableTextModule>::value){
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].EditableTextContainer[0]);
             }
+            else if constexpr (std::is_same<Module, SuperTextModule>::value){
+                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].SuperTextContainer[0]);
+            }
             else if constexpr (std::is_same<Module, ImageModule>::value){
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].ImageContainer[0]);
             }
@@ -9891,6 +10054,9 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vec
         }
         else if(Context.type == "editable_text"){
             findIndexesInModule(Context.Modules.EditableTexts, Layers);
+        }
+        else if(Context.type == "super_text"){
+            findIndexesInModule(Context.Modules.SuperTexts, Layers);
         }
         else if(Context.type == "image"){
             findIndexesInModule(Context.Modules.Images, Layers);
@@ -10023,6 +10189,9 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, v
             }
             else if(EventContext[context].type == "editable_text"){
                 EventContext[context].Modules.EditableTexts[module] = &(*Object).EditableTextContainer[Index.moduleIndex];
+            }
+            else if(EventContext[context].type == "super_text"){
+                EventContext[context].Modules.SuperTexts[module] = &(*Object).SuperTextContainer[Index.moduleIndex];
             }
             else if(EventContext[context].type == "image"){
                 EventContext[context].Modules.Images[module] = &(*Object).ImageContainer[Index.moduleIndex];

@@ -310,7 +310,7 @@ void EngineClass::loadNewFont(string path, int size, string newID){
         return;
     }
     FontContainer.back().ID = newID;
-    FontContainer.back().sizeF = size;
+    FontContainer.back().size = size;
 }
 
 bool EngineClass::isRunning() const{

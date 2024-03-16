@@ -7,6 +7,7 @@
 struct ModulesPointers{
     vector <TextModule*> Texts;
     vector <EditableTextModule*> EditableTexts;
+    vector <SuperTextModule*> SuperTexts;
     vector <ImageModule*> Images;
     vector <MovementModule*> Movements;
     vector <CollisionModule*> Collisions;
@@ -27,6 +28,7 @@ class AncestorObject: public PrimaryModule{
 public:
     vector <TextModule> TextContainer;
     vector <EditableTextModule> EditableTextContainer;
+    vector <SuperTextModule> SuperTextContainer;
     vector <ImageModule> ImageContainer;
     vector <MovementModule> MovementContainer;
     vector <CollisionModule> CollisionContainer;
@@ -38,6 +40,7 @@ public:
     vector <VectorModule> VectorContainer;
     vector <string> textContainerIDs;
     vector <string> editableTextContainerIDs;
+    vector <string> superTextContainerIDs;
     vector <string> imageContainerIDs;
     vector <string> movementContainerIDs;
     vector <string> collisionContainerIDs;
@@ -62,8 +65,6 @@ public:
     void refreshCoordinates();
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
-    string addModuleInstance(string module, string newID);
-    string destroyModuleInstance(string module, string destroyID);
     void setIsAttachedToCamera(bool newValue);
     VariableModule getAttributeValue(const string & attribute, const string & detail);
     /*Translate instructions into events and add them to the event container of the object.*/
@@ -91,21 +92,6 @@ bool removeModuleInstanceByID(vector <Module> & Container, string destroyID){
         return true;
     }
     return false;
-}
-
-string SuccessInstanceAdded(string module, string ID);
-string ErrorNoInstance(string module, string ID);
-string SuccessInstanceDestroyed(string module, string ID);
-template<class Module>
-string tryRemovingModuleInstance(string module, vector <Module> & Container, vector <string> & IDs, string destroyID){
-    if(!isStringInVector(IDs, destroyID)){
-        return ErrorNoInstance(module, destroyID);
-    }
-    if(!removeModuleInstanceByID(Container, destroyID)){
-        return ErrorNoInstance(module, destroyID);
-    }
-    removeFromStringVector(IDs, destroyID);
-    return SuccessInstanceDestroyed(module, destroyID);
 }
 
 template<class Module>

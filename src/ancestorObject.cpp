@@ -108,6 +108,9 @@ void AncestorObject::deleteLater(){
     for(EditableTextModule & EditableText : EditableTextContainer){
         EditableText.deleteLater();
     }
+    for(SuperTextModule & SuperText : SuperTextContainer){
+        SuperText.deleteLater();
+    }
     for(ImageModule & Image : ImageContainer){
         Image.deleteLater();
     }
@@ -156,6 +159,10 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         EditableTextContainer.push_back(EditableTextModule());
         EditableTextContainer.back().clone(Editable, editableTextContainerIDs, newLayerID, getID(), true);
     }
+    for(const SuperTextModule & SuperText : Original.SuperTextContainer){
+        SuperTextContainer.push_back(SuperTextModule());
+        SuperTextContainer.back().clone(SuperText, superTextContainerIDs, newLayerID, getID(), true);
+    }
     for(const ImageModule & Image : Original.ImageContainer){
         ImageContainer.push_back(ImageModule());
         ImageContainer.back().clone(Image, imageContainerIDs, newLayerID, getID(), true);
@@ -196,6 +203,7 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
 void AncestorObject::clearVectorsOfIDs(){
     textContainerIDs.clear();
     editableTextContainerIDs.clear();
+    superTextContainerIDs.clear();
     imageContainerIDs.clear();
     movementContainerIDs.clear();
     collisionContainerIDs.clear();
@@ -213,6 +221,9 @@ void AncestorObject::clear(){
     }
     for(EditableTextModule & Editable : EditableTextContainer){
         Editable.clear();
+    }
+    for(SuperTextModule & SuperText : SuperTextContainer){
+        SuperText.clear();
     }
     for(ImageModule & Image : ImageContainer){
         Image.clear();
@@ -246,6 +257,7 @@ void AncestorObject::clear(){
     groups.clear();
     TextContainer.clear();
     EditableTextContainer.clear();
+    SuperTextContainer.clear();
     ImageContainer.clear();
     MovementContainer.clear();
     CollisionContainer.clear();
@@ -356,6 +368,9 @@ void AncestorObject::createVectorsOfIds(){
     for(const EditableTextModule & content : EditableTextContainer){
         editableTextContainerIDs.push_back(content.getID());
     }
+    for(const SuperTextModule & content : SuperTextContainer){
+        superTextContainerIDs.push_back(content.getID());
+    }
     for(const ImageModule & content : ImageContainer){
         imageContainerIDs.push_back(content.getID());
     }
@@ -394,98 +409,6 @@ vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
     }
     return finalPos;
 }
-string SuccessInstanceAdded(string module, string ID){
-    return "Instance of " + module + "Module with ID: \'" + ID + "\' has been added.\n";
-}
-string AncestorObject::addModuleInstance(string module, string newID){
-    if(module == "text"){
-        TextContainer.push_back(TextModule(newID, &textContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, TextContainer.back().getID());
-    }
-    if(module == "editable_text"){
-        EditableTextContainer.push_back(EditableTextModule(newID, &editableTextContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, EditableTextContainer.back().getID());
-    }
-    if(module == "image"){
-        ImageContainer.push_back(ImageModule(newID, &imageContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, ImageContainer.back().getID());
-    }
-    if(module == "movement"){
-        MovementContainer.push_back(MovementModule(newID, &movementContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, MovementContainer.back().getID());
-    }
-    if(module == "collision"){
-        CollisionContainer.push_back(CollisionModule(newID, &collisionContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, CollisionContainer.back().getID());
-    }
-    if(module == "particles"){
-        ParticlesContainer.push_back(ParticleEffectModule(newID, &particlesContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, ParticlesContainer.back().getID());
-    }
-    if(module == "event"){
-        EveContainer.push_back(EveModule(newID, &eveContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, EveContainer.back().getID());
-    }
-    if(module == "variable"){
-        VariablesContainer.push_back(VariableModule(newID, &variablesContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, VariablesContainer.back().getID());
-    }
-    if(module == "scrollbar"){
-        ScrollbarContainer.push_back(ScrollbarModule(newID, &scrollbarContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, ScrollbarContainer.back().getID());
-    }
-    if(module == "primitives"){
-        PrimitivesContainer.push_back(PrimitivesModule(newID, &primitivesContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, PrimitivesContainer.back().getID());
-    }
-    if(module == "vector"){
-        VectorContainer.push_back(VectorModule(newID, &vectorContainerIDs, getLayerID(), getID()));
-        return SuccessInstanceAdded(module, VectorContainer.back().getID());
-    }
-    return "Error: Module \'" + module + "\' does not exist!\n";
-}
-string ErrorNoInstance(string module, string ID){
-    return "Error: There is no instance of " + module + "Module with ID: \'" + ID + "\'.\n";
-}
-string SuccessInstanceDestroyed(string module, string ID){
-    return "Instance of " + module + "Module with ID: \'" + ID + "\' has been destroyed.\n";
-}
-string AncestorObject::destroyModuleInstance(string module, string destroyID){
-    if(module == "text"){
-        return tryRemovingModuleInstance(module, TextContainer, textContainerIDs, destroyID);
-    }
-    if(module == "editableText"){
-        return tryRemovingModuleInstance(module, EditableTextContainer, editableTextContainerIDs, destroyID);
-    }
-    if(module == "image"){
-        return tryRemovingModuleInstance(module, ImageContainer, imageContainerIDs, destroyID);
-    }
-    if(module == "movement"){
-        return tryRemovingModuleInstance(module, MovementContainer, movementContainerIDs, destroyID);
-    }
-    if(module == "collision"){
-        return tryRemovingModuleInstance(module, CollisionContainer, collisionContainerIDs, destroyID);
-    }
-    if(module == "particles"){
-        return tryRemovingModuleInstance(module, ParticlesContainer, particlesContainerIDs, destroyID);
-    }
-    if(module == "event"){
-        return tryRemovingModuleInstance(module, EveContainer, eveContainerIDs, destroyID);
-    }
-    if(module == "variable"){
-        return tryRemovingModuleInstance(module, VariablesContainer, variablesContainerIDs, destroyID);
-    }
-    if(module == "scrollbar"){
-        return tryRemovingModuleInstance(module, ScrollbarContainer, scrollbarContainerIDs, destroyID);
-    }
-    if(module == "primitives"){
-        return tryRemovingModuleInstance(module, PrimitivesContainer, primitivesContainerIDs, destroyID);
-    }
-    if(module == "vector"){
-        return tryRemovingModuleInstance(module, VectorContainer, vectorContainerIDs, destroyID);
-    }
-    return "Error: " + module + "Module does not exist!\n";
-}
 
 void AncestorObject::setIsAttachedToCamera(bool newValue){
     isAttachedToCamera = newValue;
@@ -494,6 +417,9 @@ void AncestorObject::setIsAttachedToCamera(bool newValue){
     }
     for(EditableTextModule & Editable : EditableTextContainer){
         Editable.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(SuperTextModule & SuperText : SuperTextContainer){
+        SuperText.setIsAttachedToCamera(isAttachedToCamera);
     }
     for(ImageModule & Image : ImageContainer){
         Image.setIsAttachedToCamera(isAttachedToCamera);
@@ -577,8 +503,7 @@ string findAndUseSpecialCharacters(string input){
     return output;
 }
 
-vector<string> tokenizeCode(string input)
-{
+vector<string> tokenizeCode(string input){
     std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|/=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
@@ -1900,6 +1825,9 @@ void AncestorObject::propagateLayerID(){
     for(EditableTextModule & EditableText : EditableTextContainer){
         EditableText.setLayerID(layerID);
     }
+    for(SuperTextModule & SuperText : SuperTextContainer){
+        SuperText.setLayerID(layerID);
+    }
     for(ImageModule & Image : ImageContainer){
         Image.setLayerID(layerID);
     }
@@ -1935,6 +1863,9 @@ void AncestorObject::propagateObjectID(){
     for(EditableTextModule & EditableText : EditableTextContainer){
         EditableText.setObjectID(layerID);
     }
+    for(SuperTextModule & SuperText : SuperTextContainer){
+        SuperText.setObjectID(layerID);
+    }
     for(ImageModule & Image : ImageContainer){
         Image.setObjectID(layerID);
     }
@@ -1965,13 +1896,13 @@ void AncestorObject::propagateObjectID(){
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule() const{
-    return Texts.size() > 0 || EditableTexts.size() > 0 || Images.size() > 0
+    return Texts.size() > 0 || EditableTexts.size() > 0 || SuperTexts.size() > 0 || Images.size() > 0
         || Movements.size() > 0 || Collisions.size() > 0 || Particles.size() > 0
         || Events.size() > 0 || Variables.size() > 0 || Scrollbars.size() > 0
         || Primitives.size() > 0 || Vectors.size() > 0;
 }
 unsigned ModulesPointers::size() const{
-    return Texts.size() + EditableTexts.size() + Images.size() +
+    return Texts.size() + EditableTexts.size() + SuperTexts.size() + Images.size() +
         Movements.size() + Collisions.size() + Particles.size() +
         Events.size() + Variables.size() + Scrollbars.size()
         + Primitives.size() + Vectors.size();

@@ -196,7 +196,7 @@ fun border2 update_with_size
 new text c NewWindowObject 1 _ _ title
 fun title set_id string [title]
 fun title set_position int [10 10]
-fun title set_font string [cascadia_code]
+fun title set_font string [cascadia_code_bold]
 fun title set_wrapping int [0]
 fun title add_new_and_update c param1
 fun title set_size int [400 50]

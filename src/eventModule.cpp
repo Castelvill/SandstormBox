@@ -236,6 +236,30 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
         controlText(EditableText, attribute, Values, IDs, FontContainer);
     }
 }
+void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer){
+    if(attribute == "set_id" && Values.size() > 0){
+        SuperText->setID(Values[0].getStringUnsafe(), IDs);
+    }
+    else if(attribute == "set_position" && Values.size() >= 2){
+        SuperText->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_size" && Values.size() >= 2){
+        SuperText->setSize(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_scale" && Values.size() >= 2){
+        SuperText->setScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "add_scale" && Values.size() >= 2){
+        SuperText->addScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else{
+        bool temp = false;
+        if(Values.size() > 0){
+            temp = Values[0].getBoolUnsafe();
+        }
+        SuperText->control(attribute, temp, Values.size());
+    }
+}
 void EveModule::controlImage(ImageModule *Image, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, vector<SingleBitmap> &BitmapContainer, string workingDirectory){
     if(attribute == "set_id" && Values.size() > 0){
         Image->setID(Values[0].getStringUnsafe(), IDs);

@@ -139,7 +139,23 @@ public:
     void normalize();
 };
 
-
+class vec2f{
+public:
+    float x, y, length;
+    vec2f();
+    vec2f(float x1, float y1);
+    vec2f(float x1, float y1, float x2, float y2);
+    void set(float x1, float y1, float x2, float y2);
+    void set(float x1, float y1);
+    void set(vec2f vec);
+    bool isEqual(float x1, float y1);
+    void setLength(float newLength);
+    void translate(vec2f vec);
+    void translate(float x, float y);
+    void rotate(float degrees);
+    float countLength();
+    void normalize();
+};
 
 
 #endif // VECTORS_H_INCLUDED

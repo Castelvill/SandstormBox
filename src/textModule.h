@@ -8,7 +8,7 @@ class SingleFont{
 public:
     string ID;
     ALLEGRO_FONT * font;
-    short sizeF;
+    short size;
 };
 
 SingleFont * findFontByID(vector <SingleFont> & FontContainer, string fontID);
