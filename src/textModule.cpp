@@ -553,28 +553,28 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     }
 
     ALLEGRO_COLOR inversedColor = al_map_rgba_f(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a);
-
+    unsigned line;
     if(horizontalAlign == 0){
         if(editingIsActive){
             if(cursorStart == cursorEnd){
                 al_draw_text(font, color, cursorRealPos.x, alignHeight + cursorRealPos.y, 0, "█");
             }
             else{
-                for(letter = 0; letter < selectionBackgroundLines.size(); letter++){
-                    al_draw_text(font, color, finalPos.x, finalPos.y + alignHeight + letter * fontHeight, 0, selectionBackgroundLines[letter].c_str());
+                for(line = 0; line < selectionBackgroundLines.size(); line++){
+                    al_draw_text(font, color, finalPos.x, finalPos.y + alignHeight + line * fontHeight, 0, selectionBackgroundLines[line].c_str());
                 }
             }
         }
-        for(letter = 0; letter < finalTextLines.size(); letter++){
-            al_draw_text(font, color, finalPos.x, finalPos.y + alignHeight + letter * fontHeight, 0, finalTextLines[letter].c_str());
+        for(line = 0; line < finalTextLines.size(); line++){
+            al_draw_text(font, color, finalPos.x, finalPos.y + alignHeight + line * fontHeight, 0, finalTextLines[line].c_str());
         }
         if(editingIsActive){
             if(cursorStart == cursorEnd){
                 al_draw_text(font, inversedColor, cursorRealPos.x, alignHeight + cursorRealPos.y, 0, letterOnCursor.c_str());
             }
             else{
-                for(letter = 0; letter < selectionForegroundLines.size(); letter++){
-                    al_draw_text(font, inversedColor, finalPos.x, finalPos.y + alignHeight + letter * fontHeight, 0, selectionForegroundLines[letter].c_str());
+                for(line = 0; line < selectionForegroundLines.size(); line++){
+                    al_draw_text(font, inversedColor, finalPos.x, finalPos.y + alignHeight + line * fontHeight, 0, selectionForegroundLines[line].c_str());
                 }
             }
         }
@@ -588,8 +588,8 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 al_draw_text(font, color, size.x / 2 + cursorRealPos.x - al_get_text_width(font, string(" ").c_str()) / 2, alignHeight + cursorRealPos.y, 0, "█");
             }
         }
-        for(letter = 0; letter < finalTextLines.size(); letter++){
-            al_draw_text(font, color, finalPos.x + size.x / 2, finalPos.y + alignHeight + letter * fontHeight, ALLEGRO_ALIGN_CENTRE, finalTextLines[letter].c_str());
+        for(line = 0; line < finalTextLines.size(); line++){
+            al_draw_text(font, color, finalPos.x + size.x / 2, finalPos.y + alignHeight + line * fontHeight, ALLEGRO_ALIGN_CENTRE, finalTextLines[line].c_str());
         }
         if(editingIsActive && cursorLine < finalTextLines.size()){
             al_draw_text(font, inversedColor, size.x / 2 + cursorRealPos.x - al_get_text_width(font, (finalTextLines[cursorLine]).c_str()) / 2, alignHeight + cursorRealPos.y, 0, letterOnCursor.c_str());
@@ -605,8 +605,8 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
                 al_draw_text(font, color, size.x + cursorRealPos.x - al_get_text_width(font, string(" ").c_str()), alignHeight + cursorRealPos.y, 0, "█");
             }
         }
-        for(letter = 0; letter < finalTextLines.size(); letter++){
-            al_draw_text(font, color, finalPos.x + size.x, finalPos.y + alignHeight + letter * fontHeight, ALLEGRO_ALIGN_RIGHT, finalTextLines[letter].c_str());
+        for(line = 0; line < finalTextLines.size(); line++){
+            al_draw_text(font, color, finalPos.x + size.x, finalPos.y + alignHeight + line * fontHeight, ALLEGRO_ALIGN_RIGHT, finalTextLines[line].c_str());
         }
         if(editingIsActive && cursorLine < finalTextLines.size()){
             al_draw_text(font, inversedColor, size.x + cursorRealPos.x - al_get_text_width(font, (finalTextLines[cursorLine]).c_str()), alignHeight + cursorRealPos.y, 0, letterOnCursor.c_str());

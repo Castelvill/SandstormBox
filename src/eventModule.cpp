@@ -236,7 +236,7 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
         controlText(EditableText, attribute, Values, IDs, FontContainer);
     }
 }
-void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer){
+void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleFont> & FontContainer){
     if(attribute == "set_id" && Values.size() > 0){
         SuperText->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -251,6 +251,119 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     }
     else if(attribute == "add_scale" && Values.size() >= 2){
         SuperText->addScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "update"){
+        SuperText->update();
+    }
+    else if(attribute == "set_content" && Values.size() >= 1){
+        SuperText->setContent(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "add_content" && Values.size() >= 1){
+        SuperText->setContent(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "add_new_text_line" && Values.size() >= 1){
+        SuperText->addNewTextLine(Values[0].getStringUnsafe());
+    }
+    else if(attribute == "set_text_line" && Values.size() >= 2){
+        SuperText->setTextLine(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
+    }
+    else if(attribute == "add_to_text_line" && Values.size() >= 2){
+        SuperText->addToTextLine(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
+    }
+    else if(attribute == "add_format" && Values.size() >= 13){
+        SuperText->addFormat(al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
+            al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()),
+            Values[8].getStringUnsafe(), FontContainer, Values[9].getDoubleUnsafe(), Values[10].getDoubleUnsafe(), Values[11].getBoolUnsafe(),
+            Values[12].getIntUnsafe()
+        );
+    }
+    else if(attribute == "add_format" && Values.size() >= 2){
+        SuperText->addFormat(al_map_rgba_f(0.0, 0.0, 0.0, 1.0), al_map_rgba_f(1.0, 1.0, 1.0, 1.0),
+            Values[0].getStringUnsafe(), FontContainer, 0.0, 0.0, false, Values[1].getIntUnsafe()
+        );
+    }
+    else if(attribute == "modify_format" && Values.size() >= 14){
+        SuperText->modifyFormat(Values[0].getIntUnsafe(), al_map_rgba_f(Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(),
+            Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()), al_map_rgba_f(Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(),
+            Values[7].getDoubleUnsafe(), Values[8].getDoubleUnsafe()), Values[9].getStringUnsafe(), FontContainer, Values[10].getDoubleUnsafe(),
+            Values[11].getDoubleUnsafe(), Values[12].getBoolUnsafe(), Values[13].getIntUnsafe()
+        );
+    }
+    else if(attribute == "delete_format" && Values.size() >= 1){
+        SuperText->deleteFormat(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_color" && Values.size() >= 5){
+        SuperText->setColor(Values[0].getIntUnsafe(), al_map_rgba_f(Values[1].getDoubleUnsafe(),
+            Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()
+        ));
+    }
+    else if(attribute == "set_accent_color" && Values.size() >= 5){
+        SuperText->setAccentColor(Values[0].getIntUnsafe(), al_map_rgba_f(Values[1].getDoubleUnsafe(),
+            Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()
+        ));
+    }
+    else if(attribute == "set_font" && Values.size() >= 2){
+        SuperText->setFont(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(), FontContainer);
+    }
+    else if(attribute == "set_offset" && Values.size() >= 3){
+        SuperText->setOffset(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe());
+    }
+    else if(attribute == "add_offset" && Values.size() >= 3){
+        SuperText->addOffset(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe());
+    }
+    else if(attribute == "set_offset_x" && Values.size() >= 2){
+        SuperText->setOffsetX(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "add_offset_x" && Values.size() >= 2){
+        SuperText->addOffsetX(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_offset_y" && Values.size() >= 2){
+        SuperText->setOffsetY(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "add_offset_y" && Values.size() >= 2){
+        SuperText->addOffsetY(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_selected" && Values.size() >= 2){
+        SuperText->setSelected(Values[0].getIntUnsafe(), Values[1].getBoolUnsafe());
+    }
+    else if(attribute == "set_limit" && Values.size() >= 2){
+        SuperText->setLimit(Values[0].getIntUnsafe(), Values[1].getIntUnsafe());
+    }
+    else if(attribute == "set_wrapping" && Values.size() >= 1){
+        if(Values[0].getStringUnsafe().size() > 0){
+            SuperText->setWrapping(Values[0].getStringUnsafe()[0]);
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": In event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+        }
+    }
+    else if(attribute == "set_horizontal_align" && Values.size() >= 1){
+        if(Values[0].getStringUnsafe().size() > 0){
+            SuperText->setHorizontalAlign(Values[0].getStringUnsafe()[0]);
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": In event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+        }
+    }
+    else if(attribute == "set_vertical_align" && Values.size() >= 1){
+        if(Values[0].getStringUnsafe().size() > 0){
+            SuperText->setVerticalAlign(Values[0].getStringUnsafe()[0]);
+        }
+        else{
+            std::cout << "Error: In " << __FUNCTION__ << ": In event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+        }
+    }
+    else if(attribute == "set_padding_between_lines" && Values.size() >= 1){
+        SuperText->setPaddingBetweenLines(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_rotation" && Values.size() >= 1){
+        SuperText->setRotation(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "add_rotation" && Values.size() >= 1){
+        SuperText->addRotation(Values[0].getDoubleUnsafe());
+    }
+    else if(attribute == "set_tab_length" && Values.size() >= 1){
+        SuperText->setTabLength(Values[0].getIntUnsafe());
     }
     else{
         bool temp = false;

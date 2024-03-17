@@ -3,6 +3,7 @@ triggers on_init
 //edit_proc draw_hitboxes 1
 //edit_proc print_instructions 1
 //edit_proc auto_print_stack 1
+edit_proc draw_text_borders 1
 
 edit_proc draw_camera_borders 1
 
@@ -33,6 +34,8 @@ string ["fonts/fira_mono.ttf"] path
 int [20] size
 string ["fira_mono"] name
 load_font path size name
+
+
 
 
 run resizeDisplay buildTerminal createWindowTemplate
@@ -93,6 +96,26 @@ fun background attach_to_camera
 int [640] windowSizeX
 int [480] windowSizeY
 int [0 0] editableTextPos
+
+new super_text c me 1 _ _ SuperText
+fun SuperText set_position double [100 100]
+//fun SuperText set_scale double [1.5 1.5]
+//fun SuperText set_rotation double [45]
+fun SuperText set_content string ["xddddd\nabdc\tlooooool"]
+fun SuperText add_format string [cascadia_code] int [2]
+fun SuperText set_color int [0] double [1.0 0.0 0.0 1.0]
+fun SuperText add_format string [fira_mono] int [2]
+fun SuperText set_color int [1] double [0.0 1.0 0.0 1.0]
+fun SuperText add_format string [cascadia_code] int [3]
+fun SuperText set_color int [2] double [0.0 0.0 1.0 1.0]
+fun SuperText add_format string [cascadia_code] int [20]
+fun SuperText set_color int [3] double [1.0 0.0 1.0 1.0]
+fun SuperText set_accent_color int [3] double [0.0 1.0 0.0 1.0]
+fun SuperText set_selected int [3] bool [true]
+fun SuperText set_offset int [3] double [0 0]
+fun SuperText set_size double [36 50]
+fun SuperText set_wrapping string [c]
+fun SuperText update
 
 new editable_text c me 1 _ _ TerminalTextField
 fun TerminalTextField set_id string [edi]

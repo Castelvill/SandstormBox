@@ -1,5 +1,8 @@
--Clone KDE theme "Dark Breeze".
 -Implement in SuperTextModule: tabs, letter colors, cursor, selection, auto-size-detection. Try to minimize drawing text complexity.
+-Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every clicked space just like in vs code.
+-After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
+-Remove unused functions and methods.
+-Clone KDE theme "Dark Breeze".
 -Fix "fitSizeToText" based on "setCursorPos" to be able to correctly use "update_size" function in the Terminal.
 -Move "set_real_scrolling_area" function to the "enter" procedure in the script.
 -Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
@@ -60,7 +63,7 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 -You should be able to save any type of entity from the engine by using "save <context> <fileName> [force]" instruction. Saving entity or a vector of entities (context) firstly writes a type and number of entities to the file and then all entities' data. If the file already exists and have any content inside, instruction will fail. By using force, engine will overwrite the previous content of the chosen file.
 -Add "load <fileName> <context> [force]" instruction. Load will overwrite all entities in the context based on the contents of the file. If the user doesn't provide big enough context, instruction will fail. By using force, engine will create new (valid number of) entities, add them to the context and finally overwrite everything.
 -Projects will be the another type of entity and it will just add new way of saving and loading entities.
--Add hyperlinks to the SuperText. Clicking them will be able to trigger an event.
+-Add hyperlinks to the SuperText. Clicking them will trigger an event.
 -Create LayerManagerWindow / Project tree.
 -Add logging system with filters and colors.
 -Implement variable change detection and add it to triggers lookup table.
@@ -68,11 +71,9 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 -Add “IDPermissions”, “groupPermissions” vectors to layers.
 -Events can access context of layers in layer’s IDPermissions and groupPermissions.
 -Add mouse selection to if statement sources.
--Add buffer to EditableText – during the editing process text field prints the buffer state, while the original, unchanged content is used in events.
 -Update realAreaOfScrolling.
 -Editables should update its value in the beginning and on update of the connected variable now it's just hard-wired in editor.
 -Undo, redo.
--Create a documentation based on linux manuals.
 
 -MILESTONE: you can configure every object visible on the map using OBJECT EDITOR (look up program_model.png)
 

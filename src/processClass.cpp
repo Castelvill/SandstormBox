@@ -9504,7 +9504,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             }
         }
 
-        SuperText.draw(Object.getPos(isScrollable)+Camera.pos, FontContainer, drawTextFieldBorders, Camera, 0, 0, false);
+        SuperText.draw(Object.getPos(isScrollable)+Camera.pos, drawTextFieldBorders, Camera, 0, 0, false);
 
         numberOfDrawnObjects++;
     }

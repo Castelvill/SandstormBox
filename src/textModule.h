@@ -8,6 +8,7 @@ class SingleFont{
 public:
     string ID;
     ALLEGRO_FONT * font;
+    short height;
     short size;
 };
 

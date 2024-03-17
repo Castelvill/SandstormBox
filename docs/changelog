@@ -1,3 +1,6 @@
+17.03.2024
+-Implemented basic functionality of the SuperTextModule.
+
 15.03.2024
 -Fixed memory leaks by removing bitmap loading and creation in image module. Allegro5 is not very good at destroying bitmaps instatly.
 -Made a simple config file with backbuffer bitmap sampling and size.

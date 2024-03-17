@@ -311,6 +311,7 @@ void EngineClass::loadNewFont(string path, int size, string newID){
     }
     FontContainer.back().ID = newID;
     FontContainer.back().size = size;
+    FontContainer.back().height = al_get_font_line_height(FontContainer.back().font);
 }
 
 bool EngineClass::isRunning() const{
