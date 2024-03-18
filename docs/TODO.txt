@@ -1,12 +1,11 @@
--Implement in SuperTextModule: tabs, letter colors, cursor, selection, auto-size-detection. Try to minimize drawing text complexity.
+-Implement in SuperEditableTextModule;
+-Fix: zooming edited text can move its position.
 -Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every clicked space just like in vs code.
 -After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
 -Remove unused functions and methods.
 -Clone KDE theme "Dark Breeze".
--Fix "fitSizeToText" based on "setCursorPos" to be able to correctly use "update_size" function in the Terminal.
 -Move "set_real_scrolling_area" function to the "enter" procedure in the script.
--Add auto resizing mode to editable text fields: enter (new line) adds to the y axis, other keys (letters) add to the x axis. 
--Add scrolling to the terminal: automatic and the scrollbar.
+-Add in-terminal scrolling: automatic and the scrollbar.
 -Implement arithmetic instructions and function for vector module (+=, -=, etc.).
 -With updated arithmetic instructions improve the auto-complete (remove the loop).
 -Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
@@ -23,9 +22,11 @@
 
 MILESTONE: Terminal with printing, scrolling and a history of used commands.
 
+-Add dmenu, one command line called by a shortcut, that allows to use quick commands like: "open new window", "compile", "run program", etc.
+-Add synchronized/shared files that allow for server-like communication between two instances of the engine.
+-Implement syntax coloring for the scriptic language.
 -Add "unload_bitmaps", "unload_fonts", "unload_bitmap bitmap" and "unload_font font" instructions.
 -Add "instruction" MODE to the Terminal.
--Fix: zooming edited text can move its position.
 -Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
 -Add module scalling from the edge of the camera.
 -Add a backdoor that will disable all each_iteration triggers to fight the infinite loops.
@@ -58,8 +59,6 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 -Add window: DuctTape – Paint. Why Tape? Because Paint keeps the world in one piece like tape.
 -Implement access to windows based on “access to engine windows.PNG” or find it in Miro.
 
--Create SuperTextModule - instead of using a vector of strings, use Letter vector. Letter( char ch; AllegroColor color; bool bold; bool italic; bool crossed; bool rainbow;). This basically creats multi-color, all-purpouse text printer.
--Creat EditableSuperTextModule.
 -You should be able to save any type of entity from the engine by using "save <context> <fileName> [force]" instruction. Saving entity or a vector of entities (context) firstly writes a type and number of entities to the file and then all entities' data. If the file already exists and have any content inside, instruction will fail. By using force, engine will overwrite the previous content of the chosen file.
 -Add "load <fileName> <context> [force]" instruction. Load will overwrite all entities in the context based on the contents of the file. If the user doesn't provide big enough context, instruction will fail. By using force, engine will create new (valid number of) entities, add them to the context and finally overwrite everything.
 -Projects will be the another type of entity and it will just add new way of saving and loading entities.

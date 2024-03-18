@@ -102,7 +102,7 @@ public:
     string connectedModuleID;
     string connectedVariable;
     float currentInputDelay;
-    bool ignoreVerticalArrows;
+    bool ignoreVerticalArrows; //Terminal history requires disabled arrows.
 
     void setUpNewInstance();
     EditableTextModule();

@@ -46,6 +46,7 @@ void SuperTextModule::update(){
     lineWidths.push_back(0);
     lineLengths.clear();
     lineLengths.push_back(0);
+    realTextSize.set(0.0, 0.0);
 
     if(Formatting.size() == 0){
         cout << "Warning: In " << __FUNCTION__ << ": In SuperText '" << ID << "': Text does not have any formatting.\n";
@@ -54,9 +55,10 @@ void SuperTextModule::update(){
     
     char letter;
     size_t letterIdx = 0, formatLimit = 0, lineLength = 0;
-    float lineWidth = 0, newHeight = 0;
+    float letterWidth = 0.0, wordWidth = 0.0, wordWidthBehind = 0.0, lineWidth = 0.0;
+    
     vector<FormatClass>::iterator Format = Formatting.begin();
-    bool ignoreLine = false; //Works when wrapped='c'. Ignores the part of the text in the line that is out of the scope of text field.
+    bool ignoreLine = false; //Works when wrapped=='c'. Ignores the part of the text in the line that is out of the scope of text field.
 
     for(; letterIdx < content.size(); letterIdx++){
         letter = content.substr(letterIdx, 1)[0];
@@ -70,13 +72,17 @@ void SuperTextModule::update(){
             }
             textLines.back() += ' ';
             textLines.push_back("");
+            realTextSize.x = std::max(realTextSize.x, lineWidth);
             lineWidths.back() = lineWidth;
             lineWidths.push_back(0);
             lineLengths.back() = lineLength;
             lineLengths.push_back(0);
             lineWidth = 0;
             lineLength = 0;
-            newHeight += Format->Font->height;
+            realTextSize.y += Format->Font->height;
+            if(textLines.size() > 1){
+                realTextSize.y += paddingBetweenLines;
+            }
             ignoreLine = false;
             formatLimit++;
             if(formatLimit == Format->limit){
@@ -86,20 +92,39 @@ void SuperTextModule::update(){
             if(Format == Formatting.end()){
                 break;
             }
-            if(textLines.size() > 1){
-                newHeight += paddingBetweenLines;
-            }
-            if(wrapped == 'c' && newHeight + Format->Font->height + paddingBetweenLines > size.y){
+            
+            if(wrapped == 'c' && realTextSize.y + Format->Font->height + paddingBetweenLines > size.y){
                 break;
             }
         }
         else if(letter == '\t'){
             unsigned currentTabLength = tabLength - textLines.back().size() % tabLength;
+            letterWidth = al_get_text_width(Format->Font->font, string(" ").c_str()); //It's the only way, if you don't want undefined behaviour. 
             for(unsigned i = 0; i < currentTabLength; i++){
-                lineWidth += al_get_text_width(Format->Font->font, string(" ").c_str()); //It's the only way, if you don't want undefined behaviour. 
-                if(wrapped == 'c' && lineWidth > size.x){
-                    ignoreLine = true;
+                if(lineWidth + letterWidth > size.x){
+                    if(wrapped == 'c'){
+                        ignoreLine = true;
+                    }
+                    else if(wrapped == 'l' || wrapped == 'w'){
+                        if(i > 0){
+                            break;
+                        }
+                        currentTabLength = tabLength;
+                        textLines.push_back("");
+                        realTextSize.x = std::max(realTextSize.x, lineWidth);
+                        lineWidths.back() = lineWidth;
+                        lineWidths.push_back(0);
+                        lineLengths.back() = lineLength;
+                        lineLengths.push_back(0);
+                        lineWidth = 0;
+                        lineLength = 0;
+                        realTextSize.y += Format->Font->height;
+                        if(textLines.size() > 1){
+                            realTextSize.y += paddingBetweenLines;
+                        }
+                    }
                 }
+                lineWidth += letterWidth;
                 if(!ignoreLine){
                     lineLength++;
                 }
@@ -118,10 +143,55 @@ void SuperTextModule::update(){
             }
         }
         else{
-            lineWidth += al_get_text_width(Format->Font->font, string(1, letter).c_str()); //It's the only way, if you don't want undefined behaviour. 
-            if(wrapped == 'c' && lineWidth > size.x){
-                ignoreLine = true;
+            letterWidth = al_get_text_width(Format->Font->font, string(1, letter).c_str()); //It's the only way, if you don't want undefined behaviour. 
+            wordWidth = 0.0;
+            wordWidthBehind = 0.0;
+            if(wrapped == 'w' && letter != ' '){
+                char wordLetter;
+                if(letterIdx > 0){
+                    for(unsigned i = letterIdx - 1; i >= 0; i--){
+                        wordLetter = content.substr(i, 1)[0];
+                        if(wordLetter == ' ' || wordLetter == '\t' || wordLetter == '\n'){
+                            break;
+                        }
+                        wordWidthBehind += al_get_text_width(Format->Font->font, string(1, wordLetter).c_str()); //It's the only way, if you don't want undefined behaviour.
+                        if(i == 0){
+                            break;
+                        }
+                    }
+                }
+                for(unsigned i = letterIdx + 1; i < content.size(); i++){
+                    wordLetter = content.substr(i, 1)[0];
+                    if(wordLetter == ' ' || wordLetter == '\t' || wordLetter == '\n'){
+                        break;
+                    }
+                    wordWidth += al_get_text_width(Format->Font->font, string(1, wordLetter).c_str()); //It's the only way, if you don't want undefined behaviour. 
+                }
+                if(letterWidth + wordWidthBehind + wordWidth > size.x){
+                    wordWidth = 0.0;
+                    wordWidthBehind = 0.0;
+                }
             }
+            if(lineWidth - wordWidthBehind + letterWidth + wordWidth > size.x){
+                if(wrapped == 'c'){
+                    ignoreLine = true;
+                }
+                else if(wrapped == 'l' || wrapped == 'w'){
+                    textLines.push_back("");
+                    realTextSize.x = std::max(realTextSize.x, lineWidth);
+                    lineWidths.back() = lineWidth;
+                    lineWidths.push_back(0);
+                    lineLengths.back() = lineLength;
+                    lineLengths.push_back(0);
+                    lineWidth = 0;
+                    lineLength = 0;
+                    realTextSize.y += Format->Font->height;
+                    if(textLines.size() > 1){
+                        realTextSize.y += paddingBetweenLines;
+                    }
+                }
+            }
+            lineWidth += letterWidth;
             if(!ignoreLine){
                 lineLength++;
             }
@@ -136,14 +206,20 @@ void SuperTextModule::update(){
             }
         }
     }
+    realTextSize.y += Format->Font->height; //add the last line
+    if(textLines.size() > 1){
+        realTextSize.y += paddingBetweenLines;
+    }
+    realTextSize.x = std::max(realTextSize.x, lineWidth);
     lineWidths.back() = lineWidth;
     lineLengths.back() = lineLength;
     for(float & width : lineWidths){
         width = std::min(width, float(size.x));
     }
-    for(unsigned i = 0; i < textLines.size(); i++){
-        cout << textLines[i].size() << " " << lineLengths[i] << "\n";
-    }   
+}
+
+void SuperTextModule::cropSizeToText(){
+    size.set(realTextSize.x, realTextSize.y);
 }
 
 VariableModule SuperTextModule::getAttributeValue(const string &attribute, const string &detail) const{
@@ -168,7 +244,6 @@ VariableModule SuperTextModule::getAttributeValue(const string &attribute, const
     cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
     return VariableModule::newBool(false);
 }
-
 void SuperTextModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
     BasePointers.push_back(BasePointersStruct());
     if(attribute == "content"){
@@ -209,38 +284,39 @@ void SuperTextModule::drawFormattedString(string text, vec2d finalPos, size_t li
 }
 void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive){
     vec2d newScale(scale);
-    vec2d finalPos(base + pos);
+    vec2d unformatedPos(base + pos);
     if(!isAttachedToCamera){
         vec2d diff(Camera.size.x/2-base.x-pos.x, Camera.size.y/2-base.y-pos.y);
-        finalPos.set(Camera.size.x/2-diff.x*(Camera.zoom), Camera.size.y/2-diff.y*(Camera.zoom));
-        finalPos.translate(Camera.visionShift.x*Camera.zoom, Camera.visionShift.y*Camera.zoom);
+        unformatedPos.set(Camera.size.x/2-diff.x*(Camera.zoom), Camera.size.y/2-diff.y*(Camera.zoom));
+        unformatedPos.translate(Camera.visionShift.x*Camera.zoom, Camera.visionShift.y*Camera.zoom);
         newScale.multiply(Camera.zoom);
         if(isScaledFromCenter){
-            finalPos.translate(-((scale.x-1)*size.x*Camera.zoom)/2, -((scale.y-1)*size.y*Camera.zoom)/2);
+            unformatedPos.translate(-((scale.x-1)*size.x*Camera.zoom)/2, -((scale.y-1)*size.y*Camera.zoom)/2);
         }
     }
+    vec2d finalPos(unformatedPos);
 
     if(verticalAlign == 'c'){
-        finalPos.y += size.y / 2 - realTextHeight / 2;
+        finalPos.y += size.y / 2 - realTextSize.y / 2;
     }
-    else if(verticalAlign == 'r'){
-        finalPos.y += size.y - realTextHeight;
+    else if(verticalAlign == 'd'){
+        finalPos.y += size.y - realTextSize.y;
     }
 
     if(Formatting.size() == 0){
         cout << "Warning: In " << __FUNCTION__ << ": In SuperText '" << ID << "': Text does not have any formatting.\n";
         if(drawBorders){
-            al_draw_rectangle(finalPos.x, finalPos.y, finalPos.x+size.x, finalPos.y+size.y, Formatting.back().color, 1);
+            al_draw_rectangle(unformatedPos.x, unformatedPos.y, unformatedPos.x+size.x, unformatedPos.y+size.y, Formatting.back().color, 1);
         }
         return;
     }
 
     ALLEGRO_TRANSFORM trans;
     al_identity_transform(&trans);
-    al_translate_transform(&trans, -finalPos.x, -finalPos.y);
+    al_translate_transform(&trans, -unformatedPos.x - size.x / 2, -unformatedPos.y - size.y / 2);
     al_rotate_transform(&trans, (rotation*M_PI)/180.0);
     al_scale_transform(&trans, newScale.x, newScale.y);
-    al_translate_transform(&trans, finalPos.x, finalPos.y);
+    al_translate_transform(&trans, unformatedPos.x + size.x / 2, unformatedPos.y + size.y / 2);
     al_use_transform(&trans);
 
     size_t letterIdx = 0;
@@ -256,9 +332,15 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
         linePos.set(finalPos);
         if(horizontalAlign == 'c'){
             linePos.x += (size.x / 2) - (lineWidths[lineIdx] / 2);
+            if(textLines[lineIdx].back() == ' '){
+                linePos.x += al_get_text_width(Format->Font->font, string(" ").c_str()) / 2;
+            }
         }
         else if(horizontalAlign == 'r'){
             linePos.x += size.x - lineWidths[lineIdx];
+            if(textLines[lineIdx].back() == ' '){
+                linePos.x += al_get_text_width(Format->Font->font, string(" ").c_str()) / 2;
+            }
         }
         for(letterIdx = 0; letterIdx < lineLengths[lineIdx];){
             longestFragment = Format->limit - formatLimit;
@@ -267,7 +349,6 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
             linePos.x += previousLength;
             letterIdx += longestFragment;
             formatLimit += longestFragment;
-            cout << longestFragment << " ";
             if(Format->Font != nullptr){
                 previousLength = al_get_text_width(Format->Font->font, currentFragment.c_str());
                 drawFormattedString(currentFragment, linePos, lineIdx, Format);
@@ -285,11 +366,9 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
         }
         for(;letterIdx < textLines[lineIdx].size();){
             longestFragment = Format->limit - formatLimit;
-            cout << "(pre)" << longestFragment << " ";
             longestFragment = std::min(longestFragment, textLines[lineIdx].size() - letterIdx);
             letterIdx += longestFragment;
             formatLimit += longestFragment;
-            cout << "(hide)" << longestFragment << " ";
             if(formatLimit >= Format->limit){
                 Format++;
                 formatLimit = 0;
@@ -300,17 +379,15 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
         }
         if(Format == Formatting.end()){
             break;
-        }
-        
+        }   
     }
-    cout << "\n";
     
-    if(drawBorders){
-        al_draw_rectangle(finalPos.x, finalPos.y, finalPos.x+size.x, finalPos.y+size.y, Formatting.back().color, 1);
-    }
-
     al_identity_transform(&trans);
     al_use_transform(&trans);
+
+    if(drawBorders){
+        al_draw_rectangle(unformatedPos.x, unformatedPos.y, unformatedPos.x+size.x, unformatedPos.y+size.y, Formatting.back().color, 1);
+    }
 }
 
 void SuperTextModule::setContent(string newContent){
@@ -465,4 +542,200 @@ void SuperTextModule::addRotation(float newRotation){
 }
 void SuperTextModule::setTabLength(unsigned short newTabLength){
     tabLength = newTabLength;
+}
+
+
+void SuperEditableTextModule::setUpNewInstance(){
+    SuperTextModule::setUpNewInstance();
+    previousContent.clear();
+    futureContent.clear();
+
+    canBeEdited = true;
+    canUseSpace = true;
+    canUseEnter = true;
+    canUseTabs = true;
+    isNumerical = false;
+    hasFloatingPoint = false;
+    ignoreVerticalArrows = false;
+    ignoreContentRestriction = true;
+    isStoringHistory = true;
+    minContentLength = 0;
+    maxContentLength = 512;
+    inputDelay = 1.0;
+    repetitionDelay = 0.5;
+    protectedArea = 0; //User cannot edit the text placed before the protection cursor.
+
+    isEditingActive = false;
+    blockedKeys.clear();
+    lastInputedKey = -1;
+    currentInputDelay = 0.0;
+    cursorPos = 0;
+    secondCursorPos = 0;
+}
+SuperEditableTextModule::SuperEditableTextModule(){
+    primaryConstructor("", nullptr, "", "");
+    setUpNewInstance();
+}
+SuperEditableTextModule::SuperEditableTextModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+    setUpNewInstance();
+}
+SuperEditableTextModule::SuperEditableTextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+    setUpNewInstance();
+}
+SuperEditableTextModule::~SuperEditableTextModule(){
+
+}
+void SuperEditableTextModule::clone(const SuperEditableTextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
+    string oldID = ID;
+    *this = Original;
+    ID = oldID;
+    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+}
+void SuperEditableTextModule::clear(){
+    SuperTextModule::clear();
+    previousContent.clear();
+    futureContent.clear();
+    blockedKeys.clear();
+}
+VariableModule SuperEditableTextModule::getAttributeValue(const string &attribute, const string &detail) const{
+    if(attribute == "original_content"){
+        if(previousContent.size() > 0){
+            return VariableModule::newString(*previousContent.begin());
+        }
+        return VariableModule::newString(content);
+    }
+    else if(attribute == "can_be_edited"){
+        return VariableModule::newBool(canBeEdited);
+    }
+    else if(attribute == "can_use_space"){
+        return VariableModule::newBool(canUseSpace);
+    }
+    else if(attribute == "can_use_enter"){
+        return VariableModule::newBool(canUseEnter);
+    }
+    else if(attribute == "can_use_tabs"){
+        return VariableModule::newBool(canUseTabs);
+    }
+    else if(attribute == "is_numerical"){
+        return VariableModule::newBool(isNumerical);
+    }
+    else if(attribute == "has_floating_point"){
+        return VariableModule::newBool(hasFloatingPoint);
+    }
+    else if(attribute == "ignore_vertical_arrows"){
+        return VariableModule::newBool(ignoreVerticalArrows);
+    }
+    else if(attribute == "ignore_content_restriction"){
+        return VariableModule::newBool(ignoreContentRestriction);
+    }
+    else if(attribute == "is_storing_history"){
+        return VariableModule::newBool(isStoringHistory);
+    }
+    else if(attribute == "min_content_length"){
+        return VariableModule::newInt(minContentLength);
+    }
+    else if(attribute == "max_content_length"){
+        return VariableModule::newInt(maxContentLength);
+    }
+    else if(attribute == "input_delay"){
+        return VariableModule::newDouble(inputDelay);
+    }
+    else if(attribute == "repetition_delay"){
+        return VariableModule::newDouble(repetitionDelay);
+    }
+    else if(attribute == "protected_area"){
+        return VariableModule::newInt(protectedArea);
+    }
+    else if(attribute == "is_editing_active"){
+        return VariableModule::newBool(isEditingActive);
+    }
+    else if(attribute == "cursor_pos"){
+        return VariableModule::newInt(cursorPos);
+    }
+    else if(attribute == "second_cursor_pos"){
+        return VariableModule::newInt(secondCursorPos);
+    }
+    else if(attribute == "min_cursor_pos"){
+        return VariableModule::newInt(std::min(cursorPos, secondCursorPos));
+    }
+    else if(attribute == "max_cursor_pos"){
+        return VariableModule::newInt(std::max(cursorPos, secondCursorPos));
+    }
+    else{
+        return SuperTextModule::getAttributeValue(attribute, detail);
+    }
+}
+void SuperEditableTextModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
+    BasePointers.push_back(BasePointersStruct());
+    if(attribute == "test"){
+        BasePointers.back().setPointer(&content);
+    }
+    if(attribute == "original_content"){
+        if(previousContent.size() > 0){
+            BasePointers.back().setPointer(&previousContent[0]);
+        }
+        else{
+            BasePointers.back().setPointer(&content);
+        }
+        BasePointers.back().readOnly = true;
+    }
+    else if(attribute == "can_be_edited"){
+        BasePointers.back().setPointer(&canBeEdited);
+    }
+    else if(attribute == "can_use_space"){
+        BasePointers.back().setPointer(&canUseSpace);
+    }
+    else if(attribute == "can_use_enter"){
+        BasePointers.back().setPointer(&canUseEnter);
+    }
+    else if(attribute == "can_use_tabs"){
+        BasePointers.back().setPointer(&canUseTabs);
+    }
+    else if(attribute == "is_numerical"){
+        BasePointers.back().setPointer(&isNumerical);
+    }
+    else if(attribute == "has_floating_point"){
+        BasePointers.back().setPointer(&hasFloatingPoint);
+    }
+    else if(attribute == "ignore_vertical_arrows"){
+        BasePointers.back().setPointer(&ignoreVerticalArrows);
+    }
+    else if(attribute == "ignore_content_restriction"){
+        BasePointers.back().setPointer(&ignoreContentRestriction);
+    }
+    else if(attribute == "is_storing_history"){
+        BasePointers.back().setPointer(&isStoringHistory);
+    }
+    else if(attribute == "min_content_length"){
+        BasePointers.back().setPointer(&minContentLength);
+    }
+    else if(attribute == "max_content_length"){
+        BasePointers.back().setPointer(&maxContentLength);
+    }
+    else if(attribute == "input_delay"){
+        BasePointers.back().setPointer(&inputDelay);
+    }
+    else if(attribute == "repetition_delay"){
+        BasePointers.back().setPointer(&repetitionDelay);
+    }
+    else if(attribute == "protected_area"){
+        BasePointers.back().setPointer(&protectedArea);
+    }
+    else if(attribute == "is_editing_active"){
+        BasePointers.back().setPointer(&isEditingActive);
+    }
+    else if(attribute == "cursor_pos"){
+        BasePointers.back().setPointer(&cursorPos);
+        BasePointers.back().readOnly = true;
+    }
+    else if(attribute == "second_cursor_pos"){
+        BasePointers.back().setPointer(&secondCursorPos);
+        BasePointers.back().readOnly = true;
+    }
+    else{
+        BasePointers.pop_back();
+        SuperTextModule::getContext(attribute, BasePointers);
+    }
 }

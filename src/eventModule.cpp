@@ -255,6 +255,9 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     else if(attribute == "update"){
         SuperText->update();
     }
+    else if(attribute == "crop_size_to_text"){
+        SuperText->cropSizeToText();
+    }
     else if(attribute == "set_content" && Values.size() >= 1){
         SuperText->setContent(Values[0].getStringUnsafe());
     }
@@ -371,6 +374,16 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
             temp = Values[0].getBoolUnsafe();
         }
         SuperText->control(attribute, temp, Values.size());
+    }
+}
+void EveModule::controlSuperEditableText(SuperEditableTextModule * SuperEditableText, string attribute,
+    const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleFont> & FontContainer
+){
+    if(attribute == "test" && Values.size() > 0){
+        
+    }
+    else{
+        controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer);
     }
 }
 void EveModule::controlImage(ImageModule *Image, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, vector<SingleBitmap> &BitmapContainer, string workingDirectory){

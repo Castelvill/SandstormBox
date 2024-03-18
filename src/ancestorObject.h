@@ -8,6 +8,7 @@ struct ModulesPointers{
     vector <TextModule*> Texts;
     vector <EditableTextModule*> EditableTexts;
     vector <SuperTextModule*> SuperTexts;
+    vector <SuperEditableTextModule*> SuperEditableTexts;
     vector <ImageModule*> Images;
     vector <MovementModule*> Movements;
     vector <CollisionModule*> Collisions;
@@ -29,6 +30,7 @@ public:
     vector <TextModule> TextContainer;
     vector <EditableTextModule> EditableTextContainer;
     vector <SuperTextModule> SuperTextContainer;
+    vector <SuperEditableTextModule> SuperEditableTextContainer;
     vector <ImageModule> ImageContainer;
     vector <MovementModule> MovementContainer;
     vector <CollisionModule> CollisionContainer;
@@ -41,6 +43,7 @@ public:
     vector <string> textContainerIDs;
     vector <string> editableTextContainerIDs;
     vector <string> superTextContainerIDs;
+    vector <string> superEditableTextContainerIDs;
     vector <string> imageContainerIDs;
     vector <string> movementContainerIDs;
     vector <string> collisionContainerIDs;

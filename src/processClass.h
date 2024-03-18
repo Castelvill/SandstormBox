@@ -79,6 +79,7 @@ struct ContextClass{
     void addModule(TextModule * Module);
     void addModule(EditableTextModule * Module);
     void addModule(SuperTextModule * Module);
+    void addModule(SuperEditableTextModule * Module);
     void addModule(ImageModule * Module);
     void addModule(MovementModule * Module);
     void addModule(CollisionModule * Module);
@@ -92,6 +93,7 @@ struct ContextClass{
     void setFirstModule(TextModule * Module);
     void setFirstModule(EditableTextModule * Module);
     void setFirstModule(SuperTextModule * Module);
+    void setFirstModule(SuperEditableTextModule * Module);
     void setFirstModule(ImageModule * Module);
     void setFirstModule(MovementModule * Module);
     void setFirstModule(CollisionModule * Module);

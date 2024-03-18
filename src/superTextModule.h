@@ -19,10 +19,10 @@ public:
     vector<string> textLines; //Tabs are converted here into spaces.
     vector<float> lineWidths;
     vector<size_t> lineLengths;
-    float realTextHeight;
+    vec2f realTextSize;
 
     vector<FormatClass> Formatting;
-    char wrapped; //n - no wrapping, w - wrapping, s - smart wrapping
+    char wrapped; //n - no wrapping, c - cropping, l - wrapping by letters, w - wrapping by words
     char horizontalAlign; //l - left-aligned, c - center-aligned, r - right-aligned
     char verticalAlign; //i - up, c - center, d - down
     float paddingBetweenLines;
@@ -38,6 +38,7 @@ public:
     void clear();
 
     void update();
+    void cropSizeToText();
 
     VariableModule getAttributeValue(const string &attribute, const string &detail) const;
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
@@ -79,5 +80,39 @@ public:
     void setTabLength(unsigned short newTabLength);
 };
 
+class SuperEditableTextModule : public SuperTextModule{
+public:
+    vector<string> previousContent, futureContent; //Checkpoints for content history - undo and redo.
+
+    bool canBeEdited;
+    bool canUseSpace;
+    bool canUseEnter;
+    bool canUseTabs;
+    bool isNumerical;
+    bool hasFloatingPoint;
+    bool ignoreVerticalArrows; //Terminal history requires disabled arrows.
+    bool ignoreContentRestriction;
+    bool isStoringHistory; //For undo and redo.
+    unsigned minContentLength, maxContentLength;
+    float inputDelay, repetitionDelay;
+    unsigned protectedArea; //User cannot edit the text placed before the protection cursor.
+
+    bool isEditingActive;
+    vector<short> blockedKeys;
+    short lastInputedKey;
+    float currentInputDelay;
+    unsigned cursorPos, secondCursorPos;
+
+    void setUpNewInstance();
+    SuperEditableTextModule();
+    SuperEditableTextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    SuperEditableTextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ~SuperEditableTextModule();
+    void clone(const SuperEditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clear();
+
+    VariableModule getAttributeValue(const string &attribute, const string &detail) const;
+    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+};
 
 #endif

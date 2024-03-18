@@ -1,4 +1,6 @@
 17.03.2024
+-Implemented a base for the SuperEditableTextModule.
+-Implemented SuperTextModule.
 -Implemented basic functionality of the SuperTextModule.
 
 15.03.2024
@@ -50,7 +52,6 @@
 -Added borderless mode to windows' template.
 -Implemented maximize and minimize button functionalities to windows' template.
 -Added resize blocking for cameras.
-
 
 30.01.2024
 -Added "restart_drag" instruction for recalculating the starting position of selected camera dragging.

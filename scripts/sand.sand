@@ -7,35 +7,33 @@ edit_proc draw_text_borders 1
 
 edit_proc draw_camera_borders 1
 
-load_bitmap "images/background2.png" background2
-load_bitmap "images/background3.png" background3
-load_bitmap "images/amongus1.png" amongus1
-load_bitmap "images/amongus2.png" amongus2
-load_bitmap "images/amongus3.png" amongus3
-load_bitmap "images/terry.png" terry
-load_bitmap "images/arch.jpg" arch
-load_bitmap "images/cobblestone.png" cobblestone
-load_bitmap "images/elephant.jpg" elephant
-load_bitmap "gui/thumb_track_h3.png" thumb_track_h3
-load_bitmap "gui/thumb_h3.png" thumb_h3
+load_bitmap "images/background2.png" background2 false true
+load_bitmap "images/background3.png" background3 false true
+load_bitmap "images/amongus1.png" amongus1 false true
+load_bitmap "images/amongus2.png" amongus2 false true
+load_bitmap "images/amongus3.png" amongus3 false true
+load_bitmap "images/terry.png" terry false true
+load_bitmap "images/arch.jpg" arch false true
+load_bitmap "images/cobblestone.png" cobblestone false true
+load_bitmap "images/elephant.jpg" elephant false true
+load_bitmap "gui/thumb_track_h3.png" thumb_track_h3 false true
+load_bitmap "gui/thumb_h3.png" thumb_h3 false true
 
 
 string ["fonts/CascadiaCode.ttf"] path
 int [20] size
 string ["cascadia_code"] name
-load_font path size name
+load_font path size name true
 
 string ["fonts/CascadiaCode-Bold.ttf"] path
 int [20] size
 string ["cascadia_code_bold"] name
-load_font path size name
+load_font path size name true
 
 string ["fonts/fira_mono.ttf"] path
 int [20] size
 string ["fira_mono"] name
-load_font path size name
-
-
+load_font path size name true
 
 
 run resizeDisplay buildTerminal createWindowTemplate
@@ -53,10 +51,10 @@ end
 
 start resizeDisplayLinux
 if ([used_os] [string "linux"] ==)
-///env window_size 1366 568
+//env window_size 1366 568
 //edit_proc window_size 1366 568
 //env window_size 800 300
-env window_size 800 480
+env window_size 900 480
 edit_proc window_size 1920 1080
 end
 
@@ -97,11 +95,11 @@ int [640] windowSizeX
 int [480] windowSizeY
 int [0 0] editableTextPos
 
-new super_text c me 1 _ _ SuperText
-fun SuperText set_position double [100 100]
+new super_editable_text c me 1 _ _ SuperText
+fun SuperText set_position double [450 0]
 //fun SuperText set_scale double [1.5 1.5]
-//fun SuperText set_rotation double [45]
-fun SuperText set_content string ["xddddd\nabdc\tlooooool"]
+fun SuperText set_rotation double [0]
+fun SuperText set_content string ["xdd aww\nabcd\nlooooool"]
 fun SuperText add_format string [cascadia_code] int [2]
 fun SuperText set_color int [0] double [1.0 0.0 0.0 1.0]
 fun SuperText add_format string [fira_mono] int [2]
@@ -111,11 +109,17 @@ fun SuperText set_color int [2] double [0.0 0.0 1.0 1.0]
 fun SuperText add_format string [cascadia_code] int [20]
 fun SuperText set_color int [3] double [1.0 0.0 1.0 1.0]
 fun SuperText set_accent_color int [3] double [0.0 1.0 0.0 1.0]
-fun SuperText set_selected int [3] bool [true]
+fun SuperText set_selected int [3] bool [false]
 fun SuperText set_offset int [3] double [0 0]
-fun SuperText set_size double [36 50]
-fun SuperText set_wrapping string [c]
+fun SuperText set_size double [400 300]
+fun SuperText set_wrapping string [n]
+fun SuperText set_horizontal_align string [l]
+fun SuperText set_vertical_align string [u]
 fun SuperText update
+//fun SuperText crop_size_to_text
+
+int [420] smolW
+int [300] smolH
 
 new editable_text c me 1 _ _ TerminalTextField
 fun TerminalTextField set_id string [edi]
@@ -126,7 +130,7 @@ fun TerminalTextField set_editable bool [1]
 fun TerminalTextField set_space_use bool [1]
 fun TerminalTextField set_max_content_length int [10000]
 fun TerminalTextField add_new_and_update string ["Welcome in Sandstorm Box terminal!"]
-fun TerminalTextField set_size c ww c wh
+fun TerminalTextField set_size c smolW c smolH
 fun TerminalTextField set_color double [0.0 1.0 0.0 1.0]
 fun TerminalTextField set_input_delay double [0.3]
 fun TerminalTextField set_repetition_delay double [0.05]
@@ -598,7 +602,7 @@ index context Terminal [0 0] _ scrollbar MainScrollbar
 int [0] 0
 value ([c EditableText size_y]) TerminalSizeY
 -= TerminalSizeY h
-print \n _ c TerminalSizeY
+//print \n _ c TerminalSizeY
 fun MainScrollbar set_real_scrolling_area c 0 c TerminalSizeY
 end
 

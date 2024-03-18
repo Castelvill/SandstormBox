@@ -111,6 +111,9 @@ void AncestorObject::deleteLater(){
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.deleteLater();
     }
+    for(SuperEditableTextModule & SuperEditableText : SuperEditableTextContainer){
+        SuperEditableText.deleteLater();
+    }
     for(ImageModule & Image : ImageContainer){
         Image.deleteLater();
     }
@@ -163,6 +166,10 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         SuperTextContainer.push_back(SuperTextModule());
         SuperTextContainer.back().clone(SuperText, superTextContainerIDs, newLayerID, getID(), true);
     }
+    for(const SuperEditableTextModule & SuperEditableText : Original.SuperEditableTextContainer){
+        SuperEditableTextContainer.push_back(SuperEditableTextModule());
+        SuperEditableTextContainer.back().clone(SuperEditableText, superEditableTextContainerIDs, newLayerID, getID(), true);
+    }
     for(const ImageModule & Image : Original.ImageContainer){
         ImageContainer.push_back(ImageModule());
         ImageContainer.back().clone(Image, imageContainerIDs, newLayerID, getID(), true);
@@ -204,6 +211,7 @@ void AncestorObject::clearVectorsOfIDs(){
     textContainerIDs.clear();
     editableTextContainerIDs.clear();
     superTextContainerIDs.clear();
+    superEditableTextContainerIDs.clear();
     imageContainerIDs.clear();
     movementContainerIDs.clear();
     collisionContainerIDs.clear();
@@ -224,6 +232,9 @@ void AncestorObject::clear(){
     }
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.clear();
+    }
+    for(SuperEditableTextModule & SuperEditableText : SuperEditableTextContainer){
+        SuperEditableText.clear();
     }
     for(ImageModule & Image : ImageContainer){
         Image.clear();
@@ -258,6 +269,7 @@ void AncestorObject::clear(){
     TextContainer.clear();
     EditableTextContainer.clear();
     SuperTextContainer.clear();
+    SuperEditableTextContainer.clear();
     ImageContainer.clear();
     MovementContainer.clear();
     CollisionContainer.clear();
@@ -371,6 +383,9 @@ void AncestorObject::createVectorsOfIds(){
     for(const SuperTextModule & content : SuperTextContainer){
         superTextContainerIDs.push_back(content.getID());
     }
+    for(const SuperEditableTextModule & content : SuperEditableTextContainer){
+        superEditableTextContainerIDs.push_back(content.getID());
+    }
     for(const ImageModule & content : ImageContainer){
         imageContainerIDs.push_back(content.getID());
     }
@@ -420,6 +435,9 @@ void AncestorObject::setIsAttachedToCamera(bool newValue){
     }
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.setIsAttachedToCamera(isAttachedToCamera);
+    }
+    for(SuperEditableTextModule & SuperEditableText : SuperEditableTextContainer){
+        SuperEditableText.setIsAttachedToCamera(isAttachedToCamera);
     }
     for(ImageModule & Image : ImageContainer){
         Image.setIsAttachedToCamera(isAttachedToCamera);
@@ -1489,6 +1507,9 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(words.size() > 3){
                 Operation->Literals.push_back(VariableModule::newBool(stringToBool(words[3])));
             }
+            if(words.size() > 4){
+                Operation->Literals.push_back(VariableModule::newBool(stringToBool(words[4])));
+            }
         }
         else if(words[0] == "mkdir" || words[0] == "rm" || words[0] == "rmll"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
@@ -1699,6 +1720,9 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->dynamicIDs.push_back(words[1]);
             Operation->dynamicIDs.push_back(words[2]);
             Operation->dynamicIDs.push_back(words[3]);
+            if(words.size() > 4){
+                Operation->Literals.push_back(VariableModule::newBool(stringToBool(words[4])));
+            }
         }
         else if(words[0] == "cd"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
@@ -1828,6 +1852,9 @@ void AncestorObject::propagateLayerID(){
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.setLayerID(layerID);
     }
+    for(SuperEditableTextModule & SuperEditableText : SuperEditableTextContainer){
+        SuperEditableText.setLayerID(layerID);
+    }
     for(ImageModule & Image : ImageContainer){
         Image.setLayerID(layerID);
     }
@@ -1866,6 +1893,9 @@ void AncestorObject::propagateObjectID(){
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.setObjectID(layerID);
     }
+    for(SuperEditableTextModule & SuperEditableText : SuperEditableTextContainer){
+        SuperEditableText.setObjectID(layerID);
+    }
     for(ImageModule & Image : ImageContainer){
         Image.setObjectID(layerID);
     }
@@ -1896,13 +1926,15 @@ void AncestorObject::propagateObjectID(){
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule() const{
-    return Texts.size() > 0 || EditableTexts.size() > 0 || SuperTexts.size() > 0 || Images.size() > 0
+    return Texts.size() > 0 || EditableTexts.size() > 0 || SuperTexts.size() > 0
+        || SuperEditableTexts.size() > 0 || Images.size() > 0
         || Movements.size() > 0 || Collisions.size() > 0 || Particles.size() > 0
         || Events.size() > 0 || Variables.size() > 0 || Scrollbars.size() > 0
         || Primitives.size() > 0 || Vectors.size() > 0;
 }
 unsigned ModulesPointers::size() const{
-    return Texts.size() + EditableTexts.size() + SuperTexts.size() + Images.size() +
+    return Texts.size() + EditableTexts.size() + SuperTexts.size()
+        + SuperEditableTexts.size()  + Images.size() +
         Movements.size() + Collisions.size() + Particles.size() +
         Events.size() + Variables.size() + Scrollbars.size()
         + Primitives.size() + Vectors.size();
