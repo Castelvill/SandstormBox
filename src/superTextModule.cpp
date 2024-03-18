@@ -206,7 +206,9 @@ void SuperTextModule::update(){
             }
         }
     }
-    realTextSize.y += Format->Font->height; //add the last line
+    if(Format != Formatting.end() && Format->Font != nullptr){
+        realTextSize.y += Format->Font->height; //add the last line
+    }
     if(textLines.size() > 1){
         realTextSize.y += paddingBetweenLines;
     }
