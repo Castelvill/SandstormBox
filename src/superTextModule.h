@@ -37,7 +37,7 @@ public:
     void clone(const SuperTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clear();
 
-    void update();
+    void update(unsigned cursorPos, unsigned secondCursorPos, bool useCursor);
     void cropSizeToText();
 
     VariableModule getAttributeValue(const string &attribute, const string &detail) const;
@@ -87,6 +87,7 @@ public:
     bool canBeEdited;
     bool canUseSpace;
     bool canUseEnter;
+    bool enterEndsEditing;
     bool canUseTabs;
     bool isNumerical;
     bool hasFloatingPoint;
@@ -113,6 +114,14 @@ public:
 
     VariableModule getAttributeValue(const string &attribute, const string &detail) const;
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+
+    bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
+    bool deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * window);
+    void getNumbers(char pKey, char & character, bool shift);
+    void addFloatingPoint(char pKey, char & character, string text);
+    bool addMinus(char pKey, char & character, string text);
+    void getLetters(char pKey, char & character, bool shift);
+    void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window);
 };
 
 #endif

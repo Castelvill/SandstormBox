@@ -1,3 +1,6 @@
+18.03.2024
+-Copied the editing capabilities of the EditableTextModule to the SuperEditableTextModule.
+
 17.03.2024
 -Implemented a base for the SuperEditableTextModule.
 -Implemented SuperTextModule.

@@ -253,7 +253,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
         SuperText->addScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "update"){
-        SuperText->update();
+        SuperText->update(0, 0, false);
     }
     else if(attribute == "crop_size_to_text"){
         SuperText->cropSizeToText();
@@ -379,8 +379,54 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
 void EveModule::controlSuperEditableText(SuperEditableTextModule * SuperEditableText, string attribute,
     const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleFont> & FontContainer
 ){
-    if(attribute == "test" && Values.size() > 0){
-        
+    if(attribute == "set_can_be_edited" && Values.size() > 0){
+        SuperEditableText->canBeEdited = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_can_use_space" && Values.size() > 0){
+        SuperEditableText->canUseSpace = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_can_use_enter" && Values.size() > 0){
+        SuperEditableText->canUseEnter = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_can_use_tabs" && Values.size() > 0){
+        SuperEditableText->canUseTabs = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_is_numerical" && Values.size() > 0){
+        SuperEditableText->isNumerical = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_has_floating_point" && Values.size() > 0){
+        SuperEditableText->hasFloatingPoint = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_ignore_vertical_arrows" && Values.size() > 0){
+        SuperEditableText->ignoreVerticalArrows = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_ignore_content_restriction" && Values.size() > 0){
+        SuperEditableText->ignoreContentRestriction = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_is_storing_history" && Values.size() > 0){
+        SuperEditableText->isStoringHistory = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_is_editing_active" && Values.size() > 0){
+        SuperEditableText->canBeEdited = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_min_content_length" && Values.size() > 0){
+        SuperEditableText->minContentLength = Values[0].getIntUnsafe();
+    }
+    else if(attribute == "set_max_content_length" && Values.size() > 0){
+        SuperEditableText->maxContentLength = Values[0].getIntUnsafe();
+    }
+    else if(attribute == "set_input_delay" && Values.size() > 0){
+        SuperEditableText->inputDelay = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_repetition_delay" && Values.size() > 0){
+        SuperEditableText->repetitionDelay = Values[0].getDoubleUnsafe();
+    }
+    else if(attribute == "set_protected_area" && Values.size() > 0){
+        SuperEditableText->protectedArea = Values[0].getIntUnsafe();
+    }
+    else if(attribute == "update"){
+        SuperEditableText->update(SuperEditableText->cursorPos, SuperEditableText->secondCursorPos, 
+            SuperEditableText->isEditingActive);
     }
     else{
         controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer);

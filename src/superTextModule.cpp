@@ -39,7 +39,7 @@ void SuperTextModule::clear(){
     Formatting.clear();
 }
 
-void SuperTextModule::update(){
+void SuperTextModule::update(unsigned cursorPos, unsigned secondCursorPos, bool useCursor){
     textLines.clear();
     textLines.push_back("");
     lineWidths.clear();
@@ -59,7 +59,7 @@ void SuperTextModule::update(){
     
     vector<FormatClass>::iterator Format = Formatting.begin();
     bool ignoreLine = false; //Works when wrapped=='c'. Ignores the part of the text in the line that is out of the scope of text field.
-
+    
     for(; letterIdx < content.size(); letterIdx++){
         letter = content.substr(letterIdx, 1)[0];
         if(letter == '\n'){
@@ -555,6 +555,7 @@ void SuperEditableTextModule::setUpNewInstance(){
     canBeEdited = true;
     canUseSpace = true;
     canUseEnter = true;
+    enterEndsEditing = false;
     canUseTabs = true;
     isNumerical = false;
     hasFloatingPoint = false;
@@ -616,6 +617,9 @@ VariableModule SuperEditableTextModule::getAttributeValue(const string &attribut
     }
     else if(attribute == "can_use_enter"){
         return VariableModule::newBool(canUseEnter);
+    }
+    else if(attribute == "enter_ends_editing"){
+        return VariableModule::newBool(enterEndsEditing);
     }
     else if(attribute == "can_use_tabs"){
         return VariableModule::newBool(canUseTabs);
@@ -692,6 +696,9 @@ void SuperEditableTextModule::getContext(string attribute, vector<BasePointersSt
     else if(attribute == "can_use_enter"){
         BasePointers.back().setPointer(&canUseEnter);
     }
+    else if(attribute == "enter_ends_editing"){
+        BasePointers.back().setPointer(&enterEndsEditing);
+    }
     else if(attribute == "can_use_tabs"){
         BasePointers.back().setPointer(&canUseTabs);
     }
@@ -740,4 +747,514 @@ void SuperEditableTextModule::getContext(string attribute, vector<BasePointersSt
         BasePointers.pop_back();
         SuperTextModule::getContext(attribute, BasePointers);
     }
+}
+
+bool SuperEditableTextModule::prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control){
+    for(unsigned int i = 0; i < pressedKeys.size(); i++){
+        if(pressedKeys[i] == ALLEGRO_KEY_LSHIFT || pressedKeys[i] == ALLEGRO_KEY_RSHIFT){
+            shift = true;
+            pressedKeys.erase(pressedKeys.begin() + i);
+            i--;
+            continue;
+        }
+        if(pressedKeys[i] == ALLEGRO_KEY_LCTRL || pressedKeys[i] == ALLEGRO_KEY_RCTRL){
+            control = true;
+            pressedKeys.erase(pressedKeys.begin() + i);
+            i--;
+            continue;
+        }
+        if(pressedKeys[i] == ALLEGRO_KEY_ENTER && canUseEnter && enterEndsEditing){
+            isEditingActive = false;
+            return false;
+        }
+    }
+
+    //remove released keys from blocked keys
+    for(char rKey : releasedKeys){
+        for(unsigned int j = 0; j < blockedKeys.size(); j++){
+            if(rKey == blockedKeys[j]){
+                blockedKeys.erase(blockedKeys.begin() + j);
+                currentInputDelay = inputDelay;
+                break;
+            }
+        }
+    }
+
+    bool ignoreLast = false;
+
+    if(pressedKeys.size() > blockedKeys.size()){
+        lastInputedKey = -1;
+        currentInputDelay = 0.0;
+        ignoreLast = true;
+    }
+
+    //removing blocked keys from pressed keys
+    for(char bKey : blockedKeys){
+        for(unsigned int j = 0; j < pressedKeys.size(); j++){
+            if(bKey == pressedKeys[j] && pressedKeys[j] != lastInputedKey){
+                pressedKeys.erase(pressedKeys.begin() + j);
+                break;
+            }
+        }
+    }
+
+    //find last pressed key, dont include the last 
+    if(pressedKeys.size() > 0){
+        vector<short> newKeys = pressedKeys;
+        if(lastInputedKey != -1 && pressedKeys.size() > 1){
+            for(unsigned int i = 0; i < newKeys.size(); i++){
+                if(lastInputedKey == newKeys[i]){
+                    newKeys.erase(newKeys.begin() + i);
+                    break;
+                }
+            }
+        }
+        lastInputedKey = newKeys.back();
+    }
+
+    //block all pressed keys
+    bool found;
+    for(char pKey : pressedKeys){
+        found = false;
+        for(unsigned int j = 0; j < blockedKeys.size(); j++){
+            if(pKey == blockedKeys[j]){
+                found = true;
+                break;
+            }
+        }
+        if(!found){
+            blockedKeys.push_back(pKey);
+        }
+    }
+
+    if(pressedKeys.size() == 0){
+        currentInputDelay = 0.0;
+        lastInputedKey = -1;
+        return false;
+    }
+
+    if(pressedKeys.size() > 1){
+        currentInputDelay = 0.0;
+    }
+
+    if(currentInputDelay > 0.0){
+        return false;
+    }
+
+    //delaying input and delaying repetition of the last pressed key
+    if(pressedKeys.back() != lastInputedKey || pressedKeys.size() > 1 || ignoreLast){
+        currentInputDelay = inputDelay;
+    }
+    else{
+        currentInputDelay = repetitionDelay;
+    }
+
+    return true;
+}
+bool SuperEditableTextModule::deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * window){
+    if(pKey != ALLEGRO_KEY_BACKSPACE && pKey != ALLEGRO_KEY_DELETE){
+        return false;
+    }
+    if(cursorPos <= protectedArea || secondCursorPos <= protectedArea){
+        return true;
+    }
+    if(pKey == ALLEGRO_KEY_BACKSPACE || (pKey == ALLEGRO_KEY_X && control && cursorPos != secondCursorPos)){
+        if(text.size() <= minContentLength){
+            return true;
+        }
+        string newContent = "";
+        if(cursorPos != secondCursorPos){
+            unsigned selectionStart = std::min(cursorPos, secondCursorPos);
+            unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+            if(selectionEnd >= text.size()){
+                selectionEnd--;
+            }
+
+            if(pKey == ALLEGRO_KEY_X){
+                string clipboard = "";
+                if(cursorPos != secondCursorPos){
+                    clipboard = text.substr(selectionStart, selectionEnd - selectionStart + 1);
+                }
+                al_set_clipboard_text(window, clipboard.c_str());
+            }
+
+            newContent = text.substr(0, selectionStart) + text.substr(selectionEnd + 1, text.size()-selectionEnd);
+            cursorPos = selectionStart;
+        }
+        else{
+            if(cursorPos == 0){
+                return true;
+            }
+            newContent = text.substr(0, cursorPos-1) + text.substr(cursorPos, text.size()-cursorPos);
+            cursorPos--;
+        }
+        content = newContent;
+        secondCursorPos = cursorPos;
+        return true;
+    }
+    else if(pKey == ALLEGRO_KEY_DELETE){
+        if(text.size() <= minContentLength){
+            return true;
+        }
+        string newContent = "";
+        if(cursorPos != secondCursorPos){
+            unsigned selectionStart = std::min(cursorPos, secondCursorPos);
+            unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+            if(selectionEnd >= text.size()){
+                selectionEnd--;
+            }
+            newContent = text.substr(0, selectionStart) + text.substr(selectionEnd + 1, text.size()-selectionEnd);
+            cursorPos = selectionStart;
+        }
+        else{
+            if(cursorPos >= text.size()){
+                return true;
+            }
+            newContent = text.substr(0, cursorPos) + text.substr(cursorPos+1, text.size()-cursorPos);
+        }
+        content = newContent;
+        secondCursorPos = cursorPos;
+        return true;
+    }
+    return false;
+}
+void SuperEditableTextModule::getNumbers(char pKey, char & character, bool shift){
+    if(pKey < 27 || pKey > 36){
+        return;
+    }
+    if(!shift){
+        character = pKey+21;
+        return;
+    }
+    switch (pKey){
+        case ALLEGRO_KEY_1:
+            character = '!';
+            break;
+        case ALLEGRO_KEY_2:
+            character = '@';
+            break;
+        case ALLEGRO_KEY_3:
+            character = '#';
+            break;
+        case ALLEGRO_KEY_4:
+            character = '$';
+            break;
+        case ALLEGRO_KEY_5:
+            character = '%';
+            break;
+        case ALLEGRO_KEY_6:
+            character = '^';
+            break;
+        case ALLEGRO_KEY_7:
+            character = '&';
+            break;
+        case ALLEGRO_KEY_8:
+            character = '*';
+            break;
+        case ALLEGRO_KEY_9:
+            character = '(';
+            break;
+        case ALLEGRO_KEY_0:
+            character = ')';
+            break;
+        default:
+            break;
+    }
+}
+void SuperEditableTextModule::addFloatingPoint(char pKey, char & character, string text){
+    if(character != '\0'){
+        return;
+    }
+    if(pKey == 73 && (hasFloatingPoint || isNumerical)){
+        bool isTherePoint = false;
+        if(isNumerical){
+            for(char p : text){
+                if(p == '.'){
+                    isTherePoint = true;
+                    break;
+                }
+            }
+        }
+        if(isTherePoint){
+            character = '.';
+        }
+    }
+}
+bool SuperEditableTextModule::addMinus(char pKey, char & character, string text){
+    if(pKey != ALLEGRO_KEY_MINUS || !isNumerical){
+        return false;
+    }
+    if(cursorPos > 0){
+        return true;
+    }
+    for(char p : text){
+        if(p == '-'){
+            return true;
+        }
+    }
+    return false;
+}
+void SuperEditableTextModule::getLetters(char pKey, char & character, bool shift){
+    if(character != '\0' || isNumerical){
+        return;
+    }
+    if(pKey >= 1 && pKey <= 26){
+        if(shift){
+            character = 'A'+pKey-1;
+        }
+        else{
+            character = 'a'+pKey-1;
+        }
+    }
+    else if(pKey == ALLEGRO_KEY_MINUS && shift){
+        character = '_';
+    }
+    else if(pKey == ALLEGRO_KEY_MINUS){
+        character = '-';
+    }
+    else if(pKey == ALLEGRO_KEY_EQUALS && shift){
+        character = '+';
+    }
+    else if(pKey == ALLEGRO_KEY_EQUALS){
+        character = '=';
+    }
+    else if(pKey == ALLEGRO_KEY_OPENBRACE && shift){
+        character = '{';
+    }
+    else if(pKey == ALLEGRO_KEY_OPENBRACE){
+        character = '[';
+    }
+    else if(pKey == ALLEGRO_KEY_CLOSEBRACE && shift){
+        character = '}';
+    }
+    else if(pKey == ALLEGRO_KEY_CLOSEBRACE){
+        character = ']';
+    }
+    else if(pKey == ALLEGRO_KEY_COMMA && shift){
+        character = '<';
+    }
+    else if(pKey == ALLEGRO_KEY_COMMA){
+        character = ',';
+    }
+    else if(pKey == ALLEGRO_KEY_FULLSTOP && shift){
+        character = '>';
+    }
+    else if(pKey == ALLEGRO_KEY_FULLSTOP){
+        character = '.';
+    }
+    else if(pKey == ALLEGRO_KEY_SLASH && shift){
+        character = '?';
+    }
+    else if(pKey == ALLEGRO_KEY_SLASH){
+        character = '/';
+    }
+    else if(pKey == ALLEGRO_KEY_SEMICOLON && shift){
+        character = ':';
+    }
+    else if(pKey == ALLEGRO_KEY_SEMICOLON){
+        character = ';';
+    }
+    else if(pKey == ALLEGRO_KEY_QUOTE && shift){
+        character = '\"';
+    }
+    else if(pKey == ALLEGRO_KEY_QUOTE){
+        character = '\'';
+    }
+    else if(pKey == ALLEGRO_KEY_BACKSLASH && shift){
+        character = '|';
+    }
+    else if(pKey == ALLEGRO_KEY_BACKSLASH){
+        character = '\\';
+    }
+    else if(pKey == ALLEGRO_KEY_SPACE && canUseSpace){
+        character = ' ';
+    }
+    else if(pKey == ALLEGRO_KEY_TAB && canUseTabs){
+        character = '\t';
+    }
+    else if(pKey == ALLEGRO_KEY_ENTER && canUseEnter){
+        character = '\n';
+    }
+    else{
+        character = '\0';
+    }
+}
+void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window){
+    if(!getIsActive() || !isEditingActive){
+        return;
+    }
+
+    bool shift = false;
+    bool control = false;
+    
+    if(!prepareEditing(releasedKeys, pressedKeys, shift, control)){
+        return;
+    }
+
+    char character = '\0';
+    string text = "";
+
+    for(char pKey : pressedKeys){
+        text = content;
+
+        if(!ignoreVerticalArrows && pKey == ALLEGRO_KEY_UP){
+            if(cursorPos == 0){
+                continue;
+            }
+            //moveCursorUp(text, shift);
+            continue;
+        }
+        else if(pKey == ALLEGRO_KEY_RIGHT){
+            if(shift){
+                if(cursorPos < text.size()){
+                    cursorPos++;
+                }
+            }
+            else{
+                cursorPos = std::max(cursorPos, secondCursorPos) + 1;
+                cursorPos = std::min(cursorPos, unsigned(text.size()));
+                secondCursorPos = cursorPos;
+            }
+            continue;
+        }
+        else if(!ignoreVerticalArrows && pKey == ALLEGRO_KEY_DOWN){
+            if(cursorPos >= text.size()){
+                continue;
+            }
+            //moveCursorDown(text, shift);
+            continue;
+        }
+        else if(pKey == ALLEGRO_KEY_LEFT){
+            if(shift){
+                if(cursorPos > protectedArea){
+                    cursorPos--;
+                }
+            }
+            else{
+                cursorPos = std::min(cursorPos, secondCursorPos) - 1;
+                cursorPos = std::max(cursorPos, protectedArea);
+                secondCursorPos = cursorPos;
+            }
+            continue;
+        }
+
+        if(deleteFromText(pKey, character, text, control, window)){
+            continue;
+        }
+
+        if(control){
+            if(pKey == ALLEGRO_KEY_A){
+                cursorPos = 0;
+                secondCursorPos = text.size();
+                continue;
+            }
+            else if(text.size() > 0 && pKey == ALLEGRO_KEY_C){
+                string clipboard = "";
+                if(cursorPos != secondCursorPos){
+                    unsigned selectionStart = std::min(cursorPos, secondCursorPos);
+                    unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+                    clipboard = text.substr(selectionStart, selectionEnd - selectionStart + 1);
+                }
+                al_set_clipboard_text(window, clipboard.c_str());
+                continue;
+            }
+            else if(pKey == ALLEGRO_KEY_V){
+                if(cursorPos < protectedArea || secondCursorPos < protectedArea){
+                    continue;
+                }
+                string newContent = text.substr(0, std::min(cursorPos, secondCursorPos));
+                if(!al_clipboard_has_text(window)){
+                    continue;
+                }
+                string clipboard = al_get_clipboard_text(window);
+                if(clipboard.size() == 0){
+                    continue;
+                }
+                newContent += clipboard;
+                if(cursorPos != secondCursorPos){
+                    unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+                    if(selectionEnd >= text.size()){
+                        selectionEnd--;
+                    }
+                    newContent += text.substr(selectionEnd + 1, text.size()-selectionEnd);
+                }
+                else{
+                    newContent += text.substr(cursorPos, text.size()-cursorPos);
+                }
+                cursorPos = std::min(cursorPos, secondCursorPos);
+                secondCursorPos = cursorPos + clipboard.size() - 1;
+                content = newContent;
+            }
+            continue;
+        }
+
+        if(cursorPos < protectedArea || secondCursorPos < protectedArea){
+            continue;
+        }
+
+        if(isNumerical && (pKey < 27 || pKey > 36)){
+            continue;
+        }
+
+        getNumbers(pKey, character, shift);
+
+        addFloatingPoint(pKey, character, text);
+        
+        if(addMinus(pKey, character, text)){
+            continue;
+        }
+
+        getLetters(pKey, character, shift);
+
+        if(character == '\0'){
+            continue;
+        }
+        
+        unsigned selectionStart = std::min(cursorPos, secondCursorPos);
+        string newContent = text.substr(0, selectionStart);
+        if(1/*character != '\t'*/){
+            newContent += character;
+            if(cursorPos != secondCursorPos){
+                unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+                if(selectionEnd >= text.size()){
+                    selectionEnd--;
+                }
+                newContent += text.substr(selectionEnd + 1, text.size()-selectionEnd);
+            }
+            else{
+                newContent += text.substr(cursorPos, text.size()-cursorPos);
+                selectionStart++;
+            }
+            cursorPos = selectionStart;
+            secondCursorPos = cursorPos;
+        }
+        /*else{
+            unsigned tmpCursor = 0, tabCounter = 0;
+            for(; tmpCursor < selectionStart; tmpCursor++, tabCounter++){
+                if(text[tmpCursor] == '\t'){
+                    tabCounter += getCurrentTabLength(tabCounter);
+                }
+            }
+            for(unsigned i = 0; i < getCurrentTabLength(tabCounter) + 1; i++){
+                newContent += " ";
+            }
+            if(cursorPos != secondCursorPos){
+                unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+                if(selectionEnd >= text.size()){
+                    selectionEnd--;
+                }
+                newContent += text.substr(selectionEnd + 1, text.size()-selectionEnd);
+            }
+            else{
+                newContent += text.substr(cursorPos, text.size()-cursorPos);
+                selectionStart += getCurrentTabLength(tabCounter) + 1;
+            }
+            cursorPos = selectionStart;
+            secondCursorPos = cursorPos;
+        }*/
+
+        content = newContent;
+    }
+
+    update(cursorPos, secondCursorPos, true);
 }

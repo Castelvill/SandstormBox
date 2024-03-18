@@ -180,6 +180,7 @@ private:
     Camera2D * SelectedCamera;
     LayerClass * SelectedLayer;
     AncestorObject * SelectedObject;
+    SuperEditableTextModule * ActiveEditableText;
     vec2d dragStartingPos, dragStartingPos2;
     vec2d dragCameraStaringPos, dragLimit;
     EventsLookupTable BaseOfTriggerableObjects;
@@ -206,7 +207,6 @@ private:
 public:
     vector <unsigned> camerasOrder;
 
-    void loadInitProcess(string layerID, string objectID, vec2i screenSize, string initFilePath);
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
     void create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);

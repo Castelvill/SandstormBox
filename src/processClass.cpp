@@ -22,9 +22,6 @@ void EventsLookupTable::clear(){
     ResizeTriggered.clear();
 }
 
-void ProcessClass::loadInitProcess(string layerID, string objectID, vec2i screenSize, string initFilePath){
-    
-}
 string ProcessClass::getID() const{
     return ID;
 }
@@ -74,6 +71,7 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string 
     SelectedCamera = nullptr;
     SelectedLayer = nullptr;
     SelectedObject = nullptr;
+    ActiveEditableText = nullptr;
 
     isRendering = true;
     windowPos.set(0.0, 0.0);
@@ -239,6 +237,13 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             }
             changeCursor(Engine.display, Engine.Mouse);
             break;
+    }
+
+    if(canUserInteract && Engine.focusedProcessID == getID() && ActiveEditableText != nullptr
+        && ActiveEditableText->isEditingActive
+        && (Engine.releasedKeys.size() > 0 || Engine.pressedKeys.size() > 0)
+    ){
+        ActiveEditableText->edit(Engine.releasedKeys, Engine.pressedKeys, Engine.display);
     }
 
     if(canUserInteract && Engine.focusedProcessID == getID()
@@ -9849,7 +9854,7 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
 }
 void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer){
     if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()
-        || SelectedCamera->getIsMinimized() || !SelectedCamera->canMoveObjects){
+        || SelectedCamera->getIsMinimized() /*|| !SelectedCamera->canMoveObjects*/){
         return;
     }
     
@@ -9862,11 +9867,33 @@ void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> 
         if(!Mouse.pressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             continue;
         }
+        if(ActiveEditableText != nullptr){
+            ActiveEditableText->isEditingActive = false;
+        }
+        ActiveEditableText = nullptr;
         for(AncestorObject & Object : Layer.Objects){
-            if(!Object.getCanBeSelected()){
-                continue;
-            }
-            if(Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera), Object.getSize(), 0, Object.getIsAttachedToCamera(), SelectedCamera)){
+            if(Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera), Object.getSize(),
+                0, Object.getIsAttachedToCamera(), SelectedCamera
+            )){
+                for(SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
+                    if(!SuperEditableText.getIsActive() || !SuperEditableText.canBeEdited){
+                        continue;
+                    }
+                    if(Mouse.pressedInRectangle(
+                        Object.getPosOnCamera(SelectedCamera)
+                        + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
+                        SuperEditableText.getSize(),
+                        0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera
+                    )){
+                        ActiveEditableText = &SuperEditableText;
+                        ActiveEditableText->isEditingActive = true;
+                        break;
+                    }
+                }
+
+                if(!Object.getCanBeSelected()){
+                    break;
+                }
                 if(&Layer == SelectedLayer && &Object == SelectedObject){
                     return;
                 }
