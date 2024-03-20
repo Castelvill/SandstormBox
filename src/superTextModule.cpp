@@ -1,5 +1,14 @@
 #include "superTextModule.h"
 
+bool FormatClass::isTheSame(const FormatClass &Compare){
+    return color.r == Compare.color.r && color.g == Compare.color.g
+        && color.b == Compare.color.b && color.a == Compare.color.a
+        && accentColor.r == Compare.accentColor.r && accentColor.g == Compare.accentColor.g
+        && accentColor.b == Compare.accentColor.b && accentColor.a == Compare.accentColor.a
+        && Font == Compare.Font && offset.x == Compare.offset.x
+        && offset.y == Compare.offset.y && selected == Compare.selected;
+}
+
 void SuperTextModule::setUpNewInstance(){
     content = "";
     tabLength = 4;
@@ -9,6 +18,7 @@ void SuperTextModule::setUpNewInstance(){
     paddingBetweenLines = 0.0;
     rotation = 0.0;
     scale.set(1.0, 1.0);
+    drawSelectionFirst = false;
 }
 SuperTextModule::SuperTextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -39,7 +49,7 @@ void SuperTextModule::clear(){
     Formatting.clear();
 }
 
-void SuperTextModule::update(unsigned cursorPos, unsigned secondCursorPos, bool useCursor){
+void SuperTextModule::update(){
     textLines.clear();
     textLines.push_back("");
     lineWidths.clear();
@@ -57,12 +67,28 @@ void SuperTextModule::update(unsigned cursorPos, unsigned secondCursorPos, bool 
     size_t letterIdx = 0, formatLimit = 0, lineLength = 0;
     float letterWidth = 0.0, wordWidth = 0.0, wordWidthBehind = 0.0, lineWidth = 0.0;
     
+    //Merge the same formatting.
+    /*for(unsigned formatIdx = 0; formatIdx < Formatting.size() - 1;){
+        if(Formatting[formatIdx].isTheSame(Formatting[formatIdx + 1])){
+            Formatting[formatIdx].limit += Formatting[formatIdx + 1].limit;
+            Formatting.erase(Formatting.begin() + formatIdx + 1);
+        }
+        else{
+            formatIdx++;
+        }
+    }*/
+
+    for(FormatClass & Format : Formatting){
+        Format.drawingLimit = 0;
+    }
+
     vector<FormatClass>::iterator Format = Formatting.begin();
     bool ignoreLine = false; //Works when wrapped=='c'. Ignores the part of the text in the line that is out of the scope of text field.
-    
+
     for(; letterIdx < content.size(); letterIdx++){
         letter = content.substr(letterIdx, 1)[0];
         if(letter == '\n'){
+            Format->drawingLimit++;
             lineWidth += al_get_text_width(Format->Font->font, string(" ").c_str());
             if(wrapped == 'c' && lineWidth > size.x){
                 ignoreLine = true;
@@ -72,6 +98,7 @@ void SuperTextModule::update(unsigned cursorPos, unsigned secondCursorPos, bool 
             }
             textLines.back() += ' ';
             textLines.push_back("");
+            
             realTextSize.x = std::max(realTextSize.x, lineWidth);
             lineWidths.back() = lineWidth;
             lineWidths.push_back(0);
@@ -129,20 +156,19 @@ void SuperTextModule::update(unsigned cursorPos, unsigned secondCursorPos, bool 
                     lineLength++;
                 }
                 textLines.back() += ' ';
-                formatLimit++;
-                if(formatLimit == Format->limit){
-                    Format++;
-                    formatLimit = 0;
-                }
-                if(Format == Formatting.end()){
-                    break;
-                }
+                Format->drawingLimit++;
+            }
+            formatLimit++;
+            if(formatLimit == Format->limit){
+                Format++;
+                formatLimit = 0;
             }
             if(Format == Formatting.end()){
                 break;
             }
         }
         else{
+            Format->drawingLimit++;
             letterWidth = al_get_text_width(Format->Font->font, string(1, letter).c_str()); //It's the only way, if you don't want undefined behaviour. 
             wordWidth = 0.0;
             wordWidthBehind = 0.0;
@@ -206,7 +232,8 @@ void SuperTextModule::update(unsigned cursorPos, unsigned secondCursorPos, bool 
             }
         }
     }
-    if(Format != Formatting.end() && Format->Font != nullptr){
+
+    if(Format != Formatting.end()){
         realTextSize.y += Format->Font->height; //add the last line
     }
     if(textLines.size() > 1){
@@ -268,20 +295,88 @@ void SuperTextModule::getContext(string attribute, vector<BasePointersStruct> &B
     }
 }
 
-void SuperTextModule::drawFormattedString(string text, vec2d finalPos, size_t lineIdx, vector<FormatClass>::iterator Format){
+void SuperTextModule::drawFormattedString(string text, vec2d finalPos, size_t lineIdx, vector<FormatClass>::iterator Format, bool drawSelection){
     if(Format->selected){
-        string background;
-        for(size_t i = 0; i < text.size(); i++){
-            background += "█";
+        if(drawSelection){
+            string background;
+            for(size_t i = 0; i < text.size(); i++){
+                background += "█";
+            }
+            al_draw_text(Format->Font->font, Format->color, finalPos.x + Format->offset.x,
+            finalPos.y + Format->offset.y + lineIdx * Format->Font->height + paddingBetweenLines * (lineIdx > 0), 0, background.c_str());
         }
-        al_draw_text(Format->Font->font, Format->accentColor, finalPos.x + Format->offset.x,
-            finalPos.y + Format->offset.y + lineIdx * Format->Font->height + paddingBetweenLines, 0, background.c_str());
-        al_draw_text(Format->Font->font, Format->color, finalPos.x + Format->offset.x,
-            finalPos.y + Format->offset.y + lineIdx * Format->Font->height + paddingBetweenLines, 0, text.c_str());
+        if(!drawSelectionFirst || !drawSelection){
+            al_draw_text(Format->Font->font, Format->accentColor, finalPos.x + Format->offset.x,
+                finalPos.y + Format->offset.y + lineIdx * Format->Font->height + paddingBetweenLines * (lineIdx > 0), 0, text.c_str());
+        }
     }
     else{
         al_draw_text(Format->Font->font, Format->color, finalPos.x + Format->offset.x,
-            finalPos.y + Format->offset.y + lineIdx * Format->Font->height + paddingBetweenLines, 0, text.c_str());
+            finalPos.y + Format->offset.y + lineIdx * Format->Font->height + paddingBetweenLines * (lineIdx > 0), 0, text.c_str());
+    }
+}
+void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection){
+    size_t letterIdx = 0;
+    size_t lineIdx = 0;
+    size_t formatLimit = 0;
+    size_t longestFragment = 0;
+    string currentFragment;
+    vec2d linePos(finalPos);
+    float previousLength;
+    vector<FormatClass>::iterator Format = Formatting.begin();
+    for(lineIdx = 0; lineIdx < textLines.size(); lineIdx++){
+        previousLength = 0.0;
+        linePos.set(finalPos);
+        if(horizontalAlign == 'c'){
+            linePos.x += (size.x / 2) - (lineWidths[lineIdx] / 2);
+            if(textLines[lineIdx].back() == ' '){
+                linePos.x += al_get_text_width(Format->Font->font, string(" ").c_str()) / 2;
+            }
+        }
+        else if(horizontalAlign == 'r'){
+            linePos.x += size.x - lineWidths[lineIdx];
+            if(textLines[lineIdx].back() == ' '){
+                linePos.x += al_get_text_width(Format->Font->font, string(" ").c_str()) / 2;
+            }
+        }
+        for(letterIdx = 0; letterIdx < lineLengths[lineIdx];){
+            longestFragment = Format->drawingLimit - formatLimit;
+            longestFragment = std::min(longestFragment, lineLengths[lineIdx] - letterIdx);
+            currentFragment = textLines[lineIdx].substr(letterIdx, longestFragment);
+            linePos.x += previousLength;
+            letterIdx += longestFragment;
+            formatLimit += longestFragment;
+            
+            previousLength = al_get_text_width(Format->Font->font, currentFragment.c_str());
+            drawFormattedString(currentFragment, linePos, lineIdx, Format, drawSelection);
+
+            if(formatLimit >= Format->drawingLimit){
+                Format++;
+                formatLimit = 0;
+            }
+            if(Format == Formatting.end()){
+                break;
+            }
+        }
+        if(Format == Formatting.end()){
+            break;
+        }
+        for(;letterIdx < textLines[lineIdx].size();){
+            longestFragment = Format->drawingLimit - formatLimit;
+            longestFragment = std::min(longestFragment, textLines[lineIdx].size() - letterIdx);
+            letterIdx += longestFragment;
+            formatLimit += longestFragment;
+            if(formatLimit >= Format->drawingLimit){
+                Format++;
+                formatLimit = 0;
+            }
+            if(Format == Formatting.end()){
+                break;
+            }
+        }
+        if(Format == Formatting.end()){
+            break;
+        }   
     }
 }
 void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive){
@@ -321,67 +416,10 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
     al_translate_transform(&trans, unformatedPos.x + size.x / 2, unformatedPos.y + size.y / 2);
     al_use_transform(&trans);
 
-    size_t letterIdx = 0;
-    size_t lineIdx = 0;
-    size_t formatLimit = 0;
-    size_t longestFragment = 0;
-    string currentFragment;
-    vec2d linePos(finalPos);
-    float previousLength;
-    vector<FormatClass>::iterator Format = Formatting.begin();
-    for(lineIdx = 0; lineIdx < textLines.size(); lineIdx++){
-        previousLength = 0.0;
-        linePos.set(finalPos);
-        if(horizontalAlign == 'c'){
-            linePos.x += (size.x / 2) - (lineWidths[lineIdx] / 2);
-            if(textLines[lineIdx].back() == ' '){
-                linePos.x += al_get_text_width(Format->Font->font, string(" ").c_str()) / 2;
-            }
-        }
-        else if(horizontalAlign == 'r'){
-            linePos.x += size.x - lineWidths[lineIdx];
-            if(textLines[lineIdx].back() == ' '){
-                linePos.x += al_get_text_width(Format->Font->font, string(" ").c_str()) / 2;
-            }
-        }
-        for(letterIdx = 0; letterIdx < lineLengths[lineIdx];){
-            longestFragment = Format->limit - formatLimit;
-            longestFragment = std::min(longestFragment, lineLengths[lineIdx] - letterIdx);
-            currentFragment = textLines[lineIdx].substr(letterIdx, longestFragment);
-            linePos.x += previousLength;
-            letterIdx += longestFragment;
-            formatLimit += longestFragment;
-            if(Format->Font != nullptr){
-                previousLength = al_get_text_width(Format->Font->font, currentFragment.c_str());
-                drawFormattedString(currentFragment, linePos, lineIdx, Format);
-            }
-            if(formatLimit >= Format->limit){
-                Format++;
-                formatLimit = 0;
-            }
-            if(Format == Formatting.end()){
-                break;
-            }
-        }
-        if(Format == Formatting.end()){
-            break;
-        }
-        for(;letterIdx < textLines[lineIdx].size();){
-            longestFragment = Format->limit - formatLimit;
-            longestFragment = std::min(longestFragment, textLines[lineIdx].size() - letterIdx);
-            letterIdx += longestFragment;
-            formatLimit += longestFragment;
-            if(formatLimit >= Format->limit){
-                Format++;
-                formatLimit = 0;
-            }
-            if(Format == Formatting.end()){
-                break;
-            }
-        }
-        if(Format == Formatting.end()){
-            break;
-        }   
+
+    drawAllLines(finalPos, true);
+    if(drawSelectionFirst){
+        drawAllLines(finalPos, false);
     }
     
     al_identity_transform(&trans);
@@ -551,6 +589,8 @@ void SuperEditableTextModule::setUpNewInstance(){
     SuperTextModule::setUpNewInstance();
     previousContent.clear();
     futureContent.clear();
+    previousFormatting.clear();
+    futureFormatting.clear();
 
     canBeEdited = true;
     canUseSpace = true;
@@ -564,10 +604,9 @@ void SuperEditableTextModule::setUpNewInstance(){
     isStoringHistory = true;
     minContentLength = 0;
     maxContentLength = 512;
-    inputDelay = 1.0;
-    repetitionDelay = 0.5;
+    inputDelay = 0.3;
+    repetitionDelay = 0.05;
     protectedArea = 0; //User cannot edit the text placed before the protection cursor.
-
     isEditingActive = false;
     blockedKeys.clear();
     lastInputedKey = -1;
@@ -600,6 +639,8 @@ void SuperEditableTextModule::clear(){
     SuperTextModule::clear();
     previousContent.clear();
     futureContent.clear();
+    previousFormatting.clear();
+    futureFormatting.clear();
     blockedKeys.clear();
 }
 VariableModule SuperEditableTextModule::getAttributeValue(const string &attribute, const string &detail) const{
@@ -851,11 +892,14 @@ bool SuperEditableTextModule::prepareEditing(const vector <short> & releasedKeys
 
     return true;
 }
-bool SuperEditableTextModule::deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * window){
-    if(pKey != ALLEGRO_KEY_BACKSPACE && pKey != ALLEGRO_KEY_DELETE){
+bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & control,
+    ALLEGRO_DISPLAY * window, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
+    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+){
+    if(pKey != ALLEGRO_KEY_BACKSPACE && pKey != ALLEGRO_KEY_DELETE && (pKey != ALLEGRO_KEY_X || !control)){
         return false;
     }
-    if(cursorPos <= protectedArea || secondCursorPos <= protectedArea){
+    if(cursorPos < protectedArea || secondCursorPos < protectedArea){
         return true;
     }
     if(pKey == ALLEGRO_KEY_BACKSPACE || (pKey == ALLEGRO_KEY_X && control && cursorPos != secondCursorPos)){
@@ -875,11 +919,40 @@ bool SuperEditableTextModule::deleteFromText(char pKey, char character, string t
                 if(cursorPos != secondCursorPos){
                     clipboard = text.substr(selectionStart, selectionEnd - selectionStart + 1);
                 }
-                al_set_clipboard_text(window, clipboard.c_str());
+                internalClipboard = clipboard;
+
+                if(ENABLE_al_set_clipboard_text){
+                    al_set_clipboard_text(window, clipboard.c_str());
+                }
+                else{
+                    std::ofstream File("clipboard.txt", std::ios::trunc | std::ios::out);
+                    if(File){
+                        File << internalClipboard;
+                    }
+                    File.close();
+                }
+
+                CopiedFormatting.clear();
+                CopiedFormatting.insert(CopiedFormatting.begin(), Formatting.begin() + leftCursorOnFormatIdx,
+                    Formatting.begin() + rightCursorOnFormatIdx + 1);
+                for(FormatClass & Format : CopiedFormatting){
+                    Format.selected = false;
+                }
             }
 
             newContent = text.substr(0, selectionStart) + text.substr(selectionEnd + 1, text.size()-selectionEnd);
             cursorPos = selectionStart;
+
+            Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1, Formatting.begin() + rightCursorOnFormatIdx + 1);
+            if(Formatting.size() > leftCursorOnFormatIdx + 1){
+                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
+                Formatting[leftCursorOnFormatIdx + 1].limit--;
+                if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
+                    Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
+                }
+            }
+            Formatting[leftCursorOnFormatIdx].limit = 1;
+            rightCursorOnFormatIdx = leftCursorOnFormatIdx;
         }
         else{
             if(cursorPos == 0){
@@ -887,6 +960,14 @@ bool SuperEditableTextModule::deleteFromText(char pKey, char character, string t
             }
             newContent = text.substr(0, cursorPos-1) + text.substr(cursorPos, text.size()-cursorPos);
             cursorPos--;
+            
+            if(Formatting[leftCursorOnFormatIdx - 1].limit == 1){
+                Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx - 1);
+                leftCursorOnFormatIdx--;
+            }
+            else{
+                Formatting[leftCursorOnFormatIdx - 1].limit--;
+            }
         }
         content = newContent;
         secondCursorPos = cursorPos;
@@ -905,12 +986,42 @@ bool SuperEditableTextModule::deleteFromText(char pKey, char character, string t
             }
             newContent = text.substr(0, selectionStart) + text.substr(selectionEnd + 1, text.size()-selectionEnd);
             cursorPos = selectionStart;
+
+            Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1, Formatting.begin() + rightCursorOnFormatIdx + 1);
+            if(Formatting.size() > leftCursorOnFormatIdx + 1){
+                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
+                Formatting[leftCursorOnFormatIdx + 1].limit--;
+                if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
+                    Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
+                }
+            }
+            Formatting[leftCursorOnFormatIdx].limit = 1;
+            rightCursorOnFormatIdx = leftCursorOnFormatIdx;
         }
         else{
             if(cursorPos >= text.size()){
                 return true;
             }
             newContent = text.substr(0, cursorPos) + text.substr(cursorPos+1, text.size()-cursorPos);
+            
+            if(Formatting[leftCursorOnFormatIdx].limit == 1){
+                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
+                Formatting[leftCursorOnFormatIdx].limit = 1;
+                Formatting[leftCursorOnFormatIdx + 1].limit--;
+                if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
+                    Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
+                }
+            }
+            else{
+                Formatting[leftCursorOnFormatIdx].limit--;
+            }
+
+            cout << "DEL: ";
+            for(unsigned i = 0; i < Formatting.size(); i++){
+                cout << i << ":" << Formatting[i].limit << "; ";
+            }
+            cout << "\n";
+            cout.flush();
         }
         content = newContent;
         secondCursorPos = cursorPos;
@@ -1079,9 +1190,92 @@ void SuperEditableTextModule::getLetters(char pKey, char & character, bool shift
         character = '\0';
     }
 }
-void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window){
+void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
+    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+){
     if(!getIsActive() || !isEditingActive){
         return;
+    }
+
+    unsigned cursorBegin = std::min(cursorPos, secondCursorPos);
+    unsigned cursorEnd = std::max(cursorPos, secondCursorPos) + 1;
+    unsigned letterIdx = 0;
+    unsigned formatIdx = 0;
+    unsigned leftCursorOnFormatIdx = 0;
+    unsigned rightCursorOnFormatIdx = 0;
+
+    cout << "STA: ";
+    for(unsigned i = 0; i < Formatting.size(); i++){
+        cout << i << ":" << Formatting[i].limit << "; ";
+    }
+    cout << "\n";
+    cout.flush();
+
+    for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
+        Formatting[formatIdx].selected = false;
+    }
+
+    //Divide formatting by cursors' postitions.
+    for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
+        if(letterIdx >= cursorBegin && letterIdx + Formatting[formatIdx].limit <= cursorEnd){ //Inside of the cursor selection.
+            Formatting[formatIdx].selected = true;
+        }
+        else if(letterIdx <= cursorBegin && letterIdx + Formatting[formatIdx].limit > cursorBegin){ //Format with left cursor inside.
+            if(cursorBegin > 0){
+                Formatting.insert(Formatting.begin()+formatIdx+1, FormatClass());
+                Formatting[formatIdx + 1] = Formatting[formatIdx];
+                Formatting[formatIdx + 1].selected = true;
+                if(letterIdx + Formatting[formatIdx].limit < cursorEnd){ //Format without the right cursor.
+                    Formatting[formatIdx + 1].limit = letterIdx + Formatting[formatIdx].limit - cursorBegin;
+                    Formatting[formatIdx].limit = cursorBegin - letterIdx;
+                }
+                else{ //Format with both cursors.
+                    Formatting.insert(Formatting.begin()+formatIdx+1, FormatClass());
+                    Formatting[formatIdx + 2] = Formatting[formatIdx];
+                    Formatting[formatIdx + 2].limit = letterIdx + Formatting[formatIdx].limit - cursorEnd;
+                    Formatting[formatIdx + 1].limit = cursorEnd - cursorBegin;
+                    Formatting[formatIdx].limit = cursorBegin - letterIdx;
+                }
+            }
+            else{
+                Formatting.insert(Formatting.begin(), FormatClass());
+                Formatting[0] = Formatting[1];
+                Formatting[0].limit = cursorEnd;
+                Formatting[0].selected = true;
+                Formatting[1].limit -= cursorEnd;
+            }
+        }
+        else if(cursorEnd > letterIdx && cursorEnd < letterIdx + Formatting[formatIdx].limit){ //Format with only right cursor inside.
+            Formatting.insert(Formatting.begin()+formatIdx+1, FormatClass());
+            Formatting[formatIdx + 1] = Formatting[formatIdx];
+            Formatting[formatIdx + 1].limit = letterIdx + Formatting[formatIdx].limit - cursorEnd;
+            Formatting[formatIdx].limit = cursorEnd - letterIdx;
+            Formatting[formatIdx].selected = true;
+        }
+
+        letterIdx += Formatting[formatIdx].limit;
+    }
+
+    cout << "INI: ";
+    for(unsigned i = 0; i < Formatting.size(); i++){
+        cout << i << ":" << Formatting[i].limit << "; ";
+    }
+    cout << "\n";
+    cout.flush();
+
+    bool firstFound = false;
+    //Find first and last selected formatting.
+    for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
+        if(Formatting[formatIdx].selected){
+            if(!firstFound){
+                leftCursorOnFormatIdx = formatIdx;
+            }
+            rightCursorOnFormatIdx = formatIdx;
+            firstFound = true;
+        }
+        else if(firstFound){
+            break;
+        }
     }
 
     bool shift = false;
@@ -1105,16 +1299,38 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
             continue;
         }
         else if(pKey == ALLEGRO_KEY_RIGHT){
-            if(shift){
-                if(cursorPos < text.size()){
-                    cursorPos++;
+            if(cursorPos == text.size() || secondCursorPos == text.size()){
+                continue;
+            }
+            //Format right letter.
+            if(rightCursorOnFormatIdx < Formatting.size() - 1 && Formatting[rightCursorOnFormatIdx + 1].limit != 1){
+                Formatting[rightCursorOnFormatIdx + 1].limit--;
+                if(Formatting[rightCursorOnFormatIdx].isTheSame(Formatting[rightCursorOnFormatIdx + 1])){
+                    Formatting[rightCursorOnFormatIdx].limit++;
                 }
+                else{
+                    rightCursorOnFormatIdx++;
+                    Formatting.insert(Formatting.begin() + rightCursorOnFormatIdx, FormatClass());
+                    Formatting[rightCursorOnFormatIdx] = Formatting[rightCursorOnFormatIdx + 1];
+                    Formatting[rightCursorOnFormatIdx].limit = 1;
+                }
+            }
+            else if(Formatting[rightCursorOnFormatIdx + 1].limit == 1){
+                rightCursorOnFormatIdx++;
+            }
+            Formatting[rightCursorOnFormatIdx].selected = true;
+            if(shift){
+                cursorPos++;
             }
             else{
                 cursorPos = std::max(cursorPos, secondCursorPos) + 1;
-                cursorPos = std::min(cursorPos, unsigned(text.size()));
                 secondCursorPos = cursorPos;
+                if(rightCursorOnFormatIdx > 0){
+                    Formatting[rightCursorOnFormatIdx - 1].selected = false;
+                }
+                leftCursorOnFormatIdx = rightCursorOnFormatIdx;
             }
+            
             continue;
         }
         else if(!ignoreVerticalArrows && pKey == ALLEGRO_KEY_DOWN){
@@ -1125,6 +1341,25 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
             continue;
         }
         else if(pKey == ALLEGRO_KEY_LEFT){
+            if(cursorPos == 0 || secondCursorPos == 0){
+                continue;
+            }
+            //Format left letter.
+            if(leftCursorOnFormatIdx > 0 && Formatting[leftCursorOnFormatIdx - 1].limit != 1){
+                Formatting[leftCursorOnFormatIdx - 1].limit--;
+                if(Formatting[leftCursorOnFormatIdx].isTheSame(Formatting[leftCursorOnFormatIdx - 1])){
+                    Formatting[leftCursorOnFormatIdx].limit++;
+                }
+                else{
+                    Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FormatClass());
+                    Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx - 1];
+                    Formatting[leftCursorOnFormatIdx].limit = 1;
+                }
+            }
+            else if(leftCursorOnFormatIdx > 0 && Formatting[leftCursorOnFormatIdx - 1].limit == 1){
+                leftCursorOnFormatIdx--;
+            }
+            Formatting[leftCursorOnFormatIdx].selected = true;
             if(shift){
                 if(cursorPos > protectedArea){
                     cursorPos--;
@@ -1134,11 +1369,15 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                 cursorPos = std::min(cursorPos, secondCursorPos) - 1;
                 cursorPos = std::max(cursorPos, protectedArea);
                 secondCursorPos = cursorPos;
+                Formatting[leftCursorOnFormatIdx + 1].selected = false;
+                rightCursorOnFormatIdx = leftCursorOnFormatIdx;
             }
             continue;
         }
 
-        if(deleteFromText(pKey, character, text, control, window)){
+        if(deleteFromText(pKey, text, control, window, leftCursorOnFormatIdx, rightCursorOnFormatIdx,
+            ENABLE_al_set_clipboard_text, internalClipboard, CopiedFormatting))
+        {
             continue;
         }
 
@@ -1146,16 +1385,38 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
             if(pKey == ALLEGRO_KEY_A){
                 cursorPos = 0;
                 secondCursorPos = text.size();
+                for(FormatClass & Format : Formatting){
+                    Format.selected = true;
+                }
+                leftCursorOnFormatIdx = 0;
+                rightCursorOnFormatIdx = Formatting.size() - 1;
                 continue;
             }
             else if(text.size() > 0 && pKey == ALLEGRO_KEY_C){
                 string clipboard = "";
-                if(cursorPos != secondCursorPos){
-                    unsigned selectionStart = std::min(cursorPos, secondCursorPos);
-                    unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
-                    clipboard = text.substr(selectionStart, selectionEnd - selectionStart + 1);
+                unsigned selectionStart = std::min(cursorPos, secondCursorPos);
+                unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+                clipboard = text.substr(selectionStart, selectionEnd - selectionStart + 1);
+                internalClipboard = clipboard;
+
+                if(ENABLE_al_set_clipboard_text){
+                    al_set_clipboard_text(window, clipboard.c_str());
                 }
-                al_set_clipboard_text(window, clipboard.c_str());
+                else{
+                    std::ofstream File("clipboard.txt", std::ios::trunc | std::ios::out);
+                    if(File){
+                        File << internalClipboard;
+                    }
+                    File.close();
+                }
+
+                CopiedFormatting.clear();
+                CopiedFormatting.insert(CopiedFormatting.begin(), Formatting.begin() + leftCursorOnFormatIdx,
+                    Formatting.begin() + rightCursorOnFormatIdx + 1);
+                for(FormatClass & Format : CopiedFormatting){
+                    Format.selected = false;
+                }
+                
                 continue;
             }
             else if(pKey == ALLEGRO_KEY_V){
@@ -1163,13 +1424,23 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                     continue;
                 }
                 string newContent = text.substr(0, std::min(cursorPos, secondCursorPos));
-                if(!al_clipboard_has_text(window)){
-                    continue;
+                
+                string clipboard = "";
+
+                if(ENABLE_al_set_clipboard_text || shift){
+                    if(!al_clipboard_has_text(window)){
+                        continue;
+                    }
+                    clipboard = al_get_clipboard_text(window);
                 }
-                string clipboard = al_get_clipboard_text(window);
+                else{
+                    clipboard = internalClipboard;
+                }
+                
                 if(clipboard.size() == 0){
                     continue;
                 }
+
                 newContent += clipboard;
                 if(cursorPos != secondCursorPos){
                     unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
@@ -1181,9 +1452,45 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                 else{
                     newContent += text.substr(cursorPos, text.size()-cursorPos);
                 }
-                cursorPos = std::min(cursorPos, secondCursorPos);
-                secondCursorPos = cursorPos + clipboard.size() - 1;
+                //cursorPos = std::min(cursorPos, secondCursorPos);
+                //secondCursorPos = cursorPos + clipboard.size() - 1;
+                cursorPos += clipboard.size();
+                secondCursorPos = cursorPos;
                 content = newContent;
+
+                std::vector<FormatClass> FinalFormatting;
+
+                unsigned sumCheck = 0;
+                for(const FormatClass & Format : CopiedFormatting){
+                    sumCheck += Format.limit;
+                }
+
+                if(clipboard != internalClipboard || CopiedFormatting.size() == 0 || internalClipboard.size() != sumCheck){
+                    FinalFormatting.push_back(Formatting[leftCursorOnFormatIdx]);
+                    FinalFormatting.back().limit = clipboard.size();
+                }
+                else{
+                    FinalFormatting.insert(FinalFormatting.begin(), CopiedFormatting.begin(), CopiedFormatting.end());
+                }
+
+                if(leftCursorOnFormatIdx < rightCursorOnFormatIdx){ //If more than one letter is selected.
+                    Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx, Formatting.begin() + rightCursorOnFormatIdx + 1);
+                    if(leftCursorOnFormatIdx >= Formatting.size()){
+                        Formatting.insert(Formatting.end(), FinalFormatting.begin(), FinalFormatting.end());
+                        leftCursorOnFormatIdx = Formatting.size();
+                        Formatting.push_back(*Formatting.end());
+                        Formatting.back().limit++;
+                    }
+                    else{
+                        Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FinalFormatting.begin(), FinalFormatting.end());
+                        leftCursorOnFormatIdx += FinalFormatting.size();
+                    }
+                }
+                else{
+                    Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FinalFormatting.begin(), FinalFormatting.end());
+                    leftCursorOnFormatIdx += FinalFormatting.size();
+                }
+                rightCursorOnFormatIdx = leftCursorOnFormatIdx;
             }
             continue;
         }
@@ -1212,49 +1519,57 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
         
         unsigned selectionStart = std::min(cursorPos, secondCursorPos);
         string newContent = text.substr(0, selectionStart);
-        if(1/*character != '\t'*/){
-            newContent += character;
-            if(cursorPos != secondCursorPos){
-                unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
-                if(selectionEnd >= text.size()){
-                    selectionEnd--;
-                }
-                newContent += text.substr(selectionEnd + 1, text.size()-selectionEnd);
+        
+        newContent += character;
+        if(cursorPos != secondCursorPos){
+            unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+            if(selectionEnd >= text.size()){
+                selectionEnd--;
             }
-            else{
-                newContent += text.substr(cursorPos, text.size()-cursorPos);
-                selectionStart++;
-            }
-            cursorPos = selectionStart;
-            secondCursorPos = cursorPos;
+            newContent += text.substr(selectionEnd + 1, text.size()-selectionEnd);
         }
-        /*else{
-            unsigned tmpCursor = 0, tabCounter = 0;
-            for(; tmpCursor < selectionStart; tmpCursor++, tabCounter++){
-                if(text[tmpCursor] == '\t'){
-                    tabCounter += getCurrentTabLength(tabCounter);
-                }
-            }
-            for(unsigned i = 0; i < getCurrentTabLength(tabCounter) + 1; i++){
-                newContent += " ";
-            }
-            if(cursorPos != secondCursorPos){
-                unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
-                if(selectionEnd >= text.size()){
-                    selectionEnd--;
-                }
-                newContent += text.substr(selectionEnd + 1, text.size()-selectionEnd);
-            }
-            else{
-                newContent += text.substr(cursorPos, text.size()-cursorPos);
-                selectionStart += getCurrentTabLength(tabCounter) + 1;
-            }
-            cursorPos = selectionStart;
-            secondCursorPos = cursorPos;
-        }*/
+        else{
+            newContent += text.substr(cursorPos, text.size()-cursorPos);
+            selectionStart++;
+        }
+        cursorPos = selectionStart;
+        secondCursorPos = cursorPos;
 
         content = newContent;
-    }
 
-    update(cursorPos, secondCursorPos, true);
+        //Remove selected formatting.
+        if(leftCursorOnFormatIdx < rightCursorOnFormatIdx){
+            Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1, Formatting.begin() + rightCursorOnFormatIdx + 1);
+            Formatting[leftCursorOnFormatIdx].limit = 1; //Add one letter to formatting.
+        }
+        else{
+            if(leftCursorOnFormatIdx > 0){
+                Formatting[leftCursorOnFormatIdx - 1].limit++; //Add one letter to formatting.
+            }
+            else{
+                Formatting.insert(Formatting.begin(), FormatClass());
+                Formatting[0] = Formatting[1];
+                Formatting[0].selected = false;
+                Formatting[0].limit = 1; //Add one letter to formatting.
+            }
+        }
+        rightCursorOnFormatIdx = leftCursorOnFormatIdx;
+    }
+    
+    cout << "PRE: ";
+    for(unsigned i = 0; i < Formatting.size(); i++){
+        cout << i << ":" << Formatting[i].limit << "; ";
+    }
+    cout << "\n";
+    cout.flush();
+    update();
+    textLines.back() += ' ';
+    Formatting.back().drawingLimit++;
+    lineLengths.back()++;
+    cout << "END: ";
+    for(unsigned i = 0; i < Formatting.size(); i++){
+        cout << i << ":" << Formatting[i].limit << "; ";
+    }
+    cout << "\n";
+    cout.flush();
 }

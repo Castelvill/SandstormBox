@@ -110,16 +110,20 @@ fun SuperText add_format string [cascadia_code] int [4]
 fun SuperText set_color int [3] double [1.0 0.0 1.0 1.0]
 fun SuperText set_accent_color int [3] double [1.0 1.0 0.0 1.0]
 fun SuperText set_selected int [3] bool [false]
-fun SuperText set_offset int [3] double [0 0]
-fun SuperText add_format string [cascadia_code] int [15]
+fun SuperText set_offset int [3] double [0 10]
+fun SuperText add_format string [cascadia_code] int [12]
 fun SuperText set_color int [4] double [1.0 1.0 0.0 1.0]
 fun SuperText set_size double [420 300]
-fun SuperText set_wrapping string [n]
+fun SuperText set_wrapping string [w]
 fun SuperText set_horizontal_align string [l]
 fun SuperText set_vertical_align string [u]
 fun SuperText update
 fun SuperText set_is_editing_active bool [true]
 fun SuperText attach_to_camera
+fun SuperText set_input_delay double [0.3]
+fun SuperText set_repetition_delay double [0.05]
+fun SuperText set_padding_between_lines double [-5]
+fun SuperText set_draw_selection_first bool [true]
 //fun SuperText crop_size_to_text
 
 int [420] smolW

@@ -181,6 +181,11 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
     switch(Engine.event.type){
         case ALLEGRO_EVENT_TIMER:
             delayEditableTextFields();
+            if(ActiveEditableText != nullptr && ActiveEditableText->isEditingActive
+                && ActiveEditableText->currentInputDelay > 0.0
+            ){
+                ActiveEditableText->currentInputDelay -= 1/FPS; 
+            }
             selectCamera(true, Engine.Mouse, Engine.pressedKeys, Engine.releasedKeys, Engine.focusedProcessID);
             moveObjects(Engine.pressedKeys, Engine.Mouse);
             moveParticles(Engine.pressedKeys, Engine.releasedKeys);
@@ -243,7 +248,8 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
         && ActiveEditableText->isEditingActive
         && (Engine.releasedKeys.size() > 0 || Engine.pressedKeys.size() > 0)
     ){
-        ActiveEditableText->edit(Engine.releasedKeys, Engine.pressedKeys, Engine.display);
+        ActiveEditableText->edit(Engine.releasedKeys, Engine.pressedKeys, Engine.display,
+            Engine.ENABLE_al_set_clipboard_text, Engine.internalClipboard, Engine.CopiedFormatting);
     }
 
     if(canUserInteract && Engine.focusedProcessID == getID()

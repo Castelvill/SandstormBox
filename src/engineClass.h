@@ -49,6 +49,10 @@ public:
     vec2i displaySize;
     bool fullscreen;
     bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
+    bool ENABLE_al_set_clipboard_text; //al_set_clipboard_text can cause undefined behavior on GNU/Linux (it depends on window manager used).
+
+    string internalClipboard;
+    vector<FormatClass> CopiedFormatting;
 
     bool closeProgram, reboot, redraw, displayResized;
     string EXE_PATH;
@@ -68,7 +72,6 @@ public:
 
     void resetState(string title);
     EngineClass();
-    void prepare();
     void initAllegro();
     void clear();
     void exitAllegro();

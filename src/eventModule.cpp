@@ -253,7 +253,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
         SuperText->addScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "update"){
-        SuperText->update(0, 0, false);
+        SuperText->update();
     }
     else if(attribute == "crop_size_to_text"){
         SuperText->cropSizeToText();
@@ -368,6 +368,9 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     else if(attribute == "set_tab_length" && Values.size() >= 1){
         SuperText->setTabLength(Values[0].getIntUnsafe());
     }
+    else if(attribute == "set_draw_selection_first" && Values.size() >= 1){
+        SuperText->drawSelectionFirst = Values[0].getBoolUnsafe();
+    }
     else{
         bool temp = false;
         if(Values.size() > 0){
@@ -423,10 +426,6 @@ void EveModule::controlSuperEditableText(SuperEditableTextModule * SuperEditable
     }
     else if(attribute == "set_protected_area" && Values.size() > 0){
         SuperEditableText->protectedArea = Values[0].getIntUnsafe();
-    }
-    else if(attribute == "update"){
-        SuperEditableText->update(SuperEditableText->cursorPos, SuperEditableText->secondCursorPos, 
-            SuperEditableText->isEditingActive);
     }
     else{
         controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer);

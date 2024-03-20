@@ -1,7 +1,6 @@
 #ifndef ALLOBJECTS_H_INCLUDED
 #define ALLOBJECTS_H_INCLUDED
 #include "eventModule.h"
-#include <fstream>
 
 //Struct of vectors
 struct ModulesPointers{

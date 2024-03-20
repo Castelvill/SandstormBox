@@ -2,15 +2,17 @@
 #define SUPERTEXTMODULE_H_INCLUDED
 
 #include "textModule.h"
+#include <fstream>
 
 class FormatClass{
 public:
     ALLEGRO_COLOR color;
     ALLEGRO_COLOR accentColor;
-    SingleFont * Font;
+    SingleFont * Font; //Not a dynamic pointer.
     vec2f offset;
     bool selected;
-    size_t limit;
+    size_t limit, drawingLimit;
+    bool isTheSame(const FormatClass & Compare);
 };
 
 class SuperTextModule: public PrimaryModule{
@@ -29,6 +31,8 @@ public:
     float rotation;
     unsigned short tabLength;
 
+    bool drawSelectionFirst; //If true, whole text content is rendered twice, first - only the selection, second - only the text.  
+
     void setUpNewInstance();
     SuperTextModule();
     SuperTextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
@@ -37,12 +41,16 @@ public:
     void clone(const SuperTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clear();
 
-    void update(unsigned cursorPos, unsigned secondCursorPos, bool useCursor);
+    void update();
     void cropSizeToText();
 
     VariableModule getAttributeValue(const string &attribute, const string &detail) const;
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
-    void drawFormattedString(string text, vec2d finalPos, size_t lineIdx, vector<FormatClass>::iterator Format);
+    
+    void drawFormattedString(string text, vec2d finalPos, size_t lineIdx,
+        vector<FormatClass>::iterator Format, bool drawSelection
+    );
+    void drawAllLines(vec2d finalPos, bool drawSelection);
     void draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos,
         unsigned secondCursorPos, bool editingIsActive
     );
@@ -83,6 +91,7 @@ public:
 class SuperEditableTextModule : public SuperTextModule{
 public:
     vector<string> previousContent, futureContent; //Checkpoints for content history - undo and redo.
+    vector<FormatClass> previousFormatting, futureFormatting;
 
     bool canBeEdited;
     bool canUseSpace;
@@ -116,12 +125,17 @@ public:
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
-    bool deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * window);
+    bool deleteFromText(char pKey, string text, bool & control, ALLEGRO_DISPLAY * window,
+        unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
+        bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+    );
     void getNumbers(char pKey, char & character, bool shift);
     void addFloatingPoint(char pKey, char & character, string text);
     bool addMinus(char pKey, char & character, string text);
     void getLetters(char pKey, char & character, bool shift);
-    void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window);
+    void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
+        bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+    );
 };
 
 #endif

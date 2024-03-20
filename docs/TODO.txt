@@ -1,6 +1,7 @@
--Implement in SuperEditableTextModule;
+-Implement SuperEditableTextModule (cursor on start, try to optimize dividing formatting by cursors, merge formatting, up-down arrows, mouse selection).
 -Fix: zooming edited text can move its position.
 -Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every clicked space just like in vs code.
+-Add previous and future formatting for undo and redo.
 -After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
 -Remove unused functions and methods.
 -Clone KDE theme "Dark Breeze".
@@ -61,6 +62,7 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 
 -You should be able to save any type of entity from the engine by using "save <context> <fileName> [force]" instruction. Saving entity or a vector of entities (context) firstly writes a type and number of entities to the file and then all entities' data. If the file already exists and have any content inside, instruction will fail. By using force, engine will overwrite the previous content of the chosen file.
 -Add "load <fileName> <context> [force]" instruction. Load will overwrite all entities in the context based on the contents of the file. If the user doesn't provide big enough context, instruction will fail. By using force, engine will create new (valid number of) entities, add them to the context and finally overwrite everything.
+-Add "version" variable to each entity. This version will be saved to the file with each entity. Later, if any changes are made to any entity, you will be able to create a converter, which will convert any old entity to its newest version. This is crucial for the backwards compatibility.
 -Projects will be the another type of entity and it will just add new way of saving and loading entities.
 -Add hyperlinks to the SuperText. Clicking them will trigger an event.
 -Create LayerManagerWindow / Project tree.
@@ -112,8 +114,9 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 -MILESTONE: Make donut.cpp with EGM script.
 
 OPTIMALIZATIONS
+-For large scale simulation: Divide game map to different threads based on camera position. The main thread will have rights to draw things and others will be focusing on processing stuff.
 -Function createNewModule recalculates indexes of all modules for each module added. Remove template and create custom index recalculation for each module.
--Bounding volume hierarchy – group objects into “boxes/chunks” and iterate only through chunks where the player is (could work only for collisions). 
+-Bounding volume hierarchy (or marching squares) – group objects into the biggest “boxes/chunks” possible and iterate only through chunks where is the player (could work only for collisions). 
 -Declare variables as locally as possible.
 -Replace every vec2d with vec2f.
 -Replace big if else statements with switch and enum.

@@ -152,6 +152,8 @@ void EngineClass::initAllegro(){
 
     al_start_timer(timer);
 
+    ENABLE_al_set_clipboard_text = false;
+
     std::ifstream File(EXE_PATH+"config");
     unsigned short samples = 0;
     unsigned bufferSizeX = 1920, bufferSizeY = 1080;
@@ -166,9 +168,12 @@ void EngineClass::initAllegro(){
                 File >> bufferSizeX;
                 File >> bufferSizeY;
             }
+            else if(name == "ENABLE_al_set_clipboard_text"){
+                ENABLE_al_set_clipboard_text = true;
+            }
         }
-        File.close();
 	}
+    File.close();
     
     if(samples > 8){
         samples = 8;
@@ -202,14 +207,12 @@ void EngineClass::initAllegro(){
         al_set_display_icon(display, iconBitmap);
     }
 }
-void EngineClass::prepare(){
-
-}
 void EngineClass::clear(){
     processIDs.clear();
     releasedKeys.clear();
     firstPressedKeys.clear();
     pressedKeys.clear();
+    CopiedFormatting.clear();
 }
 void EngineClass::exitAllegro(){
     freeFontsFromContainer(FontContainer);
@@ -225,6 +228,8 @@ void EngineClass::exitAllegro(){
     if(iconBitmap){
         al_destroy_bitmap(iconBitmap);
     }
+    //al_uninstall_keyboard();
+    //al_uninstall_system();
 }
 void EngineClass::updateEvents(){
     switch(event.type){
