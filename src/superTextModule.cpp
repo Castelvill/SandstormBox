@@ -1190,19 +1190,11 @@ void SuperEditableTextModule::getLetters(char pKey, char & character, bool shift
         character = '\0';
     }
 }
-void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
-    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
-){
-    if(!getIsActive() || !isEditingActive){
-        return;
-    }
-
+void SuperEditableTextModule::divideFormattingByCursor(){
     unsigned cursorBegin = std::min(cursorPos, secondCursorPos);
     unsigned cursorEnd = std::max(cursorPos, secondCursorPos) + 1;
     unsigned letterIdx = 0;
     unsigned formatIdx = 0;
-    unsigned leftCursorOnFormatIdx = 0;
-    unsigned rightCursorOnFormatIdx = 0;
 
     cout << "STA: ";
     for(unsigned i = 0; i < Formatting.size(); i++){
@@ -1256,16 +1248,33 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
         letterIdx += Formatting[formatIdx].limit;
     }
 
+    cout << "DIV: ";
+    for(unsigned i = 0; i < Formatting.size(); i++){
+        cout << i << ":" << Formatting[i].limit << "; ";
+    }
+    cout << "\n";
+    cout.flush();
+}
+void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
+    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+){
+    if(!getIsActive() || !isEditingActive){
+        return;
+    }
+    
     cout << "INI: ";
     for(unsigned i = 0; i < Formatting.size(); i++){
         cout << i << ":" << Formatting[i].limit << "; ";
     }
     cout << "\n";
     cout.flush();
+    
+    unsigned leftCursorOnFormatIdx = 0;
+    unsigned rightCursorOnFormatIdx = 0;
 
     bool firstFound = false;
     //Find first and last selected formatting.
-    for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
+    for(unsigned formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
         if(Formatting[formatIdx].selected){
             if(!firstFound){
                 leftCursorOnFormatIdx = formatIdx;

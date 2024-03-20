@@ -132,6 +132,7 @@ public:
     void getNumbers(char pKey, char & character, bool shift);
     void addFloatingPoint(char pKey, char & character, string text);
     bool addMinus(char pKey, char & character, string text);
+    void divideFormattingByCursor();
     void getLetters(char pKey, char & character, bool shift);
     void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
         bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting

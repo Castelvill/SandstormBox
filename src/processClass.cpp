@@ -9893,6 +9893,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> 
                     )){
                         ActiveEditableText = &SuperEditableText;
                         ActiveEditableText->isEditingActive = true;
+                        ActiveEditableText->divideFormattingByCursor();
                         break;
                     }
                 }
