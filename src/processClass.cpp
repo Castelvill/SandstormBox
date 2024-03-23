@@ -9873,10 +9873,17 @@ void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> 
         if(!Mouse.pressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             continue;
         }
-        if(ActiveEditableText != nullptr){
+        
+        //Disable currently eddited text field
+        if(ActiveEditableText != nullptr){ 
             ActiveEditableText->isEditingActive = false;
+            for(FormatClass & Format : ActiveEditableText->Formatting){
+                Format.selected = false;
+            }
+            ActiveEditableText->update();
+            ActiveEditableText = nullptr;
         }
-        ActiveEditableText = nullptr;
+
         for(AncestorObject & Object : Layer.Objects){
             if(Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera), Object.getSize(),
                 0, Object.getIsAttachedToCamera(), SelectedCamera
@@ -9893,6 +9900,8 @@ void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> 
                     )){
                         ActiveEditableText = &SuperEditableText;
                         ActiveEditableText->isEditingActive = true;
+                        ActiveEditableText->cursorPos = 0;
+                        ActiveEditableText->secondCursorPos = 0;
                         ActiveEditableText->divideFormattingByCursor();
                         break;
                     }

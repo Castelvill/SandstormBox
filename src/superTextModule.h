@@ -30,6 +30,7 @@ public:
     float paddingBetweenLines;
     float rotation;
     unsigned short tabLength;
+    unsigned firstLineWithSelection, lastLineWithSelection;
 
     bool drawSelectionFirst; //If true, whole text content is rendered twice, first - only the selection, second - only the text.  
 
@@ -134,6 +135,9 @@ public:
     bool addMinus(char pKey, char & character, string text);
     void divideFormattingByCursor();
     void getLetters(char pKey, char & character, bool shift);
+    void moveCursorDown(const string & text, bool shift);
+    void moveCursorToLeft(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
+    void moveCursorToRight(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
         bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
     );

@@ -18,6 +18,8 @@ void SuperTextModule::setUpNewInstance(){
     paddingBetweenLines = 0.0;
     rotation = 0.0;
     scale.set(1.0, 1.0);
+    firstLineWithSelection = 0;
+    lastLineWithSelection = 0;
     drawSelectionFirst = false;
 }
 SuperTextModule::SuperTextModule(){
@@ -57,6 +59,9 @@ void SuperTextModule::update(){
     lineLengths.clear();
     lineLengths.push_back(0);
     realTextSize.set(0.0, 0.0);
+    firstLineWithSelection = 0;
+    lastLineWithSelection = 0;
+    bool isFirstSelectionLineFound = false;
 
     if(Formatting.size() == 0){
         cout << "Warning: In " << __FUNCTION__ << ": In SuperText '" << ID << "': Text does not have any formatting.\n";
@@ -68,7 +73,7 @@ void SuperTextModule::update(){
     float letterWidth = 0.0, wordWidth = 0.0, wordWidthBehind = 0.0, lineWidth = 0.0;
     
     //Merge the same formatting.
-    /*for(unsigned formatIdx = 0; formatIdx < Formatting.size() - 1;){
+    for(unsigned formatIdx = 0; formatIdx < Formatting.size() - 1;){
         if(Formatting[formatIdx].isTheSame(Formatting[formatIdx + 1])){
             Formatting[formatIdx].limit += Formatting[formatIdx + 1].limit;
             Formatting.erase(Formatting.begin() + formatIdx + 1);
@@ -76,13 +81,27 @@ void SuperTextModule::update(){
         else{
             formatIdx++;
         }
-    }*/
+    }
+
+    //Expand the last formatting to match full text
+    unsigned letterLimitSum = 0;
+    for(const FormatClass & Format : Formatting){
+        letterLimitSum += Format.limit;
+    }
+    if(letterLimitSum < content.size()){
+        letterLimitSum -= Formatting.back().limit;
+        Formatting.back().limit = content.size() - letterLimitSum + 1;
+    }
 
     for(FormatClass & Format : Formatting){
         Format.drawingLimit = 0;
     }
 
     vector<FormatClass>::iterator Format = Formatting.begin();
+    if(Format->selected){
+        isFirstSelectionLineFound = true;
+    }
+
     bool ignoreLine = false; //Works when wrapped=='c'. Ignores the part of the text in the line that is out of the scope of text field.
 
     for(; letterIdx < content.size(); letterIdx++){
@@ -96,6 +115,15 @@ void SuperTextModule::update(){
             if(!ignoreLine){
                 lineLength++;
             }
+
+            if(Format->selected){
+                if(!isFirstSelectionLineFound){
+                    firstLineWithSelection = textLines.size() - 1;
+                    isFirstSelectionLineFound = true;
+                }
+                lastLineWithSelection = textLines.size() - 1;
+            }
+
             textLines.back() += ' ';
             textLines.push_back("");
             
@@ -160,6 +188,13 @@ void SuperTextModule::update(){
             }
             formatLimit++;
             if(formatLimit == Format->limit){
+                if(Format->selected){
+                    if(!isFirstSelectionLineFound){
+                        firstLineWithSelection = textLines.size() - 1;
+                        isFirstSelectionLineFound = true;
+                    }
+                    lastLineWithSelection = textLines.size() - 1;
+                }
                 Format++;
                 formatLimit = 0;
             }
@@ -224,6 +259,13 @@ void SuperTextModule::update(){
             textLines.back() += letter;
             formatLimit++;
             if(formatLimit == Format->limit){
+                if(Format->selected){
+                    if(!isFirstSelectionLineFound){
+                        firstLineWithSelection = textLines.size() - 1;
+                        isFirstSelectionLineFound = true;
+                    }
+                    lastLineWithSelection = textLines.size() - 1;
+                }
                 Format++;
                 formatLimit = 0;
             }
@@ -232,10 +274,18 @@ void SuperTextModule::update(){
             }
         }
     }
-
+    
     if(Format != Formatting.end()){
+        if(Format->selected){
+            if(!isFirstSelectionLineFound){
+                firstLineWithSelection = textLines.size() - 1;
+                isFirstSelectionLineFound = true;
+            }
+            lastLineWithSelection = textLines.size() - 1;
+        }
         realTextSize.y += Format->Font->height; //add the last line
     }
+    cout << "Selected lines: " << firstLineWithSelection << " to " << lastLineWithSelection << "\n";
     if(textLines.size() > 1){
         realTextSize.y += paddingBetweenLines;
     }
@@ -1007,6 +1057,7 @@ bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & cont
             if(Formatting[leftCursorOnFormatIdx].limit == 1){
                 Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
                 Formatting[leftCursorOnFormatIdx].limit = 1;
+                Formatting[leftCursorOnFormatIdx].selected = true;
                 Formatting[leftCursorOnFormatIdx + 1].limit--;
                 if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
                     Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
@@ -1016,12 +1067,12 @@ bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & cont
                 Formatting[leftCursorOnFormatIdx].limit--;
             }
 
-            cout << "DEL: ";
+            /*cout << "DEL: ";
             for(unsigned i = 0; i < Formatting.size(); i++){
                 cout << i << ":" << Formatting[i].limit << "; ";
             }
             cout << "\n";
-            cout.flush();
+            cout.flush();*/
         }
         content = newContent;
         secondCursorPos = cursorPos;
@@ -1196,12 +1247,12 @@ void SuperEditableTextModule::divideFormattingByCursor(){
     unsigned letterIdx = 0;
     unsigned formatIdx = 0;
 
-    cout << "STA: ";
+    /*cout << "STA: ";
     for(unsigned i = 0; i < Formatting.size(); i++){
         cout << i << ":" << Formatting[i].limit << "; ";
     }
     cout << "\n";
-    cout.flush();
+    cout.flush();*/
 
     for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
         Formatting[formatIdx].selected = false;
@@ -1248,12 +1299,253 @@ void SuperEditableTextModule::divideFormattingByCursor(){
         letterIdx += Formatting[formatIdx].limit;
     }
 
-    cout << "DIV: ";
+    update();
+
+    /*cout << "DIV: ";
     for(unsigned i = 0; i < Formatting.size(); i++){
         cout << i << ":" << Formatting[i].limit << "; ";
     }
     cout << "\n";
-    cout.flush();
+    cout.flush();*/
+}
+void SuperEditableTextModule::moveCursorDown(const string & text, bool shift){
+    //Find the line where the cursor is located.
+    //unsigned currentLine = 0;
+
+    /*
+    unsigned newCursor;
+    
+    for(newCursor = cursorPos; newCursor > 0; newCursor--){
+        if(text[newCursor] == '\n' && newCursor != cursorPos){
+            break;
+        }
+    }
+    
+    unsigned tempCursor, preLineLength = 0, newLineLength = 0, tabCounter = 0;
+    for(tempCursor = newCursor + 1; tempCursor < cursorPos; tempCursor++, tabCounter++){
+        if(text[tempCursor] == '\t'){
+            preLineLength += tabLength - tabCounter % tabLength;
+            if(tabLength > 0){
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        else{
+            preLineLength++;
+        }
+    }
+
+    bool cursorOnLastLine = true;
+    for(newCursor = cursorPos; newCursor < text.size(); newCursor++){
+        if(text[newCursor] == '\n'){
+            cursorOnLastLine = false;
+            newCursor++;
+            break;
+        }
+    }
+    if(cursorOnLastLine){
+        return;
+    }
+    
+    unsigned newLineTabsLength = 0;
+    for(tempCursor = newCursor, tabCounter = 0; text[tempCursor] != '\n' && tempCursor < text.size(); tempCursor++, tabCounter++){
+        if(text[tempCursor] == '\t'){
+            newLineLength += tabLength - tabCounter % tabLength;
+            newLineTabsLength += getCurrentTabLength(tabCounter);
+            if(tabLength > 0){
+                tabCounter += getCurrentTabLength(tabCounter);
+            }
+        }
+        else{
+            newLineLength++;
+        }
+    }
+
+    if(preLineLength == 0){
+        cursorPos = newCursor;
+    }
+    else if(newLineLength > preLineLength){
+        if(newLineTabsLength > 0){
+            cursorPos = newCursor;
+            //Find a local minimum on the new line.
+            tabCounter = 0;
+            for(; preLineLength > 0; preLineLength--, tabCounter++){
+                if(text[cursorPos] == '\t'){
+                    if(preLineLength < tabLength - tabCounter % tabLength){
+                        break;
+                    }
+                    else{
+                        preLineLength -= getCurrentTabLength(tabCounter);
+                        tabCounter += getCurrentTabLength(tabCounter);
+                    }
+                }
+                cursorPos++;
+            }
+        }
+        else{
+            cursorPos = newCursor + preLineLength;
+        }
+    }
+    else{
+        cursorPos = newCursor + newLineLength - newLineTabsLength;
+    }
+    if(!shift){
+        secondCursorPos = cursorPos;
+    }*/
+}
+void SuperEditableTextModule::moveCursorToLeft(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
+    if(!shift){
+        cursorPos = std::min(cursorPos, secondCursorPos);
+        if(cursorPos > 0){
+            cursorPos--;
+        }
+        cursorPos = std::max(cursorPos, protectedArea);
+        secondCursorPos = cursorPos;
+
+        //Seperate the format of the letter on the left if possible.
+        if(leftCursorOnFormatIdx > 0){
+            if(Formatting[leftCursorOnFormatIdx - 1].limit > 1){
+                Formatting[leftCursorOnFormatIdx - 1].limit--;
+                Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FormatClass());
+                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx - 1];
+                Formatting[leftCursorOnFormatIdx].limit = 1;
+                rightCursorOnFormatIdx++;
+            }
+            else{
+                leftCursorOnFormatIdx--;
+            }
+        }
+        else{
+            if(Formatting[0].limit > 1){
+                Formatting.insert(Formatting.begin(), FormatClass());
+                Formatting[0] = Formatting[1];
+                Formatting[0].limit = 1;
+                Formatting[1].limit--;
+                rightCursorOnFormatIdx++;
+            }
+        }
+
+        Formatting[leftCursorOnFormatIdx].selected = true;
+
+        //Unselect all formatting on the right.
+        for(unsigned formatIdx = leftCursorOnFormatIdx + 1; formatIdx <= rightCursorOnFormatIdx; formatIdx++){
+            Formatting[formatIdx].selected = false;
+        }
+
+        rightCursorOnFormatIdx = leftCursorOnFormatIdx;
+    }
+    else{
+        if(cursorPos <= secondCursorPos){
+            if(leftCursorOnFormatIdx > 0){
+                if(Formatting[leftCursorOnFormatIdx - 1].limit > 1){
+                    Formatting[leftCursorOnFormatIdx - 1].limit--;
+                    Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FormatClass());
+                    Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx - 1];
+                    Formatting[leftCursorOnFormatIdx].limit = 1;
+                    rightCursorOnFormatIdx++;
+                }
+                else{
+                    leftCursorOnFormatIdx--;
+                }
+                Formatting[leftCursorOnFormatIdx].selected = true;
+            }
+        }
+        else{
+            if(Formatting[rightCursorOnFormatIdx].limit > 1){
+                if(rightCursorOnFormatIdx + 1 < Formatting.size()){
+                    Formatting[rightCursorOnFormatIdx].limit--;
+                    Formatting.insert(Formatting.begin() + rightCursorOnFormatIdx + 1, FormatClass());
+                    Formatting[rightCursorOnFormatIdx + 1] = Formatting[rightCursorOnFormatIdx];
+                    Formatting[rightCursorOnFormatIdx + 1].limit = 1;
+                    Formatting[rightCursorOnFormatIdx + 1].selected = false;
+                }
+                else{
+                    Formatting.push_back(FormatClass());
+                    Formatting[rightCursorOnFormatIdx + 1] = Formatting[rightCursorOnFormatIdx];
+                    Formatting[rightCursorOnFormatIdx + 1].limit = 1;
+                    Formatting[rightCursorOnFormatIdx + 1].selected = false;
+                }
+            }
+            else{
+                Formatting[rightCursorOnFormatIdx].selected = false;
+                rightCursorOnFormatIdx--;
+            }
+        }
+
+        if(cursorPos > 0){
+            cursorPos--;
+        }
+    }
+}
+void SuperEditableTextModule::moveCursorToRight(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
+    if(!shift){
+        cursorPos = std::max(cursorPos, secondCursorPos);
+        if(cursorPos < content.size()){
+            cursorPos++;
+        }
+        secondCursorPos = cursorPos;
+
+        //Seperate the format of the letter on the right if possible.
+        if(rightCursorOnFormatIdx + 1 < Formatting.size()){
+            if(Formatting[rightCursorOnFormatIdx + 1].limit > 1){
+                Formatting[rightCursorOnFormatIdx + 1].limit--;
+                Formatting.insert(Formatting.begin() + rightCursorOnFormatIdx + 1, FormatClass());
+                Formatting[rightCursorOnFormatIdx + 1] = Formatting[rightCursorOnFormatIdx + 2];
+                Formatting[rightCursorOnFormatIdx + 1].limit = 1;
+            }
+            rightCursorOnFormatIdx++;
+        }
+        else{
+            if(Formatting.back().limit > 1){
+                Formatting.push_back(FormatClass());
+                Formatting.back() = Formatting[rightCursorOnFormatIdx];
+                Formatting.back().limit = 1;
+                Formatting[rightCursorOnFormatIdx].limit--;
+                rightCursorOnFormatIdx++;
+            }
+        }
+
+        Formatting[rightCursorOnFormatIdx].selected = true;
+
+        //Unselect all formatting on the right.
+        for(unsigned formatIdx = rightCursorOnFormatIdx - 1; formatIdx >= 0; formatIdx--){
+            Formatting[formatIdx].selected = false;
+            if(formatIdx == 0){
+                break;
+            }
+        }
+        leftCursorOnFormatIdx = rightCursorOnFormatIdx;
+    }
+    else{
+        if(cursorPos >= secondCursorPos){
+            if(rightCursorOnFormatIdx + 1 < Formatting.size()){
+                if(Formatting[rightCursorOnFormatIdx + 1].limit > 1){
+                    Formatting[rightCursorOnFormatIdx + 1].limit--;
+                    Formatting.insert(Formatting.begin() + rightCursorOnFormatIdx + 1, FormatClass());
+                    Formatting[rightCursorOnFormatIdx + 1] = Formatting[rightCursorOnFormatIdx + 2];
+                    Formatting[rightCursorOnFormatIdx + 1].limit = 1;
+                }
+                rightCursorOnFormatIdx++;
+                Formatting[rightCursorOnFormatIdx].selected = true;
+            }
+        }
+        else{
+            if(Formatting[leftCursorOnFormatIdx].limit > 1){
+                Formatting[leftCursorOnFormatIdx].limit--;
+                Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FormatClass());
+                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
+                Formatting[leftCursorOnFormatIdx].limit = 1;
+                Formatting[leftCursorOnFormatIdx].selected = false;
+            }
+            else{
+                Formatting[leftCursorOnFormatIdx].selected = false;
+                leftCursorOnFormatIdx++;
+            }
+        }
+
+        if(cursorPos < content.size()){
+            cursorPos++;
+        }
+    }
 }
 void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
     bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
@@ -1262,12 +1554,12 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
         return;
     }
     
-    cout << "INI: ";
+    /*cout << "INI: ";
     for(unsigned i = 0; i < Formatting.size(); i++){
         cout << i << ":" << Formatting[i].limit << "; ";
     }
     cout << "\n";
-    cout.flush();
+    cout.flush();*/
     
     unsigned leftCursorOnFormatIdx = 0;
     unsigned rightCursorOnFormatIdx = 0;
@@ -1308,7 +1600,9 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
             continue;
         }
         else if(pKey == ALLEGRO_KEY_RIGHT){
-            if(cursorPos == text.size() || secondCursorPos == text.size()){
+            moveCursorToRight(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
+            
+            /*if(cursorPos == text.size() || secondCursorPos == text.size()){
                 continue;
             }
             //Format right letter.
@@ -1327,18 +1621,19 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
             else if(Formatting[rightCursorOnFormatIdx + 1].limit == 1){
                 rightCursorOnFormatIdx++;
             }
-            Formatting[rightCursorOnFormatIdx].selected = true;
+            
             if(shift){
                 cursorPos++;
             }
             else{
                 cursorPos = std::max(cursorPos, secondCursorPos) + 1;
                 secondCursorPos = cursorPos;
-                if(rightCursorOnFormatIdx > 0){
-                    Formatting[rightCursorOnFormatIdx - 1].selected = false;
+                for(FormatClass & Format : Formatting){
+                    Format.selected = false;
                 }
                 leftCursorOnFormatIdx = rightCursorOnFormatIdx;
             }
+            Formatting[rightCursorOnFormatIdx].selected = true;*/
             
             continue;
         }
@@ -1346,41 +1641,11 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
             if(cursorPos >= text.size()){
                 continue;
             }
-            //moveCursorDown(text, shift);
+            moveCursorDown(text, shift);
             continue;
         }
         else if(pKey == ALLEGRO_KEY_LEFT){
-            if(cursorPos == 0 || secondCursorPos == 0){
-                continue;
-            }
-            //Format left letter.
-            if(leftCursorOnFormatIdx > 0 && Formatting[leftCursorOnFormatIdx - 1].limit != 1){
-                Formatting[leftCursorOnFormatIdx - 1].limit--;
-                if(Formatting[leftCursorOnFormatIdx].isTheSame(Formatting[leftCursorOnFormatIdx - 1])){
-                    Formatting[leftCursorOnFormatIdx].limit++;
-                }
-                else{
-                    Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FormatClass());
-                    Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx - 1];
-                    Formatting[leftCursorOnFormatIdx].limit = 1;
-                }
-            }
-            else if(leftCursorOnFormatIdx > 0 && Formatting[leftCursorOnFormatIdx - 1].limit == 1){
-                leftCursorOnFormatIdx--;
-            }
-            Formatting[leftCursorOnFormatIdx].selected = true;
-            if(shift){
-                if(cursorPos > protectedArea){
-                    cursorPos--;
-                }
-            }
-            else{
-                cursorPos = std::min(cursorPos, secondCursorPos) - 1;
-                cursorPos = std::max(cursorPos, protectedArea);
-                secondCursorPos = cursorPos;
-                Formatting[leftCursorOnFormatIdx + 1].selected = false;
-                rightCursorOnFormatIdx = leftCursorOnFormatIdx;
-            }
+            moveCursorToLeft(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
             continue;
         }
 
@@ -1565,20 +1830,22 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
         rightCursorOnFormatIdx = leftCursorOnFormatIdx;
     }
     
-    cout << "PRE: ";
+    /*cout << "PRE: ";
     for(unsigned i = 0; i < Formatting.size(); i++){
         cout << i << ":" << Formatting[i].limit << "; ";
     }
     cout << "\n";
-    cout.flush();
+    cout.flush();*/
+
     update();
     textLines.back() += ' ';
     Formatting.back().drawingLimit++;
     lineLengths.back()++;
-    cout << "END: ";
+    
+    /*cout << "END: ";
     for(unsigned i = 0; i < Formatting.size(); i++){
         cout << i << ":" << Formatting[i].limit << "; ";
     }
     cout << "\n";
-    cout.flush();
+    cout.flush();*/
 }
