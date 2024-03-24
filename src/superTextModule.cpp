@@ -18,9 +18,11 @@ void SuperTextModule::setUpNewInstance(){
     paddingBetweenLines = 0.0;
     rotation = 0.0;
     scale.set(1.0, 1.0);
-    firstLineWithSelection = 0;
-    lastLineWithSelection = 0;
     drawSelectionFirst = false;
+    cursorPos = 0;
+    secondCursorPos = 0;
+    localCursorPos = 0;
+    realLocalCursorPos = 0;
 }
 SuperTextModule::SuperTextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -59,18 +61,14 @@ void SuperTextModule::update(){
     lineLengths.clear();
     lineLengths.push_back(0);
     realTextSize.set(0.0, 0.0);
-    firstLineWithSelection = 0;
-    lastLineWithSelection = 0;
-    bool isFirstSelectionLineFound = false;
+    localCursorPos = 0;
+    realLocalCursorPos = 0;
+    lineWithCursorIdx = 0;
 
     if(Formatting.size() == 0){
         cout << "Warning: In " << __FUNCTION__ << ": In SuperText '" << ID << "': Text does not have any formatting.\n";
         return;
     }
-    
-    char letter;
-    size_t letterIdx = 0, formatLimit = 0, lineLength = 0;
-    float letterWidth = 0.0, wordWidth = 0.0, wordWidthBehind = 0.0, lineWidth = 0.0;
     
     //Merge the same formatting.
     for(unsigned formatIdx = 0; formatIdx < Formatting.size() - 1;){
@@ -98,13 +96,19 @@ void SuperTextModule::update(){
     }
 
     vector<FormatClass>::iterator Format = Formatting.begin();
-    if(Format->selected){
-        isFirstSelectionLineFound = true;
-    }
 
-    bool ignoreLine = false; //Works when wrapped=='c'. Ignores the part of the text in the line that is out of the scope of text field.
+    char letter;
+    unsigned letterIdx = 0, formatLimit = 0, lineLength = 0, localLetterIdx = 0;
+    float letterWidth = 0.0, wordWidth = 0.0, wordWidthBehind = 0.0, lineWidth = 0.0;
+    bool ignoreLine = false; //Used when wrapped=='c'. Ignores the part of the text in the line that is out of the scope of text field.
 
-    for(; letterIdx < content.size(); letterIdx++){
+
+    for(; letterIdx < content.size(); letterIdx++, localLetterIdx++){
+        if(letterIdx == cursorPos){
+            localCursorPos = textLines.back().size();
+            realLocalCursorPos = localLetterIdx;
+            lineWithCursorIdx = textLines.size() - 1;
+        }
         letter = content.substr(letterIdx, 1)[0];
         if(letter == '\n'){
             Format->drawingLimit++;
@@ -116,16 +120,9 @@ void SuperTextModule::update(){
                 lineLength++;
             }
 
-            if(Format->selected){
-                if(!isFirstSelectionLineFound){
-                    firstLineWithSelection = textLines.size() - 1;
-                    isFirstSelectionLineFound = true;
-                }
-                lastLineWithSelection = textLines.size() - 1;
-            }
-
             textLines.back() += ' ';
             textLines.push_back("");
+            localLetterIdx = 0;
             
             realTextSize.x = std::max(realTextSize.x, lineWidth);
             lineWidths.back() = lineWidth;
@@ -166,6 +163,7 @@ void SuperTextModule::update(){
                         }
                         currentTabLength = tabLength;
                         textLines.push_back("");
+                        localLetterIdx = 0;
                         realTextSize.x = std::max(realTextSize.x, lineWidth);
                         lineWidths.back() = lineWidth;
                         lineWidths.push_back(0);
@@ -188,13 +186,6 @@ void SuperTextModule::update(){
             }
             formatLimit++;
             if(formatLimit == Format->limit){
-                if(Format->selected){
-                    if(!isFirstSelectionLineFound){
-                        firstLineWithSelection = textLines.size() - 1;
-                        isFirstSelectionLineFound = true;
-                    }
-                    lastLineWithSelection = textLines.size() - 1;
-                }
                 Format++;
                 formatLimit = 0;
             }
@@ -239,6 +230,7 @@ void SuperTextModule::update(){
                 }
                 else if(wrapped == 'l' || wrapped == 'w'){
                     textLines.push_back("");
+                    localLetterIdx = 0;
                     realTextSize.x = std::max(realTextSize.x, lineWidth);
                     lineWidths.back() = lineWidth;
                     lineWidths.push_back(0);
@@ -250,6 +242,11 @@ void SuperTextModule::update(){
                     if(textLines.size() > 1){
                         realTextSize.y += paddingBetweenLines;
                     }
+                    if(letterIdx == cursorPos){
+                        localCursorPos = textLines.back().size();
+                        realLocalCursorPos = localLetterIdx;
+                        lineWithCursorIdx = textLines.size() - 1;
+                    }
                 }
             }
             lineWidth += letterWidth;
@@ -259,13 +256,6 @@ void SuperTextModule::update(){
             textLines.back() += letter;
             formatLimit++;
             if(formatLimit == Format->limit){
-                if(Format->selected){
-                    if(!isFirstSelectionLineFound){
-                        firstLineWithSelection = textLines.size() - 1;
-                        isFirstSelectionLineFound = true;
-                    }
-                    lastLineWithSelection = textLines.size() - 1;
-                }
                 Format++;
                 formatLimit = 0;
             }
@@ -274,18 +264,21 @@ void SuperTextModule::update(){
             }
         }
     }
+
+    if(cursorPos > 0 && lineWithCursorIdx == 0 && localCursorPos == 0){
+        localCursorPos = textLines.back().size();
+        realLocalCursorPos = localLetterIdx;
+        lineWithCursorIdx = textLines.size() - 1;
+    }
+
+    if(lineWithCursorIdx > 0 && realLocalCursorPos > 0){
+        realLocalCursorPos--;
+    }
     
     if(Format != Formatting.end()){
-        if(Format->selected){
-            if(!isFirstSelectionLineFound){
-                firstLineWithSelection = textLines.size() - 1;
-                isFirstSelectionLineFound = true;
-            }
-            lastLineWithSelection = textLines.size() - 1;
-        }
         realTextSize.y += Format->Font->height; //add the last line
     }
-    cout << "Selected lines: " << firstLineWithSelection << " to " << lastLineWithSelection << "\n";
+    cout << "Cursor on line: " << lineWithCursorIdx << ", on pos: " << localCursorPos << ", on real: " << realLocalCursorPos << "\n";
     if(textLines.size() > 1){
         realTextSize.y += paddingBetweenLines;
     }
@@ -661,8 +654,6 @@ void SuperEditableTextModule::setUpNewInstance(){
     blockedKeys.clear();
     lastInputedKey = -1;
     currentInputDelay = 0.0;
-    cursorPos = 0;
-    secondCursorPos = 0;
 }
 SuperEditableTextModule::SuperEditableTextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -1309,8 +1300,7 @@ void SuperEditableTextModule::divideFormattingByCursor(){
     cout.flush();*/
 }
 void SuperEditableTextModule::moveCursorDown(const string & text, bool shift){
-    //Find the line where the cursor is located.
-    //unsigned currentLine = 0;
+    
 
     /*
     unsigned newCursor;

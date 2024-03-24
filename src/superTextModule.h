@@ -30,7 +30,8 @@ public:
     float paddingBetweenLines;
     float rotation;
     unsigned short tabLength;
-    unsigned firstLineWithSelection, lastLineWithSelection;
+    unsigned cursorPos, secondCursorPos;
+    unsigned localCursorPos, realLocalCursorPos, lineWithCursorIdx;
 
     bool drawSelectionFirst; //If true, whole text content is rendered twice, first - only the selection, second - only the text.  
 
@@ -112,7 +113,6 @@ public:
     vector<short> blockedKeys;
     short lastInputedKey;
     float currentInputDelay;
-    unsigned cursorPos, secondCursorPos;
 
     void setUpNewInstance();
     SuperEditableTextModule();

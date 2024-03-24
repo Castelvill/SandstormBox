@@ -1,4 +1,4 @@
--Implement SuperEditableTextModule (counting selected lines should be done before edit not in update, fix tabs and selected lines, up-down arrows, mouse selection).
+-Implement SuperEditableTextModule (up-down arrows, mouse selection).
 -Fix: zooming edited text can move its position.
 -Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every clicked space just like in vs code.
 -Add previous and future formatting for undo and redo.
