@@ -32,6 +32,8 @@ public:
     unsigned short tabLength;
     unsigned cursorPos, secondCursorPos;
     unsigned localCursorPos, realLocalCursorPos, lineWithCursorIdx;
+    unsigned localSecondCursorPos, realLocalSecondCursorPos, lineWithSecondCursorIdx;
+    float lineWidthToCursor, lineWidthToSecondCursor;
 
     bool drawSelectionFirst; //If true, whole text content is rendered twice, first - only the selection, second - only the text.  
 
@@ -135,7 +137,8 @@ public:
     bool addMinus(char pKey, char & character, string text);
     void divideFormattingByCursor();
     void getLetters(char pKey, char & character, bool shift);
-    void moveCursorDown(const string & text, bool shift);
+    void moveCursorUp(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
+    void moveCursorDown(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorToLeft(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorToRight(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
