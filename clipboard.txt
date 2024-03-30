@@ -1,2 +1,2 @@
-rm Box terminal!
-$Ala ma k		ota
+Welcome in Sandstorm Box terminal!
+$Ala ma k		ota kot

@@ -1,5 +1,9 @@
--Implement SuperEditableTextModule (up-down arrows, mouse selection).
--Fix: zooming edited text can move its position.
+-Fix: If tab is the first or second character in the line, movement crashes the engine.
+-Fix: In full line, down arrow offsets the movement to the left by one.
+-Implement SuperEditableTextModule (test up-down, mouse selection).
+-Add "doesCopyFormat". 
+-Test zooming on Super Editable Text.
+-Fix: Zooming edited text can move its position.
 -Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every clicked space just like in vs code.
 -Add previous and future formatting for undo and redo.
 -After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
@@ -110,9 +114,9 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 -Fabric algorithm
 -Depth maps
 -Add filling imageModule full area with used image if isFilledWithCopies is true
+-Play ascii Bad Apple.
 -Add gifs.
-
--MILESTONE: Make donut.cpp with EGM script.
+-Make donut.cpp with EGM script.
 
 OPTIMALIZATIONS
 -For large scale simulation: Divide game map to different threads based on camera position. The main thread will have rights to draw things and others will be focusing on processing stuff.

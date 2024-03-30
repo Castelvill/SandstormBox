@@ -1032,6 +1032,7 @@ bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & cont
                 }
             }
             Formatting[leftCursorOnFormatIdx].limit = 1;
+            Formatting[leftCursorOnFormatIdx].selected = true;
             rightCursorOnFormatIdx = leftCursorOnFormatIdx;
         }
         else{
@@ -1536,7 +1537,35 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
     }
     else{
         unsigned i;
-        if(cursorPos <= secondCursorPos){
+        if(cursorPos > secondCursorPos && letterIdx <= secondCursorPos){
+            for(i = rightCursorOnFormatIdx; i > leftCursorOnFormatIdx; i--){
+                Formatting[i].selected = false;
+            }
+            if(Formatting[leftCursorOnFormatIdx].limit > 1){
+                Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FormatClass());
+                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
+                Formatting[leftCursorOnFormatIdx].limit = 1;
+                Formatting[leftCursorOnFormatIdx + 1].limit--;
+                Formatting[leftCursorOnFormatIdx + 1].selected = false;
+            }
+            rightCursorOnFormatIdx = leftCursorOnFormatIdx;
+            for(i = rightCursorOnFormatIdx - 1; i > formatIdx; i--){
+                Formatting[i].selected = true;
+            }
+            if(limit == 0){
+                Formatting[formatIdx].selected = true;
+                leftCursorOnFormatIdx = formatIdx;
+            }
+            else{
+                Formatting.insert(Formatting.begin() + formatIdx, FormatClass());
+                Formatting[formatIdx] = Formatting[formatIdx + 1];
+                Formatting[formatIdx].limit = limit;
+                Formatting[formatIdx + 1].limit -= limit;
+                Formatting[formatIdx + 1].selected = true;
+                leftCursorOnFormatIdx = formatIdx + 1;
+            }
+        }
+        else if(cursorPos <= secondCursorPos){
             for(i = leftCursorOnFormatIdx; i > formatIdx; i--){
                 Formatting[i].selected = true;
             }
@@ -1572,7 +1601,6 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
             }
             rightCursorOnFormatIdx = formatIdx;
         }
-        
         cursorPos = letterIdx;
     }
 }
@@ -1737,7 +1765,36 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
     }
     else{
         unsigned i;
-        if(cursorPos >= secondCursorPos){
+        if(cursorPos < secondCursorPos && letterIdx >= secondCursorPos){
+            for(i = leftCursorOnFormatIdx; i < rightCursorOnFormatIdx; i++){
+                Formatting[i].selected = false;
+            }
+            if(Formatting[rightCursorOnFormatIdx].limit > 1){
+                Formatting.insert(Formatting.begin() + rightCursorOnFormatIdx, FormatClass());
+                Formatting[rightCursorOnFormatIdx] = Formatting[rightCursorOnFormatIdx + 1];
+                Formatting[rightCursorOnFormatIdx].limit--;
+                Formatting[rightCursorOnFormatIdx].selected = false;
+                Formatting[rightCursorOnFormatIdx + 1].limit = 1;
+                rightCursorOnFormatIdx++;
+                formatIdx++;
+            }
+            leftCursorOnFormatIdx = rightCursorOnFormatIdx;
+            for(i = rightCursorOnFormatIdx; i < formatIdx; i++){
+                Formatting[i].selected = true;
+            }
+            if(limit == Formatting[formatIdx].limit - 1){
+                Formatting[formatIdx].selected = true;
+            }
+            else{
+                Formatting.insert(Formatting.begin() + formatIdx, FormatClass());
+                Formatting[formatIdx] = Formatting[formatIdx + 1];
+                Formatting[formatIdx].limit = limit + 1;
+                Formatting[formatIdx].selected = true;
+                Formatting[formatIdx + 1].limit -= limit + 1;
+            }
+            rightCursorOnFormatIdx = formatIdx;
+        }
+        else if(cursorPos >= secondCursorPos){
             for(i = rightCursorOnFormatIdx; i < formatIdx; i++){
                 Formatting[i].selected = true;
             }
