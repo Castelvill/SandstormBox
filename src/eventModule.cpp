@@ -276,7 +276,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     else if(attribute == "add_format" && Values.size() >= 13){
         SuperText->addFormat(al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
             al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()),
-            Values[8].getStringUnsafe(), FontContainer, Values[9].getDoubleUnsafe(), Values[10].getDoubleUnsafe(), Values[11].getBoolUnsafe(),
+            Values[8].getStringUnsafe(), FontContainer, Values[9].getIntUnsafe(), Values[10].getIntUnsafe(), Values[11].getIntUnsafe(),
             Values[12].getIntUnsafe()
         );
     }
@@ -288,8 +288,8 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     else if(attribute == "modify_format" && Values.size() >= 14){
         SuperText->modifyFormat(Values[0].getIntUnsafe(), al_map_rgba_f(Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(),
             Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()), al_map_rgba_f(Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(),
-            Values[7].getDoubleUnsafe(), Values[8].getDoubleUnsafe()), Values[9].getStringUnsafe(), FontContainer, Values[10].getDoubleUnsafe(),
-            Values[11].getDoubleUnsafe(), Values[12].getBoolUnsafe(), Values[13].getIntUnsafe()
+            Values[7].getDoubleUnsafe(), Values[8].getDoubleUnsafe()), Values[9].getStringUnsafe(), FontContainer, Values[10].getIntUnsafe(),
+            Values[11].getIntUnsafe(), Values[12].getBoolUnsafe(), Values[13].getIntUnsafe()
         );
     }
     else if(attribute == "delete_format" && Values.size() >= 1){
@@ -309,22 +309,22 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
         SuperText->setFont(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(), FontContainer);
     }
     else if(attribute == "set_offset" && Values.size() >= 3){
-        SuperText->setOffset(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe());
+        SuperText->setOffset(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(), Values[2].getIntUnsafe());
     }
     else if(attribute == "add_offset" && Values.size() >= 3){
-        SuperText->addOffset(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe());
+        SuperText->addOffset(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(), Values[2].getIntUnsafe());
     }
     else if(attribute == "set_offset_x" && Values.size() >= 2){
-        SuperText->setOffsetX(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+        SuperText->setOffsetX(Values[0].getIntUnsafe(), Values[1].getIntUnsafe());
     }
     else if(attribute == "add_offset_x" && Values.size() >= 2){
-        SuperText->addOffsetX(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+        SuperText->addOffsetX(Values[0].getIntUnsafe(), Values[1].getIntUnsafe());
     }
     else if(attribute == "set_offset_y" && Values.size() >= 2){
-        SuperText->setOffsetY(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+        SuperText->setOffsetY(Values[0].getIntUnsafe(), Values[1].getIntUnsafe());
     }
     else if(attribute == "add_offset_y" && Values.size() >= 2){
-        SuperText->addOffsetY(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+        SuperText->addOffsetY(Values[0].getIntUnsafe(), Values[1].getIntUnsafe());
     }
     else if(attribute == "set_selected" && Values.size() >= 2){
         SuperText->setSelected(Values[0].getIntUnsafe(), Values[1].getBoolUnsafe());

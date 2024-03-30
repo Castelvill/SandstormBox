@@ -290,6 +290,78 @@ void vec2i::normalize() {
 }
 
 
+vec2u::vec2u(){
+    x = 0.0;
+    y = 0.0;
+    length = 0.0;
+}
+vec2u::vec2u(unsigned x1, unsigned y1){
+    x = x1;
+    y = y1;
+    length = 0.0;
+}
+vec2u::vec2u(unsigned x1, unsigned y1, unsigned x2, unsigned y2){
+    x = x2 - x1;
+    y = y2 - y1;
+    length = countLength();
+}
+void vec2u::set(vec2u vec){
+    x = vec.x;
+    y = vec.y;
+    length = 0.0;
+}
+void vec2u::set(unsigned x1, unsigned y1){
+    x = x1;
+    y = y1;
+    length = 0.0;
+}
+void vec2u::set(unsigned x1, unsigned y1, unsigned x2, unsigned y2){
+    x = x2 - x1;
+    y = y2 - y1;
+    length = countLength();
+}
+bool vec2u::isEqual(unsigned x1, unsigned y1){
+    if(x == x1 && y == y1)
+        return true;
+    return false;
+}
+unsigned vec2u::countLength(){
+    return sqrt(pow(x, 2) + pow(y, 2));
+}
+void vec2u::translate(vec2u vec){
+    x += vec.x;
+    y += vec.y;
+}
+void vec2u::translate(unsigned tx, unsigned ty){
+    x += tx;
+    y += ty;
+}
+void vec2u::setLength(unsigned newLength){
+    length = newLength;
+}
+void vec2u::rotate(double degrees) {
+	if(degrees == 0.0)
+        return;
+	double theta = degrees / 180.0 * M_PI;
+	double c = cos(theta);
+	double s = sin(theta);
+	double tx = x * c - y * s;
+	double ty = x * s + y * c;
+	x = tx;
+	y = ty;
+
+	if(x < 0.0001 && x > 0.0)
+        x = 0.0;
+    if(y < 0.0001 && y > 0.0)
+        y = 0.0;
+}
+void vec2u::normalize() {
+	if (countLength() == 0) return;
+	x *= (1.0 / countLength());
+	y *= (1.0 / countLength());
+}
+
+
 vec2f::vec2f(){
     x = 0.0;
     y = 0.0;

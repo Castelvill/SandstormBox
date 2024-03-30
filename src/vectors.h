@@ -139,6 +139,24 @@ public:
     void normalize();
 };
 
+class vec2u{
+public:
+    unsigned x, y, length;
+    vec2u();
+    vec2u(unsigned x1, unsigned y1);
+    vec2u(unsigned x1, unsigned y1, unsigned x2, unsigned y2);
+    void set(unsigned x1, unsigned y1, unsigned x2, unsigned y2);
+    void set(unsigned x1, unsigned y1);
+    void set(vec2u vec);
+    bool isEqual(unsigned x1, unsigned y1);
+    void setLength(unsigned newLength);
+    void translate(vec2u vec);
+    void translate(unsigned x, unsigned y);
+    void rotate(double degrees);
+    unsigned countLength();
+    void normalize();
+};
+
 class vec2f{
 public:
     float x, y, length;
