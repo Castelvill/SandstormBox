@@ -1352,7 +1352,7 @@ bool EditableTextModule::deleteFromText(char pKey, char character, string text, 
     if(pKey != ALLEGRO_KEY_BACKSPACE && pKey != ALLEGRO_KEY_DELETE){
         return false;
     }
-    if(cursorPos < protectedArea || secondCursorPos < protectedArea){
+    if(cursorPos <= protectedArea || secondCursorPos <= protectedArea){
         return true;
     }
     if(pKey == ALLEGRO_KEY_BACKSPACE || (pKey == ALLEGRO_KEY_X && control && cursorPos != secondCursorPos)){

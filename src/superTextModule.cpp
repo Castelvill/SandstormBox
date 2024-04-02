@@ -1423,6 +1423,9 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
         {
             currentLineLength--;
             cout << "A: " << content[letterIdx] << " " << textLines[lineWithCursorIdx][currentLineLength] << "\n";
+            if(currentLineLength == 0){
+                break;
+            }
         }
         if(limit == 0){
             formatIdx--;
@@ -1430,6 +1433,9 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
             continue;
         }
         limit--;
+        if(currentLineLength == 0){
+            break;
+        }
     }
 
     //Move cursor and format limitter to the beginning of the previous line to ensure tabs are measured correctly.
@@ -1444,13 +1450,20 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
         lineWithSecondCursorIdx = lineWithCursorIdx;
     }
     currentLineLength = lineLengths[lineWithCursorIdx] - 1;
-    for(; currentLineLength > 0; currentLineLength--, letterIdx--){
+    for(; currentLineLength > 0 && letterIdx > 0; currentLineLength--, letterIdx--){
         cout << content[letterIdx] << " " << textLines[lineWithCursorIdx][currentLineLength] << "\n";
+        /* if no spaces ahead, divide ORRRRR estimate the length before idk.
+        if(content[letterIdx] == '\t' && textLines[lineWithCursorIdx].substr(currentLineLength - 3, 4) == "    "){
+            currentLineLength--;
+        }*/
         while(content[letterIdx] != '\n' && content[letterIdx] != textLines[lineWithCursorIdx][currentLineLength]
             && !(content[letterIdx] == '\t' && textLines[lineWithCursorIdx][currentLineLength] == ' '))
         {
             currentLineLength--;
             cout << "A: " << content[letterIdx] << " " << textLines[lineWithCursorIdx][currentLineLength] << "\n";
+            if(currentLineLength == 0){
+                break;
+            }
         }
         if(limit == 0){
             formatIdx--;
@@ -1458,27 +1471,40 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
             continue;
         }
         limit--;
+        if(currentLineLength == 0){
+            break;
+        }
     }
+    if(letterIdx == 0){
+        currentLineLength = 0;
+    }
+
+    cout << "Beginning: cur: " << letterIdx << ", len: " << currentLineLength << ", fidx: " << formatIdx << ", lim: " << limit << "\n";
 
     
     //Move to the saved width on the previous line
     currentWidth = 0.0;
     unsigned currentTabLength = 0;
     char letter;
+    cout << "BE: " << currentLineLength << "\n";
     for(; currentWidth < lineWidthToCursor; currentLineLength++, letterIdx++){
         if(content[letterIdx] == '\t'){
             currentTabLength = tabLength - currentLineLength % tabLength;
             currentWidth += spaceWidth * currentTabLength;
-            currentLineLength -= currentTabLength - 1;
+            currentLineLength += currentTabLength - 1;
+            cout << "TAB: " << currentLineLength << "\n";
             if(currentWidth > lineWidthToCursor){
+                cout << "QUIT\n";
                 break;
             }
         }
         else{
+            cout << "LET: " << currentLineLength << "\n";
             letter = content.substr(letterIdx, 1)[0];
             currentWidth += al_get_text_width(Formatting[formatIdx].Font->font, string(1, letter).c_str());
         }
         if(currentWidth >= lineWidths[lineWithCursorIdx]){
+            cout << "GRR: " << currentLineLength << "\n";
             break;
         }
         limit++;
@@ -1675,7 +1701,7 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
         if(content[letterIdx] == '\t'){
             currentTabLength = tabLength - currentLineLength % tabLength;
             currentWidth += spaceWidth * currentTabLength;
-            currentLineLength -= currentTabLength - 1;
+            currentLineLength += currentTabLength - 1;
         }
         else{
             letter = content.substr(letterIdx, 1)[0];
@@ -1699,7 +1725,7 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
         if(content[letterIdx] == '\t'){
             currentTabLength = tabLength - currentLineLength % tabLength;
             currentWidth += spaceWidth * currentTabLength;
-            currentLineLength -= currentTabLength - 1;
+            currentLineLength += currentTabLength - 1;
             if(currentWidth > lineWidthToCursor){
                 break;
             }
