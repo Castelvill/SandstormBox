@@ -56,6 +56,8 @@ void SuperTextModule::clear(){
     textLines.clear();
     lineWidths.clear();
     lineLengths.clear();
+    lineStarts.clear();
+    floatingNewLine.clear();
     Formatting.clear();
 }
 
@@ -66,6 +68,10 @@ void SuperTextModule::update(){
     lineWidths.push_back(0);
     lineLengths.clear();
     lineLengths.push_back(0);
+    lineStarts.clear();
+    lineStarts.push_back(0);
+    floatingNewLine.clear();
+    floatingNewLine.push_back(false);
     realTextSize.set(0.0, 0.0);
     localCursorPos = 0;
     realLocalCursorPos = 0;
@@ -132,8 +138,11 @@ void SuperTextModule::update(){
         if(letter == '\n'){
             Format->drawingLimit++;
             lineWidth += al_get_text_width(Format->Font->font, string(" ").c_str());
-            if(wrapped == 'c' && lineWidth > size.x){
-                ignoreLine = true;
+            if(lineWidth > size.x){
+                if(wrapped == 'c'){
+                    ignoreLine = true;
+                }
+                floatingNewLine.back() = true;
             }
             if(!ignoreLine){
                 lineLength++;
@@ -148,6 +157,8 @@ void SuperTextModule::update(){
             lineWidths.push_back(0);
             lineLengths.back() = lineLength;
             lineLengths.push_back(0);
+            lineStarts.push_back(letterIdx);
+            floatingNewLine.push_back(false);
             lineWidth = 0;
             lineLength = 0;
             realTextSize.y += Format->Font->height;
@@ -188,6 +199,8 @@ void SuperTextModule::update(){
                         lineWidths.push_back(0);
                         lineLengths.back() = lineLength;
                         lineLengths.push_back(0);
+                        lineStarts.push_back(letterIdx);
+                        floatingNewLine.push_back(false);
                         lineWidth = 0;
                         lineLength = 0;
                         realTextSize.y += Format->Font->height;
@@ -254,6 +267,8 @@ void SuperTextModule::update(){
                     lineWidths.push_back(0);
                     lineLengths.back() = lineLength;
                     lineLengths.push_back(0);
+                    lineStarts.push_back(letterIdx);
+                    floatingNewLine.push_back(false);
                     lineWidth = 0;
                     lineLength = 0;
                     realTextSize.y += Format->Font->height;
@@ -1402,7 +1417,7 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
     }
 
     float spaceWidth = al_get_text_width(Formatting[formatIdx].Font->font, string(" ").c_str());
-    if(letterIdx == content.size()){
+    if(letterIdx == content.size() && textLines.back() != " "){
         letterIdx--;
         currentLineLength--;
         currentWidth -= spaceWidth;
@@ -1427,15 +1442,15 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
                 break;
             }
         }
+        if(currentLineLength == 0){
+            break;
+        }
         if(limit == 0){
             formatIdx--;
             limit = Formatting[formatIdx].limit - 1;
             continue;
         }
         limit--;
-        if(currentLineLength == 0){
-            break;
-        }
     }
 
     //Move cursor and format limitter to the beginning of the previous line to ensure tabs are measured correctly.
@@ -1450,12 +1465,23 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
         lineWithSecondCursorIdx = lineWithCursorIdx;
     }
     currentLineLength = lineLengths[lineWithCursorIdx] - 1;
+    bool onlySpacesLeft = false;
     for(; currentLineLength > 0 && letterIdx > 0; currentLineLength--, letterIdx--){
         cout << content[letterIdx] << " " << textLines[lineWithCursorIdx][currentLineLength] << "\n";
-        /* if no spaces ahead, divide ORRRRR estimate the length before idk.
-        if(content[letterIdx] == '\t' && textLines[lineWithCursorIdx].substr(currentLineLength - 3, 4) == "    "){
-            currentLineLength--;
-        }*/
+        if(content[letterIdx] == '\t'){
+            for(unsigned i = currentLineLength;;i--){
+                if(textLines[lineWithCursorIdx][i] != ' '){
+                    break;
+                }
+                if(i == 0){
+                    onlySpacesLeft = true;
+                    break;
+                }
+            }
+            if(onlySpacesLeft){
+                break;
+            }
+        }
         while(content[letterIdx] != '\n' && content[letterIdx] != textLines[lineWithCursorIdx][currentLineLength]
             && !(content[letterIdx] == '\t' && textLines[lineWithCursorIdx][currentLineLength] == ' '))
         {
@@ -1465,16 +1491,33 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
                 break;
             }
         }
+        if(currentLineLength == 0){
+            break;
+        }
         if(limit == 0){
             formatIdx--;
             limit = Formatting[formatIdx].limit - 1;
             continue;
         }
         limit--;
-        if(currentLineLength == 0){
-            break;
-        }
     }
+
+    if(onlySpacesLeft){
+        unsigned realCharacters = letterIdx - lineStarts[lineWithCursorIdx] - 1;
+        for(; realCharacters > 0; realCharacters--, letterIdx--){
+            if(currentLineLength == 0){
+                break;
+            }
+            if(limit == 0){
+                formatIdx--;
+                limit = Formatting[formatIdx].limit - 1;
+                continue;
+            }
+            limit--;
+        }
+        currentLineLength = 0;
+    }
+
     if(letterIdx == 0){
         currentLineLength = 0;
     }
@@ -1514,14 +1557,15 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
         }
     }
 
-    if(lineWithCursorIdx == textLines.size() - 1 && (currentWidth < lineWidthToCursor || (currentWidth == lineWidthToCursor && currentWidth == lineWidths[lineWithCursorIdx]))){
+    /*if(lineWithCursorIdx == textLines.size() - 1 && textLines.back() != " " && (currentWidth < lineWidthToCursor || (currentWidth == lineWidthToCursor && currentWidth == lineWidths[lineWithCursorIdx]))){
         letterIdx++;
         limit++;
         if(limit >= Formatting[formatIdx].limit){
             formatIdx++;
             limit = 0;
         }
-    }
+    }*/
+    
 
     cout << "left:" << leftCursorOnFormatIdx << ", formatIdx: " << formatIdx << ", limit: " << limit << "\n";
 
@@ -1532,7 +1576,11 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
         for(unsigned i = leftCursorOnFormatIdx; i <= rightCursorOnFormatIdx; i++){
             Formatting[i].selected = false;
         }
-        if(limit == 0){
+        if(Formatting[formatIdx].limit == 1){
+            Formatting[formatIdx].selected = true;
+            leftCursorOnFormatIdx = formatIdx;
+        }
+        else if(limit == 0){
             Formatting[formatIdx].limit--;
             Formatting.insert(Formatting.begin() + formatIdx, FormatClass());
             Formatting[formatIdx] = Formatting[formatIdx + 1];
@@ -1713,6 +1761,15 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
             limit = 0;
         }
     }
+    if(floatingNewLine[lineWithCursorIdx]){
+        currentLineLength++;
+        letterIdx++;
+        limit++;
+        if(limit >= Formatting[formatIdx].limit){
+            formatIdx++;
+            limit = 0;
+        }
+    }
 
     //Move to the saved width on the next line
     lineWithCursorIdx++;
@@ -1744,7 +1801,7 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
         }
     }
 
-    if(lineWithCursorIdx == textLines.size() - 1 && (currentWidth < lineWidthToCursor || (currentWidth == lineWidthToCursor && currentWidth == lineWidths[lineWithCursorIdx]))){
+    if(lineWithCursorIdx == textLines.size() - 1 && textLines.back() != " " && (currentWidth < lineWidthToCursor || (currentWidth == lineWidthToCursor && currentWidth == lineWidths[lineWithCursorIdx]))){
         letterIdx++;
         limit++;
         if(limit >= Formatting[formatIdx].limit){
@@ -1760,7 +1817,11 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
         for(unsigned i = leftCursorOnFormatIdx; i <= rightCursorOnFormatIdx; i++){
             Formatting[i].selected = false;
         }
-        if(limit == 0){
+        if(Formatting[formatIdx].limit == 1){
+            Formatting[formatIdx].selected = true;
+            rightCursorOnFormatIdx = formatIdx;
+        }
+        else if(limit == 0){
             Formatting[formatIdx].limit--;
             Formatting.insert(Formatting.begin() + formatIdx, FormatClass());
             Formatting[formatIdx] = Formatting[formatIdx + 1];
@@ -2267,10 +2328,16 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
     cout << "\n";
     cout.flush();*/
 
+    if(Formatting.back().limit == 1 && Formatting.size() > 1){
+        Formatting.back() = Formatting[Formatting.size() - 2];
+        Formatting.back().selected = cursorPos == content.size();
+        Formatting.back().limit = 1;
+        Formatting.back().drawingLimit = 1;
+    }
     update();
     textLines.back() += ' ';
-    Formatting.back().drawingLimit++;
     lineLengths.back()++;
+    Formatting.back().drawingLimit++;
     
     /*cout << "END: ";
     for(unsigned i = 0; i < Formatting.size(); i++){

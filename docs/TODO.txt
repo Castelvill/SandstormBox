@@ -1,7 +1,6 @@
--Fix: If tab is the first or second character in the line, movement crashes the engine.
--Fix: In full line, down arrow offsets the movement to the left by one.
--Implement SuperEditableTextModule (test up-down, mouse selection).
--Add "doesCopyFormat". 
+-Implement SuperEditableTextModule (mouse selection).
+-Remove useless debugger info.
+-Add "doesCopyFormat".
 -Test zooming on Super Editable Text.
 -Fix: Zooming edited text can move its position.
 -Modify "save_text" and "load_text" instructions to enable saving and loading formatted text (with file data on the beginning of the file and/or extension ".ft").

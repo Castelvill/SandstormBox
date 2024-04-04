@@ -21,6 +21,8 @@ public:
     vector<string> textLines; //Tabs are converted here into spaces.
     vector<float> lineWidths;
     vector<size_t> lineLengths;
+    vector<unsigned> lineStarts; //Needed for the situation when there are tabs on the beginning of the line.
+    vector<bool> floatingNewLine;
     vec2f realTextSize;
 
     vector<FormatClass> Formatting;

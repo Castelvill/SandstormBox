@@ -98,8 +98,9 @@ int [0 0] editableTextPos
 new super_editable_text c me 1 _ _ SuperText
 fun SuperText set_position double [450 0]
 //fun SuperText set_scale double [1.5 1.5]
+fun SuperText set_tab_length int [4]
 fun SuperText set_rotation double [0]
-fun SuperText set_content string ["Welcome in Sandstorm Box terminal!\n$Ala ma k\t\tota kot ma ale\nLorem ipsum et dolore"]
+fun SuperText set_content string ["Welcome in Sandstorm Box terminal!\n$Ala ma kota kot ma ale\nLorem ipsum et dolore"]
 fun SuperText add_format string [cascadia_code] int [8]
 fun SuperText set_color int [0] double [1.0 0.0 0.0 1.0]
 fun SuperText add_format string [fira_mono] int [3]

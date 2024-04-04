@@ -1,5 +1,10 @@
 3.04.2024
--Fixed tabs in SuperEditableTextModule.
+-Test custom tab lengths.
+-Fixed edge cases in the last line of the text field.
+-Added automatic update of the last format with the previous format if something was pasted to the end of the text field or the last format was deleted.
+-Fixed: If the line is full and ends with a new line, down arrow offsets the movement to the left by one.
+-Fixed: If you move up or down on a last existing letter of a format, it will temporary overwrite the formatting of the following letters. 
+-Fixed tabs in SuperEditableTextModule: If tab was the first or second character in the line, arrow movement crashed the engine.
 
 30.03.2024
 -Still working on format cursors.
