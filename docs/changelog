@@ -1,3 +1,9 @@
+4.04.2024
+-Removed temporary debug info and divided moveCursorUp() and moveCursorDown() into smaller functions.
+-Fixed: Filling a line to the full can cause offsets and crashes.
+-Fixed: If there is more than one tab on the start of the text field, cursor is offseted.
+-Fixed: If a tab is wrapped, moving to its line crashes the engine.
+
 3.04.2024
 -Test custom tab lengths.
 -Fixed edge cases in the last line of the text field.

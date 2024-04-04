@@ -1,5 +1,4 @@
 -Implement SuperEditableTextModule (mouse selection).
--Remove useless debugger info.
 -Add "doesCopyFormat".
 -Test zooming on Super Editable Text.
 -Fix: Zooming edited text can move its position.
