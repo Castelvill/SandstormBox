@@ -96,11 +96,11 @@ int [480] windowSizeY
 int [0 0] editableTextPos
 
 new super_editable_text c me 1 _ _ SuperText
-fun SuperText set_position double [450 0]
+fun SuperText set_position double [450 50]
 //fun SuperText set_scale double [1.5 1.5]
 fun SuperText set_tab_length int [4]
 fun SuperText set_rotation double [0]
-fun SuperText set_content string ["Welcome in Sandstorm Box terminal!h\t$Ala ma kota kot ma ale\nLorem ipsum et dolore"]
+fun SuperText set_content string ["Welcome in Sandstorm Box terminal!\n\t$Ala ma k\tota kot ma ale\nLorem ipsum et dolore"]
 fun SuperText add_format string [cascadia_code] int [8]
 fun SuperText set_color int [0] double [1.0 0.0 0.0 1.0]
 fun SuperText add_format string [fira_mono] int [3]
@@ -125,7 +125,7 @@ fun SuperText set_is_editing_active bool [true]
 fun SuperText attach_to_camera
 fun SuperText set_input_delay double [0.3]
 fun SuperText set_repetition_delay double [0.05]
-fun SuperText set_padding_between_lines double [-5]
+fun SuperText set_padding_between_lines double [2]
 fun SuperText set_draw_selection_first bool [true]
 //fun SuperText crop_size_to_text
 

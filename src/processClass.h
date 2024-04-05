@@ -216,6 +216,7 @@ public:
     bool isLayersUniquenessViolated();
     bool isCamerasUniquenessViolated();
     void executeIteration(EngineClass & Engine, vector<ProcessClass> & Processes);
+    void selectText(const MouseClass & Mouse);
     void checkMouseCollisions(EngineClass & Engine);
     void renderOnDisplay(EngineClass & Engine);
     void unfocusCamera(string & focusedProcessID);
@@ -377,7 +378,7 @@ public:
     void moveSelectedObject(const MouseClass & Mouse);
     void delayEditableTextFields();
     void updateEditableTextFields(EngineClass & Engine);
-    void selectObject(const MouseClass & Mouse, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer);
+    void selectObject(const MouseClass & Mouse);
     void unselectObject();
     void drawSelectionBorder(Camera2D Camera);
     void startScrollbarDragging(const MouseClass & Mouse);

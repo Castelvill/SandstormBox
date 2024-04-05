@@ -1,13 +1,13 @@
--Implement SuperEditableTextModule (mouse selection).
+-Upgrade the terminal with SuperEditableTextModule.
+-Add "force_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. 
 -Add "doesCopyFormat".
 -Test zooming on Super Editable Text.
 -Fix: Zooming edited text can move its position.
--Modify "save_text" and "load_text" instructions to enable saving and loading formatted text (with file data on the beginning of the file and/or extension ".ft").
+-Create "save_formatted_text" and "load_formatted_text" instructions to enable saving and loading formatted text (with special data on the start of the file).
 -Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every clicked space just like in vs code.
 -Add previous and future formatting for undo and redo.
 -After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
--Remove unused functions and methods.
--Clone KDE theme "Dark Breeze".
+-Remove old, useless functions and methods.
 -Move "set_real_scrolling_area" function to the "enter" procedure in the script.
 -Add in-terminal scrolling: automatic and the scrollbar.
 -Implement arithmetic instructions and function for vector module (+=, -=, etc.).

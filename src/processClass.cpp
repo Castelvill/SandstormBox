@@ -219,6 +219,9 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
                 SelectedCamera->visionShift = Engine.Mouse.getZoomedPos(SelectedCamera) - dragCameraStaringPos;
             }
             updateCamerasPositions(Engine);
+            
+            selectText(Engine.Mouse);
+
             break;
         case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
             if(!canUserInteract){
@@ -228,7 +231,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             if(Engine.focusedProcessID != getID()){
                 break;
             }
-            selectObject(Engine.Mouse, Engine.BitmapContainer, Engine.FontContainer);
+            selectObject(Engine.Mouse);
             detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
             detectStartPosOfDraggingObjects(Engine.Mouse);
             startScrollbarDragging(Engine.Mouse);
@@ -276,6 +279,21 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
         && Engine.Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true, SelectedCamera)
     ){
         Engine.Mouse.updateZoomForCamera(SelectedCamera);
+    }
+}
+void ProcessClass::selectText(const MouseClass & Mouse){
+    if(SelectedObject != nullptr && ActiveEditableText != nullptr && Mouse.isPressed(0)){
+        ActiveEditableText->cursorPos = 0;
+        ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera), Mouse);
+        if(Mouse.firstPressedInRectangle(
+            SelectedObject->getPosOnCamera(SelectedCamera)
+            + ActiveEditableText->getPos(ActiveEditableText->getIsScrollable()),
+            ActiveEditableText->getSize(),
+            0, ActiveEditableText->getIsAttachedToCamera(), SelectedCamera
+        )){
+            ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
+        }
+        ActiveEditableText->divideFormattingByCursor();
     }
 }
 void ProcessClass::checkMouseCollisions(EngineClass &Engine){
@@ -9858,7 +9876,7 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
         }
     }
 }
-void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> & BitmapContainer, vector <SingleFont> & FontContainer){
+void ProcessClass::selectObject(const MouseClass & Mouse){
     if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()
         || SelectedCamera->getIsMinimized() /*|| !SelectedCamera->canMoveObjects*/){
         return;
@@ -9901,7 +9919,15 @@ void ProcessClass::selectObject(const MouseClass & Mouse, vector <SingleBitmap> 
                         ActiveEditableText = &SuperEditableText;
                         ActiveEditableText->isEditingActive = true;
                         ActiveEditableText->cursorPos = 0;
-                        ActiveEditableText->secondCursorPos = 0;
+                        ActiveEditableText->setCursorsWithMouse(Object.getPosOnCamera(SelectedCamera), Mouse);
+                        if(Mouse.pressedInRectangle(
+                            Object.getPosOnCamera(SelectedCamera)
+                            + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
+                            SuperEditableText.getSize(),
+                            0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera
+                        )){
+                            ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
+                        }
                         ActiveEditableText->divideFormattingByCursor();
                         break;
                     }
