@@ -1,1 +1,1 @@
-	$Ala ma kota kot ma ale
+sel_col 0.0 1.0 0.0 1.0

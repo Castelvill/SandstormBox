@@ -164,6 +164,9 @@ double VariableModule::getDoubleUnsafe() const{
     if(type == 'i'){
         return vInt;
     }
+    else if(type == 's'){
+        return cstod(vString);
+    }
     else if(type != 'd'){
         return 0.0;
     }

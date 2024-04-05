@@ -253,7 +253,7 @@ index c Layer [0 0 4] _ primitives MaxButton
 fun MaxButton deactivate
 index c Layer [0 0 5] _ primitives MinButton
 fun MinButton deactivate
-index c Layer [0 0 0] _ text Title
+index c Layer [0 0 0] _ super_text Title
 fun Title deactivate
 index c Layer [0 0 0] _ collision ExitCollision
 fun ExitCollision deactivate
@@ -290,7 +290,7 @@ index c Layer [0 0 4] _ primitives MaxButton
 fun MaxButton activate
 index c Layer [0 0 5] _ primitives MinButton
 fun MinButton activate
-index c Layer [0 0 0] _ text Title
+index c Layer [0 0 0] _ super_text Title
 fun Title activate
 index c Layer [0 0 0] _ collision ExitCollision
 fun ExitCollision activate

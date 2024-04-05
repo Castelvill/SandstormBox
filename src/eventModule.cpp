@@ -252,7 +252,14 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     else if(attribute == "add_scale" && Values.size() >= 2){
         SuperText->addScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
+    else if(attribute == "set_cursor_pos" && Values.size() > 0){
+        SuperText->setCursorPos(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_second_cursor_pos" && Values.size() > 0){
+        SuperText->setSecondCursorPos(Values[0].getIntUnsafe());
+    }
     else if(attribute == "update"){
+        cout << "update\n";
         SuperText->update();
     }
     else if(attribute == "crop_size_to_text"){
@@ -262,7 +269,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
         SuperText->setContent(Values[0].getStringUnsafe());
     }
     else if(attribute == "add_content" && Values.size() >= 1){
-        SuperText->setContent(Values[0].getStringUnsafe());
+        SuperText->addContent(Values[0].getStringUnsafe());
     }
     else if(attribute == "add_new_text_line" && Values.size() >= 1){
         SuperText->addNewTextLine(Values[0].getStringUnsafe());
@@ -280,6 +287,12 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
             Values[12].getIntUnsafe()
         );
     }
+    else if(attribute == "add_format" && Values.size() >= 6){
+        SuperText->addFormat(al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
+            al_map_rgba_f(1.0, 1.0, 1.0, 1.0),
+            Values[4].getStringUnsafe(), FontContainer, 0.0, 0.0, false, Values[5].getIntUnsafe()
+        );
+    }
     else if(attribute == "add_format" && Values.size() >= 2){
         SuperText->addFormat(al_map_rgba_f(0.0, 0.0, 0.0, 1.0), al_map_rgba_f(1.0, 1.0, 1.0, 1.0),
             Values[0].getStringUnsafe(), FontContainer, 0.0, 0.0, false, Values[1].getIntUnsafe()
@@ -292,12 +305,31 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
             Values[11].getIntUnsafe(), Values[12].getBoolUnsafe(), Values[13].getIntUnsafe()
         );
     }
+    else if(attribute == "modify_last_format" && Values.size() >= 13){
+        SuperText->modifyFormat(SuperText->Formatting.size() - 1, al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(),
+            Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()), al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(),
+            Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()), Values[8].getStringUnsafe(), FontContainer, Values[9].getIntUnsafe(),
+            Values[10].getIntUnsafe(), Values[11].getBoolUnsafe(), Values[12].getIntUnsafe()
+        );
+    }
+    else if(attribute == "modify_last_format" && Values.size() >= 10){
+        SuperText->modifyFormat(SuperText->Formatting.size() - 1,
+            al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
+            al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()),
+            Values[8].getStringUnsafe(), FontContainer, 0.0, 0.0, false, Values[9].getIntUnsafe()
+        );
+    }
     else if(attribute == "delete_format" && Values.size() >= 1){
         SuperText->deleteFormat(Values[0].getIntUnsafe());
     }
     else if(attribute == "set_color" && Values.size() >= 5){
         SuperText->setColor(Values[0].getIntUnsafe(), al_map_rgba_f(Values[1].getDoubleUnsafe(),
             Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()
+        ));
+    }
+    else if(attribute == "set_last_color" && Values.size() >= 4){
+        SuperText->setColor(SuperText->Formatting.size() - 1, al_map_rgba_f(Values[0].getDoubleUnsafe(),
+            Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()
         ));
     }
     else if(attribute == "set_accent_color" && Values.size() >= 5){
@@ -426,6 +458,9 @@ void EveModule::controlSuperEditableText(SuperEditableTextModule * SuperEditable
     }
     else if(attribute == "set_protected_area" && Values.size() > 0){
         SuperEditableText->protectedArea = Values[0].getIntUnsafe();
+    }
+    else if(attribute == "cut_unprotected_area"){
+        SuperEditableText->cutContent(SuperEditableText->protectedArea);
     }
     else{
         controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer);

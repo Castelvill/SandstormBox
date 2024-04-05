@@ -1,0 +1,32 @@
+start wait_for_input false
+triggers each_iteration
+run get_input print_art print_hello print_byebye clear_input
+end
+
+start get_input false
+if ([c me variable input] [string "get_input"] ==)
+index context me [0 1] _ variable input
+string ["print_hello"] null
+= input null
+end
+
+start clear_input false
+index context me [0 1] _ variable input
+string [""] null
+= input null
+end
+
+start print_hello false
+if ([c me variable input] [string "print_hello"] ==)
+print _ _ string ["Hello python!\n"]
+end
+
+start print_byebye false
+if ([c me variable input] [string print_byebye] ==)
+print _ _ string ["Bye, bye!\n"]
+end
+
+start print_art false
+if ([c me variable input] [string "print_art"] ==)
+print _ _ string [""]
+end

@@ -1,5 +1,6 @@
--Upgrade the terminal with SuperEditableTextModule.
--Add "force_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. 
+-Fix tab autocomplete and history in the terminal.
+-Add "inject_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. 
+-Fix problems in the terminal caused by the SuperEditableTextModule.
 -Add "doesCopyFormat".
 -Test zooming on Super Editable Text.
 -Fix: Zooming edited text can move its position.

@@ -1,0 +1,23 @@
+start interpreter false
+…
+stack: choice:string, params: values
+run [case1, case2, neofetch]
+end
+
+start case1 false
+if ([context choice] [string print] ==)
+index context params [0] _ delimiter
+(subvec or just index) params 1 _ params
+print _ context delimiter context params
+end
+
+start case2 false
+if ([context choice] [string ls] ==)
+print _ string ["\nbin dev lib minecraft\n"]
+end
+
+
+start neofetch false
+if ([context choice] [string neofetch] ==)
+print _ string ""
+end

@@ -1488,7 +1488,7 @@ void ProcessClass::findContextInModule(string type, string attribute, ContextCla
     if(Module == nullptr){
         return;
     }
-    if(attribute == "" || isStringInGroup(attribute, 12, "text", "editable_text", "super_text", "image", "movement",
+    if(attribute == "" || isStringInGroup(attribute, 13, "text", "editable_text", "super_text", "super_editable_text", "image", "movement",
         "collision", "particles", "event", "variable", "scrollbar", "primitives", "vector"
     )){
         NewContext.type = type;
@@ -2065,7 +2065,7 @@ void ProcessClass::findLowerContextById(ValueLocation & Location, ContextClass &
             }
         }
     }
-    else if(isStringInGroup(OldContext->type, 12, "text", "editable_text", "super_text", "image", "movement", "collision",
+    else if(isStringInGroup(OldContext->type, 13, "text", "editable_text", "super_text", "super_editable_text", "image", "movement", "collision",
         "particles", "event", "variable", "scrollbar", "primitives", "vector")
     ){
         aggregateModulesById(OldContext->type, Location.moduleID, Location.attribute, NewContext, OldContext->Modules);
@@ -2399,7 +2399,7 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
                     aggregateObjects(Operation, NewContext, SourceContext->Objects, Engine, EventContext);
                 }
             }
-            else if(isStringInGroup(SourceContext->type, 12, "text", "editable_text", "super_text", "image", "movement", "collision",
+            else if(isStringInGroup(SourceContext->type, 13, "text", "editable_text", "super_text", "super_editable_text", "image", "movement", "collision",
                 "particles", "event", "variable", "scrollbar", "primitives", "vector")
             ){
                 if(SourceContext->Modules.hasInstanceOfAnyModule()){
@@ -3994,7 +3994,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
         }
     }
 
-    if(isStringInGroup(DeletedContext->type, 14, "layer", "object", "text", "editable_text", "super_text", "image", "movement",
+    if(isStringInGroup(DeletedContext->type, 15, "layer", "object", "text", "editable_text", "super_text", "super_editable_text", "image", "movement",
         "collision", "particles", "event", "variable", "scrollbar", "primitives", "vector")
     ){
         for(ContextClass & Context : EventContext){
@@ -4153,7 +4153,7 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
             if(Operation.Location.attribute == "layer" || Operation.Location.attribute == ""){
                 findInstanceInVectorByIndex(indexes, Layers, "layer", NewContext.Layers, NewContext.type);
             }
-            else if(isStringInGroup(Operation.Location.attribute, 13, "object", "text", "editable_text", "super_text", "image", "movement",
+            else if(isStringInGroup(Operation.Location.attribute, 14, "object", "text", "editable_text", "super_text", "super_editable_text", "image", "movement",
                 "collision", "particles", "event", "variable", "scrollbar", "primitives", "vector")
             ){
                 if(indexes.size() < 2){
@@ -9898,11 +9898,15 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
             for(FormatClass & Format : ActiveEditableText->Formatting){
                 Format.selected = false;
             }
+            cout << "disable\n";
             ActiveEditableText->update();
             ActiveEditableText = nullptr;
         }
 
         for(AncestorObject & Object : Layer.Objects){
+            if(!Object.getIsActive() || !Object.getCanBeSelected()){
+                continue;
+            }
             if(Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera), Object.getSize(),
                 0, Object.getIsAttachedToCamera(), SelectedCamera
             )){

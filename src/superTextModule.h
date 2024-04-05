@@ -73,6 +73,10 @@ public:
     void modifyFormat(size_t index, ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
         vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
     );
+    void injectFormat(ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
+        vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit,
+        unsigned fragmentStart, unsigned fragmentEnd
+    );
     void deleteFormat(size_t index);
     void setColor(size_t index, ALLEGRO_COLOR newColor);
     void setAccentColor(size_t index, ALLEGRO_COLOR newAccentColor);
@@ -93,6 +97,10 @@ public:
     void setRotation(float newRotation);
     void addRotation(float newRotation);
     void setTabLength(unsigned short newTabLength);
+    void setCursorPos(int newPos);
+    void setSecondCursorPos(int newPos);
+    void divideFormattingByCursor();
+    void cutContent(size_t newSize);
 };
 
 class SuperEditableTextModule : public SuperTextModule{
@@ -138,7 +146,6 @@ public:
     void getNumbers(char pKey, char & character, bool shift);
     void addFloatingPoint(char pKey, char & character, string text);
     bool addMinus(char pKey, char & character, string text);
-    void divideFormattingByCursor();
     void getLetters(char pKey, char & character, bool shift);
     void prepareToMoveCursorUp(bool shift, float & currentWidth, unsigned & letterIdx, unsigned & currentLineLength,
         unsigned & formatIdx, unsigned & limit, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx

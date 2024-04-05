@@ -3,7 +3,7 @@ triggers on_init
 //edit_proc draw_hitboxes 1
 //edit_proc print_instructions 1
 //edit_proc auto_print_stack 1
-edit_proc draw_text_borders 1
+//edit_proc draw_text_borders 1
 
 edit_proc draw_camera_borders 1
 
@@ -95,7 +95,7 @@ int [640] windowSizeX
 int [480] windowSizeY
 int [0 0] editableTextPos
 
-new super_editable_text c me 1 _ _ SuperText
+/*new super_editable_text c me 1 _ _ SuperText
 fun SuperText set_position double [450 50]
 //fun SuperText set_scale double [1.5 1.5]
 fun SuperText set_tab_length int [4]
@@ -116,11 +116,11 @@ fun SuperText add_format string [cascadia_code] int [12]
 fun SuperText set_color int [4] double [1.0 1.0 0.0 1.0]
 fun SuperText add_format string [cascadia_code] int [12]
 fun SuperText set_color int [5] double [1.0 0.6 0.2 1.0]
+fun SuperText update
 fun SuperText set_size double [420 300]
 fun SuperText set_wrapping string [w]
 fun SuperText set_horizontal_align string [l]
 fun SuperText set_vertical_align string [u]
-fun SuperText update
 fun SuperText set_is_editing_active bool [true]
 fun SuperText attach_to_camera
 fun SuperText set_input_delay double [0.3]
@@ -128,42 +128,38 @@ fun SuperText set_repetition_delay double [0.05]
 fun SuperText set_padding_between_lines double [2]
 fun SuperText set_draw_selection_first bool [true]
 //fun SuperText crop_size_to_text
-
+*/
 int [420] smolW
 int [300] smolH
 
-new editable_text c me 1 _ _ TerminalTextField
+new super_editable_text c me 1 _ _ TerminalTextField
 fun TerminalTextField set_id string [edi]
 fun TerminalTextField set_position c editableTextPos
-fun TerminalTextField set_font string [cascadia_code]
-fun TerminalTextField set_wrapping int [1]
-fun TerminalTextField set_editable bool [1]
-fun TerminalTextField set_space_use bool [1]
-fun TerminalTextField set_max_content_length int [10000]
-fun TerminalTextField add_new_and_update string ["Welcome in Sandstorm Box terminal!"]
-fun TerminalTextField set_size c smolW c smolH
-fun TerminalTextField set_color double [0.0 1.0 0.0 1.0]
+fun TerminalTextField set_size c ww c wh
+fun TerminalTextField add_format string [cascadia_code] int [10]
+fun TerminalTextField set_color int [0] double [1.0 0.0 0.0 1.0]
+fun TerminalTextField set_wrapping string [w]
+fun TerminalTextField set_is_editing_active bool [true]
+fun TerminalTextField set_can_use_space bool [true]
+fun TerminalTextField set_content string ["Welcome in Sandstorm Box terminal!"]
 fun TerminalTextField set_input_delay double [0.3]
 fun TerminalTextField set_repetition_delay double [0.05]
-fun TerminalTextField set_use_tabs bool [1]
-fun TerminalTextField set_enter_use bool [0]
-fun TerminalTextField set_can_enter_accept bool [0]
+fun TerminalTextField set_can_use_tabs bool [false]
+fun TerminalTextField set_can_use_enter bool [false]
 fun TerminalTextField set_protected_area int [37]
 fun TerminalTextField set_ignore_vertical_arrows bool [true]
-fun TerminalTextField set_use_tabs bool [false]
-fun TerminalTextField allow_scrolling
-//fun TerminalTextField set_can_auto_resize_axis_y bool [true]
 
-new editable_text c me 1 _ _ TextEditor
+new super_editable_text c me 1 _ _ TextEditor
 clone TextEditor TerminalTextField
-fun TextEditor set_font string [cascadia_code_bold]
+fun TextEditor add_format string [cascadia_code_bold] int [1]
+fun TextEditor set_color int [0] double [1.0 1.0 0.0 1.0]
 fun TextEditor set_id string [TextEditor]
 fun TextEditor set_protected_area int [0]
-fun TextEditor set_enter_use bool [1]
-fun TextEditor set_text int [0] string [""]
+fun TextEditor set_can_use_enter bool [1]
+fun TextEditor set_content string [""]
 fun TextEditor set_ignore_vertical_arrows bool [false]
 fun TextEditor deactivate
-fun TextEditor set_use_tabs bool [true]
+fun TextEditor set_can_use_tabs bool [true]
 
 
 new image c me 1 _ _ thumb
@@ -205,6 +201,11 @@ var string "" param5
 var string "" param6
 var string "" param7
 var int 20 roundingSize
+
+var string "1.0" terminalColorR
+var string "0.0" terminalColorG
+var string "0.0" terminalColorB
+var string "1.0" terminalColorA
 
 var int 0 commandNumber
 var int 0 currentCommandNumber
@@ -351,14 +352,14 @@ fun MinCollision set_position double [560 15]
 fun MinCollision set_size double [10 10]
 fun MinCollision set_is_circle bool [true]
 
-new text c NewWindowObject 1 _ _ title
+new super_text c NewWindowObject 1 _ _ title
 fun title set_id string [title]
 fun title set_position int [10 2]
-fun title set_font string [cascadia_code_bold]
-fun title set_wrapping int [0]
-fun title add_new_and_update s ["Template Window"]
 fun title set_size int [400 50]
-fun title set_color double [1.0 1.0 1.0 1.0]
+fun title add_format string [cascadia_code_bold] int [8]
+fun title set_color int [0] double [1.0 1.0 1.0 1.0]
+fun title set_wrapping string [n]
+fun title set_content s ["Template Window"]
 end
 
 
@@ -381,9 +382,8 @@ fun NewWindowLayer set_id c param1
 value ([context NewWindowLayer id]) newLayerID
 fun NewWindowLayer activate
 
-index c NewWindowLayer [0 0 0] _ text Title
-int [0] zero
-fun Title set_text c zero c param1
+index c NewWindowLayer [0 0 0] _ super_text Title
+fun Title set_content c param1
 
 new camera l 1 _ _ NewWindowCamera
 clone NewWindowCamera TemplateCamera
@@ -409,19 +409,19 @@ end
 
 
 start spawnNotepad
-index c me [0 1] _ editable_text Editable
+index c me [0 1] _ super_editable_text Editable
 index c NewWindowLayer [0 0] _ object Object
 index c NewWindowLayer [0 0 0] _ primitives Background
 fun Background set_color double [0.0 0.0 0.0 1.0]
-new editable_text c Object 1 _ _ TextEditor
+new super_editable_text c Object 1 _ _ TextEditor
 clone TextEditor Editable
 fun TextEditor set_id string ["Notepad"]
 fun TextEditor set_position int [5 30]
-fun TextEditor set_text int [0] string [""]
-fun TextEditor activate
-fun TextEditor set_color double [1.0 0.0 0.0 1.0]
-fun TextEditor set_wrapping int [0]
 fun TextEditor set_size int [640 480]
+fun TextEditor set_color int [0] double [1.0 0.0 0.0 1.0]
+fun TextEditor set_wrapping string [n]
+fun TextEditor set_content string [""]
+fun TextEditor activate
 bind Object literal ["scripts/notepad.sand"]
 build Object false
 run loadTextFromFile
@@ -439,7 +439,7 @@ end
 
 
 start spawnMover
-index c me [0 1] _ editable_text Editable
+index c me [0 1] _ super_editable_text Editable
 index c NewWindowLayer [0 0] _ object NewObject
 first context [NewObject] _ _ variable has_friends bool _ has_friends
 bool [true] true
@@ -485,7 +485,7 @@ start autoComplete
 triggers key_pressed
 if ([key_pressed 64])
 index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ editable_text EditableText
+index context Terminal [0 0] _ super_editable_text EditableText
 first _ [EditableText] _ _ _ _ content _ userInput
 first _ [EditableText] _ _ _ _ protected_area _ protectedArea
 len userInput userInputSize
@@ -502,8 +502,8 @@ start replaceWithAutoComplete
 if ([c completes size] [int 1] ==)
 fun EditableText cut_unprotected_area
 index context completes [0] _ value instance
-int [0] zero
-fun EditableText add_text context zero context instance
+fun EditableText add_content context instance
+fun EditableText update
 first _ [EditableText] _ _ _ _ content _ history
 len history historySize
 fun EditableText set_cursor_pos c historySize
@@ -531,8 +531,8 @@ end
 
 start rewriteLastCommand
 index layer [0 1] _ object Terminal
-int [0] zero
-fun EditableText add_text context zero context command
+fun EditableText add_content context command
+fun EditableText update
 first _ [EditableText] _ _ _ _ content _ history
 len history historySize
 fun EditableText set_cursor_pos c historySize
@@ -542,6 +542,9 @@ end
 start controler
 triggers each_iteration
 if ([context program] [string ""] ==)
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ super_editable_text EditableText
+fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
 string ["$ "] result
 string ["sleep"] program
 run printOnTerminal
@@ -605,8 +608,8 @@ index context me [0 0] _ image background
 fun background resize c w c h
 
 index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ editable_text EditableText
-index context Terminal [0 1] _ editable_text EditProgramTextField
+index context Terminal [0 0] _ super_editable_text EditableText
+index context Terminal [0 1] _ super_editable_text EditProgramTextField
 //fun EditableText set_size c w c h
 fun EditProgramTextField set_size c w c h
 index context Terminal [0 0] _ scrollbar MainScrollbar
@@ -629,7 +632,7 @@ end
 start enter1
 if ([c Camera is_focused])
 index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ editable_text EditableText
+index context Terminal [0 0] _ super_editable_text EditableText
 first _ [EditableText] _ _ _ _ content _ userInput
 first _ [EditableText] _ _ _ _ protected_area _ protectedArea
 len userInput userInputSize
@@ -648,7 +651,7 @@ string [""] param7
 
 tokenize command param0 param1 param2 param3 param4 param5 param6 param7
 
-string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history] allowedPrograms
+string [help neofetch hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history sel_col] allowedPrograms
 in param0 allowedPrograms isAllowed
 string ["_enter"] program
 run saveCommand programCheck
@@ -672,7 +675,7 @@ start upArrow
 triggers key_pressed
 if ([key_pressed 84] [c program] [string "sleep"] == [c currentCommandNumber] [int 0] > && &&)
 index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ editable_text EditableText
+index context Terminal [0 0] _ super_editable_text EditableText
 first _ [EditableText] _ _ _ _ content _ userInput
 first _ [EditableText] _ _ _ _ protected_area _ protectedArea
 len userInput userInputSize
@@ -683,8 +686,8 @@ fun commandHistory set c currentCommandNumber c command
 
 fun EditableText cut_unprotected_area
 value ([v commandHistory c currentCommandNumber]) diffCommand
-int [0] zero
-fun EditableText add_text context zero context diffCommand
+fun EditableText add_content context diffCommand
+fun EditableText update
 first _ [EditableText] _ _ _ _ content _ history
 len history historySize
 fun EditableText set_cursor_pos c historySize
@@ -695,7 +698,7 @@ start downArrow
 triggers key_pressed
 if ([key_pressed 85] [c program] [string "sleep"] == [c currentCommandNumber] [c commandNumber] < && &&)
 index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ editable_text EditableText
+index context Terminal [0 0] _ super_editable_text EditableText
 first _ [EditableText] _ _ _ _ content _ userInput
 first _ [EditableText] _ _ _ _ protected_area _ protectedArea
 len userInput userInputSize
@@ -706,8 +709,8 @@ fun commandHistory set c currentCommandNumber c command
 
 fun EditableText cut_unprotected_area
 value ([v commandHistory c currentCommandNumber]) diffCommand
-int [0] zero
-fun EditableText add_text context zero context diffCommand
+fun EditableText add_content context diffCommand
+fun EditableText update
 first _ [EditableText] _ _ _ _ content _ history
 len history historySize
 fun EditableText set_cursor_pos c historySize
@@ -734,9 +737,9 @@ end
 
 start printOnTerminal
 index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ editable_text EditableText
-int [0] zero
-fun EditableText add_text context zero context result
+index context Terminal [0 0] _ super_editable_text EditableText
+fun EditableText add_content context result
+fun EditableText update
 //fun EditableText update_size
 first _ [EditableText] _ _ _ _ content _ history
 len history historySize
@@ -749,10 +752,10 @@ end
 start edit
 string ["edit"] program
 index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ editable_text TerminalTextField
+index context Terminal [0 0] _ super_editable_text TerminalTextField
 fun TerminalTextField deactivate
-index context Terminal [0 1] _ editable_text TextEditor
-fun TextEditor set_text int [0] string [""]
+index context Terminal [0 1] _ super_editable_text TextEditor
+fun TextEditor set_content string [""]
 fun TextEditor set_cursor_pos int [0]
 fun TextEditor activate
 string [""] fileName
@@ -763,8 +766,7 @@ end
 start loadTextFromFile
 if ([exists fileName])
 load_text fileName loadedText
-int [0] 0
-fun TextEditor set_text c 0 c loadedText
+fun TextEditor set_content c loadedText
 len loadedText loadedTextSize
 fun TextEditor set_cursor_pos c loadedTextSize
 end
@@ -772,7 +774,7 @@ end
 start textEditorInsert
 triggers key_pressed
 if([context program] [string "edit"] == [key_pressed 217] && [key_pressed 9] &&)
-first layer KERNEL KERNEL editable_text TextEditor editing_is_active _ isEditing
+first layer KERNEL KERNEL super_editable_text TextEditor editing_is_active _ isEditing
 run checkIfInsertPressed
 end
 
@@ -787,9 +789,9 @@ triggers key_pressed
 if([context program] [string "edit"] == [key_pressed 217] && [key_pressed 17] &&)
 string [""] program
 index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ editable_text TerminalTextField
+index context Terminal [0 0] _ super_editable_text TerminalTextField
 fun TerminalTextField activate
-index context Terminal [0 1] _ editable_text TextEditor
+index context Terminal [0 1] _ super_editable_text TextEditor
 fun TextEditor deactivate
 fun TextEditor stop_editing
 end
@@ -798,7 +800,7 @@ start textEditorSave
 triggers key_pressed
 if([context program] [string "edit"] == [key_pressed 217] && [key_pressed 19] &&)
 index layer [0 1] _ object Terminal
-index context Terminal [0 1] _ editable_text TextEditor
+index context Terminal [0 1] _ super_editable_text TextEditor
 first _ [TextEditor] _ _ _ _ content _ writtenText
 save_text param1 writtenText
 end
