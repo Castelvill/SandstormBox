@@ -1,8 +1,12 @@
 #include "mouse.h"
 
 MouseClass::MouseClass(){
+    pos.set(0.0, 0.0);
+    pressedPos.set(0.0, 0.0);
+    didMouseMove = false;
     scrollPos = 0;
     lastScrollPos = 0;
+    reset();
 }
 MouseClass::~MouseClass(){
     reset();

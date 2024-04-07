@@ -245,6 +245,7 @@ fun WindowCamera set_grabbing_area_size int [540 50]
 fun WindowCamera pin_to_camera string [Desktop]
 fun WindowCamera activate_pin
 fun WindowCamera set_min_size int [300 34]
+fun WindowCamera set_keep_inside_screen bool [true]
 fun WindowCamera deactivate
 
 new object c WindowLayer 1 _ _ NewWindowObject
@@ -468,7 +469,6 @@ value ([c InsideCamera id]) newCameraID
 new variable c NewObject 1 _ _ cameraID
 fun cameraID set_id string ["insideCameraID"]
 fun cameraID set_string c newCameraID
-
 
 bind NewObject literal ["scripts/mover.sand"]
 build NewObject false
@@ -809,3 +809,20 @@ start sand
 load_build me param1
 string [""] program
 end
+
+
+/*start xd
+triggers each_iteration
+string ["KERNEL"] param
+= param1 param
+run mover
+post
+delete_this_event
+end*/
+
+/*start xd1
+triggers each_iteration
+run nw
+post
+delete_this_event
+end*/
