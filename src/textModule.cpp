@@ -789,7 +789,7 @@ VariableModule TextModule::getAttributeValue(const string &attribute, const stri
     else if(attribute == "rotation"){
         return VariableModule::newDouble(rotation);
     }
-    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 unsigned TextModule::getCurrentTabLength(const unsigned & tabCounter){
@@ -2640,6 +2640,6 @@ VariableModule EditableTextModule::getAttributeValue(const string &attribute, co
         return VariableModule::newInt(protectedArea);
     }
 
-    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }

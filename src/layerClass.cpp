@@ -129,7 +129,7 @@ VariableModule LayerClass::getValue(string attribute, string option) const{
         NewValue.setDouble(size.y);
         return NewValue;
     }
-    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule();
 }
 void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, const bool &changeOldID){

@@ -436,7 +436,7 @@ VariableModule SuperTextModule::getAttributeValue(const string &attribute, const
     else if(attribute == "rotation"){
         return VariableModule::newDouble(rotation);
     }
-    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 void SuperTextModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
@@ -800,14 +800,14 @@ void SuperTextModule::divideFormattingByCursor(){
     } 
     cout << "\n";
     cout.flush();
-    unsigned cursorBegin = std::min(cursorPos, secondCursorPos);
-    unsigned cursorEnd = std::max(cursorPos, secondCursorPos) + 1;
-    unsigned letterIdx = 0;
-    unsigned formatIdx = 0;
 
+    unsigned formatIdx = 0;
     for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
         Formatting[formatIdx].selected = false;
     }
+    unsigned cursorBegin = std::min(cursorPos, secondCursorPos);
+    unsigned cursorEnd = std::max(cursorPos, secondCursorPos) + 1;
+    unsigned letterIdx = 0;
 
     //Divide formatting by cursors' postitions.
     for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
@@ -908,6 +908,7 @@ void SuperTextModule::setSecondCursorPos(int newPos){
 void SuperTextModule::cutContent(size_t newSize){
     content = content.substr(0, newSize);
 }
+
 
 void SuperEditableTextModule::setUpNewInstance(){
     SuperTextModule::setUpNewInstance();
@@ -1097,6 +1098,7 @@ void SuperEditableTextModule::getContext(string attribute, vector<BasePointersSt
     }
     else if(attribute == "is_editing_active"){
         BasePointers.back().setPointer(&isEditingActive);
+        BasePointers.back().readOnly = true;
     }
     else if(attribute == "cursor_pos"){
         BasePointers.back().setPointer(&cursorPos);
@@ -2581,6 +2583,35 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
     textLines.back() += ' ';
     lineLengths.back()++;
     Formatting.back().drawingLimit++;
+}
+void SuperEditableTextModule::setCursorPos(int newPos){
+    if(newPos < 0){
+        cursorPos = 0;
+    }
+    else if(newPos > int(content.size())){
+        cursorPos = content.size();
+    }
+    else{
+        cursorPos = newPos;
+    }
+    secondCursorPos = cursorPos;
+    if(isEditingActive){
+        divideFormattingByCursor();
+    }
+}
+void SuperEditableTextModule::setSecondCursorPos(int newPos){
+    if(newPos < 0){
+        secondCursorPos = 0;
+    }
+    else if(newPos > int(content.size())){
+        secondCursorPos = content.size();
+    }
+    else{
+        secondCursorPos = newPos;
+    }
+    if(isEditingActive){
+        divideFormattingByCursor();
+    }
 }
 void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, const MouseClass & Mouse){
     cursorPos = 0;

@@ -1,3 +1,6 @@
+8.04.2024
+-Fixed: Creating two windows would crash the engine. The problem was caused by not recalculating the active SuperEditableTextModule.
+
 5.04.2024
 -Upgraded the terminal with the SuperEditableTextModule.
 -Implemented all key functionalities of the SuperEditableTextModule.

@@ -782,7 +782,7 @@ void PrimaryModule::getPrimaryContext(string attribute, vector<BasePointersStruc
     }
     else{
         BasePointers.pop_back();
-        cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     }
 }
 BasePointersStruct::BasePointersStruct(){

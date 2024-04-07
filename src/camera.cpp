@@ -119,7 +119,7 @@ VariableModule Camera2D::getValue(string attribute) const{
         NewValue.setBool(isFocused);
         return NewValue;
     }
-    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule();
 }
 void Camera2D::setIsActive(bool newValue){

@@ -493,7 +493,7 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
         NewValue.setDouble(getSize().y);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
         NewValue.setBool(false);
     }
     return NewValue;

@@ -121,7 +121,7 @@ fun SuperText set_wrapping string [w]
 fun SuperText set_horizontal_align string [l]
 fun SuperText set_vertical_align string [u]
 fun SuperText update
-fun SuperText set_is_editing_active bool [true]
+fun SuperText set_can_be_edited bool [true]
 fun SuperText attach_to_camera
 fun SuperText set_input_delay double [0.3]
 fun SuperText set_repetition_delay double [0.05]

@@ -411,8 +411,8 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
         SuperText->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlSuperEditableText(SuperEditableTextModule * SuperEditableText, string attribute,
-    const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleFont> & FontContainer
+void EveModule::controlSuperEditableText(SuperEditableTextModule *& SuperEditableText, string attribute, const vector<VariableModule> & Values,
+    vector <string> & IDs, vector<SingleFont> & FontContainer, SuperEditableTextModule *& ActiveEditableText
 ){
     if(attribute == "set_can_be_edited" && Values.size() > 0){
         SuperEditableText->canBeEdited = Values[0].getBoolUnsafe();
@@ -441,8 +441,31 @@ void EveModule::controlSuperEditableText(SuperEditableTextModule * SuperEditable
     else if(attribute == "set_is_storing_history" && Values.size() > 0){
         SuperEditableText->isStoringHistory = Values[0].getBoolUnsafe();
     }
-    else if(attribute == "set_is_editing_active" && Values.size() > 0){
-        SuperEditableText->canBeEdited = Values[0].getBoolUnsafe();
+    else if(attribute == "start_editing"){
+        if(ActiveEditableText != nullptr){
+            ActiveEditableText->isEditingActive = false;
+            for(FormatClass & Format : ActiveEditableText->Formatting){
+                Format.selected = false;
+            }
+            ActiveEditableText->update();
+        }
+        ActiveEditableText = SuperEditableText;
+        SuperEditableText->isEditingActive = true;
+        SuperEditableText->divideFormattingByCursor();
+    }
+    else if(attribute == "stop_editing"){
+        SuperEditableText->isEditingActive = false;
+        for(FormatClass & Format : SuperEditableText->Formatting){
+            Format.selected = false;
+        }
+        SuperEditableText->update();
+
+        if(ActiveEditableText == nullptr){
+            return;
+        }
+        if(ActiveEditableText == SuperEditableText){
+            ActiveEditableText = nullptr;
+        }
     }
     else if(attribute == "set_min_content_length" && Values.size() > 0){
         SuperEditableText->minContentLength = Values[0].getIntUnsafe();
@@ -461,6 +484,12 @@ void EveModule::controlSuperEditableText(SuperEditableTextModule * SuperEditable
     }
     else if(attribute == "cut_unprotected_area"){
         SuperEditableText->cutContent(SuperEditableText->protectedArea);
+    }
+    else if(attribute == "set_cursor_pos" && Values.size() > 0){
+        SuperEditableText->setCursorPos(Values[0].getIntUnsafe());
+    }
+    else if(attribute == "set_second_cursor_pos" && Values.size() > 0){
+        SuperEditableText->setSecondCursorPos(Values[0].getIntUnsafe());
     }
     else{
         controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer);

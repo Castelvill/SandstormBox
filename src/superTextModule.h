@@ -171,6 +171,8 @@ public:
     void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
         bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
     );
+    void setCursorPos(int newPos);
+    void setSecondCursorPos(int newPos);
     void setCursorsWithMouse(vec2d finalPos, const MouseClass & Mouse);
 };
 

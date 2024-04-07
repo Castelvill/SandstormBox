@@ -24,7 +24,7 @@ struct ModuleIndex : AncestorIndex{
     unsigned moduleIndex;
     ModuleIndex(unsigned layer, unsigned object, unsigned module);
     template <class Module>
-    Module * module(vector <LayerClass> & Layers);
+    Module * getModulePointer(vector <LayerClass> & Layers);
     vector<EveModule>::iterator module(vector<LayerClass> &Layers);
 };
 
@@ -130,6 +130,8 @@ struct PointerRecalculator{
     unsigned selectedCameraIndex = 0;
     ModuleIndex startingEventIndex = {0, 0, 0};
     ModuleIndex eventIndex = {0, 0, 0};
+    bool didActiveEditableTextExist;
+    ModuleIndex ActiveEditableTextIndex = {0, 0, 0};
 
     void clear();
     void findIndexesForCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera);
@@ -141,12 +143,14 @@ struct PointerRecalculator{
     ModuleIndex getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers);
     template <class Module>
     void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers);
-    void findIndexesForModules(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
+    void findIndexesForModules(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText);
     void updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera, string processID, string & focusedProcessID);
     void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer);
     void updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
-    void updatePointersToModules(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack);
+    void updatePointersToModules(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, vector<EveModule>::iterator & StartingEvent,
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText);
     LayerClass * getOwnerLayer(vector <LayerClass> & Layers);
 };
 

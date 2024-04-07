@@ -1795,7 +1795,7 @@ void ProcessClass::findContextInCamera(string attribute, ContextClass & NewConte
         NewContext.addBasePointer(&Camera->canEditText);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     }
 }
 void ProcessClass::findContextInLayer(ValueLocation Location, ContextClass & NewContext, LayerClass * Layer){
@@ -3439,13 +3439,14 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
 template <class Module>
 void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const unsigned & newVectorSize,
     const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, vector<ContextClass> & EventContext,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, double reservationMultiplier
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack,
+    double reservationMultiplier, SuperEditableTextModule *& ActiveEditableText
 ){
     if(Container.size() + newVectorSize > Container.capacity()){
         PointerRecalculator Recalculator;
-        Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+        Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
         Container.reserve((Container.size() + newVectorSize) * reservationMultiplier);
-        Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+        Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
     }
     string ID = "";
     for(unsigned i = 0; i < newVectorSize; i++){
@@ -3672,11 +3673,11 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForLayers(Layers, EventContext, OwnerLayer);
             Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+            Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
             Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
             Recalculator.updatePointersToLayers(Layers, EventContext, OwnerLayer);
             Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+            Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
         }
         for(unsigned i = 0; i < newVectorSize; i++){
             if(i < newIDs.size()){
@@ -3690,10 +3691,10 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
         if(CurrentLayer->Objects.size() + newVectorSize > CurrentLayer->Objects.capacity()){
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+            Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
             CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
             Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+            Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
         }
         for(unsigned i = 0; i < newVectorSize; i++){
             if(i < newIDs.size()){
@@ -3706,7 +3707,8 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "text"){
         createNewModule(CurrentObject->TextContainer, CurrentObject->textContainerIDs, NewContext.Modules.Texts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->TextContainer.size() - 1; i >= long(CurrentObject->TextContainer.size() - newVectorSize); i--){
             CurrentObject->TextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3714,7 +3716,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "editable_text"){
         createNewModule(CurrentObject->EditableTextContainer, CurrentObject->editableTextContainerIDs, NewContext.Modules.EditableTexts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->EditableTextContainer.size() - 1; i >= long(CurrentObject->EditableTextContainer.size() - newVectorSize); i--){
             CurrentObject->EditableTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3722,7 +3724,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "super_text"){
         createNewModule(CurrentObject->SuperTextContainer, CurrentObject->superTextContainerIDs, NewContext.Modules.SuperTexts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->SuperTextContainer.size() - 1; i >= long(CurrentObject->SuperTextContainer.size() - newVectorSize); i--){
             CurrentObject->SuperTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3730,7 +3732,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "super_editable_text"){
         createNewModule(CurrentObject->SuperEditableTextContainer, CurrentObject->superEditableTextContainerIDs, NewContext.Modules.SuperEditableTexts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->SuperEditableTextContainer.size() - 1; i >= long(CurrentObject->SuperEditableTextContainer.size() - newVectorSize); i--){
             CurrentObject->SuperEditableTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3738,7 +3740,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "image"){
         createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->ImageContainer.size() - 1; i >= long(CurrentObject->ImageContainer.size() - newVectorSize); i--){
             CurrentObject->ImageContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3746,7 +3748,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "movement"){
         createNewModule(CurrentObject->MovementContainer, CurrentObject->movementContainerIDs, NewContext.Modules.Movements,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->MovementContainer.size() - 1; i >= long(CurrentObject->MovementContainer.size() - newVectorSize); i--){
             CurrentObject->MovementContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3754,7 +3756,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "collision"){
         createNewModule(CurrentObject->CollisionContainer, CurrentObject->collisionContainerIDs, NewContext.Modules.Collisions,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->CollisionContainer.size() - 1; i >= long(CurrentObject->CollisionContainer.size() - newVectorSize); i--){
             CurrentObject->CollisionContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3762,7 +3764,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "particles"){
         createNewModule(CurrentObject->ParticlesContainer, CurrentObject->particlesContainerIDs, NewContext.Modules.Particles,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->ParticlesContainer.size() - 1; i >= long(CurrentObject->ParticlesContainer.size() - newVectorSize); i--){
             CurrentObject->ParticlesContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3770,17 +3772,17 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "event"){
         createNewModule(CurrentObject->EveContainer, CurrentObject->eveContainerIDs, NewContext.Modules.Events,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
     }
     else if(Operation.Location.source == "variable"){
         createNewModule(CurrentObject->VariablesContainer, CurrentObject->variablesContainerIDs, NewContext.Modules.Variables,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
     }
     else if(Operation.Location.source == "scrollbar"){
         createNewModule(CurrentObject->ScrollbarContainer, CurrentObject->scrollbarContainerIDs, NewContext.Modules.Scrollbars,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->ScrollbarContainer.size() - 1; i >= long(CurrentObject->ScrollbarContainer.size() - newVectorSize); i--){
             CurrentObject->ScrollbarContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3788,7 +3790,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "primitives"){
         createNewModule(CurrentObject->PrimitivesContainer, CurrentObject->primitivesContainerIDs, NewContext.Modules.Primitives,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
         for(long i = CurrentObject->PrimitivesContainer.size() - 1; i >= long(CurrentObject->PrimitivesContainer.size() - newVectorSize); i--){
             CurrentObject->PrimitivesContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3796,7 +3798,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "vector"){
         createNewModule(CurrentObject->VectorContainer, CurrentObject->vectorContainerIDs, NewContext.Modules.Vectors,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
         );
     }
     else{
@@ -3981,6 +3983,9 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
         }
         if(SelectedObject != nullptr && SelectedObject->getIsDeleted()){
             SelectedObject = nullptr;
+        }
+        if(ActiveEditableText != nullptr && ActiveEditableText->getIsDeleted()){
+            ActiveEditableText = nullptr;
         }
         for(AncestorObject *& Object : TriggeredObjects){
             if(Object != nullptr && Object->getIsDeleted()){
@@ -4705,7 +4710,7 @@ void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextCl
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
     
     for(AncestorObject * Object : ContextA->Objects){
         if(canResetEvents && Object == Owner){
@@ -4716,7 +4721,7 @@ void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextCl
         wasAnyEventUpdated = true;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
 }
 void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode
@@ -4786,7 +4791,7 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
 
     //All indexes linked with events must be recalculated - after adding new events, some contexts of event type might be invalid.  
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
     
     for(AncestorObject * Object : ObjectContext->Objects){
         if(mode == 'p'){
@@ -4832,7 +4837,7 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
         wasAnyEventUpdated = true;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
 }
 void ProcessClass::clearEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner){
     if(Operation.dynamicIDs.size() == 0){
@@ -5326,16 +5331,16 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
     }
     else if(Context->type == "super_editable_text"){
         if(Operation.Location.attribute == "set_id"){
-            for(SuperEditableTextModule * SuperEditableText : Context->Modules.SuperEditableTexts){
+            for(SuperEditableTextModule *& SuperEditableText : Context->Modules.SuperEditableTexts){
                 if(!findObjectForFunction(ModulesObject, Layers, SuperEditableText->getObjectID(), SuperEditableText->getLayerID())){
                     continue;
                 }
-                Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables, ModulesObject->superEditableTextContainerIDs, Engine.FontContainer);
+                Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables, ModulesObject->superEditableTextContainerIDs, Engine.FontContainer, ActiveEditableText);
             }
             return;
         }
-        for(SuperEditableTextModule * SuperEditableText : Context->Modules.SuperEditableTexts){
-            Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables, emptyString, Engine.FontContainer);
+        for(SuperEditableTextModule *& SuperEditableText : Context->Modules.SuperEditableTexts){
+            Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables, emptyString, Engine.FontContainer, ActiveEditableText);
         }
     }
     else if(Context->type == "image"){
@@ -6168,7 +6173,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
     
     if(Operation.Literals[0].getString() == "bool" || Operation.Literals[0].getString() == "b"){
         if(Operation.Literals[1].getType() != 'b'){
@@ -6216,7 +6221,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
         return;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
 
     ContextClass NewContext;
 
@@ -6259,7 +6264,7 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
     
     Owner->VectorContainer.push_back(VectorModule(Operation.newContextID, &Owner->vectorContainerIDs, Owner->getLayerID(), Owner->getID()));
 
@@ -6313,7 +6318,7 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         return;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack);
+    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
 
     ContextClass NewContext;
 
@@ -7289,7 +7294,7 @@ VariableModule ProcessClass::findNextValueInMovementModule(ConditionClass &Condi
         }
         break;
     }
-    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute << "' is not valid.\n";
     NewValue.setBool(false);
     NewValue.setID("null", nullptr);
     return NewValue;
@@ -7319,7 +7324,7 @@ VariableModule ProcessClass::getValueFromObjectInCamera(AncestorObject * Current
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     }
     return VariableModule::newBool(newValue);
 }
@@ -7363,7 +7368,7 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     }
     return VariableModule::newBool(result);
 }
@@ -7523,7 +7528,7 @@ VariableModule ProcessClass::getValueFromObjectInCollision(ConditionClass &Condi
         }
         break;
     }
-    cout << "Error: In " << __FUNCTION__ << ": No valid attribute provided.\n";
+    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute << "' is not valid.\n";
     return VariableModule::newBool(false, "null");
 }
 VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, const MouseClass & Mouse){
@@ -9988,7 +9993,7 @@ AncestorObject *AncestorIndex::object(vector<LayerClass> &Layers){
     return &Layers[layerIndex].Objects[objectIndex];
 }
 template <class Module>
-Module * ModuleIndex::module(vector<LayerClass> &Layers){
+Module * ModuleIndex::getModulePointer(vector<LayerClass> &Layers){
     if(Layers.size() <= layerIndex){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": layerIndex goes out of scope of Layers.\n";
         return nullptr;
@@ -10118,6 +10123,7 @@ void PointerRecalculator::clear(){
     ObjectIndexes.clear();
     CameraIndexes.clear();
     TriggeredObjectIndexes.clear();
+    didActiveEditableTextExist = false;
 }
 void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera){ 
     for(ContextClass & Context : EventContext){
@@ -10286,7 +10292,7 @@ ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance
     return ModuleIndex(0, 0, 0);
 }
 void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText
 ){
     startingEventIndex = getIndex(StartingEvent, Layers);
     eventIndex = getIndex(Event, Layers);
@@ -10334,6 +10340,11 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vec
         else if(Context.type == "vector"){
             findIndexesInModule(Context.Modules.Vectors, Layers);
         }
+    }
+    didActiveEditableTextExist = false;
+    if(ActiveEditableText != nullptr){
+        ActiveEditableTextIndex = getIndex(ActiveEditableText, Layers);
+        didActiveEditableTextExist = true;
     }
 }
 void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera, string processID, string & focusedProcessID){
@@ -10412,7 +10423,7 @@ void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, ve
     }
 }
 void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText
 ){
     StartingEvent = startingEventIndex.module(Layers);
     Event = eventIndex.module(Layers);
@@ -10473,6 +10484,10 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, v
                 EventContext[context].Modules.Vectors[module] = &(*Object).VectorContainer[Index.moduleIndex];
             }
         }
+    }
+    if(didActiveEditableTextExist){
+        
+        ActiveEditableText = ActiveEditableTextIndex.getModulePointer<SuperEditableTextModule>(Layers);
     }
 }
 LayerClass * PointerRecalculator::getOwnerLayer(vector <LayerClass> & Layers){

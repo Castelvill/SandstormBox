@@ -121,7 +121,7 @@ fun SuperText set_size double [420 300]
 fun SuperText set_wrapping string [w]
 fun SuperText set_horizontal_align string [l]
 fun SuperText set_vertical_align string [u]
-fun SuperText set_is_editing_active bool [true]
+fun SuperText set_can_be_edited bool [true]
 fun SuperText attach_to_camera
 fun SuperText set_input_delay double [0.3]
 fun SuperText set_repetition_delay double [0.05]
@@ -136,10 +136,10 @@ new super_editable_text c me 1 _ _ TerminalTextField
 fun TerminalTextField set_id string [edi]
 fun TerminalTextField set_position c editableTextPos
 fun TerminalTextField set_size c ww c wh
-fun TerminalTextField add_format string [cascadia_code] int [10]
+fun TerminalTextField add_format string [cascadia_code] int [1]
 fun TerminalTextField set_color int [0] double [1.0 0.0 0.0 1.0]
 fun TerminalTextField set_wrapping string [w]
-fun TerminalTextField set_is_editing_active bool [true]
+fun TerminalTextField set_can_be_edited bool [true]
 fun TerminalTextField set_can_use_space bool [true]
 fun TerminalTextField set_content string ["Welcome in Sandstorm Box terminal!"]
 fun TerminalTextField set_input_delay double [0.3]
@@ -148,6 +148,7 @@ fun TerminalTextField set_can_use_tabs bool [false]
 fun TerminalTextField set_can_use_enter bool [false]
 fun TerminalTextField set_protected_area int [37]
 fun TerminalTextField set_ignore_vertical_arrows bool [true]
+//fun TerminalTextField start_editing
 
 new super_editable_text c me 1 _ _ TextEditor
 clone TextEditor TerminalTextField
@@ -774,14 +775,16 @@ end
 start textEditorInsert
 triggers key_pressed
 if([context program] [string "edit"] == [key_pressed 217] && [key_pressed 9] &&)
-first layer KERNEL KERNEL super_editable_text TextEditor editing_is_active _ isEditing
+first layer KERNEL KERNEL super_editable_text TextEditor is_editing_active _ isEditing
 run checkIfInsertPressed
 end
 
 start checkIfInsertPressed
 if([context isEditing] !)
 reset_keyboard
-bool [true] isEditing
+index layer [0 1] _ object Terminal
+index context Terminal [0 1] _ super_editable_text EditableText
+fun EditableText start_editing
 end
 
 start textEditorExit
@@ -791,6 +794,7 @@ string [""] program
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ super_editable_text TerminalTextField
 fun TerminalTextField activate
+fun TerminalTextField start_editing
 index context Terminal [0 1] _ super_editable_text TextEditor
 fun TextEditor deactivate
 fun TextEditor stop_editing
