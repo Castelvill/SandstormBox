@@ -86,7 +86,7 @@ fun Cam set_drawing_borders bool [0]
 fun Cam set_can_move_objects bool [false]
 
 new image c me 1 _ _ background
-fun background connect_bitmap_via_alias string [background2]
+//fun background connect_bitmap_via_alias string [background2]
 fun background resize c ww c wh
 fun background set_color double [0.5 0.5 0.5 0.3]
 fun background attach_to_camera
@@ -494,7 +494,7 @@ substr userInput protectedArea userInputSize command
 similar command allowedPrograms2 completes
 string ["\n"] result
 //+= result completes
-value ([c completes size]) sizeee
+value ([c completes size]) size
 int [0] i
 run replaceWithAutoComplete
 end
@@ -611,14 +611,15 @@ fun background resize c w c h
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ super_editable_text EditableText
 index context Terminal [0 1] _ super_editable_text EditProgramTextField
-//fun EditableText set_size c w c h
+fun EditableText set_size c w c h
+fun EditableText update
 fun EditProgramTextField set_size c w c h
 index context Terminal [0 0] _ scrollbar MainScrollbar
-int [0] 0
-value ([c EditableText size_y]) TerminalSizeY
--= TerminalSizeY h
+//int [0] 0
+//value ([c EditableText size_y]) TerminalSizeY
+//-= TerminalSizeY h
 //print \n _ c TerminalSizeY
-fun MainScrollbar set_real_scrolling_area c 0 c TerminalSizeY
+//fun MainScrollbar set_real_scrolling_area c 0 c TerminalSizeY
 end
 
 
@@ -814,19 +815,3 @@ load_build me param1
 string [""] program
 end
 
-
-/*start xd
-triggers each_iteration
-string ["KERNEL"] param
-= param1 param
-run mover
-post
-delete_this_event
-end*/
-
-/*start xd1
-triggers each_iteration
-run nw
-post
-delete_this_event
-end*/

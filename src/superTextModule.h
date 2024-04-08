@@ -62,6 +62,7 @@ public:
         unsigned secondCursorPos, bool editingIsActive
     );
 
+    void fitFormattingToContent();
     void setContent(string newContent);
     void addContent(string newContent);
     void addNewTextLine(string newLine);

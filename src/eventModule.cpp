@@ -259,7 +259,6 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
         SuperText->setSecondCursorPos(Values[0].getIntUnsafe());
     }
     else if(attribute == "update"){
-        cout << "update\n";
         SuperText->update();
     }
     else if(attribute == "crop_size_to_text"){

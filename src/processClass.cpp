@@ -219,9 +219,9 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
                 SelectedCamera->visionShift = Engine.Mouse.getZoomedPos(SelectedCamera) - dragCameraStaringPos;
             }
             updateCamerasPositions(Engine);
-            
-            selectText(Engine.Mouse);
-
+            if(Engine.Mouse.didMouseMove){
+                selectText(Engine.Mouse);
+            }
             break;
         case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
             if(!canUserInteract){
@@ -247,54 +247,53 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             break;
     }
 
-    if(canUserInteract && Engine.focusedProcessID == getID() && ActiveEditableText != nullptr
-        && ActiveEditableText->isEditingActive
-        && (Engine.releasedKeys.size() > 0 || Engine.pressedKeys.size() > 0)
-    ){
-        ActiveEditableText->edit(Engine.releasedKeys, Engine.pressedKeys, Engine.display,
-            Engine.ENABLE_al_set_clipboard_text, Engine.internalClipboard, Engine.CopiedFormatting);
-    }
-
-    if(canUserInteract && Engine.focusedProcessID == getID()
-        && (Engine.Mouse.isPressed() || Engine.releasedKeys.size() != 0 || Engine.pressedKeys.size() != 0)
-    ){
-        if(Engine.key[ALLEGRO_KEY_LCTRL]){
-            for(unsigned int i = 0; i < Engine.releasedKeys.size(); i++){
-                if(Engine.releasedKeys[i] >= ALLEGRO_KEY_0 && Engine.releasedKeys[i] <= ALLEGRO_KEY_9
-                    && int(Layers.size()) >= Engine.releasedKeys[i]-26)
-                {
-                    Layers[Engine.releasedKeys[i]-27].setIsActive(!Layers[Engine.releasedKeys[i]-27].getIsActive());
-                    if(!Layers[Engine.releasedKeys[i]-27].getIsActive()){
-                        unselectObject();
+    if(canUserInteract && Engine.focusedProcessID == getID()){
+        if(ActiveEditableText != nullptr && ActiveEditableText->isEditingActive
+            && (Engine.releasedKeys.size() > 0 || Engine.pressedKeys.size() > 0)
+        ){
+            ActiveEditableText->edit(Engine.releasedKeys, Engine.pressedKeys, Engine.display,
+                Engine.ENABLE_al_set_clipboard_text, Engine.internalClipboard, Engine.CopiedFormatting);
+        }
+        
+        if(Engine.Mouse.isPressed() || Engine.releasedKeys.size() != 0 || Engine.pressedKeys.size() != 0){
+            if(Engine.key[ALLEGRO_KEY_LCTRL]){
+                for(unsigned int i = 0; i < Engine.releasedKeys.size(); i++){
+                    if(Engine.releasedKeys[i] >= ALLEGRO_KEY_0 && Engine.releasedKeys[i] <= ALLEGRO_KEY_9
+                        && int(Layers.size()) >= Engine.releasedKeys[i]-26)
+                    {
+                        Layers[Engine.releasedKeys[i]-27].setIsActive(!Layers[Engine.releasedKeys[i]-27].getIsActive());
+                        if(!Layers[Engine.releasedKeys[i]-27].getIsActive()){
+                            unselectObject();
+                        }
                     }
                 }
             }
+            updateEditableTextFields(Engine);
         }
-        updateEditableTextFields(Engine);
-    }
 
-    if(canUserInteract && Engine.focusedProcessID == getID() && Engine.Mouse.didMouseMove
-        && SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized()
-        && SelectedCamera->canZoomWithMouse
-        && Engine.Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true, SelectedCamera)
-    ){
-        Engine.Mouse.updateZoomForCamera(SelectedCamera);
+        if(Engine.Mouse.didMouseMove && SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized()
+            && SelectedCamera->canZoomWithMouse
+            && Engine.Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true, SelectedCamera)
+        ){
+            Engine.Mouse.updateZoomForCamera(SelectedCamera);
+        }
     }
 }
 void ProcessClass::selectText(const MouseClass & Mouse){
-    if(SelectedObject != nullptr && ActiveEditableText != nullptr && Mouse.isPressed(0)){
-        ActiveEditableText->cursorPos = 0;
-        ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera), Mouse);
-        if(Mouse.firstPressedInRectangle(
-            SelectedObject->getPosOnCamera(SelectedCamera)
-            + ActiveEditableText->getPos(ActiveEditableText->getIsScrollable()),
-            ActiveEditableText->getSize(),
-            0, ActiveEditableText->getIsAttachedToCamera(), SelectedCamera
-        )){
-            ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
-        }
-        ActiveEditableText->divideFormattingByCursor();
+    if(SelectedObject == nullptr || ActiveEditableText == nullptr || !Mouse.isPressed(0)){
+        return;
     }
+    ActiveEditableText->cursorPos = 0;
+    ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera), Mouse);
+    if(Mouse.firstPressedInRectangle(
+        SelectedObject->getPosOnCamera(SelectedCamera)
+        + ActiveEditableText->getPos(ActiveEditableText->getIsScrollable()),
+        ActiveEditableText->getSize(),
+        0, ActiveEditableText->getIsAttachedToCamera(), SelectedCamera
+    )){
+        ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
+    }
+    ActiveEditableText->divideFormattingByCursor();
 }
 void ProcessClass::checkMouseCollisions(EngineClass &Engine){
     for(LayerClass & Layer : Layers){
@@ -9903,7 +9902,6 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
             for(FormatClass & Format : ActiveEditableText->Formatting){
                 Format.selected = false;
             }
-            cout << "disable\n";
             ActiveEditableText->update();
             ActiveEditableText = nullptr;
         }
