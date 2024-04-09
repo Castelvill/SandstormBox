@@ -1,10 +1,9 @@
+-Fix: Jumping by words while selecting text does not work correct (probably because of the left move).
 -Add "inject_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. 
--Add textOffset variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
+-Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
 -Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  
--Add "doesCopyFormat".
--Test zooming on SuperEditableText.
+-Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
--Add word jumping to left-right movement in SuperEditableTextModule.
 -Create "save_formatted_text" and "load_formatted_text" instructions to enable saving and loading formatted text (with special data on the start of the file).
 -Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every clicked space just like in vs code.
 -Add previous and future formatting for undo and redo.

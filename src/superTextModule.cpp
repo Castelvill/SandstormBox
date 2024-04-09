@@ -908,6 +908,7 @@ void SuperEditableTextModule::setUpNewInstance(){
     ignoreVerticalArrows = false;
     ignoreContentRestriction = true;
     isStoringHistory = true;
+    canCopyFormat = true;
     minContentLength = 0;
     maxContentLength = 512;
     inputDelay = 0.3;
@@ -1204,10 +1205,13 @@ bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & cont
     if(pKey != ALLEGRO_KEY_BACKSPACE && pKey != ALLEGRO_KEY_DELETE && (pKey != ALLEGRO_KEY_X || !control)){
         return false;
     }
-    if(cursorPos == protectedArea || secondCursorPos == protectedArea){
+    if(cursorPos < protectedArea || secondCursorPos < protectedArea){
         return true;
     }
     if(pKey == ALLEGRO_KEY_BACKSPACE || (pKey == ALLEGRO_KEY_X && control && cursorPos != secondCursorPos)){
+        if(cursorPos == protectedArea || secondCursorPos == protectedArea){
+            return true;
+        }
         if(text.size() <= minContentLength){
             return true;
         }
@@ -1802,6 +1806,9 @@ void SuperEditableTextModule::updateFormattingForUpMoveWithShift(unsigned & lett
     }
 }
 void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
+    if(cursorPos == 0){
+        return;
+    }
     float currentWidth = 0;
     unsigned letterIdx = 0;
     unsigned currentLineLength = 0;
@@ -2074,7 +2081,7 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
         cursorPos = letterIdx;
     }
 }
-void SuperEditableTextModule::moveCursorToLeft(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
+void SuperEditableTextModule::moveCursorToLeftByOne(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
     if(!shift){
         cursorPos = std::min(cursorPos, secondCursorPos);
         if(cursorPos > 0){
@@ -2176,7 +2183,36 @@ void SuperEditableTextModule::moveCursorToLeft(bool shift, unsigned & leftCursor
         }
     }
 }
-void SuperEditableTextModule::moveCursorToRight(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
+void SuperEditableTextModule::moveCursorToLeft(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
+    if(cursorPos < protectedArea || secondCursorPos < protectedArea){
+        return;
+    }
+    unsigned letterShift = cursorPos;
+    if(control && letterShift > protectedArea && letterShift > 0){
+        letterShift--;
+        for(; letterShift > 0; letterShift--){
+            if(content[letterShift] == ' ' || content[letterShift] == '\t' || content[letterShift] == '\n'){
+                break;
+            }
+        }
+        if(letterShift == 0 && content[0] != ' ' && content[0] != '\t' && content[0] != '\n'){
+            letterShift = cursorPos - letterShift;
+        }
+        else{
+            letterShift = cursorPos - letterShift - 1;
+        }
+        if(letterShift == 0){
+            letterShift = 1;
+        }
+    }
+    else{
+        letterShift = 1;
+    }
+    for(; letterShift > 0; letterShift--){
+        moveCursorToLeftByOne(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
+    }
+}
+void SuperEditableTextModule::moveCursorToRightByOne(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
     if(!shift){
         cursorPos = std::max(cursorPos, secondCursorPos);
         if(cursorPos < content.size()){
@@ -2247,6 +2283,23 @@ void SuperEditableTextModule::moveCursorToRight(bool shift, unsigned & leftCurso
         }
     }
 }
+void SuperEditableTextModule::moveCursorToRight(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
+    if(cursorPos < protectedArea || secondCursorPos < protectedArea){
+        return;
+    }
+    unsigned letterShift = cursorPos + 1;
+    if(control){
+        for(; letterShift < content.size(); letterShift++){
+            if(content[letterShift] == ' ' || content[letterShift] == '\t' || content[letterShift] == '\n'){
+                break;
+            }
+        }
+    }
+    letterShift -= cursorPos;
+    for(; letterShift > 0; letterShift--){
+        moveCursorToRightByOne(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
+    }
+}
 void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
     bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
 ){
@@ -2285,23 +2338,20 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
     for(char pKey : pressedKeys){
         text = content;
 
-        if(!ignoreVerticalArrows && pKey == ALLEGRO_KEY_UP){
-            if(cursorPos == 0){
-                continue;
-            }
+        if(pKey == ALLEGRO_KEY_UP && !ignoreVerticalArrows){
             moveCursorUp(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
             continue;
         }
         else if(pKey == ALLEGRO_KEY_RIGHT){
-            moveCursorToRight(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
+            moveCursorToRight(shift, control, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
             continue;
         }
-        else if(!ignoreVerticalArrows && pKey == ALLEGRO_KEY_DOWN){
+        else if(pKey == ALLEGRO_KEY_DOWN && !ignoreVerticalArrows){
             moveCursorDown(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
             continue;
         }
         else if(pKey == ALLEGRO_KEY_LEFT){
-            moveCursorToLeft(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
+            moveCursorToLeft(shift, control, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
             continue;
         }
 
@@ -2341,10 +2391,13 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                 }
 
                 CopiedFormatting.clear();
-                CopiedFormatting.insert(CopiedFormatting.begin(), Formatting.begin() + leftCursorOnFormatIdx,
-                    Formatting.begin() + rightCursorOnFormatIdx + 1);
-                for(FormatClass & Format : CopiedFormatting){
-                    Format.selected = false;
+
+                if(canCopyFormat){
+                    CopiedFormatting.insert(CopiedFormatting.begin(), Formatting.begin() + leftCursorOnFormatIdx,
+                        Formatting.begin() + rightCursorOnFormatIdx + 1);
+                    for(FormatClass & Format : CopiedFormatting){
+                        Format.selected = false;
+                    }
                 }
                 
                 continue;

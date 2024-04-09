@@ -148,6 +148,7 @@ fun TerminalTextField set_can_use_tabs bool [false]
 fun TerminalTextField set_can_use_enter bool [false]
 fun TerminalTextField set_protected_area int [37]
 fun TerminalTextField set_ignore_vertical_arrows bool [true]
+fun TerminalTextField set_can_copy_format bool [false]
 //fun TerminalTextField start_editing
 
 new super_editable_text c me 1 _ _ TextEditor
@@ -207,6 +208,11 @@ var string "1.0" terminalColorR
 var string "0.0" terminalColorG
 var string "0.0" terminalColorB
 var string "1.0" terminalColorA
+
+var string "1.0" terminalAccentColorR
+var string "1.0" terminalAccentColorG
+var string "1.0" terminalAccentColorB
+var string "1.0" terminalAccentColorA
 
 var int 0 commandNumber
 var int 0 currentCommandNumber
@@ -546,6 +552,7 @@ if ([context program] [string ""] ==)
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ super_editable_text EditableText
 fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
+fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
 string ["$ "] result
 string ["sleep"] program
 run printOnTerminal

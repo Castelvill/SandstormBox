@@ -1,3 +1,7 @@
+9.04.2024
+-Implemented jumping by words in left-right movement of the SuperEditableTextModule.
+-Added "canCopyFormat" variable to the SuperEditableTextModule.
+
 8.04.2024
 -Optimized text selection with mouse.
 -Fixed: Tab autocomplete and "history" could remove the cursor in the terminal.

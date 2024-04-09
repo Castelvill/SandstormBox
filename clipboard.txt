@@ -1,1 +1,13 @@
-ds
+XX==================XX   Mateusz
+ XXomomomomomomomomomXX   -----------------------
+ |8   .  .  , .  ,   &|   OS: Sandstorm Box
+ |&. , , g+$$kg  . . 8|   Kernel: 0.1
+ |8  .  d$$''?$b  .  &|   Shell: Sandbox 0.1
+ |& .,  d?x,  ''  ,  8|   Uptime: 420 hours, 4 mins
+ |8  ..  sR$$&Y  . . &|   Resolution: 1920x1080
+ |&, .  ..  `T$i  ,  8|   Theme: NewWorld
+ |8  ,  d$x,,$$i   . &|   CPU: 12th Gen Intel i5-12600KF
+ |&,  . `*c$$+*  .   8|   GPU: AMD Radeon RX 6700 XT
+ |8  . , .  ,  . ,   &|   Memory: 12819MiB / 32592MiB   
+ XX*^*^*^*^*^*^*^*^*^XX   
+ XX==================XX

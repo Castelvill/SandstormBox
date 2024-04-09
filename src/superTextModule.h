@@ -119,6 +119,7 @@ public:
     bool ignoreVerticalArrows; //Terminal history requires disabled arrows.
     bool ignoreContentRestriction;
     bool isStoringHistory; //For undo and redo.
+    bool canCopyFormat;
     unsigned minContentLength, maxContentLength;
     float inputDelay, repetitionDelay;
     unsigned protectedArea; //User cannot edit the text placed before the protection cursor.
@@ -167,8 +168,10 @@ public:
     void updateFormattingForDownMoveWithoutShift(unsigned & formatIdx, unsigned & limit, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void updateFormattingForDownMoveWithShift(unsigned & letterIdx, unsigned & formatIdx, unsigned & limit, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorDown(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
-    void moveCursorToLeft(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
-    void moveCursorToRight(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
+    void moveCursorToLeftByOne(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
+    void moveCursorToLeft(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
+    void moveCursorToRightByOne(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
+    void moveCursorToRight(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
         bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
     );

@@ -336,6 +336,11 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
             Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()
         ));
     }
+    else if(attribute == "set_last_accent_color" && Values.size() >= 4){
+        SuperText->setAccentColor(SuperText->Formatting.size() - 1, al_map_rgba_f(Values[0].getDoubleUnsafe(),
+            Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()
+        ));
+    }
     else if(attribute == "set_font" && Values.size() >= 2){
         SuperText->setFont(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(), FontContainer);
     }
@@ -439,6 +444,9 @@ void EveModule::controlSuperEditableText(SuperEditableTextModule *& SuperEditabl
     }
     else if(attribute == "set_is_storing_history" && Values.size() > 0){
         SuperEditableText->isStoringHistory = Values[0].getBoolUnsafe();
+    }
+    else if(attribute == "set_can_copy_format" && Values.size() > 0){
+        SuperEditableText->canCopyFormat = Values[0].getBoolUnsafe();
     }
     else if(attribute == "start_editing"){
         if(ActiveEditableText != nullptr){
