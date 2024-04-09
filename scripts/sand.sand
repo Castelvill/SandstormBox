@@ -822,3 +822,10 @@ load_build me param1
 string [""] program
 end
 
+/*start lol
+triggers each_iteration
+string ["xd"] param1
+run edit
+post
+delete_this_event
+end*/

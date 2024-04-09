@@ -2208,6 +2208,7 @@ void SuperEditableTextModule::moveCursorToLeft(bool shift, bool control, unsigne
     else{
         letterShift = 1;
     }
+    cout << "left: " << letterShift << "\n";
     for(; letterShift > 0; letterShift--){
         moveCursorToLeftByOne(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
     }
@@ -2267,15 +2268,19 @@ void SuperEditableTextModule::moveCursorToRightByOne(bool shift, unsigned & left
         else{
             if(Formatting[leftCursorOnFormatIdx].limit > 1){
                 Formatting[leftCursorOnFormatIdx].limit--;
+                Formatting[leftCursorOnFormatIdx].drawingLimit--;
                 Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FormatClass());
                 Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
                 Formatting[leftCursorOnFormatIdx].limit = 1;
+                Formatting[leftCursorOnFormatIdx].drawingLimit = 1;
                 Formatting[leftCursorOnFormatIdx].selected = false;
+                rightCursorOnFormatIdx++;
             }
             else{
                 Formatting[leftCursorOnFormatIdx].selected = false;
-                leftCursorOnFormatIdx++;
             }
+            leftCursorOnFormatIdx++;
+            
         }
 
         if(cursorPos < content.size()){
@@ -2296,6 +2301,7 @@ void SuperEditableTextModule::moveCursorToRight(bool shift, bool control, unsign
         }
     }
     letterShift -= cursorPos;
+    cout << "right: " << letterShift << "\n";
     for(; letterShift > 0; letterShift--){
         moveCursorToRightByOne(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
     }
@@ -2521,11 +2527,13 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
         content = newContent;
 
         //Remove selected formatting.
-        if(leftCursorOnFormatIdx < rightCursorOnFormatIdx){
+        if(leftCursorOnFormatIdx < rightCursorOnFormatIdx || Formatting[leftCursorOnFormatIdx].limit > 1){
             Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1, Formatting.begin() + rightCursorOnFormatIdx + 1);
             Formatting[leftCursorOnFormatIdx].limit = 1; //Add one letter to formatting.
         }
         else{
+            Formatting[leftCursorOnFormatIdx].limit = 1;
+            Formatting[leftCursorOnFormatIdx].drawingLimit = 1;
             if(leftCursorOnFormatIdx > 0){
                 Formatting[leftCursorOnFormatIdx - 1].limit++; //Add one letter to formatting.
             }
