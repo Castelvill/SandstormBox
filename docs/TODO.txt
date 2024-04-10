@@ -1,20 +1,21 @@
+-Update set_can_edit_text with SuperEditableTextModule.
+-Identify the border showing in the "mover" program and offset it accordingly.
 -Fix: After pasting a string and moving cursor to the left only the format's cursor is moved correctly.  
--Add "inject_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. 
+-Add "inject_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. Remember to update support variables.
 -Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
 -Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
 -Create "save_formatted_text" and "load_formatted_text" instructions to enable saving and loading formatted text (with special data on the start of the file).
--Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every clicked space just like in vs code.
+-Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every entered white space just like in vs code. Remember to update support variables. 
 -Add previous and future formatting for undo and redo.
 -After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
--Remove old, useless functions and methods.
+-Remove old TextModule and EditableTextModule. Remove old, useless functions and methods.
 -Move "set_real_scrolling_area" function to the "enter" procedure in the script.
 -Add in-terminal scrolling: automatic and the scrollbar.
 -Implement arithmetic instructions and function for vector module (+=, -=, etc.).
 -With updated arithmetic instructions improve the auto-complete (remove the loop).
 -Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
--Fix: if the cursor is on the first line, down-arrow is moving cursor with an offset.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: command "sh print "xd\n"" does not work.
 -Fix: print command doesn't use special signs.
@@ -47,9 +48,9 @@ MILESTONE: Easy and cozy scripting inside the engine.
 -Remember: inside the map editor, instead of making a lot of "solid" objects, you just need a single object with many images and collisions.
 -Copy tilemap editor from Godot.
 -Connect primitives to cameras.
--Add selection rectangle to the mouse.
--Change selection borders to primitives?
--Add an interactive grid to cameras.
+-Add selection rectangle to the mouse for multiple object selection.
+-Change object selection borders to primitives?
+-Add an interactive grid for object snapping in block based games.
 -Add instruction “clone_to_process <context_id> <thread_id> [activate_sim]” – clones layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
 -Add instruction “move_to_process <context_id> <thread_id> [activate_sim]” – moves (clone and delete) layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
 -Add window: Terminal.
