@@ -9488,9 +9488,6 @@ void ProcessClass::drawEverything(EngineClass & Engine){
         }
         Camera->drawOneFrame = false;
         al_set_clipping_rectangle(Camera->pos.x, Camera->pos.y, Camera->size.x, Camera->size.y);
-        if(Camera->canClearBitmap || Camera->clearBitmap){
-            //al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
-        }
         for(LayerClass & Layer : Layers){
             if(!Layer.getIsActive() || !Camera->isLayerVisible(Layer.getID())){
                 continue;
@@ -9907,12 +9904,12 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         }
 
         for(AncestorObject & Object : Layer.Objects){
-            if(!Object.getIsActive() || !Object.getCanBeSelected()){
+            if(!Object.getIsActive() || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera), Object.getSize(),
+                0, Object.getIsAttachedToCamera(), SelectedCamera)
+            ){
                 continue;
             }
-            if(Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera), Object.getSize(),
-                0, Object.getIsAttachedToCamera(), SelectedCamera
-            )){
+            if(SelectedCamera->canEditText){
                 for(SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
                     if(!SuperEditableText.getIsActive() || !SuperEditableText.canBeEdited){
                         continue;
@@ -9939,20 +9936,20 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                         break;
                     }
                 }
+            }
 
-                if(!Object.getCanBeSelected()){
-                    break;
-                }
-                if(&Layer == SelectedLayer && &Object == SelectedObject){
-                    return;
-                }
-                selectedObjectLayerID = Layer.getID();
-                selectedObjectID = Object.getID();
-                SelectedLayer = &Layer;
-                SelectedObject = &Object;
-                SelectedObject->refreshCoordinates();
+            if(!Object.getCanBeSelected()){
+                break;
+            }
+            if(&Layer == SelectedLayer && &Object == SelectedObject){
                 return;
             }
+            selectedObjectLayerID = Layer.getID();
+            selectedObjectID = Object.getID();
+            SelectedLayer = &Layer;
+            SelectedObject = &Object;
+            SelectedObject->refreshCoordinates();
+            return;
         }
     }
 }
@@ -9967,7 +9964,7 @@ void ProcessClass::drawSelectionBorder(Camera2D Camera){
     if(SelectedObject == nullptr || !Camera.getCanMoveObjects()){
         return;
     }
-    vec2d borderPos(SelectedObject->getPos(false));
+    vec2d borderPos(SelectedObject->getPos(false) + Camera.pos);
     vec2d borderSize(SelectedObject->getSize());
     if(!SelectedObject->getIsAttachedToCamera()){
         borderSize.multiply(Camera.zoom);

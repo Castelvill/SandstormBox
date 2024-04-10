@@ -1,5 +1,3 @@
--Update set_can_edit_text with SuperEditableTextModule.
--Identify the border showing in the "mover" program and offset it accordingly.
 -Fix: After pasting a string and moving cursor to the left only the format's cursor is moved correctly.  
 -Add "inject_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. Remember to update support variables.
 -Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
