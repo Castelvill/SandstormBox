@@ -2402,9 +2402,14 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                     CopiedFormatting.insert(CopiedFormatting.begin(), Formatting.begin() + leftCursorOnFormatIdx,
                         Formatting.begin() + rightCursorOnFormatIdx + 1);
                     for(FormatClass & Format : CopiedFormatting){
-                        Format.selected = false;
+                        //Format.selected = false;
                     }
                 }
+                cout << "Copy:\n";
+                for(auto Format : CopiedFormatting){
+                    cout << Format.color.r << "," << Format.color.g << "," << Format.color.r << " " << Format.limit << "\n";
+                }
+                cout << "\n\n";
                 
                 continue;
             }
@@ -2444,7 +2449,7 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                 //cursorPos = std::min(cursorPos, secondCursorPos);
                 //secondCursorPos = cursorPos + clipboard.size() - 1;
                 cursorPos += clipboard.size();
-                secondCursorPos = cursorPos;
+                //secondCursorPos = cursorPos;
                 content = newContent;
 
                 std::vector<FormatClass> FinalFormatting;
@@ -2462,6 +2467,12 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                     FinalFormatting.insert(FinalFormatting.begin(), CopiedFormatting.begin(), CopiedFormatting.end());
                 }
 
+                cout << "Prepare:\n";
+                for(auto Format : FinalFormatting){
+                    cout << Format.color.r << "," << Format.color.g << "," << Format.color.r << " " << Format.limit << "\n";
+                }
+                cout << "\n\n";
+
                 if(leftCursorOnFormatIdx < rightCursorOnFormatIdx){ //If more than one letter is selected.
                     Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx, Formatting.begin() + rightCursorOnFormatIdx + 1);
                     if(leftCursorOnFormatIdx >= Formatting.size()){
@@ -2476,10 +2487,24 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                     }
                 }
                 else{
+                    Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx);
                     Formatting.insert(Formatting.begin() + leftCursorOnFormatIdx, FinalFormatting.begin(), FinalFormatting.end());
-                    leftCursorOnFormatIdx += FinalFormatting.size();
+                    //leftCursorOnFormatIdx;
+                    rightCursorOnFormatIdx += FinalFormatting.size() - 1;
+                    if(rightCursorOnFormatIdx == Formatting.size() - 1){
+                        Formatting.push_back(FinalFormatting.back());
+                        Formatting.back().limit = 1;
+                        Formatting.back().drawingLimit = 0;
+                        Formatting.back().selected = false;
+                    }
                 }
-                rightCursorOnFormatIdx = leftCursorOnFormatIdx;
+
+                cout << "Final:\n";
+                for(auto Format : Formatting){
+                    cout << Format.color.r << "," << Format.color.g << "," << Format.color.r << " " << Format.limit << "\n";
+                }
+                cout << "\n\n";
+                //rightCursorOnFormatIdx = leftCursorOnFormatIdx;
             }
             continue;
         }

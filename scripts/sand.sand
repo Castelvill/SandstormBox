@@ -109,7 +109,7 @@ fun TerminalTextField set_can_use_tabs bool [false]
 fun TerminalTextField set_can_use_enter bool [false]
 fun TerminalTextField set_protected_area int [37]
 fun TerminalTextField set_ignore_vertical_arrows bool [true]
-fun TerminalTextField set_can_copy_format bool [false]
+fun TerminalTextField set_can_copy_format bool [true]
 //fun TerminalTextField start_editing
 
 new super_editable_text c me 1 _ _ TextEditor
