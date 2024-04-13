@@ -1,3 +1,6 @@
+12.04.2024
+-Fixed weird behavior of the cursors after pasting a text in SuperEditableTextModule.
+
 10.04.2024
 -Fixed: "set_can_edit_text" function of camera does not affect SuperEditableTextModule.
 -Fixed jumping by words to the right while selecting text.

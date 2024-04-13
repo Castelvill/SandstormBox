@@ -318,6 +318,20 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
             Values[8].getStringUnsafe(), FontContainer, 0.0, 0.0, false, Values[9].getIntUnsafe()
         );
     }
+    else if(attribute == "inject_format" && Values.size() >= 14){
+        SuperText->injectFormat(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(), al_map_rgba_f(Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(),
+            Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe()), al_map_rgba_f(Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe(),
+            Values[8].getDoubleUnsafe(), Values[9].getDoubleUnsafe()), Values[10].getStringUnsafe(), FontContainer, Values[11].getIntUnsafe(),
+            Values[12].getIntUnsafe(), Values[13].getBoolUnsafe()
+        );
+    }
+    else if(attribute == "inject_format" && Values.size() >= 11){
+        SuperText->injectFormat(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(),
+            al_map_rgba_f(Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe()),
+            al_map_rgba_f(Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe(), Values[8].getDoubleUnsafe(), Values[9].getDoubleUnsafe()),
+            Values[10].getStringUnsafe(), FontContainer, 0.0, 0.0, false
+        );
+    }
     else if(attribute == "delete_format" && Values.size() >= 1){
         SuperText->deleteFormat(Values[0].getIntUnsafe());
     }

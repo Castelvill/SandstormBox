@@ -74,9 +74,9 @@ public:
     void modifyFormat(size_t index, ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
         vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
     );
-    void injectFormat(ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
-        vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit,
-        unsigned fragmentStart, unsigned fragmentEnd
+    void injectFormat(unsigned fragmentStart, unsigned fragmentEnd, ALLEGRO_COLOR newColor,
+        ALLEGRO_COLOR newAccentColor, string fontID, vector <SingleFont> & FontContainer,
+        float offsetX, float offsetY, bool isSelected
     );
     void deleteFormat(size_t index);
     void setColor(size_t index, ALLEGRO_COLOR newColor);
