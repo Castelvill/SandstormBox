@@ -1,5 +1,5 @@
 start xd
-triggers eaSandstormch_iteration
-print "Hello worSandstorn"
+triggers each_iteration
+print "Hello world"
 delete_this_event
 end

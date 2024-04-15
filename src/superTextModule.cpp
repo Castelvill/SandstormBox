@@ -686,10 +686,6 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
         cout << "Error: In " << __FUNCTION__ << ": Start index (" << fragmentStart << ") cannot be bigger than the end index (" << fragmentEnd << ").\n";
         return;
     }
-    if(fragmentEnd == fragmentStart){
-        cout << "Warning: In " << __FUNCTION__ << ": Start index (" << fragmentStart << ") is equal to end index (" << fragmentEnd << "). Nothing to be done. Aborting.\n";
-        return;
-    }
 
     cout << "Start:\n";
     for(auto Format : Formatting){
@@ -711,10 +707,10 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
             assert(fragmentStart >= letterIdx);
             leftLimitSaved = fragmentStart - letterIdx;
         }
-        if(letterIdx + Formatting[formatIdx].limit >= fragmentEnd){ //Format with right cursor inside
+        if(letterIdx + Formatting[formatIdx].limit > fragmentEnd){ //Format with right cursor inside
             endErase = formatIdx;
             assert(letterIdx + Formatting[formatIdx].limit >= fragmentEnd);
-            rightLimitSaved = ((letterIdx + Formatting[formatIdx].limit) - fragmentEnd);
+            rightLimitSaved = ((letterIdx + Formatting[formatIdx].limit) - fragmentEnd) - 1;
             break;
         }
         letterIdx += Formatting[formatIdx].limit;
@@ -723,6 +719,10 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     //Erase selected formatting.
     if(endErase - startErase > 1){
         Formatting.erase(Formatting.begin() + startErase + 1, Formatting.begin() + endErase);
+        endErase = startErase + 1;
+        if(endErase >= Formatting.size()){
+            endErase--;
+        }
     }
     if(leftLimitSaved == 0 && rightLimitSaved == 0){
         Formatting.erase(Formatting.begin() + startErase, Formatting.begin() + endErase + 1);
