@@ -1,6 +1,7 @@
 -Add "inject_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. Remember to update support variables.
 -Fix "inject_format" instruction.
 -Fix: Cannot select part of the text with the mouse (mouse is detecting other object).
+-Fix: When event tries to run non-existent event, program enters endless loop.
 -Implement "ctrl+delete".
 -Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
 -Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  

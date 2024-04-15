@@ -1,4 +1,4 @@
-start xd
+start inject
 triggers each_iteration
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ super_editable_text EditableText

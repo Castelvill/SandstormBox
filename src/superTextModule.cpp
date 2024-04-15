@@ -691,6 +691,12 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
         return;
     }
 
+    cout << "Start:\n";
+    for(auto Format : Formatting){
+        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit  << "\n"; 
+    }
+    cout << "\n\n";
+
     unsigned startErase = 0;
     unsigned endErase = 0;
     unsigned leftLimitSaved = 0;
@@ -700,15 +706,15 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     unsigned letterIdx = 0;
     unsigned formatIdx = 0;
     for(; formatIdx < Formatting.size(); formatIdx++){
-        if(letterIdx <= fragmentStart && letterIdx + Formatting[formatIdx].limit >= fragmentStart){ //Format with left cursor inside.
+        if(letterIdx <= fragmentStart && letterIdx + Formatting[formatIdx].limit > fragmentStart){ //Format with left cursor inside.
             startErase = formatIdx;
             assert(fragmentStart >= letterIdx);
             leftLimitSaved = fragmentStart - letterIdx;
         }
         if(letterIdx + Formatting[formatIdx].limit >= fragmentEnd){ //Format with right cursor inside
             endErase = formatIdx;
-            assert(letterIdx + Formatting[formatIdx].limit > fragmentEnd);
-            rightLimitSaved = ((letterIdx + Formatting[formatIdx].limit) - fragmentEnd) - 1;
+            assert(letterIdx + Formatting[formatIdx].limit >= fragmentEnd);
+            rightLimitSaved = ((letterIdx + Formatting[formatIdx].limit) - fragmentEnd);
             break;
         }
         letterIdx += Formatting[formatIdx].limit;
@@ -736,8 +742,10 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
         }
     }
     else{
-        Formatting[startErase].limit -= leftLimitSaved;
-        Formatting[startErase].limit -= rightLimitSaved;
+        Formatting.insert(Formatting.begin() + startErase, FormatClass());
+        Formatting[startErase] = Formatting[startErase + 1];
+        Formatting[startErase].limit = leftLimitSaved;
+        Formatting[startErase + 1].limit = rightLimitSaved - 1;
         if(leftLimitSaved > 0){
             startErase++;
         }
@@ -750,8 +758,14 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     Formatting[startErase].Font = findFontByID(FontContainer, fontID);
     Formatting[startErase].offset.set(offsetX, offsetY);
     Formatting[startErase].selected = isSelected;
-    Formatting[startErase].limit = fragmentEnd - fragmentStart;
+    Formatting[startErase].limit = (fragmentEnd - fragmentStart) + 1;
     Formatting[startErase].drawingLimit = Formatting[startErase].limit;
+
+    cout << "End:\n";
+    for(auto Format : Formatting){
+        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit << "\n"; 
+    }
+    cout << "\n\n";
 }
 void SuperTextModule::deleteFormat(size_t index)
 {

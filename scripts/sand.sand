@@ -783,6 +783,49 @@ load_build me param1
 string [""] program
 end
 
+
+start injectFormat
+print ":" _ c startFragment
+print \n _ c endFragment
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ super_editable_text EditableText
+double [1.0] r
+double [0.0] g
+double [1.0] b
+double [1.0] a
+string [cascadia_code] font 
+fun EditableText inject_format c startFragment c endFragment c r c g c b c a c r c g c b c a c font
+end
+
+start format
+triggers key_pressed
+if([key_pressed 217] && [key_pressed 5] &&)
+index layer [0 1] _ object TerminalObject
+index context TerminalObject [0 0] _ super_editable_text Terminal
+value ([c Terminal cursor_pos]) cursorPos
+value ([c Terminal second_cursor_pos]) secondCursorPos
+run formatCheck
+end 
+
+start formatCheck
+if ([c cursorPos] [c secondCursorPos] <)
+else formatElseCheck
+int [0] startFragment
+int [0] endFragment
+= startFragment cursorPos
+= endFragment secondCursorPos
+run injectFormat
+end
+
+start formatElseCheck
+int [0] startFragment
+int [0] endFragment
+= startFragment secondCursorPos
+= endFragment cursorPos
+run injectFormat
+end
+
+
 /*start lol
 triggers each_iteration
 string ["xd"] param1

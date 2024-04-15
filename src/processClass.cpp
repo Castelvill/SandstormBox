@@ -771,42 +771,42 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction)
     int temp = 0;
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         temp = Variables.back().getInt();
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         temp = BasePointers.back().getInt();
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         temp = Modules.Variables.back()->getInt();
     }
     else{
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
     if(temp < 0){
         number = 0;
-        cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Value is not unsigned - returning 0.\n";
+        cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Value is not unsigned - returning 0.\n";
     }
     number = temp;
     return true;
@@ -814,36 +814,36 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction)
 bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction){
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         number = Variables.back().getInt();
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         number = BasePointers.back().getInt();
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         number = Modules.Variables.back()->getInt();
     }
     else{
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
@@ -852,36 +852,36 @@ bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction){
 bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction){
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         text = Variables.back().getString();
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         text = BasePointers.back().getString();
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
-            cout << "Warning: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         text = Modules.Variables.back()->getString();
     }
     else{
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
@@ -3488,7 +3488,7 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventCon
     
     if(SizeContext != nullptr){
         if(!SizeContext->getUnsignedOrAbort(newVectorSize, EngineInstr::new_i)){
-            cout << "Error: In" << __FUNCTION__ << ": Instruction \'new\' failed.\n";
+            cout << "Error: In " << __FUNCTION__ << ": Instruction \'new\' failed.\n";
             return false;
         }
     }
@@ -4113,7 +4113,7 @@ void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vec
     if(getAllSelectedContexts(IndexContexts, EventContext, dynamicIDs)){
         for(ContextClass * Index : IndexContexts){
             if(!Index->getIntOrAbort(singleIndex, EngineInstr::index_i)){
-                cout << "Error: In" << __FUNCTION__ << ": Instruction \'index\' failed.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Instruction \'index\' failed.\n";
                 return;
             }
             indexes.push_back(singleIndex);
@@ -4794,9 +4794,15 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
     
     for(AncestorObject * Object : ObjectContext->Objects){
         if(mode == 'p'){
+            for(string & path : stringVec){
+                path = EXE_PATH + workingDirectory + path;
+            }
             Object->translateScriptsFromPaths(stringVec);
         }
         else if(mode == 's'){
+            for(string & path : stringVec){
+                path = EXE_PATH + workingDirectory + path;
+            }
             Object->translateSubsetBindedScripts(stringVec);
         }
         else if(mode == 'c'){
@@ -5937,7 +5943,7 @@ void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass>
     }
     string pathToTheFile = "";
     if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
     if(printOutInstructions){
@@ -5974,7 +5980,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
 
     string pathToTheFile = "";
     if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting path from context failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting path from context failed.\n";
         return;
     }
     if(pathToTheFile == "" || pathToTheFile[0] == ' '){
@@ -5982,7 +5988,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
     }
     string textFromContext = "";
     if(!TextContext->getStringOrAbort(textFromContext, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting text from context failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting text from context failed.\n";
         return;
     }
 
@@ -6334,13 +6340,13 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
 void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass * Context = nullptr;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In" << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
 
     string input = "";
     if(!Context->getStringOrAbort(input, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
@@ -6466,13 +6472,13 @@ void ProcessClass::printTree(OperaClass & Operation, vector<ContextClass> & Even
 void ProcessClass::getStringSizeFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass * Context = nullptr;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In" << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
     
     string text = "";
     if(!Context->getStringOrAbort(text, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
@@ -6488,7 +6494,7 @@ void ProcessClass::getStringSizeFromContext(OperaClass & Operation, vector<Conte
 void ProcessClass::getSizeOfContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass * Context = nullptr;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In" << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
     
@@ -6506,41 +6512,41 @@ void ProcessClass::getSizeOfContext(OperaClass & Operation, vector<ContextClass>
 }
 void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.dynamicIDs.size() < 3){
-        cout << "Error: In" << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least three contexts.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least three contexts.\n";
         return;
     }
 
     ContextClass * TextContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
     if(TextContext == nullptr){
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
     ContextClass * BeginContext = getContextByID(EventContext, Operation.dynamicIDs[1], true);
     if(BeginContext == nullptr){
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
     ContextClass * LengthContext = getContextByID(EventContext, Operation.dynamicIDs[2], true);
     if(LengthContext == nullptr){
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
 
     string text = "";
     if(!TextContext->getStringOrAbort(text, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
     unsigned beginning = 0;
     if(!BeginContext->getUnsignedOrAbort(beginning, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
     unsigned length = 0;
     if(!LengthContext->getUnsignedOrAbort(length, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
@@ -6563,41 +6569,41 @@ void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<Contex
 }
 void ProcessClass::loadFontFromContext(OperaClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine){
     if(Operation.dynamicIDs.size() < 3){
-        cout << "Error: In" << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least three contexts.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least three contexts.\n";
         return;
     }
 
     ContextClass * FilePathContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
     if(FilePathContext == nullptr){
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
     ContextClass * SizeContext = getContextByID(EventContext, Operation.dynamicIDs[1], true);
     if(SizeContext == nullptr){
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
     ContextClass * IDContext = getContextByID(EventContext, Operation.dynamicIDs[2], true);
     if(IDContext == nullptr){
-        cout << "Error: In" << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
 
     string filePath = "";
     if(!FilePathContext->getStringOrAbort(filePath, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
     int fontSize = 0;
     if(!SizeContext->getIntOrAbort(fontSize, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
     string fontID = "";
     if(!IDContext->getStringOrAbort(fontID, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
@@ -6888,17 +6894,17 @@ void ProcessClass::printWorkingDirectory(OperaClass & Operation, vector<ContextC
 void ProcessClass::findSimilarStrings(OperaClass &Operation, vector<ContextClass> &EventContext){
     ContextClass * Pattern = nullptr, * StringVector = nullptr;
     if(!getPairOfContexts(Pattern, StringVector, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In" << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
     string pattern = "";
     if(!Pattern->getStringOrAbort(pattern, Operation.instruction)){
-        cout << "Error: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed. First parameter must be a string.\n";
+        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed. First parameter must be a string.\n";
         return;
     }
     vector <string> stringVector;
     if(!StringVector->getStringVectorOrIgnore(stringVector, Operation.instruction)){
-        cout << "Warning: In" << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed. Vector of strings not found.\n";
+        cout << "Warning: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed. Vector of strings not found.\n";
         return;
     }
     ContextClass NewContext;
