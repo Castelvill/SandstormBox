@@ -1,5 +1,3 @@
--Add "inject_format letterStart letterEnd [Format...]" instruction to the SuperEditableTextModule. It could format only a fragment of the text by forcefully injecting it betweenn existing formarting. Also it can simulate "ascii pixels" coloring if the text field size is constant. Remember to update support variables.
--Fix "inject_format" instruction.
 -Fix: Cannot select part of the text with the mouse (mouse is detecting other object).
 -Fix: When event tries to run non-existent event, program enters endless loop.
 -Implement "ctrl+delete".

@@ -1,7 +1,14 @@
 start inject
 triggers each_iteration
+
 index layer [0 1] _ object Terminal
 index context Terminal [0 0] _ super_editable_text EditableText
+
+value ([c EditableText cursor_pos]) cursorPos
+value ([c EditableText second_cursor_pos]) secondCursorPos
+print ":" _ c cursorPos
+print \n _ c secondCursorPos
+
 int [3] starto
 int [6] endo
 double [1.0] r
@@ -9,7 +16,15 @@ double [0.0] g
 double [1.0] b
 double [1.0] a
 string [cascadia_code] font 
-fun EditableText inject_format c starto c endo c r c g c b c a c r c g c b c a c font
+//fun EditableText inject_format c starto c endo c r c g c b c a c r c g c b c a c font
+fun EditableText inject_format int [0] int [100] double [1.0 0.2 0.2 1.0] double [0.0 1.0 0.0 1.0] string [cascadia_code]
+fun EditableText inject_format int [101] int [200] double [0.0 0.0 1.0 1.0] double [0.0 1.0 0.0 1.0] string [cascadia_code]
+fun EditableText inject_format int [201] int [300] double [0.5 0.0 0.5 1.0] double [0.0 1.0 0.0 1.0] string [cascadia_code]
+
+value ([c EditableText cursor_pos]) cursorPos
+value ([c EditableText second_cursor_pos]) secondCursorPos
+print ":" _ c cursorPos
+print \n _ c secondCursorPos
 post
 delete_this_event
 end

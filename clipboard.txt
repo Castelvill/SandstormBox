@@ -1,1 +1,4 @@
-SuperEditableTextModule
+Welcome in Sandstorm Box terminal!
+$ neofetch
+
+ XX=======

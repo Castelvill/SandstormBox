@@ -688,10 +688,12 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     }
 
     cout << "Start:\n";
+    unsigned limitSum = 0;
     for(auto Format : Formatting){
-        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit  << "\n"; 
+        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit  << "\n";
+        limitSum += Format.limit;
     }
-    cout << "\n\n";
+    cout << "Limit sum: " << limitSum << "\n";
 
     unsigned startErase = 0;
     unsigned endErase = 0;
@@ -717,38 +719,53 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     }
 
     //Erase selected formatting.
-    if(endErase - startErase > 1){
+    if(endErase - startErase > 1){ //If more than three formats exist, erase all formats between the first and last selected format - not including those two.
         Formatting.erase(Formatting.begin() + startErase + 1, Formatting.begin() + endErase);
         endErase = startErase + 1;
         if(endErase >= Formatting.size()){
             endErase--;
         }
     }
-    if(leftLimitSaved == 0 && rightLimitSaved == 0){
+    if(leftLimitSaved == 0 && rightLimitSaved == 0){ //Erase all selected formats if they are fully selected. 
         Formatting.erase(Formatting.begin() + startErase, Formatting.begin() + endErase + 1);
     }
-    else if(endErase - startErase == 1){
-        Formatting[startErase].limit -= leftLimitSaved;
-        Formatting[startErase + 1].limit -= rightLimitSaved;
-        if(leftLimitSaved == 0){
-            Formatting.erase(Formatting.begin() + startErase);
+    else if(endErase - startErase == 1){ //If two formats are selected, cut selected letters out of them and or erase one fully selected format. 
+        if(leftLimitSaved > 0 && rightLimitSaved > 0){
+            Formatting[startErase].limit = leftLimitSaved;
+            Formatting[startErase].drawingLimit = Formatting[startErase].limit;
+            Formatting[startErase + 1].limit = rightLimitSaved;
+            Formatting[startErase + 1].drawingLimit = Formatting[startErase + 1].limit;
+            startErase++;
         }
-        else if(rightLimitSaved == 0){
+        else if(leftLimitSaved > 0){
+            Formatting[startErase].limit = leftLimitSaved;
+            Formatting[startErase].drawingLimit = Formatting[startErase].limit;
             Formatting.erase(Formatting.begin() + startErase + 1);
             startErase++;
         }
         else{
-            startErase++;
+            Formatting[startErase + 1].limit = rightLimitSaved;
+            Formatting[startErase + 1].drawingLimit = Formatting[startErase + 1].limit;
+            Formatting.erase(Formatting.begin() + startErase);
         }
     }
-    else{
+    else if(leftLimitSaved > 0 && rightLimitSaved > 0){ //If a part inside a single format is selected, divide it to two and make place for the new injected format between the new pair.
         Formatting.insert(Formatting.begin() + startErase, FormatClass());
         Formatting[startErase] = Formatting[startErase + 1];
         Formatting[startErase].limit = leftLimitSaved;
+        Formatting[startErase].drawingLimit = Formatting[startErase].limit;
         Formatting[startErase + 1].limit = rightLimitSaved - 1;
-        if(leftLimitSaved > 0){
-            startErase++;
-        }
+        Formatting[startErase + 1].drawingLimit = Formatting[startErase + 1].limit;
+        startErase++;
+    }
+    else if(leftLimitSaved > 0){
+        Formatting[startErase].limit = leftLimitSaved;
+        Formatting[startErase].drawingLimit = Formatting[startErase].limit;
+        startErase++;
+    }
+    else if(rightLimitSaved > 0){
+        Formatting[startErase].limit = rightLimitSaved;
+        Formatting[startErase].drawingLimit = Formatting[startErase].limit;
     }
 
     //Insert one new format in the place of erased ones.
@@ -762,10 +779,12 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     Formatting[startErase].drawingLimit = Formatting[startErase].limit;
 
     cout << "End:\n";
+    limitSum = 0;
     for(auto Format : Formatting){
         cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit << "\n"; 
+        limitSum += Format.limit;
     }
-    cout << "\n\n";
+    cout << "Limit sum: " << limitSum << "\n\n";
 }
 void SuperTextModule::deleteFormat(size_t index)
 {
@@ -1038,7 +1057,13 @@ void SuperEditableTextModule::clone(const SuperEditableTextModule &Original, vec
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 void SuperEditableTextModule::clear(){
-    SuperTextModule::clear();
+    textLines.clear();
+    lineWidths.clear();
+    lineHeights.clear();
+    lineLengths.clear();
+    lineStarts.clear();
+    floatingNewLine.clear();
+    Formatting.clear();
     previousContent.clear();
     futureContent.clear();
     previousFormatting.clear();

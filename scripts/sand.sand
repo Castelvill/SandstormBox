@@ -825,7 +825,6 @@ int [0] endFragment
 run injectFormat
 end
 
-
 /*start lol
 triggers each_iteration
 string ["xd"] param1

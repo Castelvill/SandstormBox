@@ -1,5 +1,8 @@
+16.04.2024
+-Fixed "inject_format" function.
+
 15.04.2024
--Implemented "inject_format" instruction for SuperEditableTextModule.
+-Implemented "inject_format" function for SuperEditableTextModule.
 
 13.04.2024
 -Added dynamic paths to "load_build" and "build_subset" instructions.
