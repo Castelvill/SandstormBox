@@ -91,6 +91,13 @@ public:
     bool isNumeric() const;
 };
 
+struct EventDescription{
+    string layerID;
+    string objectID;
+    string eventID;
+    string describe();
+};
+
 class PrimaryModule{
     //List of inheriting classes: ImageModule, TextModule, CollisionModule, EventModule, ParticleEffectModule, MovementModule
     protected:

@@ -411,7 +411,7 @@ void SuperTextModule::cropSizeToText(){
     size.set(realTextSize.x, realTextSize.y);
 }
 
-VariableModule SuperTextModule::getAttributeValue(const string &attribute, const string &detail) const{
+VariableModule SuperTextModule::getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const{
     if(attribute == "in_group"){
         return VariableModule::newBool(isInAGroup(detail));
     }
@@ -430,7 +430,8 @@ VariableModule SuperTextModule::getAttributeValue(const string &attribute, const
     else if(attribute == "rotation"){
         return VariableModule::newDouble(rotation);
     }
-    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+        << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 void SuperTextModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
@@ -1086,7 +1087,7 @@ void SuperEditableTextModule::clear(){
     futureFormatting.clear();
     blockedKeys.clear();
 }
-VariableModule SuperEditableTextModule::getAttributeValue(const string &attribute, const string &detail) const{
+VariableModule SuperEditableTextModule::getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const{
     if(attribute == "original_content"){
         if(previousContent.size() > 0){
             return VariableModule::newString(*previousContent.begin());

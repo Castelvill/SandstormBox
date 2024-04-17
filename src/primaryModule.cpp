@@ -1527,3 +1527,7 @@ string BasePointersStruct::getString() const{
     cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
     return "[invalid type]";
 }
+
+string EventDescription::describe(){
+    return layerID + "::" + objectID + "::" + eventID;
+}

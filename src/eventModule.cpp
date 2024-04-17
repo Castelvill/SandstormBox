@@ -787,6 +787,12 @@ void EveModule::controlParticles(ParticleEffectModule * Particles, string attrib
     if(attribute == "set_id" && Values.size() > 0){
         Particles->setID(Values[0].getStringUnsafe(), IDs);
     }
+    else if(attribute == "set_position" && Values.size() >= 2){
+        Particles->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
+    else if(attribute == "set_size" && Values.size() >= 2){
+        Particles->setSize(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
+    }
     else if(attribute == "set_environment" && Values.size() >= 2){
         Particles->setEnvironment(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }

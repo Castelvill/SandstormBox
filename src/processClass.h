@@ -52,13 +52,6 @@ struct EventsLookupTable{
     void clear();
 };
 
-struct EventDescription{
-    string layerID;
-    string objectID;
-    string eventID;
-    string describe();
-};
-
 struct ContextClass{
     string ID;
     string type;
@@ -162,7 +155,7 @@ struct PointerRecalculator{
     LayerClass * getOwnerLayer(vector <LayerClass> & Layers);
 };
 
-ContextClass * getContextByID(vector<ContextClass> & AllContexts, string contextID, bool warning);
+ContextClass * getContextByID(vector<ContextClass> & AllContexts, string contextID, bool printError, EventDescription EventIds);
 void extractPointersFromModules(ModulesPointers & ContextModules, AncestorObject * Object, string moduleType);
 template<class Entity>
 Entity * lastNotDeletedInVector(vector<Entity> &Vector);

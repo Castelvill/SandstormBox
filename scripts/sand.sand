@@ -124,6 +124,35 @@ fun TextEditor set_ignore_vertical_arrows bool [false]
 fun TextEditor deactivate
 fun TextEditor set_can_use_tabs bool [true]
 
+new particles c me 1 _ _ Particles
+fun Particles set_position int [200 200]
+fun Particles set_size int [10 10]
+fun Particles activate
+fun Particles set_block_spawning bool [true]
+fun Particles spawn_on_key_release bool [false]
+fun Particles set_spawn_rate int [100 100]
+fun Particles set_spawn_cap int [500]
+fun Particles set_max_time_to_spawn double [0.05]
+fun Particles set_basic_speed double [0.1 10.0]
+fun Particles set_speed double [0.1 10.0]
+fun Particles set_environment double [0.0 0.0]
+fun Particles set_environment_speed double [0.0 0.0]
+fun Particles set_acceleration double [0.0 0.0]
+fun Particles set_mass double [0.4 0.7]
+fun Particles set_directional_degree double [0.0 360.0]
+fun Particles set_rotation_speed double [0.0 0.0]
+fun Particles set_time_to_negate_rotation double [0.0 0.0]
+fun Particles set_radius double [5.0 5.0]
+fun Particles set_time_to_death double [0.2 0.5]
+fun Particles set_color_intensity double [0.8 1.0]
+fun Particles set_shape_rotation_speed double [-2.0 2.0]
+fun Particles set_shape int [0]
+fun Particles set_use_images bool [false]
+fun Particles set_drawing_details bool [false]
+fun Particles set_is_static bool [false]
+//fun Particles bind_key string [p]
+//fun Particles add_image string [insane]
+
 
 new image c me 1 _ _ thumb
 fun thumb set_id string [thumb]
@@ -182,7 +211,17 @@ vec string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 
 vec string [""] commandHistory
 
 var string "scripts" dir
+end
 
+
+start spawnParticles
+triggers key_pressing
+if ([any_key_pressing])
+index c me [0 0] _ particles Particles
+index c me [0 0] _ super_editable_text Terminal
+value ([c Terminal pos_x] [c Terminal pos_y]) textPos
+fun Particles set_position c textPos
+fun Particles allow_spawning
 end
 
 

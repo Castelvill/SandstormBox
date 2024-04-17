@@ -51,7 +51,7 @@ public:
     void update();
     void cropSizeToText();
 
-    VariableModule getAttributeValue(const string &attribute, const string &detail) const;
+    VariableModule getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const;
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     
     void drawFormattedString(string text, vec2d finalPos, size_t lineIdx,
@@ -137,7 +137,7 @@ public:
     void clone(const SuperEditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clear();
 
-    VariableModule getAttributeValue(const string &attribute, const string &detail) const;
+    VariableModule getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const;
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
