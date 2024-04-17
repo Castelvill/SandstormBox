@@ -1,4 +1,6 @@
--Fix: Cannot select part of the text with the mouse (mouse is detecting other object).
+-Fix: Cannot select the whole text in the "note" program.
+-Fix: Mouse cursor does not work with tabs.
+-Add an event that spawns particles when you write.
 -Fix: When event tries to run non-existent event, program enters endless loop.
 -Implement "ctrl+delete".
 -Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
@@ -24,6 +26,7 @@
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
 -Implement "set_if *event* *expression*" instruction.
 -Remove parenthesis from "value", "if" and aggregating instructions.
+-Move "triggers" to the object definition or bind events to them. 
 
 MILESTONE: Terminal with printing, scrolling and a history of used commands.
 MILESTONE: Easy and cozy scripting inside the engine.

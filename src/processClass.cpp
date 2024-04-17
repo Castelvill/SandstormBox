@@ -34,7 +34,9 @@ void ProcessClass::setID(string newID, vector<string> &listOfIDs){
     ID = findNewUniqueID(listOfIDs, newID);
     listOfIDs.push_back(ID);
 }
-void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs){
+void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID,
+    string newLayerID, string newObjectID, vector<string> &listOfIDs
+){
     setID(newID, listOfIDs);
     isActive = true;
     canUserInteract = true;
@@ -88,7 +90,7 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string 
     }
     
     if(isLayersUniquenessViolated()){
-        cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
     }
 
     for(LayerClass & Layer : Layers){
@@ -96,7 +98,7 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string 
             obj.createVectorsOfIds();
         }
         if(Layer.isObjectsUniquenessViolated()){
-            cout << "Error: In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Layers id uniqueness has been violeted on the start of the process!\n";
         }
     }
 
@@ -450,6 +452,9 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
     }
 }
 void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects){
+    if(printOutInstructions){
+        cout << "\nAll triggered objects: \n";
+    }
     AncestorObject * tempObject = nullptr;
     TriggeredObjects.clear();
     if(firstIteration){
@@ -457,6 +462,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             tempObject = Index.object(Layers);
             if(tempObject != nullptr && tempObject->getIsActive()){
                 TriggeredObjects.push_back(&(*tempObject));
+                if(printOutInstructions){
+                    cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (on_boot), ";
+                }
             }
         }
     }
@@ -464,6 +472,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
         tempObject = Index.object(Layers);
         if(tempObject != nullptr && tempObject->getIsActive()){
             TriggeredObjects.push_back(&(*tempObject));
+            if(printOutInstructions){
+                cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (on_init), ";
+            }
         }
     }
     BaseOfTriggerableObjects.InitTriggered.clear();
@@ -471,6 +482,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
         tempObject = Index.object(Layers);
         if(tempObject != nullptr && tempObject->getIsActive()){
             TriggeredObjects.push_back(&(*tempObject));
+            if(printOutInstructions){
+                cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (each_iteration), ";
+            }
         }
     }
     if(Engine.secondHasPassed()){ 
@@ -478,6 +492,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             tempObject = Index.object(Layers);
             if(tempObject != nullptr && tempObject->getIsActive()){
                 TriggeredObjects.push_back(&(*tempObject));
+                if(printOutInstructions){
+                    cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (second_passed), ";
+                }
             }
         }
     }
@@ -487,6 +504,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 tempObject = Index.object(Layers);
                 if(tempObject != nullptr && tempObject->getIsActive()){
                     TriggeredObjects.push_back(&(*tempObject));
+                    if(printOutInstructions){
+                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (key_pressed), ";
+                    }
                 }
             }
         }
@@ -495,6 +515,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 tempObject = Index.object(Layers);
                 if(tempObject != nullptr && tempObject->getIsActive()){
                     TriggeredObjects.push_back(&(*tempObject));
+                    if(printOutInstructions){
+                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (key_pressing), ";
+                    }
                 }
             }
         }
@@ -503,6 +526,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 tempObject = Index.object(Layers);
                 if(tempObject != nullptr && tempObject->getIsActive()){
                     TriggeredObjects.push_back(&(*tempObject));
+                    if(printOutInstructions){
+                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (key_released), ";
+                    }
                 }
             }
         }
@@ -511,6 +537,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 tempObject = Index.object(Layers);
                 if(tempObject != nullptr && tempObject->getIsActive()){
                     TriggeredObjects.push_back(&(*tempObject));
+                    if(printOutInstructions){
+                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_moved), ";
+                    }
                 }
             }
         }
@@ -519,6 +548,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 tempObject = Index.object(Layers);
                 if(tempObject != nullptr && tempObject->getIsActive()){
                     TriggeredObjects.push_back(&(*tempObject));
+                    if(printOutInstructions){
+                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_not_moved), ";
+                    }
                 }
             }
         }
@@ -527,6 +559,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 tempObject = Index.object(Layers);
                 if(tempObject != nullptr && tempObject->getIsActive()){
                     TriggeredObjects.push_back(&(*tempObject));
+                    if(printOutInstructions){
+                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_pressed), ";
+                    }
                 }
             }
         }
@@ -535,6 +570,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 tempObject = Index.object(Layers);
                 if(tempObject != nullptr && tempObject->getIsActive()){
                     TriggeredObjects.push_back(&(*tempObject));
+                    if(printOutInstructions){
+                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_pressing), ";
+                    }
                 }
             }
         }
@@ -543,6 +581,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 tempObject = Index.object(Layers);
                 if(tempObject != nullptr && tempObject->getIsActive()){
                     TriggeredObjects.push_back(&(*tempObject));
+                    if(printOutInstructions){
+                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_released), ";
+                    }
                 }
             }
         }
@@ -553,6 +594,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             tempObject = Index.object(Layers);
             if(tempObject != nullptr && tempObject->getIsActive()){
                 TriggeredObjects.push_back(&(*tempObject));
+                if(printOutInstructions){
+                    cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (on_display_resize), ";
+                }
             }
         }
     }
@@ -568,6 +612,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             }
             if(Movement.isMoving()){
                 TriggeredObjects.push_back(&(*tempObject));
+                if(printOutInstructions){
+                    cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (movement), ";
+                }
                 break;
             }
         }
@@ -587,9 +634,13 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
         }
         if(triggered){
             TriggeredObjects.push_back(&(*tempObject));
+            if(printOutInstructions){
+                cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (stillness), ";
+            }
         }
     }
 
+    //Remove duplicates
     for(unsigned int i=0; i < TriggeredObjects.size(); i++){
         for(unsigned int j=i+1; j < TriggeredObjects.size(); j++){
             if(TriggeredObjects[i] != TriggeredObjects[j]){
@@ -615,6 +666,9 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
         else{
             ++Object;
         }
+    }
+    if(printOutInstructions){
+        cout << "\n";
     }
 }
 size_t ProcessClass::countLayers() const{
@@ -694,10 +748,10 @@ size_t ContextClass::getVectorSize() const{
     }
     return 0;
 }
-string ContextClass::getValue(){
+string ContextClass::getValue(EventDescription EventIds){
     string buffer = "";
     if(type == ""){
-        cout << "Error: In " << __FUNCTION__ << ": Context does not have type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Context does not have type.\n";
     }
     else if(type == "value"){
         buffer = "[";
@@ -727,7 +781,7 @@ string ContextClass::getValue(){
         for(const VariableModule * Variable: Modules.Variables){
             if(Variable == nullptr){
                 buffer += "<nullptr>, ";
-                cout << "Error: In " << __FUNCTION__ << ": In the context \'" << ID << "\' the pointer to the variable has a nullptr value.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In the context \'" << ID << "\' the pointer to the variable has a nullptr value.\n";
                 continue;
             }
             buffer += Variable->getStringUnsafe();
@@ -742,7 +796,7 @@ string ContextClass::getValue(){
         for(const VectorModule * Vector: Modules.Vectors){
             if(Vector == nullptr){
                 buffer += "<nullptr>, ";
-                cout << "Error: In " << __FUNCTION__ << ": In the context \'" << ID << "\' the pointer to the vector has a nullptr value.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In the context \'" << ID << "\' the pointer to the vector has a nullptr value.\n";
                 continue;
             }
             buffer += "[";
@@ -767,11 +821,11 @@ string ContextClass::getValue(){
     }
     return buffer;
 }
-bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction){
+bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction, EventDescription EventIds){
     int temp = 0;
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
@@ -781,7 +835,7 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction)
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
@@ -791,7 +845,7 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction)
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
@@ -800,7 +854,7 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction)
         temp = Modules.Variables.back()->getInt();
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
@@ -811,10 +865,10 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction)
     number = temp;
     return true;
 }
-bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction){
+bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction, EventDescription EventIds){
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
@@ -824,7 +878,7 @@ bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction){
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
@@ -834,7 +888,7 @@ bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction){
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
@@ -843,16 +897,16 @@ bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction){
         number = Modules.Variables.back()->getInt();
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
     return true;
 }
-bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction){
+bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction, EventDescription EventIds){
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
@@ -862,7 +916,7 @@ bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction){
     }
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(BasePointers.size() != 1){
@@ -872,7 +926,7 @@ bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction){
     }
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Modules.Variables.size() != 1){
@@ -881,7 +935,7 @@ bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction){
         text = Modules.Variables.back()->getString();
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
         return false;
     }
@@ -1248,13 +1302,15 @@ bool ProcessClass::chooseRandomModule(ContextClass & NewContext){
         chooseRandomEntity(NewContext.Modules.Vectors);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Type \'" << NewContext.type << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Type \'" << NewContext.type << "\' does not exist.\n";
         return false;
     }
     return true;
 }
 
-void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewContext, vector<Camera2D*> AggregatedCameras, const EngineClass & Engine, vector<ContextClass> &EventContext){
+void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewContext, vector<Camera2D*> AggregatedCameras,
+    const EngineClass & Engine, vector<ContextClass> &EventContext
+){
     Camera2D * Camera = nullptr;
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
         if(AggregatedCameras.size() > 0){
@@ -1327,7 +1383,9 @@ void ProcessClass::aggregateCameras(OperaClass &Operation, ContextClass &NewCont
         }
     }
 }
-void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewContext, vector <LayerClass*> AggregatedLayers, const EngineClass & Engine, vector<ContextClass> &EventContext){
+void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewContext, vector <LayerClass*> AggregatedLayers,
+    const EngineClass & Engine, vector<ContextClass> &EventContext
+){
     LayerClass * Layer = nullptr;
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
         if(AggregatedLayers.size() > 0){
@@ -1400,7 +1458,9 @@ void ProcessClass::aggregateLayers(OperaClass & Operation, ContextClass & NewCon
         }
     }
 }
-void ProcessClass::aggregateObjects(OperaClass &Operation, ContextClass &NewContext, vector<AncestorObject *> AggregatedObjects, const EngineClass &Engine, vector<ContextClass> &EventContext){
+void ProcessClass::aggregateObjects(OperaClass &Operation, ContextClass &NewContext, vector<AncestorObject *> AggregatedObjects,
+    const EngineClass &Engine, vector<ContextClass> &EventContext
+){
     if(AggregatedObjects.size() == 0){
         return;
     }
@@ -1501,7 +1561,7 @@ void ProcessClass::findContextInModule(string type, string attribute, ContextCla
             NewContext.type = "pointer";
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Context not found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Context not found.\n";
         }
     }
 }
@@ -1530,7 +1590,7 @@ void ProcessClass::getContextFromModuleVectorById(string moduleType, string modu
                 NewContext.type = "pointer";
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": No type.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No type.\n";
             }
         }
 
@@ -1547,7 +1607,9 @@ ModuleClass * findLastModule(vector <ModuleClass*> & Vector, const string & modu
     }
     return nullptr;
 }
-void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewContext, ContextClass * OldContext, vector<ContextClass> &EventContext, const EngineClass & Engine){
+void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewContext, ContextClass * OldContext,
+    vector<ContextClass> &EventContext, const EngineClass & Engine
+){
     ModulesPointers * AggregatedModules = &OldContext->Modules;
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
         if(OldContext->type == "text" && AggregatedModules->Texts.size() > 0){
@@ -1633,7 +1695,7 @@ void ProcessClass::aggregateModules(OperaClass & Operation, ContextClass & NewCo
         aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Module type \'" << OldContext->type << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Module type \'" << OldContext->type << "\' does not exist.\n";
         delete EmptyObject;
         return;
     }
@@ -1692,7 +1754,7 @@ void ProcessClass::findContextInCamera(string attribute, ContextClass & NewConte
     }
     else if(attribute == "id"){
         if(isStringInVector(reservedIDs, Camera->ID)){
-            cout << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << Camera->ID << "\' address was denied.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Access to the reserved ID \'" << Camera->ID << "\' address was denied.\n";
             return;
         }
         NewContext.addBasePointer(&Camera->ID);
@@ -1794,7 +1856,7 @@ void ProcessClass::findContextInCamera(string attribute, ContextClass & NewConte
         NewContext.addBasePointer(&Camera->canEditText);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     }
 }
 void ProcessClass::findContextInLayer(ValueLocation Location, ContextClass & NewContext, LayerClass * Layer){
@@ -1823,7 +1885,7 @@ void ProcessClass::findContextInLayer(ValueLocation Location, ContextClass & New
     }
     else if(Location.attribute == "id"){
         if(isStringInVector(reservedIDs, Layer->getID())){
-            cout << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << Layer->getID() << "\' address was denied.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Access to the reserved ID \'" << Layer->getID() << "\' address was denied.\n";
             return;
         }
         NewContext.addBasePointer(Layer->getIDAddr());
@@ -1841,7 +1903,7 @@ void ProcessClass::findContextInLayer(ValueLocation Location, ContextClass & New
         NewContext.addBasePointer(&Layer->pos.y);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Location.attribute << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute \'" << Location.attribute << "\' does not exist.\n";
     }
 }
 template <class Module>
@@ -1918,11 +1980,13 @@ void ProcessClass::findContextInObject(ValueLocation Location, ContextClass & Ne
             NewContext.type = "pointer";
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Context not found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Context not found.\n";
         }
     }
 }
-bool ProcessClass::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject){
+bool ProcessClass::findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer,
+    LayerClass *& CurrentLayer, AncestorObject *& CurrentObject
+){
     if(OwnerLayer != nullptr && Owner != nullptr && Location.layerID == Owner->getLayerID()){
         CurrentLayer = OwnerLayer;
     }
@@ -1935,7 +1999,7 @@ bool ProcessClass::findLayerAndObject(ValueLocation & Location, AncestorObject *
         }
     }
     if(CurrentLayer == nullptr || CurrentLayer->getIsDeleted()){
-        cout << "Error: In " << __FUNCTION__ << ": Layer \'" << Location.layerID << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Layer \'" << Location.layerID << "\' does not exist.\n";
         return false;
     }
     if(OwnerLayer != nullptr && CurrentLayer == OwnerLayer && Owner != nullptr && Location.objectID == Owner->getID()){
@@ -1951,7 +2015,7 @@ bool ProcessClass::findLayerAndObject(ValueLocation & Location, AncestorObject *
     }
     
     if(CurrentObject == nullptr || CurrentObject->getIsDeleted()){
-        cout << "Error: In " << __FUNCTION__ << ": Object does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Object does not exist.\n";
         return false;
     }
 
@@ -1975,7 +2039,9 @@ Entity * lastNotDeletedInVector(vector<Entity*> &Vector){
     }
     return nullptr;
 }
-void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, ContextClass & NewContext, AncestorObject * Owner, LayerClass * OwnerLayer){
+void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, ContextClass & NewContext, AncestorObject * Owner,
+    LayerClass * OwnerLayer
+){
     if(Location.source == "layer"){
         for(LayerClass & Layer : Layers){
             if(Location.layerID != "" && Location.layerID != Layer.getID()){
@@ -2003,10 +2069,12 @@ void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, Conte
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No valid source provided.\n";
     }
 }
-void ProcessClass::aggregateModulesById(string moduleType, string moduleID, string attribute, ContextClass & NewContext, ModulesPointers & AggregatedModules){
+void ProcessClass::aggregateModulesById(string moduleType, string moduleID, string attribute,
+    ContextClass & NewContext, ModulesPointers & AggregatedModules
+){
     if(moduleType == "text" && AggregatedModules.Texts.size() > 0){
         getContextFromModuleVectorById<TextModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Texts);
     }
@@ -2047,7 +2115,7 @@ void ProcessClass::aggregateModulesById(string moduleType, string moduleID, stri
         getContextFromModuleVectorById<VectorModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Vectors);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": There are no instances of the \'" << moduleType << "\' module.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no instances of the \'" << moduleType << "\' module.\n";
     }
 }
 void ProcessClass::findLowerContextById(ValueLocation & Location, ContextClass & NewContext, ContextClass * OldContext){
@@ -2096,7 +2164,7 @@ void ProcessClass::findLowerContextById(ValueLocation & Location, ContextClass &
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": No valid source provided.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No valid source provided.\n";
     }
 }
 ContextClass * getContextByID(vector<ContextClass> & AllContexts, string contextID, bool warning){
@@ -2110,9 +2178,11 @@ ContextClass * getContextByID(vector<ContextClass> & AllContexts, string context
     }
     return nullptr;
 }
-bool ProcessClass::getPairOfContexts(ContextClass *& LeftOperand, ContextClass *& RightOperand, vector<ContextClass> & AllContexts, vector<string> contextIDs){
+bool ProcessClass::getPairOfContexts(ContextClass *& LeftOperand, ContextClass *& RightOperand,
+    vector<ContextClass> & AllContexts, vector<string> contextIDs
+){
     if(AllContexts.size() < 2){
-        cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
     }
     if(contextIDs.size() == 0){
         LeftOperand = &AllContexts[AllContexts.size()-2];
@@ -2131,19 +2201,19 @@ bool ProcessClass::getPairOfContexts(ContextClass *& LeftOperand, ContextClass *
         RightOperand = getContextByID(AllContexts, contextIDs[1], true);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Incorrect input.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Incorrect input.\n";
         return false;
     }
 
     if(LeftOperand == nullptr){
         if(contextIDs.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": Left/First operand does not exist.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Left/First operand does not exist.\n";
         }
         return false;
     }
     if(RightOperand == nullptr){
         if(contextIDs.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": Right/Second operand does not exist.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Right/Second operand does not exist.\n";
         }
         return false;
     }
@@ -2152,7 +2222,7 @@ bool ProcessClass::getPairOfContexts(ContextClass *& LeftOperand, ContextClass *
 }
 bool ProcessClass::getOneContext(ContextClass *& SelectedContext, vector<ContextClass> & AllContexts, vector<string> contextIDs){
     if(AllContexts.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
     }
 
     if(contextIDs.size() == 0){
@@ -2163,19 +2233,21 @@ bool ProcessClass::getOneContext(ContextClass *& SelectedContext, vector<Context
     }
 
     if(SelectedContext == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Left operand does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Left operand does not exist.\n";
         return false;
     }
     
     return true;
 }
-bool ProcessClass::getAllSelectedContexts(vector<ContextClass*> & SelectedContexts, vector<ContextClass> & AllContexts, const vector<string> & contextIDs){
+bool ProcessClass::getAllSelectedContexts(vector<ContextClass*> & SelectedContexts, vector<ContextClass> & AllContexts,
+    const vector<string> & contextIDs
+){
     if(contextIDs.size() == 0){
         return false;
     }
     
     if(AllContexts.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no contexts to choose from.\n";
     }
 
     for(const string & ID : contextIDs){
@@ -2186,7 +2258,7 @@ bool ProcessClass::getAllSelectedContexts(vector<ContextClass*> & SelectedContex
     }
 
     if(SelectedContexts.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": No contexts found.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No contexts found.\n";
         return false;
     }
     
@@ -2267,7 +2339,7 @@ void ProcessClass::executeOperationsOnSets(EngineInstr instruction, vector<Entit
 void ProcessClass::addNewContext(vector<ContextClass> & EventContext, const ContextClass & NewContext, string type, string newID){
     EventContext.push_back(NewContext);
     EventContext.back().type = type;
-    EventContext.back().setID(EventContext, newID, printOutInstructions);
+    EventContext.back().setID(EventContext, newID, printOutInstructions, EventIds);
 }
 void ProcessClass::aggregateTwoSets(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass NewContext;
@@ -2279,11 +2351,12 @@ void ProcessClass::aggregateTwoSets(OperaClass & Operation, vector<ContextClass>
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type << ":"
+            << LeftOperand->getValue(EventIds) << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue(EventIds) << "\n";
     }
 
     if(LeftOperand->type != RightOperand->type){
-        cout << "Error: In " << __FUNCTION__ << ": Right operand has a different type than the left operand.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Right operand has a different type than the left operand.\n";
         return;
     }
 
@@ -2345,7 +2418,7 @@ void ProcessClass::aggregateTwoSets(OperaClass & Operation, vector<ContextClass>
         executeOperationsOnSets(Operation.instruction, NewContext.Modules.Vectors, LeftOperand->Modules.Vectors, RightOperand->Modules.Vectors);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": type \'" << LeftOperand->type << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": type \'" << LeftOperand->type << "\' does not exist.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
         return;
     }
@@ -2368,14 +2441,14 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
             aggregateLayers(Operation, NewContext, vector<LayerClass*>(), Engine, EventContext);
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Source type \'" << Operation.Location.source << "\' does not exist in this context.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Source type \'" << Operation.Location.source << "\' does not exist in this context.\n";
         }
     }
     else if(Operation.dynamicIDs.size() > 0){
         for(const string & contextID : Operation.dynamicIDs){
             ContextClass * SourceContext = getContextByID(EventContext, contextID, true);
             if(SourceContext == nullptr){
-                cout << "Error: In " << __FUNCTION__ << ": Context \'" << contextID << "\' does not exist.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Context \'" << contextID << "\' does not exist.\n";
                 continue;
             }
             if(printOutInstructions){
@@ -2416,7 +2489,7 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
                 }
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": Context type \'" << SourceContext->type << "\' does not exist.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Context type \'" << SourceContext->type << "\' does not exist.\n";
             }
         }
     }
@@ -2425,28 +2498,28 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, ContextClass * RightOperand){
+void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, ContextClass * RightOperand, EventDescription EventIds){
     if(LeftOperand->type != "pointer" && LeftOperand->type != "value"
         && LeftOperand->type != "variable" && LeftOperand->type != "vector"
     ){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
             << "\' instruction: Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
         return;
     }
     else if(RightOperand->type != "pointer" && RightOperand->type != "value"
         && RightOperand->type != "variable" && RightOperand->type != "vector"
     ){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
             << "\' instruction: Right operand has an invalid type: \'" << RightOperand->type << "\'.\n";
         return;
     }
 
     if(LeftOperand->readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction)
             << "\' instruction: Left operand is read-only. Instruction \'" << transInstrToStr(instruction) << "\' failed.\n";
         return;
     }
@@ -2512,7 +2585,7 @@ void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, Contex
             if(sameSize || i == 0){
                 RightVariable = RightOperand->Variables[i].getVariableStruct();
                 if(RightVariable.type == ""){
-                    cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Failed to fetch a variable.\n";
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: Failed to fetch a variable.\n";
                     if(!sameSize){
                         return;
                     }
@@ -2539,13 +2612,13 @@ void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, Contex
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
 }
 void ProcessClass::moveOrRename(vector<ContextClass> & EventContext, ContextClass * NewContext, string newContextID){
     ContextClass * OldContext = getContextByID(EventContext, newContextID, false);
     if(OldContext != nullptr){
-        moveRightToLeft(EngineInstr::move, OldContext, NewContext);
+        moveRightToLeft(EngineInstr::move, OldContext, NewContext, EventIds);
     }
     else{
         addNewContext(EventContext, *NewContext, "value", newContextID);
@@ -2565,13 +2638,15 @@ void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, OperaClas
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue() << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue(EventIds) << " " << Operation.newContextID << "\n";
     }
 
     NewContext.type = "value";
     moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
-void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, OperaClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner){
+void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, OperaClass & Operation,
+    LayerClass *OwnerLayer, AncestorObject *Owner
+){
     ContextClass NewContext;
     ContextClass * LeftOperand = nullptr;
 
@@ -2606,16 +2681,16 @@ void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, OperaCl
 
     if(NewContext.type != ""){
         if(printOutInstructions){
-            cout << "found: " << NewContext.getValue() << "\n";
+            cout << "found: " << NewContext.getValue(EventIds) << "\n";
         }
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ContextClass::setID(vector<ContextClass> &EventContext, string newID, const bool & printOutInstructions){
+void ContextClass::setID(vector<ContextClass> &EventContext, string newID, const bool & printOutInstructions, EventDescription EventIds){
     if(newID == ""){
         return;
     }
@@ -2624,8 +2699,8 @@ void ContextClass::setID(vector<ContextClass> &EventContext, string newID, const
 
     if(OldVariable != nullptr){
         if(printOutInstructions){
-            cout << "delete "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue() << "\n";
-            cout << "let " << newID << " " << ID << ":" << type << ":" << getValue() << "\n";
+            cout << "delete "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue(EventIds) << "\n";
+            cout << "let " << newID << " " << ID << ":" << type << ":" << getValue(EventIds) << "\n";
         }
         *OldVariable = *this;
         OldVariable->ID = newID;
@@ -2633,7 +2708,7 @@ void ContextClass::setID(vector<ContextClass> &EventContext, string newID, const
     }
     else{
         if(printOutInstructions){
-            cout << "let " << newID << " " << ID << ":" << type << ":" << getValue() << "\n";
+            cout << "let " << newID << " " << ID << ":" << type << ":" << getValue(EventIds) << "\n";
         }
         ID = newID;
     }
@@ -2642,11 +2717,11 @@ void ProcessClass::nameVariable(vector<ContextClass> &EventContext, OperaClass &
     ContextClass * LeftOperand = nullptr;
 
     if(!getOneContext(LeftOperand, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": Variable \'" << Operation.newContextID << "\' cannot be created.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Variable \'" << Operation.newContextID << "\' cannot be created.\n";
         return;
     }
 
-    LeftOperand->setID(EventContext, Operation.newContextID, printOutInstructions);
+    LeftOperand->setID(EventContext, Operation.newContextID, printOutInstructions, EventIds);
 }
 bool checkForVectorSize(size_t leftSize, size_t rightSize, bool & sameSize, string functionName){
     if(leftSize == rightSize){
@@ -2675,11 +2750,11 @@ void ProcessClass::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Enti
                     continue;
                 }
                 if(isStringInVector(reservedIDs, RightOperand[j]->getID())){
-                    cout << "Error: In " << __FUNCTION__ << ": Module with a reserved ID \'" << RightOperand[j]->getID() << "\' cannot be cloned.\n";
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Module with a reserved ID \'" << RightOperand[j]->getID() << "\' cannot be cloned.\n";
                     return;
                 }
                 if(isStringInVector(reservedIDs, LeftOperand[i]->getID())){
-                    cout << "Error: In " << __FUNCTION__ << ": Module with a reserved ID \'" << LeftOperand[i]->getID() << "\' cannot be changed.\n";
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Module with a reserved ID \'" << LeftOperand[i]->getID() << "\' cannot be changed.\n";
                     return;
                 }
                 LeftOperand[i]->clone(*RightOperand[j], Object.imageContainerIDs, Layer.getID(), Object.getID(), changeOldID);
@@ -2698,28 +2773,28 @@ void ProcessClass::moveValues(OperaClass & Operation, vector<ContextClass> &Even
             return;
         }
         if(LeftOperand->type != "pointer" && LeftOperand->type != "value" && LeftOperand->type != "variable" && LeftOperand->type != "vector"){
-            cout << "Error: In " << __FUNCTION__ << ": Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Left operand has an invalid type: \'" << LeftOperand->type << "\'.\n";
         }
         RightOperand = LeftOperand; //Cloning the left operand allows to reuse this function for incrementing and decrementing.
     }
     else if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << ": Failed to get a pair of contexts.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << ": Failed to get a pair of contexts.\n";
         return;
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue()
-            << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue(EventIds)
+            << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue(EventIds) << "\n";
     }
     
-    moveRightToLeft(Operation.instruction, LeftOperand, RightOperand);
+    moveRightToLeft(Operation.instruction, LeftOperand, RightOperand, EventIds);
 }
 void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, vector<ContextClass> &EventContext, vector<LayerClass> &Layers){
     ContextClass * LeftOperand = nullptr;
     ContextClass * RightOperand = nullptr;
     
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": In \'clone\': Failed to get a pair of contexts.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'clone\': Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -2727,11 +2802,12 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
     bool sameSize = false;
 
     if(printOutInstructions){
-        cout << "clone " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+        cout << "clone " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue(EventIds)
+            << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue(EventIds) << "\n";
     }
 
     if(LeftOperand->readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": Left operand is read-only. Instruction \'clone\' failed.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Left operand is read-only. Instruction \'clone\' failed.\n";
         return;
     }
 
@@ -2745,7 +2821,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
                 if(sameSize || i == 0){
                     RightVariable = RightOperand->Variables[i].getVariableStruct();
                     if(RightVariable.type == ""){
-                        cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
                         if(!sameSize){
                             return;
                         }
@@ -2764,7 +2840,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
                 if(sameSize || i == 0){
                     RightVariable = RightOperand->Modules.Variables[i]->getVariableStruct();
                     if(RightVariable.type == ""){
-                        cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
                         if(!sameSize){
                             return;
                         }
@@ -2791,7 +2867,7 @@ void ProcessClass::cloneEntities(vector<string> dynamicIDs, bool changeOldID, ve
             }
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
     }
     else{
@@ -2890,7 +2966,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
     ContextClass * RightOperand = nullptr;
 
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << ": Failed to get a pair of contexts.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << ": Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -2900,7 +2976,8 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
     bool sameSize = false;
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type
+            << ":" << LeftOperand->getValue(EventIds) << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue(EventIds) << "\n";
     }
 
     if(LeftOperand->type == "pointer" && RightOperand->type == "pointer"){
@@ -2910,7 +2987,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
         for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
             result = LeftOperand->BasePointers[i].executeArithmetics(RightOperand->BasePointers[j], Operation.instruction);
             if(result.type == ""){
-                cout << "Error: In " << __FUNCTION__ << ": Failed to execute arithmetic equation.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to execute arithmetic equation.\n";
                 continue;
             }
             NewContext.Variables.push_back(VariableModule());
@@ -2967,7 +3044,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
             if(sameSize || i == 0){
                 RightVariable = RightOperand->Variables[i].getVariableStruct();
                 if(RightVariable.type == ""){
-                    cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
                     if(!sameSize){
                         return;
                     }
@@ -2978,7 +3055,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
             result = LeftOperand->BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
 
             if(result.type == ""){
-                cout << "Error: In " << __FUNCTION__ << ": Failed to execute arithmetic equation.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to execute arithmetic equation.\n";
                 continue;
             }
             NewContext.Variables.push_back(VariableModule());
@@ -2997,7 +3074,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
             if(sameSize || i == 0){
                 RightVariable = RightOperand->Modules.Variables[i]->getVariableStruct();
                 if(RightVariable.type == ""){
-                    cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
                     if(!sameSize){
                         return;
                     }
@@ -3008,7 +3085,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
             result = LeftOperand->BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
 
             if(result.type == ""){
-                cout << "Error: In " << __FUNCTION__ << ": Failed to execute arithmetic equation.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to execute arithmetic equation.\n";
                 continue;
             }
             NewContext.Variables.push_back(VariableModule());
@@ -3047,7 +3124,7 @@ void ProcessClass::executeArithmetics(OperaClass & Operation, vector<ContextClas
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic equation on variables of types: \'" << RightOperand->type << "\' and \'" << LeftOperand->type << "\'.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": You cannot execute arithmetic equation on variables of types: \'" << RightOperand->type << "\' and \'" << LeftOperand->type << "\'.\n";
     }
 
     NewContext.type = "value";
@@ -3087,7 +3164,7 @@ void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, co
         deletePointers = true;
     }
     else if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << ": Failed to get a pair of contexts.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << ": Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -3097,7 +3174,8 @@ void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, co
     bool sameSize = false;
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type
+            << ":" << LeftOperand->getValue(EventIds) << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue(EventIds) << "\n";
     }
 
     if(LeftOperand->type == "pointer" && RightOperand->type == "pointer"){
@@ -3192,11 +3270,11 @@ void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, co
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue() << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue(EventIds) << " " << Operation.newContextID << "\n";
     }
 
     NewContext.type = "value";
@@ -3227,7 +3305,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
     ContextClass * RightOperand = nullptr;
     
     if(!getPairOfContexts(LeftOperand, RightOperand, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << ": Failed to get a pair of contexts.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << ": Failed to get a pair of contexts.\n";
         return;
     }
 
@@ -3235,8 +3313,8 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
     unsigned i = 0, j = 0;
 
     if(printOutInstructions){
-        cout << "in " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue() << " "
-            << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue() << "\n";
+        cout << "in " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue(EventIds) << " "
+            << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue(EventIds) << "\n";
     }
 
     if(LeftOperand->type != RightOperand->type){
@@ -3246,7 +3324,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
                 for(j = 0; j < RightOperand->Variables.size(); j++){
                     RightVariable = RightOperand->Variables[j].getVariableStruct();
                     if(RightVariable.type == ""){
-                        cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
                         continue;
                     }
                     if(LeftOperand->BasePointers[i].areEqual(&RightVariable)){
@@ -3265,7 +3343,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
                 for(j = 0; j < RightOperand->Modules.Variables.size(); j++){
                     RightVariable = RightOperand->Modules.Variables[j]->getVariableStruct();
                     if(RightVariable.type == ""){
-                        cout << "Error: In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
+                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Failed to fetch a variable.\n";
                         continue;
                     }
                     if(LeftOperand->BasePointers[i].areEqual(&RightVariable)){
@@ -3318,7 +3396,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
             }
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
     }
     else{
@@ -3426,7 +3504,7 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
             result = containsTheSameModule(LeftOperand->Modules.Vectors, RightOperand->Modules.Vectors);
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": \'" << LeftOperand->type << "\' type does not exist.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << LeftOperand->type << "\' type does not exist.\n";
         }
     }
 
@@ -3439,13 +3517,13 @@ template <class Module>
 void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const unsigned & newVectorSize,
     const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, vector<ContextClass> & EventContext,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack,
-    double reservationMultiplier, SuperEditableTextModule *& ActiveEditableText
+    double reservationMultiplier, SuperEditableTextModule *& ActiveEditableText, EventDescription EventIds
 ){
     if(Container.size() + newVectorSize > Container.capacity()){
         PointerRecalculator Recalculator;
-        Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+        Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
         Container.reserve((Container.size() + newVectorSize) * reservationMultiplier);
-        Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+        Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
     }
     string ID = "";
     for(unsigned i = 0; i < newVectorSize; i++){
@@ -3458,7 +3536,7 @@ void createNewModule(vector <Module> & Container, vector <string> & allIDs, vect
 }
 bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventContext, const vector<string> & dynamicIDs, const vector<VariableModule> & Literals, unsigned & newVectorSize, vector <string> & newIDs){
     if(Literals.size() == 0 || Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
         return false;
     }
     
@@ -3468,27 +3546,27 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventCon
         newVectorSize = Literals.back().getInt();
         if(dynamicIDs.size() > 0){
             if(!getOneContext(IdContext, EventContext, dynamicIDs)){
-                cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
                 return false;
             }
         }
     }
     else if(dynamicIDs.size() == 1){
         if(!getOneContext(SizeContext, EventContext, dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return false;
         }
     }
     else if(dynamicIDs.size() >= 2){
         if(!getPairOfContexts(SizeContext, IdContext, EventContext, dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return false;
         }
     }
     
     if(SizeContext != nullptr){
-        if(!SizeContext->getUnsignedOrAbort(newVectorSize, EngineInstr::new_i)){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'new\' failed.\n";
+        if(!SizeContext->getUnsignedOrAbort(newVectorSize, EngineInstr::new_i, EventIds)){
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'new\' failed.\n";
             return false;
         }
     }
@@ -3514,7 +3592,7 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(vector<ContextClass> & EventCon
 }
 bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers){
     if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'new\' instruction requires destination type (the first string literal of the operation).\n";
         return false;
     }
     
@@ -3552,12 +3630,12 @@ bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<Conte
     else if(Operation.Literals[0].getString() == "context" || Operation.Literals[0].getString() == "c"){
         ContextClass * Context;
         if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return false;
         }
         if(Context->type == "layer" && Operation.Location.source == "object"){
             if(Context->Layers.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": Context has no layers.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Context has no layers.\n";
                 return false;
             }
             CurrentLayer = Context->Layers.back();
@@ -3566,7 +3644,7 @@ bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<Conte
         }
         else if(Context->type == "object" && Operation.Location.source != "object"){
             if(Context->Objects.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": Context has no objects.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Context has no objects.\n";
                 return false;
             }
             CurrentObject = Context->Objects.back();
@@ -3575,22 +3653,22 @@ bool ProcessClass::prepareDestinationForNew(OperaClass & Operation, vector<Conte
             return true;
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": You cannot create an entity of \'" << Operation.Location.source << "\' type in a context of \'" << Context->type << "\' type.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": You cannot create an entity of \'" << Operation.Location.source << "\' type in a context of \'" << Context->type << "\' type.\n";
             return false;
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": wrong destination type in the \'new\' instruction.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": wrong destination type in the \'new\' instruction.\n";
         return false;
     }
 
     if(CurrentLayer == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Layer \'" << Operation.Location.layerID << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Layer \'" << Operation.Location.layerID << "\' does not exist.\n";
         return false;
     }
 
     if(CurrentObject == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Object \'" << Operation.Location.objectID << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Object \'" << Operation.Location.objectID << "\' does not exist.\n";
         return false;
     }
 
@@ -3655,7 +3733,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForCameras(Cameras, EventContext, SelectedCamera);
             Cameras.reserve((Cameras.size() + newVectorSize) * reservationMultiplier);
-            Recalculator.updatePointersToCameras(Cameras, EventContext, SelectedCamera, getID(), focusedProcessID);
+            Recalculator.updatePointersToCameras(Cameras, EventContext, SelectedCamera, getID(), focusedProcessID, EventIds);
         }
         for(unsigned i = 0; i < newVectorSize; i++){
             if(i < newIDs.size()){
@@ -3672,11 +3750,11 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForLayers(Layers, EventContext, OwnerLayer);
             Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+            Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
             Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
-            Recalculator.updatePointersToLayers(Layers, EventContext, OwnerLayer);
-            Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+            Recalculator.updatePointersToLayers(Layers, EventContext, OwnerLayer, EventIds);
+            Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EventIds);
+            Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
         }
         for(unsigned i = 0; i < newVectorSize; i++){
             if(i < newIDs.size()){
@@ -3690,10 +3768,10 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
         if(CurrentLayer->Objects.size() + newVectorSize > CurrentLayer->Objects.capacity()){
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+            Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
             CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
-            Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+            Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, EventIds);
+            Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
         }
         for(unsigned i = 0; i < newVectorSize; i++){
             if(i < newIDs.size()){
@@ -3707,7 +3785,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     else if(Operation.Location.source == "text"){
         createNewModule(CurrentObject->TextContainer, CurrentObject->textContainerIDs, NewContext.Modules.Texts,
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
-            reservationMultiplier, ActiveEditableText
+            reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->TextContainer.size() - 1; i >= long(CurrentObject->TextContainer.size() - newVectorSize); i--){
             CurrentObject->TextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3715,7 +3793,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "editable_text"){
         createNewModule(CurrentObject->EditableTextContainer, CurrentObject->editableTextContainerIDs, NewContext.Modules.EditableTexts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->EditableTextContainer.size() - 1; i >= long(CurrentObject->EditableTextContainer.size() - newVectorSize); i--){
             CurrentObject->EditableTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3723,7 +3801,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "super_text"){
         createNewModule(CurrentObject->SuperTextContainer, CurrentObject->superTextContainerIDs, NewContext.Modules.SuperTexts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->SuperTextContainer.size() - 1; i >= long(CurrentObject->SuperTextContainer.size() - newVectorSize); i--){
             CurrentObject->SuperTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3731,7 +3809,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "super_editable_text"){
         createNewModule(CurrentObject->SuperEditableTextContainer, CurrentObject->superEditableTextContainerIDs, NewContext.Modules.SuperEditableTexts,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->SuperEditableTextContainer.size() - 1; i >= long(CurrentObject->SuperEditableTextContainer.size() - newVectorSize); i--){
             CurrentObject->SuperEditableTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3739,7 +3817,8 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "image"){
         createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->ImageContainer.size() - 1; i >= long(CurrentObject->ImageContainer.size() - newVectorSize); i--){
             CurrentObject->ImageContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3747,7 +3826,8 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "movement"){
         createNewModule(CurrentObject->MovementContainer, CurrentObject->movementContainerIDs, NewContext.Modules.Movements,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->MovementContainer.size() - 1; i >= long(CurrentObject->MovementContainer.size() - newVectorSize); i--){
             CurrentObject->MovementContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3755,7 +3835,8 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "collision"){
         createNewModule(CurrentObject->CollisionContainer, CurrentObject->collisionContainerIDs, NewContext.Modules.Collisions,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->CollisionContainer.size() - 1; i >= long(CurrentObject->CollisionContainer.size() - newVectorSize); i--){
             CurrentObject->CollisionContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3763,7 +3844,8 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "particles"){
         createNewModule(CurrentObject->ParticlesContainer, CurrentObject->particlesContainerIDs, NewContext.Modules.Particles,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->ParticlesContainer.size() - 1; i >= long(CurrentObject->ParticlesContainer.size() - newVectorSize); i--){
             CurrentObject->ParticlesContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3771,17 +3853,20 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "event"){
         createNewModule(CurrentObject->EveContainer, CurrentObject->eveContainerIDs, NewContext.Modules.Events,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
     }
     else if(Operation.Location.source == "variable"){
         createNewModule(CurrentObject->VariablesContainer, CurrentObject->variablesContainerIDs, NewContext.Modules.Variables,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
     }
     else if(Operation.Location.source == "scrollbar"){
         createNewModule(CurrentObject->ScrollbarContainer, CurrentObject->scrollbarContainerIDs, NewContext.Modules.Scrollbars,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->ScrollbarContainer.size() - 1; i >= long(CurrentObject->ScrollbarContainer.size() - newVectorSize); i--){
             CurrentObject->ScrollbarContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3789,7 +3874,8 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "primitives"){
         createNewModule(CurrentObject->PrimitivesContainer, CurrentObject->primitivesContainerIDs, NewContext.Modules.Primitives,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->PrimitivesContainer.size() - 1; i >= long(CurrentObject->PrimitivesContainer.size() - newVectorSize); i--){
             CurrentObject->PrimitivesContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
@@ -3797,11 +3883,12 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
     }
     else if(Operation.Location.source == "vector"){
         createNewModule(CurrentObject->VectorContainer, CurrentObject->vectorContainerIDs, NewContext.Modules.Vectors,
-            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText
+            newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack,
+            reservationMultiplier, ActiveEditableText, EventIds
         );
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Entity type \'" << transInstrToStr(Operation.instruction) << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Entity type \'" << transInstrToStr(Operation.instruction) << "\' does not exist.\n";
     }
 
     if(NewContext.type != ""){
@@ -3809,7 +3896,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
         wasNewExecuted = true;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -3829,7 +3916,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
 ){
     ContextClass * DeletedContext = nullptr;
     if(!getOneContext(DeletedContext, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
 
@@ -3839,7 +3926,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
     }
 
     if(printOutInstructions){
-        cout << "delete " << DeletedContext->getValue() << "\n";
+        cout << "delete " << DeletedContext->getValue(EventIds) << "\n";
     }
 
     wasDeleteExecuted = true;
@@ -4061,9 +4148,9 @@ void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggr
     }
 }
 template <class Entity>
-void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggregated, string type, vector<Entity> & NewVector, string & newType){
+void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggregated, string type, vector<Entity> & NewVector, string & newType, EventDescription EventIds){
     if(type != "pointer" && type != "value"){
-        cout << "Error: In " << __FUNCTION__ << ": This function allows only entities of \'pointer\' and \'value\' types.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": This function allows only entities of \'pointer\' and \'value\' types.\n";
         return;
     }
     for(unsigned index : indexes){
@@ -4072,7 +4159,7 @@ void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggr
             newType = type;
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Index is out of vector's scope.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Index is out of vector's scope.\n";
         }
     }
 }
@@ -4112,8 +4199,8 @@ void ProcessClass::getIndexes(const vector<VariableModule> & Literals, const vec
 
     if(getAllSelectedContexts(IndexContexts, EventContext, dynamicIDs)){
         for(ContextClass * Index : IndexContexts){
-            if(!Index->getIntOrAbort(singleIndex, EngineInstr::index_i)){
-                cout << "Error: In " << __FUNCTION__ << ": Instruction \'index\' failed.\n";
+            if(!Index->getIntOrAbort(singleIndex, EngineInstr::index_i, EventIds)){
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'index\' failed.\n";
                 return;
             }
             indexes.push_back(singleIndex);
@@ -4161,7 +4248,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                 "collision", "particles", "event", "variable", "scrollbar", "primitives", "vector")
             ){
                 if(indexes.size() < 2){
-                    cout << "Error: In " << __FUNCTION__ << ": In order to find an object by its index, you must provide at least 2 indexes.\n";
+                    cout << "Error: In " << EventIds.describe()
+                        << ": In " << __FUNCTION__ << ": In order to find an object by its index, you must provide at least 2 indexes.\n";
                     return;
                 }
                 entityIndex = indexes[0];
@@ -4176,7 +4264,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                     }
                 }
                 if(Layer == nullptr){
-                    cout << "Error: In " << __FUNCTION__ << ": Index is out of layers vector's scope.\n";
+                    cout << "Error: In " << EventIds.describe()
+                        << ": In " << __FUNCTION__ << ": Index is out of layers vector's scope.\n";
                     return;
                 }
                 if(Operation.Location.attribute == "object"){
@@ -4184,7 +4273,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                 }
                 else{
                     if(indexes.size() < 3){
-                        cout << "Error: In " << __FUNCTION__ << ": In order to find a module instance by its index, you must provide at least 3 indexes.\n";
+                        cout << "Error: In " << EventIds.describe()
+                            << ": In " << __FUNCTION__ << ": In order to find a module instance by its index, you must provide at least 3 indexes.\n";
                         return;
                     }
                     entityIndex = indexes[1];
@@ -4199,7 +4289,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                         }
                     }
                     if(Object == nullptr){
-                        cout << "Error: In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
+                        cout << "Error: In " << EventIds.describe()
+                            << ": In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
                         return;
                     }
                     if(Operation.Location.attribute == "text"){
@@ -4242,25 +4333,29 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                         findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->VectorContainer, Operation.Location.attribute, NewContext.Modules.Vectors, NewContext.type);
                     }
                     else{
-                        cout << "Error: In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
+                        cout << "Error: In " << EventIds.describe()
+                            << ": In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
                         return;
                     }
                 }
             }
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Source cannot have \'" << Operation.Location.source << "\' value.\n";
+            cout << "Error: In " << EventIds.describe()
+                << ": In " << __FUNCTION__ << ": Source cannot have \'" << Operation.Location.source << "\' value.\n";
             return;
         }
 
         if(NewContext.type == ""){
-            cout << "Error: In " << __FUNCTION__ << ": Index is out of vector's scope.\n";
+            cout << "Error: In " << EventIds.describe()
+                << ": In " << __FUNCTION__ << ": Index is out of vector's scope.\n";
             return;
         }
     }
     else{
         if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe()
+                << ": In " << __FUNCTION__ << ": No context found.\n";
             return;
         }
 
@@ -4293,7 +4388,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
             }
             else{
                 if(indexes.size() < 2){
-                    cout << "Error: In " << __FUNCTION__ << ": In order to find an object by its index, you must provide at least 2 index.\n";
+                    cout << "Error: In " << EventIds.describe()
+                        << ": In " << __FUNCTION__ << ": In order to find an object by its index, you must provide at least 2 index.\n";
                     return;
                 }
                 LayerClass * Layer = nullptr;
@@ -4309,7 +4405,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                 }
                 
                 if(Layer == nullptr){
-                    cout << "Error: In " << __FUNCTION__ << ": Index is out of layers vector's scope.\n";
+                    cout << "Error: In " << EventIds.describe()
+                        << ": In " << __FUNCTION__ << ": Index is out of layers vector's scope.\n";
                     return;
                 }
 
@@ -4318,7 +4415,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                 }
                 else{
                     if(indexes.size() < 3){
-                        cout << "Error: In " << __FUNCTION__ << ": In order to find a module instance by its index, you must provide at least 3 indexes.\n";
+                        cout << "Error: In " << EventIds.describe()
+                            << ": In " << __FUNCTION__ << ": In order to find a module instance by its index, you must provide at least 3 indexes.\n";
                         return;
                     }
                     entityIndex = indexes[1];
@@ -4333,7 +4431,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                         }
                     }
                     if(Object == nullptr){
-                        cout << "Error: In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
+                        cout << "Error: In " << EventIds.describe()
+                            << ": In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
                         return;
                     }
 
@@ -4377,7 +4476,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                         findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+2, indexes.end()), Object->VectorContainer, Operation.Location.attribute, NewContext.Modules.Vectors, NewContext.type);
                     }
                     else{
-                        cout << "Error: In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
+                        cout << "Error: In " << EventIds.describe()
+                            << ": In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
                         return;
                     }
                 }
@@ -4389,7 +4489,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
             }
             else{
                 if(indexes.size() < 2){
-                    cout << "Error: In " << __FUNCTION__ << ": In order to find a module instance by its index, you must provide at least 2 indexes.\n";
+                    cout << "Error: In " << EventIds.describe()
+                        << ": In " << __FUNCTION__  << ": In order to find a module instance by its index, you must provide at least 2 indexes.\n";
                     return;
                 }
                 unsigned entityIndex = indexes[0];
@@ -4404,7 +4505,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                     }
                 }
                 if(Object == nullptr){
-                    cout << "Error: In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
+                    cout << "Error: In " << EventIds.describe()
+                        << ": In " << __FUNCTION__ << ": Index is out of objects vector's scope.\n";
                     return;
                 }
                 
@@ -4448,7 +4550,8 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
                     findInstanceInVectorByIndex(vector<unsigned>(indexes.begin()+1, indexes.end()), Object->VectorContainer, Operation.Location.attribute, NewContext.Modules.Vectors, NewContext.type);
                 }
                 else{
-                    cout << "Error: In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
+                    cout << "Error: In " << EventIds.describe()
+                        << ": In " << __FUNCTION__ << ": Module type \'" << Operation.Location.attribute << "\' does not exist.\n";
                     return;
                 }
             }
@@ -4493,13 +4596,14 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
             findInstanceInVectorByIndex(indexes, Context->Modules.Vectors, Context->type, NewContext.Modules.Vectors, NewContext.type);
         }
         else if(Context->type == "pointer"){
-            findInstanceInVectorByIndex(indexes, Context->BasePointers, Context->type, NewContext.BasePointers, NewContext.type);
+            findInstanceInVectorByIndex(indexes, Context->BasePointers, Context->type, NewContext.BasePointers, NewContext.type, EventIds);
         }
         else if(Context->type == "value"){
-            findInstanceInVectorByIndex(indexes, Context->Variables, Context->type, NewContext.Variables, NewContext.type);
+            findInstanceInVectorByIndex(indexes, Context->Variables, Context->type, NewContext.Variables, NewContext.type, EventIds);
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Context of \'" << Context->type << "\' type is invalid.\n";
+            cout << "Error: In " << EventIds.describe()
+                << ": In " << __FUNCTION__ << ": Context of \'" << Context->type << "\' type is invalid.\n";
             return;
         }
     }
@@ -4508,31 +4612,32 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << EventIds.describe()
+            << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
 void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.dynamicIDs.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": Bind requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least one context.\n";
         return;
     }
     if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Bind requires at least one literal of string type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least one literal of string type.\n";
         return;
     }
     if(isStringInGroup(Operation.Literals[0].getString(), 5, "literal", "l", "remove_literal", "rliteral", "rl")){
         if(Operation.Literals.size() == 1){
-            cout << "Error: In " << __FUNCTION__ << ": Bind requires at least two literals of string type.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least two literals of string type.\n";
             return;
         }
         ContextClass * ContextA;
         if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return;
         }
         if(ContextA->Objects.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
             return;
         }
         if(printOutInstructions){
@@ -4541,7 +4646,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
         for(AncestorObject * Object : ContextA->Objects){
             for(const VariableModule & Variable : vector<VariableModule>(Operation.Literals.begin()+1, Operation.Literals.end())){
                 if(Variable.getType() != 's'){
-                    cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
                     continue;
                 }
                 if(printOutInstructions){
@@ -4562,16 +4667,16 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
     else if(isStringInGroup(Operation.Literals[0].getString(), 5, "context", "c", "remove_context", "rcontext", "rc")){
         ContextClass * ContextObject, * ContextFiles;
         if(!getPairOfContexts(ContextObject, ContextFiles, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return;
         }
         if(ContextObject->Objects.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
             return;
         }
         if(ContextFiles->type == "pointer"){
             if(ContextFiles->BasePointers.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
                 return;
             }
             if(printOutInstructions){
@@ -4580,7 +4685,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
             for(AncestorObject * Object : ContextObject->Objects){
                 for(const BasePointersStruct & Pointer : ContextFiles->BasePointers){
                     if(Pointer.type != "string"){
-                        cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only pointers of \'string'; type.\n";
+                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only pointers of \'string'; type.\n";
                         continue;
                     }
                     if(printOutInstructions){
@@ -4600,7 +4705,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
         }
         else if(ContextFiles->type == "value"){
             if(ContextFiles->Variables.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
                 return;
             }
             if(printOutInstructions){
@@ -4609,7 +4714,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
             for(AncestorObject * Object : ContextObject->Objects){
                 for(const VariableModule & Variable : ContextFiles->Variables){
                     if(Variable.getType() != 's'){
-                        cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
+                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
                         continue;
                     }
                     if(printOutInstructions){
@@ -4629,7 +4734,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
         }
         else if(ContextFiles->type == "variable"){
             if(ContextFiles->Modules.Variables.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
                 return;
             }
             if(printOutInstructions){
@@ -4638,7 +4743,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
             for(AncestorObject * Object : ContextObject->Objects){
                 for(const VariableModule * Variable : ContextFiles->Modules.Variables){
                     if(Variable->getType() != 's'){
-                        cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
+                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
                         continue;
                     }
                     if(printOutInstructions){
@@ -4657,18 +4762,18 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
             }
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " only accepts file input of types: \'pointer\' and \'value\'.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " only accepts file input of types: \'pointer\' and \'value\'.\n";
             return;
         }
     }
     else if(Operation.Literals[0].getString() == "reset" || Operation.Literals[0].getString() == "r"){
         ContextClass * ContextObject;
         if(!getOneContext(ContextObject, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return;
         }
         if(ContextObject->Objects.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
             return;
         }
         if(printOutInstructions){
@@ -4683,16 +4788,16 @@ void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextCl
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     if(Operation.dynamicIDs.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": Build requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Build requires at least one context.\n";
         return;
     }
     ContextClass * ContextA;
     if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
     if(ContextA->Objects.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": Build requires at least one object.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Build requires at least one object.\n";
         return;
     }
     bool canResetEvents = false;
@@ -4709,33 +4814,33 @@ void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextCl
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
     
     for(AncestorObject * Object : ContextA->Objects){
         if(canResetEvents && Object == Owner){
-            std::cout << "Error: In " << __FUNCTION__ << ": Cannot delete events of the owner of the currently executed event.\n";
+            std::cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Cannot delete events of the owner of the currently executed event.\n";
             continue;
         }
         Object->translateAllScripts(canResetEvents);
         wasAnyEventUpdated = true;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
 }
 void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode
 ){
     if(Operation.dynamicIDs.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires at least one context.\n";
         return;
     }
     ContextClass * ObjectContext = nullptr;
     if(!getOneContext(ObjectContext, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
     if(ObjectContext->Objects.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires at least one object.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires at least one object.\n";
         return;
     }
 
@@ -4744,7 +4849,7 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
     if(Operation.dynamicIDs.size() > 1){
         ContextClass * StringVecContext = getContextByID(EventContext, Operation.dynamicIDs[1], false);
         if(StringVecContext == nullptr){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return;
         }
         if(StringVecContext->type == "value"){
@@ -4790,7 +4895,7 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
 
     //All indexes linked with events must be recalculated - after adding new events, some contexts of event type might be invalid.  
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
     
     for(AncestorObject * Object : ObjectContext->Objects){
         if(mode == 'p'){
@@ -4825,7 +4930,7 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
                 }
             }
             if(isInsideStringSector){
-                cout << "Error: In " << __FUNCTION__ << ": String section was not closed in lines:\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": String section was not closed in lines:\n";
                 for(string line : stringVec){
                     cout << "\t" << line << "\n";
                 }
@@ -4833,7 +4938,7 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
             Object->injectInstructions(preprocessed);
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": \'" << mode << "\' mode does not exist."
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << mode << "\' mode does not exist."
                 << "Allowed modes: p (uses translateScriptsFromPaths), s (uses translateSubsetBindedScripts),"
                 << "c (uses injectCode), i (uses injectInstructions)\n";
             return;
@@ -4842,20 +4947,20 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
         wasAnyEventUpdated = true;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
 }
 void ProcessClass::clearEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner){
     if(Operation.dynamicIDs.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires at least one context.\n";
         return;
     }
     ContextClass * ContextA;
     if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
     if(ContextA->Objects.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires at least one object.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires at least one object.\n";
         return;
     }
 
@@ -4865,7 +4970,7 @@ void ProcessClass::clearEventsInObjects(OperaClass & Operation, vector<ContextCl
 
     for(AncestorObject * Object : ContextA->Objects){
         if(Object == Owner){
-            std::cout << "Error: In " << __FUNCTION__ << ": Cannot delete events of the owner of the currently executed event.\n";
+            std::cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Cannot delete events of the owner of the currently executed event.\n";
             continue;
         }
         Object->clearAllEvents();
@@ -5108,7 +5213,7 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
             Camera->canMouseResizeNow = Variables[0].getBoolUnsafe();
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
     }
 
@@ -5148,7 +5253,7 @@ void ProcessClass::executeFunctionForLayers(OperaClass & Operation, vector <Vari
             Layer->size.y = Variables[1].getDoubleUnsafe();
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
     }
 }
@@ -5218,9 +5323,11 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
         }
     }
 }
-void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine){
+void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & EventContext,
+    vector<EveModule>::iterator & Event, EngineClass & Engine
+){
     if(Operation.dynamicIDs.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": Function requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Function requires at least one context.\n";
         return;
     }
 
@@ -5229,13 +5336,13 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
     
     if(Operation.Literals.size() > 0 || Operation.dynamicIDs.size() == 1){
         if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return;
         }
     }
     else if(Operation.dynamicIDs.size() > 1){
         if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return;
         }
 
@@ -5244,7 +5351,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
         for(unsigned i = 1; i < Operation.dynamicIDs.size(); i++){
             ContextValues = getContextByID(EventContext, Operation.dynamicIDs[i], true);
             if(ContextValues == nullptr){
-                cout << "Error: In " << __FUNCTION__ << ": There is no context with id: \'" << Operation.dynamicIDs[i] << "\'.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no context with id: \'" << Operation.dynamicIDs[i] << "\'.\n";
                 continue;
             }
             if(ContextValues->type == "value"){
@@ -5262,7 +5369,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
                 }
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": Second context must be of type: pointer or value.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Second context must be of type: pointer or value.\n";
             }
         }
     }
@@ -5479,16 +5586,16 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": type \'" << Context->type << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": type \'" << Context->type << "\' does not exist.\n";
     }
 }
 void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & Engine){
     if(Operation.Literals.size() < 2){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least two literals.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least two literals.\n";
         return;
     }
     if(Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires first literal being of a string type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires first literal being of a string type.\n";
         return;
     }
     if(printOutInstructions){
@@ -5507,20 +5614,20 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
     }
     else if(Operation.Literals[0].getString() == "window_size"){
         if(Operation.Literals.size() < 3){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
             return;
         }
         if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
             return;
         }
         Engine.displaySize.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
         if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
-            cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
             /*#if __WIN32__
-                cout << "Error: In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
             #else
                 cout << "Warning: In " << __FUNCTION__ << ": al_resize_display() stops to work on Linux systems if the display resolution is set too high.\n";
             #endif*/
@@ -5550,16 +5657,16 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
         }   
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
     }
 }
 void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string> & processIDs){
     if(Operation.Literals.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least one literal.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least one literal.\n";
         return;
     }
     if(Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires first literal being of a string type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires first literal being of a string type.\n";
         return;
     }
     if(printOutInstructions){
@@ -5585,7 +5692,7 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string
         return;
     }
     if(Operation.Literals.size() == 1){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least two literals.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least two literals.\n";
         return;
     }
     if(Operation.Literals[0].getString() == "id"){
@@ -5632,12 +5739,12 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string
     }
     else if(Operation.Literals[0].getString() == "window_pos"){
         if(Operation.Literals.size() < 3){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
             return;
         }
         if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
             return;
         }
@@ -5645,12 +5752,12 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string
     }
     else if(Operation.Literals[0].getString() == "window_size"){
         if(Operation.Literals.size() < 3){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
             return;
         }
         if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
             return;
         }
@@ -5659,12 +5766,12 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string
     }
     else if(Operation.Literals[0].getString() == "min_window_size"){
         if(Operation.Literals.size() < 3){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
             return;
         }
         if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
             return;
         }
@@ -5672,14 +5779,14 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string
     }
     else if(Operation.Literals[0].getString() == "window_tint"){
         if(Operation.Literals.size() < 5){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires three literals.\n";
             return;
         }
         if(!Operation.Literals[1].isNumeric() || !Operation.Literals[2].isNumeric()
             || !Operation.Literals[3].isNumeric() || !Operation.Literals[4].isNumeric()
         ){
-            cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) <<
                 "\' with \'" << Operation.Literals[0].getString() << "\' attribute requires two last parameters to be of a numeric type.\n";
             return;
         }
@@ -5689,12 +5796,12 @@ void ProcessClass::changeProcessVariables(OperaClass & Operation, vector <string
         windowTint[3] = Operation.Literals[4].getDouble();
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute \'" << Operation.Literals[0].getString() << "\' does not exist.\n";
     }
 }
 void ProcessClass::loadBitmap(OperaClass & Operation, vector<SingleBitmap> & BitmapContainer){
     if(Operation.Literals.size() < 2 || Operation.Literals[0].getType() != 's' || Operation.Literals[1].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires two strings.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires two strings.\n";
         return;
     }
     if(printOutInstructions){
@@ -5722,7 +5829,7 @@ void ProcessClass::loadBitmap(OperaClass & Operation, vector<SingleBitmap> & Bit
 }
 void ProcessClass::createDirectory(OperaClass & Operation){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires one string (a path to the new directory).\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires one string (a path to the new directory).\n";
         return;
     }
     if(printOutInstructions){
@@ -5740,7 +5847,7 @@ void ProcessClass::createDirectory(OperaClass & Operation){
 }
 void ProcessClass::removeFileOrDirectory(OperaClass & Operation){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires one string (a path to the new directory).\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires one string (a path to the new directory).\n";
         return;
     }
     if(printOutInstructions){
@@ -5758,7 +5865,7 @@ void ProcessClass::removeFileOrDirectory(OperaClass & Operation){
 }
 void ProcessClass::removeRecursivelyFileOrDirectory(OperaClass & Operation){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires one string (a path to the new directory).\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires one string (a path to the new directory).\n";
         return;
     }
     if(printOutInstructions){
@@ -5776,7 +5883,7 @@ void ProcessClass::removeRecursivelyFileOrDirectory(OperaClass & Operation){
 }
 void ProcessClass::renameFileOrDirectory(OperaClass & Operation){
     if(Operation.Literals.size() < 2 || Operation.Literals[0].getType() != 's' || Operation.Literals[1].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires two strings (two paths to files or directories).\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires two strings (two paths to files or directories).\n";
         return;
     }
     if(printOutInstructions){
@@ -5847,7 +5954,7 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
     for(string contextID : Operation.dynamicIDs){
         ContextValues = getContextByID(EventContext, contextID, true);
         if(ContextValues == nullptr){
-            cout << "Error: In " << __FUNCTION__ << ": There is no context with id: \'" << contextID << "\'.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no context with id: \'" << contextID << "\'.\n";
             continue;
         }
         if(ContextValues->type == "value"){
@@ -5914,7 +6021,7 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
             buffer += getStringOfIDs(ContextValues->Modules.Vectors, delimeter);
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Invalid context type \'" << ContextValues->type << "\'.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Invalid context type \'" << ContextValues->type << "\'.\n";
         }
     }
 
@@ -5934,20 +6041,20 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
 }
 void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.dynamicIDs.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least 1 context of string type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least 1 context of string type.\n";
     }
     ContextClass * PathContext = nullptr;
     if(!getOneContext(PathContext, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
     string pathToTheFile = "";
-    if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString() << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << pathToTheFile << " " << Operation.newContextID << "\n";
     }
     if(pathToTheFile == "" || pathToTheFile[0] == ' '){
         cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheFile << "\'.\n"; 
@@ -5974,21 +6081,21 @@ void ProcessClass::loadFileAsString(OperaClass & Operation, vector<ContextClass>
 void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass * PathContext = nullptr, * TextContext = nullptr;
     if(!getPairOfContexts(PathContext, TextContext, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
 
     string pathToTheFile = "";
-    if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting path from context failed.\n";
+    if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting path from context failed.\n";
         return;
     }
     if(pathToTheFile == "" || pathToTheFile[0] == ' '){
         cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheFile << "\'.\n"; 
     }
     string textFromContext = "";
-    if(!TextContext->getStringOrAbort(textFromContext, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting text from context failed.\n";
+    if(!TextContext->getStringOrAbort(textFromContext, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting text from context failed.\n";
         return;
     }
 
@@ -6007,7 +6114,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
 }
 void ProcessClass::listOutEntities(OperaClass & Operation, const vector<ProcessClass> & Processes, const EngineClass & Engine){
     if(Operation.Literals.size() < 1 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least one string.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires at least one string.\n";
         return;
     }
     bool printDetails = false;
@@ -6122,7 +6229,7 @@ void ProcessClass::createNewProcess(OperaClass & Operation, vector<ProcessClass>
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
 ){
     if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires at least one string literal.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires at least one string literal.\n";
         return;
     }
 
@@ -6156,11 +6263,11 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     if(Operation.Literals.size() < 2){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires two literals.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires two literals.\n";
         return;
     }
     if(Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires the first literal to be of a string type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires the first literal to be of a string type.\n";
         return;
     }
     
@@ -6178,11 +6285,11 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
     
     if(Operation.Literals[0].getString() == "bool" || Operation.Literals[0].getString() == "b"){
         if(Operation.Literals[1].getType() != 'b'){
-            cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
                 << Operation.Literals[0].getString() << " type.\n";
             return;
         }
@@ -6192,7 +6299,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     }
     else if(Operation.Literals[0].getString() == "int" || Operation.Literals[0].getString() == "i"){
         if(Operation.Literals[1].getType() != 'i'){
-            cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
                 << Operation.Literals[0].getString() << " type.\n";
             return;
         }
@@ -6202,7 +6309,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     }
     else if(Operation.Literals[0].getString() == "double" || Operation.Literals[0].getString() == "d"){
         if(Operation.Literals[1].getType() != 'd'){
-            cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
                 << Operation.Literals[0].getString() << " type.\n";
             return;
         }
@@ -6212,7 +6319,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     }
     else if(Operation.Literals[0].getString() == "string" || Operation.Literals[0].getString() == "s"){
         if(Operation.Literals[1].getType() != 's'){
-            cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
                 << Operation.Literals[0].getString() << " type.\n";
             return;
         }
@@ -6221,12 +6328,12 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
         ));
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction)
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction)
             << " instruction the first parameter has incorrect value: \'" << Operation.Literals[0].getString() << "\'.\n";
         return;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
 
     ContextClass NewContext;
 
@@ -6236,7 +6343,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
         wereGlobalVariablesCreated = true;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -6244,11 +6351,11 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     if(Operation.Literals.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires at least one literal.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires at least one literal.\n";
         return;
     }
     if(Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires the first literal to be of a string type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires the first literal to be of a string type.\n";
         return;
     }
     
@@ -6262,14 +6369,14 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
 
     for(const VectorModule & Vector : Owner->VectorContainer){
         if(Vector.getID() == Operation.newContextID){
-            cout << "Error: In \'" << transInstrToStr(Operation.instruction) << "\' instruction: Cannot create a vector with id '"
+            cout << "Error: In " << EventIds.describe() << ": In \'" << transInstrToStr(Operation.instruction) << "\' instruction: Cannot create a vector with id '"
                 << Operation.newContextID << "', because a vector with the same id already exists.\n";
             return;
         }
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+    Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
     
     Owner->VectorContainer.push_back(VectorModule(Operation.newContextID, &Owner->vectorContainerIDs, Owner->getLayerID(), Owner->getID()));
 
@@ -6277,7 +6384,7 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         Owner->VectorContainer.back().setType('b');
         for(size_t i = 1; i < Operation.Literals.size(); i++){
             if(Operation.Literals[i].getType() != 'b'){
-                cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction: Literal ("
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction: Literal ("
                     << Operation.Literals[i].getType() << ") is not of a " << Operation.Literals[0].getString() << " type.\n";
                 return;
             }
@@ -6288,7 +6395,7 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         Owner->VectorContainer.back().setType('i');
         for(size_t i = 1; i < Operation.Literals.size(); i++){
             if(Operation.Literals[i].getType() != 'i'){
-                cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction: Literal ("
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction: Literal ("
                     << Operation.Literals[i].getType() << ") is not of a " << Operation.Literals[0].getString() << " type.\n";
                 return;
             }
@@ -6299,7 +6406,7 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         Owner->VectorContainer.back().setType('d');
         for(size_t i = 1; i < Operation.Literals.size(); i++){
             if(Operation.Literals[i].getType() != 'd'){
-                cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction: Literal ("
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction: Literal ("
                     << Operation.Literals[i].getType() << ") is not of a " << Operation.Literals[0].getString() << " type.\n";
                 return;
             }
@@ -6310,7 +6417,7 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         Owner->VectorContainer.back().setType('s');
         for(size_t i = 1; i < Operation.Literals.size(); i++){
             if(Operation.Literals[i].getType() != 's'){
-                cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction: Literal ("
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction: Literal ("
                     << Operation.Literals[i].getType() << ") is not of a " << Operation.Literals[0].getString() << " type.\n";
                 return;
             }
@@ -6318,12 +6425,12 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction)
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction)
             << " instruction the first parameter has incorrect value: \'" << Operation.Literals[0].getString() << "\'.\n";
         return;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText);
+    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
 
     ContextClass NewContext;
 
@@ -6333,20 +6440,20 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         wereGlobalVariablesCreated = true;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
 void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass * Context = nullptr;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
 
     string input = "";
-    if(!Context->getStringOrAbort(input, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!Context->getStringOrAbort(input, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
@@ -6472,13 +6579,13 @@ void ProcessClass::printTree(OperaClass & Operation, vector<ContextClass> & Even
 void ProcessClass::getStringSizeFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass * Context = nullptr;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
     
     string text = "";
-    if(!Context->getStringOrAbort(text, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!Context->getStringOrAbort(text, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
@@ -6494,7 +6601,7 @@ void ProcessClass::getStringSizeFromContext(OperaClass & Operation, vector<Conte
 void ProcessClass::getSizeOfContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     ContextClass * Context = nullptr;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
     
@@ -6512,41 +6619,41 @@ void ProcessClass::getSizeOfContext(OperaClass & Operation, vector<ContextClass>
 }
 void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.dynamicIDs.size() < 3){
-        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least three contexts.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least three contexts.\n";
         return;
     }
 
     ContextClass * TextContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
     if(TextContext == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
     ContextClass * BeginContext = getContextByID(EventContext, Operation.dynamicIDs[1], true);
     if(BeginContext == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
     ContextClass * LengthContext = getContextByID(EventContext, Operation.dynamicIDs[2], true);
     if(LengthContext == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
 
     string text = "";
-    if(!TextContext->getStringOrAbort(text, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!TextContext->getStringOrAbort(text, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
     unsigned beginning = 0;
-    if(!BeginContext->getUnsignedOrAbort(beginning, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!BeginContext->getUnsignedOrAbort(beginning, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
     unsigned length = 0;
-    if(!LengthContext->getUnsignedOrAbort(length, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!LengthContext->getUnsignedOrAbort(length, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
@@ -6569,41 +6676,41 @@ void ProcessClass::getSubStringFromContext(OperaClass & Operation, vector<Contex
 }
 void ProcessClass::loadFontFromContext(OperaClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine){
     if(Operation.dynamicIDs.size() < 3){
-        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least three contexts.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least three contexts.\n";
         return;
     }
 
     ContextClass * FilePathContext = getContextByID(EventContext, Operation.dynamicIDs[0], true);
     if(FilePathContext == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
     ContextClass * SizeContext = getContextByID(EventContext, Operation.dynamicIDs[1], true);
     if(SizeContext == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
     ContextClass * IDContext = getContextByID(EventContext, Operation.dynamicIDs[2], true);
     if(IDContext == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': Failed to get context.\n";
         return;
     }
 
     string filePath = "";
-    if(!FilePathContext->getStringOrAbort(filePath, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!FilePathContext->getStringOrAbort(filePath, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
     int fontSize = 0;
-    if(!SizeContext->getIntOrAbort(fontSize, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!SizeContext->getIntOrAbort(fontSize, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
     string fontID = "";
-    if(!IDContext->getStringOrAbort(fontID, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+    if(!IDContext->getStringOrAbort(fontID, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         return;
     }
 
@@ -6778,10 +6885,10 @@ void ProcessClass::findByIDInEventContext(OperaClass & Operation, vector<Context
     }
     addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
 }
-vector<string> getAllFilesNamesWithinFolder(string directory, char mode){
+vector<string> getAllFilesNamesWithinFolder(string directory, char mode, EventDescription EventIds){
     vector<string> names;
     if(!std::filesystem::exists(directory)){
-        cout << "Error: In " << __FUNCTION__ << ": Directory '" << directory
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Directory '" << directory
             << "' does not exist.\n";
         return names;
     }
@@ -6813,9 +6920,9 @@ void ProcessClass::listOutFiles(OperaClass & Operation, vector<ContextClass> & E
 
     vector <string> fileNames;
     #if _WIN32
-        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n');
+        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n', EventIds);
     #elif __linux__
-        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n');
+        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n', EventIds);
     #endif
 
     string buffer = "";
@@ -6875,7 +6982,7 @@ void ProcessClass::changeWorkingDirectory(OperaClass & Operation, vector<Context
     else{
         string testPath = workingDirectory + newDirectory + "/";
         if(!std::filesystem::exists(EXE_PATH + testPath)){
-            cout << "Error: In " << __FUNCTION__ << ": Directory '" << EXE_PATH + testPath << "' does not exist.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Directory '" << EXE_PATH + testPath << "' does not exist.\n";
             return;
         }
         workingDirectory = testPath;
@@ -6894,12 +7001,12 @@ void ProcessClass::printWorkingDirectory(OperaClass & Operation, vector<ContextC
 void ProcessClass::findSimilarStrings(OperaClass &Operation, vector<ContextClass> &EventContext){
     ContextClass * Pattern = nullptr, * StringVector = nullptr;
     if(!getPairOfContexts(Pattern, StringVector, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
     string pattern = "";
-    if(!Pattern->getStringOrAbort(pattern, Operation.instruction)){
-        cout << "Error: In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed. First parameter must be a string.\n";
+    if(!Pattern->getStringOrAbort(pattern, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed. First parameter must be a string.\n";
         return;
     }
     vector <string> stringVector;
@@ -6933,6 +7040,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
     vector<EveModule>::iterator &Event, vector<MemoryStackStruct> &MemoryStack, EngineClass &Engine
 ){
     string buffor;
+    EventDescription EventIds(OwnerLayer->getID(), Owner->getID(), Event->getID());
     for(OperaClass & Operation : Operations){
         switch(Operation.instruction){
             case continue_i:
@@ -7173,7 +7281,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             case dump_context_stack:
                 buffor = "\nStack: ";
                 for(auto context : EventContext){
-                    buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
+                    buffor += context.ID + ":" + context.type + ":" + context.getValue(EventIds) + ", ";
                 }
                 buffor += "\n\n";
                 printInColor(buffor, 11);
@@ -7191,7 +7299,8 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 findSimilarStrings(Operation, EventContext);
                 break;
             default:
-                cout << "Error: In " << __FUNCTION__ << ": Instruction '" << transInstrToStr(Operation.instruction) << "' does not exist.\n";
+                cout << "Error: In " << OwnerLayer->getID() << "::" << Owner->getID() << "::" << Event->getID()
+                    << "': In " << __FUNCTION__ << ": Instruction '" << transInstrToStr(Operation.instruction) << "' does not exist.\n";
                 break;
         }
 
@@ -7200,7 +7309,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
         if(printOutInstructions && printOutStackAutomatically && Operation.instruction != EngineInstr::dump_context_stack){
             buffor = "\nStack: ";
             for(auto context : EventContext){
-                buffor += context.ID + ":" + context.type + ":" + context.getValue() + ", ";
+                buffor += context.ID + ":" + context.type + ":" + context.getValue(EventIds) + ", ";
             }
             buffor += "\n\n";
             printInColor(buffor, 11);
@@ -7210,7 +7319,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
 }
 VariableModule ProcessClass::findNextValueInMovementModule(ConditionClass &Condition, AncestorObject *CurrentObject){
     if(CurrentObject == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Object does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Object does not exist.\n";
         return VariableModule::newBool(false);
     }
     VariableModule NewValue(Condition.Location.moduleType + "_" + Condition.Location.attribute, nullptr, "", "");
@@ -7299,14 +7408,14 @@ VariableModule ProcessClass::findNextValueInMovementModule(ConditionClass &Condi
         }
         break;
     }
-    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute << "' is not valid.\n";
+    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute << "' is not valid.\n";
     NewValue.setBool(false);
     NewValue.setID("null", nullptr);
     return NewValue;
 }
 VariableModule ProcessClass::getValueFromObjectInCamera(AncestorObject * CurrentObject, const string & attribute, const string & cameraID){
     if(CurrentObject == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Object does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Object does not exist.\n";
         return VariableModule::newBool(false);
     }
     bool newValue = false;
@@ -7329,13 +7438,13 @@ VariableModule ProcessClass::getValueFromObjectInCamera(AncestorObject * Current
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     }
     return VariableModule::newBool(newValue);
 }
 VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & Mouse, AncestorObject * CurrentObject, const string & attribute, const short & button){
     if(CurrentObject == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Object does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Object does not exist.\n";
         return VariableModule::newBool(false);
     }
     bool result = false;
@@ -7373,13 +7482,13 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     }
     return VariableModule::newBool(result);
 }
 VariableModule ProcessClass::getValueFromObjectInCollision(ConditionClass &Condition, AncestorObject * CurrentObject, LayerClass * CurrentLayer){
     if(CurrentObject == nullptr || CurrentObject->getIsDeleted()){
-        cout << "Error: In " << __FUNCTION__ << ": Object does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Object does not exist.\n";
         return VariableModule::newBool(false);
     }
     if(Condition.Location.attribute == "has_solid_hitbox"){
@@ -7449,7 +7558,7 @@ VariableModule ProcessClass::getValueFromObjectInCollision(ConditionClass &Condi
         return VariableModule::newBool(false);
     }
     if(CurrentLayer == nullptr || CurrentLayer->getIsDeleted()){
-        cout << "Error: In " << __FUNCTION__ << ": Layer does not exist.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Layer does not exist.\n";
         return VariableModule::newBool(false);
     }
     for(const CollisionModule & Collision : CurrentObject->CollisionContainer){
@@ -7533,7 +7642,7 @@ VariableModule ProcessClass::getValueFromObjectInCollision(ConditionClass &Condi
         }
         break;
     }
-    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute << "' is not valid.\n";
+    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute << "' is not valid.\n";
     return VariableModule::newBool(false, "null");
 }
 VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer, const MouseClass & Mouse){
@@ -7553,7 +7662,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                 return Variable;
             }
         }
-        cout << "Error: In " << __FUNCTION__ << ": There is no variable with id: \'" << Condition.Location.moduleID << "\'.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no variable with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else if(Condition.Location.moduleType == "ancestor" || Condition.Location.moduleType == ""){
         return CurrentObject->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
@@ -7581,7 +7690,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                 return Text.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
             }
         }
-        cout << "Error: In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else if(Condition.Location.moduleType == "editable_text"){
         for(const EditableTextModule & EditableText : CurrentObject->EditableTextContainer){
@@ -7592,7 +7701,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                 return EditableText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
             }
         }
-        cout << "Error: In " << __FUNCTION__ << ": There is no editable text with id: \'" << Condition.Location.moduleID << "\'.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no editable text with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else if(Condition.Location.moduleType == "super_text"){
         for(const SuperTextModule & SuperText : CurrentObject->SuperTextContainer){
@@ -7603,7 +7712,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                 return SuperText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
             }
         }
-        cout << "Error: In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else if(Condition.Location.moduleType == "super_editable_text"){
         for(const SuperEditableTextModule & SuperEditableText : CurrentObject->SuperEditableTextContainer){
@@ -7614,13 +7723,13 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                 return SuperEditableText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
             }
         }
-        cout << "Error: In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
     }
     else if(Condition.Location.moduleType == "collision"){
         return getValueFromObjectInCollision(Condition, CurrentObject, CurrentLayer);
     }
     
-    cout << "Error: In " << __FUNCTION__ << ": Value not found.\n";
+    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Value not found.\n";
     return VariableModule::newBool(false, "null");
 }
 VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
@@ -7770,7 +7879,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             }
         }
         if(Process == nullptr){
-            cout << "Error: In " << __FUNCTION__ << ": Process with id \'" << Condition.Location.process << "\' does not exist.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Process with id \'" << Condition.Location.process << "\' does not exist.\n";
             return VariableModule::newBool(false);
         }
     }
@@ -7832,12 +7941,12 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         ContextClass * Context = nullptr;
         vector<string> dynamicIDs = {Condition.Location.moduleID};
         if(!getOneContext(Context, EventContext, dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             NewValue.setBool(false);
             return NewValue;
         }
         if(Context->Modules.Vectors.size() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": There are no Vectors in the context.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no Vectors in the context.\n";
             NewValue.setBool(false);
             return NewValue;
         }
@@ -7850,8 +7959,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         else if(Condition.Literal.getType() == 's'){
             ContextClass * IndexContext = getContextByID(EventContext, Condition.Literal.getStringUnsafe(), true);
             unsigned vectorIdx = 0;
-            if(IndexContext == nullptr || !IndexContext->getUnsignedOrAbort(vectorIdx, EngineInstr::value)){
-                cout << "Error: In " << __FUNCTION__ << ": Cannot find a context for an index.\n";
+            if(IndexContext == nullptr || !IndexContext->getUnsignedOrAbort(vectorIdx, EngineInstr::value, EventIds)){
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Cannot find a context for an index.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7865,7 +7974,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         ContextClass * Context = nullptr;
         vector<string> dynamicIDs = {Condition.Literal.getStringUnsafe()};
         if(!getOneContext(Context, EventContext, dynamicIDs)){
-            cout << "Error: In " << __FUNCTION__ << ": No context found.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             NewValue.setBool(false);
             return NewValue;
         }
@@ -7874,7 +7983,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return VariableModule::newInt(Context->Variables.size());
             }
             if(Context->Variables.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no literals in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no literals in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7888,7 +7997,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return VariableModule::newInt(Context->BasePointers.size());
             }
             if(Context->BasePointers.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no pointers in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no pointers in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7903,7 +8012,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return VariableModule::newInt(Context->Modules.Variables.size());
             }
             if(Context->Modules.Variables.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no variables in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no variables in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7914,7 +8023,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         if(Context->type == "collision"){
             if(Context->Modules.Collisions.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no collisions in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no collisions in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7935,14 +8044,14 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 NewValue.setBool(Context->Modules.Collisions.back()->getMouseCollision() == 'r');
                 return NewValue;
             }
-            cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
                 << "' does not exist in the " << Context->type << " module.\n";
             NewValue.setBool(false);
             return NewValue;
         }
         if(Context->type == "primitives"){
             if(Context->Modules.Primitives.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no Primitives in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no Primitives in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7957,14 +8066,14 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 NewValue.setDouble(Context->Modules.Primitives.back()->getPos(0).y);
                 return NewValue;
             }
-            cout << "Error: In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
                 << "' does not exist in the " << Context->type << " module.\n";
             NewValue.setBool(false);
             return NewValue;
         }
         if(Context->type == "editable_text"){
             if(Context->Modules.EditableTexts.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no EditableTexts in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no EditableTexts in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7975,7 +8084,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         if(Context->type == "super_text"){
             if(Context->Modules.SuperTexts.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no SuperTexts in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no SuperTexts in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7986,7 +8095,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         if(Context->type == "super_editable_text"){
             if(Context->Modules.SuperEditableTexts.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no SuperEditableTexts in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no SuperEditableTexts in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -7997,7 +8106,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         if(Context->type == "vector"){
             if(Context->Modules.Vectors.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no Vectors in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no Vectors in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -8008,7 +8117,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         if(Context->type == "object"){
             if(Context->Objects.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no objects in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no objects in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -8021,7 +8130,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         if(Context->type == "layer"){
             if(Context->Layers.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no layers in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no layers in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -8034,7 +8143,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         if(Context->type == "camera"){
             if(Context->Cameras.size() == 0){
-                cout << "Error: In " << __FUNCTION__ << ": There are no cameras in the context.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no cameras in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
@@ -8046,7 +8155,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
         
-        cout << "Error: In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
         return NewValue;
     }
     if(Condition.Location.source == "literal"){
@@ -8061,10 +8170,10 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return Variable;
             }
         }
-        cout << "Error: In " << __FUNCTION__ << ": There is no variable with id: \'" << Condition.Location.moduleID << "\'.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no variable with id: \'" << Condition.Location.moduleID << "\'.\n";
         return NewValue;
     }
-    cout << "Error: In " << __FUNCTION__ << ": \'" << Condition.Location.source << "\' is not a valid source.\n";
+    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << Condition.Location.source << "\' is not a valid source.\n";
     NewValue.setBool(false);
     return NewValue;
 }
@@ -8168,7 +8277,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                     }
                 }
                 else{
-                    cout << "Error: In " << __FUNCTION__ << ": Operator '" << transInstrToStr(op) << "' unrecognized in the if statement.\n";
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Operator '" << transInstrToStr(op) << "' unrecognized in the if statement.\n";
                 }
             }
         }
@@ -8182,7 +8291,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                 return 'f';
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": String is not a valid booleon value.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": String is not a valid booleon value.\n";
             }
         }
         else if(resultStack.back().getBool()){
@@ -8408,7 +8517,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
     }
 
     if(printOutInstructions){
-        cout << "\nTriggered "<< TriggeredObjects.size() << " objects: ";
+        cout << "Final triggered "<< TriggeredObjects.size() << " objects: ";
         for(AncestorObject * Triggered : TriggeredObjects){
             cout << Triggered->getLayerID() << "::" << Triggered->getID() << ", ";
         }
@@ -9884,10 +9993,12 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
     }
 }
 void ProcessClass::selectObject(const MouseClass & Mouse){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()
+    if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive()
         || SelectedCamera->getIsMinimized() /*|| !SelectedCamera->canMoveObjects*/){
         return;
     }
+
+    bool disableActiveEditableText = true;
     
     for(LayerClass & Layer : Layers){
         if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID()) || !SelectedCamera->isLayerAccessible(Layer.getID())){
@@ -9897,16 +10008,6 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         //Check if mouse cursor was in the camera box while mouse button was pressed.  
         if(!Mouse.pressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             continue;
-        }
-        
-        //Disable currently eddited text field
-        if(ActiveEditableText != nullptr){ 
-            ActiveEditableText->isEditingActive = false;
-            for(FormatClass & Format : ActiveEditableText->Formatting){
-                Format.selected = false;
-            }
-            ActiveEditableText->update();
-            ActiveEditableText = nullptr;
         }
 
         for(AncestorObject & Object : Layer.Objects){
@@ -9926,6 +10027,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                         SuperEditableText.getSize(),
                         0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera
                     )){
+                        disableActiveEditableText = false;
                         ActiveEditableText = &SuperEditableText;
                         ActiveEditableText->isEditingActive = true;
                         ActiveEditableText->cursorPos = 0;
@@ -9945,7 +10047,15 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
             }
 
             if(!Object.getCanBeSelected()){
-                break;
+                continue;
+            }
+            if(ActiveEditableText != nullptr && disableActiveEditableText){
+                ActiveEditableText->isEditingActive = false;
+                for(FormatClass & Format : ActiveEditableText->Formatting){
+                    Format.selected = false;
+                }
+                ActiveEditableText->update();
+                ActiveEditableText = nullptr;
             }
             if(&Layer == SelectedLayer && &Object == SelectedObject){
                 return;
@@ -9957,6 +10067,14 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
             SelectedObject->refreshCoordinates();
             return;
         }
+    }
+    if(ActiveEditableText != nullptr && disableActiveEditableText){
+        ActiveEditableText->isEditingActive = false;
+        for(FormatClass & Format : ActiveEditableText->Formatting){
+            Format.selected = false;
+        }
+        ActiveEditableText->update();
+        ActiveEditableText = nullptr;
     }
 }
 void ProcessClass::unselectObject(){
@@ -10198,12 +10316,12 @@ void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, vect
     }
 }
 template <class Module>
-ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass> & Layers){
+ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass> & Layers, EventDescription EventIds){
     if(Instance->getLayerID() == ""){
-        cout << "Error: In " << __FUNCTION__ << ": Module instance does not belong to any layer.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Module instance does not belong to any layer.\n";
     }
     if(Instance->getObjectID() == ""){
-        cout << "Error: In " << __FUNCTION__ << ": Module instance does not belong to any object.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Module instance does not belong to any object.\n";
     }
     if(Instance->getLayerID() == "" || Instance->getObjectID() == ""){
         return ModuleIndex(0, 0, 0);
@@ -10263,17 +10381,17 @@ ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass>
     return ModuleIndex(0, 0, 0);
 }
 template <class Module>
-void PointerRecalculator::findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers){
+void PointerRecalculator::findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, EventDescription EventIds){
     for(Module * Instance : Instances){
-        ModuleIndexes.back().push_back(getIndex(Instance, Layers));
+        ModuleIndexes.back().push_back(getIndex(Instance, Layers, EventIds));
     }
 }
-ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers){
+ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers, EventDescription EventIds){
     if(Instance->getLayerID() == ""){
-        cout << "Error: In " << __FUNCTION__ << ": Event instance does not belong to any layer.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Event instance does not belong to any layer.\n";
     }
     if(Instance->getObjectID() == ""){
-        cout << "Error: In " << __FUNCTION__ << ": Event instance does not belong to any object.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Event instance does not belong to any object.\n";
     }
     if(Instance->getLayerID() == "" || Instance->getObjectID() == ""){
         return ModuleIndex(0, 0, 0);
@@ -10293,67 +10411,69 @@ ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance
     return ModuleIndex(0, 0, 0);
 }
 void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, EventDescription EventIds
 ){
-    startingEventIndex = getIndex(StartingEvent, Layers);
-    eventIndex = getIndex(Event, Layers);
+    startingEventIndex = getIndex(StartingEvent, Layers, EventIds);
+    eventIndex = getIndex(Event, Layers, EventIds);
     for(MemoryStackStruct & Memory : MemoryStack){
-        PastEvents.push_back(getIndex(Memory.Event, Layers));
+        PastEvents.push_back(getIndex(Memory.Event, Layers, EventIds));
     }
     for(ContextClass & Context : EventContext){
         ModuleIndexes.push_back(vector<ModuleIndex>());
         if(Context.type == "text"){
-            findIndexesInModule(Context.Modules.Texts, Layers);
+            findIndexesInModule(Context.Modules.Texts, Layers, EventIds);
         }
         else if(Context.type == "editable_text"){
-            findIndexesInModule(Context.Modules.EditableTexts, Layers);
+            findIndexesInModule(Context.Modules.EditableTexts, Layers, EventIds);
         }
         else if(Context.type == "super_text"){
-            findIndexesInModule(Context.Modules.SuperTexts, Layers);
+            findIndexesInModule(Context.Modules.SuperTexts, Layers, EventIds);
         }
         else if(Context.type == "super_editable_text"){
-            findIndexesInModule(Context.Modules.SuperEditableTexts, Layers);
+            findIndexesInModule(Context.Modules.SuperEditableTexts, Layers, EventIds);
         }
         else if(Context.type == "image"){
-            findIndexesInModule(Context.Modules.Images, Layers);
+            findIndexesInModule(Context.Modules.Images, Layers, EventIds);
         }
         else if(Context.type == "movement"){
-            findIndexesInModule(Context.Modules.Movements, Layers);
+            findIndexesInModule(Context.Modules.Movements, Layers, EventIds);
         }
         else if(Context.type == "collision"){
-            findIndexesInModule(Context.Modules.Collisions, Layers);
+            findIndexesInModule(Context.Modules.Collisions, Layers, EventIds);
         }
         else if(Context.type == "particles"){
-            findIndexesInModule(Context.Modules.Particles, Layers);
+            findIndexesInModule(Context.Modules.Particles, Layers, EventIds);
         }
         else if(Context.type == "event"){
-            findIndexesInModule(Context.Modules.Events, Layers);
+            findIndexesInModule(Context.Modules.Events, Layers, EventIds);
         }
         else if(Context.type == "variable"){
-            findIndexesInModule(Context.Modules.Variables, Layers);
+            findIndexesInModule(Context.Modules.Variables, Layers, EventIds);
         }
         else if(Context.type == "scrollbar"){
-            findIndexesInModule(Context.Modules.Scrollbars, Layers);
+            findIndexesInModule(Context.Modules.Scrollbars, Layers, EventIds);
         }
         else if(Context.type == "primitives"){
-            findIndexesInModule(Context.Modules.Primitives, Layers);
+            findIndexesInModule(Context.Modules.Primitives, Layers, EventIds);
         }
         else if(Context.type == "vector"){
-            findIndexesInModule(Context.Modules.Vectors, Layers);
+            findIndexesInModule(Context.Modules.Vectors, Layers, EventIds);
         }
     }
     didActiveEditableTextExist = false;
     if(ActiveEditableText != nullptr){
-        ActiveEditableTextIndex = getIndex(ActiveEditableText, Layers);
+        ActiveEditableTextIndex = getIndex(ActiveEditableText, Layers, EventIds);
         didActiveEditableTextExist = true;
     }
 }
-void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext, Camera2D *& SelectedCamera, string processID, string & focusedProcessID){
+void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext,
+    Camera2D *& SelectedCamera,string processID, string & focusedProcessID, EventDescription EventIds
+){
     unsigned context, camera;
     for(context = 0; context < CameraIndexes.size(); context++){
         for(camera = 0; camera < CameraIndexes[context].size(); camera++){
             if(Cameras.size() <= CameraIndexes[context][camera]){
-                cout << "Error: In " << __FUNCTION__ << ": CameraIndexes[context][camera] goes out of scope of Cameras.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": CameraIndexes[context][camera] goes out of scope of Cameras.\n";
                 EventContext[context].Cameras[camera] = nullptr;
                 continue;
             }
@@ -10362,7 +10482,7 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vec
     }
     if(SelectedCamera != nullptr){
         if(Cameras.size() <= selectedCameraIndex){
-            cout << "Error: In " << __FUNCTION__ << ": selectedCameraIndex goes out of scope of Cameras.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": selectedCameraIndex goes out of scope of Cameras.\n";
             SelectedCamera->isFocused = false;
             SelectedCamera = nullptr;
             if(processID == focusedProcessID){
@@ -10376,12 +10496,12 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vec
         focusedProcessID = processID;
     }
 }
-void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, LayerClass *& OwnerLayer){
+void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, LayerClass *& OwnerLayer, EventDescription EventIds){
     unsigned context, layer;
     for(context = 0; context < LayerIndexes.size(); context++){
         for(layer = 0; layer < LayerIndexes[context].size(); layer++){
             if(Layers.size() <= LayerIndexes[context][layer]){
-                cout << "Error: In " << __FUNCTION__ << ": LayerIndexes[" << context
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": LayerIndexes[" << context
                     << "][" << layer << "]=" << LayerIndexes[context][layer]
                     << " goes out of scope of Layers<" << Layers.size()  << ">.\n";
                 EventContext[context].Layers[layer] = nullptr;
@@ -10395,7 +10515,7 @@ void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vec
     }
 }
 void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, AncestorObject *&Owner,
-    vector<AncestorObject *> &TriggeredObjects, LayerClass *&SelectedLayer, AncestorObject *&SelectedObject)
+    vector<AncestorObject *> &TriggeredObjects, LayerClass *&SelectedLayer, AncestorObject *&SelectedObject, EventDescription EventIds)
 {
     unsigned i;
     for(i = 0; i < EventContext.size(); i++){
@@ -10409,7 +10529,7 @@ void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, ve
     }
     if(SelectedLayer != nullptr){
         if(Layers.size() <= selectedLayerIndex){
-            cout << "Error: In " << __FUNCTION__ << ": selectedLayerIndex(" << selectedLayerIndex << ") goes out of scope of Layers<" << Layers.size() << ">.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": selectedLayerIndex(" << selectedLayerIndex << ") goes out of scope of Layers<" << Layers.size() << ">.\n";
             SelectedLayer = nullptr;
         }
         else{
@@ -10424,7 +10544,7 @@ void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, ve
     }
 }
 void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, EventDescription EventIds
 ){
     StartingEvent = startingEventIndex.module(Layers);
     Event = eventIndex.module(Layers);
@@ -10441,7 +10561,7 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, v
             Object = Index.object(Layers);
 
             if(Object == nullptr){
-                cout << "Error: In " << __FUNCTION__ << ": Object pointer is a null value.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Object pointer is a null value.\n";
                 continue;
             }
 
@@ -10497,4 +10617,8 @@ LayerClass * PointerRecalculator::getOwnerLayer(vector <LayerClass> & Layers){
         return nullptr;
     }
     return &Layers[eventOwnerLayerIndex];
+}
+
+string EventDescription::describe(){
+    return layerID + "::" + objectID + "::" + eventID;
 }

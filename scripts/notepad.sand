@@ -1,6 +1,6 @@
 start checkIfWindowMovedNotepad
 triggers mouse_pressing
-if ([mouse_moved])
+if ([mouse_moved] [mouse_pressing 0] &&)
 all camera _ camera _ Cameras
 find_by_id_2 Cameras cameraID Camera
 run refreshWindowWithCameraNotepad
@@ -35,6 +35,6 @@ start refreshWindowNotepad
 value ([context me layer_id]) myLayerID
 all layer _ _ _ _ _ _ Layers
 find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 0] _ editable_text Notepad
+index c Layer [0 0 0] _ super_editable_text Notepad
 fun Notepad set_size c sx c sy
 end

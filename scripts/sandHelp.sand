@@ -10,7 +10,12 @@ end
 
 start ls
 ls param1 result
+tokenize result files
+print "\t" result c files
 string ["_enter"] program
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ super_editable_text EditableText
+fun EditableText modify_last_format double [0.0 1.0 1.0 1.0] double [0.0 1.0 1.0 1.0] string [cascadia_code] int [1]
 run printOnTerminal
 end
 
@@ -253,7 +258,10 @@ end
 start cat
 if ([exists param1])
 load_text param1 result
-string ["_enter"] program
+string [""] program
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ super_editable_text EditableText
+fun EditableText modify_last_format double [0.0 1.0 0.0 1.0] double [0.0 0.0 1.0 1.0] string [cascadia_code] int [1]
 run printOnTerminal
 else printNoSuchFile
 end

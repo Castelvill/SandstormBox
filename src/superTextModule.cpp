@@ -893,6 +893,14 @@ void SuperTextModule::setTabLength(unsigned short newTabLength){
     tabLength = newTabLength;
 }
 void SuperTextModule::divideFormattingByCursor(){
+    /*cout << "Start:\n";
+    unsigned limitSum = 0;
+    for(auto Format : Formatting){
+        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit  << "\n";
+        limitSum += Format.limit;
+    }
+    cout << "Limit sum: " << limitSum << "\n";*/
+    
     unsigned formatIdx = 0;
     for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
         Formatting[formatIdx].selected = false;
@@ -974,6 +982,14 @@ void SuperTextModule::divideFormattingByCursor(){
     if(Formatting.back().drawingLimit < Formatting.back().limit){
         Formatting.back().drawingLimit++;
     }
+
+    /*cout << "End:\n";
+    limitSum = 0;
+    for(auto Format : Formatting){
+        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit  << "\n";
+        limitSum += Format.limit;
+    }
+    cout << "Limit sum: " << limitSum << "\n\n";*/
 }
 void SuperTextModule::setCursorPos(int newPos){
     if(newPos < 0){

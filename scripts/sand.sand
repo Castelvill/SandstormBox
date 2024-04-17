@@ -531,6 +531,10 @@ end
 start controlerWithEnter
 triggers each_iteration
 if ([context program] [string "_enter"] ==)
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ super_editable_text EditableText
+fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
+fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
 string ["\n$ "] result
 string ["sleep"] program
 run printOnTerminal

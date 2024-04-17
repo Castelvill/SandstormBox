@@ -165,7 +165,12 @@ double VariableModule::getDoubleUnsafe() const{
         return vInt;
     }
     else if(type == 's'){
-        return cstod(vString);
+        string error;
+        double temp = cstod(vString, error);
+        if(error.size() > 0){
+            cout << "Error: In VariableModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+        }
+        return temp;
     }
     else if(type != 'd'){
         return 0.0;

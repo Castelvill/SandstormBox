@@ -1,20 +1,22 @@
 #include "usefull.h"
 
-int cstoi(string text){
+int cstoi(string text, string & error){
+    error = "";
     try{
         return stoi(text);
     }
     catch(std::invalid_argument const& ex){
-        cout << "Error: In " << __FUNCTION__ << ": In " << ex.what() << ": 'std::invalid_argument'\n";
+        error = "Error: In cstoi: In stoi: string \"" + text + "\" triggers 'std::invalid_argument'.";
         return 0;
     }
 }
-double cstod(string text){
+double cstod(string text, string & error){
+    error = "";
     try{
         return stod(text);
     }
     catch(std::invalid_argument const& ex){
-        cout << "Error: In " << __FUNCTION__ << ": In " << ex.what() << ": 'std::invalid_argument'\n";
+        error = "Error: In cstod: In stod: string \"" + text + "\" triggers 'std::invalid_argument'.";
         return 0;
     }
 }
@@ -127,13 +129,17 @@ bool isStringInVector(const vector <string> & stringVec, string findString){
 }
 
 string findNewUniqueID(vector <string> uniqueIDs, string newID){
+    string error;
     if(newID == ""){
         newID = "0";
     }
     while(isStringInVector(uniqueIDs, newID)){
         if(isdigit(newID.back())){
             size_t last_index = newID.find_last_not_of("0123456789");
-            newID = newID.substr(0, last_index + 1) + intToStr(cstoi(newID.substr(last_index + 1)) + 1);
+            newID = newID.substr(0, last_index + 1) + intToStr(cstoi(newID.substr(last_index + 1), error) + 1);
+            if(error.size() > 0){
+                cout << "Error: In " << __FUNCTION__ << ":\n" << error << "\n";
+            }
         }
         else{
             newID += "0";

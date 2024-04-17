@@ -654,7 +654,7 @@ bool optional(const vector<string> & words, unsigned & cursor, vector<string> & 
     cursor++;
     return false;
 }
-bool nextCond(const vector<string> & words, unsigned & cursor, string & variable){
+bool nextCond(const vector<string> & words, unsigned & cursor, string & variable, string scriptName, unsigned lineNumber){
     if(words.size() < cursor + 1){
         return true;
     }
@@ -666,7 +666,8 @@ bool nextCond(const vector<string> & words, unsigned & cursor, string & variable
     }
     return false;
 }
-bool nextCond(const vector<string> & words, unsigned & cursor, VariableModule & variable, const char & type){
+bool nextCond(const vector<string> & words, unsigned & cursor, VariableModule & variable, const char & type, string scriptName, unsigned lineNumber){
+    string error = "";
     if(words.size() < cursor + 1){
         return true;
     }
@@ -679,14 +680,23 @@ bool nextCond(const vector<string> & words, unsigned & cursor, VariableModule & 
                 variable.setBool(false);
             }
             else{
-                variable.setBool(cstoi(words[cursor]));
+                variable.setBool(cstoi(words[cursor], error));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
         }
         else if(type == 'i'){
-            variable.setInt(cstoi(words[cursor]));
+            variable.setInt(cstoi(words[cursor], error));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+            }
         }
         else if(type == 'd'){
-            variable.setInt(cstod(words[cursor]));
+            variable.setInt(cstod(words[cursor], error));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+            }
         }
         else if(type == 's'){
             variable.setString(words[cursor]);
@@ -697,24 +707,32 @@ bool nextCond(const vector<string> & words, unsigned & cursor, VariableModule & 
     }
     return false;
 }
-bool nextCond(const vector<string> & words, unsigned & cursor, int & variable){
+bool nextCond(const vector<string> & words, unsigned & cursor, int & variable, string scriptName, unsigned lineNumber){
     if(words.size() < cursor + 1){
         return true;
     }
     if(words[cursor] != "_"){
-        variable = cstoi(words[cursor]);
+        string error;
+        variable = cstoi(words[cursor], error);
+        if(error.size() > 0){
+            cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+        }
     }
     if(words[cursor] != "]"){
         cursor++;
     }
     return false;
 }
-bool nextCond(const vector<string> & words, unsigned & cursor, double & variable){
+bool nextCond(const vector<string> & words, unsigned & cursor, double & variable, string scriptName, unsigned lineNumber){
     if(words.size() < cursor + 1){
         return true;
     }
     if(words[cursor] != "_"){
-        variable = cstod(words[cursor]);
+        string error;
+        variable = cstod(words[cursor], error);
+        if(error.size() > 0){
+            cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+        }
     }
     if(words[cursor] != "]"){
         cursor++;
@@ -762,24 +780,24 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
             cursor++;
         }
         else{
-            if(nextCond(words, cursor, Expression.back().Location.source)){ continue; };
+            if(nextCond(words, cursor, Expression.back().Location.source, scriptName, lineNumber)){ continue; };
             if(Expression.back().Location.source == "bool"){
                 if(Expression.back().Location.source == "bool"){
                     Expression.back().Location.source = "literal";
                 }
-                if(nextCond(words, cursor, Expression.back().Literal, 'b')){ continue; };
+                if(nextCond(words, cursor, Expression.back().Literal, 'b', scriptName, lineNumber)){ continue; };
             }
             else if(isStringInGroup(Expression.back().Location.source, 7, "int", "key_pressed", "key_pressing", "key_released", "mouse_pressed", "mouse_pressing", "mouse_released")){
                 if(Expression.back().Location.source == "int"){
                     Expression.back().Location.source = "literal";
                 }
-                if(nextCond(words, cursor, Expression.back().Literal, 'i')){ continue; };
+                if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
             }
             else if(Expression.back().Location.source == "double"){
                 if(Expression.back().Location.source == "double"){
                     Expression.back().Location.source = "literal";
                 }
-                if(nextCond(words, cursor, Expression.back().Literal, 'd')){ continue; };
+                if(nextCond(words, cursor, Expression.back().Literal, 'd', scriptName, lineNumber)){ continue; };
             }
             else if(Expression.back().Location.source == "string"
                 || Expression.back().Location.source == "exists"
@@ -793,17 +811,17 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 if(Expression.back().Location.source == "string"){
                     Expression.back().Location.source = "literal";
                 }
-                if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+                if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
             }
             else if(Expression.back().Location.source == "vector" || Expression.back().Location.source == "v"){
-                if(nextCond(words, cursor, Expression.back().Location.moduleID)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
                 if(Expression.back().Location.attribute == "i" || Expression.back().Location.attribute == "index"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 'i')){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
                     Expression.back().Location.attribute = "value";
                 }
                 else if(Expression.back().Location.attribute == "c" || Expression.back().Location.attribute == "context"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
                     Expression.back().Location.attribute = "value";
                 }
                 else if(Expression.back().Location.attribute == "s" || Expression.back().Location.attribute == "size"){
@@ -819,40 +837,40 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 }
             }
             else if(Expression.back().Location.source == "context" || Expression.back().Location.source == "c"){
-                if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.spareID)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
             }
             else if(Expression.back().Location.source == "camera"){
-                if(nextCond(words, cursor, Expression.back().Location.cameraID)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.cameraID, scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
             }
             else if(Expression.back().Location.source == "layer"){
-                if(nextCond(words, cursor, Expression.back().Location.layerID)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
                 if(Expression.back().Location.attribute == "in_group"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
                 }
             }
             else if(Expression.back().Location.source == "object"){
-                if(nextCond(words, cursor, Expression.back().Location.layerID)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.objectID)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.moduleType)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.moduleID)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.objectID, scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.moduleType, scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
                 if(isStringInGroup(Expression.back().Location.moduleType, 3, "ancestor", "text", "editable_text")){
-                    if(nextCond(words, cursor, Expression.back().Literal, 's')){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
                 }
                 else if(Expression.back().Location.moduleType == "mouse"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 'i')){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
                 }
                 else if(Expression.back().Location.moduleType == "collision"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 'i')){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.spareID)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
                 }
             }
             else if(Expression.back().Location.source == "variable"){
-                if(nextCond(words, cursor, Expression.back().Location.moduleID)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
             }
         }
         if(cursor >= words.size()){
@@ -921,7 +939,11 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
                 Literals.push_back(VariableModule::newBool(false));
             }
             else{
-                Literals.push_back(VariableModule::newBool(cstoi(words[cursor])));
+                string error;
+                Literals.push_back(VariableModule::newBool(cstoi(words[cursor], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             if(negate){
                 negate = false;
@@ -929,21 +951,35 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
             }
         }
         else if(type == 'i'){
+            string error;
             if(negate){
                 negate = false;
-                Literals.push_back(VariableModule::newInt(-cstoi(words[cursor])));
+                Literals.push_back(VariableModule::newInt(-cstoi(words[cursor], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else{
-                Literals.push_back(VariableModule::newInt(cstoi(words[cursor])));
+                Literals.push_back(VariableModule::newInt(cstoi(words[cursor], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
         }
         else if(type == 'd'){
+            string error;
             if(negate){
                 negate = false;
-                Literals.push_back(VariableModule::newDouble(-cstod(words[cursor])));
+                Literals.push_back(VariableModule::newDouble(-cstod(words[cursor], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else{
-                Literals.push_back(VariableModule::newDouble(cstod(words[cursor])));
+                Literals.push_back(VariableModule::newDouble(cstod(words[cursor], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
         }
         else{
@@ -1020,6 +1056,8 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
     }
 
     code = code2;
+
+    string error;
     
     for(string line : code){
         lineNumber++;
@@ -1048,7 +1086,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 NewEvent.loop = false;
             }
             else{
-                NewEvent.loop = cstoi(words[2]);
+                NewEvent.loop = cstoi(words[2], error);
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
         }
         else if(words[0] == "end"){
@@ -1238,8 +1279,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1] == "literal"){
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else{
                 Operation->dynamicIDs.push_back(words[2]);
@@ -1317,7 +1364,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     Operation->Literals.push_back(VariableModule::newBool(false));
                 }
                 else{
-                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[3])));
+                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[3], error)));
+                    if(error.size() > 0){
+                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    }
                 }
             }
         }
@@ -1350,7 +1400,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 continue;
             }
             if(words[cursor] != "_"){
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[cursor])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[cursor], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             cursor++;
             if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
@@ -1397,7 +1450,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     Operation->Literals.push_back(VariableModule::newBool(false));
                 }
                 else{
-                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2])));
+                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2], error)));
+                    if(error.size() > 0){
+                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    }
                 }
             }     
         }
@@ -1448,11 +1504,20 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else{
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
         }
         else if(words[0] == "edit_proc"){
@@ -1472,7 +1537,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newString(words[2]));
             }
             else if(words[1] == "reservation_multiplier"){
-                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else if(words[1] == "window_pos" || words[1] == "window_size" || words[1] == "min_window_size"){
                 if(words.size() < 4){
@@ -1480,8 +1548,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else if(words[1] == "window_tint"){
                 if(words.size() < 6){
@@ -1489,13 +1563,28 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires four literals of a double type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[2])));
-                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[3])));
-                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[4])));
-                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[5])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[3], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[4], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[5], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else{
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
         }
         else if(words[0] == "load_bitmap"){
@@ -1595,7 +1684,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 Operation->Literals.push_back(VariableModule::newBool(false));
             }
             else{
-                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
         }
         else if(words[0] == "new_proc"){
@@ -1623,14 +1715,23 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     Operation->Literals.push_back(VariableModule::newBool(false));
                 }
                 else{
-                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2])));
+                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2], error)));
+                    if(error.size() > 0){
+                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    }
                 }
             }
             else if(words[1] == "int" || words[1] == "i"){
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2])));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else if(words[1] == "double" || words[1] == "d"){
-                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2])));
+                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2], error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                }
             }
             else if(words[1] == "string" || words[1] == "s"){
                 Operation->Literals.push_back(VariableModule::newString(words[2]));

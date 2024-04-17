@@ -645,7 +645,11 @@ void ParticleEffectModule::addColorIntervalInHex(string hexColorAndSpeed){
 
     std::sscanf(hexColor.c_str(), "%2hx%2hx%2hx", &colorIntervals.back().color[0],
                 &colorIntervals.back().color[1], &colorIntervals.back().color[2]);
-    colorIntervals.back().minSpeed = cstod(strSpeed);
+    string error;
+    colorIntervals.back().minSpeed = cstod(strSpeed, error);
+    if(error.size() > 0){
+        cout << "Error: In ParticleModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+    }
 }
 void ParticleEffectModule::removeColorInterval(unsigned int id){
     if(id >= colorIntervals.size())

@@ -1724,7 +1724,11 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
         printNotNumericalWarning();
         return false;
     }
-    double dValue = cstod(getContent(currentTextIdx));
+    string error;
+    double dValue = cstod(getContent(currentTextIdx), error);
+    if(error.size() > 0){
+        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+    }
 
     success = true;
 
@@ -1791,7 +1795,11 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     }
 
     success = true;
-    double dValue = cstod(cContent);
+    string error;
+    double dValue = cstod(cContent, error);
+    if(error.size() > 0){
+        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+    }
 
     if(connectedVariable == "position_x"){
         Text.setPos(dValue, Text.getPos(false).y);
@@ -1927,7 +1935,11 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
         return false;
     }
     success = true;
-    double dValue = cstod(cContent);
+    string error;
+    double dValue = cstod(cContent, error);
+    if(error.size() > 0){
+        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+    }
 
     if(connectedVariable == "position_x"){
         Image.setPos(dValue, Image.getPos(false).y);
@@ -2089,7 +2101,11 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
     }
 
     success = true;
-    double dValue = cstod(cContent);
+    string error;
+    double dValue = cstod(cContent, error);
+    if(error.size() > 0){
+        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+    }
     short shValue = short(dValue);
 
     if(connectedVariable == "movement_type"){
@@ -2302,7 +2318,11 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
         return false;
     }
     success = true;
-    double dValue = cstod(cContent);
+    string error;
+    double dValue = cstod(cContent, error);
+    if(error.size() > 0){
+        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+    }
 
 
     if(connectedVariable == "environment_x"){
@@ -2477,7 +2497,11 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
         return false;
     }
 
-    double dValue = cstod(cContent);
+    string error;
+    double dValue = cstod(cContent, error);
+    if(error.size() > 0){
+        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+    }
     int iValue = int(dValue);
 
     if(connectedVariable == "int"){
