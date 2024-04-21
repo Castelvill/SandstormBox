@@ -100,7 +100,7 @@ void CollisionModule::detectCollision(string solidID, string collisionID, vec2d 
     }
 
     //Check if both momentums combined will cause a collision.
-    if(areObjectsOverlaping(solidPos, solidSize, vec2d(mPos2.x, mPos2.y), size)){
+    if(areObjectsOverlaping(solidPos, solidSize, mPos2, size)){
         momentum.x = countMinimalDistanceBetween(solidPos, solidSize, mPos, size, 0.1).x;
         momentum.y = countMinimalDistanceBetween(solidPos, solidSize, mPos, size, 0.1).y;
         Detected.push_back({solidID, collisionID, 3, momentum});

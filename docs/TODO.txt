@@ -1,3 +1,5 @@
+-Save executed commands to a file
+-Add to .config: "INIT/EXECUTE file [new_proc_id]" command - on boot engine will read all "INIT"/"EXECUTE" commands and execute all provided there scripts. It can also create a new process that will execute such script. Remove old way of engine initialization.
 -Fix: Cannot select the whole text in the "note" program.
 -Fix: Mouse cursor does not work with tabs.
 -Add an event that spawns particles when you write.
@@ -121,6 +123,7 @@ MILESTONE: Easy and cozy scripting inside the engine.
 -Play ascii Bad Apple.
 -Add gifs.
 -Make donut.cpp with EGM script.
+-Make version control system (local github).
 
 OPTIMALIZATIONS
 -For large scale simulation: Divide game map to different threads based on camera position. The main thread will have rights to draw things and others will be focusing on processing stuff.
