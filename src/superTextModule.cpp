@@ -412,24 +412,40 @@ void SuperTextModule::cropSizeToText(){
 }
 
 VariableModule SuperTextModule::getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const{
+    if(attribute == "pos_x"){
+        return VariableModule::newDouble(pos.x);
+    }
+    if(attribute == "pos_y"){
+        return VariableModule::newDouble(pos.y);
+    }
+    if(attribute == "size_x"){
+        return VariableModule::newDouble(size.x);
+    }
+    if(attribute == "size_y"){
+        return VariableModule::newDouble(size.y);
+    }
     if(attribute == "in_group"){
         return VariableModule::newBool(isInAGroup(detail));
     }
-    else if(attribute == "content"){
+    if(attribute == "in_group"){
+        return VariableModule::newBool(isInAGroup(detail));
+    }
+    if(attribute == "content"){
         return VariableModule::newString(content);
     }
-    else if(attribute == "wrapped"){
+    if(attribute == "wrapped"){
         return VariableModule::newInt(wrapped);
     }
-    else if(attribute == "horizontal_align"){
+    if(attribute == "horizontal_align"){
         return VariableModule::newInt(horizontalAlign);
     }
-    else if(attribute == "vertical_align"){
+    if(attribute == "vertical_align"){
         return VariableModule::newInt(verticalAlign);
     }
-    else if(attribute == "rotation"){
+    if(attribute == "rotation"){
         return VariableModule::newDouble(rotation);
     }
+    
     cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
         << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
@@ -1094,69 +1110,67 @@ VariableModule SuperEditableTextModule::getAttributeValue(const string &attribut
         }
         return VariableModule::newString(content);
     }
-    else if(attribute == "can_be_edited"){
+    if(attribute == "can_be_edited"){
         return VariableModule::newBool(canBeEdited);
     }
-    else if(attribute == "can_use_space"){
+    if(attribute == "can_use_space"){
         return VariableModule::newBool(canUseSpace);
     }
-    else if(attribute == "can_use_enter"){
+    if(attribute == "can_use_enter"){
         return VariableModule::newBool(canUseEnter);
     }
-    else if(attribute == "enter_ends_editing"){
+    if(attribute == "enter_ends_editing"){
         return VariableModule::newBool(enterEndsEditing);
     }
-    else if(attribute == "can_use_tabs"){
+    if(attribute == "can_use_tabs"){
         return VariableModule::newBool(canUseTabs);
     }
-    else if(attribute == "is_numerical"){
+    if(attribute == "is_numerical"){
         return VariableModule::newBool(isNumerical);
     }
-    else if(attribute == "has_floating_point"){
+    if(attribute == "has_floating_point"){
         return VariableModule::newBool(hasFloatingPoint);
     }
-    else if(attribute == "ignore_vertical_arrows"){
+    if(attribute == "ignore_vertical_arrows"){
         return VariableModule::newBool(ignoreVerticalArrows);
     }
-    else if(attribute == "ignore_content_restriction"){
+    if(attribute == "ignore_content_restriction"){
         return VariableModule::newBool(ignoreContentRestriction);
     }
-    else if(attribute == "is_storing_history"){
+    if(attribute == "is_storing_history"){
         return VariableModule::newBool(isStoringHistory);
     }
-    else if(attribute == "min_content_length"){
+    if(attribute == "min_content_length"){
         return VariableModule::newInt(minContentLength);
     }
-    else if(attribute == "max_content_length"){
+    if(attribute == "max_content_length"){
         return VariableModule::newInt(maxContentLength);
     }
-    else if(attribute == "input_delay"){
+    if(attribute == "input_delay"){
         return VariableModule::newDouble(inputDelay);
     }
-    else if(attribute == "repetition_delay"){
+    if(attribute == "repetition_delay"){
         return VariableModule::newDouble(repetitionDelay);
     }
-    else if(attribute == "protected_area"){
+    if(attribute == "protected_area"){
         return VariableModule::newInt(protectedArea);
     }
-    else if(attribute == "is_editing_active"){
+    if(attribute == "is_editing_active"){
         return VariableModule::newBool(isEditingActive);
     }
-    else if(attribute == "cursor_pos"){
+    if(attribute == "cursor_pos"){
         return VariableModule::newInt(cursorPos);
     }
-    else if(attribute == "second_cursor_pos"){
+    if(attribute == "second_cursor_pos"){
         return VariableModule::newInt(secondCursorPos);
     }
-    else if(attribute == "min_cursor_pos"){
+    if(attribute == "min_cursor_pos"){
         return VariableModule::newInt(std::min(cursorPos, secondCursorPos));
     }
-    else if(attribute == "max_cursor_pos"){
+    if(attribute == "max_cursor_pos"){
         return VariableModule::newInt(std::max(cursorPos, secondCursorPos));
     }
-    else{
-        return SuperTextModule::getAttributeValue(attribute, detail);
-    }
+    return SuperTextModule::getAttributeValue(attribute, detail, EventIds);
 }
 void SuperEditableTextModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
     BasePointers.push_back(BasePointersStruct());

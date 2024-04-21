@@ -7709,7 +7709,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                 if(SuperText.getIsDeleted()){
                     break;
                 }
-                return SuperText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
+                return SuperText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), EventIds);
             }
         }
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
@@ -7720,7 +7720,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                 if(SuperEditableText.getIsDeleted()){
                     break;
                 }
-                return SuperEditableText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
+                return SuperEditableText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), EventIds);
             }
         }
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
@@ -8091,7 +8091,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             if(Context->Modules.SuperTexts.size() != 1){
                 cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several SuperTexts in the context. Program will proceed with the last added literal.\n";
             }
-            return Context->Modules.SuperTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
+            return Context->Modules.SuperTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), EventIds);
         }
         if(Context->type == "super_editable_text"){
             if(Context->Modules.SuperEditableTexts.size() == 0){
@@ -8102,7 +8102,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             if(Context->Modules.SuperEditableTexts.size() != 1){
                 cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several SuperEditableTexts in the context. Program will proceed with the last added literal.\n";
             }
-            return Context->Modules.SuperEditableTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
+            return Context->Modules.SuperEditableTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), EventIds);
         }
         if(Context->type == "vector"){
             if(Context->Modules.Vectors.size() == 0){

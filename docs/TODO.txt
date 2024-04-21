@@ -34,6 +34,7 @@ MILESTONE: Terminal with printing, scrolling and a history of used commands.
 MILESTONE: Easy and cozy scripting inside the engine.
 
 -Block "." and ".." links in filesystem commands.
+-Convert all "if forests" to switches.
 -Add dmenu, one command line called by a shortcut, that allows to use quick commands like: "open new window", "compile", "run program", etc.
 -Add synchronized/shared files that allow for server-like communication between two instances of the engine.
 -Implement syntax coloring for the scriptic language.
