@@ -1,10 +1,8 @@
-fs
-edit xd
-edit lol
-sand lol
+aaa
+bbb
+cc
+ddd
+history
+xd
+ppp
 neofetch
-fs
-fs
-cats
-pwd
-cd scripts

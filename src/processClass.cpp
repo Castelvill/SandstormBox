@@ -2520,6 +2520,7 @@ void ProcessClass::aggregateEntities(OperaClass & Operation, vector<ContextClass
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
+//Moving values will not change a vector structure nor value type. 
 void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, ContextClass * RightOperand, EventDescription EventIds){
     if(LeftOperand->type != "pointer" && LeftOperand->type != "value"
         && LeftOperand->type != "variable" && LeftOperand->type != "vector"
@@ -2597,10 +2598,7 @@ void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, Contex
             return;
         }
 
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In '"
-            << transInstrToStr(instruction) << "': Not yet implemented!\n";
-
-        LeftOperand->Modules.Vectors[i]->move(RightOperand->Modules.Variables[j], instruction);
+        LeftOperand->Modules.Vectors[i]->move(RightOperand->Modules.Variables, instruction, EventIds);
     }
     else if(LeftOperand->type == "value" && RightOperand->type == "variable"){
         if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Modules.Variables.size(), sameSize, __FUNCTION__)){
@@ -5042,7 +5040,7 @@ bool findObjectForFunction(AncestorObject *& ModuleObject, vector<LayerClass> &L
     }
     return true;
 }
-void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext){
+void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera){
     unsigned cameraIndex = 0;
     for(Camera2D * Camera : CamerasFromContext){
         if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
@@ -5256,6 +5254,20 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
         else if(Operation.Location.attribute == "set_can_mouse_resize" && Variables.size() > 0){
             Camera->canMouseResizeNow = Variables[0].getBoolUnsafe();
         }
+        else if(Operation.Location.attribute == "focus"){
+            if(SelectedCamera != nullptr){
+                SelectedCamera->isFocused = false;
+                SelectedCamera = nullptr;
+            }
+            SelectedCamera = Camera;
+            Camera->isFocused = true;
+        }
+        else if(Operation.Location.attribute == "unfocus"){
+            if(SelectedCamera == Camera){
+                SelectedCamera->isFocused = false;
+                SelectedCamera = nullptr;
+            }
+        }
         else{
             cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
@@ -5435,7 +5447,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
 
     
     if(Context->type == "camera"){
-        executeFunctionForCameras(Operation, Variables, Context->Cameras);
+        executeFunctionForCameras(Operation, Variables, Context->Cameras, SelectedCamera);
     }
     else if(Context->type == "layer"){
         executeFunctionForLayers(Operation, Variables, Context->Layers);
@@ -5491,7 +5503,9 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
                 if(!findObjectForFunction(ModulesObject, Layers, SuperEditableText->getObjectID(), SuperEditableText->getLayerID())){
                     continue;
                 }
-                Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables, ModulesObject->superEditableTextContainerIDs, Engine.FontContainer, ActiveEditableText);
+                Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables,
+                    ModulesObject->superEditableTextContainerIDs, Engine.FontContainer, ActiveEditableText
+                );
             }
             return;
         }

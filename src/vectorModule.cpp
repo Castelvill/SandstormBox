@@ -66,8 +66,9 @@ bool VectorModule::setType(char newType){
     return true;
 }
 bool VectorModule::pushBool(bool newValue){
-    if(type == 'b'){
+    if(type == 'b' || type == 'n'){
         vBool.push_back(stupidBool(newValue));
+        type = 'b';
         return true;
     }
     else if(type == 'i'){
@@ -90,8 +91,9 @@ bool VectorModule::pushInt(int newValue){
         vBool.push_back(stupidBool(newValue));
         return true;
     }
-    else if(type == 'i'){
+    else if(type == 'i' || type == 'n'){
         vInt.push_back(newValue);
+        type = 'i';
         return true;
     }
     else if(type == 'd'){
@@ -114,8 +116,9 @@ bool VectorModule::pushDouble(double newValue){
         vInt.push_back(newValue);
         return true;
     }
-    else if(type == 'd'){
+    else if(type == 'd' || type == 'n'){
         vDouble.push_back(newValue);
+        type = 'd';
         return true;
     }
     else if(type == 's'){
@@ -126,8 +129,9 @@ bool VectorModule::pushDouble(double newValue){
     return false;
 }
 bool VectorModule::pushString(string newValue){
-    if(type == 's'){
+    if(type == 's' || type == 'n'){
         vString.push_back(newValue);
+        type = 's';
         return true;
     }
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'string' type to a '" << type << "' vector.\n";
@@ -174,67 +178,57 @@ bool VectorModule::removeIndex(size_t index){
     return false;
 }
 bool VectorModule::setBool(size_t index, bool newValue){
-    if(index < vBool.size()){
+    if(type == 'b' && index < vBool.size()){
+        vBool[index].value = newValue;
+    }
+    else if(type == 'i' && index < vInt.size()){
+        vInt[index] = newValue;
+    }
+    else if(type == 'd' && index < vDouble.size()){
+        vDouble[index] = newValue;
+    }
+    else if(type == 's' && index < vString.size()){
+        vString[index] = newValue;
+    }
+    else{
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
             << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
         return false;
-    }
-    if(type == 'b'){
-        vBool[index].value = newValue;
-    }
-    else if(type == 'i'){
-        vInt[index] = newValue;
-    }
-    else if(type == 'd'){
-        vDouble[index] = newValue;
-    }
-    else if(type == 's'){
-        vString[index] = newValue;
     }
     return true;
 }
 bool VectorModule::setInt(size_t index, int newValue){
-    if(index < vBool.size()){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
-            << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
-        return false;
-    }
-    if(type == 'b'){
+    if(type == 'b' && index < vBool.size()){
         vBool[index].value = newValue;
     }
-    else if(type == 'i'){
+    else if(type == 'i' && index < vInt.size()){
         vInt[index] = newValue;
     }
-    else if(type == 'd'){
+    else if(type == 'd' && index < vDouble.size()){
         vDouble[index] = newValue;
     }
-    else if(type == 's'){
+    else if(type == 's' && index < vString.size()){
         vString[index] = newValue;
     }
     return true;
 }
 bool VectorModule::setDouble(size_t index, double newValue){
-    if(index < vBool.size()){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
-            << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
-        return false;
-    }
-    if(type == 'b'){
+    if(type == 'b' && index < vBool.size()){
         vBool[index].value = newValue;
     }
-    else if(type == 'i'){
+    else if(type == 'i' && index < vInt.size()){
         vInt[index] = newValue;
     }
-    else if(type == 'd'){
+    else if(type == 'd' && index < vDouble.size()){
         vDouble[index] = newValue;
     }
-    else if(type == 's'){
+    else if(type == 's' && index < vString.size()){
         vString[index] = newValue;
     }
     return true;
 }
 bool VectorModule::setString(size_t index, string newValue){
-    if(index < vBool.size()){
+    if(index >= vString.size()){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
             << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
         return false;
@@ -246,8 +240,26 @@ bool VectorModule::setString(size_t index, string newValue){
     vString[index] = newValue;
     return true;
 }
-void VectorModule::move(std::vector<VariableModule *> Variables, string instruction, EventDescription EventIds){
-    
+void VectorModule::reserve(unsigned newSize){
+    if(type == 'b'){
+        vBool.reserve(newSize);
+    }
+    else if(type == 'i'){
+        vInt.reserve(newSize);
+    }
+    else if(type == 'd'){
+        vDouble.reserve(newSize);
+    }
+    else if(type == 's'){
+        vString.reserve(newSize);
+    }
+    else{
+        cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Cannot reserve memory for a vector of '" << type << "' type.\n";
+    }
+}
+void VectorModule::move(vector<VariableModule*> Variables, EngineInstr instruction, EventDescription EventIds){
+    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In '"
+        << transInstrToStr(instruction) << "': Not yet implemented!\n";
 }
 
 bool VectorModule::getIsDeleted() const{

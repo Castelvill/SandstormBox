@@ -1,3 +1,8 @@
+23.04.2024
+-Created "forgor" command for the terminal - it clears the whole saved history from the current session and the save file.
+-Implemented persistent command history to the terminal.
+-Fixed problems with types in the vector module.
+
 17.04.2024
 -Enhanced error messages with IDs of layers, objects and events.
 

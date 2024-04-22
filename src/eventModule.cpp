@@ -1105,26 +1105,34 @@ void EveModule::controlVector(VectorModule * Vector, string attribute, const vec
         Vector->setID(Values[0].getStringUnsafe(), &IDs);
     }
     else if(attribute == "push_back" && Values.size() >= 1){
-        if(Values[0].getType() == 'b'){
-            Vector->pushBool(Values[0].getBoolUnsafe());
+        if(Vector->getType() != 'n'){
+            Vector->reserve(Vector->getSize() + Values.size());
         }
-        else if(Values[0].getType() == 'i'){
-            Vector->pushInt(Values[0].getIntUnsafe());
-        }
-        else if(Values[0].getType() == 'd'){
-            Vector->pushDouble(Values[0].getDoubleUnsafe());
-        }
-        else if(Values[0].getType() == 's'){
-            Vector->pushString(Values[0].getStringUnsafe());
-        }
-        else{
-            cout << "Error: In " << __FUNCTION__ << ": Value of '" << Values[0].getType()
-                << "' type cannot be pushed back into the vector '" << Vector->getID()
-                << "' of '" << Vector->getType() << "' type.\n";
+        for(const VariableModule & Value : Values){
+            if(Value.getType() == 'b'){
+                Vector->pushBool(Value.getBoolUnsafe());
+            }
+            else if(Value.getType() == 'i'){
+                Vector->pushInt(Value.getIntUnsafe());
+            }
+            else if(Value.getType() == 'd'){
+                Vector->pushDouble(Value.getDoubleUnsafe());
+            }
+            else if(Value.getType() == 's'){
+                Vector->pushString(Value.getStringUnsafe());
+            }
+            else{
+                cout << "Error: In " << __FUNCTION__ << ": Value of '" << Value.getType()
+                    << "' type cannot be pushed back into the vector '" << Vector->getID()
+                    << "' of '" << Vector->getType() << "' type.\n";
+            }
         }
     }
     else if(attribute == "pop_back"){
         Vector->popBack();
+    }
+    else if(attribute == "clear"){
+        Vector->clear();
     }
     else if(attribute == "remove" && Values.size() >= 1){
         Vector->removeIndex(Values[0].getIntUnsafe());
