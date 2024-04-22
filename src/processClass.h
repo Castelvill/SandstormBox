@@ -327,7 +327,7 @@ public:
     void createNewOwnerVector(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
     );
-    void tokenizeString(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void tokenizeStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext);
     void printTree(OperaClass & Operation, vector<ContextClass> & EventContext, vector<ProcessClass> & Processes);
     void getStringSizeFromContext(OperaClass & Operation, vector<ContextClass> & EventContext);
     void getSizeOfContext(OperaClass & Operation, vector<ContextClass> & EventContext);

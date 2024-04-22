@@ -36,6 +36,7 @@ public:
     bool setInt(size_t index, int newValue);
     bool setDouble(size_t index, double newValue);
     bool setString(size_t index, string newValue);
+    void move(std::vector<VariableModule *> Variables, string instruction, EventDescription EventIds);
 
     bool popBack();
     bool removeIndex(size_t index);

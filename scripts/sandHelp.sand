@@ -10,7 +10,7 @@ end
 
 start ls
 ls param1 result
-tokenize result files
+tokenize "\n" result files
 print "\t" result c files
 string ["_enter"] program
 index layer [0 1] _ object Terminal

@@ -825,11 +825,14 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction,
     int temp = 0;
     if(type == "value"){
         if(Variables.size() == 0){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'"
+                << transInstrToStr(instruction) << "\': Context is empty.\n";
             return false;
         }
         if(Variables.size() != 1){
-            cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+            cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'"
+                << transInstrToStr(instruction)
+                << "\': Context has more than 1 value - only the last value will be used.\n";
         }
         temp = Variables.back().getInt();
     }
@@ -934,9 +937,24 @@ bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction, Even
         }
         text = Modules.Variables.back()->getString();
     }
+    else if(type == "vector"){
+        if(Modules.Vectors.size() == 0){
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context is empty.\n";
+            return false;
+        }
+        if(Modules.Vectors.size() != 1){
+            cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context has more than 1 value - only the last value will be used.\n";
+        }
+        vector <string> textVector = Modules.Vectors.back()->getAllStrings(); 
+        text = "";
+        for(string textIter : textVector){
+            text += textIter + "\n";
+        }
+        text.pop_back(); //Remove the last new line.
+    }
     else{
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\': Context \'" << ID
-            << "\' has invalid type: \'" << type << "\'.\n";
+            << "\' has invalid type: '" << type << "'.\n";
         return false;
     }
     return true;
@@ -2555,10 +2573,34 @@ void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, Contex
         if(!checkForVectorSize(LeftOperand->Modules.Vectors.size(), RightOperand->Modules.Vectors.size(), sameSize, __FUNCTION__)){
             return;
         }
-        cout << "Not yet implemented!\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In '"
+            << transInstrToStr(instruction) << "': Not yet implemented!\n";
         for(; i < LeftOperand->Modules.Vectors.size(); i++, j+=sameSize){
             //LeftOperand->Modules.Vectors[i]->move(RightOperand->Modules.Variables[j], instruction);
         }
+    }
+    else if(LeftOperand->type == "vector" && RightOperand->type == "value"){
+        //if(!checkForVectorSize(LeftOperand->Modules.Vectors.size(), RightOperand->Variables.size(), sameSize, __FUNCTION__)){
+        //    return;
+        //}
+
+        if(LeftOperand->Modules.Vectors.size() == 0){
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In '"
+                << transInstrToStr(instruction) << "': Left operand is empty.\n";
+            return;
+        }
+
+        if(LeftOperand->Modules.Vectors.size() > 1){
+            cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In '"
+                << transInstrToStr(instruction)
+                << "': Left operand has more than 1 vector - only the last vector will be used .\n";
+            return;
+        }
+
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In '"
+            << transInstrToStr(instruction) << "': Not yet implemented!\n";
+
+        LeftOperand->Modules.Vectors[i]->move(RightOperand->Modules.Variables[j], instruction);
     }
     else if(LeftOperand->type == "value" && RightOperand->type == "variable"){
         if(!checkForVectorSize(LeftOperand->Variables.size(), RightOperand->Modules.Variables.size(), sameSize, __FUNCTION__)){
@@ -2612,7 +2654,9 @@ void moveRightToLeft(EngineInstr instruction, ContextClass * LeftOperand, Contex
         }
     }
     else{
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(instruction) << "\' instruction: You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'"
+            << transInstrToStr(instruction) << "\' instruction: You cannot move a value of \'"
+            << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
 }
 void ProcessClass::moveOrRename(vector<ContextClass> & EventContext, ContextClass * NewContext, string newContextID){
@@ -6106,7 +6150,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
     std::ofstream File(EXE_PATH + workingDirectory + pathToTheFile);
 
 	if(!File){
-		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: " << EXE_PATH + workingDirectory + pathToTheFile << "\n";
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: '" << EXE_PATH + workingDirectory + pathToTheFile << "'.\n";
         return;
     }
 	File << textFromContext;
@@ -6444,10 +6488,29 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> & EventContext){
+vector<string> tokenizeString(string input, char delimeter){
+    vector<string> output = {""};
+    for(char letter : input){
+        if(letter == delimeter){
+            output.push_back("");
+        }
+        else{
+            output.back() += letter;
+        }
+    }
+    return output;
+}
+void ProcessClass::tokenizeStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
+    if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+            << ": '" << transInstrToStr(Operation.instruction) << "' requires one string literal.\n";
+        return;
+    }
+    
     ContextClass * Context = nullptr;
     if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+            << ": \'" << transInstrToStr(Operation.instruction) << "\' requires at least one context.\n";
         return;
     }
 
@@ -6457,7 +6520,7 @@ void ProcessClass::tokenizeString(OperaClass & Operation, vector<ContextClass> &
         return;
     }
 
-    vector <string> words = tokenizeCode(input);
+    vector <string> words = tokenizeString(input, Operation.Literals[0].getString()[0]);
     ContextClass NewContext;
     NewContext.type = "value";
     if(Operation.dynamicIDs.size() == 1){
@@ -7253,7 +7316,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 createNewOwnerVector(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack);
                 break;
             case tokenize:
-                tokenizeString(Operation, EventContext);
+                tokenizeStringFromContext(Operation, EventContext);
                 break;
             case tree:
                 printTree(Operation, EventContext, Processes);

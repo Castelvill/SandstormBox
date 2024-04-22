@@ -766,7 +766,7 @@ vec *type* *literals* *id*
 
 **Syntax**
 
-tokenize *context* [[output] ...]
+tokenize *delimeter* *context* [[output] ...]
 
 **Description**
 
@@ -774,6 +774,7 @@ tokenize *context* [[output] ...]
 
 **Parameters**
 
+- delimeter (char) - a character that will divide the provided string;
 - context (string) - id of the context with a string to be tokenize;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 

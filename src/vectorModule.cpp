@@ -246,6 +246,9 @@ bool VectorModule::setString(size_t index, string newValue){
     vString[index] = newValue;
     return true;
 }
+void VectorModule::move(std::vector<VariableModule *> Variables, string instruction, EventDescription EventIds){
+    
+}
 
 bool VectorModule::getIsDeleted() const{
     return deleted;

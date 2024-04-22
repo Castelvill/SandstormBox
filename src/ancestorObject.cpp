@@ -1781,10 +1781,11 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->newContextID = words[cursor];
         }
         else if(words[0] == "tokenize"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            cursor = 1;
+            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            cursor = 2;
             while(cursor < words.size()){
                 Operation->dynamicIDs.push_back(words[cursor]);
                 cursor++;

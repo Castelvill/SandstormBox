@@ -206,168 +206,178 @@ var string "1.0" terminalAccentColorA
 
 var int 0 commandNumber
 var int 0 currentCommandNumber
-
-vec string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history] allowedPrograms2
 vec string [""] commandHistory
 
+vec string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history] allowedPrograms2
+
 var string "scripts" dir
+run loadCommandHistory
+end
+
+
+start loadCommandHistory
+    string ["history.txt"] fileName
+    load_text fileName loadedText
+    tokenize "\n" loadedText loadedText
+    = commandHistory loadedText
+    dump_context_stack
 end
 
 
 start spawnParticles
-triggers key_pressing
-if ([any_key_pressing])
-index c me [0 0] _ particles Particles
-index c me [0 0] _ super_editable_text Terminal
-value ([c Terminal pos_x] [c Terminal pos_y]) textPos
-fun Particles set_position c textPos
-fun Particles allow_spawning
+    triggers key_pressing
+    if ([any_key_pressing])
+    index c me [0 0] _ particles Particles
+    index c me [0 0] _ super_editable_text Terminal
+    value ([c Terminal pos_x] [c Terminal pos_y]) textPos
+    fun Particles set_position c textPos
+    fun Particles allow_spawning
 end
 
 
 start createWindowTemplate
-new layer l 1 _ _ WindowLayer
-fun WindowLayer deactivate
-fun WindowLayer set_id string [WindowLayer]
-value ([context WindowLayer id]) newLayerID
+    new layer l 1 _ _ WindowLayer
+    fun WindowLayer deactivate
+    fun WindowLayer set_id string [WindowLayer]
+    value ([context WindowLayer id]) newLayerID
 
-new camera l 1 _ _ WindowCamera
-fun WindowCamera set_position int [0 0]
-fun WindowCamera set_id string [WindowCamera]
-fun WindowCamera set_active bool [true]
-fun WindowCamera resize int [640 480]
-fun WindowCamera set_zoom double [1.0]
-fun WindowCamera set_speed double [20]
-fun WindowCamera set_key_zoom_in int [15]
-fun WindowCamera set_key_zoom_out int [21]
-fun WindowCamera set_zoom_increase double [0.02]
-fun WindowCamera bind_keys int [15 21 13 9 12 11 10]
-fun WindowCamera set_tint double [1.0 1.0 1.0 1.0]
-fun WindowCamera set_drawing_borders bool [0]
-fun WindowCamera set_can_be_modified_by_mouse bool [1]
-fun WindowCamera set_is_vision_affected_by_mouse bool [1]
-//fun WindowCamera add_visible_layer string [WindowLayer]
-//fun WindowCamera add_accessible_layer string [WindowLayer]
-fun WindowCamera set_grabbing_area_size int [540 50]
-fun WindowCamera pin_to_camera string [Desktop]
-fun WindowCamera activate_pin
-fun WindowCamera set_min_size int [300 34]
-fun WindowCamera set_keep_inside_screen bool [false]
-fun WindowCamera deactivate
+    new camera l 1 _ _ WindowCamera
+    fun WindowCamera set_position int [0 0]
+    fun WindowCamera set_id string [WindowCamera]
+    fun WindowCamera set_active bool [true]
+    fun WindowCamera resize int [640 480]
+    fun WindowCamera set_zoom double [1.0]
+    fun WindowCamera set_speed double [20]
+    fun WindowCamera set_key_zoom_in int [15]
+    fun WindowCamera set_key_zoom_out int [21]
+    fun WindowCamera set_zoom_increase double [0.02]
+    fun WindowCamera bind_keys int [15 21 13 9 12 11 10]
+    fun WindowCamera set_tint double [1.0 1.0 1.0 1.0]
+    fun WindowCamera set_drawing_borders bool [0]
+    fun WindowCamera set_can_be_modified_by_mouse bool [1]
+    fun WindowCamera set_is_vision_affected_by_mouse bool [1]
+    //fun WindowCamera add_visible_layer string [WindowLayer]
+    //fun WindowCamera add_accessible_layer string [WindowLayer]
+    fun WindowCamera set_grabbing_area_size int [540 50]
+    fun WindowCamera pin_to_camera string [Desktop]
+    fun WindowCamera activate_pin
+    fun WindowCamera set_min_size int [300 34]
+    fun WindowCamera set_keep_inside_screen bool [false]
+    fun WindowCamera deactivate
 
-new object c WindowLayer 1 _ _ NewWindowObject
-fun NewWindowObject set_id string [WindowObject]
-fun NewWindowObject set_can_be_selected bool [0]
-fun NewWindowObject enable_interface
-bind NewWindowObject literal ["scripts/windowTemplate.sand"]
-build NewWindowObject true
+    new object c WindowLayer 1 _ _ NewWindowObject
+    fun NewWindowObject set_id string [WindowObject]
+    fun NewWindowObject set_can_be_selected bool [0]
+    fun NewWindowObject enable_interface
+    bind NewWindowObject literal ["scripts/windowTemplate.sand"]
+    build NewWindowObject true
 
-new variable c NewWindowObject 1 _ _ objectsCameraID
-fun objectsCameraID set_id string ["cameraID"]
-fun objectsCameraID set_string string ["WindowCamera"]
+    new variable c NewWindowObject 1 _ _ objectsCameraID
+    fun objectsCameraID set_id string ["cameraID"]
+    fun objectsCameraID set_string string ["WindowCamera"]
 
-new variable c NewWindowObject 1 _ _ isMaxed
-fun isMaxed set_id string ["isMaxed"]
-fun isMaxed set_bool bool [false]
-new variable c NewWindowObject 1 _ _ sizeX
-fun sizeX set_id string ["sizeX"]
-fun sizeX set_double double [640]
-new variable c NewWindowObject 1 _ _ sizeY
-fun sizeY set_id string ["sizeY"]
-fun sizeY set_double double [480]
-new variable c NewWindowObject 1 _ _ posX
-fun posX set_id string ["posX"]
-fun posX set_double double [0]
-new variable c NewWindowObject 1 _ _ posY
-fun posY set_id string ["posY"]
-fun posY set_double double [0]
-new variable c NewWindowObject 1 _ _ isBorderless
-fun isBorderless set_id string ["isBorderless"]
-fun isBorderless set_bool bool [false]
+    new variable c NewWindowObject 1 _ _ isMaxed
+    fun isMaxed set_id string ["isMaxed"]
+    fun isMaxed set_bool bool [false]
+    new variable c NewWindowObject 1 _ _ sizeX
+    fun sizeX set_id string ["sizeX"]
+    fun sizeX set_double double [640]
+    new variable c NewWindowObject 1 _ _ sizeY
+    fun sizeY set_id string ["sizeY"]
+    fun sizeY set_double double [480]
+    new variable c NewWindowObject 1 _ _ posX
+    fun posX set_id string ["posX"]
+    fun posX set_double double [0]
+    new variable c NewWindowObject 1 _ _ posY
+    fun posY set_id string ["posY"]
+    fun posY set_double double [0]
+    new variable c NewWindowObject 1 _ _ isBorderless
+    fun isBorderless set_id string ["isBorderless"]
+    fun isBorderless set_bool bool [false]
 
-new variable c NewWindowObject 1 _ _ newVal
-fun newVal set_id string ["delete"]
-fun newVal set_bool bool [false]
+    new variable c NewWindowObject 1 _ _ newVal
+    fun newVal set_id string ["delete"]
+    fun newVal set_bool bool [false]
 
-new variable c NewWindowObject 1 _ _ newVal
-fun newVal set_id string ["has_friends"]
-fun newVal set_bool bool [false]
+    new variable c NewWindowObject 1 _ _ newVal
+    fun newVal set_id string ["has_friends"]
+    fun newVal set_bool bool [false]
 
-new variable c NewWindowObject 1 _ _ newVal
-fun newVal set_id string ["deleted_friends"]
-fun newVal set_bool bool [false]
+    new variable c NewWindowObject 1 _ _ newVal
+    fun newVal set_id string ["deleted_friends"]
+    fun newVal set_bool bool [false]
 
-new primitives c NewWindowObject 1 _ _ border1
-fun border1 set_id string [background]
-fun border1 set_type string [filled_rectangle]
-fun border1 add_point double [0.0 0.0]
-fun border1 add_point double [640 480]
-fun border1 set_color double [1.0 1.0 1.0 0.7]
-fun border1 set_size int [640 480]
-fun border1 update_with_size
+    new primitives c NewWindowObject 1 _ _ border1
+    fun border1 set_id string [background]
+    fun border1 set_type string [filled_rectangle]
+    fun border1 add_point double [0.0 0.0]
+    fun border1 add_point double [640 480]
+    fun border1 set_color double [1.0 1.0 1.0 0.7]
+    fun border1 set_size int [640 480]
+    fun border1 update_with_size
 
-new primitives c NewWindowObject 1 _ _ border2
-clone border2 border1
-fun border2 set_id string [toolbar]
-fun border2 set_color double [0.109 0.537 0.2039 1.0]
-fun border2 set_size int [640 30]
-fun border2 update_with_size
+    new primitives c NewWindowObject 1 _ _ border2
+    clone border2 border1
+    fun border2 set_id string [toolbar]
+    fun border2 set_color double [0.109 0.537 0.2039 1.0]
+    fun border2 set_size int [640 30]
+    fun border2 update_with_size
 
-new primitives c NewWindowObject 1 _ _ border3
-clone border3 border1
-fun border3 set_id string [border]
-fun border3 set_type string [rectangle]
-fun border3 set_color double [0.109 0.537 0.2039 1.0]
-fun border3 set_position int [2 2]
-fun border3 set_size int [636 476]
-fun border3 set_thickness double [5.0]
-fun border3 update_with_size
+    new primitives c NewWindowObject 1 _ _ border3
+    clone border3 border1
+    fun border3 set_id string [border]
+    fun border3 set_type string [rectangle]
+    fun border3 set_color double [0.109 0.537 0.2039 1.0]
+    fun border3 set_position int [2 2]
+    fun border3 set_size int [636 476]
+    fun border3 set_thickness double [5.0]
+    fun border3 update_with_size
 
-new primitives c NewWindowObject 1 _ _ exitButton
-fun exitButton set_id string [exitButton]
-fun exitButton set_type string [filled_circle]
-fun exitButton add_point double [0.0 0.0]
-fun exitButton add_point double [5 5]
-fun exitButton set_color double [1.0 0.0 0.0 1.0]
-fun exitButton set_position int [620 15]
-fun exitButton set_size int [20 20]
-fun exitButton update_with_size
+    new primitives c NewWindowObject 1 _ _ exitButton
+    fun exitButton set_id string [exitButton]
+    fun exitButton set_type string [filled_circle]
+    fun exitButton add_point double [0.0 0.0]
+    fun exitButton add_point double [5 5]
+    fun exitButton set_color double [1.0 0.0 0.0 1.0]
+    fun exitButton set_position int [620 15]
+    fun exitButton set_size int [20 20]
+    fun exitButton update_with_size
 
-new collision c NewWindowObject 1 _ _ ExitCollision
-fun ExitCollision set_position double [620 15]
-fun ExitCollision set_size double [10 10]
-fun ExitCollision set_is_circle bool [true]
+    new collision c NewWindowObject 1 _ _ ExitCollision
+    fun ExitCollision set_position double [620 15]
+    fun ExitCollision set_size double [10 10]
+    fun ExitCollision set_is_circle bool [true]
 
-new primitives c NewWindowObject 1 _ _ MaxButton
-clone MaxButton exitButton
-fun MaxButton set_id string [MaxButton]
-fun MaxButton set_position int [590 15]
-fun MaxButton set_color double [1.0 1.0 0.0 1.0]
+    new primitives c NewWindowObject 1 _ _ MaxButton
+    clone MaxButton exitButton
+    fun MaxButton set_id string [MaxButton]
+    fun MaxButton set_position int [590 15]
+    fun MaxButton set_color double [1.0 1.0 0.0 1.0]
 
-new collision c NewWindowObject 1 _ _ MaxCollision
-fun MaxCollision set_position double [590 15]
-fun MaxCollision set_size double [10 10]
-fun MaxCollision set_is_circle bool [true]
+    new collision c NewWindowObject 1 _ _ MaxCollision
+    fun MaxCollision set_position double [590 15]
+    fun MaxCollision set_size double [10 10]
+    fun MaxCollision set_is_circle bool [true]
 
-new primitives c NewWindowObject 1 _ _ minimizeButton
-clone minimizeButton exitButton
-fun minimizeButton set_id string [minimizeButton]
-fun minimizeButton set_position int [560 15]
-fun minimizeButton set_color double [0.0 1.0 0.0 1.0]
+    new primitives c NewWindowObject 1 _ _ minimizeButton
+    clone minimizeButton exitButton
+    fun minimizeButton set_id string [minimizeButton]
+    fun minimizeButton set_position int [560 15]
+    fun minimizeButton set_color double [0.0 1.0 0.0 1.0]
 
-new collision c NewWindowObject 1 _ _ MinCollision
-fun MinCollision set_position double [560 15]
-fun MinCollision set_size double [10 10]
-fun MinCollision set_is_circle bool [true]
+    new collision c NewWindowObject 1 _ _ MinCollision
+    fun MinCollision set_position double [560 15]
+    fun MinCollision set_size double [10 10]
+    fun MinCollision set_is_circle bool [true]
 
-new super_text c NewWindowObject 1 _ _ title
-fun title set_id string [title]
-fun title set_position int [10 2]
-fun title set_size int [400 50]
-fun title add_format string [cascadia_code_bold] int [8]
-fun title set_color int [0] double [1.0 1.0 1.0 1.0]
-fun title set_wrapping string [n]
-fun title set_content s ["Template Window"]
+    new super_text c NewWindowObject 1 _ _ title
+    fun title set_id string [title]
+    fun title set_position int [10 2]
+    fun title set_size int [400 50]
+    fun title add_format string [cascadia_code_bold] int [8]
+    fun title set_color int [0] double [1.0 1.0 1.0 1.0]
+    fun title set_wrapping string [n]
+    fun title set_content s ["Template Window"]
 end
 
 
@@ -662,7 +672,7 @@ string [""] param5
 string [""] param6
 string [""] param7
 
-tokenize command param0 param1 param2 param3 param4 param5 param6 param7
+tokenize " " command param0 param1 param2 param3 param4 param5 param6 param7
 
 string [help neofetch hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history sel_col] allowedPrograms
 in param0 allowedPrograms isAllowed
@@ -678,6 +688,8 @@ end
 start saveCommand
 if ([c commandLength] [int 0] >)
 fun commandHistory set c commandNumber c command
+string ["history.txt"] fileName
+save_text fileName commandHistory
 fun commandHistory push_back string [""]
 ++ commandNumber
 = currentCommandNumber commandNumber

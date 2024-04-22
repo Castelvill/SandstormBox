@@ -1,5 +1,6 @@
 start xd
 triggers each_iteration
 print "Hello world"
+print "Hello world"
 delete_this_event
 end
