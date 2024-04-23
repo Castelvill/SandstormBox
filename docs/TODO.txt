@@ -95,7 +95,7 @@ MILESTONE: Easy and cozy scripting inside the engine.
 -MILESTONE: you can save current project (with all objects and configurations), load saved projects, create a new project.
 
 -Implement search bar for TREE OF OBJECTS.
--IDK - Remove light bitmap and implement hsva color management instead of rgba.
+-Remove light bitmap and implement hsva color management instead of rgba.
 -Update drawing frames.
 -Add platforms that you can hop on from any directions.
 -Add Animation Module - animation creator (choosing sub-images from chosen image module, duration of each frame). Animation Module contains animation time, speed of animation, animation choreographics and currently used choreography (character is moving upwards, downwards, etc.).
@@ -105,7 +105,7 @@ MILESTONE: Easy and cozy scripting inside the engine.
 -Add horizontal dash move to movement.
 -Add friction from objects that are under moving objects.
 -Add bouncing from walls (balls in themselves or objects from other objects).
--Make balls act like balls (physics).
+-Add physics.
 -Add vehicle like movement (use movement of particles)
 -Add particles that imitate a campfire, fire and smoke (use a noise map)
 -Add diagonal walking (going up or descending a ramp) and sliding off the ramp. Movement function asks for ground degree (rotation of an object) and rotates speed vector according to this degree (fast descending, slow ascending, because vertical speed translates to horizontal speed).
@@ -124,6 +124,7 @@ MILESTONE: Easy and cozy scripting inside the engine.
 -Add gifs.
 -Make donut.cpp with EGM script.
 -Make version control system (local github).
+-Add the possiblity to convert particle frames into images for the optimalization.
 
 OPTIMALIZATIONS
 -For large scale simulation: Divide game map to different threads based on camera position. The main thread will have rights to draw things and others will be focusing on processing stuff.
