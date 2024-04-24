@@ -154,7 +154,7 @@ void EngineClass::initAllegro(){
 
     ENABLE_al_set_clipboard_text = false;
 
-    std::ifstream File(EXE_PATH+"config");
+    std::ifstream File(EXE_PATH+".config");
     unsigned short samples = 0;
     unsigned bufferSizeX = 1920, bufferSizeY = 1080;
 

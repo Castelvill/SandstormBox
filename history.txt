@@ -9,3 +9,11 @@ neofetch
 sh tree
 sh tree
 sh tree
+cat config
+ls proc
+lse proc
+sh lse proc
+sh lse processes
+sh help
+ls src
+exit
