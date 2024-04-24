@@ -3,6 +3,8 @@
 
 
 # Config file
+EXECUTE script_path - executes the script in a new process - on boot and restart.
+
 BUFFER_SIZE width height - sets the size of Allegro5 window buffer.
 
 SAMPLES X - sets the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, you must set this value to 0.

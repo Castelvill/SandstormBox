@@ -6,3 +6,6 @@ history
 xd
 ppp
 neofetch
+sh tree
+sh tree
+sh tree

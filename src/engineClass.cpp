@@ -159,8 +159,11 @@ void EngineClass::initAllegro(){
     unsigned bufferSizeX = 1920, bufferSizeY = 1080;
 
 	if(File){
-        string name;
+        string name, buffer;
         while(File >> name){
+            if(name[0] == '#'){
+                continue;
+            }
             if(name == "SAMPLES"){
                 File >> samples;
             }
@@ -170,6 +173,13 @@ void EngineClass::initAllegro(){
             }
             else if(name == "ENABLE_al_set_clipboard_text"){
                 ENABLE_al_set_clipboard_text = true;
+            }
+            else if(name == "EXECUTE"){
+                File >> buffer;
+                initFiles.push_back(buffer);
+            }
+            else{
+                cout << "Error: In " << __FUNCTION__ << ": Configuration option '" << name << "' is not valid.\n";
             }
         }
 	}

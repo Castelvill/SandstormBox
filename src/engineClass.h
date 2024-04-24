@@ -70,6 +70,8 @@ public:
 
     vector <unsigned> processDisplayOrder;
 
+    vector <string> initFiles;
+
     void resetState(string title);
     EngineClass();
     void initAllegro();

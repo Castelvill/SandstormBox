@@ -1,3 +1,6 @@
+24.04.2024
+-Added to .config: "EXECUTE script_path" command - on boot, engine will read all "EXECUTE" commands and execute all provided scripts, each in a new "process".
+
 23.04.2024
 -Created "forgor" command for the terminal - it clears the whole saved history from the current session and the save file.
 -Implemented persistent command history to the terminal.
