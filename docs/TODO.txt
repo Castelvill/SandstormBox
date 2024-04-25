@@ -1,3 +1,4 @@
+-Add program arguments to the main function - just like in simics xD.
 -Fix: Cannot select the whole text in the "note" program.
 -Fix: Mouse cursor does not work with tabs.
 -Add an event that spawns particles when you write.
