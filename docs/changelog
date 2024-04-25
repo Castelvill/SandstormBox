@@ -1,3 +1,7 @@
+25.04.2024
+-Improved SuperEditableTextModule deactivation - now it stops the editing process and updates the module.
+-Added optional script paths to the main function arguments - provided there scripts will be executed on engine's boot.
+
 24.04.2024
 -Added to .config: "EXECUTE script_path" command - on boot, engine will read all "EXECUTE" commands and execute all provided scripts, each in a new "process".
 

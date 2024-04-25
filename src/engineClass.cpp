@@ -1,6 +1,19 @@
 #define ALLEGRO_UNSTABLE
 #include "engineClass.h"
 
+vector<string> tokenizeString(string input, char delimeter){
+    vector<string> output = {""};
+    for(char letter : input){
+        if(letter == delimeter){
+            output.push_back("");
+        }
+        else{
+            output.back() += letter;
+        }
+    }
+    return output;
+}
+
 #if __linux__
     unsigned long long GetTickCount()
     {
@@ -159,27 +172,45 @@ void EngineClass::initAllegro(){
     unsigned bufferSizeX = 1920, bufferSizeY = 1080;
 
 	if(File){
-        string name, buffer;
-        while(File >> name){
-            if(name[0] == '#'){
+        string buffer;
+        vector<string> words;
+        while(getline(File, buffer)){
+            words = tokenizeString(buffer, ' ');
+            if(words.size() == 0 || words[0][0] == '#'){
                 continue;
             }
-            if(name == "SAMPLES"){
-                File >> samples;
+            if(words[0] == "SAMPLES"){
+                if(words.size() > 1){
+                    samples = atoi(words[1].c_str());
+                }
+                else{
+                    cout << "Error: In " << __FUNCTION__ << ": SAMPLES command requires one numeric argument (0-4 recommended).\n";
+                }
             }
-            else if(name == "BUFFER_SIZE"){
-                File >> bufferSizeX;
-                File >> bufferSizeY;
+            else if(words[0] == "BUFFER_SIZE"){
+                if(words.size() > 2){
+                    bufferSizeX = atoi(words[1].c_str());
+                    bufferSizeY = atoi(words[1].c_str());
+                }
+                else{
+                    cout << "Error: In " << __FUNCTION__ << ": BUFFER_SIZE command requires two numeric argument.\n";
+                }
             }
-            else if(name == "ENABLE_al_set_clipboard_text"){
+            else if(words[0] == "ENABLE_al_set_clipboard_text"){
                 ENABLE_al_set_clipboard_text = true;
             }
-            else if(name == "EXECUTE"){
+            else if(words[0] == "EXECUTE"){
+                if(words.size() > 1){
+                    initFiles.push_back(words[1]);
+                }
+                else{
+                    cout << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one numeric argument (0-4 recommended).\n";
+                }
                 File >> buffer;
-                initFiles.push_back(buffer);
+                
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": Configuration option '" << name << "' is not valid.\n";
+                cout << "Error: In " << __FUNCTION__ << ": Configuration option '" << words[0] << "' is not valid.\n";
             }
         }
 	}

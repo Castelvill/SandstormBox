@@ -1,6 +1,6 @@
 #include "processClass.h"
 
-int main(){
+int main(int argc, char* argv[]){
     #if __WIN32__
         HANDLE  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, 15);
@@ -16,6 +16,11 @@ int main(){
 
     do{
         Engine.resetState("EGM");
+        for(int file = 1; file < argc; ++file){
+            Processes.push_back(ProcessClass());
+            Processes.back().create(Engine.EXE_PATH, Engine.getDisplaySize(),
+                argv[file], "Init0", "KERNEL", "Init", Engine.processIDs);
+        }
         for(string initFile : Engine.initFiles){
             Processes.push_back(ProcessClass());
             Processes.back().create(Engine.EXE_PATH, Engine.getDisplaySize(),

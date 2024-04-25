@@ -52,6 +52,24 @@ string [""] program
 run printOnTerminal
 end
 
+start xd
+print _ result string ["@       @  @@@@@@   
+ @     @   @     @@ 
+  @   @    @       @
+   @ @     @       @
+    @      @       @
+   @ @     @       @
+  @   @    @       @
+ @     @   @     @@ 
+@       @  @@@@@@   
+"]
+index layer [0 1] _ object Terminal
+index context Terminal [0 0] _ super_editable_text EditableText
+fun EditableText modify_last_format double [0.0 1.0 0.0 1.0] double [0.0 1.0 0.0 1.0] string [cascadia_code] int [1]
+string [""] program
+run printOnTerminal 
+end
+
 start sel_col
 = terminalColorR param1
 = terminalColorG param2

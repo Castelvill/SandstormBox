@@ -1464,19 +1464,19 @@ int BasePointersStruct::getInt() const{
         return *pUInt;
     }
     if(type == "bool"){
-        cout << "Warning: In " << __FUNCTION__ << ": Conversion from bool to int.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": Conversion from bool to int.\n";
         return *pBool;
     }
     else if(type == "char"){
-        cout << "Warning: In " << __FUNCTION__ << ": Conversion from char to int.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": Conversion from char to int.\n";
         return *pChar;
     }
     else if(type == "short"){
-        cout << "Warning: In " << __FUNCTION__ << ": Conversion from short to int.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": Conversion from short to int.\n";
         return *pShort;
     }
     else if(type == "unsigned_short"){
-        cout << "Warning: In " << __FUNCTION__ << ": Conversion from unsigned short to int.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": Conversion from unsigned short to int.\n";
         return *pUShort;
     }
     else if(type == "float"){
@@ -1484,7 +1484,7 @@ int BasePointersStruct::getInt() const{
         return *pFloat;
     }
     else if(type == "double"){
-       // cout << "Warning: In " << __FUNCTION__ << ": Floating point ignored.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": Floating point ignored.\n";
         return *pDouble;
     }
     else{

@@ -121,8 +121,8 @@ start buildTerminal
     fun TextEditor set_can_use_enter bool [1]
     fun TextEditor set_content string [""]
     fun TextEditor set_ignore_vertical_arrows bool [false]
-    fun TextEditor deactivate
     fun TextEditor set_can_use_tabs bool [true]
+    fun TextEditor deactivate
 
     new particles c me 1 _ _ Particles
     fun Particles set_position int [200 200]
@@ -208,7 +208,7 @@ start buildTerminal
     var int 0 currentCommandNumber
     vec string [""] commandHistory
 
-    vec string [neofetch help hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history forgor sel_col] allowedPrograms2
+    vec string [help neofetch hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history forgor sel_col xd] allowedPrograms
 
     var string "scripts" dir
     run loadCommandHistory
@@ -511,7 +511,7 @@ start autoComplete
     first _ [EditableText] _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
-    similar command allowedPrograms2 completes
+    similar command allowedPrograms completes
     string ["\n"] result
     //+= result completes
     value ([c completes size]) size
@@ -676,7 +676,6 @@ start enter1
 
     tokenize " " command param0 param1 param2 param3 param4 param5 param6 param7
 
-    string [help neofetch hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history forgor sel_col] allowedPrograms
     in param0 allowedPrograms isAllowed
     string ["_enter"] program
     run saveCommand programCheck

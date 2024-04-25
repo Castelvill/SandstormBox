@@ -3,6 +3,8 @@
 
 #include "layerClass.h"
 
+vector<string> tokenizeString(string input, char delimeter);
+
 #if __linux__
     #include <sys/time.h>
     unsigned long long GetTickCount();

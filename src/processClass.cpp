@@ -3437,6 +3437,45 @@ void ProcessClass::checkIfVectorContainsVector(OperaClass & Operation, vector<Co
                 }
             }
         }
+        else if(LeftOperand->type == "variable" && RightOperand->type == "vector"){
+            for(i = 0; i < LeftOperand->Modules.Variables.size(); i++){
+                for(j = 0; j < RightOperand->Modules.Vectors.size(); j++){
+                    if(RightOperand->Modules.Vectors[j]->contains(*LeftOperand->Modules.Variables[i])){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "value" && RightOperand->type == "vector"){
+            for(i = 0; i < LeftOperand->Variables.size(); i++){
+                for(j = 0; j < RightOperand->Modules.Vectors.size(); j++){
+                    if(RightOperand->Modules.Vectors[j]->contains(LeftOperand->Variables[i])){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
+        else if(LeftOperand->type == "pointer" && RightOperand->type == "vector"){
+            for(i = 0; i < LeftOperand->BasePointers.size(); i++){
+                for(j = 0; j < RightOperand->Modules.Vectors.size(); j++){
+                    if(RightOperand->Modules.Vectors[j]->contains(LeftOperand->BasePointers[i])){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+        }
         else{
             cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": You cannot assign a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
         }
@@ -6501,18 +6540,6 @@ void ProcessClass::createNewOwnerVector(OperaClass & Operation, vector<ContextCl
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
-}
-vector<string> tokenizeString(string input, char delimeter){
-    vector<string> output = {""};
-    for(char letter : input){
-        if(letter == delimeter){
-            output.push_back("");
-        }
-        else{
-            output.back() += letter;
-        }
-    }
-    return output;
 }
 void ProcessClass::tokenizeStringFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
     if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){

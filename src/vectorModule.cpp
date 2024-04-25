@@ -625,3 +625,57 @@ void VectorModule::getContext(string attribute, vector<BasePointersStruct> &Base
         }
     }
 }
+
+bool VectorModule::contains(const VariableModule &Variable){
+    if(type != Variable.getType()){
+        return false;
+    }
+    if(type == 'b'){
+        if(std::find(vBool.begin(), vBool.end(), Variable.getBool()) != vBool.end()){
+            return true;
+        }
+    }
+    else if(type == 'i'){
+        if(std::find(vInt.begin(), vInt.end(), Variable.getInt()) != vInt.end()){
+            return true;
+        }
+    }
+    else if(type == 'd'){
+        if(std::find(vDouble.begin(), vDouble.end(), Variable.getDouble()) != vDouble.end()){
+            return true;
+        }
+    }
+    else if(type == 's'){
+        if(std::find(vString.begin(), vString.end(), Variable.getString()) != vString.end()){
+            return true;
+        }
+    }
+    return false;
+}
+bool VectorModule::contains(const BasePointersStruct &Pointer){
+    if(type == 'b'){
+        if(std::find(vBool.begin(), vBool.end(), Pointer.getBool()) != vBool.end()){
+            return true;
+        }
+    }
+    else if(type == 'i'){
+        if(std::find(vInt.begin(), vInt.end(), Pointer.getInt()) != vInt.end()){
+            return true;
+        }
+    }
+    else if(type == 'd'){
+        if(std::find(vDouble.begin(), vDouble.end(), Pointer.getDouble()) != vDouble.end()){
+            return true;
+        }
+    }
+    else if(type == 's'){
+        if(std::find(vString.begin(), vString.end(), Pointer.getString()) != vString.end()){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool operator==(stupidBool sb, const bool b){
+    return sb.value == b;
+}

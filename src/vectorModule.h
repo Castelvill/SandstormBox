@@ -7,6 +7,8 @@ struct stupidBool{
     bool value;
 };
 
+bool operator== (stupidBool, const bool);
+
 class VectorModule{
     bool deleted;
     string ID;
@@ -73,6 +75,9 @@ public:
     string getFirstString() const;
     size_t getSize() const;
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+
+    bool contains(const VariableModule & Variable);
+    bool contains(const BasePointersStruct & Pointer);
 };
 
 #endif // VECTORMODULE_H_INCLUDED

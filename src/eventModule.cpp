@@ -512,6 +512,21 @@ void EveModule::controlSuperEditableText(SuperEditableTextModule *& SuperEditabl
     else if(attribute == "set_second_cursor_pos" && Values.size() > 0){
         SuperEditableText->setSecondCursorPos(Values[0].getIntUnsafe());
     }
+    else if(attribute == "deactivate"){
+        SuperEditableText->isEditingActive = false;
+        for(FormatClass & Format : SuperEditableText->Formatting){
+            Format.selected = false;
+        }
+        SuperEditableText->update();
+        SuperEditableText->deactivate();
+
+        if(ActiveEditableText == nullptr){
+            return;
+        }
+        if(ActiveEditableText == SuperEditableText){
+            ActiveEditableText = nullptr;
+        }
+    }
     else{
         controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer);
     }
