@@ -254,7 +254,8 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             && (Engine.releasedKeys.size() > 0 || Engine.pressedKeys.size() > 0)
         ){
             ActiveEditableText->edit(Engine.releasedKeys, Engine.pressedKeys, Engine.display,
-                Engine.ENABLE_al_set_clipboard_text, Engine.internalClipboard, Engine.CopiedFormatting);
+                Engine.ENABLE_al_set_clipboard_text, Engine.internalClipboard, Engine.CopiedFormatting,
+                Engine.EXE_PATH);
         }
         
         if(Engine.Mouse.isPressed() || Engine.releasedKeys.size() != 0 || Engine.pressedKeys.size() != 0){
@@ -819,6 +820,13 @@ string ContextClass::getValue(EventDescription EventIds){
     if(readOnly){
         buffer += "(R)";
     }
+
+    for(char & letter : buffer){
+        if(letter == '\n'){
+            letter = '~'; //New line
+        }
+    }
+
     return buffer;
 }
 bool ContextClass::getUnsignedOrAbort(unsigned &number, EngineInstr instruction, EventDescription EventIds){
@@ -2678,12 +2686,12 @@ void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, OperaClas
         }
         NewContext.Variables.push_back(findNextValue(ValueLocation, Owner, OwnerLayer, Engine, Processes, EventContext));
     }
+    NewContext.type = "value";
 
     if(printOutInstructions){
         cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue(EventIds) << " " << Operation.newContextID << "\n";
     }
 
-    NewContext.type = "value";
     moveOrRename(EventContext, &NewContext, Operation.newContextID);
 }
 void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, OperaClass & Operation,
@@ -3314,12 +3322,12 @@ void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, co
     else{
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": You cannot move a value of \'" << RightOperand->type << "\' type to a variable of \'" << LeftOperand->type << "\' type.\n";
     }
+    NewContext.type = "value";
 
     if(printOutInstructions){
         cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue(EventIds) << " " << Operation.newContextID << "\n";
     }
 
-    NewContext.type = "value";
     moveOrRename(EventContext, &NewContext, Operation.newContextID);
 
     if(deletePointers){
@@ -6187,7 +6195,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting path from context failed.\n";
         return;
     }
-    if(pathToTheFile == "" || pathToTheFile[0] == ' '){
+    if(pathToTheFile == "" || pathToTheFile == "~/" || pathToTheFile[0] == ' '){
         cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheFile << "\'.\n"; 
     }
     string textFromContext = "";
@@ -6200,10 +6208,16 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
         cout << transInstrToStr(Operation.instruction) << " " << Operation.dynamicIDs[0] << " " << Operation.dynamicIDs[1] << "\n";
     }
 
-    std::ofstream File(EXE_PATH + workingDirectory + pathToTheFile);
+    string finalPath = EXE_PATH + workingDirectory + pathToTheFile;
+
+    if(pathToTheFile.substr(0, 2) == "~/"){
+        finalPath = EXE_PATH + pathToTheFile.substr(2, pathToTheFile.size()-2);
+    }
+
+    std::ofstream File(finalPath);
 
 	if(!File){
-		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: '" << EXE_PATH + workingDirectory + pathToTheFile << "'.\n";
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: '" << finalPath << "'.\n";
         return;
     }
 	File << textFromContext;
@@ -6375,7 +6389,7 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
 
     for(const VariableModule & Variable : Owner->VariablesContainer){
         if(Variable.getID() == Operation.newContextID){
-            cout << "Error: In \'" << transInstrToStr(Operation.instruction) << "\' instruction: Cannot create a variable with id \'"
+            cout << "Error: In " << EventIds.describe() << ": In \'" << transInstrToStr(Operation.instruction) << "\' instruction: Cannot create a variable with id \'"
                 << Operation.newContextID << "\', because a variable with the same id already exists.\n";
             return;
         }
@@ -8410,15 +8424,24 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
 }
 vector<EveModule>::iterator ProcessClass::FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event){
     vector<EveModule>::iterator Unfinished;
+    bool doesChildExist;
     for(ChildStruct & Child : Event->Children){
-        if(!Child.finished){
-            for(Unfinished = Triggered->EveContainer.begin(); Unfinished != Triggered->EveContainer.end(); Unfinished++){
-                if(!Unfinished->getIsDeleted() && Unfinished->getIsActive() && Unfinished->getID() == Child.ID){
+        doesChildExist = false;
+        if(Child.finished){
+           continue; 
+        }
+        for(Unfinished = Triggered->EveContainer.begin(); Unfinished != Triggered->EveContainer.end(); Unfinished++){
+            if(Unfinished->getID() == Child.ID){
+                doesChildExist = true;
+                if(!Unfinished->getIsDeleted() && Unfinished->getIsActive()){
                     Child.finished = true;
                     return Unfinished;
                 }
             }
-            Child.finished = true;
+        }
+        Child.finished = true;
+        if(!doesChildExist){
+            cout << "Error: In " << EventIds.describe() << ": Child with ID '" << Child.ID << "' does not exist.\n";
         }
     }
     return Event;
@@ -8599,6 +8622,28 @@ void addGlobalVectors(vector<ContextClass> & EventContext, vector<VectorModule> 
         EventContext.back().ID = Vector.getID();
     }
 }
+unsigned returnRealPrimaryTriggers(vector<string> primaryTriggerTypes){
+    unsigned realTriggersSum = 0;
+    for(string trigger : primaryTriggerTypes){
+        if(isStringInGroup(trigger, 19, "on_init", "each_iteration", "second_passed", "key_pressed", "key_pressing",
+            "key_released", "mouse_moved", "mouse_not_moved", "mouse_pressed", "mouse_pressing", "mouse_released",
+            "objects", "variables", "collision", "editables", "movement", "stillness", "on_display_resize")
+        ){
+            realTriggersSum++;
+        }
+    }
+    return realTriggersSum;
+}
+void removeOnInitTrigger(vector<string> & primaryTriggerTypes){
+    for(auto primaryTrigger = primaryTriggerTypes.begin(); primaryTrigger != primaryTriggerTypes.end();){
+        if((*primaryTrigger) == "on_init"){
+            primaryTrigger = primaryTriggerTypes.erase(primaryTrigger);
+        }
+        else{
+            ++primaryTrigger;
+        }
+    }
+}
 void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes){
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
     //must wait with execution for the next iteration, unless run() command will be used.
@@ -8673,13 +8718,6 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
             continue;
         }
 
-        for(auto trigger : Event->primaryTriggerTypes){
-            if(trigger == "on_init"){
-                Event->willBeDeleted = true;
-                wasDeleteExecuted = true;
-            }
-        }
-
         TriggeredLayer = nullptr;
 
         for(LayerClass & Layer : Layers){
@@ -8716,8 +8754,9 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         wereGlobalVariablesCreated = false;
 
         do{
+            removeOnInitTrigger(Event->primaryTriggerTypes);
             if(printOutInstructions){
-                printInColor("Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
+                printInColor("\nCurrent event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
             }
             if(wereGlobalVariablesCreated){
                 addGlobalVariables(Context, Triggered->VariablesContainer);
@@ -8752,7 +8791,10 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 if(!Event->checkIfAllChildrenFinished() && Interrupt.instruction != EngineInstr::break_i){
                     MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                     Event = FindUnfinishedEvent(Triggered, Event);
-                    continue;
+                    if(Event != MemoryStack.back().Event){
+                        continue;
+                    }
+                    MemoryStack.pop_back();
                 }
             }
             else if(Event->conditionalStatus == 'f' && Interrupt.instruction != EngineInstr::break_i && Event->elseChildID != "" && !Event->elseChildFinished){ //else
@@ -8782,7 +8824,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
             if(Event->loop){
                 Interrupt.instruction = EngineInstr::null;
             }
-            if(Interrupt.instruction != EngineInstr::break_i){ //operations after loop/if
+            if(Event->conditionalStatus == 't' && Interrupt.instruction != EngineInstr::break_i){ //operations after loop/if
                 Interrupt = executeInstructions(Event->PostOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
                     Processes, StartingEvent, Event, MemoryStack, Engine
                 );

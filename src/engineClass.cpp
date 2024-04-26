@@ -175,8 +175,11 @@ void EngineClass::initAllegro(){
         string buffer;
         vector<string> words;
         while(getline(File, buffer)){
+            if(buffer == ""){
+                continue;
+            }
             words = tokenizeString(buffer, ' ');
-            if(words.size() == 0 || words[0][0] == '#'){
+            if(words.size() == 0 || words[0][0] == '#' || words[0] == ""){
                 continue;
             }
             if(words[0] == "SAMPLES"){
@@ -243,7 +246,7 @@ void EngineClass::initAllegro(){
     else{
         al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
     }
-    iconBitmap = al_load_bitmap((EXE_PATH + "icon.png").c_str());
+    iconBitmap = al_load_bitmap((EXE_PATH + "images/icon.png").c_str());
     if(iconBitmap){
         al_set_display_icon(display, iconBitmap);
     }

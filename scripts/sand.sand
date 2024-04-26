@@ -124,7 +124,7 @@ start buildTerminal
     fun TextEditor set_can_use_tabs bool [true]
     fun TextEditor deactivate
 
-    new particles c me 1 _ _ Particles
+    /*new particles c me 1 _ _ Particles
     fun Particles set_position int [200 200]
     fun Particles set_size int [10 10]
     fun Particles activate
@@ -152,7 +152,7 @@ start buildTerminal
     fun Particles set_is_static bool [false]
     //fun Particles bind_key string [p]
     //fun Particles add_image string [insane]
-
+    */
 
     new image c me 1 _ _ thumb
     fun thumb set_id string [thumb]
@@ -215,6 +215,7 @@ start buildTerminal
 end
 
 
+
 start loadCommandHistory
     string ["history.txt"] fileName
     load_text fileName loadedText
@@ -228,7 +229,7 @@ start loadCommandHistory
 end
 
 
-start spawnParticles
+/*start spawnParticles
     triggers key_pressing
     if ([any_key_pressing])
     index c me [0 0] _ particles Particles
@@ -236,7 +237,7 @@ start spawnParticles
     value ([c Terminal pos_x] [c Terminal pos_y]) textPos
     fun Particles set_position c textPos
     fun Particles allow_spawning
-end
+end*/
 
 
 start createWindowTemplate
@@ -690,7 +691,7 @@ end
 start saveCommand
     if ([c commandLength] [int 0] >)
     fun commandHistory set c commandNumber c command
-    string ["history.txt"] fileName
+    string ["~/history.txt"] fileName
     save_text fileName commandHistory
     fun commandHistory push_back string [""]
     ++ commandNumber

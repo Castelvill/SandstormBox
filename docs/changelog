@@ -1,3 +1,9 @@
+26.04.2024
+-Fixed: Clipboard and command history were saved to the working directory instead of the "root" directory.
+-Fixed: Instructions after 'post' were always executed no matter the event conditions.
+-Fixed: If there is more than one event with "on_init" trigger, following "on_init" events will be executed several times. Only one "on_init" trigger was erased during every engine iteration.
+-Fixed: When event tries to run non-existent event, program enters endless loop.
+
 25.04.2024
 -Improved SuperEditableTextModule deactivation - now it stops the editing process and updates the module.
 -Added optional script paths to the main function arguments - provided there scripts will be executed on engine's boot.

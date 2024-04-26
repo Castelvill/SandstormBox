@@ -82,11 +82,11 @@ short translateToAllegroKey(char key){
     return 128;
 }
 
-bool isStringInGroup(string ID, int count, ...){
+bool isStringInGroup(string text, int count, ...){
     va_list args;
     va_start(args, count);
     for (int i = 0; i < count; i++){
-        if(ID == va_arg(args, const char*)){
+        if(text == va_arg(args, const char*)){
             return true;
         }
     }

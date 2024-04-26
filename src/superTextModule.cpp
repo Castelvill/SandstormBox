@@ -1353,7 +1353,8 @@ bool SuperEditableTextModule::prepareEditing(const vector <short> & releasedKeys
 }
 bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & control,
     ALLEGRO_DISPLAY * window, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
-    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting,
+    string EXE_PATH
 ){
     if(pKey != ALLEGRO_KEY_BACKSPACE && pKey != ALLEGRO_KEY_DELETE && (pKey != ALLEGRO_KEY_X || !control)){
         return false;
@@ -1384,7 +1385,7 @@ bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & cont
                     al_set_clipboard_text(window, clipboard.c_str());
                 }
                 else{
-                    std::ofstream File("clipboard.txt", std::ios::trunc | std::ios::out);
+                    std::ofstream File(EXE_PATH + "clipboard.txt", std::ios::trunc | std::ios::out);
                     if(File){
                         File << internalClipboard;
                     }
@@ -2455,7 +2456,7 @@ void SuperEditableTextModule::moveCursorToRight(bool shift, bool control, unsign
     }
 }
 void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
-    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting, string EXE_PATH
 ){
     if(!getIsActive() || !isEditingActive){
         return;
@@ -2510,7 +2511,7 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
         }
 
         if(deleteFromText(pKey, text, control, window, leftCursorOnFormatIdx, rightCursorOnFormatIdx,
-            ENABLE_al_set_clipboard_text, internalClipboard, CopiedFormatting))
+            ENABLE_al_set_clipboard_text, internalClipboard, CopiedFormatting, EXE_PATH))
         {
             continue;
         }
@@ -2537,7 +2538,7 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                     al_set_clipboard_text(window, clipboard.c_str());
                 }
                 else{
-                    std::ofstream File("clipboard.txt", std::ios::trunc | std::ios::out);
+                    std::ofstream File(EXE_PATH + "clipboard.txt", std::ios::trunc | std::ios::out);
                     if(File){
                         File << internalClipboard;
                     }

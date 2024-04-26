@@ -1,7 +1,5 @@
 -Fix: Cannot select the whole text in the "note" program.
 -Fix: Mouse cursor does not work with tabs.
--Add an event that spawns particles when you write.
--Fix: When event tries to run non-existent event, program enters endless loop.
 -Implement "ctrl+delete".
 -Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
 -Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  
@@ -16,7 +14,6 @@
 -Add in-terminal scrolling: automatic and the scrollbar.
 -Implement arithmetic instructions and function for vector module (+=, -=, etc.).
 -With updated arithmetic instructions improve the auto-complete (remove the loop).
--Fix: 'post' instruction causes a lot of errors. User should be able to use it anywhere and without 'run' instruction.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: command "sh print "xd\n"" does not work.
 -Fix: print command doesn't use special signs.

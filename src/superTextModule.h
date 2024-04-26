@@ -143,7 +143,8 @@ public:
     bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
     bool deleteFromText(char pKey, string text, bool & control, ALLEGRO_DISPLAY * window,
         unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
-        bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+        bool ENABLE_al_set_clipboard_text, string & internalClipboard,
+        vector<FormatClass> & CopiedFormatting, string EXE_PATH
     );
     void getNumbers(char pKey, char & character, bool shift);
     void addFloatingPoint(char pKey, char & character, string text);
@@ -173,7 +174,8 @@ public:
     void moveCursorToRightByOne(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorToRight(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
-        bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting
+        bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting,
+        string EXE_PATH
     );
     void setCursorPos(int newPos);
     void setSecondCursorPos(int newPos);

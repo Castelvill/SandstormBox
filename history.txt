@@ -1,81 +1,21 @@
-aaa
-bbb
-cc
-ddd
+cd scripts
+xd
+cd scripts
+looool
+cd
+ls
+pwd
+fdsfs
 history
-xd
-ppp
-neofetch
-sh tree
-sh tree
-sh tree
-cat config
-ls proc
-lse proc
-sh lse proc
-sh lse processes
-sh help
-ls src
+gddgdd
+bn
+v
+x
+b
 exit
-sh print xd
-sh tree
-exit
-cat config
-cat .config
-edit .config
-edit .config
-sh tree
-edit .config
-exit
-nw
-exit
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit xd
-edit xd
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit
-edit
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
-edit .config
+gfd
+cd scripts
+gddgd
+bcc
 xd
-xd
-xd
-xd
-xd
-xd
-xd
-xd
-xd
-xd
-edit .config
-history
-xd
-exit
+sh mkdir misc
