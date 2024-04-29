@@ -32,7 +32,7 @@ struct ModuleIndex : AncestorIndex{
 struct EventsLookupTable{
     vector <AncestorIndex> BootTriggered; //Triggered only in the first iteration or in the first iteration after a reboot.
     vector <AncestorIndex> InitTriggered; //Triggered only when the object is created.
-    vector <AncestorIndex> IterationTriggered; //If a trigger is negated or has else statements, in most cases interpreter puts its event into IterationTriggered events. 
+    vector <AncestorIndex> IterationTriggered; //If a trigger is negated or has else statement, in most cases interpreter puts its event into IterationTriggered events. 
     vector <AncestorIndex> TimeTriggered;
     vector <AncestorIndex> KeyPressedTriggered;
     vector <AncestorIndex> KeyPressingTriggered;

@@ -1,4 +1,5 @@
 26.04.2024
+-Fixed: Mouse cursor ignores tabs.
 -Fixed: Clipboard and command history were saved to the working directory instead of the "root" directory.
 -Fixed: Instructions after 'post' were always executed no matter the event conditions.
 -Fixed: If there is more than one event with "on_init" trigger, following "on_init" events will be executed several times. Only one "on_init" trigger was erased during every engine iteration.

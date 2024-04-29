@@ -1,0 +1,13 @@
+start onInit
+	triggers on_init
+	//edit_proc draw_hitboxes 1
+	//edit_proc print_instructions 1
+	//edit_proc auto_print_stack 1
+	//edit_proc draw_text_borders 1
+
+	edit_proc draw_camera_borders 1
+
+	load_bitmap "images/background2.png" background2 false true
+	load_bitmap "images/background3.png" background3 false true
+	load_bitmap "images/amongus1.png" amongus1 false true
+end

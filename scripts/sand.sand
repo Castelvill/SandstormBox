@@ -415,6 +415,7 @@ start spawnNewWindow
     fun NewWindowCamera activate
     fun NewWindowCamera add_visible_layer c newLayerID
     fun NewWindowCamera add_accessible_layer c newLayerID
+    fun NewWindowCamera set_drawing_borders bool [false]
     index c NewWindowLayer [0 0 0] _ variable objectsCameraID
     = objectsCameraID newCameraID
     string [""] program
@@ -506,6 +507,12 @@ end
 start autoComplete
     triggers key_pressed
     if ([key_pressed 64])
+    index camera [0] _ camera Camera
+    run autoComplete1
+end
+
+start autoComplete1
+    if ([c Camera is_focused])
     index layer [0 1] _ object Terminal
     index context Terminal [0 0] _ super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput
@@ -710,10 +717,14 @@ start forgor
     string [""] program
 end
 
+start moveInHistory
+    triggers key_pressed
+    index camera [0] _ camera Camera
+    run upArrow downArrow
+end
 
 start upArrow
-    triggers key_pressed
-    if ([key_pressed 84] [c program] [string "sleep"] == [c currentCommandNumber] [int 0] > && &&)
+    if ([c Camera is_focused] [key_pressed 84] [c program] [string "sleep"] == [c currentCommandNumber] [int 0] > && && &&)
     index layer [0 1] _ object Terminal
     index context Terminal [0 0] _ super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput
@@ -735,8 +746,7 @@ end
 
 
 start downArrow
-    triggers key_pressed
-    if ([key_pressed 85] [c program] [string "sleep"] == [c currentCommandNumber] [c commandNumber] < && &&)
+    if ([c Camera is_focused] [key_pressed 85] [c program] [string "sleep"] == [c currentCommandNumber] [c commandNumber] < && && &&)
     index layer [0 1] _ object Terminal
     index context Terminal [0 0] _ super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput

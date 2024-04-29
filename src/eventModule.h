@@ -46,13 +46,13 @@ class EveModule: public PrimaryModule{
 public:
 	vector <ConditionClass> ConditionalChain;
     vector <OperaClass> DependentOperations;
-	vector <OperaClass> PostOperations;
+	vector <OperaClass> PostOperations; //Post operations can be executed ONLY if ConditionalChain returns true - otherwise only the else scope will be called and executed.
 	vector <ChildStruct> Children;
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed by other events and a direct use of run() command.
     //Types: each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness.
     vector <string> primaryTriggerTypes;
     char conditionalStatus; //n-null, t-true, f-false
-    string elseChildID; //Ignore if empty.
+    string elseChildID; //Ignore if empty. "Else if" statements can be created by adding conditions to the "else child" Event. Each Event can only have one else statement ("else child") - it's a normal thing in branching. It's the optimal way. Do not argue, stupid.
     bool areDependentOperationsDone;
     bool elseChildFinished;
     bool loop;

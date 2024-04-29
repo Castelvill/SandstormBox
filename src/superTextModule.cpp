@@ -994,6 +994,31 @@ void SuperTextModule::divideFormattingByCursor(){
 
         letterIdx += Formatting[formatIdx].limit;
     }
+
+    //Add all lost tabs to the formatting.
+    formatIdx = 0;
+    Formatting[0].drawingLimit = Formatting[0].limit;
+    unsigned line = 0;
+    unsigned currentLineLength = 0, currentTabLength;
+    unsigned limit = 0;
+    for(letterIdx = 0; letterIdx < content.size(); letterIdx++, currentLineLength++){
+        if(line < textLines.size() && letterIdx == lineStarts[line + 1]){
+            line++;
+            currentLineLength = 0;
+        }
+        if(content[letterIdx] == '\t'){
+            currentTabLength = tabLength - currentLineLength % tabLength;
+            Formatting[formatIdx].drawingLimit += currentTabLength - 1;
+            currentLineLength += currentTabLength - 1;
+        }
+        limit++;
+        if(limit >= Formatting[formatIdx].limit){
+            formatIdx++;
+            Formatting[formatIdx].drawingLimit = Formatting[formatIdx].limit;
+            limit = 0;
+        }
+    }
+
     textLines.back() += ' ';
     lineLengths.back()++;
     if(Formatting.back().drawingLimit < Formatting.back().limit){

@@ -6616,7 +6616,11 @@ void ProcessClass::printTree(OperaClass & Operation, vector<ContextClass> & Even
     for(const ProcessClass & Process : Processes){
         buffor += "Process " + Process.getID() + "\n";
         for(const Camera2D & Camera : Process.Cameras){
-            buffor += "\tCamera " + Camera.getID() + "\n";
+            buffor += "\tCamera " + Camera.getID();
+            if(!Camera.getIsActive()){
+                buffor += " (disabled)";
+            }
+            buffor += "\n";
             if(Camera.pinnedCameraID != ""){
                 buffor += "\t\tPinnedTo " + Camera.pinnedCameraID + "\n";
             }
@@ -6628,57 +6632,113 @@ void ProcessClass::printTree(OperaClass & Operation, vector<ContextClass> & Even
             }
         }
         for(const LayerClass & Layer : Process.Layers){
-            buffor += "\tLayer " + Layer.getID() + " <" + intToStr(Layer.Objects.size()) + ">\n";
+            buffor += "\tLayer " + Layer.getID() + " <" + intToStr(Layer.Objects.size()) + ">";
+            if(!Layer.getIsActive()){
+                buffor += " (disabled)";
+            }
+            buffor += "\n";
             for(const AncestorObject & Object : Layer.Objects){
-                buffor += "\t\tObject " + Object.getID() + "\n";
+                buffor += "\t\tObject " + Object.getID();
+                if(!Object.getIsActive()){
+                    buffor += " (disabled)";
+                }
+                buffor += "\n";
                 for(const TextModule & Text : Object.TextContainer){
-                    buffor += "\t\t\tText " + Text.getID() + "\n";
+                    buffor += "\t\t\tText " + Text.getID();
+                    if(!Text.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const EditableTextModule & Text : Object.EditableTextContainer){
-                    buffor += "\t\t\tEditableText " + Text.getID() + "\n";
+                    buffor += "\t\t\tEditableText " + Text.getID();
+                    if(!Text.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const SuperTextModule & SuperText : Object.SuperTextContainer){
-                    buffor += "\t\t\tSuperText " + SuperText.getID() + "\n";
+                    buffor += "\t\t\tSuperText " + SuperText.getID();
+                    if(!SuperText.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
-                    buffor += "\t\t\tSuperEditableText " + SuperEditableText.getID() + "\n";
+                    buffor += "\t\t\tSuperEditableText " + SuperEditableText.getID();
+                    if(!SuperEditableText.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const ImageModule & Image : Object.ImageContainer){
-                    buffor += "\t\t\tImage " + Image.getID() + "\n";
+                    buffor += "\t\t\tImage " + Image.getID();
+                    if(!Image.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const MovementModule & Movement : Object.MovementContainer){
-                    buffor += "\t\t\tMovement " + Movement.getID() + "\n";
+                    buffor += "\t\t\tMovement " + Movement.getID();
+                    if(!Movement.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const CollisionModule & Collision : Object.CollisionContainer){
-                    buffor += "\t\t\tCollision " + Collision.getID() + "\n";
+                    buffor += "\t\t\tCollision " + Collision.getID();
+                    if(!Collision.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const ParticleEffectModule & Particle : Object.ParticlesContainer){
-                    buffor += "\t\t\tParticle " + Particle.getID() + "\n";
+                    buffor += "\t\t\tParticle " + Particle.getID();
+                    if(!Particle.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const EveModule & Event : Object.EveContainer){
-                    buffor += "\t\t\tEvent " + Event.getID() + "\n";
+                    buffor += "\t\t\tEvent " + Event.getID();
+                    if(!Event.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                     for(const ChildStruct & Child : Event.Children){
-                        buffor += "\t\t\t\tEvent::Child " + Child.ID + "\n";
+                        buffor += "\t\t\t\tEvent::Child " + Child.ID;
+                        buffor += "\n";
                     }
                     if(Event.elseChildID != ""){
-                        buffor += "\t\t\t\tEvent::Else " + Event.elseChildID + "\n";
+                        buffor += "\t\t\t\tEvent::Else " + Event.elseChildID;
+                        buffor += "\n";
                     }
                 }
                 for(const VariableModule & Variable : Object.VariablesContainer){
                     buffor += "\t\t\tVariable::";
                     buffor += Variable.getType();
-                    buffor += " " + Variable.getID() + "\n";
+                    buffor += " " + Variable.getID();
+                    buffor += "\n";
                 }
                 for(const ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
-                    buffor += "\t\t\tScrollbar " + Scrollbar.getID() + "\n";
+                    buffor += "\t\t\tScrollbar " + Scrollbar.getID();
+                    if(!Scrollbar.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const PrimitivesModule & Primitive : Object.PrimitivesContainer){
-                    buffor += "\t\t\tPrimitive::" + translatePrimitiveType(Primitive.type) + " " + Primitive.getID() + "\n";
+                    buffor += "\t\t\tPrimitive::" + translatePrimitiveType(Primitive.type) + " " + Primitive.getID();
+                    if(!Primitive.getIsActive()){
+                        buffor += " (disabled)";
+                    }
+                    buffor += "\n";
                 }
                 for(const VectorModule & Vector : Object.VectorContainer){
                     buffor += "\t\t\tVector::";
                     buffor += Vector.getType();
-                    buffor += " " + Vector.getID() + "\n";
+                    buffor += " " + Vector.getID();
+                    buffor += "\n";
                 }
             }
         }
@@ -10157,51 +10217,45 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         }
 
         for(AncestorObject & Object : Layer.Objects){
-            if(!Object.getIsActive() || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera), Object.getSize(),
-                0, Object.getIsAttachedToCamera(), SelectedCamera)
-            ){
+            if(!Object.getIsActive()){
                 continue;
             }
             if(SelectedCamera->canEditText){
                 for(SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
-                    if(!SuperEditableText.getIsActive() || !SuperEditableText.canBeEdited){
+                    if(!SuperEditableText.getIsActive() || !SuperEditableText.canBeEdited ||
+                        !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera) + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
+                        SuperEditableText.getSize(), 0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera)
+                    ){
                         continue;
                     }
+                    disableActiveEditableText = false;
+                    if(ActiveEditableText != nullptr){
+                        ActiveEditableText->isEditingActive = false;
+                        for(FormatClass & Format : ActiveEditableText->Formatting){
+                            Format.selected = false;
+                        }
+                        ActiveEditableText->update();
+                    }
+                    ActiveEditableText = &SuperEditableText;
+                    ActiveEditableText->isEditingActive = true;
+                    ActiveEditableText->cursorPos = 0;
+                    ActiveEditableText->setCursorsWithMouse(Object.getPosOnCamera(SelectedCamera), Mouse);
                     if(Mouse.pressedInRectangle(
                         Object.getPosOnCamera(SelectedCamera)
                         + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
                         SuperEditableText.getSize(),
                         0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera
                     )){
-                        disableActiveEditableText = false;
-                        ActiveEditableText = &SuperEditableText;
-                        ActiveEditableText->isEditingActive = true;
-                        ActiveEditableText->cursorPos = 0;
-                        ActiveEditableText->setCursorsWithMouse(Object.getPosOnCamera(SelectedCamera), Mouse);
-                        if(Mouse.pressedInRectangle(
-                            Object.getPosOnCamera(SelectedCamera)
-                            + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
-                            SuperEditableText.getSize(),
-                            0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera
-                        )){
-                            ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
-                        }
-                        ActiveEditableText->divideFormattingByCursor();
-                        break;
+                        ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
                     }
+                    ActiveEditableText->divideFormattingByCursor();
+                    break;
                 }
             }
-
-            if(!Object.getCanBeSelected()){
+            if(!Object.getCanBeSelected() || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera),
+                Object.getSize(), 0, Object.getIsAttachedToCamera(), SelectedCamera)
+            ){
                 continue;
-            }
-            if(ActiveEditableText != nullptr && disableActiveEditableText){
-                ActiveEditableText->isEditingActive = false;
-                for(FormatClass & Format : ActiveEditableText->Formatting){
-                    Format.selected = false;
-                }
-                ActiveEditableText->update();
-                ActiveEditableText = nullptr;
             }
             if(&Layer == SelectedLayer && &Object == SelectedObject){
                 return;

@@ -19,3 +19,108 @@ gddgd
 bcc
 xd
 sh mkdir misc
+sh run xd
+xd
+cd scritps
+cd scripts
+ls
+edit tabs
+edit tabs
+edit tabs
+edit sand.sand
+edit tabs
+edit tabs
+
+edit tabs
+cd scripts
+ls
+edit tabs
+edit tabs
+edit tabs
+edit tabs
+edit tabs
+cd scripts
+edit tabs
+edit "scripts/tabs"
+edit "scripts//tabs"
+edit \"scripts/tabs\"
+cd scripts
+edit tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+edit scripts/tabs
+ne
+neofetch
+help
+edit scripts/tabs
+edit scripts/sand.sand
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+exit
+exit
+exit
+note scripts/xd
+note scripts/xd
+sh tree
+note scripts/xd
+sh tree
+sh tree
+note scripts/xd
+sh tree
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+edit scripts/xd
+edit xd
+edit scripts/xd
+edit scripts/xd
+xd
+he
+help
+222
+neofetch
+nw

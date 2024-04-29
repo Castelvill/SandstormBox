@@ -1,8 +1,9 @@
+-Fix: Clicking on text breaks something.
 -Fix: Cannot select the whole text in the "note" program.
--Fix: Mouse cursor does not work with tabs.
+-Moving cursor up or down shouldn't change the "localCursorPos" variable in order to optimize moving around the text.
+-Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
 -Implement "ctrl+delete".
 -Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
--Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
 -Create "save_formatted_text" and "load_formatted_text" instructions to enable saving and loading formatted text (with special data on the start of the file).
@@ -14,19 +15,30 @@
 -Add in-terminal scrolling: automatic and the scrollbar.
 -Implement arithmetic instructions and function for vector module (+=, -=, etc.).
 -With updated arithmetic instructions improve the auto-complete (remove the loop).
+-Add module scalling from the edge of the camera.
+
+MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside the engine.
+
+-Implement optional new line functionality for semicolons in order to divide instructions better.
+-Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  
+-Replace dynamicIDs and Literals in Operations with "struct Argument {VariableModule Value, bool isVariable}" in order to allow mixing Variables and Literals together in the instructions.
+-Add to each definition of instructions a function that extracts every value or pointer from the passed Arguments - put them inside the Context vector for example.  
+-Replace "start...end" scopes with "func name {...}" "event name (triggers) {...}", "if (conditions) {}", "else if (conditions) {...}", "else {...}" and "while (conditions) {...}" scopes. Names of "if", "else if", "else" and "while" scopes will be generated automatically and start with "_" sign. During compilation, new types of scopes will be seperated from parent events by the parser and put into new events with auto-generated names.
+-Add explicit parameters to events and functions (trigger-less events) for better readability. Don't add them to loops, ifs and else, they doesn't need explicit parameters.
+-Transform "fun context function [values...]" into "context.function([values...])". Do the same with all other instructions except the arithmetic ones.
+-Transform every Reverse Polish Notation into normal expressions.
+-Change old move instructions syntax into "left_operand move_instr right_operand;". 
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
--Fix: command "sh print "xd\n"" does not work.
--Fix: print command doesn't use special signs.
+-Fix: Command "sh print "xd\n"" does not work.
+-Fix: Print command doesn't use special signs.
 -Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
 -Add start, end, triggers instructions to the documentation.
 -Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
--Implement "set_if *event* *expression*" instruction.
--Remove parenthesis from "value", "if" and aggregating instructions.
--Move "triggers" to the object definition or bind events to them. 
+-(?)Implement "set_if *event* *expression*" instruction.
+-Move "triggers" to the object definition or bind events to them - right now without using if statements triggers can cause script based bugs. 
 
-MILESTONE: Terminal and editor with scrolling.
-MILESTONE: Easy and cozy scripting inside the engine.
+MILESTONE: Improve scripting language.
 
 -Block "." and ".." links in filesystem commands.
 -Convert all "if forests" to switches.
@@ -34,25 +46,24 @@ MILESTONE: Easy and cozy scripting inside the engine.
 -Add synchronized/shared files that allow for server-like communication between two instances of the engine.
 -Implement syntax coloring for the scriptic language.
 -Add "unload_bitmaps", "unload_fonts", "unload_bitmap bitmap" and "unload_font font" instructions.
--Add "instruction" MODE to the Terminal.
+-Add "shell"/"instruction" MODE to the Terminal.
 -Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
--Add module scalling from the edge of the camera.
--Add a backdoor that will disable all each_iteration triggers to fight the infinite loops.
+-Add a glowing "backdoor" that will disable all each_iteration triggers to fight the infinite loops.
 -Finish implementing "new_proc" instruction – new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
 -Upgrade “edit_proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
--Implement “clone_to_proc” – cloning (adding) a context into the selected process.
+-Add instruction “clone_to_process <context_id> <thread_id> [activate_sim]” – clones layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
+-Add instruction “move_to_process <context_id> <thread_id> [activate_sim]” – moves (clone and delete) layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
 -Think about better way of getting attributes from module contexts.
--Evolve "random_int" instruction into "random".
+-Evolve "random_int" instruction into universal "random".
 -Add more milestones.
 -Remember: inside the map editor, instead of making a lot of "solid" objects, you just need a single object with many images and collisions.
 -Copy tilemap editor from Godot.
 -Connect primitives to cameras.
 -Add selection rectangle to the mouse for multiple object selection.
 -Change object selection borders to primitives?
--Add an interactive grid for object snapping in block based games.
--Add instruction “clone_to_process <context_id> <thread_id> [activate_sim]” – clones layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
--Add instruction “move_to_process <context_id> <thread_id> [activate_sim]” – moves (clone and delete) layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
+-Add an interactive grid for object snapping in the gui designer and tile based games.
+-Implement tilling manager for windows.
 -Add window: Terminal.
 -Add window: Ranger based filesystem. 
 -Add window: Options - shows the list of options/functions of the entity/window, every list item is a button, camera is immobilized, minimizes when mouse is out of focus.
@@ -67,10 +78,10 @@ MILESTONE: Easy and cozy scripting inside the engine.
 -Add window: DuctTape – Paint. Why Tape? Because Paint keeps the world in one piece like tape.
 -Implement access to windows based on “access to engine windows.PNG” or find it in Miro.
 
--You should be able to save any type of entity from the engine by using "save <context> <fileName> [force]" instruction. Saving entity or a vector of entities (context) firstly writes a type and number of entities to the file and then all entities' data. If the file already exists and have any content inside, instruction will fail. By using force, engine will overwrite the previous content of the chosen file.
+-You should be able to save any type of entity from the engine by using "save <context> <fileName> [force]" instruction. Saving entity or a vector of entities (context) first writes a type and number of entities to the file and then all entities' data. If the file already exists and have any content inside, instruction will fail. By using force, engine will overwrite the previous content of the chosen file.
 -Add "load <fileName> <context> [force]" instruction. Load will overwrite all entities in the context based on the contents of the file. If the user doesn't provide big enough context, instruction will fail. By using force, engine will create new (valid number of) entities, add them to the context and finally overwrite everything.
 -Add "version" variable to each entity. This version will be saved to the file with each entity. Later, if any changes are made to any entity, you will be able to create a converter, which will convert any old entity to its newest version. This is crucial for the backwards compatibility.
--Projects will be the another type of entity and it will just add new way of saving and loading entities.
+-Projects will be an another type of entity and it will ensure standardized way of saving and loading entities.
 -Add hyperlinks to the SuperText. Clicking them will trigger an event.
 -Create LayerManagerWindow / Project tree.
 -Add logging system with filters and colors.
@@ -121,8 +132,11 @@ MILESTONE: Easy and cozy scripting inside the engine.
 -Make donut.cpp with EGM script.
 -Make version control system (local github).
 -Add the possiblity to convert particle frames into images for the optimalization.
+-Add 3D graphics - this will include adding 3D rendering inside the code editor for showing the models used by the scripts.
 
 OPTIMALIZATIONS
+-Create special versions of engine instructions with a lower count of ifs - these instructions will be unsafe and could cause crashes, but when used in a right way (with other trusted instructions) they could speed up the engine. The script compiler will dynamically choose best versions of the instructions. Example: if one instruction WILL provide a non-null pointer, the second instruction should be able to ignore checking if this pointer is empty. 
+-Use constexpr - this will pre-calculate some functions in compile time, speeding up some of them to O(1).
 -For large scale simulation: Divide game map to different threads based on camera position. The main thread will have rights to draw things and others will be focusing on processing stuff.
 -Function createNewModule recalculates indexes of all modules for each module added. Remove template and create custom index recalculation for each module.
 -Bounding volume hierarchy (or marching squares) – group objects into the biggest “boxes/chunks” possible and iterate only through chunks where is the player (could work only for collisions). 
@@ -134,9 +148,9 @@ OPTIMALIZATIONS
 -Try unorganised_list for password-function connection in EditableText module.
 -Divide drawing on cameras to threads.
 -Instead of running for loops everywhere, make hash map from IDs or something.
--(memory optimalization) Single Particles have only positions and Module have few vectors of randomized variables and single particles use them
--(performance optimalization) Add a vector that tells what objects have particles
--Add threads: one for moving and one for drawing particles
+-(Memory optimalization) Single Particles have only positions and Module has few vectors of randomized variables and single particles use them.
+-(Performance optimalization) Add a vector that tells which objects have particles.
+-Add threads: one for moving and one for drawing particles.
 
 BUGS
 -Vector movement doesn’t support camera movement
