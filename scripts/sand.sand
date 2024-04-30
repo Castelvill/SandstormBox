@@ -506,7 +506,7 @@ end
 
 start autoComplete
     triggers key_pressed
-    if ([key_pressed 64])
+    if ([key_pressed 64] [context program] [string "sleep"] == &&)
     index camera [0] _ camera Camera
     run autoComplete1
 end

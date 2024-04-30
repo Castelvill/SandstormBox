@@ -295,6 +295,9 @@ void ProcessClass::selectText(const MouseClass & Mouse){
         0, ActiveEditableText->getIsAttachedToCamera(), SelectedCamera
     )){
         ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
+        ActiveEditableText->localSecondCursorPos = ActiveEditableText->localCursorPos;
+        ActiveEditableText->lineWithSecondCursorIdx = ActiveEditableText->lineWithCursorIdx;
+        ActiveEditableText->lineWidthToSecondCursor = ActiveEditableText->lineWidthToCursor;
     }
     ActiveEditableText->divideFormattingByCursor();
 }
@@ -10247,8 +10250,12 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                         0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera
                     )){
                         ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
+                        ActiveEditableText->localSecondCursorPos = ActiveEditableText->localCursorPos;
+                        ActiveEditableText->lineWithSecondCursorIdx = ActiveEditableText->lineWithCursorIdx;
+                        ActiveEditableText->lineWidthToSecondCursor = ActiveEditableText->lineWidthToCursor;
                     }
                     ActiveEditableText->divideFormattingByCursor();
+                    //ActiveEditableText->update();
                     break;
                 }
             }

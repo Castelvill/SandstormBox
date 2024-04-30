@@ -1,4 +1,5 @@
 start onInit
+
 	triggers on_init
 	//edit_proc draw_hitboxes 1
 	//edit_proc print_instructions 1

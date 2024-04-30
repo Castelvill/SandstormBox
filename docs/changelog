@@ -1,3 +1,8 @@
+30.04.2024
+-Fixed: Clicking on the last line of a text and going down offsets the cursor and can cause a crash.
+-Fixed: Moving cursor up with tabs present offsets the cursor.
+-Fixed: Selecting text with the mouse doesn't update variables: localCursorPos, lineWithCursorIdx and lineWidthToCursor.
+
 26.04.2024
 -Fixed: Mouse cursor ignores tabs.
 -Fixed: Clipboard and command history were saved to the working directory instead of the "root" directory.

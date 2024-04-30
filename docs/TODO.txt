@@ -1,9 +1,8 @@
--Fix: Clicking on text breaks something.
 -Fix: Cannot select the whole text in the "note" program.
 -Moving cursor up or down shouldn't change the "localCursorPos" variable in order to optimize moving around the text.
 -Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
 -Implement "ctrl+delete".
--Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
+-(?) Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
 -Create "save_formatted_text" and "load_formatted_text" instructions to enable saving and loading formatted text (with special data on the start of the file).

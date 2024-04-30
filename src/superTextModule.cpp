@@ -22,13 +22,12 @@ void SuperTextModule::setUpNewInstance(){
     cursorPos = 0;
     secondCursorPos = 0;
     localCursorPos = 0;
-    realLocalCursorPos = 0;
     lineWithCursorIdx = 0;
     lineWidthToCursor = 0.0;
     localSecondCursorPos = 0;
-    realLocalSecondCursorPos = 0;
     lineWithSecondCursorIdx = 0;
     lineWidthToSecondCursor = 0.0;
+    updated = false;
 }
 SuperTextModule::SuperTextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -77,11 +76,9 @@ void SuperTextModule::update(){
     floatingNewLine.push_back(false);
     realTextSize.set(0.0, 0.0);
     localCursorPos = 0;
-    realLocalCursorPos = 0;
     lineWithCursorIdx = 0;
     lineWidthToCursor = 0.0;
     localSecondCursorPos = 0;
-    realLocalSecondCursorPos = 0;
     lineWithSecondCursorIdx = 0;
     lineWidthToSecondCursor = 0.0;
 
@@ -120,22 +117,20 @@ void SuperTextModule::update(){
     vector<FormatClass>::iterator Format = Formatting.begin();
 
     char letter;
-    unsigned letterIdx = 0, formatLimit = 0, lineLength = 0, localLetterIdx = 0;
+    unsigned letterIdx = 0, formatLimit = 0, lineLength = 0;
     float letterWidth = 0.0, wordWidth = 0.0, wordWidthBehind = 0.0, lineWidth = 0.0;
     bool ignoreLine = false; //Used when wrapped=='c'. Ignores the part of the text in the line that is out of the scope of text field.
     unsigned currentTabLength, i;
     char wordLetter;
 
-    for(; letterIdx < content.size(); letterIdx++, localLetterIdx++){
+    for(; letterIdx < content.size(); letterIdx++){
         if(letterIdx == cursorPos){
             localCursorPos = textLines.back().size();
-            realLocalCursorPos = localLetterIdx;
             lineWithCursorIdx = textLines.size() - 1;
             lineWidthToCursor = lineWidth;
         }
         if(letterIdx == secondCursorPos){
             localSecondCursorPos = textLines.back().size();
-            realLocalSecondCursorPos = localLetterIdx;
             lineWithSecondCursorIdx = textLines.size() - 1;
             lineWidthToSecondCursor = lineWidth;
         }
@@ -155,7 +150,6 @@ void SuperTextModule::update(){
 
             textLines.back() += ' ';
             textLines.push_back("");
-            localLetterIdx = 0;
             
             realTextSize.x = std::max(realTextSize.x, lineWidth);
             lineWidths.back() = lineWidth;
@@ -199,7 +193,6 @@ void SuperTextModule::update(){
             if(lineWidth + letterWidth > size.x && (wrapped == 'l' || wrapped == 'w')){
                 currentTabLength = tabLength;
                 textLines.push_back("");
-                localLetterIdx = 0;
                 realTextSize.x = std::max(realTextSize.x, lineWidth);
                 lineWidths.back() = lineWidth;
                 lineWidths.push_back(0);
@@ -219,13 +212,11 @@ void SuperTextModule::update(){
             }
             if(letterIdx == cursorPos){
                 localCursorPos = textLines.back().size();
-                realLocalCursorPos = localLetterIdx;
                 lineWithCursorIdx = textLines.size() - 1;
                 lineWidthToCursor = lineWidth;
             }
             if(letterIdx == secondCursorPos){
                 localSecondCursorPos = textLines.back().size();
-                realLocalSecondCursorPos = localLetterIdx;
                 lineWithSecondCursorIdx = textLines.size() - 1;
                 lineWidthToSecondCursor = lineWidth;
             }
@@ -240,7 +231,6 @@ void SuperTextModule::update(){
                         }*/
                         //currentTabLength = tabLength;
                         textLines.push_back("");
-                        localLetterIdx = 0;
                         realTextSize.x = std::max(realTextSize.x, lineWidth);
                         lineWidths.back() = lineWidth;
                         lineWidths.push_back(0);
@@ -318,7 +308,6 @@ void SuperTextModule::update(){
                 }
                 else if(wrapped == 'l' || wrapped == 'w'){
                     textLines.push_back("");
-                    localLetterIdx = 0;
                     realTextSize.x = std::max(realTextSize.x, lineWidth);
                     lineWidths.back() = lineWidth;
                     lineWidths.push_back(0);
@@ -340,13 +329,11 @@ void SuperTextModule::update(){
                     }
                     if(letterIdx == cursorPos){
                         localCursorPos = textLines.back().size();
-                        realLocalCursorPos = localLetterIdx;
                         lineWithCursorIdx = textLines.size() - 1;
                         lineWidthToCursor = lineWidth;
                     }
                     if(letterIdx == secondCursorPos){
                         localSecondCursorPos = textLines.back().size();
-                        realLocalSecondCursorPos = localLetterIdx;
                         lineWithSecondCursorIdx = textLines.size() - 1;
                         lineWidthToSecondCursor = lineWidth;
                     }
@@ -373,23 +360,13 @@ void SuperTextModule::update(){
 
     if(cursorPos > 0 && lineWithCursorIdx == 0 && localCursorPos == 0){
         localCursorPos = textLines.back().size();
-        realLocalCursorPos = localLetterIdx;
         lineWithCursorIdx = textLines.size() - 1;
         lineWidthToCursor = lineWidth;
     }
     if(secondCursorPos > 0 && lineWithSecondCursorIdx == 0 && localSecondCursorPos == 0){
         localSecondCursorPos = textLines.back().size();
-        realLocalSecondCursorPos = localLetterIdx;
         lineWithSecondCursorIdx = textLines.size() - 1;
         lineWidthToSecondCursor = lineWidth;
-    }
-
-    if(lineWithCursorIdx > 0 && realLocalCursorPos > 0){
-        realLocalCursorPos--;
-    }
-
-    if(lineWithSecondCursorIdx > 0 && realLocalSecondCursorPos > 0){
-        realLocalSecondCursorPos--;
     }
     
     if(Formatting.back().Font->height > lineHeights.back()){
@@ -405,6 +382,8 @@ void SuperTextModule::update(){
     for(float & width : lineWidths){
         width = std::min(width, float(size.x));
     }
+
+    updated = true;
 }
 
 void SuperTextModule::cropSizeToText(){
@@ -1019,8 +998,11 @@ void SuperTextModule::divideFormattingByCursor(){
         }
     }
 
-    textLines.back() += ' ';
-    lineLengths.back()++;
+    if(updated){
+        textLines.back() += ' ';
+        lineLengths.back()++;
+        updated = false;
+    }
     if(Formatting.back().drawingLimit < Formatting.back().limit){
         Formatting.back().drawingLimit++;
     }
@@ -1749,7 +1731,22 @@ void SuperEditableTextModule::takeCareOfLastLineIfEmpty(float & currentWidth, un
 }
 void SuperEditableTextModule::moveCursorToTheStartOfTheCurrentTextLine(unsigned & letterIdx, unsigned & currentLineLength, unsigned & formatIdx, unsigned & limit){
     //Move cursors to the start of the current line.
+    bool onlySpacesLeft = false;
     for(; currentLineLength > 0; currentLineLength--, letterIdx--){
+        if(content[letterIdx] == '\t'){
+            for(unsigned i = currentLineLength;;i--){
+                if(textLines[lineWithCursorIdx][i] != ' '){
+                    break;
+                }
+                if(i == 0){
+                    onlySpacesLeft = true;
+                    break;
+                }
+            }
+            if(onlySpacesLeft){
+                break;
+            }
+        }
         while(content[letterIdx] != '\n' && content[letterIdx] != textLines[lineWithCursorIdx][currentLineLength]
             && !(content[letterIdx] == '\t' && textLines[lineWithCursorIdx][currentLineLength] == ' '))
         {
@@ -1767,6 +1764,33 @@ void SuperEditableTextModule::moveCursorToTheStartOfTheCurrentTextLine(unsigned 
             continue;
         }
         limit--;
+    }
+    if(onlySpacesLeft /*&& letterIdx - lineStarts[lineWithCursorIdx] > 0*/){
+        unsigned realCharacters = letterIdx - lineStarts[lineWithCursorIdx];
+        for(; realCharacters > 0; realCharacters--, letterIdx--){
+            if(currentLineLength == 0){
+                break;
+            }
+            if(limit == 0){
+                formatIdx--;
+                limit = Formatting[formatIdx].limit - 1;
+                continue;
+            }
+            limit--;
+        }
+        currentLineLength = 0;
+        if(lineWithCursorIdx == 0){
+            letterIdx--;
+            if(limit == 0){
+                formatIdx--;
+                limit = Formatting[formatIdx].limit - 1;
+            }
+            limit--;
+        }
+    }
+    if(letterIdx != lineStarts[lineWithCursorIdx]){
+        cout << "Error: In: " << __FUNCTION__ << ": Cursor moved passed the current line (cursorPos: "
+            << letterIdx << "; line start: " << lineStarts[lineWithCursorIdx] << ").\n";
     }
 }
 void SuperEditableTextModule::moveCursorToTheStartOfThePreviousTextLine(bool shift, unsigned & letterIdx, unsigned & currentLineLength, unsigned & formatIdx, unsigned & limit){
@@ -1845,10 +1869,11 @@ void SuperEditableTextModule::moveCursorToTheStartOfThePreviousTextLine(bool shi
         currentLineLength = 0;
     }
 }
-void SuperEditableTextModule::moveCursorToTheSavedWidth(float & currentWidth, unsigned & letterIdx, unsigned & currentLineLength, unsigned & formatIdx, unsigned & limit, float selectedWidth){
+void SuperEditableTextModule::moveCursorToTheSavedWidth(float & currentWidth, unsigned & letterIdx, unsigned & currentLineLength,
+    unsigned & formatIdx, unsigned & limit, float selectedWidth, unsigned & currentTabLength){
     //Move cursor to the saved width
     currentWidth = 0.0;
-    unsigned currentTabLength = 0;
+    currentTabLength = 0;
     char letter;
     float spaceWidth = al_get_text_width(Formatting[formatIdx].Font->font, string(" ").c_str());
     for(; currentWidth < selectedWidth && letterIdx < content.size(); currentLineLength++, letterIdx++){
@@ -2004,8 +2029,9 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
     moveCursorToTheStartOfTheCurrentTextLine(letterIdx, currentLineLength, formatIdx, limit);
 
     moveCursorToTheStartOfThePreviousTextLine(shift, letterIdx, currentLineLength, formatIdx, limit);
-    
-    moveCursorToTheSavedWidth(currentWidth, letterIdx, currentLineLength, formatIdx, limit, lineWidthToCursor);
+
+    unsigned currentTabLength; //This is needed for selecting text with the mouse.
+    moveCursorToTheSavedWidth(currentWidth, letterIdx, currentLineLength, formatIdx, limit, lineWidthToCursor, currentTabLength);
     
     if(!shift){
         cursorPos = letterIdx;
@@ -2237,8 +2263,12 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
     if(!shift){
         lineWithSecondCursorIdx = lineWithCursorIdx;
     }
-    moveCursorToTheSavedWidth(currentWidth, letterIdx, currentLineLength, formatIdx, limit, lineWidthToCursor);
-    if(lineWithCursorIdx == textLines.size() - 1 && textLines.back() != " " && (currentWidth < lineWidthToCursor || (currentWidth == lineWidthToCursor && currentWidth == lineWidths[lineWithCursorIdx]))){
+    unsigned currentTabLength; //This is needed for selecting text with the mouse.
+    moveCursorToTheSavedWidth(currentWidth, letterIdx, currentLineLength, formatIdx, limit, lineWidthToCursor, currentTabLength);
+    if(lineWithCursorIdx == textLines.size() - 1 && textLines.back() != " "
+        && (currentWidth < lineWidthToCursor || (currentWidth == lineWidthToCursor
+        && currentWidth == lineWidths[lineWithCursorIdx]))
+    ){
         letterIdx++;
         limit++;
         if(limit >= Formatting[formatIdx].limit){
@@ -2763,11 +2793,25 @@ void SuperEditableTextModule::setSecondCursorPos(int newPos){
         divideFormattingByCursor();
     }
 }
+float SuperEditableTextModule::getWidthOfLetterInTheText(unsigned currentCursorPos){
+    unsigned formatIdx = 0;
+    for(unsigned limit = 0, letterIdx = 0; letterIdx < currentCursorPos; letterIdx++){
+        limit++;
+        if(limit == Formatting[formatIdx].limit){
+            formatIdx++;
+            limit = 0;
+        }
+    }
+    char letter = content.substr(currentCursorPos, 1)[0];
+    return al_get_text_width(Formatting[formatIdx].Font->font, string(1, letter).c_str());
+}
 void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, const MouseClass & Mouse){
     cursorPos = 0;
 
     if(Formatting.size() == 0){
         cursorPos = content.size();
+        localCursorPos = lineLengths.back();
+        lineWidthToCursor = lineWidths.back();
         return;
     }
 
@@ -2786,15 +2830,21 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, const MouseClas
 
     if(lineIdx == lineHeights.size()){
         cursorPos = content.size();
+        localCursorPos = lineLengths.back();
+        lineWidthToCursor = lineWidths.back();
         return;
     }
 
     if(Mouse.getPos().x - finalPos.x > lineWidths[lineIdx]){
         if(lineIdx < lineHeights.size() - 1){
             cursorPos = lineStarts[lineIdx + 1] - 1;
+            localCursorPos = lineLengths[lineIdx] - 1;
+            lineWidthToCursor = lineWidths[lineIdx] - getWidthOfLetterInTheText(cursorPos);
         }
         else{
             cursorPos = content.size();
+            localCursorPos = lineLengths.back();
+            lineWidthToCursor = lineWidths.back();
         }
         return;
     }
@@ -2812,5 +2862,20 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, const MouseClas
     //Find a letter that mouse is pointing to in the current line
     float currentWidth = 0;
     unsigned currentLineLength = 0;
-    moveCursorToTheSavedWidth(currentWidth, cursorPos, currentLineLength, formatIdx, limit, Mouse.getPos().x - finalPos.x);
+    unsigned currentTabLength;
+    moveCursorToTheSavedWidth(currentWidth, cursorPos, currentLineLength, formatIdx, limit, Mouse.getPos().x - finalPos.x, currentTabLength);
+
+    if(currentWidth > Mouse.getPos().x - finalPos.x){
+        if(content[cursorPos] == '\t'){
+            currentWidth -= currentTabLength * al_get_text_width(Formatting[formatIdx].Font->font, string(" ").c_str());
+            currentLineLength -= currentTabLength - 1;
+        }
+        else{
+            char letter = content.substr(cursorPos, 1)[0];
+            currentWidth -= al_get_text_width(Formatting[formatIdx].Font->font, string(1, letter).c_str());
+        }
+    }
+
+    localCursorPos = currentLineLength;
+    lineWidthToCursor = currentWidth;
 }

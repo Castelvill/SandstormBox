@@ -34,9 +34,10 @@ public:
     float rotation;
     unsigned short tabLength;
     unsigned cursorPos, secondCursorPos;
-    unsigned localCursorPos, realLocalCursorPos, lineWithCursorIdx;
-    unsigned localSecondCursorPos, realLocalSecondCursorPos, lineWithSecondCursorIdx;
+    unsigned localCursorPos, lineWithCursorIdx;
+    unsigned localSecondCursorPos, lineWithSecondCursorIdx;
     float lineWidthToCursor, lineWidthToSecondCursor;
+    bool updated;
 
     bool drawSelectionFirst; //If true, whole text content is rendered twice, first - only the selection, second - only the text.  
 
@@ -157,7 +158,8 @@ public:
     void takeCareOfLastLineIfEmpty(float & currentWidth, unsigned & letterIdx, unsigned & currentLineLength, unsigned & formatIdx, unsigned & limit);
     void moveCursorToTheStartOfTheCurrentTextLine(unsigned & letterIdx, unsigned & currentLineLength, unsigned & formatIdx, unsigned & limit);
     void moveCursorToTheStartOfThePreviousTextLine(bool shift, unsigned & letterIdx, unsigned & currentLineLength, unsigned & formatIdx, unsigned & limit);
-    void moveCursorToTheSavedWidth(float & currentWidth, unsigned & letterIdx, unsigned & currentLineLength, unsigned & formatIdx, unsigned & limit, float selectedWidth);
+    void moveCursorToTheSavedWidth(float & currentWidth, unsigned & letterIdx, unsigned & currentLineLength, unsigned & formatIdx,
+        unsigned & limit, float selectedWidth, unsigned & currentTabLength);
     void updateFormattingForUpMoveWithoutShift(unsigned & formatIdx, unsigned & limit, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void updateFormattingForUpMoveWithShift(unsigned & letterIdx, unsigned & formatIdx, unsigned & limit, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorUp(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
@@ -179,6 +181,7 @@ public:
     );
     void setCursorPos(int newPos);
     void setSecondCursorPos(int newPos);
+    float getWidthOfLetterInTheText(unsigned currentCursorPos);
     void setCursorsWithMouse(vec2d finalPos, const MouseClass & Mouse);
 };
 
