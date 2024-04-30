@@ -1,20 +1,20 @@
--Fix: Cannot select the whole text in the "note" program.
--Moving cursor up or down shouldn't change the "localCursorPos" variable in order to optimize moving around the text.
--Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
 -Implement "ctrl+delete".
--(?) Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
+-Add modules scalling from the edge of the camera.
 -Create "save_formatted_text" and "load_formatted_text" instructions to enable saving and loading formatted text (with special data on the start of the file).
 -Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every entered white space just like in vs code. Remember to update support variables. 
 -Add previous and future formatting for undo and redo.
 -After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
--Remove old TextModule and EditableTextModule. Remove old, useless functions and methods.
+-(?) Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
 -Move "set_real_scrolling_area" function to the "enter" procedure in the script.
 -Add in-terminal scrolling: automatic and the scrollbar.
 -Implement arithmetic instructions and function for vector module (+=, -=, etc.).
 -With updated arithmetic instructions improve the auto-complete (remove the loop).
--Add module scalling from the edge of the camera.
+-Moving cursor up or down shouldn't change the "localCursorPos" variable in order to optimize moving around the text.
+-Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
+-Remove old TextModule and EditableTextModule and rename new modules.
+-Remove old, useless functions and methods.
 
 MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside the engine.
 

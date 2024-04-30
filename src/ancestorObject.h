@@ -55,6 +55,8 @@ public:
     vector <string> vectorContainerIDs;
 
     vector <string> bindedScripts;
+    
+    bool canBeMovedWithMouse;
 
     AncestorObject();
     void deleteLater();

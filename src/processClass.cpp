@@ -222,7 +222,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             }
             updateCamerasPositions(Engine);
             if(Engine.Mouse.didMouseMove){
-                selectText(Engine.Mouse);
+                selectLettersInText(Engine.Mouse);
             }
             break;
         case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
@@ -282,10 +282,14 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
         }
     }
 }
-void ProcessClass::selectText(const MouseClass & Mouse){
-    if(SelectedObject == nullptr || ActiveEditableText == nullptr || !Mouse.isPressed(0)){
+void ProcessClass::selectLettersInText(const MouseClass & Mouse){
+    if(!Mouse.isPressed(0) || SelectedObject == nullptr || ActiveEditableText == nullptr
+        || !SelectedObject->getIsActive() || !Mouse.pressedInRectangle(SelectedObject->getPosOnCamera(SelectedCamera),
+        SelectedObject->getSize(), 0, SelectedObject->getIsAttachedToCamera(), SelectedCamera)
+    ){
         return;
     }
+    //cout << "Selected object: '" << SelectedObject->getID() << "'; Select text: " << ActiveEditableText->getID() << "\n";
     ActiveEditableText->cursorPos = 0;
     ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera), Mouse);
     if(Mouse.firstPressedInRectangle(
@@ -5417,8 +5421,11 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
         else if(Operation.Location.attribute == "disable_interface"){
             Object->setIsAttachedToCamera(false);
         }
-        else if(Operation.Location.attribute == "set_interface"){
+        else if(Operation.Location.attribute == "set_interface" && Variables.size() > 0){
             Object->setIsAttachedToCamera(Variables[0].getBoolUnsafe());
+        }
+        else if(Operation.Location.attribute == "set_can_be_moved_with_mouse" && Variables.size() > 0){
+            Object->canBeMovedWithMouse = Variables[0].getBoolUnsafe();
         }
         else{
             bool temp = false;
@@ -9785,6 +9792,7 @@ void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
         && !SelectedCamera->getIsMinimized()
         && SelectedCamera->isLayerVisible(SelectedLayer->getID())
         && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
+        && SelectedObject->canBeMovedWithMouse
     ){
         if(SelectedObject->getIsAttachedToCamera()){
             SelectedObject->setPos(Mouse.getPos()-dragStartingPos);
@@ -10206,8 +10214,6 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         || SelectedCamera->getIsMinimized() /*|| !SelectedCamera->canMoveObjects*/){
         return;
     }
-
-    bool disableActiveEditableText = true;
     
     for(LayerClass & Layer : Layers){
         if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID()) || !SelectedCamera->isLayerAccessible(Layer.getID())){
@@ -10220,8 +10226,20 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         }
 
         for(AncestorObject & Object : Layer.Objects){
-            if(!Object.getIsActive()){
+            //You can select text only if you can select its object. Without selecting the object, selecting more than one letter in a text field will be harder.
+            if(!Object.getIsActive() || !Object.getCanBeSelected()
+                || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera),
+                Object.getSize(), 0, Object.getIsAttachedToCamera(), SelectedCamera)
+            ){
                 continue;
+            }
+            if(ActiveEditableText != nullptr){
+                ActiveEditableText->isEditingActive = false;
+                for(FormatClass & Format : ActiveEditableText->Formatting){
+                    Format.selected = false;
+                }
+                ActiveEditableText->update();
+                ActiveEditableText = nullptr;
             }
             if(SelectedCamera->canEditText){
                 for(SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
@@ -10230,14 +10248,6 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                         SuperEditableText.getSize(), 0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera)
                     ){
                         continue;
-                    }
-                    disableActiveEditableText = false;
-                    if(ActiveEditableText != nullptr){
-                        ActiveEditableText->isEditingActive = false;
-                        for(FormatClass & Format : ActiveEditableText->Formatting){
-                            Format.selected = false;
-                        }
-                        ActiveEditableText->update();
                     }
                     ActiveEditableText = &SuperEditableText;
                     ActiveEditableText->isEditingActive = true;
@@ -10250,19 +10260,14 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                         0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera
                     )){
                         ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
+                        //Update variables needed for moving up and down in the text.
                         ActiveEditableText->localSecondCursorPos = ActiveEditableText->localCursorPos;
                         ActiveEditableText->lineWithSecondCursorIdx = ActiveEditableText->lineWithCursorIdx;
                         ActiveEditableText->lineWidthToSecondCursor = ActiveEditableText->lineWidthToCursor;
                     }
                     ActiveEditableText->divideFormattingByCursor();
-                    //ActiveEditableText->update();
                     break;
                 }
-            }
-            if(!Object.getCanBeSelected() || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera),
-                Object.getSize(), 0, Object.getIsAttachedToCamera(), SelectedCamera)
-            ){
-                continue;
             }
             if(&Layer == SelectedLayer && &Object == SelectedObject){
                 return;
@@ -10275,7 +10280,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
             return;
         }
     }
-    if(ActiveEditableText != nullptr && disableActiveEditableText){
+    if(ActiveEditableText != nullptr){
         ActiveEditableText->isEditingActive = false;
         for(FormatClass & Format : ActiveEditableText->Formatting){
             Format.selected = false;

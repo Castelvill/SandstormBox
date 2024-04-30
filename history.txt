@@ -214,3 +214,75 @@ edit scripts/tabs
 edit scripts/tabs
 edit scripts/tabs
 edit scripts/tabs
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+sh tree
+sh tree
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+ed
+edit scripts/tabs
+note scripts/xd
+nw
+note scripts/xd
+nw
+sh tree
+note scripts/xd
+sh tree
+note scripts/xd
+nw
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+sh tree
+note scripts/xd
+sh tree
+fs
+fs
+note scripts/xd
+note scripts/xd
+nw
+note scripts/xd
+nw
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+note scripts/xd
+neofetch
+hello
+ls
+exit
+note scripts/xd
+nw

@@ -223,7 +223,7 @@ public:
     bool isLayersUniquenessViolated();
     bool isCamerasUniquenessViolated();
     void executeIteration(EngineClass & Engine, vector<ProcessClass> & Processes);
-    void selectText(const MouseClass & Mouse);
+    void selectLettersInText(const MouseClass & Mouse);
     void checkMouseCollisions(EngineClass & Engine);
     void renderOnDisplay(EngineClass & Engine);
     void unfocusCamera(string & focusedProcessID);

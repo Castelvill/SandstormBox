@@ -272,8 +272,9 @@ start createWindowTemplate
 
     new object c WindowLayer 1 _ _ NewWindowObject
     fun NewWindowObject set_id string [WindowObject]
-    fun NewWindowObject set_can_be_selected bool [0]
+    fun NewWindowObject set_can_be_selected bool [true]
     fun NewWindowObject enable_interface
+    fun NewWindowObject set_can_be_moved_with_mouse bool [false]
     bind NewWindowObject literal ["scripts/windowTemplate.sand"]
     build NewWindowObject true
 
@@ -446,8 +447,9 @@ start spawnNotepad
     fun TextEditor set_wrapping string [n]
     fun TextEditor set_content string [""]
     fun TextEditor activate
+    fun Object set_size int [640 480]
     bind Object literal ["scripts/notepad.sand"]
-    build Object false
+    build Object true
     run loadTextFromFile
 end
 

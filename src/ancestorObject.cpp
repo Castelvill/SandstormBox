@@ -96,6 +96,7 @@ vector<string> readLines(const string& filename) {
 AncestorObject::AncestorObject(){
     deleted = false;
     isActive = false;
+    canBeMovedWithMouse = true;
     //blank object
     //cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
@@ -206,6 +207,9 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         VectorContainer.push_back(VectorModule());
         VectorContainer.back().clone(Vector, vectorContainerIDs, newLayerID, getID(), true);
     }
+
+    bindedScripts.insert(bindedScripts.end(), Original.bindedScripts.begin(), Original.bindedScripts.end());
+    canBeMovedWithMouse = Original.canBeMovedWithMouse;
 }
 void AncestorObject::clearVectorsOfIDs(){
     textContainerIDs.clear();
@@ -278,6 +282,7 @@ void AncestorObject::clear(){
     ScrollbarContainer.clear();
     PrimitivesContainer.clear();
     VectorContainer.clear();
+    bindedScripts.clear();
 }
 void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects,
     vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string workingDirectory
