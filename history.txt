@@ -286,3 +286,17 @@ ls
 exit
 note scripts/xd
 nw
+edit scripts/xd
+exit
+edit scripts/xd
+exit
+edit scripts/xd
+edit scripts/xd
+edit scripts/xd
+edit scripts/xd
+edit scripts/xd
+edit scripts/xd
+edit scripts/xd
+edit scripts/xd
+edit scripts/xd
+edit scripts/xd

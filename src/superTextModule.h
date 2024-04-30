@@ -142,6 +142,11 @@ public:
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
+    void executeOneBackspaceOrCtrlX(char pKey, string text, ALLEGRO_DISPLAY * window, unsigned & leftCursorOnFormatIdx,
+        unsigned & rightCursorOnFormatIdx, bool ENABLE_al_set_clipboard_text, string & internalClipboard,
+        vector<FormatClass> & CopiedFormatting, string EXE_PATH
+    );
+    void executeOneDeletion(string text, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     bool deleteFromText(char pKey, string text, bool & control, ALLEGRO_DISPLAY * window,
         unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
         bool ENABLE_al_set_clipboard_text, string & internalClipboard,

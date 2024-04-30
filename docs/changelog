@@ -1,3 +1,6 @@
+1.04.2024
+-Implemented deleting whole words with the "ctrl" key.
+
 30.04.2024
 -Fixed: Right after executing the first "note" program, cannot select more than one letter in the text.
 -Fixed: Clicking on the last line of a text and going down offsets the cursor and can cause a crash.

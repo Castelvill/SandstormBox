@@ -1358,6 +1358,124 @@ bool SuperEditableTextModule::prepareEditing(const vector <short> & releasedKeys
 
     return true;
 }
+void SuperEditableTextModule::executeOneBackspaceOrCtrlX(char pKey, string text, ALLEGRO_DISPLAY * window, unsigned & leftCursorOnFormatIdx,
+    unsigned & rightCursorOnFormatIdx, bool ENABLE_al_set_clipboard_text, string & internalClipboard,
+    vector<FormatClass> & CopiedFormatting, string EXE_PATH
+){
+    if(text.size() <= minContentLength){
+        return;
+    }
+    string newContent = "";
+    if(cursorPos != secondCursorPos){
+        unsigned selectionStart = std::min(cursorPos, secondCursorPos);
+        unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+        if(selectionEnd >= text.size()){
+            selectionEnd--;
+        }
+
+        if(pKey == ALLEGRO_KEY_X){
+            string clipboard = "";
+            if(cursorPos != secondCursorPos){
+                clipboard = text.substr(selectionStart, selectionEnd - selectionStart + 1);
+            }
+            internalClipboard = clipboard;
+
+            if(ENABLE_al_set_clipboard_text){
+                al_set_clipboard_text(window, clipboard.c_str());
+            }
+            else{
+                std::ofstream File(EXE_PATH + "clipboard.txt", std::ios::trunc | std::ios::out);
+                if(File){
+                    File << internalClipboard;
+                }
+                File.close();
+            }
+
+            CopiedFormatting.clear();
+            CopiedFormatting.insert(CopiedFormatting.begin(), Formatting.begin() + leftCursorOnFormatIdx,
+                Formatting.begin() + rightCursorOnFormatIdx + 1);
+        }
+
+        newContent = text.substr(0, selectionStart) + text.substr(selectionEnd + 1, text.size()-selectionEnd);
+        cursorPos = selectionStart;
+
+        Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1, Formatting.begin() + rightCursorOnFormatIdx + 1);
+        if(Formatting.size() > leftCursorOnFormatIdx + 1){
+            Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
+            Formatting[leftCursorOnFormatIdx + 1].limit--;
+            if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
+                Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
+            }
+        }
+        Formatting[leftCursorOnFormatIdx].limit = 1;
+        Formatting[leftCursorOnFormatIdx].selected = true;
+        rightCursorOnFormatIdx = leftCursorOnFormatIdx;
+    }
+    else{
+        if(cursorPos == protectedArea || secondCursorPos == protectedArea || cursorPos == 0){
+            return;
+        }
+        newContent = text.substr(0, cursorPos-1) + text.substr(cursorPos, text.size()-cursorPos);
+        cursorPos--;
+        
+        if(Formatting[leftCursorOnFormatIdx - 1].limit == 1){
+            Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx - 1);
+            leftCursorOnFormatIdx--;
+        }
+        else{
+            Formatting[leftCursorOnFormatIdx - 1].limit--;
+        }
+    }
+    content = newContent;
+    secondCursorPos = cursorPos;
+}
+void SuperEditableTextModule::executeOneDeletion(string text, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
+    if(text.size() <= minContentLength){
+        return;
+    }
+    string newContent = "";
+    if(cursorPos != secondCursorPos){
+        unsigned selectionStart = std::min(cursorPos, secondCursorPos);
+        unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
+        if(selectionEnd >= text.size()){
+            selectionEnd--;
+        }
+        newContent = text.substr(0, selectionStart) + text.substr(selectionEnd + 1, text.size()-selectionEnd);
+        cursorPos = selectionStart;
+
+        Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1, Formatting.begin() + rightCursorOnFormatIdx + 1);
+        if(Formatting.size() > leftCursorOnFormatIdx + 1){
+            Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
+            Formatting[leftCursorOnFormatIdx + 1].limit--;
+            if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
+                Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
+            }
+        }
+        Formatting[leftCursorOnFormatIdx].limit = 1;
+        rightCursorOnFormatIdx = leftCursorOnFormatIdx;
+    }
+    else{
+        if(cursorPos >= text.size()){
+            return;
+        }
+        newContent = text.substr(0, cursorPos) + text.substr(cursorPos+1, text.size()-cursorPos);
+        
+        if(Formatting[leftCursorOnFormatIdx].limit == 1){
+            Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
+            Formatting[leftCursorOnFormatIdx].limit = 1;
+            Formatting[leftCursorOnFormatIdx].selected = true;
+            Formatting[leftCursorOnFormatIdx + 1].limit--;
+            if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
+                Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
+            }
+        }
+        else{
+            Formatting[leftCursorOnFormatIdx].limit--;
+        }
+    }
+    content = newContent;
+    secondCursorPos = cursorPos;
+}
 bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & control,
     ALLEGRO_DISPLAY * window, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
     bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting,
@@ -1370,123 +1488,55 @@ bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & cont
         return true;
     }
     if(pKey == ALLEGRO_KEY_BACKSPACE || (pKey == ALLEGRO_KEY_X && control && cursorPos != secondCursorPos)){
-        if(text.size() <= minContentLength){
-            return true;
-        }
-        string newContent = "";
-        if(cursorPos != secondCursorPos){
-            unsigned selectionStart = std::min(cursorPos, secondCursorPos);
-            unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
-            if(selectionEnd >= text.size()){
-                selectionEnd--;
-            }
-
-            if(pKey == ALLEGRO_KEY_X){
-                string clipboard = "";
-                if(cursorPos != secondCursorPos){
-                    clipboard = text.substr(selectionStart, selectionEnd - selectionStart + 1);
-                }
-                internalClipboard = clipboard;
-
-                if(ENABLE_al_set_clipboard_text){
-                    al_set_clipboard_text(window, clipboard.c_str());
-                }
-                else{
-                    std::ofstream File(EXE_PATH + "clipboard.txt", std::ios::trunc | std::ios::out);
-                    if(File){
-                        File << internalClipboard;
-                    }
-                    File.close();
-                }
-
-                CopiedFormatting.clear();
-                CopiedFormatting.insert(CopiedFormatting.begin(), Formatting.begin() + leftCursorOnFormatIdx,
-                    Formatting.begin() + rightCursorOnFormatIdx + 1);
-            }
-
-            newContent = text.substr(0, selectionStart) + text.substr(selectionEnd + 1, text.size()-selectionEnd);
-            cursorPos = selectionStart;
-
-            Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1, Formatting.begin() + rightCursorOnFormatIdx + 1);
-            if(Formatting.size() > leftCursorOnFormatIdx + 1){
-                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
-                Formatting[leftCursorOnFormatIdx + 1].limit--;
-                if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
-                    Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
+        
+        //If ctrl key is pressed, find the distance to the beginning of the current word. Later delete all letters from the cursor to the end of this word - letter by letter.
+        unsigned letterShift = cursorPos;
+        if(control && letterShift > protectedArea && letterShift > 0){
+            letterShift--;
+            for(; letterShift > 0; letterShift--){
+                if(content[letterShift] == ' ' || content[letterShift] == '\t' || content[letterShift] == '\n'){
+                    break;
                 }
             }
-            Formatting[leftCursorOnFormatIdx].limit = 1;
-            Formatting[leftCursorOnFormatIdx].selected = true;
-            rightCursorOnFormatIdx = leftCursorOnFormatIdx;
-        }
-        else{
-            if(cursorPos == protectedArea || secondCursorPos == protectedArea){
-                return true;
-            }
-            if(cursorPos == 0){
-                return true;
-            }
-            newContent = text.substr(0, cursorPos-1) + text.substr(cursorPos, text.size()-cursorPos);
-            cursorPos--;
-            
-            if(Formatting[leftCursorOnFormatIdx - 1].limit == 1){
-                Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx - 1);
-                leftCursorOnFormatIdx--;
+            if(letterShift == 0 && content[0] != ' ' && content[0] != '\t' && content[0] != '\n'){
+                letterShift = cursorPos - letterShift;
             }
             else{
-                Formatting[leftCursorOnFormatIdx - 1].limit--;
+                letterShift = cursorPos - letterShift - 1;
+            }
+            if(letterShift == 0){
+                letterShift = 1;
             }
         }
-        content = newContent;
-        secondCursorPos = cursorPos;
+        else{
+            letterShift = 1;
+        }
+
+        for(; letterShift > 0; letterShift--){
+            text = content;
+            executeOneBackspaceOrCtrlX(pKey, text, window, leftCursorOnFormatIdx, rightCursorOnFormatIdx,
+                ENABLE_al_set_clipboard_text, internalClipboard, CopiedFormatting, EXE_PATH
+            );
+        }
         return true;
     }
     else if(pKey == ALLEGRO_KEY_DELETE){
-        if(text.size() <= minContentLength){
-            return true;
-        }
-        string newContent = "";
-        if(cursorPos != secondCursorPos){
-            unsigned selectionStart = std::min(cursorPos, secondCursorPos);
-            unsigned selectionEnd = std::max(cursorPos, secondCursorPos);
-            if(selectionEnd >= text.size()){
-                selectionEnd--;
+        //If ctrl key is pressed, find the distance to the end of the current word. Later delete all letters from the cursor to the start of this word - letter by letter.
+        unsigned letterShift = cursorPos + 1;
+        if(control){
+            for(; letterShift < content.size(); letterShift++){
+                if(content[letterShift] == ' ' || content[letterShift] == '\t' || content[letterShift] == '\n'){
+                    break;
+                }
             }
-            newContent = text.substr(0, selectionStart) + text.substr(selectionEnd + 1, text.size()-selectionEnd);
-            cursorPos = selectionStart;
+        }
+        letterShift -= cursorPos;
 
-            Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1, Formatting.begin() + rightCursorOnFormatIdx + 1);
-            if(Formatting.size() > leftCursorOnFormatIdx + 1){
-                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
-                Formatting[leftCursorOnFormatIdx + 1].limit--;
-                if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
-                    Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
-                }
-            }
-            Formatting[leftCursorOnFormatIdx].limit = 1;
-            rightCursorOnFormatIdx = leftCursorOnFormatIdx;
+        for(; letterShift > 0; letterShift--){
+            text = content;
+            executeOneDeletion(text, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
         }
-        else{
-            if(cursorPos >= text.size()){
-                return true;
-            }
-            newContent = text.substr(0, cursorPos) + text.substr(cursorPos+1, text.size()-cursorPos);
-            
-            if(Formatting[leftCursorOnFormatIdx].limit == 1){
-                Formatting[leftCursorOnFormatIdx] = Formatting[leftCursorOnFormatIdx + 1];
-                Formatting[leftCursorOnFormatIdx].limit = 1;
-                Formatting[leftCursorOnFormatIdx].selected = true;
-                Formatting[leftCursorOnFormatIdx + 1].limit--;
-                if(Formatting[leftCursorOnFormatIdx + 1].limit == 0){
-                    Formatting.erase(Formatting.begin() + leftCursorOnFormatIdx + 1);
-                }
-            }
-            else{
-                Formatting[leftCursorOnFormatIdx].limit--;
-            }
-        }
-        content = newContent;
-        secondCursorPos = cursorPos;
+        
         return true;
     }
     return false;
@@ -2393,6 +2443,8 @@ void SuperEditableTextModule::moveCursorToLeft(bool shift, bool control, unsigne
     if(cursorPos < protectedArea || secondCursorPos < protectedArea){
         return;
     }
+
+    //If ctrl key is pressed, find the distance to the beginning of the current word. Later move there letter by letter.
     unsigned letterShift = cursorPos;
     if(control && letterShift > protectedArea && letterShift > 0){
         letterShift--;
@@ -2414,6 +2466,7 @@ void SuperEditableTextModule::moveCursorToLeft(bool shift, bool control, unsigne
     else{
         letterShift = 1;
     }
+
     for(; letterShift > 0; letterShift--){
         moveCursorToLeftByOne(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
     }
@@ -2497,6 +2550,8 @@ void SuperEditableTextModule::moveCursorToRight(bool shift, bool control, unsign
     if(cursorPos < protectedArea || secondCursorPos < protectedArea){
         return;
     }
+
+    //If ctrl key is pressed, find the distance to the end of the current word. Later move there letter by letter.
     unsigned letterShift = cursorPos + 1;
     if(control){
         for(; letterShift < content.size(); letterShift++){
@@ -2506,6 +2561,7 @@ void SuperEditableTextModule::moveCursorToRight(bool shift, bool control, unsign
         }
     }
     letterShift -= cursorPos;
+
     for(; letterShift > 0; letterShift--){
         moveCursorToRightByOne(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
     }
