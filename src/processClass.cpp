@@ -284,19 +284,20 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
 }
 void ProcessClass::selectLettersInText(const MouseClass & Mouse){
     if(!Mouse.isPressed(0) || SelectedObject == nullptr || ActiveEditableText == nullptr
-        || !SelectedObject->getIsActive() || !Mouse.pressedInRectangle(SelectedObject->getPosOnCamera(SelectedCamera),
-        SelectedObject->getSize(), 0, SelectedObject->getIsAttachedToCamera(), SelectedCamera)
+        || !SelectedObject->getIsActive()
+        || !Mouse.pressedInRectangle(SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable()),
+        SelectedObject->getSize(), 0, SelectedObject->getIsPartOfInterface(), SelectedCamera)
     ){
         return;
     }
     //cout << "Selected object: '" << SelectedObject->getID() << "'; Select text: " << ActiveEditableText->getID() << "\n";
     ActiveEditableText->cursorPos = 0;
-    ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera), Mouse);
+    ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable()), Mouse);
     if(Mouse.firstPressedInRectangle(
-        SelectedObject->getPosOnCamera(SelectedCamera)
+        SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable())
         + ActiveEditableText->getPos(ActiveEditableText->getIsScrollable()),
         ActiveEditableText->getSize(),
-        0, ActiveEditableText->getIsAttachedToCamera(), SelectedCamera
+        0, ActiveEditableText->getIsPartOfInterface(), SelectedCamera
     )){
         ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
         ActiveEditableText->localSecondCursorPos = ActiveEditableText->localCursorPos;
@@ -342,8 +343,8 @@ void ProcessClass::checkMouseCollisions(EngineClass &Engine){
                 vec2d pos(Collision.getPos(Collision.getIsScrollable()));
                 pos.translate(Layer.pos + Object.getPos(Object.getIsScrollable()) + SelectedCamera->pos);
                 vec2d size(Collision.getSize());
-                if((Collision.getIsCircle() && Engine.Mouse.releasedInRadius(pos, size.x, 0, Collision.getIsAttachedToCamera(), SelectedCamera))
-                    || (!Collision.getIsCircle() && Engine.Mouse.releasedInRectangle(pos, size, 0, Collision.getIsAttachedToCamera(), SelectedCamera))
+                if((Collision.getIsCircle() && Engine.Mouse.releasedInRadius(pos, size.x, 0, Collision.getIsPartOfInterface(), SelectedCamera))
+                    || (!Collision.getIsCircle() && Engine.Mouse.releasedInRectangle(pos, size, 0, Collision.getIsPartOfInterface(), SelectedCamera))
                 ){
                     Collision.setMouseCollision('r');
                 }
@@ -3884,7 +3885,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->TextContainer.size() - 1; i >= long(CurrentObject->TextContainer.size() - newVectorSize); i--){
-            CurrentObject->TextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->TextContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "editable_text"){
@@ -3892,7 +3893,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->EditableTextContainer.size() - 1; i >= long(CurrentObject->EditableTextContainer.size() - newVectorSize); i--){
-            CurrentObject->EditableTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->EditableTextContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "super_text"){
@@ -3900,7 +3901,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->SuperTextContainer.size() - 1; i >= long(CurrentObject->SuperTextContainer.size() - newVectorSize); i--){
-            CurrentObject->SuperTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->SuperTextContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "super_editable_text"){
@@ -3908,7 +3909,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             newVectorSize, newIDs, layerID, objectID, Layers, EventContext, StartingEvent, Event, MemoryStack, reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->SuperEditableTextContainer.size() - 1; i >= long(CurrentObject->SuperEditableTextContainer.size() - newVectorSize); i--){
-            CurrentObject->SuperEditableTextContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->SuperEditableTextContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "image"){
@@ -3917,7 +3918,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->ImageContainer.size() - 1; i >= long(CurrentObject->ImageContainer.size() - newVectorSize); i--){
-            CurrentObject->ImageContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->ImageContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "movement"){
@@ -3926,7 +3927,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->MovementContainer.size() - 1; i >= long(CurrentObject->MovementContainer.size() - newVectorSize); i--){
-            CurrentObject->MovementContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->MovementContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "collision"){
@@ -3935,7 +3936,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->CollisionContainer.size() - 1; i >= long(CurrentObject->CollisionContainer.size() - newVectorSize); i--){
-            CurrentObject->CollisionContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->CollisionContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "particles"){
@@ -3944,7 +3945,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->ParticlesContainer.size() - 1; i >= long(CurrentObject->ParticlesContainer.size() - newVectorSize); i--){
-            CurrentObject->ParticlesContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->ParticlesContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "event"){
@@ -3965,7 +3966,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->ScrollbarContainer.size() - 1; i >= long(CurrentObject->ScrollbarContainer.size() - newVectorSize); i--){
-            CurrentObject->ScrollbarContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->ScrollbarContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "primitives"){
@@ -3974,7 +3975,7 @@ void ProcessClass::createNewEntities(OperaClass & Operation, vector<ContextClass
             reservationMultiplier, ActiveEditableText, EventIds
         );
         for(long i = CurrentObject->PrimitivesContainer.size() - 1; i >= long(CurrentObject->PrimitivesContainer.size() - newVectorSize); i--){
-            CurrentObject->PrimitivesContainer[i].setIsAttachedToCamera(CurrentObject->getIsAttachedToCamera());
+            CurrentObject->PrimitivesContainer[i].setIsPartOfInterface(CurrentObject->getIsPartOfInterface());
         }
     }
     else if(Operation.Location.source == "vector"){
@@ -5415,17 +5416,22 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
         else if(Operation.Location.attribute == "remove_group"){
             Object->clearGroups();
         }
-        else if(Operation.Location.attribute == "enable_interface"){
-            Object->setIsAttachedToCamera(true);
+        else if(Operation.Location.attribute == "add_to_the_interface"){
+            Object->setIsPartOfInterface(true);
         }
-        else if(Operation.Location.attribute == "disable_interface"){
-            Object->setIsAttachedToCamera(false);
+        else if(Operation.Location.attribute == "remove_from_the_interface"){
+            Object->setIsPartOfInterface(false);
         }
-        else if(Operation.Location.attribute == "set_interface" && Variables.size() > 0){
-            Object->setIsAttachedToCamera(Variables[0].getBoolUnsafe());
+        else if(Operation.Location.attribute == "set_is_part_of_interface" && Variables.size() > 0){
+            Object->setIsPartOfInterface(Variables[0].getBoolUnsafe());
         }
         else if(Operation.Location.attribute == "set_can_be_moved_with_mouse" && Variables.size() > 0){
             Object->canBeMovedWithMouse = Variables[0].getBoolUnsafe();
+        }
+        else if(Operation.Location.attribute == "update_scrollbars"){
+            for(ScrollbarModule & Scrollbar : Object->ScrollbarContainer){
+                Object->setScrollShift(Scrollbar.countScrollShift());
+            }
         }
         else{
             bool temp = false;
@@ -7639,10 +7645,10 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
     if(attribute == "pressed"){
         if(SelectedCamera != nullptr && Mouse.firstPressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             result = Mouse.firstPressedInRectangle(
-                CurrentObject->getPosOnCamera(SelectedCamera),
+                CurrentObject->getPosOnCamera(SelectedCamera, CurrentObject->getIsScrollable()),
                 CurrentObject->getSize(),
                 button,
-                CurrentObject->getIsAttachedToCamera(),
+                CurrentObject->getIsPartOfInterface(),
                 SelectedCamera
             );
         }
@@ -7650,10 +7656,10 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
     else if(attribute == "pressing"){
         if(SelectedCamera != nullptr && Mouse.pressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             result = Mouse.pressedInRectangle(
-                CurrentObject->getPosOnCamera(SelectedCamera),
+                CurrentObject->getPosOnCamera(SelectedCamera, CurrentObject->getIsScrollable()),
                 CurrentObject->getSize(),
                 button,
-                CurrentObject->getIsAttachedToCamera(),
+                CurrentObject->getIsPartOfInterface(),
                 SelectedCamera
             );
         }
@@ -7661,10 +7667,10 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
     else if(attribute == "released"){
         if(SelectedCamera != nullptr && Mouse.releasedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             result = Mouse.releasedInRectangle(
-                CurrentObject->getPosOnCamera(SelectedCamera),
+                CurrentObject->getPosOnCamera(SelectedCamera, CurrentObject->getIsScrollable()),
                 CurrentObject->getSize(),
                 button,
-                CurrentObject->getIsAttachedToCamera(),
+                CurrentObject->getIsPartOfInterface(),
                 SelectedCamera
             );
         }
@@ -9353,7 +9359,7 @@ void ProcessClass::detectStartPosOfDraggingObjects(const MouseClass & Mouse){
         && SelectedCamera->isLayerVisible(SelectedLayer->getID())
         && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
     ){
-        if(SelectedObject->getIsAttachedToCamera()){
+        if(SelectedObject->getIsPartOfInterface()){
             if(Mouse.inRectangle(SelectedCamera->pos + SelectedObject->getPos(false)+SelectedLayer->pos, SelectedObject->getSize(), true, SelectedCamera)){
                 wasMousePressedInSelectedObject = true;
                 dragStartingPos.set(Mouse.getPos()-SelectedObject->getPos(false));
@@ -9794,7 +9800,7 @@ void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
         && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
         && SelectedObject->canBeMovedWithMouse
     ){
-        if(SelectedObject->getIsAttachedToCamera()){
+        if(SelectedObject->getIsPartOfInterface()){
             SelectedObject->setPos(Mouse.getPos()-dragStartingPos);
         }
         else{
@@ -9869,7 +9875,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         }
         
         isScrollable = Primitives.getIsScrollable();
-        if(drawOnlyVisibleObjects && !Primitives.getIsAttachedToCamera()){
+        if(drawOnlyVisibleObjects && !Primitives.getIsPartOfInterface()){
             newPos.set(Object.getPos(isScrollable));
             newPos.translate(Primitives.getPos(false));
             objectSize.set(Primitives.getSize());
@@ -9896,7 +9902,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         }
         isScrollable = Image.getIsScrollable();
         //Image.drawFrame(x, y);
-        if(drawOnlyVisibleObjects && !Image.getIsAttachedToCamera()){
+        if(drawOnlyVisibleObjects && !Image.getIsPartOfInterface()){
             newPos.set(Object.getPos(isScrollable));
             newPos.translate(Image.getPos(false));
             objectSize.set(Image.getSize());
@@ -9923,7 +9929,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         }
 
         isScrollable = Scrollbar.getIsScrollable();
-        if(drawOnlyVisibleObjects && !Scrollbar.getIsAttachedToCamera()){
+        if(drawOnlyVisibleObjects && !Scrollbar.getIsPartOfInterface()){
             newPos.set(Object.getPos(isScrollable));
             newPos.translate(Scrollbar.getPos(false));
             objectSize.set(Scrollbar.getSize());
@@ -9949,7 +9955,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             continue;
         }
         isScrollable = Text.getIsScrollable();
-        if(drawOnlyVisibleObjects && !Text.getIsAttachedToCamera()){
+        if(drawOnlyVisibleObjects && !Text.getIsPartOfInterface()){
             newPos.set(Object.getPos(isScrollable));
             newPos.translate(Text.getPos(false));
             objectSize.set(Text.getSize());
@@ -9983,7 +9989,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             continue;
         }
         isScrollable = SuperText.getIsScrollable();
-        if(drawOnlyVisibleObjects && !SuperText.getIsAttachedToCamera()){
+        if(drawOnlyVisibleObjects && !SuperText.getIsPartOfInterface()){
             newPos.set(Object.getPos(isScrollable));
             newPos.translate(SuperText.getPos(false));
             objectSize.set(SuperText.getSize());
@@ -10011,7 +10017,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             continue;
         }
         isScrollable = SuperEditableText.getIsScrollable();
-        if(drawOnlyVisibleObjects && !SuperEditableText.getIsAttachedToCamera()){
+        if(drawOnlyVisibleObjects && !SuperEditableText.getIsPartOfInterface()){
             newPos.set(Object.getPos(isScrollable));
             newPos.translate(SuperEditableText.getPos(false));
             objectSize.set(SuperEditableText.getSize());
@@ -10040,7 +10046,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         }
 
         isScrollable = Editable.getIsScrollable();
-        if(drawOnlyVisibleObjects && !Editable.getIsAttachedToCamera()){
+        if(drawOnlyVisibleObjects && !Editable.getIsPartOfInterface()){
             newPos.set(Object.getPos(isScrollable));
             newPos.translate(Editable.getPos(false));
             objectSize.set(Editable.getSize());
@@ -10078,7 +10084,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             newPos = Object.getPos(false) + Hitbox.getPos(false);
             hitboxSize = Hitbox.getSize();
             
-            if(!Hitbox.getIsAttachedToCamera()){
+            if(!Hitbox.getIsPartOfInterface()){
                 newPos.set(Camera.translateWithZoom(newPos));
                 hitboxSize.multiply(Camera.zoom);
             }
@@ -10154,18 +10160,18 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
                         isScrollable = TextField.getIsScrollable();
                         finalPos.set(Object.getPos(isScrollable));
                         finalPos.translate(TextField.getPos(false));
-                        if(!TextField.getIsAttachedToCamera()){
-                            finalPos.translate(SelectedCamera->pos / SelectedCamera->zoom + SelectedCamera->visionShift);
+                        if(TextField.getIsPartOfInterface()){
+                            finalPos.translate(SelectedCamera->pos);
                         }
                         else{
-                            finalPos.translate(SelectedCamera->pos);
+                            finalPos.translate(SelectedCamera->pos / SelectedCamera->zoom + SelectedCamera->visionShift);
                         }
                         finalSize.set(TextField.getSize());
                         finalSize.multiply(TextField.getScale());
-                        if(Engine.Mouse.firstPositionInRectangle(finalPos, finalSize, 0, TextField.getIsAttachedToCamera(), SelectedCamera)){
+                        if(Engine.Mouse.firstPositionInRectangle(finalPos, finalSize, 0, TextField.getIsPartOfInterface(), SelectedCamera)){
                             TextField.setEditingIsActive(true);
                             TextField.setCursorPos(finalPos, finalSize, Engine.FontContainer, Engine.Mouse, *SelectedCamera);
-                            if(Engine.Mouse.firstPressedInRectangle(finalPos, finalSize, 0, TextField.getIsAttachedToCamera(), SelectedCamera)){
+                            if(Engine.Mouse.firstPressedInRectangle(finalPos, finalSize, 0, TextField.getIsPartOfInterface(), SelectedCamera)){
                                 TextField.secondCursorPos = TextField.cursorPos;
                             }
                             
@@ -10228,8 +10234,8 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         for(AncestorObject & Object : Layer.Objects){
             //You can select text only if you can select its object. Without selecting the object, selecting more than one letter in a text field will be harder.
             if(!Object.getIsActive() || !Object.getCanBeSelected()
-                || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera),
-                Object.getSize(), 0, Object.getIsAttachedToCamera(), SelectedCamera)
+                || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera, Object.getIsScrollable()),
+                Object.getSize(), 0, Object.getIsPartOfInterface(), SelectedCamera)
             ){
                 continue;
             }
@@ -10244,20 +10250,21 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
             if(SelectedCamera->canEditText){
                 for(SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
                     if(!SuperEditableText.getIsActive() || !SuperEditableText.canBeEdited ||
-                        !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera) + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
-                        SuperEditableText.getSize(), 0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera)
+                        !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable())
+                        + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
+                        SuperEditableText.getSize(), 0, SuperEditableText.getIsPartOfInterface(), SelectedCamera)
                     ){
                         continue;
                     }
                     ActiveEditableText = &SuperEditableText;
                     ActiveEditableText->isEditingActive = true;
                     ActiveEditableText->cursorPos = 0;
-                    ActiveEditableText->setCursorsWithMouse(Object.getPosOnCamera(SelectedCamera), Mouse);
+                    ActiveEditableText->setCursorsWithMouse(Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable()), Mouse);
                     if(Mouse.pressedInRectangle(
-                        Object.getPosOnCamera(SelectedCamera)
+                        Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable())
                         + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
                         SuperEditableText.getSize(),
-                        0, SuperEditableText.getIsAttachedToCamera(), SelectedCamera
+                        0, SuperEditableText.getIsPartOfInterface(), SelectedCamera
                     )){
                         ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
                         //Update variables needed for moving up and down in the text.
@@ -10302,13 +10309,13 @@ void ProcessClass::drawSelectionBorder(Camera2D Camera){
     }
     vec2d borderPos(SelectedObject->getPos(false) + Camera.pos);
     vec2d borderSize(SelectedObject->getSize());
-    if(!SelectedObject->getIsAttachedToCamera()){
+    if(SelectedObject->getIsPartOfInterface()){
+        al_draw_rectangle(borderPos.x, borderPos.y, borderPos.x + borderSize.x, borderPos.y + borderSize.y, al_map_rgb(216, 78, 213), 6);
+    }
+    else{
         borderSize.multiply(Camera.zoom);
         borderPos.set(Camera.translateWithZoom(borderPos));
         al_draw_rectangle(borderPos.x, borderPos.y, borderPos.x + borderSize.x, borderPos.y + borderSize.y, al_map_rgb(80, 154, 213), 6*Camera.zoom);
-    }
-    else{
-        al_draw_rectangle(borderPos.x, borderPos.y, borderPos.x + borderSize.x, borderPos.y + borderSize.y, al_map_rgb(216, 78, 213), 6);
     }
 }
 

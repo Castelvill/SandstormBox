@@ -194,12 +194,12 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
     }
     vec2d newScale(scale);
 
-    if(!isAttachedToCamera){
-        base.set(Camera.translateWithZoom(base, pos));
-        newScale.multiply(Camera.zoom);
+    if(isPartOfInterface){
+        base.set(base + pos);
     }
     else{
-        base.set(base + pos);
+        base.set(Camera.translateWithZoom(base, pos));
+        newScale.multiply(Camera.zoom);
     }
 
     float red = imageColor[0];
@@ -218,11 +218,11 @@ void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
         }
     }
     else{
-        if(!isAttachedToCamera){
-            base.translate(-((scale-1)*size*Camera.zoom)/2);
+        if(isPartOfInterface){
+            base.translate(size*(1-scale)/2);
         }
         else{
-            base.translate(size*(1-scale)/2);
+            base.translate(-((scale-1)*size*Camera.zoom)/2);
         }
 
         draw_bitmap(image, start.x, start.y, size.x, size.y, red, green, blue, alpha, rotPos.x, rotPos.y,

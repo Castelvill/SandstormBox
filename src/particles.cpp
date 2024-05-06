@@ -27,7 +27,7 @@ SingleParticle::SingleParticle(){
     shape = 0;
 
     isDrawnWithDetails = false;
-    isAttachedToCamera = false;
+    isPartOfInterface = false;
 }
 void SingleParticle::moveParticle(){
     speed += acceleration;
@@ -69,7 +69,7 @@ void SingleParticle::drawOneParticle(Camera2D Camera){
     vec2d finPos(pos);
     double finRadius = radius;
 
-    if(!isAttachedToCamera){
+    if(!isPartOfInterface){
         finPos.set(Camera.translateWithZoom(finPos));
         finRadius *= Camera.zoom;
     }
@@ -278,7 +278,7 @@ void ParticleEffectModule::spawnParticles(vec2d objPos){
         particleEffect.back().colorIntensity = randomDouble(minColorIntensity, maxColorIntensity);
         particleEffect.back().colorFading = particleEffect.back().colorIntensity*((1/FPS)/particleEffect.back().timeToDeath);
         particleEffect.back().isDrawnWithDetails = isDrawingWithDetails;
-        particleEffect.back().isAttachedToCamera = isAttachedToCamera;
+        particleEffect.back().isPartOfInterface = isPartOfInterface;
         if(usedImagesList.size() > 0){
             randomNumber = rand() % usedImagesList.size();
             particleEffect.back().usedImageName = usedImagesList[randomNumber];

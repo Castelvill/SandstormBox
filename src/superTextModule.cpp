@@ -389,7 +389,12 @@ void SuperTextModule::update(){
 void SuperTextModule::cropSizeToText(){
     size.set(realTextSize.x, realTextSize.y);
 }
-
+void SuperTextModule::cropWidthToText(){
+    size.x = realTextSize.x;
+}
+void SuperTextModule::cropHeightToText(){
+    size.y = realTextSize.y;
+}
 VariableModule SuperTextModule::getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const{
     if(attribute == "pos_x"){
         return VariableModule::newDouble(pos.x);
@@ -538,7 +543,7 @@ void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection){
 void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive){
     vec2d newScale(scale);
     vec2d unformatedPos(base + pos);
-    if(!isAttachedToCamera){
+    if(!isPartOfInterface){
         vec2d diff(Camera.size.x/2-base.x-pos.x, Camera.size.y/2-base.y-pos.y);
         unformatedPos.set(Camera.size.x/2-diff.x*(Camera.zoom), Camera.size.y/2-diff.y*(Camera.zoom));
         unformatedPos.translate(Camera.visionShift.x*Camera.zoom, Camera.visionShift.y*Camera.zoom);

@@ -10,7 +10,7 @@ public:
     double shapeRotation, shapeRotationSpeed, rotationSpeed, timeToNegateRotation, maxTimeToNegateRotation; //If the max time to negate is 0, then don't negate rotation.
     double radius, mass, timeToDeath, colorIntensity, colorFading;
     bool isDrawnWithDetails;
-    bool isAttachedToCamera;
+    bool isPartOfInterface;
     string usedImageName;
     unsigned short particleColor[3];
     short shape; //0-filled_circle, 1-ring, 2-square, 3-triangle

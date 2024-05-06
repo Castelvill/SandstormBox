@@ -3,7 +3,7 @@ start onInit
     //edit_proc draw_hitboxes 1
     //edit_proc print_instructions 1
     //edit_proc auto_print_stack 1
-    //edit_proc draw_text_borders 1
+    edit_proc draw_text_borders 1
 
     edit_proc draw_camera_borders 1
 
@@ -89,7 +89,7 @@ start buildTerminal
     fun background connect_bitmap_via_alias string [background2]
     fun background resize c ww c wh
     fun background set_color double [0.5 0.5 0.5 0.3]
-    fun background attach_to_camera
+    fun background add_to_the_interface
 
     int [0 0] editableTextPos
 
@@ -97,6 +97,7 @@ start buildTerminal
     fun TerminalTextField set_id string [edi]
     fun TerminalTextField set_position c editableTextPos
     fun TerminalTextField set_size c ww c wh
+    //fun TerminalTextField set_size int [874 480]
     fun TerminalTextField add_format string [cascadia_code] int [1]
     fun TerminalTextField set_color int [0] double [1.0 0.0 0.0 1.0]
     fun TerminalTextField set_wrapping string [w]
@@ -111,6 +112,8 @@ start buildTerminal
     fun TerminalTextField set_ignore_vertical_arrows bool [true]
     fun TerminalTextField set_can_copy_format bool [true]
     fun TerminalTextField start_editing
+    fun TerminalTextField allow_scrolling
+    fun TerminalTextField add_to_the_interface
 
     new super_editable_text c me 1 _ _ TextEditor
     clone TextEditor TerminalTextField
@@ -161,7 +164,7 @@ start buildTerminal
     fun thumb set_size int [16 16]
     fun thumb resize int [26 26]
     fun thumb connect_bitmap_via_alias string [thumb_h3]
-    fun thumb attach_to_camera
+    fun thumb add_to_the_interface
 
     new image c me 1 _ _ thumbTrack
     fun thumbTrack set_id string [thumb_track]
@@ -169,15 +172,15 @@ start buildTerminal
     fun thumbTrack set_size int [100 500]
     fun thumbTrack resize int [30 480]
     fun thumbTrack connect_bitmap_via_alias string [thumb_track_h3]
-    fun thumbTrack attach_to_camera
+    fun thumbTrack add_to_the_interface
 
     new scrollbar c me 1 _ _ MainScrollbar
-    fun MainScrollbar attach_to_camera
-    fun MainScrollbar deactivate
+    fun MainScrollbar add_to_the_interface
+    //fun MainScrollbar deactivate
     fun MainScrollbar set_id string [MainScrollbar]
-    fun MainScrollbar set_position int [768 0]
-    fun MainScrollbar set_thumb_position double [0 0]
-    fun MainScrollbar set_thumb_size double [26 26]
+    fun MainScrollbar set_position int [874 0]
+    fun MainScrollbar set_thumb_position int [0 0]//450]
+    fun MainScrollbar set_thumb_size double [26 476]
     fun MainScrollbar set_scrolling_area double [26 476]
     fun MainScrollbar set_real_scrolling_area double [0 0]
     fun MainScrollbar set_thumb_image_id string [thumb]
@@ -273,7 +276,7 @@ start createWindowTemplate
     new object c WindowLayer 1 _ _ NewWindowObject
     fun NewWindowObject set_id string [WindowObject]
     fun NewWindowObject set_can_be_selected bool [true]
-    fun NewWindowObject enable_interface
+    fun NewWindowObject add_to_the_interface
     fun NewWindowObject set_can_be_moved_with_mouse bool [false]
     bind NewWindowObject literal ["scripts/windowTemplate.sand"]
     build NewWindowObject true
@@ -641,18 +644,46 @@ start refresh
     index context me [0 0] _ image background
     fun background resize c w c h
 
-    index layer [0 1] _ object Terminal
-    index context Terminal [0 0] _ super_editable_text EditableText
-    index context Terminal [0 1] _ super_editable_text EditProgramTextField
-    fun EditableText set_size c w c h
-    fun EditableText update
+    index c me [0 1] _ super_editable_text EditProgramTextField
     fun EditProgramTextField set_size c w c h
-    index context Terminal [0 0] _ scrollbar MainScrollbar
-    //int [0] 0
-    //value ([c EditableText size_y]) TerminalSizeY
-    //-= TerminalSizeY h
-    //print \n _ c TerminalSizeY
-    //fun MainScrollbar set_real_scrolling_area c 0 c TerminalSizeY
+    index c me [0 0] _ super_editable_text TerminalTextField
+    value ([c TerminalTextField size_y]) TerminalSizeY
+    fun TerminalTextField set_size c w c TerminalSizeY
+    fun TerminalTextField update
+    fun TerminalTextField crop_height_to_text
+    run refreshScrollbar
+end
+
+
+start refreshScrollbar
+    index c me [0 0] _ super_editable_text TerminalTextField
+    value ([c TerminalTextField size_y]) TerminalSizeY
+    value ([window_h]) h
+    -= TerminalSizeY h
+    run refreshScrollbarCheck
+end
+
+start refreshScrollbarCheck
+    if([c TerminalSizeY] [int 0] >)
+    index c me [0 0] _ scrollbar MainScrollbar
+    int [0] 0
+    fun MainScrollbar set_real_scrolling_area c 0 c TerminalSizeY
+    int [26] 26
+    double [476] sizeY
+    double [250] divide
+    /= divide TerminalSizeY
+    *= sizeY divide
+    fun MainScrollbar set_thumb_size c 26 c sizeY
+    fun me update_scrollbars
+    else resetScrollbar
+end
+
+start resetScrollbar
+    index c me [0 0] _ scrollbar MainScrollbar
+    int [26] 26
+    double [476] sizeY
+    fun MainScrollbar set_thumb_size c 26 c sizeY
+    fun me update_scrollbars
 end
 
 
@@ -792,11 +823,12 @@ start printOnTerminal
     index context Terminal [0 0] _ super_editable_text EditableText
     fun EditableText add_content context result
     fun EditableText update
-    //fun EditableText update_size
+    fun EditableText crop_height_to_text
     first _ [EditableText] _ _ _ _ content _ history
     len history historySize
     fun EditableText set_protected_area c historySize
     fun EditableText set_cursor_pos c historySize
+    run refreshScrollbar
 end
 
 

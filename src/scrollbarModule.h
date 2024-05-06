@@ -13,6 +13,8 @@ class ScrollbarModule : public PrimaryModule{
     string thumbImageID;
     string trackImageID;
     Camera2D * FocusedCamera;
+    ImageModule * TrackImage;
+    ImageModule * ThumbImage;
 public:
     void clear();
     ScrollbarModule();
@@ -23,6 +25,7 @@ public:
 
     void draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera);
     bool startDragging(vec2d basePos, const MouseClass & Mouse, Camera2D * Camera);
+    void correctThumbPosition();
     bool dragThumb(vec2d basePos, const MouseClass & Mouse);
     vec2d countScrollShift();
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);

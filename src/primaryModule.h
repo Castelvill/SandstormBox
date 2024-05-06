@@ -111,7 +111,7 @@ class PrimaryModule{
     bool isActive; //deactivated object doesn't interact with the program, you can only activate it.
     bool deleted;
     bool isScaledFromCenter;
-    bool isAttachedToCamera; //Is a part of the user interface. Setting this value for the object propagates this value onto all its modules. New modules copy this value from their object.
+    bool isPartOfInterface; //Is a part of the user interface. Setting this value for the object propagates this value onto all its modules. New modules copy this value from their object.
     bool canBeSelected;
     bool isScrollable;
 
@@ -154,7 +154,7 @@ class PrimaryModule{
     void toggleIsActive();
     void deleteLater();
     void setIsScaledFromCenter(bool newIsScaledFromCenter);
-    void setIsAttachedToCamera(bool newIsAttachedToCamera);
+    void setIsPartOfInterface(bool newIsPartOfInterface);
     void setCanBeSelected(bool newValue);
     void setIsScrollable(bool newValue);
     string getID() const;
@@ -171,7 +171,7 @@ class PrimaryModule{
     bool getIsActive() const;
     bool getIsDeleted() const;
     bool getIsScaledFromCenter();
-    bool getIsAttachedToCamera();
+    bool getIsPartOfInterface();
     bool getCanBeSelected();
     bool getIsScrollable();
     void getPrimaryContext(string attribute, vector <BasePointersStruct> & BasePointers);

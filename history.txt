@@ -300,3 +300,211 @@ edit scripts/xd
 edit scripts/xd
 edit scripts/xd
 edit scripts/xd
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+help
+ls
+cat scripts/xd
+fs
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+fs
+cat scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+cat scripts/xd
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+nw
+neofetch
+exit
+fs
+neofetch
+neofetch
+ls
+help
+cats
+fs
+note
+neofetch
+print hello
+exit

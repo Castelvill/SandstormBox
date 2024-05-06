@@ -292,8 +292,8 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
            || Object.isInAGroup(EditableText.connectedGroup)){
             bool success = false;
             if(EditableText.connectedModule == "ancestor"){
-                if(EditableText.connectedVariable == "is_attached_to_camera"){
-                    Object.setIsAttachedToCamera(stringToBool(EditableText.getCurrentContent()));
+                if(EditableText.connectedVariable == "is_part_of_interface"){
+                    Object.setIsPartOfInterface(stringToBool(EditableText.getCurrentContent()));
                     success = true;
                 }
                 else{
@@ -419,48 +419,48 @@ void AncestorObject::createVectorsOfIds(){
         vectorContainerIDs.push_back(content.getID());
     }
 }
-vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
-    vec2d finalPos(getPos(false));
-    if(!getIsAttachedToCamera()){
-        finalPos.translate(SelectedCamera->pos/SelectedCamera->zoom + SelectedCamera->visionShift);
+vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera, bool useScrollShift){
+    vec2d finalPos(getPos(useScrollShift));
+    if(getIsPartOfInterface()){
+        finalPos.translate(SelectedCamera->pos);
     }
     else{
-        finalPos.translate(SelectedCamera->pos);
+        finalPos.translate(SelectedCamera->pos/SelectedCamera->zoom + SelectedCamera->visionShift);
     }
     return finalPos;
 }
 
-void AncestorObject::setIsAttachedToCamera(bool newValue){
-    isAttachedToCamera = newValue;
+void AncestorObject::setIsPartOfInterface(bool newValue){
+    isPartOfInterface = newValue;
     for(TextModule & Text : TextContainer){
-        Text.setIsAttachedToCamera(isAttachedToCamera);
+        Text.setIsPartOfInterface(isPartOfInterface);
     }
     for(EditableTextModule & Editable : EditableTextContainer){
-        Editable.setIsAttachedToCamera(isAttachedToCamera);
+        Editable.setIsPartOfInterface(isPartOfInterface);
     }
     for(SuperTextModule & SuperText : SuperTextContainer){
-        SuperText.setIsAttachedToCamera(isAttachedToCamera);
+        SuperText.setIsPartOfInterface(isPartOfInterface);
     }
     for(SuperEditableTextModule & SuperEditableText : SuperEditableTextContainer){
-        SuperEditableText.setIsAttachedToCamera(isAttachedToCamera);
+        SuperEditableText.setIsPartOfInterface(isPartOfInterface);
     }
     for(ImageModule & Image : ImageContainer){
-        Image.setIsAttachedToCamera(isAttachedToCamera);
+        Image.setIsPartOfInterface(isPartOfInterface);
     }
     for(MovementModule & Movement : MovementContainer){
-        Movement.setIsAttachedToCamera(isAttachedToCamera);
+        Movement.setIsPartOfInterface(isPartOfInterface);
     }
     for(CollisionModule & Collision : CollisionContainer){
-        Collision.setIsAttachedToCamera(isAttachedToCamera);
+        Collision.setIsPartOfInterface(isPartOfInterface);
     }
     for(ParticleEffectModule & Particle : ParticlesContainer){
-        Particle.setIsAttachedToCamera(isAttachedToCamera);
+        Particle.setIsPartOfInterface(isPartOfInterface);
     }
     for(ScrollbarModule & Scrollbar : ScrollbarContainer){
-        Scrollbar.setIsAttachedToCamera(isAttachedToCamera);
+        Scrollbar.setIsPartOfInterface(isPartOfInterface);
     }
     for(PrimitivesModule & Primitives : PrimitivesContainer){
-        Primitives.setIsAttachedToCamera(isAttachedToCamera);
+        Primitives.setIsPartOfInterface(isPartOfInterface);
     }
 }
 

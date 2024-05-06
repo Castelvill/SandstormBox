@@ -8,6 +8,8 @@ void ScrollbarModule::clear(){
     dragStartingPos.set(0.0, 0.0);
     thumbImageID = "";
     FocusedCamera = nullptr;
+    TrackImage = nullptr;
+    ThumbImage = nullptr;
 }
 ScrollbarModule::ScrollbarModule(){
     clear();
@@ -27,22 +29,38 @@ ScrollbarModule::~ScrollbarModule(){
 void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
     *this = Original;
+    TrackImage = nullptr;
+    ThumbImage = nullptr;
     ID = oldID;
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 
 void ScrollbarModule::draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera){
     vec2d newPos(basePos+pos);
-    for(ImageModule & Image : ImageContainer){
-        if(Image.getID() == trackImageID){
-            Image.drawImage(newPos, Camera, true);
-            break;
+    if(TrackImage != nullptr && TrackImage->getID() == trackImageID){
+        TrackImage->drawImage(newPos, Camera, true);
+    }
+    else{
+        for(ImageModule & Image : ImageContainer){
+            if(Image.getID() == trackImageID){
+                TrackImage = &Image;
+                TrackImage->drawImage(newPos, Camera, true);
+                break;
+            }
         }
     }
-    for(ImageModule & Image : ImageContainer){
-        if(Image.getID() == thumbImageID){
-            Image.drawImage(newPos+thumbPos, Camera, true);
-            break;
+    if(ThumbImage != nullptr && ThumbImage->getID() == thumbImageID){
+        ThumbImage->resize(thumbSize);
+        ThumbImage->drawImage(newPos+thumbPos, Camera, true);
+    }
+    else{
+        for(ImageModule & Image : ImageContainer){
+            if(Image.getID() == thumbImageID){
+                ThumbImage = &Image;
+                ThumbImage->resize(thumbSize);
+                ThumbImage->drawImage(newPos+thumbPos, Camera, true);
+                break;
+            }
         }
     }
 }
@@ -50,7 +68,7 @@ bool ScrollbarModule::startDragging(vec2d basePos, const MouseClass & Mouse, Cam
     mousePressed = false;
 
     vec2d realThumbPos(basePos+pos+thumbPos);
-    if(isAttachedToCamera){
+    if(isPartOfInterface){
         if(Mouse.inRectangle(realThumbPos, thumbSize, true, Camera)){
             mousePressed = true;
             dragStartingPos.set(Mouse.getPos()-realThumbPos);
@@ -69,7 +87,26 @@ bool ScrollbarModule::startDragging(vec2d basePos, const MouseClass & Mouse, Cam
 
     return false;
 }
+void ScrollbarModule::correctThumbPosition(){
+    if(thumbPos.x < 0){
+        thumbPos.x = 0;
+    }
+    if(thumbPos.y < 0){
+        thumbPos.y = 0;
+    }
+    if(thumbPos.x+thumbSize.x > scrollingArea.x){
+        thumbPos.x = scrollingArea.x-thumbSize.x;
+    }
+    if(thumbPos.y+thumbSize.y > scrollingArea.y){
+        thumbPos.y = scrollingArea.y-thumbSize.y;
+    }
+}
 bool ScrollbarModule::dragThumb(vec2d basePos, const MouseClass & Mouse){
+    if(Mouse.scrollPos != Mouse.lastScrollPos){
+        thumbPos.y -= (Mouse.scrollPos - Mouse.lastScrollPos) * 5;
+        correctThumbPosition();
+        return true;
+    }
     if(FocusedCamera == nullptr){
         mousePressed = false;
         return false;
@@ -78,35 +115,13 @@ bool ScrollbarModule::dragThumb(vec2d basePos, const MouseClass & Mouse){
         mousePressed = false;
         return false;
     }
-    if(isAttachedToCamera){
+    if(isPartOfInterface){
         thumbPos.set(Mouse.getPos()-basePos-pos-dragStartingPos);
-        if(thumbPos.x < 0){
-            thumbPos.x = 0;
-        }
-        if(thumbPos.y < 0){
-            thumbPos.y = 0;
-        }
-        if(thumbPos.x+thumbSize.x > scrollingArea.x){
-            thumbPos.x = scrollingArea.x-thumbSize.x;
-        }
-        if(thumbPos.y+thumbSize.y > scrollingArea.y){
-            thumbPos.y = scrollingArea.y-thumbSize.y;
-        }
+        correctThumbPosition();
     }
     else{
         thumbPos.set(Mouse.getZoomedPos(FocusedCamera)-FocusedCamera->visionShift-basePos-pos-dragStartingPos);
-        if(thumbPos.x < 0){
-            thumbPos.x = 0;
-        }
-        if(thumbPos.y < 0){
-            thumbPos.y = 0;
-        }
-        if(thumbPos.x+thumbSize.x > scrollingArea.x){
-            thumbPos.x = scrollingArea.x-thumbSize.x;
-        }
-        if(thumbPos.y+thumbSize.y > scrollingArea.y){
-            thumbPos.y = scrollingArea.y-thumbSize.y;
-        }
+        correctThumbPosition();
     }
 
     return true;
@@ -168,9 +183,17 @@ void ScrollbarModule::getContext(string attribute, vector <BasePointersStruct> &
 
 void ScrollbarModule::setThumbPos(vec2d newValue){
     thumbPos.set(newValue);
+    correctThumbPosition();
 }
 void ScrollbarModule::setThumbSize(vec2d newValue){
     thumbSize.set(newValue);
+    if(thumbSize.x > scrollingArea.x){
+        thumbSize.x = scrollingArea.x;
+    }
+    if(thumbSize.y > scrollingArea.y){
+        thumbSize.y = scrollingArea.y;
+    }
+    correctThumbPosition();
 }
 void ScrollbarModule::setScrollingArea(vec2d newValue){
     scrollingArea.set(newValue);
@@ -179,6 +202,7 @@ void ScrollbarModule::setRealScrollingArea(vec2d newValue){
     realScrollingArea = newValue;
     realScrollingArea.x = std::max(realScrollingArea.x, 0.0);
     realScrollingArea.y = std::max(realScrollingArea.y, 0.0);
+
 }
 void ScrollbarModule::addRealScrollingArea(vec2d newValue){
     realScrollingArea.translate(newValue);

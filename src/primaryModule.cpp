@@ -494,7 +494,7 @@ void PrimaryModule::primaryConstructor(string newID, vector<string> * listOfIDs,
     isActive = true;
     deleted = false;
     isScaledFromCenter = false;
-    isAttachedToCamera = false;
+    isPartOfInterface = false;
     canBeSelected = true;
     isScrollable = false;
 }
@@ -629,14 +629,14 @@ void PrimaryModule::control(string attribute, bool value, unsigned paramCount){
     else if(attribute == "set_scale_from_center"){
         isScaledFromCenter = value;
     }
-    else if(attribute == "attach_to_camera"){
-        isAttachedToCamera = true;
+    else if(attribute == "add_to_the_interface"){
+        isPartOfInterface = true;
     }
-    else if(attribute == "detach_from_camera"){
-        isAttachedToCamera = false;
+    else if(attribute == "remove_from_the_interface"){
+        isPartOfInterface = false;
     }
-    else if(attribute == "set_camera_attachment"){
-        isAttachedToCamera = value;
+    else if(attribute == "set_is_part_of_interface"){
+        isPartOfInterface = value;
     }
     else if(attribute == "allow_selection"){
         canBeSelected = true;
@@ -660,8 +660,8 @@ void PrimaryModule::control(string attribute, bool value, unsigned paramCount){
         cout << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << paramCount << "> does not exist.\n";
     }
 }
-void PrimaryModule::setIsAttachedToCamera(bool newIsAttachedToCamera){
-    isAttachedToCamera = newIsAttachedToCamera;
+void PrimaryModule::setIsPartOfInterface(bool newIsPartOfInterface){
+    isPartOfInterface = newIsPartOfInterface;
 }
 void PrimaryModule::setCanBeSelected(bool newValue){
     canBeSelected = newValue;
@@ -685,10 +685,10 @@ string PrimaryModule::getObjectID() const{
     return objectID;
 }
 vec2d PrimaryModule::getPos(bool useScrollshift){
-    if(!useScrollshift){
-        return pos;
+    if(useScrollshift){
+        return pos-scrollShift;
     }
-    return pos-scrollShift;
+    return pos;
 }
 vec2d& PrimaryModule::getPosAddr(){
     return pos;
@@ -716,8 +716,8 @@ bool PrimaryModule::getIsDeleted() const{
 bool PrimaryModule::getIsScaledFromCenter(){
     return isScaledFromCenter;
 }
-bool PrimaryModule::getIsAttachedToCamera(){
-    return isAttachedToCamera;
+bool PrimaryModule::getIsPartOfInterface(){
+    return isPartOfInterface;
 }
 bool PrimaryModule::getCanBeSelected(){
     return canBeSelected;
@@ -771,8 +771,8 @@ void PrimaryModule::getPrimaryContext(string attribute, vector<BasePointersStruc
     else if(attribute == "is_scaled_from_center"){
         BasePointers.back().setPointer(&isScaledFromCenter);
     }
-    else if(attribute == "is_attached_to_camera"){
-        BasePointers.back().setPointer(&isAttachedToCamera);
+    else if(attribute == "is_part_of_interface"){
+        BasePointers.back().setPointer(&isPartOfInterface);
     }
     else if(attribute == "can_be_selected"){
         BasePointers.back().setPointer(&canBeSelected);

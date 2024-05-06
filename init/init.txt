@@ -6,7 +6,7 @@ new object l KERNEL 1 _ _ First
 fun First set_id string [KERNEL]
 fun First set_can_be_selected bool [true]
 fun First set_can_be_moved_with_mouse bool [false]
-fun First enable_interface
+fun First add_to_the_interface
 bind First reset
 //bind First literal ["scripts/terminal.txt" "scripts/terminalHelp.txt"]
 bind First literal ["scripts/sand.sand" "scripts/sandHelp.sand"]

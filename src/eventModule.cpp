@@ -264,6 +264,12 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     else if(attribute == "crop_size_to_text"){
         SuperText->cropSizeToText();
     }
+    else if(attribute == "crop_width_to_text"){
+        SuperText->cropWidthToText();
+    }
+    else if(attribute == "crop_height_to_text"){
+        SuperText->cropHeightToText();
+    }
     else if(attribute == "set_content" && Values.size() >= 1){
         SuperText->setContent(Values[0].getStringUnsafe());
     }

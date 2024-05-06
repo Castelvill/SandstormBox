@@ -1,6 +1,5 @@
--(?) Add "textOffset" variable to SuperTextModule - modifying it only moves the text content around and its module instances stays still. This distinction stabilitizes the module placement and enables two ways of scrolling.
--Move "set_real_scrolling_area" function to the "enter" procedure in the script.
--Add in-terminal scrolling: automatic and the scrollbar.
+-Add scrolling to the terminal (fix selecting scrolled text).
+-Add scrolling to the text editor.
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
 -Add modules scaling from the edge of the camera.

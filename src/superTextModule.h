@@ -51,6 +51,8 @@ public:
 
     void update();
     void cropSizeToText();
+    void cropWidthToText();
+    void cropHeightToText();
 
     VariableModule getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const;
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
