@@ -508,3 +508,62 @@ note
 neofetch
 print hello
 exit
+cls
+cd scripts
+neofetch
+neofetch
+neofetch
+neofetch
+cd scripts
+neofetch
+cd scripts
+ls
+cd
+cd docs
+ls
+ls
+cd docs
+ls
+ls
+cd ideas
+ls
+cd ..
+pwd
+cd ideas
+cd docs
+cd ..
+cd docs
+cd ideas
+cd ..
+cd docs
+cd ideas
+cd ..
+cd ideas
+cd docs
+cd examples
+ls
+cd ..
+cd ..
+cd docs
+cd examples
+ls
+cd ..
+cd ..
+ls
+pwd
+help
+cd docs
+cd examples
+ls
+cat aggregation.txt
+ls
+cd "conditional chains.txt"
+cat "conditional chains.txt"
+cat \"conditional chains.txt\"
+cat "\"conditional chains.txt\""
+cat angrybirds.txt
+cd ..
+ls
+cat TODO.txt
+edit TODO.txt
+exit

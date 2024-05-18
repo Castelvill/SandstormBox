@@ -7167,6 +7167,7 @@ void ProcessClass::changeWorkingDirectory(OperaClass & Operation, vector<Context
         unsigned lastSlash = workingDirectory.size() - 2;
         for(; lastSlash > 0; lastSlash--){
             if(workingDirectory[lastSlash] == '/'){
+                lastSlash++;
                 break;
             }
         }

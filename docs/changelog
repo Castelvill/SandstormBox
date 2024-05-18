@@ -1,4 +1,7 @@
-1.04.2024
+18.05.2024
+-Added a two-line prompt with the current directory.
+
+1.05.2024
 -Implemented deleting whole words with the "ctrl" key.
 
 30.04.2024

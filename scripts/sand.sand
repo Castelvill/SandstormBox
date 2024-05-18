@@ -3,7 +3,7 @@ start onInit
     //edit_proc draw_hitboxes 1
     //edit_proc print_instructions 1
     //edit_proc auto_print_stack 1
-    edit_proc draw_text_borders 1
+    //edit_proc draw_text_borders 1
 
     edit_proc draw_camera_borders 1
 
@@ -176,7 +176,7 @@ start buildTerminal
 
     new scrollbar c me 1 _ _ MainScrollbar
     fun MainScrollbar add_to_the_interface
-    //fun MainScrollbar deactivate
+    fun MainScrollbar deactivate
     fun MainScrollbar set_id string [MainScrollbar]
     fun MainScrollbar set_position int [874 0]
     fun MainScrollbar set_thumb_position int [0 0]//450]
@@ -544,8 +544,22 @@ start replaceWithAutoComplete
     else printPossibleCompletes
 end
 
+start createPrompt
+    string ["┌/"] begin
+    += result begin
+    pwd workingDir
+    += result workingDir
+    string ["\n└─$ "] secondLine
+    += result secondLine
+end
+
+start putNewLine
+    string ["\n"] newLine
+    += result newLine
+end
+
 start printPossibleCompletes
-    run addAllCompletes addNewPrompt printOnTerminal rewriteLastCommand
+    run addAllCompletes putNewLine createPrompt printOnTerminal rewriteLastCommand
 end
 
 start addAllCompletes true
@@ -556,12 +570,6 @@ start addAllCompletes true
     += result space
     ++ i
 end
-
-start addNewPrompt
-    string ["\n$ "] newPrompt
-    += result newPrompt
-end
-
 
 start rewriteLastCommand
     index layer [0 1] _ object Terminal
@@ -580,9 +588,9 @@ start controler
     index context Terminal [0 0] _ super_editable_text EditableText
     fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
     fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
-    string ["$ "] result
     string ["sleep"] program
-    run printOnTerminal
+    string [""] result
+    run createPrompt printOnTerminal
 end
 
 
@@ -601,9 +609,9 @@ start controlerWithEnter
     index context Terminal [0 0] _ super_editable_text EditableText
     fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
     fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
-    string ["\n$ "] result
     string ["sleep"] program
-    run printOnTerminal
+    string ["\n"] result
+    run createPrompt printOnTerminal
 end
 
 
