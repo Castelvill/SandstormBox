@@ -1,6 +1,13 @@
 18.05.2024
 -Added a two-line prompt with the current directory.
 
+6.05.2024
+-Added scrollbar to the terminal - it's not perfect yet though.
+-Fixed scrolling with the mouse scroll.
+-Added "TrackImage" and "ThumbImage" pointers to the Scrollbar Module.
+-Renamed functions "attach_to_camera" and "enable_interface" to "add_to_the_interface".
+-Renamed variable "isAttachedToCamera" to "isPartOfInterface".
+
 1.05.2024
 -Implemented deleting whole words with the "ctrl" key.
 

@@ -1,4 +1,4 @@
--Add forgotten git commits to the changelog.
+-Variable "isFocused" should be true if any children or leaf of the camera is focused.
 -Add scrolling to the terminal (fix selecting scrolled text).
 -Add scrolling to the text editor.
 -Test zooming and scaling on SuperEditableText.
@@ -17,6 +17,7 @@
 
 MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside the engine.
 
+-Double clicking a word in the text should select this whole word.
 -Implement optional new line functionality for semicolons in order to divide instructions better.
 -Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  
 -Replace dynamicIDs and Literals in Operations with "struct Argument {VariableModule Value, bool isVariable}" in order to allow mixing Variables and Literals together in the instructions.
