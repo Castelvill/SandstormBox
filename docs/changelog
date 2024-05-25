@@ -1,3 +1,7 @@
+25.05.2024
+-Added "is_selected" attribute to the camera module - only one camera can be directly selected at any time, while many cameras can be focused.
+-Added focus propagation to the cameras - variable "isFocused" should be true if any children of the camera is focused.
+
 18.05.2024
 -Added a two-line prompt with the current directory.
 

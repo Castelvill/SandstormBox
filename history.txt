@@ -567,3 +567,15 @@ ls
 cat TODO.txt
 edit TODO.txt
 exit
+note xd
+mover KERNEL
+mover KERNEL
+mover KERNEL
+note
+note
+note xd
+note
+note
+note
+note
+note

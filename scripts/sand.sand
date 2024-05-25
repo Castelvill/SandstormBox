@@ -517,7 +517,7 @@ start autoComplete
 end
 
 start autoComplete1
-    if ([c Camera is_focused])
+    if ([c Camera is_selected])
     index layer [0 1] _ object Terminal
     index context Terminal [0 0] _ super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput
@@ -597,10 +597,14 @@ end
 start clearOnShortcut
     triggers key_pressed
     if ([context program] [string "sleep"] == [key_pressed 217] && [key_pressed 12] &&)
-    run cls
+    index camera [0] _ camera Camera
+    run clearOnShortcutIfFocused
 end
 
-
+start clearOnShortcutIfFocused
+    if ([c Camera is_selected])
+    run cls
+end
 
 start controlerWithEnter
     triggers each_iteration
@@ -704,7 +708,7 @@ end
 
 
 start enter1
-    if ([c Camera is_focused])
+    if ([c Camera is_selected])
     index layer [0 1] _ object Terminal
     index context Terminal [0 0] _ super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput
@@ -765,7 +769,7 @@ start moveInHistory
 end
 
 start upArrow
-    if ([c Camera is_focused] [key_pressed 84] [c program] [string "sleep"] == [c currentCommandNumber] [int 0] > && && &&)
+    if ([c Camera is_selected] [key_pressed 84] [c program] [string "sleep"] == [c currentCommandNumber] [int 0] > && && &&)
     index layer [0 1] _ object Terminal
     index context Terminal [0 0] _ super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput
@@ -787,7 +791,7 @@ end
 
 
 start downArrow
-    if ([c Camera is_focused] [key_pressed 85] [c program] [string "sleep"] == [c currentCommandNumber] [c commandNumber] < && && &&)
+    if ([c Camera is_selected] [key_pressed 85] [c program] [string "sleep"] == [c currentCommandNumber] [c commandNumber] < && && &&)
     index layer [0 1] _ object Terminal
     index context Terminal [0 0] _ super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput

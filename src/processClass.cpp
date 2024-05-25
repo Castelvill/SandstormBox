@@ -380,14 +380,43 @@ void ProcessClass::renderOnDisplay(EngineClass & Engine){
         }
     }
 }
-void ProcessClass::unfocusCamera(string &focusedProcessID){
+void unfocusCameras(vector<Camera2D> & Cameras, Camera2D *& SelectedCamera, string currentProcessID, string &focusedProcessID){
+    for(Camera2D & Camera : Cameras){
+        Camera.isFocused = false;
+    }
     if(SelectedCamera != nullptr){
-        SelectedCamera->isFocused = false;
         SelectedCamera = nullptr;
     }
-    if(getID() == focusedProcessID){
+    if(currentProcessID == focusedProcessID){
         focusedProcessID = "";
     }
+}
+void focusCamera(vector<Camera2D> & Cameras, Camera2D *& SelectedCamera, string currentProcessID, string &focusedProcessID, Camera2D * NewSelectedCamera){
+    for(Camera2D & Camera : Cameras){
+        Camera.isFocused = false;
+    }
+    SelectedCamera = NewSelectedCamera;
+    SelectedCamera->isFocused = true;
+    
+    //Focus all cameras from the selected camera to the root camera.
+    Camera2D * LeafCamera = SelectedCamera;
+    bool isRoot = true;
+    while(LeafCamera->pinnedCameraID != "" && LeafCamera->pinnedCameraID != LeafCamera->getID()){
+        isRoot = true;
+        for(Camera2D & Camera : Cameras){
+            if(LeafCamera->pinnedCameraID == Camera.getID()){
+                Camera.isFocused = true;
+                LeafCamera = &Camera;
+                isRoot = false;
+                break;
+            }
+        }
+        if(isRoot){
+            break;
+        }
+    }
+    
+    focusedProcessID = currentProcessID;
 }
 void ProcessClass::updateBaseOfTriggerableObjects(){
     BaseOfTriggerableObjects.clear();
@@ -4009,7 +4038,7 @@ void clearDeletedPointersFromVector(vector<T*> & Vector){
     }
 }
 void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, string & focusedProcess
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, string & focusedProcessID
 ){
     ContextClass * DeletedContext = nullptr;
     if(!getOneContext(DeletedContext, EventContext, Operation.dynamicIDs)){
@@ -4035,7 +4064,7 @@ void ProcessClass::markEntitiesForDeletion(OperaClass & Operation, vector<Contex
             }
         }
         if(SelectedCamera != nullptr && SelectedCamera->getIsDeleted()){
-            unfocusCamera(focusedProcess);
+            unfocusCameras(Cameras, SelectedCamera, getID(), focusedProcessID);
         }
         for(ContextClass & Context : EventContext){
             if(Context.type == "camera"){
@@ -5095,7 +5124,9 @@ bool findObjectForFunction(AncestorObject *& ModuleObject, vector<LayerClass> &L
     }
     return true;
 }
-void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera){
+void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables,
+    vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera, string & focusedProcessID
+){
     unsigned cameraIndex = 0;
     for(Camera2D * Camera : CamerasFromContext){
         if(Operation.Location.attribute == "set_id" && Variables.size() > 0){
@@ -5310,18 +5341,10 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
             Camera->canMouseResizeNow = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "focus"){
-            if(SelectedCamera != nullptr){
-                SelectedCamera->isFocused = false;
-                SelectedCamera = nullptr;
-            }
-            SelectedCamera = Camera;
-            Camera->isFocused = true;
+            focusCamera(Cameras, SelectedCamera, getID(), focusedProcessID, Camera);
         }
         else if(Operation.Location.attribute == "unfocus"){
-            if(SelectedCamera == Camera){
-                SelectedCamera->isFocused = false;
-                SelectedCamera = nullptr;
-            }
+            unfocusCameras(Cameras, SelectedCamera, getID(), focusedProcessID);
         }
         else{
             cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
@@ -5510,7 +5533,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
 
     
     if(Context->type == "camera"){
-        executeFunctionForCameras(Operation, Variables, Context->Cameras, SelectedCamera);
+        executeFunctionForCameras(Operation, Variables, Context->Cameras, SelectedCamera, Engine.focusedProcessID);
     }
     else if(Context->type == "layer"){
         executeFunctionForLayers(Operation, Variables, Context->Layers);
@@ -7951,8 +7974,13 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         else{
             string file = "";
             Context->getStringOrIgnore(file, EngineInstr::value);
-            file = EXE_PATH + workingDirectory + file;
-            NewValue.setBool(std::filesystem::exists(file));
+            if(file == ""){
+                NewValue.setBool(false);
+            }
+            else{
+                file = EXE_PATH + workingDirectory + file;
+                NewValue.setBool(std::filesystem::exists(file));
+            }
         }
         return NewValue;
     }
@@ -8108,7 +8136,12 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             if(Camera.getIsDeleted()){
                 break;
             }
-            NewValue = Camera.getValue(Condition.Location.attribute);
+            if(Condition.Location.attribute == "is_selected"){
+                NewValue.setBool(SelectedCamera == &Camera);
+            }
+            else{
+                NewValue = Camera.getValue(Condition.Location.attribute);
+            }
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
             return NewValue;
         }
@@ -8345,7 +8378,12 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             if(Context->Cameras.size() != 1){
                 cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several cameras in the context. Program will proceed with the last added camera.\n";
             }
-            NewValue = Context->Cameras.back()->getValue(Condition.Location.attribute);
+            if(Condition.Location.attribute == "is_selected"){
+                NewValue.setBool(SelectedCamera == Context->Cameras.back());
+            }
+            else{
+                NewValue = Context->Cameras.back()->getValue(Condition.Location.attribute);
+            }
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
             return NewValue;
         }
@@ -9260,11 +9298,7 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
             return;
         }
         
-        if(SelectedCamera != nullptr){
-            SelectedCamera->isFocused = false;
-        }
-        SelectedCamera = &Cameras[camerasOrder[activeCameraIndex]];
-        SelectedCamera->isFocused = true;
+        focusCamera(Cameras, SelectedCamera, getID(), focusedProcessID, &Cameras[camerasOrder[activeCameraIndex]]);
         SelectedCamera->bringBack();
         focusedProcessID = getID();
 
@@ -9311,11 +9345,7 @@ void ProcessClass::selectCamera(bool fromAltTab, const MouseClass & Mouse, const
             continue;
         }
         if(Mouse.inRectangle(Camera->pos, Camera->size, true, SelectedCamera)){
-            if(SelectedCamera != nullptr){
-                SelectedCamera->isFocused = false;
-            }
-            SelectedCamera = Camera;
-            SelectedCamera->isFocused = true;
+            focusCamera(Cameras, SelectedCamera, getID(), focusedProcessID, Camera);
             
             focusedProcessID = getID();
 
@@ -10687,7 +10717,7 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vec
     }
 }
 void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext,
-    Camera2D *& SelectedCamera,string processID, string & focusedProcessID, EventDescription EventIds
+    Camera2D *& SelectedCamera, string processID, string & focusedProcessID, EventDescription EventIds
 ){
     unsigned context, camera;
     for(context = 0; context < CameraIndexes.size(); context++){
@@ -10703,17 +10733,10 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, vec
     if(SelectedCamera != nullptr){
         if(Cameras.size() <= selectedCameraIndex){
             cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": selectedCameraIndex goes out of scope of Cameras.\n";
-            SelectedCamera->isFocused = false;
-            SelectedCamera = nullptr;
-            if(processID == focusedProcessID){
-                focusedProcessID = "";
-            }
+            unfocusCameras(Cameras, SelectedCamera, processID, focusedProcessID);
             return;
         }
-        SelectedCamera->isFocused = false;
-        SelectedCamera = &Cameras[selectedCameraIndex];
-        SelectedCamera->isFocused = true;
-        focusedProcessID = processID;
+        focusCamera(Cameras, SelectedCamera, processID, focusedProcessID, &Cameras[selectedCameraIndex]);
     }
 }
 void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, LayerClass *& OwnerLayer, EventDescription EventIds){

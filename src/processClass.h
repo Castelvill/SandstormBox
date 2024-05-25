@@ -226,7 +226,6 @@ public:
     void selectLettersInText(const MouseClass & Mouse);
     void checkMouseCollisions(EngineClass & Engine);
     void renderOnDisplay(EngineClass & Engine);
-    void unfocusCamera(string & focusedProcessID);
     void aggregateCameras(OperaClass & Operation, ContextClass & NewContext, vector <Camera2D*> AggregatedCameras,
         const EngineClass & Engine, vector<ContextClass> &EventContext);
     void aggregateLayers(OperaClass & Operation, ContextClass & NewVariable, vector <LayerClass*> AggregatedLayers,
@@ -303,7 +302,9 @@ public:
         vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode
     );
     void clearEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner);
-    void executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables, vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera);
+    void executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables,
+        vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera, string & focusedProcessID
+    );
     void executeFunctionForLayers(OperaClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
     void executeFunctionForObjects(OperaClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
     void executeFunction(OperaClass Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine);
