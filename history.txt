@@ -579,3 +579,15 @@ note
 note
 note
 note
+neofetch
+fs
+hello
+ls
+cd images
+ls
+cd
+ls
+exit
+cd scripts
+ls
+cat sand.sand

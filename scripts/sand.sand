@@ -21,7 +21,7 @@ start onInit
 
 
     string ["fonts/CascadiaCode.ttf"] path
-    int [20] size
+    int [16] size
     string ["cascadia_code"] name
     load_font path size name true
 
@@ -663,9 +663,14 @@ start refresh
     fun TerminalTextField set_size c w c TerminalSizeY
     fun TerminalTextField update
     fun TerminalTextField crop_height_to_text
-    run refreshScrollbar
+    value ([c TerminalTextField size_y]) TerminalSizeY
+    run resizeTerminalIfSmall refreshScrollbar
 end
 
+start resizeTerminalIfSmall
+    if([c TerminalSizeY] [c h] < )
+    fun TerminalTextField set_size c w c h
+end
 
 start refreshScrollbar
     index c me [0 0] _ super_editable_text TerminalTextField
@@ -836,11 +841,18 @@ start printOnTerminal
     fun EditableText add_content context result
     fun EditableText update
     fun EditableText crop_height_to_text
+
     first _ [EditableText] _ _ _ _ content _ history
     len history historySize
     fun EditableText set_protected_area c historySize
     fun EditableText set_cursor_pos c historySize
-    run refreshScrollbar
+
+    value ([window_w]) w
+    value ([window_h]) h
+    index c me [0 0] _ super_editable_text TerminalTextField
+    value ([c TerminalTextField size_y]) TerminalSizeY
+
+    run resizeTerminalIfSmall refreshScrollbar
 end
 
 
