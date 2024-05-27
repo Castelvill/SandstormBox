@@ -236,7 +236,9 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             selectObject(Engine.Mouse);
             detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
             detectStartPosOfDraggingObjects(Engine.Mouse);
-            startScrollbarDragging(Engine.Mouse);
+            if(Engine.Mouse.isFirstPressed()){
+                startScrollbarDragging(Engine.Mouse);
+            }
             if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized()){
                 dragCameraStaringPos.set(Engine.Mouse.getZoomedPos(SelectedCamera)-SelectedCamera->visionShift);
             }
@@ -246,6 +248,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
                 SelectedCamera->grabbed = false;
             }
             changeCursor(Engine.display, Engine.Mouse);
+            stopScrollbarDragging();
             break;
     }
 
@@ -9565,14 +9568,45 @@ void ProcessClass::startScrollbarDragging(const MouseClass & Mouse){
         }
     }
 }
-void ProcessClass::dragScrollbars(const MouseClass & Mouse){
+void ProcessClass::stopScrollbarDragging(){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
+        return;
+    }
+    for(LayerClass & Layer : Layers){
+        if(!Layer.getIsActive() || !SelectedCamera->isLayerVisible(Layer.getID())
+            || !SelectedCamera->isLayerAccessible(Layer.getID())){
+            continue;
+        }
+        for(AncestorObject & Object : Layer.Objects){
+            if(!Object.getIsActive()){
+                continue;
+            }
+            for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
+                Scrollbar.stopDragging();
+            }
+        }
+    }
+}
+void ProcessClass::dragScrollbars(const MouseClass &Mouse){
+    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
+        return;
+    }
     for(LayerClass & Layer : Layers){
         if(!Layer.getIsActive()){
             continue;
         }
         for(AncestorObject & Object : Layer.Objects){
+            if(!Object.getIsActive()){
+                continue;
+            }
             for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
-                if(Scrollbar.dragThumb(Object.getPos(false), Mouse)){
+                if(!Scrollbar.getIsActive()){
+                    continue;
+                }
+                if(Mouse.scrollPos != Mouse.lastScrollPos){
+                    Scrollbar.dragThumbWithMouseWheel(Object.scrollShift, Mouse);
+                }
+                else if(Scrollbar.dragThumb(Object.getPos(false), Mouse)){
                     Object.setScrollShift(Scrollbar.countScrollShift());
                 }
             }
@@ -9955,7 +9989,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
     }
 
     for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
-        if(!Scrollbar.getIsActive()){
+        if(!Scrollbar.getIsActive() || !Scrollbar.canBeDrawn){
             continue;
         }
 

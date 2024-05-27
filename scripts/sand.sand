@@ -35,9 +35,13 @@ start onInit
     string ["fira_mono"] name
     load_font path size name true
 
-    run resizeDisplay buildTerminal createWindowTemplate
+    run resizeDisplay buildTerminal createWindowTemplate runAfterInit
 end
 
+
+start runAfterInit
+    cd scripts
+end
 
 start resizeDisplay
     if ([used_os] [string "windows"] ==)
@@ -176,15 +180,17 @@ start buildTerminal
 
     new scrollbar c me 1 _ _ MainScrollbar
     fun MainScrollbar add_to_the_interface
-    fun MainScrollbar deactivate
+    //fun MainScrollbar deactivate
+    fun MainScrollbar set_can_be_drawn bool [true]
     fun MainScrollbar set_id string [MainScrollbar]
     fun MainScrollbar set_position int [874 0]
-    fun MainScrollbar set_thumb_position int [0 0]//450]
+    fun MainScrollbar set_thumb_position int [450 0]//450]
     fun MainScrollbar set_thumb_size double [26 476]
     fun MainScrollbar set_scrolling_area double [26 476]
     fun MainScrollbar set_real_scrolling_area double [0 0]
     fun MainScrollbar set_thumb_image_id string [thumb]
     fun MainScrollbar set_track_image_id string [thumb_track]
+    fun MainScrollbar set_mouse_wheel_speed double [40.0]
 
     var string "_enter" program
     var string "" param0
@@ -691,8 +697,17 @@ start refreshScrollbarCheck
     /= divide TerminalSizeY
     *= sizeY divide
     fun MainScrollbar set_thumb_size c 26 c sizeY
+    fun MainScrollbar scroll_to_the_end
     fun me update_scrollbars
+    run keepMinimalSizeOfScrollThumb
     else resetScrollbar
+end
+
+start keepMinimalSizeOfScrollThumb
+    if([c sizeY] [int 26] <)
+    int [26] sizeY
+    fun MainScrollbar set_thumb_size c 26 c sizeY
+    fun me update_scrollbars
 end
 
 start resetScrollbar

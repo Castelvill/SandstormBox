@@ -106,7 +106,7 @@ class PrimaryModule{
     string layerID; //This ID is needed in events' trigger detection.
     string objectID;
     vector <string> groups;
-    vec2d pos, scrollShift, size, scale;
+    vec2d pos, size, scale;
 
     bool isActive; //deactivated object doesn't interact with the program, you can only activate it.
     bool deleted;
@@ -116,7 +116,7 @@ class PrimaryModule{
     bool isScrollable;
 
     public:
-
+    vec2d scrollShift;
     void primaryConstructor(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void primaryConstructor(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
@@ -136,6 +136,7 @@ class PrimaryModule{
 
     void setPos(vec2d newPos);
     void setScrollShift(vec2d newValue);
+    void translateScrollShiftY(double newValue);
     void setPos(double x, double y);
     void translatePos(vec2d newPos);
     void setSize(vec2d newSize);
@@ -164,6 +165,7 @@ class PrimaryModule{
     string getObjectID() const;
     vec2d getPos(bool useScrollshift);
     vec2d & getPosAddr();
+    vec2d getScrollShift() const;
     vec2d getSize();
     vec2d & getSizeAddr();
     vec2d getScale();

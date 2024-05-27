@@ -395,6 +395,7 @@ public:
     void unselectObject();
     void drawSelectionBorder(Camera2D Camera);
     void startScrollbarDragging(const MouseClass & Mouse);
+    void stopScrollbarDragging();
     void dragScrollbars(const MouseClass & Mouse);
     void updateBaseOfTriggerableObjects();
     void detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects);

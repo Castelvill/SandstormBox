@@ -9,13 +9,15 @@ class ScrollbarModule : public PrimaryModule{
     vec2d scrollingArea;
     vec2d realScrollingArea;
     vec2d dragStartingPos;
-    bool mousePressed;
     string thumbImageID;
     string trackImageID;
     Camera2D * FocusedCamera;
     ImageModule * TrackImage;
     ImageModule * ThumbImage;
 public:
+    bool canBeDrawn;
+    bool mousePressed;
+    double mouseWheelSpeed;
     void clear();
     ScrollbarModule();
     ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
@@ -25,9 +27,13 @@ public:
 
     void draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera);
     bool startDragging(vec2d basePos, const MouseClass & Mouse, Camera2D * Camera);
+    void stopDragging();
     void correctThumbPosition();
+    void scrollToTheBeginning();
+    void scrollToTheEnd();
     bool dragThumb(vec2d basePos, const MouseClass & Mouse);
     vec2d countScrollShift();
+    void dragThumbWithMouseWheel(vec2d & objectScrollShift, const MouseClass & Mouse);
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     void setThumbPos(vec2d newValue);

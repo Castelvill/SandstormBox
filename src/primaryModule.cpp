@@ -565,6 +565,9 @@ void PrimaryModule::translatePos(vec2d newPos){
 void PrimaryModule::setScrollShift(vec2d newValue){
     scrollShift = newValue;
 }
+void PrimaryModule::translateScrollShiftY(double newValue){
+    scrollShift.y += newValue;
+}
 void PrimaryModule::setSize(vec2d newSize){
     size.set(newSize);
 }
@@ -693,7 +696,11 @@ vec2d PrimaryModule::getPos(bool useScrollshift){
 vec2d& PrimaryModule::getPosAddr(){
     return pos;
 }
-vec2d PrimaryModule::getSize(){
+vec2d PrimaryModule::getScrollShift() const{
+    return scrollShift;
+}
+vec2d PrimaryModule::getSize()
+{
     return size;
 }
 vec2d& PrimaryModule::getSizeAddr(){

@@ -1077,6 +1077,18 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
     else if(attribute == "set_track_image_id" && Values.size() >= 1){
         Scrollbar->setTrackImageID(Values[0].getString());
     }
+    else if(attribute == "set_can_be_drawn" && Values.size() >= 1){
+        Scrollbar->canBeDrawn = Values[0].getBool();
+    }
+    else if(attribute == "set_mouse_wheel_speed" && Values.size() >= 1){
+        Scrollbar->mouseWheelSpeed = Values[0].getDouble();
+    }
+    else if(attribute == "scroll_to_the_beginning"){
+        Scrollbar->scrollToTheBeginning();
+    }
+    else if(attribute == "scroll_to_the_end"){
+        Scrollbar->scrollToTheEnd();
+    }
     else{
         bool temp = false;
         if(Values.size() > 0){

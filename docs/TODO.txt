@@ -133,6 +133,7 @@ MILESTONE: Improve scripting language.
 -Add 3D graphics - this will include adding 3D rendering inside the code editor for showing the models used by the scripts.
 
 OPTIMALIZATIONS
+-Use std::variant instead of unions.
 -Create special versions of engine instructions with a lower count of ifs - these instructions will be unsafe and could cause crashes, but when used in a right way (with other trusted instructions) they could speed up the engine. The script compiler will dynamically choose best versions of the instructions. Example: if one instruction WILL provide a non-null pointer, the second instruction should be able to ignore checking if this pointer is empty. 
 -Use constexpr - this will pre-calculate some functions in compile time, speeding up some of them to O(1).
 -For large scale simulation: Divide game map to different threads based on camera position. The main thread will have rights to draw things and others will be focusing on processing stuff.
@@ -153,5 +154,5 @@ OPTIMALIZATIONS
 BUGS
 -Vector movement doesn’t support camera movement
 -60 FPS max
--Random copies of letters in editable fields -When you release few buttons at once editable fucking loses its shit. Do: when one button is pressed, every [var] seconds letter is entered, but when another button is pressed, the previous ones are 100% blocked until release (like in notepad)
+-Random copies of letters in editable fields- when you release few buttons at once editable text does undefined behavior. Do: when one button is pressed, every [var] seconds letter is entered, but when another button is pressed, the previous ones are 100% blocked until release (like in notepad)
 -Pointers in contexts may point to deleted entities (deleted = true).
