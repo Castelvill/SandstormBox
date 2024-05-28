@@ -1,3 +1,6 @@
+29.05.2024
+-Stopped drawing text lines that are outside the screen.
+
 28.05.2024
 -Thumb of the scrollbar can now be moved while the mouse is outside the engine's window.
 -Fixed: Scrolling speed of the mouse wheel varies based on the size of the current history in the terminal.

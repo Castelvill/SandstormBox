@@ -464,19 +464,25 @@ void SuperTextModule::drawFormattedString(string text, vec2d finalPos, size_t li
                 background += "█";
             }
             al_draw_text(Format->Font->font, Format->color, finalPos.x + Format->offset.x,
-            finalPos.y + Format->offset.y + lineIdx * (Format->Font->height + paddingBetweenLines), 0, background.c_str());
+                finalPos.y,
+                0, background.c_str()
+            );
         }
         if(!drawSelectionFirst || !drawSelection){
             al_draw_text(Format->Font->font, Format->accentColor, finalPos.x + Format->offset.x,
-                finalPos.y + Format->offset.y + lineIdx * (Format->Font->height + paddingBetweenLines), 0, text.c_str());
+                finalPos.y,
+                0, text.c_str()
+            );
         }
     }
     else{
         al_draw_text(Format->Font->font, Format->color, finalPos.x + Format->offset.x,
-            finalPos.y + Format->offset.y + lineIdx * (Format->Font->height + paddingBetweenLines), 0, text.c_str());
+            finalPos.y,
+            0, text.c_str()
+        );
     }
 }
-void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection){
+void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection, vec2i displaySize){
     size_t letterIdx = 0;
     size_t lineIdx = 0;
     size_t formatLimit = 0;
@@ -485,9 +491,15 @@ void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection){
     vec2d linePos(finalPos);
     float previousLength;
     vector<FormatClass>::iterator Format = Formatting.begin();
+
     for(lineIdx = 0; lineIdx < textLines.size(); lineIdx++){
         previousLength = 0.0;
         linePos.set(finalPos);
+        linePos.y = finalPos.y + Format->offset.y + lineIdx * (Format->Font->height + paddingBetweenLines);
+        if(rotation == 0 && linePos.y > displaySize.y){
+            break;
+        }
+        
         if(horizontalAlign == 'c'){
             linePos.x += (size.x / 2) - (lineWidths[lineIdx] / 2);
             if(textLines[lineIdx].back() == ' '){
@@ -509,7 +521,9 @@ void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection){
             formatLimit += longestFragment;
             
             previousLength = al_get_text_width(Format->Font->font, currentFragment.c_str());
-            drawFormattedString(currentFragment, linePos, lineIdx, Format, drawSelection);
+            if(rotation != 0 || linePos.y + Format->Font->height >= 0){
+                drawFormattedString(currentFragment, linePos, lineIdx, Format, drawSelection);
+            }
 
             if(formatLimit >= Format->drawingLimit){
                 Format++;
@@ -540,7 +554,7 @@ void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection){
         }   
     }
 }
-void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive){
+void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive, vec2i displaySize){
     vec2d newScale(scale);
     vec2d unformatedPos(base + pos);
     if(!isPartOfInterface){
@@ -578,9 +592,9 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
     al_use_transform(&trans);
 
 
-    drawAllLines(finalPos, true);
+    drawAllLines(finalPos, true, displaySize);
     if(drawSelectionFirst){
-        drawAllLines(finalPos, false);
+        drawAllLines(finalPos, false, displaySize);
     }
     
     al_identity_transform(&trans);

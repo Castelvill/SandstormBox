@@ -60,9 +60,9 @@ public:
     void drawFormattedString(string text, vec2d finalPos, size_t lineIdx,
         vector<FormatClass>::iterator Format, bool drawSelection
     );
-    void drawAllLines(vec2d finalPos, bool drawSelection);
+    void drawAllLines(vec2d finalPos, bool drawSelection, vec2i displaySize);
     void draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos,
-        unsigned secondCursorPos, bool editingIsActive
+        unsigned secondCursorPos, bool editingIsActive, vec2i displaySize
     );
 
     void fitFormattingToContent();

@@ -71,6 +71,7 @@ start buildTerminal
     fun Cam set_id string [Desktop]
     fun Cam set_active bool [true]
     fun Cam resize c ww c wh
+    //fun Cam resize int [200 100]
     fun Cam set_zoom double [1.0]
     fun Cam set_speed double [20]
     fun Cam set_key_zoom_in int [15]
@@ -83,7 +84,7 @@ start buildTerminal
     fun Cam set_can_zoom_with_mouse bool [0]
     fun Cam set_can_move_with_keyboard bool [0]
     fun Cam set_can_zoom_with_keyboard bool [0]
-    fun Cam set_drawing_borders bool [0]
+    fun Cam set_drawing_borders bool [false]
     fun Cam focus
 
     //fun Cam set_can_edit_text bool [false]
