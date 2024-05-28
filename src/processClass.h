@@ -187,6 +187,7 @@ private:
     LayerClass * SelectedLayer;
     AncestorObject * SelectedObject;
     SuperEditableTextModule * ActiveEditableText;
+    bool isDraggingScrollbar;
     vec2d dragStartingPos, dragStartingPos2;
     vec2d dragCameraStaringPos, dragLimit;
     EventsLookupTable BaseOfTriggerableObjects;

@@ -75,6 +75,8 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string 
     SelectedObject = nullptr;
     ActiveEditableText = nullptr;
 
+    isDraggingScrollbar = false;
+
     isRendering = true;
     windowPos.set(0.0, 0.0);
     windowSize.set(screenSize.x, screenSize.y);
@@ -233,12 +235,12 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             if(Engine.focusedProcessID != getID()){
                 break;
             }
-            selectObject(Engine.Mouse);
-            detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
-            detectStartPosOfDraggingObjects(Engine.Mouse);
             if(Engine.Mouse.isFirstPressed()){
                 startScrollbarDragging(Engine.Mouse);
             }
+            selectObject(Engine.Mouse);
+            detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
+            detectStartPosOfDraggingObjects(Engine.Mouse);
             if(SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized()){
                 dragCameraStaringPos.set(Engine.Mouse.getZoomedPos(SelectedCamera)-SelectedCamera->visionShift);
             }
@@ -286,9 +288,9 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
     }
 }
 void ProcessClass::selectLettersInText(const MouseClass & Mouse){
-    if(!Mouse.isPressed(0) || SelectedObject == nullptr || ActiveEditableText == nullptr
+    if(isDraggingScrollbar || !Mouse.isPressed(0) || SelectedObject == nullptr || ActiveEditableText == nullptr
         || !SelectedObject->getIsActive()
-        || !Mouse.pressedInRectangle(SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable()),
+        || !Mouse.pressedInRectangle(SelectedObject->getPosOnCamera(SelectedCamera, false),
         SelectedObject->getSize(), 0, SelectedObject->getIsPartOfInterface(), SelectedCamera)
     ){
         return;
@@ -9562,6 +9564,7 @@ void ProcessClass::startScrollbarDragging(const MouseClass & Mouse){
                     continue;
                 }
                 if(Scrollbar.startDragging(Object.getPos(false), Mouse, SelectedCamera)){
+                    isDraggingScrollbar = true;
                     return;
                 }
             }
@@ -9569,6 +9572,7 @@ void ProcessClass::startScrollbarDragging(const MouseClass & Mouse){
     }
 }
 void ProcessClass::stopScrollbarDragging(){
+    isDraggingScrollbar = false;
     if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
         return;
     }
@@ -10299,7 +10303,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         for(AncestorObject & Object : Layer.Objects){
             //You can select text only if you can select its object. Without selecting the object, selecting more than one letter in a text field will be harder.
             if(!Object.getIsActive() || !Object.getCanBeSelected()
-                || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera, Object.getIsScrollable()),
+                || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera, false),
                 Object.getSize(), 0, Object.getIsPartOfInterface(), SelectedCamera)
             ){
                 continue;
@@ -10312,7 +10316,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                 ActiveEditableText->update();
                 ActiveEditableText = nullptr;
             }
-            if(SelectedCamera->canEditText){
+            if(SelectedCamera->canEditText && !isDraggingScrollbar){
                 for(SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
                     if(!SuperEditableText.getIsActive() || !SuperEditableText.canBeEdited ||
                         !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable())

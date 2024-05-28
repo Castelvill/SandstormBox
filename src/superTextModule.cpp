@@ -1274,7 +1274,6 @@ void SuperEditableTextModule::getContext(string attribute, vector<BasePointersSt
         SuperTextModule::getContext(attribute, BasePointers);
     }
 }
-
 bool SuperEditableTextModule::prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control){
     for(unsigned int i = 0; i < pressedKeys.size(); i++){
         if(pressedKeys[i] == ALLEGRO_KEY_LSHIFT || pressedKeys[i] == ALLEGRO_KEY_RSHIFT){
@@ -2893,7 +2892,7 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, const MouseClas
     vec2d finalPos(basePos + getPos(isScrollable));
 
     unsigned lineIdx; //= (Mouse.getPos().y - finalPos.y) / double(al_get_font_line_height(font));
-    unsigned currentY = finalPos.y;
+    double currentY = finalPos.y;
     for(lineIdx = 0; lineIdx < lineHeights.size(); lineIdx++){
         currentY += lineHeights[lineIdx];
         if(Mouse.getPos().y <= currentY){

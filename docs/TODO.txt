@@ -1,4 +1,3 @@
--Add scrolling to the terminal (fix selecting scrolled text).
 -Add scrolling to the text editor.
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.

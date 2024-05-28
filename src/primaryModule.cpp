@@ -693,7 +693,13 @@ vec2d PrimaryModule::getPos(bool useScrollshift){
     }
     return pos;
 }
-vec2d& PrimaryModule::getPosAddr(){
+vec2d PrimaryModule::getRealPos(bool useScrollshift){
+    if(useScrollshift){
+        return pos+scrollShift;
+    }
+    return pos;
+}
+vec2d &PrimaryModule::getPosAddr(){
     return pos;
 }
 vec2d PrimaryModule::getScrollShift() const{

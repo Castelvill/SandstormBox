@@ -164,6 +164,7 @@ class PrimaryModule{
     string & getIDAddr();
     string getObjectID() const;
     vec2d getPos(bool useScrollshift);
+    vec2d getRealPos(bool useScrollshift);
     vec2d & getPosAddr();
     vec2d getScrollShift() const;
     vec2d getSize();

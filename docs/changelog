@@ -1,4 +1,5 @@
 29.05.2024
+-Fixed selecting scrolled text.
 -Stopped drawing text lines that are outside the screen.
 
 28.05.2024
