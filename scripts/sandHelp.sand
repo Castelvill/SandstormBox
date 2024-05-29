@@ -310,10 +310,21 @@ end
 
 
 start cd
-cd _ param1
-string [""] program
+    string [""] program
+    run checkCD
 end
-
+start checkCD
+    if ([exists param1] [c param1] [string ""] == ||)
+    cd _ param1
+    else informFileDoesNotExistForCD
+end
+start informFileDoesNotExistForCD
+    string ["Directory '"] result
+    += result param1
+    string ["' does not exist!\n"] secondPart
+    += result secondPart
+    run printOnTerminal
+end
 
 start history
 int [0] i
@@ -338,4 +349,41 @@ string ["\n"] endl
 += result endl
 ++ i
 run printOnTerminal
+end
+
+
+start wait
+    string ["wait"] program
+    int [0] waitingTime
+end
+start executeWaiting
+    triggers each_second
+    if ([context program] [string "wait"] == [second_passed] &&)
+    index c me [0 0] _ super_editable_text Terminal
+    fun Terminal cut_unprotected_area
+    run waitFor0 waitFor1 waitFor2
+end
+start waitFor0
+    if([c waitingTime] [int 0] ==)
+    string ["||||||||||||||||||||"] result
+    ++ waitingTime
+    run printOnTerminalUnprotected
+    post
+    break
+end
+start waitFor1
+    if([c waitingTime] [int 1] ==)
+    string ["********************"] result
+    ++ waitingTime
+    run printOnTerminalUnprotected
+    post
+    break
+end
+start waitFor2
+    if([c waitingTime] [int 2] ==)
+    string ["--------------------"] result
+    int [0] waitingTime
+    run printOnTerminalUnprotected
+    post
+    break
 end

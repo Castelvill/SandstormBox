@@ -1,4 +1,4 @@
--Add scrolling to the text editor.
+-Ensure scrollbar is always following the text cursor.
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
 -Add modules scaling from the edge of the camera.
@@ -15,7 +15,12 @@
 
 MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside the engine.
 
+-Fix: While in fullscreen and in "src" directory, using "ls" instruction breaks the formatting of the terminal text. 
 -Double clicking a word in the text should select this whole word.
+-Pressing tab in the editable text module, if more than one letter is selected, should append a tab to the beginning of every selected line. 
+-Add to PrimaryModule "vec2b reverseAxes" variable that controls the direction and starting point of the drawing axes on the camera.
+-Add to PrimaryModule "vec2b centerAxes" variable that moves the start of the drawing axes to the center of the camera.
+-Create the ImageViewer. It would take the image path and check if an image with same path exists. If yes then, it'd connect it to the window object, otherwise it'd load the bitmap to the memory (pseudo caching) and then connect it to the window object.
 -Implement optional new line functionality for semicolons in order to divide instructions better.
 -Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  
 -Replace dynamicIDs and Literals in Operations with "struct Argument {VariableModule Value, bool isVariable}" in order to allow mixing Variables and Literals together in the instructions.
@@ -151,7 +156,9 @@ OPTIMALIZATIONS
 -Add threads: one for moving and one for drawing particles.
 
 BUGS
+-Keyboard input can be randomly and permamently doubled. Clue:
+"...just make sure you handle the ALLEGRO_EVENT_DISPLAY_LOST and ALLEGRO_EVENT_DISPLAY_FOUND events, and redraw when you get the latter event." 
 -Vector movement doesn’t support camera movement
 -60 FPS max
--Random copies of letters in editable fields- when you release few buttons at once editable text does undefined behavior. Do: when one button is pressed, every [var] seconds letter is entered, but when another button is pressed, the previous ones are 100% blocked until release (like in notepad)
+-Random copies of letters in editable fields - when you release few buttons at once editable text does undefined behavior. Do: when one button is pressed, every [var] seconds letter is entered, but when another button is pressed, the previous ones are 100% blocked until release (like in notepad)
 -Pointers in contexts may point to deleted entities (deleted = true).

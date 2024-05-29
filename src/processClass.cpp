@@ -5458,6 +5458,9 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
         }
         else if(Operation.Location.attribute == "update_scrollbars"){
             for(ScrollbarModule & Scrollbar : Object->ScrollbarContainer){
+                if(!Scrollbar.getIsActive()){
+                    continue;
+                }
                 Object->setScrollShift(Scrollbar.countScrollShift());
             }
         }
@@ -5774,7 +5777,7 @@ void ProcessClass::changeEngineVariables(OperaClass & Operation, EngineClass & E
         }
         Engine.displaySize.set(Operation.Literals[1].getInt(), Operation.Literals[2].getInt());
         if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
+            //cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
             /*#if __WIN32__
                 cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": al_resize_display() failed to resize the display.\n";
             #else
@@ -8001,6 +8004,23 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         #endif
         return NewValue;
     }
+    if(Condition.Location.source == "screen_w" || Condition.Location.source == "screen_h"){
+        if(Condition.Literal.getType() != 'i'){
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+                << ": Accessing value \'" << Condition.Location.source << "\' requires a screen id of the int type.\n";
+            NewValue.setBool(false);
+            return NewValue;
+        }
+        int SCREEN_W = 0, SCREEN_H = 0;
+        getDesktopResolution(Condition.Literal.getInt(), &SCREEN_W, &SCREEN_H);
+        if(Condition.Location.source == "screen_w"){
+            NewValue.setInt(SCREEN_W);
+        }
+        else{
+            NewValue.setInt(SCREEN_H);
+        }
+        return NewValue;
+    }
     if(canUserInteract){
         if(Condition.Location.source == "key_pressed"){
             NewValue.setBool(isKeyFirstPressed(Condition.Literal.getInt(), Engine.firstPressedKeys));
@@ -8107,7 +8127,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             }
         }
         if(Process == nullptr){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Process with id \'" << Condition.Location.process << "\' does not exist.\n";
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+                << ": Process with id \'" << Condition.Location.process << "\' does not exist.\n";
             return VariableModule::newBool(false);
         }
     }

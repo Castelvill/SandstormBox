@@ -1,306 +1,306 @@
 start checkIfWindowMoved
-triggers mouse_pressing
-if ([mouse_moved] [c isBorderless] ! &&)
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-run revertWindowIfMoved refreshWindowWithCamera
+	triggers mouse_pressing
+	if ([mouse_moved] [c isBorderless] ! &&)
+	all camera _ camera _ Cameras
+	find_by_id_2 Cameras cameraID Camera
+	run revertWindowIfMoved refreshWindowWithCamera
 end
 
 start checkIfDisplayResize
-triggers on_display_resize
-if ([c isMaxed] [on_display_resize] &&)
-run refreshWindowWithDisplay
+	triggers on_display_resize
+	if ([c isMaxed] [on_display_resize] &&)
+	run refreshWindowWithDisplay
 end
 
 start revertWindowIfMoved
-if ([c isMaxed] [c Camera grabbed] &&)
-bool [false] false
-= isMaxed false
-fun Camera set_can_mouse_resize bool [true]
-value ([mouse_x]) MouseX
-value ([mouse_y]) MouseY
-= posX MouseX
-= posY MouseY
-value ([c sizeX]) sizeXTemp
-int [2] 2
-/= sizeXTemp 2
--= posX sizeXTemp
-int [10] 10
--= posY 10
-run revertBorderIfPossible revertWindowFromMax
+	if ([c isMaxed] [c Camera grabbed] &&)
+	bool [false] false
+	= isMaxed false
+	fun Camera set_can_mouse_resize bool [true]
+	value ([mouse_x]) MouseX
+	value ([mouse_y]) MouseY
+	= posX MouseX
+	= posY MouseY
+	value ([c sizeX]) sizeXTemp
+	int [2] 2
+	/= sizeXTemp 2
+	-= posX sizeXTemp
+	int [10] 10
+	-= posY 10
+	run revertBorderIfPossible revertWindowFromMax
 end
 
 
 start revertBorderIfPossible
-if ([c isBorderless] ! [c isMaxed] ! &&)
-all layer _ _ _ _ _ _ Layers
-value ([context me layer_id]) myLayerID
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 2] _ primitives Border
-fun Border activate
+	if ([c isBorderless] ! [c isMaxed] ! &&)
+	all layer _ _ _ _ _ _ Layers
+	value ([context me layer_id]) myLayerID
+	find_by_id_2 Layers myLayerID Layer
+	index c Layer [0 0 2] _ primitives Border
+	fun Border activate
 end
 
 start refreshWindowWithDisplay
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-value ([window_w]) sx
-value ([window_h]) sy
-fun Camera resize c sx c sy
-run refreshWindow
+	all camera _ camera _ Cameras
+	find_by_id_2 Cameras cameraID Camera
+	value ([window_w]) sx
+	value ([window_h]) sy
+	fun Camera resize c sx c sy
+	run refreshWindow
 end
 
 start refreshWindowWithCamera
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-value ([context Camera size_x]) sx
-value ([context Camera size_y]) sy
-run refreshWindow
+	all camera _ camera _ Cameras
+	find_by_id_2 Cameras cameraID Camera
+	value ([context Camera size_x]) sx
+	value ([context Camera size_y]) sy
+	run refreshWindow
 end
 
 
 start refreshWindow
-int [-100] sxShift
-+= sxShift sx
-int [30] height
+	int [-100] sxShift
+	+= sxShift sx
+	int [30] height
 
-fun Camera set_grabbing_area_size c sxShift c height
+    fun Camera set_grabbing_area_size c sxShift c height
 
-value ([context me layer_id]) myLayerID
-all layer _ _ _ _ _ _ Layers
-find_by_id_2 Layers myLayerID Layer
+    value ([context me layer_id]) myLayerID
+    all layer _ _ _ _ _ _ Layers
+    find_by_id_2 Layers myLayerID Layer
 
-index c Layer [0 0 0] _ primitives Primi
-fun Primi set_size c sx c sy
-fun Primi update_with_size
+    index c Layer [0 0 0] _ primitives Primi
+    fun Primi set_size c sx c sy
+    fun Primi update_with_size
 
-index c Layer [0 0 1] _ primitives Primi
-int [30] height
-fun Primi set_size c sx c height
-fun Primi update_with_size
+    index c Layer [0 0 1] _ primitives Primi
+    int [30] height
+    fun Primi set_size c sx c height
+    fun Primi update_with_size
 
-index c Layer [0 0 2] _ primitives Primi
-int [-4] sxShift
-int [-4] syShift
-+= sxShift sx
-+= syShift sy
-fun Primi set_size c sxShift c syShift
-fun Primi update_with_size
+    index c Layer [0 0 2] _ primitives Primi
+    int [-4] sxShift
+    int [-4] syShift
+    += sxShift sx
+    += syShift sy
+    fun Primi set_size c sxShift c syShift
+    fun Primi update_with_size
 
-index c Layer [0 0 3] _ primitives Primi
-int [-20] sxShift
-int [15] height
-+= sxShift sx
-fun Primi set_position c sxShift c height
-fun Primi update_with_size
+    index c Layer [0 0 3] _ primitives Primi
+    int [-20] sxShift
+    int [15] height
+    += sxShift sx
+    fun Primi set_position c sxShift c height
+    fun Primi update_with_size
 
-index c Layer [0 0 0] _ collision ExitCollision
-fun ExitCollision set_position c sxShift c height
+    index c Layer [0 0 0] _ collision ExitCollision
+    fun ExitCollision set_position c sxShift c height
 
-index c Layer [0 0 4] _ primitives Primi
-int [-50] sxShift
-int [15] height
-+= sxShift sx
-fun Primi set_position c sxShift c height
-fun Primi update_with_size
+    index c Layer [0 0 4] _ primitives Primi
+    int [-50] sxShift
+    int [15] height
+    += sxShift sx
+    fun Primi set_position c sxShift c height
+    fun Primi update_with_size
 
-index c Layer [0 0 1] _ collision MaxCollision
-fun MaxCollision set_position c sxShift c height
+    index c Layer [0 0 1] _ collision MaxCollision
+    fun MaxCollision set_position c sxShift c height
 
-index c Layer [0 0 5] _ primitives Primi
-int [-80] sxShift
-int [15] height
-+= sxShift sx
-fun Primi set_position c sxShift c height
-fun Primi update_with_size
+    index c Layer [0 0 5] _ primitives Primi
+    int [-80] sxShift
+    int [15] height
+    += sxShift sx
+    fun Primi set_position c sxShift c height
+    fun Primi update_with_size
 
-index c Layer [0 0 2] _ collision MinCollision
-fun MinCollision set_position c sxShift c height
+    index c Layer [0 0 2] _ collision MinCollision
+    fun MinCollision set_position c sxShift c height
 
-run updateIfNotMaxed
+    run updateIfNotMaxed
 end
 
 
 start updateIfNotMaxed
-if([c isMaxed] !)
-= sizeX sx
-= sizeY sy
-//print "x" _ c sx
-//print "\n" _ c sy
-value ([context Camera pos_x]) cpx
-value ([context Camera pos_y]) cpy
-= posX cpx
-= posY cpy
+    if([c isMaxed] !)
+    = sizeX sx
+    = sizeY sy
+    //print "x" _ c sx
+    //print "\n" _ c sy
+    value ([context Camera pos_x]) cpx
+    value ([context Camera pos_y]) cpy
+    = posX cpx
+    = posY cpy
 end
 
 
 start exitWindow
-triggers mouse_released
-if ([mouse_released 0])
-value ([context me layer_id]) myLayerID
-all layer _ _ _ _ _ _ Layers
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 0] _ collision ExitCollision
-run exitWindowCheck
+    triggers mouse_released
+    if ([mouse_released 0])
+    value ([context me layer_id]) myLayerID
+    all layer _ _ _ _ _ _ Layers
+    find_by_id_2 Layers myLayerID Layer
+    index c Layer [0 0 0] _ collision ExitCollision
+    run exitWindowCheck
 end
 
 start exitWindowCheck
-if([c ExitCollision release_on])
-bool [true] true
-= delete true
+    if([c ExitCollision release_on])
+    bool [true] true
+    = delete true
 end
 
 start deleteWindow
-triggers each_iteration
-if ([c delete] [c has_friends] ! [c deleted_friends] || &&)
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-delete Camera
-delete my_layer
+    triggers each_iteration
+    if ([c delete] [c has_friends] ! [c deleted_friends] || &&)
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    delete Camera
+    delete my_layer
 end
 
 
 start maxWindow
-triggers mouse_released
-if ([mouse_released 0])
-value ([context me layer_id]) myLayerID
-all layer _ _ _ _ _ _ Layers
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 1] _ collision MaxCollision
-run maxWindowCheck
+    triggers mouse_released
+    if ([mouse_released 0])
+    value ([context me layer_id]) myLayerID
+    all layer _ _ _ _ _ _ Layers
+    find_by_id_2 Layers myLayerID Layer
+    index c Layer [0 0 1] _ collision MaxCollision
+    run maxWindowCheck
 end
 
 start maxWindowCheck
-if([c MaxCollision release_on])
-fun isMaxed toggle_bool
-run maxWindowIfTrue refreshWindowWithCamera
+    if([c MaxCollision release_on])
+    fun isMaxed toggle_bool
+    run maxWindowIfTrue refreshWindowWithCamera
 end
 
 start maxWindowIfTrue
-if([c isMaxed])
-all layer _ _ _ _ _ _ Layers
-value ([context me layer_id]) myLayerID
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 2] _ primitives Border
-fun Border deactivate
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-fun Camera set_can_mouse_resize bool [false]
-value ([window_w]) ww
-value ([window_h]) wh
-fun Camera resize c ww c wh
-fun Camera set_relative_position int [0 0]
-else revertWindowFromMax
+    if([c isMaxed])
+    all layer _ _ _ _ _ _ Layers
+    value ([context me layer_id]) myLayerID
+    find_by_id_2 Layers myLayerID Layer
+    index c Layer [0 0 2] _ primitives Border
+    fun Border deactivate
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    fun Camera set_can_mouse_resize bool [false]
+    value ([window_w]) ww
+    value ([window_h]) wh
+    fun Camera resize c ww c wh
+    fun Camera set_relative_position int [0 0]
+    else revertWindowFromMax
 end
 
 start revertWindowFromMax
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-fun Camera set_can_mouse_resize bool [true]
-fun Camera resize c sizeX c sizeY
-fun Camera set_relative_position c posX c posY
-restart_drag
-run revertBorderIfPossible
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    fun Camera set_can_mouse_resize bool [true]
+    fun Camera resize c sizeX c sizeY
+    fun Camera set_relative_position c posX c posY
+    restart_drag
+    run revertBorderIfPossible
 end
 
 
 start minimizeWindow
-triggers mouse_released
-if ([mouse_released 0])
-value ([context me layer_id]) myLayerID
-all layer _ _ _ _ _ _ Layers
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 2] _ collision MinCollision
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-run minimizeWindowCheck
+    triggers mouse_released
+    if ([mouse_released 0])
+    value ([context me layer_id]) myLayerID
+    all layer _ _ _ _ _ _ Layers
+    find_by_id_2 Layers myLayerID Layer
+    index c Layer [0 0 2] _ collision MinCollision
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    run minimizeWindowCheck
 end
 
 
 start minimizeWindowCheck
-if([c MinCollision release_on])
-fun Camera minimize
+    if([c MinCollision release_on])
+    fun Camera minimize
 end
 
 
 start switchBorderlessMode
-triggers key_pressed
-if ([key_pressed 57])
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-run switchBorderlessModeCheckFocus
+    triggers key_pressed
+    if ([key_pressed 57])
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    run switchBorderlessModeCheckFocus
 end
 
 
 start switchBorderlessModeCheckFocus
-if([c Camera is_focused])
-fun isBorderless toggle_bool
-run switchToBorderless
+    if([c Camera is_focused])
+    fun isBorderless toggle_bool
+    run switchToBorderless
 end
 
 start switchToBorderless
-if ([c isBorderless])
-fun me set_position int [-5 -30]
-all layer _ _ _ _ _ _ Layers
-value ([context me layer_id]) myLayerID
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 1] _ primitives Toolbar
-fun Toolbar deactivate
-index c Layer [0 0 2] _ primitives Border
-fun Border deactivate
-index c Layer [0 0 3] _ primitives ExitButton
-fun ExitButton deactivate
-index c Layer [0 0 4] _ primitives MaxButton
-fun MaxButton deactivate
-index c Layer [0 0 5] _ primitives MinButton
-fun MinButton deactivate
-index c Layer [0 0 0] _ super_text Title
-fun Title deactivate
-index c Layer [0 0 0] _ collision ExitCollision
-fun ExitCollision deactivate
-index c Layer [0 0 1] _ collision MaxCollision
-fun MaxCollision deactivate
-index c Layer [0 0 2] _ collision MinCollision
-fun MinCollision deactivate
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-fun Camera set_can_be_grabbed bool [false]
-fun Camera set_can_mouse_resize bool [false]
-value ([context Camera size_x]) cpx
-value ([context Camera size_y]) cpy
-int [10] shiftX
-int [80] shiftY
-+= cpx shiftX
-+= cpy shiftY
-index c Layer [0 0 0] _ primitives Background
-fun Background set_size c cpx c cpy
-fun Background update_with_size
-else switchFromBorderless
+    if ([c isBorderless])
+    fun me set_position int [-5 -30]
+    all layer _ _ _ _ _ _ Layers
+    value ([context me layer_id]) myLayerID
+    find_by_id_2 Layers myLayerID Layer
+    index c Layer [0 0 1] _ primitives Toolbar
+    fun Toolbar deactivate
+    index c Layer [0 0 2] _ primitives Border
+    fun Border deactivate
+    index c Layer [0 0 3] _ primitives ExitButton
+    fun ExitButton deactivate
+    index c Layer [0 0 4] _ primitives MaxButton
+    fun MaxButton deactivate
+    index c Layer [0 0 5] _ primitives MinButton
+    fun MinButton deactivate
+    index c Layer [0 0 0] _ super_text Title
+    fun Title deactivate
+    index c Layer [0 0 0] _ collision ExitCollision
+    fun ExitCollision deactivate
+    index c Layer [0 0 1] _ collision MaxCollision
+    fun MaxCollision deactivate
+    index c Layer [0 0 2] _ collision MinCollision
+    fun MinCollision deactivate
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    fun Camera set_can_be_grabbed bool [false]
+    fun Camera set_can_mouse_resize bool [false]
+    value ([context Camera size_x]) cpx
+    value ([context Camera size_y]) cpy
+    int [10] shiftX
+    int [80] shiftY
+    += cpx shiftX
+    += cpy shiftY
+    index c Layer [0 0 0] _ primitives Background
+    fun Background set_size c cpx c cpy
+    fun Background update_with_size
+    else switchFromBorderless
 end
 
 start switchFromBorderless
-all layer _ _ _ _ _ _ Layers
-fun me set_position int [0 0]
-value ([context me layer_id]) myLayerID
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 1] _ primitives Toolbar
-fun Toolbar activate
-index c Layer [0 0 3] _ primitives ExitButton
-fun ExitButton activate
-index c Layer [0 0 4] _ primitives MaxButton
-fun MaxButton activate
-index c Layer [0 0 5] _ primitives MinButton
-fun MinButton activate
-index c Layer [0 0 0] _ super_text Title
-fun Title activate
-index c Layer [0 0 0] _ collision ExitCollision
-fun ExitCollision activate
-index c Layer [0 0 1] _ collision MaxCollision
-fun MaxCollision activate
-index c Layer [0 0 2] _ collision MinCollision
-fun MinCollision activate
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-fun Camera set_can_be_grabbed bool [true]
-fun Camera set_can_mouse_resize bool [true]
-run revertBorderIfPossible
+    all layer _ _ _ _ _ _ Layers
+    fun me set_position int [0 0]
+    value ([context me layer_id]) myLayerID
+    find_by_id_2 Layers myLayerID Layer
+    index c Layer [0 0 1] _ primitives Toolbar
+    fun Toolbar activate
+    index c Layer [0 0 3] _ primitives ExitButton
+    fun ExitButton activate
+    index c Layer [0 0 4] _ primitives MaxButton
+    fun MaxButton activate
+    index c Layer [0 0 5] _ primitives MinButton
+    fun MinButton activate
+    index c Layer [0 0 0] _ super_text Title
+    fun Title activate
+    index c Layer [0 0 0] _ collision ExitCollision
+    fun ExitCollision activate
+    index c Layer [0 0 1] _ collision MaxCollision
+    fun MaxCollision activate
+    index c Layer [0 0 2] _ collision MinCollision
+    fun MinCollision activate
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    fun Camera set_can_be_grabbed bool [true]
+    fun Camera set_can_mouse_resize bool [true]
+    run revertBorderIfPossible
 end

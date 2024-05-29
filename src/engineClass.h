@@ -4,6 +4,7 @@
 #include "layerClass.h"
 
 vector<string> tokenizeString(string input, char delimeter);
+void getDesktopResolution(int adapter, int *w, int *h);
 
 #if __linux__
     #include <sys/time.h>
@@ -74,7 +75,7 @@ public:
 
     vector <string> initFiles;
 
-    void resetState(string title);
+    void resetState(string title, bool resetScreen);
     EngineClass();
     void initAllegro();
     void clear();

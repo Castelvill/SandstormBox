@@ -69,6 +69,9 @@ void ScrollbarModule::draw(vec2d basePos, vector <ImageModule> & ImageContainer,
     }
 }
 bool ScrollbarModule::startDragging(vec2d basePos, const MouseClass & Mouse, Camera2D * Camera){
+    if(!canBeDrawn){
+        return false;
+    }
     if(mousePressed){
         return true;
     }
@@ -136,6 +139,9 @@ bool ScrollbarModule::dragThumb(vec2d basePos, const MouseClass &Mouse){
 }
 vec2d ScrollbarModule::countScrollShift(){
     vec2d scrollShift(0.0, 0.0);
+    if(thumbSize.x == 0 || thumbSize.y == 0){
+        return scrollShift;
+    }
     if(scrollingArea.x-thumbSize.x != 0){
         scrollShift.x = (thumbPos.x/(scrollingArea.x-thumbSize.x))*realScrollingArea.x;
     }

@@ -86,12 +86,14 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
     return releasedKeys;
 }
 
-void EngineClass::resetState(string title){
+void EngineClass::resetState(string title, bool resetScreen){
     isPixelArt = false;
     cursorBitmap = NULL;
     windowTitle = title;
-    displaySize.set(1280, 720);
-    fullscreen = false;
+    if(resetScreen){
+        displaySize.set(1280, 720);
+        fullscreen = false;
+    }
     closeProgram = false;
     reboot = false;
     redraw = false;

@@ -9,13 +9,13 @@ int main(int argc, char* argv[]){
     srand(time(NULL));
 
     EngineClass Engine;
-    Engine.resetState("EGM");
+    Engine.resetState("EGM", true);
     Engine.initAllegro();
     vector <ProcessClass> Processes;
     vec2d oldMousePos[2];
 
     do{
-        Engine.resetState("EGM");
+        Engine.resetState("EGM", false);
         for(int file = 1; file < argc; ++file){
             Processes.push_back(ProcessClass());
             Processes.back().create(Engine.EXE_PATH, Engine.getDisplaySize(),

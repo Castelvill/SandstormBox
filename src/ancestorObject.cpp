@@ -575,6 +575,9 @@ vector<string> tokenizeCode(string input){
             }
             continue;
         }
+        if(output[i] == "\t"){
+            continue;
+        }
         mergedOutput.push_back(output[i]);
     }
 
@@ -792,7 +795,8 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 }
                 if(nextCond(words, cursor, Expression.back().Literal, 'b', scriptName, lineNumber)){ continue; };
             }
-            else if(isStringInGroup(Expression.back().Location.source, 7, "int", "key_pressed", "key_pressing", "key_released", "mouse_pressed", "mouse_pressing", "mouse_released")){
+            else if(isStringInGroup(Expression.back().Location.source, 9, "int", "key_pressed", "key_pressing",
+                "key_released", "mouse_pressed", "mouse_pressing", "mouse_released", "screen_w", "screen_h")){
                 if(Expression.back().Location.source == "int"){
                     Expression.back().Location.source = "literal";
                 }
@@ -1078,6 +1082,11 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(words.size() < 2){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
                     ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires one parameter.\n";
+                return;
+            }
+            if(words[1] != "_" && isStringInVector(eveContainerIDs, words[1])){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
+                    ": In " << __FUNCTION__ << ": Event with id \'" << words[1] << "\' already exists.\n";
                 return;
             }
             NewEvent = EveModule(words[1], &eveContainerIDs, getLayerID(), getID());
