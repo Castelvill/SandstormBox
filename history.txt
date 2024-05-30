@@ -1,0 +1,90 @@
+cd scripts
+edit sand.sand
+wait
+nw xd
+nw aaaa
+ls
+ls
+pwd
+mkdir test
+sh mkdir test
+ls
+ls
+cd mkdir
+cd test
+ls
+fs
+fs
+edit note
+ls
+edit note
+cat note
+cd
+sh rm test
+ls
+cd test
+ls
+cd
+cd docs
+ls
+edit Instructions.md
+cd
+cd test
+ls
+cd
+sh rmll test
+ls
+cd test
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+lse
+sh lse
+sh lse bitmaps
+cd docs
+ls
+ls
+cd docs
+ls
+ls
+ls
+ls
+cd docs
+/docs/
+ls
+wait
+ls
+ls
+dsadaad
+gfdgd
+ls
+cd docs
+ls
+neofetch
+ls
+cd docs
+ls
+ls

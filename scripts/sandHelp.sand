@@ -9,15 +9,33 @@ end
 
 
 start ls
-ls param1 result
-tokenize "\n" result files
-print "\t" result c files
-string ["_enter"] program
-index layer [0 1] _ object Terminal
-index context Terminal [0 0] _ super_editable_text EditableText
-fun EditableText modify_last_format double [0.0 1.0 1.0 1.0] double [0.0 1.0 1.0 1.0] string [cascadia_code] int [1]
-run printOnTerminal
+    ls param1 result
+    tokenize " " result files
+    index c me [0 0] _ super_editable_text EditableText
+    int [0] fileIndex
+	run lsColoringLoop
+post
+    string ["_enter"] program
 end
+start lsColoringLoop true
+	if ([c fileIndex] [c files size] <)
+	index c files _ [fileIndex] value file
+	++ fileIndex
+	run colorIfDirectory printFileNameOnTerminal
+end
+start colorIfDirectory
+	if ([is_directory file])
+    fun EditableText modify_last_format double [0.3 0.3 1.0 1.0] double [0.0 0.0 0.3 1.0] string [cascadia_code] int [1]
+	else cololIfNotDirectory
+end
+start cololIfNotDirectory
+	fun EditableText modify_last_format double [0.0 0.9 0.0 1.0] double [0.0 0.3 0.0 1.0] string [cascadia_code] int [1]
+end
+start printFileNameOnTerminal
+	print "\t" result c file
+	run printOnTerminal
+end
+
 
 
 start cls

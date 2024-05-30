@@ -1,4 +1,7 @@
 30.05.2024
+-Upgraded "ls" command - now directories are printed first and in a different color.
+-Upgraded "tokenize" instruction - now characters in quotation marks create a single token.
+-Added "is_directory" value that returns true if a file is a directory.
 -Fixed: Tabs were not ignored during the event assembly.
 -Fixed: Rebooting in fullscreen does not refresh the window.
 

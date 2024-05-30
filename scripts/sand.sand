@@ -104,13 +104,24 @@ start buildTerminal
 
     int [0 0] editableTextPos
 
+    var string "1.0" terminalColorR
+    var string "0.0" terminalColorG
+    var string "0.0" terminalColorB
+    var string "1.0" terminalColorA
+
+    var string "0.2" terminalAccentColorR
+    var string "0.0" terminalAccentColorG
+    var string "0.0" terminalAccentColorB
+    var string "1.0" terminalAccentColorA
+
     new super_editable_text c me 1 _ _ TerminalTextField
     fun TerminalTextField set_id string [edi]
     fun TerminalTextField set_position c editableTextPos
     fun TerminalTextField set_size c ww c wh
     //fun TerminalTextField set_size int [884 480]
     fun TerminalTextField add_format string [cascadia_code] int [1]
-    fun TerminalTextField set_color int [0] double [1.0 0.0 0.0 1.0]
+    fun TerminalTextField set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
+    fun TerminalTextField set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
     fun TerminalTextField set_wrapping string [w]
     fun TerminalTextField set_can_be_edited bool [true]
     fun TerminalTextField set_can_use_space bool [true]
@@ -224,16 +235,6 @@ start buildTerminal
     var string "" param6
     var string "" param7
     var int 20 roundingSize
-
-    var string "1.0" terminalColorR
-    var string "0.0" terminalColorG
-    var string "0.0" terminalColorB
-    var string "1.0" terminalColorA
-
-    var string "1.0" terminalAccentColorR
-    var string "1.0" terminalAccentColorG
-    var string "1.0" terminalAccentColorB
-    var string "1.0" terminalAccentColorA
 
     var int 0 commandNumber
     var int 0 currentCommandNumber
@@ -579,10 +580,12 @@ end
 
 start createPrompt
     string ["┌/"] begin
+    //string ["-/"] begin
     += result begin
     pwd workingDir
     += result workingDir
-    string ["\n└─$ "] secondLine
+    string ["\n└─$"] secondLine
+    //string ["\n--$"] secondLine
     += result secondLine
 end
 
@@ -617,13 +620,12 @@ end
 start controler
     triggers each_iteration
     if ([context program] [string ""] ==)
-    index layer [0 1] _ object Terminal
-    index context Terminal [0 0] _ super_editable_text EditableText
+    index context me [0 0] _ super_editable_text EditableText
     fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
     fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
     string ["sleep"] program
     string [""] result
-    run createPrompt printOnTerminal
+    run createPrompt printOnTerminal colorNormalText
 end
 
 
@@ -648,7 +650,14 @@ start controlerWithEnter
     fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
     string ["sleep"] program
     string ["\n"] result
-    run createPrompt printOnTerminal
+    run createPrompt printOnTerminal colorNormalText
+end
+
+start colorNormalText
+    fun EditableText set_last_color double [0.86 0.85 0.86 1.0]
+    fun EditableText set_last_accent_color double [0.0 0.0 0.0 1.0]
+    string [" "] result
+    run printOnTerminal
 end
 
 

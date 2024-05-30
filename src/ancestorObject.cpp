@@ -546,7 +546,6 @@ vector<string> tokenizeCode(string input){
     bool isInsideStringSector = false;
 
     for(size_t i = 0; i < input.size(); i++){
-        
         if(input[i] == '\"' && (i == 0 || input[i - 1] != '\\')){
             if(!isInsideStringSector){
                 stringSectors.push_back("");
@@ -810,6 +809,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
             }
             else if(Expression.back().Location.source == "string"
                 || Expression.back().Location.source == "exists"
+                || Expression.back().Location.source == "is_directory"
             ){
                 if(words[cursor] == "]"){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
@@ -1644,6 +1644,12 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
 
             if(words[2] != "_"){
                 Operation->newContextID = words[2];
+            }
+
+            if(words.size() == 4){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": \'" << words[3] << "\' type does not exist.\n";
+                return;
             }
             
             cursor = 3;

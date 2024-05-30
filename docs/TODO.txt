@@ -1,3 +1,5 @@
+-Fix: Single \n sign in the line breaks the formatting while using "ls" instruction in the terminal. 
+-Create "cursor_pos_x" and "cursor_pos_y" values that return the position of the cursor in the active text field. 
 -Ensure scrollbar is always following the text cursor.
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
@@ -15,7 +17,7 @@
 
 MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside the engine.
 
--Fix: While in fullscreen and in "src" directory, using "ls" instruction breaks the formatting of the terminal text. 
+-Fix: Extended ASCII characters like "┌" break the text selection (three negative char-s create one wide character).
 -Double clicking a word in the text should select this whole word.
 -Pressing tab in the editable text module, if more than one letter is selected, should append a tab to the beginning of every selected line. 
 -Add to PrimaryModule "vec2b reverseAxes" variable that controls the direction and starting point of the drawing axes on the camera.

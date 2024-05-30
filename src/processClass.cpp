@@ -7150,6 +7150,21 @@ void ProcessClass::listOutFiles(OperaClass & Operation, vector<ContextClass> & E
         fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n', EventIds);
     #endif
 
+    vector <string> directories, normalFiles;
+    for(string file : fileNames){
+        string fullPath = EXE_PATH + workingDirectory + file;
+        if(std::filesystem::is_directory(fullPath)){
+            directories.push_back(file);
+        }
+        else{
+            normalFiles.push_back(file);
+        }
+    }
+
+    fileNames.clear();
+    fileNames.insert(fileNames.end(), directories.begin(), directories.end());
+    fileNames.insert(fileNames.end(), normalFiles.begin(), normalFiles.end());
+
     string buffer = "";
     for(string file : fileNames){
         for(char chara : file){
@@ -7974,7 +7989,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         NewValue.setBool(Engine.secondHasPassed());
         return NewValue;
     }
-    if(Condition.Location.source == "exists"){
+    if(Condition.Location.source == "exists" || Condition.Location.source == "is_directory"){
         ContextClass * Context = getContextByID(EventContext, Condition.Literal.getString(), true, EventIds);
         if(Context == nullptr){
             NewValue.setBool(false);
@@ -7987,7 +8002,12 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             }
             else{
                 file = EXE_PATH + workingDirectory + file;
-                NewValue.setBool(std::filesystem::exists(file));
+                if(Condition.Location.source == "exists"){
+                    NewValue.setBool(std::filesystem::exists(file));
+                }
+                else if(Condition.Location.source == "is_directory"){
+                    NewValue.setBool(std::filesystem::is_directory(file));
+                }
             }
         }
         return NewValue;

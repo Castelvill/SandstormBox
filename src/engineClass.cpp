@@ -2,16 +2,21 @@
 #include "engineClass.h"
 
 vector<string> tokenizeString(string input, char delimeter){
-    vector<string> output = {""};
+    vector<string> tokens = {""};
+    bool isInsideStringSector = false;
     for(char letter : input){
-        if(letter == delimeter){
-            output.push_back("");
+        if(letter == '\"'){
+            tokens.back() += letter;
+            isInsideStringSector = !isInsideStringSector;
+        }
+        else if(!isInsideStringSector && letter == delimeter){
+            tokens.push_back("");
         }
         else{
-            output.back() += letter;
+            tokens.back() += letter;
         }
     }
-    return output;
+    return tokens;
 }
 
 #if __linux__
