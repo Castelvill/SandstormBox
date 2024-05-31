@@ -55,6 +55,7 @@ public:
     VariableModule getValue(string attribute, size_t index) const;
     string getAnyStringValue(size_t index) const;
     string getAnyStringValueUnsafe(long index) const;
+    vector <string> getAllValuesAsStringVector() const;
     bool getBool(size_t index) const;
     bool getBoolUnsafe(long index) const;
     int getInt(size_t index) const;

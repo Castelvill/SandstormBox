@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Compile EGM",
+            "label": "Compile Engine",
             "windows": {
                 "command": "D:\\Programs\\MSYS64\\mingw64\\bin\\g++.exe",
                 "args": [
@@ -32,7 +32,7 @@
                     "${config:src}engineClass.cpp",
                     "${config:src}main.cpp",
                     "-o",
-                    "${workspaceFolder}${pathSeparator}EGM.exe",
+                    "${workspaceFolder}${pathSeparator}SandstormBox.exe",
                     "-lallegro-static",
                     "-lallegro_font-static",
                     "-lallegro_ttf-static",
@@ -99,7 +99,7 @@
                     "${config:src}engineClass.cpp",
                     "${config:src}main.cpp",
                     "-o",
-                    "${workspaceFolder}${pathSeparator}EGM.exe",
+                    "${workspaceFolder}${pathSeparator}SandstormBox.exe",
                     "-lallegro",
                     "-lallegro_font",
                     "-lallegro_ttf",

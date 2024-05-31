@@ -24,7 +24,7 @@
                     "${config:src}engineClass.cpp",
                     "${config:src}main.cpp",
                     "-o",
-                    "${workspaceFolder}${pathSeparator}EGM.exe",
+                    "${workspaceFolder}${pathSeparator}SandstormBox.exe",
                     "-lallegro-static",
                     "-lallegro_font-static",
                     "-lallegro_ttf-static",

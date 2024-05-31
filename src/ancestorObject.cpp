@@ -1084,7 +1084,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires one parameter.\n";
                 return;
             }
-            if(words[1] != "_" && isStringInVector(eveContainerIDs, words[1])){
+            if(words[1][0] != '_' && isStringInVector(eveContainerIDs, words[1])){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
                     ": In " << __FUNCTION__ << ": Event with id \'" << words[1] << "\' already exists.\n";
                 return;

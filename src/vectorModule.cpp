@@ -372,6 +372,34 @@ string VectorModule::getAnyStringValueUnsafe(long index) const{
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
     return "";
 }
+vector <string> VectorModule::getAllValuesAsStringVector() const{
+    vector<string> newStringVector;
+    if(type == 'b'){
+        for(unsigned index = 0; index < vBool.size(); index++){
+            if(vBool[index].value){
+                newStringVector.push_back("true");
+            }
+            newStringVector.push_back("false");
+        }
+    }
+    else if(type == 'i'){
+        for(unsigned index = 0; index < vInt.size(); index++){
+            newStringVector.push_back(intToStr(vInt[index]));
+        }
+    }
+    else if(type == 'd'){
+        for(unsigned index = 0; index < vInt.size(); index++){
+            newStringVector.push_back(doubleToStr(vDouble[index]));
+        }
+    }
+    else if(type == 's'){
+        return vString;
+    }
+    else{
+        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+    }
+    return newStringVector;
+}
 bool VectorModule::getBool(size_t index) const{
     if(index >= vBool.size()){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index

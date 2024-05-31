@@ -1,4 +1,4 @@
-*run empty EGM.exe*
+*run empty SandstormBox.exe*
 *you see a terminal window - half width and half height of the screen - with a simple window border (white and black), minimize and maximize buttons*
 
 Hello in the EGM terminal! Enter "help" command to get help.

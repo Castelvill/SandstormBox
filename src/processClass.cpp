@@ -6124,6 +6124,14 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
                 buffer += catchQuotes(Variable->getStringUnsafe()) + delimeter;
             }
         }
+        else if(ContextValues->type == "vector"){
+            for(const VectorModule * Vector : ContextValues->Modules.Vectors){
+                vector<string> stringsFromVector = Vector->getAllValuesAsStringVector();
+                for(string text : stringsFromVector){
+                    buffer += catchQuotes(text) + delimeter;
+                }
+            }
+        }
         else if(ContextValues->type == "camera"){
             buffer += getStringOfIDs(ContextValues->Cameras, delimeter);
         }
@@ -6168,9 +6176,6 @@ void ProcessClass::executePrint(OperaClass & Operation, vector<ContextClass> & E
         }
         else if(ContextValues->type == "primitive"){
             buffer += getStringOfIDs(ContextValues->Modules.Primitives, delimeter);
-        }
-        else if(ContextValues->type == "vector"){
-            buffer += getStringOfIDs(ContextValues->Modules.Vectors, delimeter);
         }
         else{
             cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Invalid context type \'" << ContextValues->type << "\'.\n";
@@ -7152,7 +7157,11 @@ void ProcessClass::listOutFiles(OperaClass & Operation, vector<ContextClass> & E
 
     vector <string> directories, normalFiles;
     for(string file : fileNames){
-        string fullPath = EXE_PATH + workingDirectory + file;
+        string fullPath = EXE_PATH + workingDirectory;
+        if(directory.size() > 0){
+            fullPath += directory + "/";
+        }
+        fullPath += file;
         if(std::filesystem::is_directory(fullPath)){
             directories.push_back(file);
         }

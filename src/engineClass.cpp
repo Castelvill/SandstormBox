@@ -100,12 +100,17 @@ void EngineClass::resetState(string title, bool resetScreen){
         fullscreen = false;
     }
     closeProgram = false;
+    if(reboot){
+        cout << "Rebooted\n";
+        cout.flush();
+    }
     reboot = false;
     redraw = false;
     displayResized = false;
 }
 EngineClass::EngineClass(){
     memset(key, 0, sizeof(key));
+    reboot = false;
 }
 void getDesktopResolution(int adapter, int *w, int *h){
     ALLEGRO_MONITOR_INFO info;
@@ -299,7 +304,7 @@ void EngineClass::updateEvents(){
                 key[ALLEGRO_KEY_LCTRL] = false;
                 key[ALLEGRO_KEY_LSHIFT] = false;
                 key[ALLEGRO_KEY_R] = false;
-                cout << "Rebooting...\n";
+                cout << "Rebooting...";
             }
             else if(key[ALLEGRO_KEY_LCTRL] && key[ALLEGRO_KEY_ESCAPE]){
                 closeProgram = true;

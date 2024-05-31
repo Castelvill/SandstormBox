@@ -12,14 +12,14 @@
             "/home/mateusz/Programming/Easy-Game-Maker"
         ]
     },
-    "program": "${workspaceFolder}${pathSeparator}EGM.exe",
+    "program": "${workspaceFolder}${pathSeparator}SandstormBox.exe",
     "cwd": "${fileDirname}",
     "configurations": [
     {
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${workspaceFolder}${pathSeparator}EGM.exe",
+        "program": "${workspaceFolder}${pathSeparator}SandstormBox.exe",
         "args": [],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",

@@ -1,3 +1,9 @@
+31.05.2024
+-Refactor scripts.
+-Updated neofetch.
+-Renamed binary to "SandstormBox.exe".
+-Added vectors to "print" instruction.
+
 30.05.2024
 -Upgraded "ls" command - now directories are printed first and in a different color.
 -Upgraded "tokenize" instruction - now characters in quotation marks create a single token.

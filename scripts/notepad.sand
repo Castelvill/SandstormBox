@@ -1,98 +1,98 @@
-start checkIfWindowMovedNotepad
-triggers mouse_pressing
-if ([mouse_moved] [mouse_pressing 0] &&)
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-run refreshWindowWithCameraNotepad
+start _checkIfWindowMovedNotepad
+    triggers mouse_pressing
+    if ([mouse_moved] [mouse_pressing 0] &&)
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    run refreshWindowWithCameraNotepad
 end
 
 start checkIfDisplayResizeNotepad
-triggers on_display_resize
-if ([c isMaxed] [on_display_resize] &&)
-run refreshWindowWithDisplayNotepad
+    triggers on_display_resize
+    if ([c isMaxed] [on_display_resize] &&)
+    run refreshWindowWithDisplayNotepad
 end
 
 
 start refreshWindowWithDisplayNotepad
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-value ([window_w]) sx
-value ([window_h]) sy
-fun Camera resize c sx c sy
-run refreshWindowNotepad
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    value ([window_w]) sx
+    value ([window_h]) sy
+    fun Camera resize c sx c sy
+    run refreshWindowNotepad
 end
 
 start refreshWindowWithCameraNotepad
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-value ([context Camera size_x]) sx
-value ([context Camera size_y]) sy
-run refreshWindowNotepad
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    value ([context Camera size_x]) sx
+    value ([context Camera size_y]) sy
+    run refreshWindowNotepad
 end
 
 
 start refreshWindowNotepad
-value ([context me layer_id]) myLayerID
-all layer _ _ _ _ _ _ Layers
-find_by_id_2 Layers myLayerID Layer
-index c Layer [0 0 0] _ super_editable_text Notepad
-fun Notepad set_size c sx c sy
-run resizeObjectWhenNotBorderless
+    value ([context me layer_id]) myLayerID
+    all layer _ _ _ _ _ _ Layers
+    find_by_id_2 Layers myLayerID Layer
+    index c Layer [0 0 0] _ super_editable_text Notepad
+    fun Notepad set_size c sx c sy
+    run resizeObjectWhenNotBorderless
 end
 
 start resizeObjectWhenNotBorderless
-if ([c isBorderless] !)
-index c my_layer [0 0] _ object WindowObject
-fun WindowObject set_size c sx c sy
+    if ([c isBorderless] !)
+    index c my_layer [0 0] _ object WindowObject
+    fun WindowObject set_size c sx c sy
 end
 
 
 start resizeObjectWhenMaxed
-triggers mouse_released
-if ([mouse_released 0])
-index c my_layer [0 0 1] _ collision MaxCollision
-run resizeObjectWhenMaxedCheck
+    triggers mouse_released
+    if ([mouse_released 0])
+    index c my_layer [0 0 1] _ collision MaxCollision
+    run resizeObjectWhenMaxedCheck
 end
 
 start resizeObjectWhenMaxedCheck
-if([c MaxCollision release_on])
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-value ([context Camera size_x]) sx
-value ([context Camera size_y]) sy
-index c my_layer [0 0] _ object WindowObject
-fun WindowObject set_size c sx c sy
+    if([c MaxCollision release_on])
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    value ([context Camera size_x]) sx
+    value ([context Camera size_y]) sy
+    index c my_layer [0 0] _ object WindowObject
+    fun WindowObject set_size c sx c sy
 end
 
 start resizeObjectWhenSwitchingToBorderlessMode
-triggers key_pressed
-if ([key_pressed 57])
-all camera _ camera _ Cameras
-find_by_id_2 Cameras cameraID Camera
-run resizeObjectWhenSwitchingToBorderlessModeCheckFocus
+    triggers key_pressed
+    if ([key_pressed 57])
+    all camera _ camera _ Cameras
+    find_by_id_2 Cameras cameraID Camera
+    run resizeObjectWhenSwitchingToBorderlessModeCheckFocus
 end
 
 start resizeObjectWhenSwitchingToBorderlessModeCheckFocus
-if([c Camera is_focused])
-run resizeObjectForBorderlessMode
+    if([c Camera is_focused])
+    run resizeObjectForBorderlessMode
 end
 
 start resizeObjectForBorderlessMode
-if ([c isBorderless])
-value ([context Camera size_x]) cpx
-value ([context Camera size_y]) cpy
-int [10] shiftX
-int [40] shiftY
-+= cpx shiftX
-+= cpy shiftY
-index c my_layer [0 0] _ object WindowObject
-fun WindowObject set_size c cpx c cpy
-else resizeObjectFromBorderlessMode
+    if ([c isBorderless])
+    value ([context Camera size_x]) cpx
+    value ([context Camera size_y]) cpy
+    int [10] shiftX
+    int [40] shiftY
+    += cpx shiftX
+    += cpy shiftY
+    index c my_layer [0 0] _ object WindowObject
+    fun WindowObject set_size c cpx c cpy
+    else resizeObjectFromBorderlessMode
 end
 
 start resizeObjectFromBorderlessMode
-value ([context Camera size_x]) cpx
-value ([context Camera size_y]) cpy
-index c my_layer [0 0] _ object WindowObject
-fun WindowObject set_size c cpx c cpy
+    value ([context Camera size_x]) cpx
+    value ([context Camera size_y]) cpy
+    index c my_layer [0 0] _ object WindowObject
+    fun WindowObject set_size c cpx c cpy
 end

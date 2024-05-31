@@ -1,5 +1,5 @@
 #!/bin/bash
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 export LD_LIBRARY_PATH
-chmod +x EGM.exe
-./EGM.exe
+chmod +x SandstormBox.exe
+./SandstormBox.exe
