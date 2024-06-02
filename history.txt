@@ -20,3 +20,6 @@ ls docs/vektorki
 ls docs/vektorki/bin
 ls docs/vektorki/bin/Debug
 exit
+edit .config
+exit
+ls init
