@@ -7,3 +7,16 @@ neofetch
 neofetch
 neofetch
 neofetch
+neofetch
+ls
+ls
+ls docs
+ls docs/vectorki
+ls docs/ideasa
+ls docs/ideas
+ls docs
+ls docs/ideas
+ls docs/vektorki
+ls docs/vektorki/bin
+ls docs/vektorki/bin/Debug
+exit
