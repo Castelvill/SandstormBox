@@ -23,3 +23,85 @@ exit
 edit .config
 exit
 ls init
+ls
+cd docs
+ls
+edit Sand_Language.md
+edit TODO.txt
+cd
+ls
+cd scripts
+ls
+edit sand.sand
+edit sand.sand
+edit sand.sand
+edit sand.sand
+edit sand.sand
+ls
+cat .config
+neofetch
+edit sand.sand
+cd docs
+edit sand.sand
+cd
+cd scripts
+edit sand.sand
+edit sand.sand
+edit sand.sand
+ls
+neofetch
+cat docs/TODO.txt
+edit docs/TODO.txt
+exit
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+edit scripts/sand.sand
+cat docs/TODO.txt
+cat docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+neofetch
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+ls
+ls
+cat docs/TODO.txt
+ls
+cat docs/TODO.txt
+d
+ls
+ls
+edit docs/TODO.txt
+ls
+cat docs/TODO.txt
+ls
+ls
+cd xd
+ls
+ls xd
+cd xd
+cd docs
+cd
+ls 
+ls xd
+ls
+ls xd
+ls docs
+xd
+wait
+cats
+sq
+222
+cls
+cat xd
+cat scripts/
+ls scripts/
+cat scripts/tabs.sand
+ls
+exit

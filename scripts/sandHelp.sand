@@ -9,6 +9,7 @@ end
 
 
 start ls
+    if ([exists param1] [c param1] [string ""] == ||)
     ls param1 result
     tokenize " " result files
     index c me [0 0] _ super_editable_text EditableText
@@ -16,6 +17,7 @@ start ls
 	run lsColoringLoop
 post
     string ["_enter"] program
+else informFileDoesNotExistForCD
 end
 start lsColoringLoop true
 	if ([c fileIndex] [c files size] <)
@@ -349,15 +351,13 @@ end
 
 
 start cd
-    string [""] program
-    run checkCD
-end
-start checkCD
     if ([exists param1] [c param1] [string ""] == ||)
+    string [""] program
     cd _ param1
     else informFileDoesNotExistForCD
 end
 start informFileDoesNotExistForCD
+    string [""] program
     string ["Directory '"] result
     += result param1
     string ["' does not exist!\n"] secondPart

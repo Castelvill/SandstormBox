@@ -1,0 +1,12 @@
+"Modern" small strategy game
+-Turn based.
+-Small battles like in King's bounty and Darkest Dungeon - two divided groups of characters on, for example, 4x4 grid.
+-Unique characters with unique stats and one skill tree per race, each character can have unique set of items.
+-Each characters can have permanent or temporary buffs and debuffs that may stack.
+-Most characters will be based on normal characters templates, some (for example bosses) can be actually unique (from my universes).
+-Characters may be resurrected with special items during battles or in a shrine with a hefty offering. Resurrection can have side effects scaled with each resurrection.
+-You can hire or find characters willing to join your party in any moment outside the battle. They range from random trash (that can be still leveled) to true heroes. 
+-Outside battles: movement based on heroes of might and magic.
+-World: small maps or open world idk.
+-Should support multiple human players.
+-Easy pixel art.

@@ -1,4 +1,4 @@
--Add "directory doesn't exist" message to "ls" command.
+-Change: After overwriting the selected text, cursor should be moved one place to the left.
 -Fix: Single \n sign in the line breaks the formatting while using "ls" instruction in the terminal. 
 -Create "cursor_pos_x" and "cursor_pos_y" values that return the position of the cursor in the active text field. 
 -Ensure scrollbar is always following the text cursor.

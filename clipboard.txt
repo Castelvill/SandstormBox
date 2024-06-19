@@ -1,7 +1,1 @@
-, g+$$kg  . . 8|   Kernel: 0.2
- |8  .  d$$''?$b  .  &|   Shell: Sandbox 0.2
- |& .,  d?x,  ''  ,  8|   Uptime: 420 hours, 4 mins
- |8  ..  sR$$&Y  . . &|   Resolution: 1920x1080
- |&, .  ..  `T$i  ,  8|   Theme: Bees Dark
- |8  ,  d$x,,$$i   . &|   CPU: 12th Gen Intel i5-12600KF
- |&,  . `*c$$+*  
+cat scripts/

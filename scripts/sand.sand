@@ -16,8 +16,8 @@ start onInit
     load_bitmap "images/arch.jpg" arch false true
     load_bitmap "images/cobblestone.png" cobblestone false true
     load_bitmap "images/elephant.jpg" elephant false true
-    load_bitmap "gui/thumb_track_h3.png" thumb_track_h3 false true
-    load_bitmap "gui/thumb_h3.png" thumb_h3 false true
+    load_bitmap "gui/sand_thumb_track.png" sand_thumb_track false true
+    load_bitmap "gui/sand_thumb.png" sand_thumb false true
 
 
     string ["fonts/CascadiaCode.ttf"] path
@@ -143,7 +143,7 @@ start buildTerminal
     fun thumb set_position int [2 2]
     fun thumb set_size int [16 16]
     fun thumb resize int [12 12]
-    fun thumb connect_bitmap_via_alias string [thumb_h3]
+    fun thumb connect_bitmap_via_alias string [sand_thumb]
     fun thumb add_to_the_interface
 
     new image c me 1 _ _ thumbTrack
@@ -151,13 +151,13 @@ start buildTerminal
     fun thumbTrack deactivate
     fun thumbTrack set_size int [100 500]
     fun thumbTrack resize int [16 480]
-    fun thumbTrack connect_bitmap_via_alias string [thumb_track_h3]
+    fun thumbTrack connect_bitmap_via_alias string [sand_thumb_track]
     fun thumbTrack add_to_the_interface
 
     new scrollbar c me 1 _ _ MainScrollbar
     fun MainScrollbar add_to_the_interface
     //fun MainScrollbar deactivate
-    fun MainScrollbar set_can_be_drawn bool [false]
+    fun MainScrollbar set_can_be_drawn bool [true]
     fun MainScrollbar set_id string [MainScrollbar]
     fun MainScrollbar set_position int [884 0]
     fun MainScrollbar set_thumb_position int [450 0]//450]
@@ -183,7 +183,7 @@ start buildTerminal
 
     new scrollbar c me 1 _ _ TextEditorScrollbar
     fun TextEditorScrollbar add_to_the_interface
-    fun TextEditorScrollbar set_can_be_drawn bool [false]
+    fun TextEditorScrollbar set_can_be_drawn bool [true]
     fun TextEditorScrollbar set_id string [TextEditorScrollbar]
     fun TextEditorScrollbar set_position int [884 0]
     fun TextEditorScrollbar set_thumb_position int [450 0]//450]

@@ -1,3 +1,7 @@
+19.06.2024
+-Added "directory doesn't exist" message to "ls" command.
+-Moved drawing scrollbars to the front of modules.
+
 31.05.2024
 -Refactor scripts.
 -Updated neofetch.

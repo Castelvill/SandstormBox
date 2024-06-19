@@ -10042,33 +10042,6 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         numberOfDrawnObjects++;
     }
 
-    for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
-        if(!Scrollbar.getIsActive() || !Scrollbar.canBeDrawn){
-            continue;
-        }
-
-        isScrollable = Scrollbar.getIsScrollable();
-        if(drawOnlyVisibleObjects && !Scrollbar.getIsPartOfInterface()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(Scrollbar.getPos(false));
-            objectSize.set(Scrollbar.getSize());
-            scaledObjectSize.set(objectSize);
-            scaledObjectSize.multiply(Scrollbar.getScale());
-            if(!Scrollbar.getIsScaledFromCenter()){
-                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
-            }
-            else{
-                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
-            }
-
-            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
-                continue;
-            }
-        }
-        Scrollbar.draw(Object.getPos(isScrollable)+Camera.pos, Object.ImageContainer, Camera);
-        numberOfDrawnObjects++;
-    }
-
     for(TextModule & Text : Object.TextContainer){
         if(!Text.getIsActive()){
             continue;
@@ -10191,6 +10164,33 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
                 );
             }
         }
+        numberOfDrawnObjects++;
+    }
+
+    for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
+        if(!Scrollbar.getIsActive() || !Scrollbar.canBeDrawn){
+            continue;
+        }
+
+        isScrollable = Scrollbar.getIsScrollable();
+        if(drawOnlyVisibleObjects && !Scrollbar.getIsPartOfInterface()){
+            newPos.set(Object.getPos(isScrollable));
+            newPos.translate(Scrollbar.getPos(false));
+            objectSize.set(Scrollbar.getSize());
+            scaledObjectSize.set(objectSize);
+            scaledObjectSize.multiply(Scrollbar.getScale());
+            if(!Scrollbar.getIsScaledFromCenter()){
+                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
+            }
+            else{
+                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
+            }
+
+            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
+                continue;
+            }
+        }
+        Scrollbar.draw(Object.getPos(isScrollable)+Camera.pos, Object.ImageContainer, Camera);
         numberOfDrawnObjects++;
     }
 
