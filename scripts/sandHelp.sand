@@ -437,3 +437,9 @@ end
 start resetProgram
     string [""] program
 end
+
+start allegro
+	string ["I'd just like to interject for a moment. What you're referring to as SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, Allegro plus SandstormBox."] result
+	string ["_enter"] program
+	run printOnTerminal
+end

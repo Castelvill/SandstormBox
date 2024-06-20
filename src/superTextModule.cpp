@@ -28,7 +28,6 @@ void SuperTextModule::setUpNewInstance(){
     lineWithSecondCursorIdx = 0;
     lineWidthToSecondCursor = 0.0;
     updated = false;
-    cursorPixelPos.set(0.0, 0.0);
 }
 SuperTextModule::SuperTextModule(){
     primaryConstructor("", nullptr, "", "");
@@ -431,10 +430,14 @@ VariableModule SuperTextModule::getAttributeValue(const string &attribute, const
         return VariableModule::newDouble(rotation);
     }
     if(attribute == "cursor_pos_x"){
-        return VariableModule::newDouble(cursorPixelPos.x);
+        return VariableModule::newDouble(lineWidthToCursor);
     }
     if(attribute == "cursor_pos_y"){
-        return VariableModule::newDouble(cursorPixelPos.y);
+        double cursorPixelPosY = 0;
+        for(unsigned lineIdx = 0; lineIdx < lineWithCursorIdx; lineIdx++){
+            cursorPixelPosY += lineHeights[lineIdx];
+        }
+        return VariableModule::newDouble(cursorPixelPosY);
     }
     
     cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
@@ -1071,7 +1074,6 @@ void SuperTextModule::cutContent(size_t newSize){
     fitFormattingToContent();
     update();
 }
-
 
 void SuperEditableTextModule::setUpNewInstance(){
     SuperTextModule::setUpNewInstance();
@@ -1946,7 +1948,6 @@ void SuperEditableTextModule::moveCursorToTheStartOfThePreviousTextLine(bool shi
 }
 void SuperEditableTextModule::moveCursorToTheSavedWidth(float & currentWidth, unsigned & letterIdx, unsigned & currentLineLength,
     unsigned & formatIdx, unsigned & limit, float selectedWidth, unsigned & currentTabLength){
-    //Move cursor to the saved width
     currentWidth = 0.0;
     currentTabLength = 0;
     char letter;
@@ -2117,8 +2118,6 @@ void SuperEditableTextModule::moveCursorUp(bool shift, unsigned & leftCursorOnFo
         updateFormattingForUpMoveWithShift(letterIdx, formatIdx, limit, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
         cursorPos = letterIdx;
     }
-
-    cursorPixelPos.y -= Formatting[leftCursorOnFormatIdx].Font->height;
 }
 void SuperEditableTextModule::prepareToMoveCursorDown(bool shift, float & currentWidth, unsigned & letterIdx, unsigned & currentLineLength,
     unsigned & formatIdx, unsigned & limit, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx
@@ -2363,8 +2362,6 @@ void SuperEditableTextModule::moveCursorDown(bool shift, unsigned & leftCursorOn
         updateFormattingForDownMoveWithShift(letterIdx, formatIdx, limit, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
         cursorPos = letterIdx;
     }
-
-    cursorPixelPos.y += Formatting[leftCursorOnFormatIdx].Font->height;
 }
 void SuperEditableTextModule::moveCursorToLeftByOne(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx){
     if(!shift){
@@ -2902,11 +2899,6 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, vec2d objectsSc
         cursorPos = content.size();
         localCursorPos = lineLengths.back();
         lineWidthToCursor = lineWidths.back();
-        cursorPixelPos.x = lineLengths.back() + objectsScrollShift.x;
-        cursorPixelPos.y = objectsScrollShift.y;
-        for(lineIdx = 0; lineIdx < lineHeights.size() - 1; lineIdx++){
-            cursorPixelPos.y += lineHeights[lineIdx];
-        }
         return;
     }
 
@@ -2926,8 +2918,6 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, vec2d objectsSc
         cursorPos = content.size();
         localCursorPos = lineLengths.back();
         lineWidthToCursor = lineWidths.back();
-        cursorPixelPos.x = lineLengths.back() + objectsScrollShift.x;
-        cursorPixelPos.y = currentY - lineHeights[lineIdx] + objectsScrollShift.y;
         return;
     }
 
@@ -2942,8 +2932,6 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, vec2d objectsSc
             localCursorPos = lineLengths.back();
             lineWidthToCursor = lineWidths.back();
         }
-        cursorPixelPos.x = lineWidths[lineIdx] + objectsScrollShift.x;
-        cursorPixelPos.y = currentY - lineHeights[lineIdx] + objectsScrollShift.y;
         return;
     }
 
@@ -2973,9 +2961,6 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, vec2d objectsSc
             currentWidth -= al_get_text_width(Formatting[formatIdx].Font->font, string(1, letter).c_str());
         }
     }
-
-    cursorPixelPos.x = currentWidth + objectsScrollShift.x;
-    cursorPixelPos.y = currentY - lineHeights[lineIdx] + objectsScrollShift.y;
 
     localCursorPos = currentLineLength;
     lineWidthToCursor = currentWidth;

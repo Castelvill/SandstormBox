@@ -213,3 +213,64 @@ edit scripts/sand.sand
 \
 edit scripts/sand.sand
 edit scripts/sand.sand
+cd docs
+edit chronology.txt
+edit changelog.txt
+edit changelog
+edit changelog
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+edit docs/changelog
+exit
+exit
+edit docs/changelog
+edit docs/changelog
+neofetch
+neofetch
+cd scripts
+ls
+ls
+edit sandHelp.sand
+edit sandHelp.sand
+edit sandHelp.sand
+cat sandHelp.sand
+edit sand.sand
+edit sand.sand
+cat sandHelp.sand
+edit sandHelp.sand
+allegro
+allegro

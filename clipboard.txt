@@ -1,1 +1,16 @@
-Sandstorm
+30.05.2024
+-Upgraded "ls" command - now directories are printed first and in a different color.
+-Upgraded "tokenize" instruction - now characters in quotation marks create a single token.
+-Added "is_directory" value that returns true if a file is a directory.
+-Fixed: Tabs were not ignored during the event assembly.
+-Fixed: Rebooting in fullscreen does not refresh the window.
+
+29.05.2024
+-Added scrollbar with dynamic updates to the text editor.
+-Fixed: Scrollbar's thumb was not updated until a certain terminal size was not achieved.
+-Fixed: Cannot select scrolled text.
+-Stopped drawing text lines that are outside the screen.
+
+28.05.2024
+-Thumb of the scrollbar can now be moved while the mouse is outside the engine's window.
+-Fixed: Scrolling speed of the mouse wheel varies based on the size of the current history in the terminal.

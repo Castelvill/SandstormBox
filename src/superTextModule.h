@@ -39,8 +39,6 @@ public:
     float lineWidthToCursor, lineWidthToSecondCursor;
     bool updated;
 
-    vec2f cursorPixelPos;
-
     bool drawSelectionFirst; //If true, whole text content is rendered twice, first - only the selection, second - only the text.  
 
     void setUpNewInstance();

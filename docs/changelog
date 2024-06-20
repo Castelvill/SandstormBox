@@ -1,4 +1,5 @@
 20.06.2024
+-Improved automatic scrolling inside the text fields.
 -Added automatic text cursor following to the scrollbar.
 -Created "cursor_pos_x" and "cursor_pos_y" values that return the position of the cursor in the active text field. 
 
@@ -239,29 +240,29 @@
 -Fixed segmentation fault caused by fonts.
 
 11.01.2024
-- Added "load_font" instruction.
-- Fixed the crash caused by the lack of fonts.
+-Added "load_font" instruction.
+-Fixed the crash caused by the lack of fonts.
 
 10.01.2024
-- Added ctrl+L shortcut to clear the screen.
+-Added ctrl+L shortcut to clear the screen.
 
 09.01.2024
-- Added ctrl+I shortcut to start editing in the text editor.
-- Moved context removal to the loop back if statement - the post-instructions were losing context from the pre-instructions.
-- Added "start_editing" and "stop_editing" functions to the EditableText module. 
+-Added ctrl+I shortcut to start editing in the text editor.
+-Moved context removal to the loop back if statement - the post-instructions were losing context from the pre-instructions.
+-Added "start_editing" and "stop_editing" functions to the EditableText module. 
 
 06.01.2024
-- Improved "Sand" terminal.
-- Improved load_text.
-- Improved save_text.
+-Improved "Sand" terminal.
+-Improved load_text.
+-Improved save_text.
 
 05.01.2024
-- Improved ContextClass with safe getters.
-- Added "substr" instructions - returning a substring from the text.
-- Added "len" instruction - returning the length of the text.
+-Improved ContextClass with safe getters.
+-Added "substr" instructions - returning a substring from the text.
+-Added "len" instruction - returning the length of the text.
 
 04.01.2024
-- Added protected area to editable text module.
-- Fixed dynamic cursor change.
-- Blocked user input (mouse and keyboard) in not focused processes.
-- Blocked user input (mouse and keyboard) in the processes with "canUserInteract" variable equal to false.
+-Added protected area to editable text module.
+-Fixed dynamic cursor change.
+-Blocked user input (mouse and keyboard) in not focused processes.
+-Blocked user input (mouse and keyboard) in the processes with "canUserInteract" variable equal to false.
