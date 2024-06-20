@@ -114,6 +114,8 @@ start buildTerminal
     var string "0.0" terminalAccentColorB
     var string "1.0" terminalAccentColorA
 
+    var int 24 minScrollbarHeight
+
     new super_editable_text c me 1 _ _ TerminalTextField
     fun TerminalTextField set_id string [edi]
     fun TerminalTextField set_position c editableTextPos
@@ -142,7 +144,7 @@ start buildTerminal
     fun thumb deactivate
     fun thumb set_position int [2 2]
     fun thumb set_size int [16 16]
-    fun thumb resize int [12 12]
+    fun thumb resize int [12] c minScrollbarHeight
     fun thumb connect_bitmap_via_alias string [sand_thumb]
     fun thumb add_to_the_interface
 
@@ -195,7 +197,7 @@ start buildTerminal
     fun TextEditorScrollbar set_mouse_wheel_speed double [40.0]
     fun TextEditorScrollbar deactivate
 
-    /*new particles c me 1 _ _ Particles
+    new particles c me 1 _ _ Particles
     fun Particles set_position int [200 200]
     fun Particles set_size int [10 10]
     fun Particles activate
@@ -204,8 +206,8 @@ start buildTerminal
     fun Particles set_spawn_rate int [100 100]
     fun Particles set_spawn_cap int [500]
     fun Particles set_max_time_to_spawn double [0.05]
-    fun Particles set_basic_speed double [0.1 10.0]
-    fun Particles set_speed double [0.1 10.0]
+    fun Particles set_basic_speed double [0.1 1.0]
+    fun Particles set_speed double [0.1 1.0]
     fun Particles set_environment double [0.0 0.0]
     fun Particles set_environment_speed double [0.0 0.0]
     fun Particles set_acceleration double [0.0 0.0]
@@ -213,8 +215,8 @@ start buildTerminal
     fun Particles set_directional_degree double [0.0 360.0]
     fun Particles set_rotation_speed double [0.0 0.0]
     fun Particles set_time_to_negate_rotation double [0.0 0.0]
-    fun Particles set_radius double [5.0 5.0]
-    fun Particles set_time_to_death double [0.2 0.5]
+    fun Particles set_radius double [1.0 1.0]
+    fun Particles set_time_to_death double [0.2 0.2]
     fun Particles set_color_intensity double [0.8 1.0]
     fun Particles set_shape_rotation_speed double [-2.0 2.0]
     fun Particles set_shape int [0]
@@ -223,7 +225,7 @@ start buildTerminal
     fun Particles set_is_static bool [false]
     //fun Particles bind_key string [p]
     //fun Particles add_image string [insane]
-    */
+    
 
     var string "_enter" program
     var string "" param0
@@ -240,14 +242,13 @@ start buildTerminal
     var int 0 currentCommandNumber
     vec string [""] commandHistory
 
-    vec string [help neofetch winfetch hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history forgor sel_col xd wait] allowedPrograms
+    vec string [help neofetch winfetch hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history forgor sel_col xd wait sudo] allowedPrograms
 
     var string "scripts" dir
 
     var int 0 waitingTime
     run loadCommandHistory
 end
-
 
 
 start loadCommandHistory
@@ -262,16 +263,56 @@ start loadCommandHistory
     = currentCommandNumber newSize
 end
 
-
-/*start spawnParticles
-    triggers key_pressing
+start selectTextWithMouse
+    triggers mouse_pressing
+    if ([mouse_pressing 0])
+    index c me [0 1] _ super_editable_text TextField
+    value ([c TextField cursor_pos_y]) cursorPosY
+    value ([c me scroll_shift_y]) scrollShiftY
+    -= cursorPosY scrollShiftY
+    value ([window_h]) windowH
+    double [-30] windowLimitYDown
+    += windowLimitYDown windowH
+    double [10] windowLimitYUp
+    run moveScrollbarBySelectingText
+end
+start selectTextWithKeys
+    triggers any_key_pressing
     if ([any_key_pressing])
+    index c me [0 1] _ super_editable_text TextField
+    value ([c TextField cursor_pos_y]) cursorPosY
+    value ([c me scroll_shift_y]) scrollShiftY
+    -= cursorPosY scrollShiftY
+    value ([window_h]) windowH
+    double [-20] windowLimitYDown
+    += windowLimitYDown windowH
+    double [0] windowLimitYUp
+    run moveScrollbarBySelectingText
+end
+start moveScrollbarBySelectingText
+    if ([c TextField is_editing_active] [c cursorPosY] [c windowLimitYDown] > &&)
+    index c me [0 1] _ scrollbar Scrollbar
+    fun Scrollbar scroll_by_distance double [0 8]
+    fun me update_scrollbars
+    else moveScrollbarBySelectingTextUp
+end
+start moveScrollbarBySelectingTextUp
+    if ([c TextField is_editing_active] [c cursorPosY] [c windowLimitYUp] < &&)
+    index c me [0 1] _ scrollbar Scrollbar
+    fun Scrollbar scroll_by_distance double [0 -8]
+    fun me update_scrollbars
+end
+
+start spawnParticles
+    //triggers each_iteration
+    //triggers key_pressing
+    //if ([any_key_pressing])
     index c me [0 0] _ particles Particles
-    index c me [0 0] _ super_editable_text Terminal
-    value ([c Terminal pos_x] [c Terminal pos_y]) textPos
-    fun Particles set_position c textPos
+    index c me [0 1] _ super_editable_text TextField
+    value ([c TextField cursor_pos_x] [c TextField cursor_pos_y]) cursorPos
+    fun Particles set_position c cursorPos
     fun Particles allow_spawning
-end*/
+end
 
 
 start createWindowTemplate
@@ -753,8 +794,8 @@ start refreshScrollbarCheck
 end
 
 start keepMinimalSizeOfScrollThumb
-    if([c scrollbarSizeY] [int 12] <)
-    int [12] scrollbarSizeY
+    if([c scrollbarSizeY] [c minScrollbarHeight] <)
+    = scrollbarSizeY minScrollbarHeight 
     fun MainScrollbar set_thumb_size c 12 c scrollbarSizeY
     fun me update_scrollbars
 end
@@ -802,12 +843,6 @@ start enter1
     run saveCommand programCheck
 end
 
-
-start reboot
-    reboot
-end
-
-
 start saveCommand
     if ([c commandLength] [int 0] >)
     fun commandHistory set c commandNumber c command
@@ -817,6 +852,23 @@ start saveCommand
     ++ commandNumber
     = currentCommandNumber commandNumber
 end
+
+start programCheck
+    if ([context isAllowed])
+    string ["run "] run
+    += run param0
+    string ["run"] program
+    inject_instr me run
+    string ["\n"] result
+    run printOnTerminal
+    else programNotFound
+end
+
+
+start reboot
+    reboot
+end
+
 
 start forgor
     int [0] zero
@@ -877,17 +929,6 @@ start downArrow
     fun EditableText set_cursor_pos c historySize
 end
 
-
-start programCheck
-    if ([context isAllowed])
-    string ["run "] run
-    += run param0
-    string ["run"] program
-    inject_instr me run
-    string ["\n"] result
-    run printOnTerminal
-    else programNotFound
-end
 
 start programNotFound
     if ([context param0] [string ""] !=)
@@ -1008,8 +1049,8 @@ start refreshTextEditorScrollbarCheck
     else resetTextEditorScrollbar
 end
 start keepMinimalSizeOfTextEditorScrollThumb
-    if([c scrollbarSizeY] [int 12] <)
-    int [12] scrollbarSizeY
+    if([c scrollbarSizeY] [c minScrollbarHeight] <)
+    = scrollbarSizeY minScrollbarHeight
     fun EditorScrollbar set_thumb_size c 12 c scrollbarSizeY
     fun me update_scrollbars
 end

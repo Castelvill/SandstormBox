@@ -15,9 +15,9 @@ start ls
     index c me [0 0] _ super_editable_text EditableText
     int [0] fileIndex
 	run lsColoringLoop
+    else informFileDoesNotExistForCD
 post
     string ["_enter"] program
-else informFileDoesNotExistForCD
 end
 start lsColoringLoop true
 	if ([c fileIndex] [c files size] <)
@@ -357,7 +357,7 @@ start cd
     else informFileDoesNotExistForCD
 end
 start informFileDoesNotExistForCD
-    string [""] program
+    //string [""] program
     string ["Directory '"] result
     += result param1
     string ["' does not exist!\n"] secondPart
@@ -425,4 +425,15 @@ start waitFor2
     run printOnTerminalUnprotected
 post
     break
+end
+
+start sudo
+    if ([c param1] [string "rm"] == [c param2] [string "-rf"] == [c param3] [string "--no-preserve-root"] == [c param4] [string "/"] == && && &&)
+    string ["Haha. No."] result
+    string ["_enter"] program
+    run printOnTerminal
+    else resetProgram
+end
+start resetProgram
+    string [""] program
 end

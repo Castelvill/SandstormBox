@@ -105,3 +105,111 @@ ls scripts/
 cat scripts/tabs.sand
 ls
 exit
+ls xd
+wait
+wait
+wait
+C
+xddd [true] to false
+rm -rf --no-preserve-root /
+sudo rm -rf --no-preserve-root /
+sudo rm -rf --no-preserve-root /
+edit scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+cls
+ls
+cat scripts/sand.sand
+cat scripts/sand.sand
+cat scripts/sand.sand
+ls scripts
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cd docs
+cd docs
+cd
+cat docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+\
+edit scripts/sand.sand
+edit scripts/sand.sand

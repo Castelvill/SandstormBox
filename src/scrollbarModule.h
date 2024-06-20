@@ -31,10 +31,12 @@ public:
     void correctThumbPosition();
     void scrollToTheBeginning();
     void scrollToTheEnd();
+    void scrollByDistance(vec2d distance);
     bool dragThumb(vec2d basePos, const MouseClass & Mouse);
     vec2d countScrollShift();
     void dragThumbWithMouseWheel(vec2d & objectScrollShift, const MouseClass & Mouse);
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    VariableModule getValue(const string &attribute, EventDescription EventIds) const;
 
     void setThumbPos(vec2d newValue);
     void setThumbSize(vec2d newValue);

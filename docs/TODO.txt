@@ -1,7 +1,7 @@
--Change: After overwriting the selected text, cursor should be moved one place to the left.
+-Remove "scrollShift" and "isScrollable" variables from the PrimaryModule.
+-Connect scrollbars to the cameras via the vector of ids. This solution will be simpler and will allow to scroll many objects.
+-Rename "isPartOfInterface" variable to “canBeMovedByCamera” in the PrimaryModule and adjust the rest of the engine to this change.
 -Fix: Single \n sign in the line breaks the formatting while using "ls" instruction in the terminal. 
--Create "cursor_pos_x" and "cursor_pos_y" values that return the position of the cursor in the active text field. 
--Ensure scrollbar is always following the text cursor.
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
 -Add modules scaling from the edge of the camera.
@@ -15,6 +15,7 @@
 -Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
 -Remove old TextModule and EditableTextModule and rename new modules.
 -Remove old, useless functions and methods.
+-Remove "scrollShift" variable from the PrimaryModule and add it only to the object. 
 
 MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside the engine.
 
@@ -37,7 +38,6 @@ MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside 
 -Fix: Command "sh print "xd\n"" does not work.
 -Fix: Print command doesn't use special signs.
 -Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
--Add start, end, triggers instructions to the documentation.
 -Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
 -(?)Implement "set_if *event* *expression*" instruction.
@@ -54,11 +54,11 @@ MILESTONE: Improve scripting language.
 -Add "shell"/"instruction" MODE to the Terminal.
 -Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
 -Add a glowing "backdoor" that will disable all each_iteration triggers to fight the infinite loops.
--Finish implementing "new_proc" instruction – new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
--Upgrade “edit_proc” instruction – process can be found in a normal vector or in a vector buffer of new processes.
+-Finish implementing "new_proc" instruction - new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
+-Upgrade "edit_proc" instruction - process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.
--Add instruction “clone_to_process <context_id> <thread_id> [activate_sim]” – clones layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
--Add instruction “move_to_process <context_id> <thread_id> [activate_sim]” – moves (clone and delete) layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
+-Add instruction "clone_to_process <context_id> <thread_id> [activate_sim]" - clones layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
+-Add instruction "move_to_process <context_id> <thread_id> [activate_sim]" - moves (clone and delete) layers and cameras from the context from the current thread to a different thread. If activate_sim is true, activate movement, particles and maybe game events. This instruction can be used on layers and cameras that have first been cloned locally in order to activate/deactivate specific entities and scripts.
 -Think about better way of getting attributes from module contexts.
 -Evolve "random_int" instruction into universal "random".
 -Add more milestones.
@@ -72,16 +72,16 @@ MILESTONE: Improve scripting language.
 -Add window: Terminal.
 -Add window: Ranger based filesystem. 
 -Add window: Options - shows the list of options/functions of the entity/window, every list item is a button, camera is immobilized, minimizes when mouse is out of focus.
--Add window: Filesystem – displays container for entities (threads, projects, layers, cameras, objects, modules, images, text, etc.). You cannot move camera freely. You can scroll up and down. Right clicking on the entity brings up the Options window. Filesystem has many display mods: list, icons, movable icons (like in old macs, very easy to implement because icons are just objects), tree (like in vs code). You can also open different threads like different partitions, but that might be problematic.
+-Add window: Filesystem - displays container for entities (threads, projects, layers, cameras, objects, modules, images, text, etc.). You cannot move camera freely. You can scroll up and down. Right clicking on the entity brings up the Options window. Filesystem has many display mods: list, icons, movable icons (like in old macs, very easy to implement because icons are just objects), tree (like in vs code). You can also open different threads like different partitions, but that might be problematic.
 -Add window: ImagePlacement - only draws images of a one object, you can move images around, you can also move camera. On technical plane, objects in this window directly correspond/point to images from the chosen object.
--Add window: CollisionPlacement – gives access to collision borders of a one object, you can move them around, you can also move camera. Aside from borders, window also draws chosen object images. On technical plane, objects in this window directly correspond/point to collision borders and images from the chosen object, but you can only interact with collisions.
+-Add window: CollisionPlacement - gives access to collision borders of a one object, you can move them around, you can also move camera. Aside from borders, window also draws chosen object images. On technical plane, objects in this window directly correspond/point to collision borders and images from the chosen object, but you can only interact with collisions.
 -Add window: EditEntity - custom for every other entity, lists all editable parameters (EditableTexts) and eventual sliders, has up-down scrollbar, camera is immobilized.
 -Add window: Wim - text editor, has four directional scrollbar, camera is... idk.
--Add window: Logs – the list of text fields, up-down scrollbar. Lists logs from its process.
--Add window: DisplayCameras – shows a vertical list of cameras in the order of display. Does not include this window. User can filter out cameras based on access level and groups. User can move cameras around, switching their order of display. Window’s camera is immobilized. There is up-down scrollbar.
+-Add window: Logs - the list of text fields, up-down scrollbar. Lists logs from its process.
+-Add window: DisplayCameras - shows a vertical list of cameras in the order of display. Does not include this window. User can filter out cameras based on access level and groups. User can move cameras around, switching their order of display. Window’s camera is immobilized. There is up-down scrollbar.
 -Add window: GameRunner/VirtualMachine/Simulator/Streamer/SSH - takes layers and cameras from a different process and allows user to interact with it in the current process. Its main goal is to run/test a game/program independently from the current development session. For example if you are in the process of creating a game, you press run button and this window is created. You can now play this game safely, make progress, have fun, test some new feature. If finish playing, just close the window and you will see that nothing changed in the game editor, because the game you played was just a clone of your game.
--Add window: DuctTape – Paint. Why Tape? Because Paint keeps the world in one piece like tape.
--Implement access to windows based on “access to engine windows.PNG” or find it in Miro.
+-Add window: DuctTape - Paint. Why Tape? Because Paint keeps the world in one piece like tape.
+-Implement access to windows based on "access to engine windows.PNG" or find it in Miro.
 
 -You should be able to save any type of entity from the engine by using "save <context> <fileName> [force]" instruction. Saving entity or a vector of entities (context) first writes a type and number of entities to the file and then all entities' data. If the file already exists and have any content inside, instruction will fail. By using force, engine will overwrite the previous content of the chosen file.
 -Add "load <fileName> <context> [force]" instruction. Load will overwrite all entities in the context based on the contents of the file. If the user doesn't provide big enough context, instruction will fail. By using force, engine will create new (valid number of) entities, add them to the context and finally overwrite everything.
@@ -91,8 +91,8 @@ MILESTONE: Improve scripting language.
 -Create LayerManagerWindow / Project tree.
 -Add logging system with filters and colors.
 -Implement variable change detection and add it to triggers lookup table.
--Add “areObjectsActive” bool to layers – if it’s true, modules and events of objects in this layer can be executed. Reason: layers are processes and can become games by cloning them and switching “areObjectsActive” to true.
--Add “IDPermissions”, “groupPermissions” vectors to layers.
+-Add "areObjectsActive" bool to layers - if it’s true, modules and events of objects in this layer can be executed. Reason: layers are processes and can become games by cloning them and switching "areObjectsActive" to true.
+-Add "IDPermissions", "groupPermissions" vectors to layers.
 -Events can access context of layers in layer’s IDPermissions and groupPermissions.
 -Add mouse selection to if statement sources.
 -Update realAreaOfScrolling.
@@ -126,7 +126,7 @@ MILESTONE: Improve scripting language.
 -Allow moving objects to move other objects using vectors (rotating objects will have momentum vectors used only to move other objects).
 -Add blur: takes color from few pixels and create brighter and darker squares with a little bit of alpha around the object; takes pixels from whole objects and uses avarage to blur an image; takes color from the closest sides of objects and fills the space between these two sides using avarage colors (ropes).
 -Add object goes many objects (cutting images using lines and dividing object into few small objects)
--Add shape controler module: mainly used as hitboxes, can be used in vector graphics. There are two modes: draw by squares or draw normally. By pressing Q and LMB you create a point and the line from this point focuses on your mouse pointer. By clicking LMB again you create a new point with a line connecting both points. You can connect two existing points, but if there was a line, you don't create a new one. If you click RMB, the drawing is over, but if you click LMB on existing point, you can draw again from that point (or Q+LMB). By pressing shift you can draw horizontally, vertically and diagonally. If option „fill with color” is enable, the program fills with chosen color or colors only triangles
+-Add shape controler module: mainly used as hitboxes, can be used in vector graphics. There are two modes: draw by squares or draw normally. By pressing Q and LMB you create a point and the line from this point focuses on your mouse pointer. By clicking LMB again you create a new point with a line connecting both points. You can connect two existing points, but if there was a line, you don't create a new one. If you click RMB, the drawing is over, but if you click LMB on existing point, you can draw again from that point (or Q+LMB). By pressing shift you can draw horizontally, vertically and diagonally. If option „fill with color" is enable, the program fills with chosen color or colors only triangles
 -Make transition/special effects module (old pixelated transition, star wars transition (moving wall changes one scene to another), blur, everything turns white or black, random pixels/lines missing, old television errors, convex screen)
 -Inverse cinematics
 -Fabric algorithm
@@ -145,12 +145,12 @@ OPTIMALIZATIONS
 -Use constexpr - this will pre-calculate some functions in compile time, speeding up some of them to O(1).
 -For large scale simulation: Divide game map to different threads based on camera position. The main thread will have rights to draw things and others will be focusing on processing stuff.
 -Function createNewModule recalculates indexes of all modules for each module added. Remove template and create custom index recalculation for each module.
--Bounding volume hierarchy (or marching squares) – group objects into the biggest “boxes/chunks” possible and iterate only through chunks where is the player (could work only for collisions). 
+-Bounding volume hierarchy (or marching squares) - group objects into the biggest "boxes/chunks" possible and iterate only through chunks where is the player (could work only for collisions). 
 -Declare variables as locally as possible.
 -Replace every vec2d with vec2f.
 -Replace big if else statements with switch and enum.
--Use ++iterator – it’s faster. 
--Use “const &” on every OBJECT (not variables).
+-Use ++iterator - it’s faster. 
+-Use "const &" on every OBJECT (not variables).
 -Try unorganised_list for password-function connection in EditableText module.
 -Divide drawing on cameras to threads.
 -Instead of running for loops everywhere, make hash map from IDs or something.
@@ -161,7 +161,7 @@ OPTIMALIZATIONS
 BUGS
 -Keyboard input can be randomly and permamently doubled. Clue:
 "...just make sure you handle the ALLEGRO_EVENT_DISPLAY_LOST and ALLEGRO_EVENT_DISPLAY_FOUND events, and redraw when you get the latter event." 
--Vector movement doesn’t support camera movement
+-Vector movement doesn't support camera movement
 -60 FPS max
 -Random copies of letters in editable fields - when you release few buttons at once editable text does undefined behavior. Do: when one button is pressed, every [var] seconds letter is entered, but when another button is pressed, the previous ones are 100% blocked until release (like in notepad)
 -Pointers in contexts may point to deleted entities (deleted = true).

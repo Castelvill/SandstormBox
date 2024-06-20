@@ -497,6 +497,12 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
     else if(attribute == "scale_y"){
         NewValue.setDouble(getSize().y);
     }
+    else if(attribute == "scroll_shift_x"){
+        NewValue.setDouble(scrollShift.x);
+    }
+    else if(attribute == "scroll_shift_y"){
+        NewValue.setDouble(scrollShift.y);
+    }
     else{
         cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
         NewValue.setBool(false);

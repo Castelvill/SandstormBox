@@ -297,7 +297,7 @@ void ProcessClass::selectLettersInText(const MouseClass & Mouse){
     }
     //cout << "Selected object: '" << SelectedObject->getID() << "'; Select text: " << ActiveEditableText->getID() << "\n";
     ActiveEditableText->cursorPos = 0;
-    ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable()), Mouse);
+    ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable()), SelectedObject->getScrollShift(), Mouse);
     if(Mouse.firstPressedInRectangle(
         SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable())
         + ActiveEditableText->getPos(ActiveEditableText->getIsScrollable()),
@@ -5484,7 +5484,7 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
     vector <VariableModule> & Variables = Operation.Literals;
     ContextClass * Context = nullptr;
     
-    if(Operation.Literals.size() > 0 || Operation.dynamicIDs.size() == 1){
+    if(/*Operation.Literals.size() > 0 ||*/ Operation.dynamicIDs.size() == 1){
         if(!getOneContext(Context, EventContext, Operation.dynamicIDs)){
             cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
             return;
@@ -6392,30 +6392,44 @@ void ProcessClass::createNewProcess(OperaClass & Operation, vector<ProcessClass>
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
 ){
     if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires at least one string literal.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": "
+            << transInstrToStr(Operation.instruction) << " requires at least one string literal.\n";
         return;
     }
 
-    string layerID = "", objectID = "", script = "";
+    if(printOutInstructions){
+        cout << transInstrToStr(Operation.instruction);
+    }
+
+    string layerID = "", objectID = "", pathToTheScript = "";
 
     if(Operation.Literals.size() > 1 && Operation.Literals[1].getType() == 's'){
         layerID = Operation.Literals[1].getString();
+        if(printOutInstructions){
+            cout << " " << layerID;
+        }
     }
     if(Operation.Literals.size() > 2 && Operation.Literals[2].getType() == 's'){
         objectID = Operation.Literals[2].getString();
+        if(printOutInstructions){
+            cout << " " << objectID;
+        }
     }
     if(Operation.Literals.size() > 3 && Operation.Literals[3].getType() == 's'){
-        script = Operation.Literals[3].getString();
+        pathToTheScript = Operation.Literals[3].getString();
+        if(printOutInstructions){
+            cout << " " << pathToTheScript;
+        }
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << layerID << " " << objectID << " " << script << "\n";
+        cout << "\n";
     }
     
     if(Processes.size() + 1 <= Processes.capacity()){
         Processes.push_back(ProcessClass());
         Processes.back().create(Engine.EXE_PATH + workingDirectory, Engine.getDisplaySize(),
-            script, Operation.Literals[0].getString(), layerID, objectID, Engine.processIDs
+            pathToTheScript, Operation.Literals[0].getString(), layerID, objectID, Engine.processIDs
         );
     }
     else{
@@ -7520,7 +7534,7 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             case load_font:
                 loadFontFromContext(Operation, EventContext, Engine);
                 break;
-            case reset_keyboard:
+            case reset_keyboard: //TODO: fix and add to the documentation
                 Engine.pressedKeys.clear();
                 Engine.releasedKeys.clear();
                 Engine.firstPressedKeys.clear();
@@ -7978,6 +7992,17 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
     else if(Condition.Location.moduleType == "collision"){
         return getValueFromObjectInCollision(Condition, CurrentObject, CurrentLayer);
     }
+    else if(Condition.Location.moduleType == "scrollbar"){
+        for(const ScrollbarModule & Scrollbar : CurrentObject->ScrollbarContainer){
+            if(Scrollbar.getID() == Condition.Location.moduleID){
+                if(Scrollbar.getIsDeleted()){
+                    break;
+                }
+                return Scrollbar.getValue(Condition.Location.attribute, EventIds);
+            }
+        }
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
+    }
     
     cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Value not found.\n";
     return VariableModule::newBool(false, "null");
@@ -8174,7 +8199,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             NewValue.setInt(Process->Layers.size());
             return NewValue;
         }
-        if(Condition.Location.source == "number_of_objects"){
+        if(Condition.Location.attribute == "number_of_objects"){
             NewValue.setInt(0);
             for(const LayerClass & Layer : Process->Layers){
                 NewValue.addInt(Layer.Objects.size());
@@ -8234,7 +8259,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
         if(Context->Modules.Vectors.size() != 1){
-            cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several Vectors in the context. Program will proceed with the last added vector.\n";
+            cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                << ": There are several Vectors in the context. Program will proceed with the last added vector.\n";
         }
         if(Condition.Literal.getType() == 'i'){
             return Context->Modules.Vectors.back()->getValue("value", Condition.Literal.getIntUnsafe());
@@ -8271,7 +8297,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Variables.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several literals in the context. Program will proceed with the last added literal.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several literals in the context. Program will proceed with the last added literal.\n";
             }
             return Context->Variables.back();
         }
@@ -8285,7 +8312,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->BasePointers.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several pointers in the context. Program will proceed with the last added pointer.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several pointers in the context. Program will proceed with the last added pointer.\n";
             }
             NewValue.setValueFromPointer(Context->BasePointers.back());
             return NewValue;
@@ -8300,7 +8328,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Variables.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several variables in the context. Program will proceed with the last added literal.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several variables in the context. Program will proceed with the last added variable.\n";
             }
             return *Context->Modules.Variables.back();
         }
@@ -8311,7 +8340,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Collisions.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several collisions in the context. Program will proceed with the last added literal.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several collisions in the context. Program will proceed with the last added collision.\n";
             }
             if(Condition.Location.attribute == "detected"){
                 for(const DetectedCollision & Detected : Context->Modules.Collisions.back()->Detected){
@@ -8339,7 +8369,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Primitives.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several Primitives in the context. Program will proceed with the last added literal.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several Primitives in the context. Program will proceed with the last added Primitive.\n";
             }
             if(Condition.Location.attribute == "pos_x"){
                 NewValue.setDouble(Context->Modules.Primitives.back()->getPos(0).x);
@@ -8361,7 +8392,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.EditableTexts.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several EditableTexts in the context. Program will proceed with the last added literal.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several EditableTexts in the context. Program will proceed with the last added EditableText.\n";
             }
             return Context->Modules.EditableTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
         }
@@ -8372,7 +8404,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.SuperTexts.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several SuperTexts in the context. Program will proceed with the last added literal.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several SuperTexts in the context. Program will proceed with the last added SuperTexts.\n";
             }
             return Context->Modules.SuperTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), EventIds);
         }
@@ -8383,7 +8416,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.SuperEditableTexts.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several SuperEditableTexts in the context. Program will proceed with the last added literal.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several SuperEditableTexts in the context. Program will proceed with the last added SuperEditableText.\n";
             }
             return Context->Modules.SuperEditableTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), EventIds);
         }
@@ -8394,7 +8428,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Vectors.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several Vectors in the context. Program will proceed with the last added vector.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several Vectors in the context. Program will proceed with the last added vector.\n";
             }
             return Context->Modules.Vectors.back()->getValue(Condition.Location.attribute, Context->Modules.Vectors.back()->getSize());
         }
@@ -8405,7 +8440,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Objects.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several objects in the context. Program will proceed with the last added object.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several objects in the context. Program will proceed with the last added object.\n";
             }
             Condition.Location.layerID = Context->Objects.back()->getLayerID();
             Condition.Location.objectID = Context->Objects.back()->getID();
@@ -8418,7 +8454,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Layers.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several layers in the context. Program will proceed with the last added layer.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several layers in the context. Program will proceed with the last added layer.\n";
             }
             NewValue = Context->Layers.back()->getValue(Condition.Location.attribute, Condition.Location.spareID);
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
@@ -8431,7 +8468,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Cameras.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are several cameras in the context. Program will proceed with the last added camera.\n";
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several cameras in the context. Program will proceed with the last added camera.\n";
             }
             if(Condition.Location.attribute == "is_selected"){
                 NewValue.setBool(SelectedCamera == Context->Cameras.back());
@@ -8441,6 +8479,18 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             }
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
             return NewValue;
+        }
+        if(Context->type == "scrollbar"){
+            if(Context->Modules.Scrollbars.size() == 0){
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": There are no Scrollbars in the context.\n";
+                NewValue.setBool(false);
+                return NewValue;
+            }
+            if(Context->Modules.Scrollbars.size() != 1){
+                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": There are several Scrollbars in the context. Program will proceed with the last added Scrollbar.\n";
+            }
+            return Context->Modules.Scrollbars.back()->getValue(Condition.Location.attribute, EventIds);
         }
         
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No value can be extracted from the context.\n";
@@ -10378,7 +10428,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                     ActiveEditableText = &SuperEditableText;
                     ActiveEditableText->isEditingActive = true;
                     ActiveEditableText->cursorPos = 0;
-                    ActiveEditableText->setCursorsWithMouse(Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable()), Mouse);
+                    ActiveEditableText->setCursorsWithMouse(Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable()), Object.getScrollShift(), Mouse);
                     if(Mouse.pressedInRectangle(
                         Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable())
                         + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),

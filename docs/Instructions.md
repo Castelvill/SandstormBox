@@ -1,5 +1,74 @@
 # Instructions
 
+## start
+
+**Syntax**
+
+start *id* [loop]
+
+**Description**
+
+    Start the instruction scope for the new event.
+
+**Parameters:**
+
+- id (string) - a name for the new event,
+- [loop] (bool) - if true, the new event will be executed in every iteration of the parent process.
+
+## end
+
+**Description**
+
+    Close the instruction scope for the current event.
+
+## triggers
+
+**Syntax**
+
+triggers *trigger* [[trigger] ...]
+
+**Description**
+
+    Automatically execute the current event every time any trigger provided in this instruction is active. This instruction can be used only once in any given event.
+
+**Parameters:**
+
+- trigger (string) - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
+
+## if
+
+**Syntax**
+
+if *expression*
+
+**Description**
+
+    Limit the execution of the current event with if conditions provided in this instruction. If the whole expression returns true, event will be executed, otherwise execute instructions in the else statement scope. This instruction can be used only once in any given event.
+
+**Parameters**
+
+- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “window_w”, “window_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
+
+## else
+
+**Syntax**
+
+else *event*
+
+**Description**
+
+    Execute provided event only when the if statement returns false. This instruction can be used only once in any given event.
+
+**Parameters:**
+
+- event (string) - a name of an event to be executed.
+
+## post
+
+**Description**
+
+    Start a new instruction scope for the current event. Instructions in this scope will be executed only when the if statement returns true and only after the main scope finishes its execution. If the current event is a loop, post instructions will be ignored. This instruction can be used only once in any given event.
+
 ## run
 
 **Syntax**
@@ -8,7 +77,7 @@ run *event* [[event] ...]
 
 **Description**
 
-    Execute all events which names were provided in this instruction.
+    Execute all events with names provided in this instruction. This instruction can be used only once in any given scope.
 
 **Parameters:**
 
@@ -24,7 +93,7 @@ run *event* [[event] ...]
 
 **Description**
 
-    Restart the process. All boot triggered events will be executed in the next engine iteration.
+    Restart the process. All boot-triggered events will be executed in the next engine iteration.
 
 ## return
 
@@ -155,11 +224,11 @@ value *expression* [output]
 
 **Description**
 
-    Return a context made out of given literals or values found in different sources.
+    Return a context made out of given literals or values found in provided sources.
 
 **Parameters**
 
-- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: “context”, “camera”, “layer”, “object”, “variable”, “literal”, “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, “window_w”, “window_h”. If you choose “literal”, you can provide literals from these types: bool, int, double, string.
+- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “window_w”, “window_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## bool / int / double / string
@@ -558,9 +627,26 @@ edit_proc *name* *variable* [values]
 
 **Parameters**
 
-- name (string) - the name of the variable selected for modification;
-- variable (string): is_active, can_interact_with_user, is_rendering, draw_camera_borders, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, auto_print_stack, reservation_multiplier, window_pos, window_size, min_window_size, window_tint
+- name (string) - the name of the process to be modified;
+- variable (string): is_active, can_interact_with_user, is_rendering, draw_camera_borders, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, auto_print_stack, reservation_multiplier, window_pos, window_size, min_window_size, window_tint - the name of the variable selected for modification,
 - [values] (VariableModule): bool, int, double, string - a new value or values for the selected variable.
+
+## new_proc
+
+**Syntax**
+
+new_proc *name* [layer] [object] [script]
+
+**Description**
+
+    Create a new process.
+
+**Parameters**
+
+- name (string) - a name for the new process,
+- [layer] (string) - a name for the first layer of the new process,
+- [object] (string) - a name for the first object of the new process,
+- [script] (string) - a file path to the initialization script for the new process.
 
 ## fun
 
@@ -840,10 +926,6 @@ substr text begin length [output]
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
 ## restart_drag
-
-**Syntax**
-
-restart_drag
 
 **Description**
 

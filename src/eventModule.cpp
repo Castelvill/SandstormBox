@@ -1089,6 +1089,9 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
     else if(attribute == "scroll_to_the_end"){
         Scrollbar->scrollToTheEnd();
     }
+    else if(attribute == "scroll_by_distance" && Values.size() >= 2){
+        Scrollbar->scrollByDistance(vec2d(Values[0].getDouble(), Values[1].getDouble()));
+    }
     else{
         bool temp = false;
         if(Values.size() > 0){

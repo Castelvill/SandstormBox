@@ -151,7 +151,7 @@ int VariableModule::getIntUnsafe() const{
 }
 double VariableModule::getDouble() const{
     if(type == 'i'){
-        cout << "Warning [VariableModule]: no floating point.\n";
+        cout << "Warning [VariableModule]: No floating point.\n";
         return vInt;
     }
     else if(type != 'd'){

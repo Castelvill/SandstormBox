@@ -1,4 +1,10 @@
+20.06.2024
+-Added automatic text cursor following to the scrollbar.
+-Created "cursor_pos_x" and "cursor_pos_y" values that return the position of the cursor in the active text field. 
+
 19.06.2024
+-After overwriting the selected text with a new character, cursor is now moved one position to the right.
+-Described "start", "end", "triggers", "if", "else", "post" and "new_proc" instructions in the documentation.
 -Added "directory doesn't exist" message to "ls" command.
 -Moved drawing scrollbars to the front of modules.
 
