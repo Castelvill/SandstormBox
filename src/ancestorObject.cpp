@@ -75,7 +75,7 @@ vector<string> removeComments(const vector<string> & lines){
     
     return newLines;
 }
-vector<string> readLines(const string& filename) {
+vector<string> readLines(const string& filename, bool allowNotAscii) {
 	std::ifstream File(filename);
 	vector<string> lines;
 
@@ -83,9 +83,17 @@ vector<string> readLines(const string& filename) {
 		std::cerr << "Cannot open file: " << filename << "\n";
         return lines;
 	}
-    for(string line; std::getline(File, line);){
-        lines.push_back(line);
+    if(allowNotAscii){
+        for(string line; std::getline(File, line);){
+            lines.push_back(line);
+        }
     }
+    else{
+        for(string line; std::getline(File, line);){
+            lines.push_back(removeNotAscii(line));
+        }
+    }
+    
     File.close();
 
     lines = removeComments(lines);
@@ -1891,7 +1899,7 @@ void AncestorObject::clearAllEvents(){
     EveContainer.clear();
     eveContainerIDs.clear();
 }
-void AncestorObject::translateAllScripts(bool clearEvents){
+void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii){
     if(clearEvents){
         clearAllEvents();
     }
@@ -1899,7 +1907,7 @@ void AncestorObject::translateAllScripts(bool clearEvents){
     vector<string> code;
     
     for(string scriptName : bindedScripts){
-        code = readLines(scriptName);
+        code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
             eventAssembler(code, scriptName);
             code.clear();
@@ -1909,11 +1917,11 @@ void AncestorObject::translateAllScripts(bool clearEvents){
         }
     }
 }
-void AncestorObject::translateScriptsFromPaths(vector<string> scriptsPaths){
+void AncestorObject::translateScriptsFromPaths(vector<string> scriptsPaths, bool allowNotAscii){
     vector<string> code;
     
     for(string scriptName : scriptsPaths){
-        code = readLines(scriptName);
+        code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
             eventAssembler(code, scriptName);
             code.clear();
@@ -1923,14 +1931,14 @@ void AncestorObject::translateScriptsFromPaths(vector<string> scriptsPaths){
         }
     }
 }
-void AncestorObject::translateSubsetBindedScripts(vector<string> scripts){
+void AncestorObject::translateSubsetBindedScripts(vector<string> scripts, bool allowNotAscii){
     vector<string> code;
     
     for(string scriptName : bindedScripts){
         if(!isStringInVector(scripts, scriptName)){
             continue;
         }
-        code = readLines(scriptName);
+        code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
             eventAssembler(code, scriptName);
             code.clear();

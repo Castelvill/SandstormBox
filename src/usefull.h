@@ -56,5 +56,6 @@ bool hasEnding(string const &fullString, string const &ending);
 //Numbers of colors are in "windows colors.PNG" file.
 void printInColor(string text, short color);
 
+string removeNotAscii(string originalText);
 
 #endif // USEFULL_H_INCLUDED

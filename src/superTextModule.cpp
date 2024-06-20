@@ -2593,7 +2593,7 @@ void SuperEditableTextModule::moveCursorToRight(bool shift, bool control, unsign
     }
 }
 void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
-    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting, string EXE_PATH
+    bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting, string EXE_PATH, bool allowNotAscii
 ){
     if(!getIsActive() || !isEditingActive){
         return;
@@ -2703,7 +2703,12 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                     if(!al_clipboard_has_text(window)){
                         continue;
                     }
-                    clipboard = al_get_clipboard_text(window);
+                    if(allowNotAscii){
+                        clipboard = al_get_clipboard_text(window);
+                    }
+                    else{
+                        clipboard = removeNotAscii(al_get_clipboard_text(window));
+                    }
                 }
                 else{
                     clipboard = internalClipboard;

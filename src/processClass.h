@@ -217,7 +217,7 @@ public:
 
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
-    void create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
+    void create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
     void clear();
     void resizeWindow(vec2d newSize);
     void resizeWindow(double x, double y);
@@ -297,10 +297,10 @@ public:
     void getReferenceByIndex(OperaClass & Operation, vector<ContextClass> & EventContext);
     void bindFilesToObjects(OperaClass & Operation, vector<ContextClass> & EventContext);
     void buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
     );
     void customBuildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode, bool allowNotAscii
     );
     void clearEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner);
     void executeFunctionForCameras(OperaClass & Operation, vector <VariableModule> & Variables,

@@ -18,12 +18,12 @@ int main(int argc, char* argv[]){
         Engine.resetState("Sandstorm Box", false);
         for(int file = 1; file < argc; ++file){
             Processes.push_back(ProcessClass());
-            Processes.back().create(Engine.EXE_PATH, Engine.getDisplaySize(),
+            Processes.back().create(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
                 argv[file], "Init0", "KERNEL", "Init", Engine.processIDs);
         }
         for(string initFile : Engine.initFiles){
             Processes.push_back(ProcessClass());
-            Processes.back().create(Engine.EXE_PATH, Engine.getDisplaySize(),
+            Processes.back().create(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
                 initFile, "Init0", "KERNEL", "Init", Engine.processIDs);
         }
         do{

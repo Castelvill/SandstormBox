@@ -53,6 +53,7 @@ public:
     bool fullscreen;
     bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
     bool ENABLE_al_set_clipboard_text; //al_set_clipboard_text can cause undefined behavior on GNU/Linux (it depends on window manager used).
+    bool allowNotAscii;
 
     string internalClipboard;
     vector<FormatClass> CopiedFormatting;

@@ -34,7 +34,7 @@ void ProcessClass::setID(string newID, vector<string> &listOfIDs){
     ID = findNewUniqueID(listOfIDs, newID);
     listOfIDs.push_back(ID);
 }
-void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string initFilePath, string newID,
+void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID,
     string newLayerID, string newObjectID, vector<string> &listOfIDs
 ){
     setID(newID, listOfIDs);
@@ -88,7 +88,7 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, vec2i screenSize, string 
     Layers.back().Objects.back().primaryConstructor(newObjectID, &Layers.back().objectsIDs, Layers.back().getID(), "");
     if(initFilePath != ""){
         Layers.back().Objects.back().bindedScripts.push_back(EXE_PATH + initFilePath);
-        Layers.back().Objects.back().translateAllScripts(true);
+        Layers.back().Objects.back().translateAllScripts(true, allowNotAscii);
     }
     
     if(isLayersUniquenessViolated()){
@@ -260,7 +260,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
         ){
             ActiveEditableText->edit(Engine.releasedKeys, Engine.pressedKeys, Engine.display,
                 Engine.ENABLE_al_set_clipboard_text, Engine.internalClipboard, Engine.CopiedFormatting,
-                Engine.EXE_PATH);
+                Engine.EXE_PATH, Engine.allowNotAscii);
         }
         
         if(Engine.Mouse.isPressed() || Engine.releasedKeys.size() != 0 || Engine.pressedKeys.size() != 0){
@@ -4916,7 +4916,7 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
     }
 }
 void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
 ){
     if(Operation.dynamicIDs.size() == 0){
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Build requires at least one context.\n";
@@ -4952,14 +4952,14 @@ void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextCl
             std::cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Cannot delete events of the owner of the currently executed event.\n";
             continue;
         }
-        Object->translateAllScripts(canResetEvents);
+        Object->translateAllScripts(canResetEvents, allowNotAscii);
         wasAnyEventUpdated = true;
     }
 
     Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
 }
 void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode
+    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode, bool allowNotAscii
 ){
     if(Operation.dynamicIDs.size() == 0){
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " instruction requires at least one context.\n";
@@ -5033,13 +5033,13 @@ void ProcessClass::customBuildEventsInObjects(OperaClass & Operation, vector<Con
             for(string & path : stringVec){
                 path = EXE_PATH + workingDirectory + path;
             }
-            Object->translateScriptsFromPaths(stringVec);
+            Object->translateScriptsFromPaths(stringVec, allowNotAscii);
         }
         else if(mode == 's'){
             for(string & path : stringVec){
                 path = EXE_PATH + workingDirectory + path;
             }
-            Object->translateSubsetBindedScripts(stringVec);
+            Object->translateSubsetBindedScripts(stringVec, allowNotAscii);
         }
         else if(mode == 'c'){
             Object->injectCode(stringVec);
@@ -6428,7 +6428,7 @@ void ProcessClass::createNewProcess(OperaClass & Operation, vector<ProcessClass>
     
     if(Processes.size() + 1 <= Processes.capacity()){
         Processes.push_back(ProcessClass());
-        Processes.back().create(Engine.EXE_PATH + workingDirectory, Engine.getDisplaySize(),
+        Processes.back().create(Engine.EXE_PATH + workingDirectory, Engine.allowNotAscii, Engine.getDisplaySize(),
             pathToTheScript, Operation.Literals[0].getString(), layerID, objectID, Engine.processIDs
         );
     }
@@ -7450,19 +7450,19 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 bindFilesToObjects(Operation, EventContext);
                 break;
             case build:
-                buildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack);
+                buildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack, Engine.allowNotAscii);
                 break;
             case load_build:
-                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'p');
+                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'p', Engine.allowNotAscii);
                 break;
             case build_subset:
-                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 's');
+                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 's', Engine.allowNotAscii);
                 break;
             case inject_code:
-                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'c');
+                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'c', Engine.allowNotAscii);
                 break;
             case inject_instr:
-                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'i');
+                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'i', Engine.allowNotAscii);
                 break;
             case demolish:
                 clearEventsInObjects(Operation, EventContext, Owner);

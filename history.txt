@@ -274,3 +274,21 @@ cat sandHelp.sand
 edit sandHelp.sand
 allegro
 allegro
+edit xd
+edit xd
+edit xd
+ls
+cat xd
+rm xd
+sh rm xd
+ls
+edit xd
+sh rm xd
+edit xd
+sh rm xd
+ls
+allegro
+allegro
+allegro
+allegro
+allegro

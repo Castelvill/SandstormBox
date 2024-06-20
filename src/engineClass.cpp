@@ -178,6 +178,7 @@ void EngineClass::initAllegro(){
     al_start_timer(timer);
 
     ENABLE_al_set_clipboard_text = false;
+    allowNotAscii = false;
 
     std::ifstream File(EXE_PATH+".config");
     unsigned short samples = 0;
@@ -213,6 +214,9 @@ void EngineClass::initAllegro(){
             }
             else if(words[0] == "ENABLE_al_set_clipboard_text"){
                 ENABLE_al_set_clipboard_text = true;
+            }
+            else if(words[0] == "ENABLE_NOT_ASCII"){
+                allowNotAscii = true;
             }
             else if(words[0] == "EXECUTE"){
                 if(words.size() > 1){

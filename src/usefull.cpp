@@ -180,3 +180,16 @@ void printInColor(string text, short color){
         SetConsoleTextAttribute(hConsole, Info.wAttributes);
     #endif
 }
+
+string removeNotAscii(string originalText){
+    string newText;
+    for(unsigned letter = 0; letter < originalText.size(); letter++){
+        if(int(originalText[letter]) < 0){
+            newText += '#';
+            letter += 2;
+            continue;
+        }
+        newText += originalText[letter];
+    }
+    return newText;
+}

@@ -1,4 +1,5 @@
 20.06.2024
+-Added "ENABLE_NOT_ASCII" command for the .config file.
 -Improved automatic scrolling inside the text fields.
 -Added automatic text cursor following to the scrollbar.
 -Created "cursor_pos_x" and "cursor_pos_y" values that return the position of the cursor in the active text field. 
