@@ -1,4 +1,5 @@
 29.06.2024
+-Renamed "isPartOfInterface" variable to “isScrollable” in the PrimaryModule and adjust the rest of the engine to this change.
 -Added "override" bool parameter to the "start" instruction. If "override" is true, the new event will override the event with the same id.
 -Connected scrollbars to the cameras via the vector of ids.
 
@@ -51,8 +52,8 @@
 -Added scrollbar to the terminal - it's not perfect yet though.
 -Fixed scrolling with the mouse scroll.
 -Added "TrackImage" and "ThumbImage" pointers to the Scrollbar Module.
--Renamed functions "attach_to_camera" and "enable_interface" to "add_to_the_interface".
--Renamed variable "isAttachedToCamera" to "isPartOfInterface".
+-Renamed functions "attach_to_camera" and "enable_interface" to "disable_scrolling".
+-Renamed variable "isAttachedToCamera" to "isScrollable".
 
 1.05.2024
 -Implemented deleting whole words with the "ctrl" key.

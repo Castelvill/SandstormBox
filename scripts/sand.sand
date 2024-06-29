@@ -101,7 +101,7 @@ start buildTerminal
     fun background connect_bitmap_via_alias string [background2]
     fun background resize c ww c wh
     fun background set_color double [0.5 0.5 0.5 0.3]
-    fun background add_to_the_interface
+    fun background disable_scrolling
 
     int [0 0] editableTextPos
 
@@ -137,7 +137,7 @@ start buildTerminal
     fun TerminalTextField set_ignore_vertical_arrows bool [true]
     fun TerminalTextField set_can_copy_format bool [true]
     fun TerminalTextField start_editing
-    //fun TerminalTextField add_to_the_interface
+    //fun TerminalTextField disable_scrolling
 
     new image c me 1 _ _ thumb
     fun thumb set_id string [thumb]
@@ -146,7 +146,7 @@ start buildTerminal
     fun thumb set_size int [16 16]
     fun thumb resize int [12] c minScrollbarHeight
     fun thumb connect_bitmap_via_alias string [sand_thumb]
-    fun thumb add_to_the_interface
+    fun thumb disable_scrolling
 
     new image c me 1 _ _ thumbTrack
     fun thumbTrack set_id string [thumb_track]
@@ -154,10 +154,10 @@ start buildTerminal
     fun thumbTrack set_size int [100 500]
     fun thumbTrack resize int [16 480]
     fun thumbTrack connect_bitmap_via_alias string [sand_thumb_track]
-    fun thumbTrack add_to_the_interface
+    fun thumbTrack disable_scrolling
 
     new scrollbar c me 1 _ _ MainScrollbar
-    fun MainScrollbar add_to_the_interface
+    fun MainScrollbar disable_scrolling
     //fun MainScrollbar deactivate
     fun MainScrollbar set_can_be_drawn bool [true]
     fun MainScrollbar set_id string [MainScrollbar]
@@ -185,7 +185,7 @@ start buildTerminal
     fun TextEditor deactivate
 
     new scrollbar c me 1 _ _ TextEditorScrollbar
-    fun TextEditorScrollbar add_to_the_interface
+    fun TextEditorScrollbar disable_scrolling
     fun TextEditorScrollbar set_can_be_drawn bool [true]
     fun TextEditorScrollbar set_id string [TextEditorScrollbar]
     fun TextEditorScrollbar set_position int [884 0]
@@ -355,7 +355,7 @@ start createWindowTemplate
     new object c WindowLayer 1 _ _ NewWindowObject
     fun NewWindowObject set_id string [WindowObject]
     fun NewWindowObject set_can_be_selected bool [true]
-    //fun NewWindowObject add_to_the_interface
+    //fun NewWindowObject disable_scrolling
     fun NewWindowObject set_can_be_moved_with_mouse bool [false]
     bind NewWindowObject literal ["scripts/windowTemplate.sand"]
     build NewWindowObject true
@@ -466,7 +466,7 @@ start createWindowTemplate
     fun title set_color int [0] double [1.0 1.0 1.0 1.0]
     fun title set_wrapping string [n]
     fun title set_content s ["Template Window"]
-    fun title add_to_the_interface
+    fun title disable_scrolling
 end
 
 

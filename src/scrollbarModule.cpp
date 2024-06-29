@@ -79,10 +79,10 @@ bool ScrollbarModule::startDragging(vec2d basePos, const MouseClass & Mouse, Cam
     }
 
     vec2d realThumbPos(basePos+pos+thumbPos);
-    if(isPartOfInterface){
+    if(isScrollable){
         if(Mouse.inRectangle(realThumbPos, thumbSize, true, Camera)){
             mousePressed = true;
-            dragStartingPos.set(Mouse.getPos()-realThumbPos);
+            dragStartingPos.set(Mouse.getZoomedPos(Camera)-realThumbPos-Camera->visionShift);
             FocusedCamera = Camera;
             return true;
         }
@@ -90,7 +90,7 @@ bool ScrollbarModule::startDragging(vec2d basePos, const MouseClass & Mouse, Cam
     else{
         if(Mouse.inRectangle(realThumbPos, thumbSize, false, nullptr)){
             mousePressed = true;
-            dragStartingPos.set(Mouse.getZoomedPos(Camera)-realThumbPos-Camera->visionShift);
+            dragStartingPos.set(Mouse.getPos()-realThumbPos);
             FocusedCamera = Camera;
             return true;
         }
@@ -137,12 +137,12 @@ bool ScrollbarModule::dragThumb(vec2d basePos, const MouseClass &Mouse){
     if(FocusedCamera == nullptr || !mousePressed){
         return false;
     }
-    if(isPartOfInterface){
-        thumbPos.set(Mouse.getPos()-basePos-pos-dragStartingPos);
+    if(isScrollable){
+        thumbPos.set(Mouse.getZoomedPos(FocusedCamera)-FocusedCamera->visionShift-basePos-pos-dragStartingPos);
         correctThumbPosition();
     }
     else{
-        thumbPos.set(Mouse.getZoomedPos(FocusedCamera)-FocusedCamera->visionShift-basePos-pos-dragStartingPos);
+        thumbPos.set(Mouse.getPos()-basePos-pos-dragStartingPos);
         correctThumbPosition();
     }
 

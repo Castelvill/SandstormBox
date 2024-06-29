@@ -69,7 +69,7 @@ public:
     void refreshCoordinates();
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
-    void setIsPartOfInterface(bool newValue);
+    void setIsScrollable(bool newValue);
     VariableModule getAttributeValue(const string & attribute, const string & detail);
     /*Translate instructions into events and add them to the event container of the object.*/
     void eventAssembler(vector<string> code, string scriptName);

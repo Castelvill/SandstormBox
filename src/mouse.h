@@ -41,15 +41,15 @@ public:
     bool isFirstPressed(short button) const;
     bool isPressed(short button) const;
     bool isReleased(short button) const;
-    bool inRectangle(vec2d rPos, vec2d rSize, bool isPartOfInterface, const Camera2D * Camera) const;
-    bool firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isPartOfInterface, const Camera2D * Camera) const;
-    bool pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isPartOfInterface, const Camera2D * Camera) const;
-    bool firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isPartOfInterface, const Camera2D * Camera) const;
-    bool releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isPartOfInterface, const Camera2D * Camera) const;
-    bool inRadius(vec2d rPos, double radius, bool isPartOfInterface, const Camera2D * Camera) const;
-    bool firstPressedInRadius(vec2d rPos, double radius, short button, bool isPartOfInterface, const Camera2D * Camera) const;
-    bool pressedInRadius(vec2d rPos, double radius, short button, bool isPartOfInterface, const Camera2D * Camera) const;
-    bool releasedInRadius(vec2d rPos, double radius, short button, bool isPartOfInterface, const Camera2D * Camera) const;
+    bool inRectangle(vec2d rPos, vec2d rSize, bool isScrollable, const Camera2D * Camera) const;
+    bool firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isScrollable, const Camera2D * Camera) const;
+    bool pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isScrollable, const Camera2D * Camera) const;
+    bool firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isScrollable, const Camera2D * Camera) const;
+    bool releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isScrollable, const Camera2D * Camera) const;
+    bool inRadius(vec2d rPos, double radius, bool isScrollable, const Camera2D * Camera) const;
+    bool firstPressedInRadius(vec2d rPos, double radius, short button, bool isScrollable, const Camera2D * Camera) const;
+    bool pressedInRadius(vec2d rPos, double radius, short button, bool isScrollable, const Camera2D * Camera) const;
+    bool releasedInRadius(vec2d rPos, double radius, short button, bool isScrollable, const Camera2D * Camera) const;
 };
 
 

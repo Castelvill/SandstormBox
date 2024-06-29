@@ -40,7 +40,7 @@ mkdir "projects/test"
 new image c me 1 _ _ archImg
 fun archImg connect_bitmap_via_alias string [i_use_arch_btw]
 //fun archImg connect_bitmap_via_alias string [black]
-fun archImg add_to_the_interface
+fun archImg disable_scrolling
 value ([window_w]) ww
 value ([window_h]) wh
 fun archImg resize c ww c wh
@@ -52,7 +52,7 @@ fun FPS_text set_font string [Minecraft24]
 fun FPS_text add_new_and_update string ["FPS: "]
 fun FPS_text set_color double [1.0 0.0 0.0 0.0]
 fun FPS_text set_wrapping int [2]
-fun FPS_text add_to_the_interface
+fun FPS_text disable_scrolling
 fun FPS_text deactivate
 /*new primitives c me 1 _ _ PrimiFun
 fun PrimiFun set_type string [triangle]
@@ -126,7 +126,7 @@ fun title set_wrapping int [0]
 fun title add_new_and_update string ["Okienko"]
 fun title set_size int [400 50]
 fun title set_color double [1.0 1.0 1.0 0.0]
-fun title add_to_the_interface
+fun title disable_scrolling
 
 new object l L1 1 _ _ NewAmo
 fun NewAmo set_id string [Amongus]
@@ -223,7 +223,7 @@ fun title set_wrapping int [0]
 fun title add_new_and_update string ["Terminal"]
 fun title set_size int [400 50]
 fun title set_color double [1.0 1.0 1.0 0.0]
-fun title add_to_the_interface
+fun title disable_scrolling
 fun title set_random_change_speed double [0.1]
 fun title set_min_color double [0.2]
 new primitives c Terminal 1 _ _ PrimiFun

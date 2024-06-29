@@ -418,7 +418,7 @@ void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Cam
     vec2d newScale(scale);
     vec2d finalPos(base);
     finalPos.translate(pos);
-    if(!isPartOfInterface){
+    if(isScrollable){
         vec2d diff(Camera.size.x/2-base.x-pos.x, Camera.size.y/2-base.y-pos.y);
         finalPos.set(Camera.size.x/2-diff.x*(Camera.zoom), Camera.size.y/2-diff.y*(Camera.zoom));
         finalPos.translate(Camera.visionShift.x*Camera.zoom, Camera.visionShift.y*Camera.zoom);
@@ -1708,8 +1708,8 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
         else if(connectedVariable == "is_scaled_from_center"){
             Primary.setIsScaledFromCenter(bValue);
         }
-        else if(connectedVariable == "is_part_of_interface_no_propagation"){
-            Primary.setIsPartOfInterface(bValue);
+        else if(connectedVariable == "is_scrollable_no_propagation"){
+            Primary.setIsScrollable(bValue);
         }
         else{
             success = false;

@@ -300,8 +300,8 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
            || Object.isInAGroup(EditableText.connectedGroup)){
             bool success = false;
             if(EditableText.connectedModule == "ancestor"){
-                if(EditableText.connectedVariable == "is_part_of_interface"){
-                    Object.setIsPartOfInterface(stringToBool(EditableText.getCurrentContent()));
+                if(EditableText.connectedVariable == "is_scrollable"){
+                    Object.setIsScrollable(stringToBool(EditableText.getCurrentContent()));
                     success = true;
                 }
                 else{
@@ -429,7 +429,7 @@ void AncestorObject::createVectorsOfIds(){
 }
 vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
     vec2d finalPos(getPos());
-    if(getIsPartOfInterface()){
+    if(getIsScrollable()){
         finalPos.translate(SelectedCamera->pos);
     }
     else{
@@ -438,37 +438,37 @@ vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
     return finalPos;
 }
 
-void AncestorObject::setIsPartOfInterface(bool newValue){
-    isPartOfInterface = newValue;
+void AncestorObject::setIsScrollable(bool newValue){
+    isScrollable = newValue;
     for(TextModule & Text : TextContainer){
-        Text.setIsPartOfInterface(isPartOfInterface);
+        Text.setIsScrollable(isScrollable);
     }
     for(EditableTextModule & Editable : EditableTextContainer){
-        Editable.setIsPartOfInterface(isPartOfInterface);
+        Editable.setIsScrollable(isScrollable);
     }
     for(SuperTextModule & SuperText : SuperTextContainer){
-        SuperText.setIsPartOfInterface(isPartOfInterface);
+        SuperText.setIsScrollable(isScrollable);
     }
     for(SuperEditableTextModule & SuperEditableText : SuperEditableTextContainer){
-        SuperEditableText.setIsPartOfInterface(isPartOfInterface);
+        SuperEditableText.setIsScrollable(isScrollable);
     }
     for(ImageModule & Image : ImageContainer){
-        Image.setIsPartOfInterface(isPartOfInterface);
+        Image.setIsScrollable(isScrollable);
     }
     for(MovementModule & Movement : MovementContainer){
-        Movement.setIsPartOfInterface(isPartOfInterface);
+        Movement.setIsScrollable(isScrollable);
     }
     for(CollisionModule & Collision : CollisionContainer){
-        Collision.setIsPartOfInterface(isPartOfInterface);
+        Collision.setIsScrollable(isScrollable);
     }
     for(ParticleEffectModule & Particle : ParticlesContainer){
-        Particle.setIsPartOfInterface(isPartOfInterface);
+        Particle.setIsScrollable(isScrollable);
     }
     for(ScrollbarModule & Scrollbar : ScrollbarContainer){
-        Scrollbar.setIsPartOfInterface(isPartOfInterface);
+        Scrollbar.setIsScrollable(isScrollable);
     }
     for(PrimitivesModule & Primitives : PrimitivesContainer){
-        Primitives.setIsPartOfInterface(isPartOfInterface);
+        Primitives.setIsScrollable(isScrollable);
     }
 }
 

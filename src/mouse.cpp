@@ -156,15 +156,15 @@ void MouseClass::updateButtonsReleased(ALLEGRO_EVENT event){
         pressed[4] = false;
     }
 }
-bool MouseClass::inRectangle(vec2d rPos, vec2d rSize, bool isPartOfInterface, const Camera2D * Camera) const{
-    if(isPartOfInterface){
-        if(pos.x >= rPos.x && pos.x <= rPos.x + rSize.x && pos.y >= rPos.y && pos.y <= rPos.y + rSize.y){
+bool MouseClass::inRectangle(vec2d rPos, vec2d rSize, bool isScrollable, const Camera2D * Camera) const{
+    if(isScrollable){
+        vec2d zoomedPos(getZoomedPos(Camera));
+        if(zoomedPos.x >= rPos.x && zoomedPos.x <= rPos.x + rSize.x && zoomedPos.y >= rPos.y && zoomedPos.y <= rPos.y + rSize.y){
             return true;
         }
     }
     else{
-        vec2d zoomedPos(getZoomedPos(Camera));
-        if(zoomedPos.x >= rPos.x && zoomedPos.x <= rPos.x + rSize.x && zoomedPos.y >= rPos.y && zoomedPos.y <= rPos.y + rSize.y){
+        if(pos.x >= rPos.x && pos.x <= rPos.x + rSize.x && pos.y >= rPos.y && pos.y <= rPos.y + rSize.y){
             return true;
         }
     }
@@ -217,35 +217,30 @@ bool MouseClass::isReleased(short button) const{
     }
     return released[button];
 }
-bool MouseClass::firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isPartOfInterface, const Camera2D * Camera) const{
+bool MouseClass::firstPressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isScrollable, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(firstPressed[button]){
-        return inRectangle(rPos, rSize, isPartOfInterface, Camera);
+        return inRectangle(rPos, rSize, isScrollable, Camera);
     }
     return false;
 }
-bool MouseClass::pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isPartOfInterface, const Camera2D * Camera) const{
+bool MouseClass::pressedInRectangle(vec2d rPos, vec2d rSize, short button, bool isScrollable, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        return inRectangle(rPos, rSize, isPartOfInterface, Camera);
+        return inRectangle(rPos, rSize, isScrollable, Camera);
     }
     return false;
 }
-bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isPartOfInterface, const Camera2D * Camera) const{
+bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button, bool isScrollable, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        if(isPartOfInterface){
-            if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
-                return true;
-            }
-        }
-        else{
+        if(isScrollable){
             vec2d zoomedPressedPos(getZoomedPressedPos(Camera));
             if(zoomedPressedPos.x >= rPos.x && zoomedPressedPos.x <= rPos.x + rSize.x
                 && zoomedPressedPos.y >= rPos.y && zoomedPressedPos.y <= rPos.y + rSize.y)
@@ -253,22 +248,20 @@ bool MouseClass::firstPositionInRectangle(vec2d rPos, vec2d rSize, short button,
                 return true;
             }
         }
+        else{
+            if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
+                return true;
+            }
+        }
     }
     return false;
 }
-bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isPartOfInterface, const Camera2D * Camera) const{
+bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool isScrollable, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(released[button]){
-        if(isPartOfInterface){
-            if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
-                if(pos.x >= rPos.x && pos.x <= rPos.x + rSize.x && pos.y >= rPos.y && pos.y <= rPos.y + rSize.y){
-                    return true;
-                }
-            }
-        }
-        else{
+        if(isScrollable){
             vec2d zoomedPressedPos(getZoomedPressedPos(Camera));
             if(zoomedPressedPos.x >= rPos.x && zoomedPressedPos.x <= rPos.x + rSize.x
                 && zoomedPressedPos.y >= rPos.y && zoomedPressedPos.y <= rPos.y + rSize.y)
@@ -279,59 +272,66 @@ bool MouseClass::releasedInRectangle(vec2d rPos, vec2d rSize, short button, bool
                 }
             }
         }
+        else{
+            if(pressedPos.x >= rPos.x && pressedPos.x <= rPos.x + rSize.x && pressedPos.y >= rPos.y && pressedPos.y <= rPos.y + rSize.y){
+                if(pos.x >= rPos.x && pos.x <= rPos.x + rSize.x && pos.y >= rPos.y && pos.y <= rPos.y + rSize.y){
+                    return true;
+                }
+            }
+        }
     }
     return false;
 }
-bool MouseClass::inRadius(vec2d rPos, double radius, bool isPartOfInterface, const Camera2D * Camera) const{
-    if(isPartOfInterface){
-        if(countDistance(pos.x, pos.y, rPos.x, rPos.y) <= radius){
+bool MouseClass::inRadius(vec2d rPos, double radius, bool isScrollable, const Camera2D * Camera) const{
+    if(isScrollable){
+        vec2d zoomedPos(getZoomedPos(Camera));
+        if(countDistance(zoomedPos.x, zoomedPos.y, rPos.x, rPos.y) <= radius){
             return true;
         }
     }
     else{
-        vec2d zoomedPos(getZoomedPos(Camera));
-        if(countDistance(zoomedPos.x, zoomedPos.y, rPos.x, rPos.y) <= radius){
+        if(countDistance(pos.x, pos.y, rPos.x, rPos.y) <= radius){
             return true;
         }
     }
 
     return false;
 }
-bool MouseClass::firstPressedInRadius(vec2d rPos, double radius, short button, bool isPartOfInterface, const Camera2D * Camera) const{
+bool MouseClass::firstPressedInRadius(vec2d rPos, double radius, short button, bool isScrollable, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(firstPressed[button]){
-        return inRadius(rPos, radius, isPartOfInterface, Camera);
+        return inRadius(rPos, radius, isScrollable, Camera);
     }
     return false;
 }
-bool MouseClass::pressedInRadius(vec2d rPos, double radius, short button, bool isPartOfInterface, const Camera2D * Camera) const{
+bool MouseClass::pressedInRadius(vec2d rPos, double radius, short button, bool isScrollable, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(pressed[button]){
-        return inRadius(rPos, radius, isPartOfInterface, Camera);
+        return inRadius(rPos, radius, isScrollable, Camera);
     }
     return false;
 }
-bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool isPartOfInterface, const Camera2D * Camera) const{
+bool MouseClass::releasedInRadius(vec2d rPos, double radius, short button, bool isScrollable, const Camera2D * Camera) const{
     if(!doesButtonExist(button)){
         return false;
     }
     if(released[button]){
-        if(isPartOfInterface){
-            if(countDistance(pressedPos.x, pressedPos.y, rPos.x, rPos.y) <= radius){
-                if(countDistance(pos.x, pos.y, rPos.x, rPos.y) <= radius){
+        if(isScrollable){
+            vec2d zoomedPressedPos(getZoomedPressedPos(Camera));
+            if(countDistance(zoomedPressedPos.x, zoomedPressedPos.y, rPos.x, rPos.y) <= radius){
+                vec2d zoomedPos(getZoomedPos(Camera));
+                if(countDistance(zoomedPos.x, zoomedPos.y, rPos.x, rPos.y) <= radius){
                     return true;
                 }
             }
         }
         else{
-            vec2d zoomedPressedPos(getZoomedPressedPos(Camera));
-            if(countDistance(zoomedPressedPos.x, zoomedPressedPos.y, rPos.x, rPos.y) <= radius){
-                vec2d zoomedPos(getZoomedPos(Camera));
-                if(countDistance(zoomedPos.x, zoomedPos.y, rPos.x, rPos.y) <= radius){
+            if(countDistance(pressedPos.x, pressedPos.y, rPos.x, rPos.y) <= radius){
+                if(countDistance(pos.x, pos.y, rPos.x, rPos.y) <= radius){
                     return true;
                 }
             }

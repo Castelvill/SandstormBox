@@ -89,7 +89,7 @@ new image c me 1 _ _ background
 fun background connect_bitmap_via_alias string [background2]
 fun background resize c ww c wh
 fun background set_color double [0.5 0.5 0.5 0.3]
-fun background add_to_the_interface
+fun background disable_scrolling
 
 int [640] windowSizeX
 int [480] windowSizeY
@@ -122,7 +122,7 @@ fun SuperText set_horizontal_align string [l]
 fun SuperText set_vertical_align string [u]
 fun SuperText update
 fun SuperText set_can_be_edited bool [true]
-fun SuperText add_to_the_interface
+fun SuperText disable_scrolling
 fun SuperText set_input_delay double [0.3]
 fun SuperText set_repetition_delay double [0.05]
 fun SuperText set_padding_between_lines double [2]
@@ -173,7 +173,7 @@ fun thumb set_position int [2 2]
 fun thumb set_size int [16 16]
 fun thumb resize int [26 26]
 fun thumb connect_bitmap_via_alias string [thumb_h3]
-fun thumb add_to_the_interface
+fun thumb disable_scrolling
 
 new image c me 1 _ _ thumbTrack
 fun thumbTrack set_id string [thumb_track]
@@ -181,10 +181,10 @@ fun thumbTrack deactivate
 fun thumbTrack set_size int [100 500]
 fun thumbTrack resize int [30 480]
 fun thumbTrack connect_bitmap_via_alias string [thumb_track_h3]
-fun thumbTrack add_to_the_interface
+fun thumbTrack disable_scrolling
 
 new scrollbar c me 1 _ _ MainScrollbar
-fun MainScrollbar add_to_the_interface
+fun MainScrollbar disable_scrolling
 fun MainScrollbar deactivate
 fun MainScrollbar set_id string [MainScrollbar]
 fun MainScrollbar set_position int [768 0]
@@ -249,7 +249,7 @@ fun WindowCamera deactivate
 new object c WindowLayer 1 _ _ NewWindowObject
 fun NewWindowObject set_id string [WindowObject]
 fun NewWindowObject set_can_be_selected bool [0]
-fun NewWindowObject add_to_the_interface
+fun NewWindowObject disable_scrolling
 bind NewWindowObject literal ["scripts/windowTemplate.sand"]
 build NewWindowObject true
 

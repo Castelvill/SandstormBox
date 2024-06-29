@@ -209,7 +209,7 @@ fun title set_wrapping int [0]
 fun title add_new_and_update c newWindowID
 fun title set_size int [400 50]
 fun title set_color double [1.0 1.0 1.0 0.0]
-fun title add_to_the_interface
+fun title disable_scrolling
 
 new object c AmogusLayer 1 _ _ NewAmo
 fun NewAmo set_id string [Amongus]

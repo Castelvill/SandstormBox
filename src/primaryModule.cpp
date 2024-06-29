@@ -493,7 +493,7 @@ void PrimaryModule::primaryConstructor(string newID, vector<string> * listOfIDs,
     isActive = true;
     deleted = false;
     isScaledFromCenter = false;
-    isPartOfInterface = false;
+    isScrollable = true;
     canBeSelected = true;
 }
 void PrimaryModule::primaryConstructor(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
@@ -624,14 +624,14 @@ void PrimaryModule::control(string attribute, bool value, unsigned paramCount){
     else if(attribute == "set_scale_from_center"){
         isScaledFromCenter = value;
     }
-    else if(attribute == "add_to_the_interface"){
-        isPartOfInterface = true;
+    else if(attribute == "disable_scrolling"){
+        isScrollable = false;
     }
-    else if(attribute == "remove_from_the_interface"){
-        isPartOfInterface = false;
+    else if(attribute == "enable_scrolling"){
+        isScrollable = true;
     }
-    else if(attribute == "set_is_part_of_interface"){
-        isPartOfInterface = value;
+    else if(attribute == "set_is_scrollable"){
+        isScrollable = value;
     }
     else if(attribute == "allow_selection"){
         canBeSelected = true;
@@ -646,8 +646,8 @@ void PrimaryModule::control(string attribute, bool value, unsigned paramCount){
         cout << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << paramCount << "> does not exist.\n";
     }
 }
-void PrimaryModule::setIsPartOfInterface(bool newIsPartOfInterface){
-    isPartOfInterface = newIsPartOfInterface;
+void PrimaryModule::setIsScrollable(bool newIsScrollable){
+    isScrollable = newIsScrollable;
 }
 void PrimaryModule::setCanBeSelected(bool newValue){
     canBeSelected = newValue;
@@ -697,8 +697,8 @@ bool PrimaryModule::getIsDeleted() const{
 bool PrimaryModule::getIsScaledFromCenter(){
     return isScaledFromCenter;
 }
-bool PrimaryModule::getIsPartOfInterface(){
-    return isPartOfInterface;
+bool PrimaryModule::getIsScrollable(){
+    return isScrollable;
 }
 bool PrimaryModule::getCanBeSelected(){
     return canBeSelected;
@@ -749,8 +749,8 @@ void PrimaryModule::getPrimaryContext(string attribute, vector<BasePointersStruc
     else if(attribute == "is_scaled_from_center"){
         BasePointers.back().setPointer(&isScaledFromCenter);
     }
-    else if(attribute == "is_part_of_interface"){
-        BasePointers.back().setPointer(&isPartOfInterface);
+    else if(attribute == "is_scrollable"){
+        BasePointers.back().setPointer(&isScrollable);
     }
     else if(attribute == "can_be_selected"){
         BasePointers.back().setPointer(&canBeSelected);

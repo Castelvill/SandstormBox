@@ -567,7 +567,7 @@ void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection, vec2i dis
 void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive, vec2i displaySize){
     vec2d newScale(scale);
     vec2d unformatedPos(base + pos);
-    if(!isPartOfInterface){
+    if(isScrollable){
         vec2d diff(Camera.size.x/2-base.x-pos.x, Camera.size.y/2-base.y-pos.y);
         unformatedPos.set(Camera.size.x/2-diff.x*(Camera.zoom), Camera.size.y/2-diff.y*(Camera.zoom));
         unformatedPos.translate(Camera.visionShift.x*Camera.zoom, Camera.visionShift.y*Camera.zoom);
@@ -2897,7 +2897,7 @@ float SuperEditableTextModule::getWidthOfLetterInTheText(unsigned currentCursorP
     return al_get_text_width(Formatting[formatIdx].Font->font, string(1, letter).c_str());
 }
 void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, const MouseClass & Mouse, const Camera2D * Camera){
-    if(!isPartOfInterface){
+    if(isScrollable){
         basePos.translate(Camera->visionShift);
     }
     

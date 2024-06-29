@@ -108,10 +108,10 @@ class PrimaryModule{
     vector <string> groups;
     vec2d pos, size, scale;
 
-    bool isActive; //deactivated object doesn't interact with the program, you can only activate it.
+    bool isActive; //Deactivated entity doesn't interact with the program, you can only activate it.
     bool deleted;
     bool isScaledFromCenter;
-    bool isPartOfInterface; //Is a part of the user interface. Setting this value for the object propagates this value onto all its modules. New modules copy this value from their object.
+    bool isScrollable; //If true, the vision shift and zoom from the cameras will affect the entity. Setting this variable for the object propagates its value onto all modules. New modules copy this value from their object.
     bool canBeSelected;
 
     public:
@@ -151,7 +151,7 @@ class PrimaryModule{
     void toggleIsActive();
     void deleteLater();
     void setIsScaledFromCenter(bool newIsScaledFromCenter);
-    void setIsPartOfInterface(bool newIsPartOfInterface);
+    void setIsScrollable(bool newIsScrollable);
     void setCanBeSelected(bool newValue);
     string getID() const;
     string &getLayerIDAddr();
@@ -167,7 +167,7 @@ class PrimaryModule{
     bool getIsActive() const;
     bool getIsDeleted() const;
     bool getIsScaledFromCenter();
-    bool getIsPartOfInterface();
+    bool getIsScrollable();
     bool getCanBeSelected();
     void getPrimaryContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
