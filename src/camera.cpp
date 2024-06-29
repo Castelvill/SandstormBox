@@ -35,6 +35,7 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     canZoomWithMouse = true;
     canBeModifiedByMouse = false;
     allowsDrawingBorders = false;
+    canDrawObjectBorders = false;
     canDrawOnCamera = true;
     drawOneFrame = false;
     canClearBitmap = true;

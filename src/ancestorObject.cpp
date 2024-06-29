@@ -105,6 +105,7 @@ AncestorObject::AncestorObject(){
     deleted = false;
     isActive = false;
     canBeMovedWithMouse = true;
+    canDrawSelectionBorder = false;
     //blank object
     //cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
 }
@@ -504,6 +505,9 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
     }
     else if(attribute == "scale_y"){
         NewValue.setDouble(getSize().y);
+    }
+    else if(attribute == "can_draw_selection_border"){
+        NewValue.setBool(canDrawSelectionBorder);
     }
     else{
         cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";

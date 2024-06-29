@@ -1,4 +1,6 @@
 29.06.2024
+-Fixed: Cropping tabs at the ends of lines breaks the formatting.
+-Fixed: When text is not wrapped, moving cursor down from the not fully visible line causes a shift to the left.
 -Renamed "isPartOfInterface" variable to “isScrollable” in the PrimaryModule and adjust the rest of the engine to this change.
 -Added "override" bool parameter to the "start" instruction. If "override" is true, the new event will override the event with the same id.
 -Connected scrollbars to the cameras via the vector of ids.

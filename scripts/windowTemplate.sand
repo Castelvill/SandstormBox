@@ -116,7 +116,7 @@ start refreshWindow
     index c Layer [0 0 2] _ collision MinCollision
     fun MinCollision set_position c sxShift c height
 
-    run updateIfNotMaxed
+    run updateIfNotMaxed additionalUpdate
 end
 
 
@@ -130,6 +130,10 @@ start updateIfNotMaxed
     value ([context Camera pos_y]) cpy
     = posX cpx
     = posY cpy
+end
+
+
+start additionalUpdate
 end
 
 

@@ -137,7 +137,6 @@ start buildTerminal
     fun TerminalTextField set_ignore_vertical_arrows bool [true]
     fun TerminalTextField set_can_copy_format bool [true]
     fun TerminalTextField start_editing
-    //fun TerminalTextField disable_scrolling
 
     new image c me 1 _ _ thumb
     fun thumb set_id string [thumb]
@@ -354,7 +353,7 @@ start createWindowTemplate
 
     new object c WindowLayer 1 _ _ NewWindowObject
     fun NewWindowObject set_id string [WindowObject]
-    fun NewWindowObject set_can_be_selected bool [true]
+    //fun NewWindowObject set_can_be_selected bool [true]
     //fun NewWindowObject disable_scrolling
     fun NewWindowObject set_can_be_moved_with_mouse bool [false]
     bind NewWindowObject literal ["scripts/windowTemplate.sand"]
@@ -499,7 +498,7 @@ start spawnNewWindow
     fun NewWindowCamera activate
     fun NewWindowCamera add_visible_layer c newLayerID
     fun NewWindowCamera add_accessible_layer c newLayerID
-    fun NewWindowCamera set_drawing_borders bool [false]
+    fun NewWindowCamera set_drawing_borders bool [true]
     index c NewWindowLayer [0 0 0] _ variable objectsCameraID
     = objectsCameraID newCameraID
     string [""] program
@@ -513,8 +512,6 @@ start note
     string ["Note"] param1
     run spawnNewWindow spawnNotepad
 end
-
-
 start spawnNotepad
     index c me [0 1] _ super_editable_text Editable
     index c NewWindowLayer [0 0] _ object Object
@@ -544,12 +541,9 @@ start mover
     int [0] NewWindowCamera
     run spawnNewWindow spawnMover
 end
-
-
 start spawnMover
     index c me [0 1] _ super_editable_text Editable
     index c NewWindowLayer [0 0] _ object NewObject
-    fun NewObject set_can_be_selected bool [true]
     first context [NewObject] _ _ variable has_friends bool _ has_friends
     bool [true] true
     = has_friends true
@@ -566,11 +560,11 @@ start spawnMover
     fun InsideCamera activate_pin
     fun InsideCamera set_relative_position int [5 30]
     fun InsideCamera resize int [630 440]
-    fun InsideCamera set_can_move_objects bool [true]
+    //fun InsideCamera set_can_move_objects bool [true]
     fun InsideCamera set_can_edit_text bool [false]
     fun InsideCamera set_id string ["insideCamera"]
     fun InsideCamera set_min_size int [0 0]
-    fun InsideCamera set_can_move_objects bool [true]
+    fun InsideCamera allow_drawing_object_borders 
 
     value ([c InsideCamera id]) newCameraID
 

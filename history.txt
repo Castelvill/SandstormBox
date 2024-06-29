@@ -455,3 +455,171 @@ note docs/TODO.txt
 ls
 note docs/TODO.txt
 cat docs/TODO.txt
+mover KERNEL
+sh tree
+mover KERNEL
+mover KERNEL
+mover KERNEL
+cat docs/TODO.txt
+cat docs/TODO.txt
+ediyt docs/TODO.txt
+edit docs/TODO.txt
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+cat docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+nw xd
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+mover KERNEL
+mover KERNEL
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+ls
+cd docs
+ls
+cd
+ls scripts
+fs
+ls scripts
+ls docs
+ls scripts
+ls
+ls images
+fs
+sh mkdir xd
+ls xd
+print \n
+print "\n"
+print "\"\n\""
+sh string ["_enter"] program
+sh string [""] program
+ls
+ls
+ls
+ls
+ls docs
+sh mkdir xd
+ls xd
+sh rm xd
+ls
+ls
+neofetch
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+fs
+ls
+edit xd
+ls
+edit xd
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+edit xd
+edit xd
+edit xd
+edit xd
+edit xd
+edit xd
+edit xd
+edit xd
+edit xdf
+edit xd
+ls
+ls
+edit xd
+neofetch
+ls
+ls
+edit

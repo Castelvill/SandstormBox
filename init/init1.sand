@@ -1,22 +1,22 @@
 /*start init false
-triggers on_boot
-if ([on_boot])
-//edit_proc can_interact_with_user false
-new object l KERNEL 1 _ _ First
-//index layer [0 1] _ object First
-bind First reset
-bind First literal ["scripts/KERNEL_editor.txt"]
-build First true
+    triggers on_boot
+    if ([on_boot])
+    //edit_proc can_interact_with_user false
+    new object l KERNEL 1 _ _ First
+    //index layer [0 1] _ object First
+    bind First reset
+    bind First literal ["scripts/KERNEL_editor.txt"]
+    build First true
 end*/
 
 
 /*start init false
-triggers on_boot
-if ([on_boot])
-new object l KERNEL 1 _ _ First
-fun First set_can_be_selected bool [0]
-fun me set_can_be_selected bool [0]
-bind First reset
-bind First literal ["scripts/KERNEL.txt"]
-build First true
+    triggers on_boot
+    if ([on_boot])
+    new object l KERNEL 1 _ _ First
+    fun First set_can_be_selected bool [0]
+    fun me set_can_be_selected bool [0]
+    bind First reset
+    bind First literal ["scripts/KERNEL.txt"]
+    build First true
 end*/

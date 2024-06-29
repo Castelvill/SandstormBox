@@ -142,7 +142,8 @@ void SuperTextModule::update(){
                 if(wrapped == 'c'){
                     ignoreLine = true;
                 }
-                floatingNewLine.back() = true;
+                if(wrapped != 'n')
+                    floatingNewLine.back() = true;
             }
             if(!ignoreLine){
                 lineLength++;
@@ -226,9 +227,9 @@ void SuperTextModule::update(){
                         ignoreLine = true;
                     }
                     else if(wrapped == 'l' || wrapped == 'w'){
-                        /*if(i > 0){
-                            break;
-                        }*/
+                        // if(i > 0){
+                        //     break;
+                        // }
                         //currentTabLength = tabLength;
                         textLines.push_back("");
                         realTextSize.x = std::max(realTextSize.x, lineWidth);
@@ -379,8 +380,10 @@ void SuperTextModule::update(){
     realTextSize.x = std::max(realTextSize.x, lineWidth);
     lineWidths.back() = lineWidth;
     lineLengths.back() = lineLength;
-    for(float & width : lineWidths){
-        width = std::min(width, float(size.x));
+    if(wrapped != 'n'){
+        for(float & width : lineWidths){
+            width = std::min(width, float(size.x));
+        }
     }
 
     updated = true;
@@ -918,14 +921,6 @@ void SuperTextModule::setTabLength(unsigned short newTabLength){
     tabLength = newTabLength;
 }
 void SuperTextModule::divideFormattingByCursor(){
-    /*cout << "Start:\n";
-    unsigned limitSum = 0;
-    for(auto Format : Formatting){
-        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit  << "\n";
-        limitSum += Format.limit;
-    }
-    cout << "Limit sum: " << limitSum << "\n";*/
-    
     unsigned formatIdx = 0;
     for(formatIdx = 0; formatIdx < Formatting.size(); formatIdx++){
         Formatting[formatIdx].selected = false;
@@ -1009,15 +1004,28 @@ void SuperTextModule::divideFormattingByCursor(){
     unsigned line = 0;
     unsigned currentLineLength = 0, currentTabLength;
     unsigned limit = 0;
+    float lineWidth = 0.0;
     for(letterIdx = 0; letterIdx < content.size(); letterIdx++, currentLineLength++){
         if(line < textLines.size() && letterIdx == lineStarts[line + 1]){
             line++;
             currentLineLength = 0;
+            lineWidth = 0;
         }
         if(content[letterIdx] == '\t'){
-            currentTabLength = tabLength - currentLineLength % tabLength;
-            Formatting[formatIdx].drawingLimit += currentTabLength - 1;
-            currentLineLength += currentTabLength - 1;
+            currentTabLength = tabLength - currentLineLength % tabLength - 1;
+            float letterWidth = al_get_text_width(Formatting[formatIdx].Font->font, string(" ").c_str());
+            lineWidth += letterWidth;
+            for(unsigned i = 0; i < currentTabLength; i++){
+                if(lineWidth + letterWidth > size.x && (wrapped == 'l' || wrapped == 'w')){
+                    break;
+                }
+                Formatting[formatIdx].drawingLimit++;
+                currentLineLength++;
+                lineWidth += letterWidth;
+            }
+        }
+        else{
+            lineWidth += al_get_text_width(Formatting[formatIdx].Font->font, string(1, content[letterIdx]).c_str());
         }
         limit++;
         if(limit >= Formatting[formatIdx].limit){
@@ -1035,14 +1043,6 @@ void SuperTextModule::divideFormattingByCursor(){
     if(Formatting.back().drawingLimit < Formatting.back().limit){
         Formatting.back().drawingLimit++;
     }
-
-    /*cout << "End:\n";
-    limitSum = 0;
-    for(auto Format : Formatting){
-        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit  << "\n";
-        limitSum += Format.limit;
-    }
-    cout << "Limit sum: " << limitSum << "\n\n";*/
 }
 void SuperTextModule::setCursorPos(int newPos){
     if(newPos < 0){

@@ -1,14 +1,15 @@
 start init false
-triggers on_boot
-if ([on_boot])
-fun me set_can_be_selected bool [false]
-new object l KERNEL 1 _ _ First
-fun First set_id string [KERNEL]
-fun First set_can_be_selected bool [true]
-fun First set_can_be_moved_with_mouse bool [false]
-//fun First disable_scrolling
-bind First reset
-//bind First literal ["scripts/terminal.txt" "scripts/terminalHelp.txt"]
-bind First literal ["scripts/sand.sand" "scripts/sandHelp.sand"]
-build First true
+    triggers on_boot
+    if ([on_boot])
+    fun me set_can_be_selected bool [false]
+    new object l KERNEL 1 _ _ First
+    fun First set_id string [KERNEL]
+    fun First set_can_be_selected bool [true]
+    fun First set_can_be_moved_with_mouse bool [true]
+    fun First enable_selection_border
+    //fun First disable_scrolling
+    bind First reset
+    //bind First literal ["scripts/terminal.txt" "scripts/terminalHelp.txt"]
+    bind First literal ["scripts/sand.sand" "scripts/sandHelp.sand"]
+    build First true
 end

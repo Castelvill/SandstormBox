@@ -58,7 +58,7 @@ start colorIfNormalFile
 	fun EditableText modify_last_format double [0.86 0.85 0.86 1.0] double [0.0 0.0 0.0 1.0] string [cascadia_code] int [1]
 end
 start printFileNameOnTerminal
-	print "  " result c file
+	print "\t" result c file
 	run printOnTerminal
 end
 

@@ -288,10 +288,13 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
     }
 }
 void ProcessClass::selectLettersInText(const MouseClass & Mouse){
+    if(SelectedCamera == nullptr){
+        return;
+    }
     if(isDraggingScrollbar || !Mouse.isPressed(0) || SelectedObject == nullptr || ActiveEditableText == nullptr
         || !SelectedObject->getIsActive()
         || !Mouse.pressedInRectangle(
-                SelectedObject->getPos(), SelectedObject->getSize(), 0,
+                SelectedCamera->pos + SelectedObject->getPos(), SelectedObject->getSize(), 0,
                 SelectedObject->getIsScrollable(), SelectedCamera
             )
     ){
@@ -299,9 +302,9 @@ void ProcessClass::selectLettersInText(const MouseClass & Mouse){
     }
     //cout << "Selected object: '" << SelectedObject->getID() << "'; Select text: " << ActiveEditableText->getID() << "\n";
     ActiveEditableText->cursorPos = 0;
-    ActiveEditableText->setCursorsWithMouse(SelectedObject->getPos(), Mouse, SelectedCamera);
+    ActiveEditableText->setCursorsWithMouse(SelectedCamera->pos + SelectedObject->getPos(), Mouse, SelectedCamera);
     if(Mouse.firstPressedInRectangle(
-        SelectedObject->getPos()
+        SelectedCamera->pos + SelectedObject->getPos()
         + ActiveEditableText->getPos(),
         ActiveEditableText->getSize(),
         0, ActiveEditableText->getIsScrollable(), SelectedCamera
@@ -5298,6 +5301,15 @@ void ProcessClass::executeFunctionForCameras(OperaClass & Operation, vector <Var
         else if(Operation.Location.attribute == "set_drawing_borders" && Variables.size() > 0){
             Camera->allowsDrawingBorders = Variables[0].getBoolUnsafe();
         }
+        else if(Operation.Location.attribute == "allow_drawing_object_borders"){
+            Camera->canDrawObjectBorders = true;
+        }
+        else if(Operation.Location.attribute == "forbid_drawing_object_borders"){
+            Camera->canDrawObjectBorders = false;
+        }
+        else if(Operation.Location.attribute == "set_can_draw_object_borders" && Variables.size() > 0){
+            Camera->canDrawObjectBorders = Variables[0].getBoolUnsafe();
+        }
         else if(Operation.Location.attribute == "minimize"){
             Camera->minimize();
             for(;cameraIndex < Cameras.size(); cameraIndex++){
@@ -5447,13 +5459,22 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
             Object->clearGroups();
         }
         else if(Operation.Location.attribute == "disable_scrolling"){
-            Object->setIsScrollable(true);
+            Object->setIsScrollable(false);
         }
         else if(Operation.Location.attribute == "enable_scrolling"){
-            Object->setIsScrollable(false);
+            Object->setIsScrollable(true);
         }
         else if(Operation.Location.attribute == "set_is_scrollable" && Variables.size() > 0){
             Object->setIsScrollable(Variables[0].getBoolUnsafe());
+        }
+        else if(Operation.Location.attribute == "enable_selection_border"){
+            Object->canDrawSelectionBorder = true;
+        }
+        else if(Operation.Location.attribute == "disable_selection_border"){
+            Object->canDrawSelectionBorder = false;
+        }
+        else if(Operation.Location.attribute == "set_can_draw_selection_border" && Variables.size() > 0){
+            Object->canDrawSelectionBorder = Variables[0].getBoolUnsafe();
         }
         else if(Operation.Location.attribute == "set_can_be_moved_with_mouse" && Variables.size() > 0){
             Object->canBeMovedWithMouse = Variables[0].getBoolUnsafe();
@@ -9496,6 +9517,7 @@ void ProcessClass::detectStartPosOfDraggingObjects(const MouseClass & Mouse){
 
     if(activeCameraMoveType == NONE
         && SelectedCamera != nullptr && SelectedCamera->getIsActive()
+        && SelectedCamera->canMoveObjects
         && !SelectedCamera->getIsMinimized() && SelectedLayer != nullptr
         && SelectedObject != nullptr
         && Mouse.inRectangle(SelectedCamera->pos, SelectedCamera->size, true, SelectedCamera)
@@ -9982,7 +10004,7 @@ void ProcessClass::moveSelectedObject(const MouseClass & Mouse){
     if(SelectedLayer != nullptr && SelectedObject != nullptr
         && Mouse.isPressed(0) && wasMousePressedInSelectedObject
         && SelectedCamera != nullptr && SelectedCamera->getIsActive()
-        && SelectedCamera->getCanMoveObjects()
+        && SelectedCamera->canMoveObjects
         && !SelectedCamera->getIsMinimized()
         && SelectedCamera->isLayerVisible(SelectedLayer->getID())
         && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
@@ -10394,7 +10416,7 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
 }
 void ProcessClass::selectObject(const MouseClass & Mouse){
     if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive()
-        || SelectedCamera->getIsMinimized() /*|| !SelectedCamera->canMoveObjects*/){
+        || SelectedCamera->getIsMinimized()){
         return;
     }
     
@@ -10411,8 +10433,8 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         for(AncestorObject & Object : Layer.Objects){
             //You can select text only if you can select its object. Without selecting the object, selecting more than one letter in a text field will be harder.
             if(!Object.getIsActive() || !Object.getCanBeSelected()
-                || !Mouse.pressedInRectangle(Object.getPos(),
-                Object.getSize(), 0, Object.getIsScrollable(), SelectedCamera)
+                || !Mouse.pressedInRectangle(SelectedCamera->pos + Object.getPos(),
+                    Object.getSize(), 0, Object.getIsScrollable(), SelectedCamera)
             ){
                 continue;
             }
@@ -10428,7 +10450,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                 for(SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
                     if(!SuperEditableText.getIsActive() || !SuperEditableText.canBeEdited ||
                         !Mouse.pressedInRectangle(
-                            Object.getPos() + SuperEditableText.getPos(), SuperEditableText.getSize(), 0,
+                            SelectedCamera->pos + Object.getPos() + SuperEditableText.getPos(), SuperEditableText.getSize(), 0,
                             SuperEditableText.getIsScrollable(), SelectedCamera
                         )
                     ){
@@ -10437,9 +10459,9 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
                     ActiveEditableText = &SuperEditableText;
                     ActiveEditableText->isEditingActive = true;
                     ActiveEditableText->cursorPos = 0;
-                    ActiveEditableText->setCursorsWithMouse(Object.getPos(), Mouse, SelectedCamera);
+                    ActiveEditableText->setCursorsWithMouse(SelectedCamera->pos + Object.getPos(), Mouse, SelectedCamera);
                     if(Mouse.pressedInRectangle(
-                        Object.getPos() + SuperEditableText.getPos(), SuperEditableText.getSize(),
+                        SelectedCamera->pos + Object.getPos() + SuperEditableText.getPos(), SuperEditableText.getSize(),
                         0, SuperEditableText.getIsScrollable(), SelectedCamera
                     )){
                         ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
@@ -10480,7 +10502,7 @@ void ProcessClass::unselectObject(){
 }
 
 void ProcessClass::drawSelectionBorder(Camera2D Camera){
-    if(SelectedObject == nullptr || !Camera.getCanMoveObjects()){
+    if(SelectedObject == nullptr || !SelectedObject->canDrawSelectionBorder|| !Camera.canDrawObjectBorders){
         return;
     }
     vec2d borderPos(SelectedObject->getPos() + Camera.pos);

@@ -1,3 +1,7 @@
+start additionalUpdate _ true
+    run refreshWindowWithCameraNotepad
+end
+
 start _checkIfWindowMovedNotepad
     triggers mouse_pressing
     if ([mouse_moved] [mouse_pressing 0] &&)
@@ -37,6 +41,7 @@ start refreshWindowNotepad
     find_by_id_2 Layers myLayerID Layer
     index c Layer [0 0 0] _ super_editable_text Notepad
     fun Notepad set_size c sx c sy
+    fun Notepad update
     run resizeObjectWhenNotBorderless
 end
 
@@ -44,6 +49,7 @@ start resizeObjectWhenNotBorderless
     if ([c isBorderless] !)
     index c my_layer [0 0] _ object WindowObject
     fun WindowObject set_size c sx c sy
+    fun Notepad update
 end
 
 
@@ -62,6 +68,8 @@ start resizeObjectWhenMaxedCheck
     value ([context Camera size_y]) sy
     index c my_layer [0 0] _ object WindowObject
     fun WindowObject set_size c sx c sy
+    index c my_layer [0 0 0] _ super_editable_text Notepad
+    fun Notepad update
 end
 
 start resizeObjectWhenSwitchingToBorderlessMode
@@ -87,6 +95,8 @@ start resizeObjectForBorderlessMode
     += cpy shiftY
     index c my_layer [0 0] _ object WindowObject
     fun WindowObject set_size c cpx c cpy
+    index c my_layer [0 0 0] _ super_editable_text Notepad
+    fun Notepad update
     else resizeObjectFromBorderlessMode
 end
 
@@ -95,4 +105,6 @@ start resizeObjectFromBorderlessMode
     value ([context Camera size_y]) cpy
     index c my_layer [0 0] _ object WindowObject
     fun WindowObject set_size c cpx c cpy
+    index c my_layer [0 0 0] _ super_editable_text Notepad
+    fun Notepad update
 end

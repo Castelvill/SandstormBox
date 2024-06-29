@@ -1,10 +1,7 @@
--Fix: Mover program cannot move objects around.
--Fix: When text is not wrapped, moving cursor down causes random movement.
--Fix: Single \n sign in the line breaks the formatting while using "ls" instruction in the terminal. 
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.
 -Add modules scaling from the edge of the camera.
--Create "save_formatted_text" and "load_formatted_text" instructions to enable saving and loading formatted text (with special data on the start of the file).
+-Create "save_formatted_text" and "load_formatted_text" instructions to enable saving and loading formatted text (with a file header).
 -Add previous (for undo) and future (for redo) versions of content to the SuperEditableText. They will be saved on the start of editing and every entered white space just like in vs code. Remember to update support variables. 
 -Add previous and future formatting for undo and redo.
 -After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
@@ -14,10 +11,10 @@
 -Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
 -Remove old TextModule and EditableTextModule and rename new modules.
 -Remove old, useless functions and methods.
--Remove "scrollShift" variable from the PrimaryModule and add it only to the object. 
 
 MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside the engine.
 
+-Fix: In EditableTextModule "cropping" mode breaks cursor movement.
 -Fix: Extended ASCII characters like "┌" break the text selection (three negative char-s create one wide character).
 -Double clicking a word in the text should select this whole word.
 -Pressing tab in the editable text module, if more than one letter is selected, should append a tab to the beginning of every selected line. 

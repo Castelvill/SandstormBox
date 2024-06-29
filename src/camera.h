@@ -33,6 +33,7 @@ public:
     bool canZoomWithMouse;
     bool canBeModifiedByMouse; //Can position and size be modified with mouse.
     bool allowsDrawingBorders;
+    bool canDrawObjectBorders;
     bool canDrawOnCamera;
     bool canClearBitmap;
     bool drawOneFrame;
