@@ -360,26 +360,26 @@ void AncestorObject::refreshCoordinates(){
     }
     vec2d minPos, maxPos;
     if(!ImageContainer[0].getIsScaledFromCenter()){
-        minPos.set(pos + ImageContainer[0].getPos(false));
-        maxPos.set(pos + ImageContainer[0].getPos(false) + ImageContainer[0].getScaledSize());
+        minPos.set(pos + ImageContainer[0].getPos());
+        maxPos.set(pos + ImageContainer[0].getPos() + ImageContainer[0].getScaledSize());
     }
     else{
-        minPos.set(pos + ImageContainer[0].getPos(false) + ImageContainer[0].getSize()/2 - ImageContainer[0].getScaledSize()/2);
-        maxPos.set(pos + ImageContainer[0].getPos(false) + ImageContainer[0].getSize()/2 + ImageContainer[0].getScaledSize()/2);
+        minPos.set(pos + ImageContainer[0].getPos() + ImageContainer[0].getSize()/2 - ImageContainer[0].getScaledSize()/2);
+        maxPos.set(pos + ImageContainer[0].getPos() + ImageContainer[0].getSize()/2 + ImageContainer[0].getScaledSize()/2);
     }
 
     for(auto Image : ImageContainer){
         if(!Image.getIsScaledFromCenter()){
-            minPos.set(min(minPos, pos+Image.getPos(false)));
-            maxPos.set(max(maxPos, pos+Image.getPos(false) + Image.getScaledSize()));
+            minPos.set(min(minPos, pos+Image.getPos()));
+            maxPos.set(max(maxPos, pos+Image.getPos() + Image.getScaledSize()));
         }
         else{
-            minPos.set(min(minPos, pos + Image.getPos(false) + Image.getSize()/2 - Image.getScaledSize()/2));
-            maxPos.set(max(maxPos, pos + Image.getPos(false) + Image.getSize()/2 + Image.getScaledSize()/2));
+            minPos.set(min(minPos, pos + Image.getPos() + Image.getSize()/2 - Image.getScaledSize()/2));
+            maxPos.set(max(maxPos, pos + Image.getPos() + Image.getSize()/2 + Image.getScaledSize()/2));
         }
     }
     for(auto & Image : ImageContainer){
-        Image.setPos(Image.getPos(false)-minPos+pos);
+        Image.setPos(Image.getPos()-minPos+pos);
     }
 
     pos.set(minPos);
@@ -427,8 +427,8 @@ void AncestorObject::createVectorsOfIds(){
         vectorContainerIDs.push_back(content.getID());
     }
 }
-vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera, bool useScrollShift){
-    vec2d finalPos(getPos(useScrollShift));
+vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
+    vec2d finalPos(getPos());
     if(getIsPartOfInterface()){
         finalPos.translate(SelectedCamera->pos);
     }
@@ -488,10 +488,10 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
         NewValue.setBool(isInAGroup(detail));
     }
     else if(attribute == "pos_x"){
-        NewValue.setDouble(getPos(false).x);
+        NewValue.setDouble(getPos().x);
     }
     else if(attribute == "pos_y"){
-        NewValue.setDouble(getPos(false).y);
+        NewValue.setDouble(getPos().y);
     }
     else if(attribute == "size_x"){
         NewValue.setDouble(getSize().x);
@@ -504,12 +504,6 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
     }
     else if(attribute == "scale_y"){
         NewValue.setDouble(getSize().y);
-    }
-    else if(attribute == "scroll_shift_x"){
-        NewValue.setDouble(scrollShift.x);
-    }
-    else if(attribute == "scroll_shift_y"){
-        NewValue.setDouble(scrollShift.y);
     }
     else{
         cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
@@ -1098,10 +1092,31 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires one parameter.\n";
                 return;
             }
+
+            bool overrideEvent = false;
+
+            if(words.size() >= 4){
+                if(words[3] == "true"){
+                    overrideEvent = true;
+                }
+                else if(words[3] != "false" && words[3] != "_"){
+                    overrideEvent = cstoi(words[3], error);
+                    if(error.size() > 0){
+                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    }
+                }
+            }
+
             if(words[1][0] != '_' && isStringInVector(eveContainerIDs, words[1])){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
-                    ": In " << __FUNCTION__ << ": Event with id \'" << words[1] << "\' already exists.\n";
-                return;
+                if(overrideEvent){
+                    removeFromStringVector(eveContainerIDs, words[1]);
+                    removeModuleInstanceByID(EveContainer, words[1]);
+                }
+                else{
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
+                        ": In " << __FUNCTION__ << ": Event with id \'" << words[1] << "\' already exists.\n";
+                    return;
+                }
             }
             NewEvent = EveModule(words[1], &eveContainerIDs, getLayerID(), getID());
             if(words.size() == 2){
@@ -1110,10 +1125,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(words[2] == "true"){
                 NewEvent.loop = true;
             }
-            else if(words[2] == "false"){
-                NewEvent.loop = false;
-            }
-            else{
+            else if(words[2] != "false" && words[2] != "_"){
                 NewEvent.loop = cstoi(words[2], error);
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";

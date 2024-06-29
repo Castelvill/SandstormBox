@@ -292,3 +292,162 @@ allegro
 allegro
 allegro
 allegro
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+edit scripts/sand.sand
+edit scripts/sand.sand
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+edit scripts/sand.sand
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+edit scripts/sand.sand
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+edit scripts/sand.sand
+edit scripts/sand.sand
+neofetch
+neofetch
+edit scripts/sand.sand
+cat docs/TODO.txt
+nw xd
+cat docs/TODO.txt
+nw xd
+nw xd
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+ls
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+mover KERNEL
+cat docs/TODO.txt
+cat docs/TODO.txt
+mover KERNEL
+cat docs/TODO.txt
+mover KERNEL
+cat docs/TODO.txt
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+cat docs/TODO.txt
+mover KERNEL
+nw xd
+nw xd
+nw xd
+nw xd
+mover
+note docs/TODO.txt
+note docs/TODO.txt
+mover
+mover
+mover
+mover
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+mover KERNEL
+note
+note
+note
+note
+note
+neofetch
+ls scripts
+cd scripts
+sand xd.sand
+ls
+sand lol.sand
+cat lol.sand
+note
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt
+note docs/TODO.txt

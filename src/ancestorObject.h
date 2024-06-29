@@ -68,7 +68,7 @@ public:
     );
     void refreshCoordinates();
     void createVectorsOfIds();
-    vec2d getPosOnCamera(Camera2D * SelectedCamera, bool useScrollShift);
+    vec2d getPosOnCamera(Camera2D * SelectedCamera);
     void setIsPartOfInterface(bool newValue);
     VariableModule getAttributeValue(const string & attribute, const string & detail);
     /*Translate instructions into events and add them to the event container of the object.*/

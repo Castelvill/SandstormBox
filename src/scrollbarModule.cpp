@@ -6,6 +6,8 @@ void ScrollbarModule::clear(){
     scrollingArea.set(0.0, 0.0);
     realScrollingArea.set(0.0, 0.0);
     dragStartingPos.set(0.0, 0.0);
+    scrollShift.set(0.0, 0.0);
+    cameraIDs.clear();
     thumbImageID = "";
     trackImageID = "";
     FocusedCamera = nullptr;
@@ -86,7 +88,7 @@ bool ScrollbarModule::startDragging(vec2d basePos, const MouseClass & Mouse, Cam
         }
     }
     else{
-        if(Mouse.inRectangle(realThumbPos+Camera->visionShift, thumbSize, false, nullptr)){
+        if(Mouse.inRectangle(realThumbPos, thumbSize, false, nullptr)){
             mousePressed = true;
             dragStartingPos.set(Mouse.getZoomedPos(Camera)-realThumbPos-Camera->visionShift);
             FocusedCamera = Camera;
@@ -147,7 +149,7 @@ bool ScrollbarModule::dragThumb(vec2d basePos, const MouseClass &Mouse){
     return true;
 }
 vec2d ScrollbarModule::countScrollShift(){
-    vec2d scrollShift(0.0, 0.0);
+    scrollShift.set(0.0, 0.0);
     if(thumbSize.x == 0 || thumbSize.y == 0){
         return scrollShift;
     }
@@ -159,18 +161,19 @@ vec2d ScrollbarModule::countScrollShift(){
     }
     return scrollShift;
 }
-void ScrollbarModule::dragThumbWithMouseWheel(vec2d & objectScrollShift, const MouseClass &Mouse){
+vec2d ScrollbarModule::dragThumbWithMouseWheel(const MouseClass &Mouse){
     if(scrollingArea.y-thumbSize.y == 0){
-        return;
+        return scrollShift;
     }
-    objectScrollShift.y -= (Mouse.scrollPos - Mouse.lastScrollPos) * mouseWheelSpeed;
-    if(objectScrollShift.y < 0){
-        objectScrollShift.y = 0;
+    scrollShift.y -= (Mouse.scrollPos - Mouse.lastScrollPos) * mouseWheelSpeed;
+    if(scrollShift.y < 0){
+        scrollShift.y = 0;
     }
-    if(objectScrollShift.y > realScrollingArea.y){
-        objectScrollShift.y = realScrollingArea.y;
+    if(scrollShift.y > realScrollingArea.y){
+        scrollShift.y = realScrollingArea.y;
     }
-    thumbPos.y = (objectScrollShift.y / realScrollingArea.y)*(scrollingArea.y-thumbSize.y);
+    thumbPos.y = (scrollShift.y / realScrollingArea.y)*(scrollingArea.y-thumbSize.y);
+    return scrollShift;
 }
 void ScrollbarModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
     BasePointers.push_back(BasePointersStruct());
@@ -216,6 +219,12 @@ void ScrollbarModule::getContext(string attribute, vector<BasePointersStruct> &B
     }
 }
 VariableModule ScrollbarModule::getValue(const string &attribute, EventDescription EventIds) const{
+    if(attribute == "scroll_shift_x"){
+        return VariableModule::newDouble(scrollShift.x);
+    }
+    if(attribute == "scroll_shift_y"){
+        return VariableModule::newDouble(scrollShift.y);
+    }
     if(attribute == "pos_x"){
         return VariableModule::newDouble(pos.x);
     }

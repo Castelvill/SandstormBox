@@ -4,7 +4,7 @@
 
 **Syntax**
 
-start *id* [loop]
+start *id* [loop] [override]
 
 **Description**
 
@@ -13,7 +13,8 @@ start *id* [loop]
 **Parameters:**
 
 - id (string) - a name for the new event,
-- [loop] (bool) - if true, the new event will be executed in every iteration of the parent process.
+- [loop] (bool) - if true, the new event will be executed in every iteration of the parent process,
+- [override] (bool) - if true, the new event will override an existing event with the same id.
 
 ## end
 

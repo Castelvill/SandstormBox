@@ -1733,10 +1733,10 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
     success = true;
 
     if(connectedVariable == "position_x"){
-        Primary.setPos(dValue, Primary.getPos(false).y);
+        Primary.setPos(dValue, Primary.getPos().y);
     }
     else if(connectedVariable == "position_y"){
-        Primary.setPos(Primary.getPos(false).x, dValue);
+        Primary.setPos(Primary.getPos().x, dValue);
     }
     else if(connectedVariable == "size_x"){
         Primary.setSize(dValue, Primary.getSize().y);
@@ -1802,10 +1802,10 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     }
 
     if(connectedVariable == "position_x"){
-        Text.setPos(dValue, Text.getPos(false).y);
+        Text.setPos(dValue, Text.getPos().y);
     }
     else if(connectedVariable == "position_y"){
-        Text.setPos(Text.getPos(false).x, dValue);
+        Text.setPos(Text.getPos().x, dValue);
     }
     else if(connectedVariable == "size_x"){
         Text.setSize(dValue, Text.getSize().y);
@@ -1942,10 +1942,10 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
     }
 
     if(connectedVariable == "position_x"){
-        Image.setPos(dValue, Image.getPos(false).y);
+        Image.setPos(dValue, Image.getPos().y);
     }
     else if(connectedVariable == "position_y"){
-        Image.setPos(Image.getPos(false).x, dValue);
+        Image.setPos(Image.getPos().x, dValue);
     }
     else if(connectedVariable == "size_x"){
         Image.setSize(dValue, Image.getSize().y);

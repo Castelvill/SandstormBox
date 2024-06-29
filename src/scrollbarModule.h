@@ -15,6 +15,8 @@ class ScrollbarModule : public PrimaryModule{
     ImageModule * TrackImage;
     ImageModule * ThumbImage;
 public:
+    vector<string> cameraIDs; 
+    vec2d scrollShift;
     bool canBeDrawn;
     bool mousePressed;
     double mouseWheelSpeed;
@@ -34,7 +36,7 @@ public:
     void scrollByDistance(vec2d distance);
     bool dragThumb(vec2d basePos, const MouseClass & Mouse);
     vec2d countScrollShift();
-    void dragThumbWithMouseWheel(vec2d & objectScrollShift, const MouseClass & Mouse);
+    vec2d dragThumbWithMouseWheel(const MouseClass & Mouse);
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
     VariableModule getValue(const string &attribute, EventDescription EventIds) const;
 

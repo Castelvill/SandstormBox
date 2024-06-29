@@ -487,7 +487,6 @@ void PrimaryModule::primaryConstructor(string newID, vector<string> * listOfIDs,
     }
     
     pos.set(0.0, 0.0);
-    scrollShift.set(0.0, 0.0);
     size.set(100.0, 100.0);
     scale.set(0.0, 0.0);
 
@@ -496,7 +495,6 @@ void PrimaryModule::primaryConstructor(string newID, vector<string> * listOfIDs,
     isScaledFromCenter = false;
     isPartOfInterface = false;
     canBeSelected = true;
-    isScrollable = false;
 }
 void PrimaryModule::primaryConstructor(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(intToStr(newID), listOfIDs, newLayerID, newObjectID);
@@ -561,12 +559,6 @@ void PrimaryModule::setPos(double x, double y){
 }
 void PrimaryModule::translatePos(vec2d newPos){
     pos.translate(newPos);
-}
-void PrimaryModule::setScrollShift(vec2d newValue){
-    scrollShift = newValue;
-}
-void PrimaryModule::translateScrollShiftY(double newValue){
-    scrollShift.y += newValue;
 }
 void PrimaryModule::setSize(vec2d newSize){
     size.set(newSize);
@@ -650,15 +642,6 @@ void PrimaryModule::control(string attribute, bool value, unsigned paramCount){
     else if(attribute == "set_can_be_selected"){
         canBeSelected = value;
     }
-    else if(attribute == "allow_scrolling"){
-        isScrollable = true;
-    }
-    else if(attribute == "forbid_scrolling"){
-        isScrollable = false;
-    }
-    else if(attribute == "set_is_scrollable"){
-        isScrollable = value;
-    }
     else{
         cout << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << paramCount << "> does not exist.\n";
     }
@@ -668,9 +651,6 @@ void PrimaryModule::setIsPartOfInterface(bool newIsPartOfInterface){
 }
 void PrimaryModule::setCanBeSelected(bool newValue){
     canBeSelected = newValue;
-}
-void PrimaryModule::setIsScrollable(bool newValue){
-    isScrollable = newValue;
 }
 string PrimaryModule::getID() const{
     return ID;
@@ -687,23 +667,11 @@ string &PrimaryModule::getIDAddr(){
 string PrimaryModule::getObjectID() const{
     return objectID;
 }
-vec2d PrimaryModule::getPos(bool useScrollshift){
-    if(useScrollshift){
-        return pos-scrollShift;
-    }
-    return pos;
-}
-vec2d PrimaryModule::getRealPos(bool useScrollshift){
-    if(useScrollshift){
-        return pos+scrollShift;
-    }
+vec2d PrimaryModule::getPos(){
     return pos;
 }
 vec2d &PrimaryModule::getPosAddr(){
     return pos;
-}
-vec2d PrimaryModule::getScrollShift() const{
-    return scrollShift;
 }
 vec2d PrimaryModule::getSize()
 {
@@ -734,9 +702,6 @@ bool PrimaryModule::getIsPartOfInterface(){
 }
 bool PrimaryModule::getCanBeSelected(){
     return canBeSelected;
-}
-bool PrimaryModule::getIsScrollable(){
-    return isScrollable;
 }
 void PrimaryModule::deleteLater(){
     deleted = true;
@@ -789,9 +754,6 @@ void PrimaryModule::getPrimaryContext(string attribute, vector<BasePointersStruc
     }
     else if(attribute == "can_be_selected"){
         BasePointers.back().setPointer(&canBeSelected);
-    }
-    else if(attribute == "is_scrollable"){
-        BasePointers.back().setPointer(&isScrollable);
     }
     else{
         BasePointers.pop_back();

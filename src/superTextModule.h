@@ -189,7 +189,7 @@ public:
     void setCursorPos(int newPos);
     void setSecondCursorPos(int newPos);
     float getWidthOfLetterInTheText(unsigned currentCursorPos);
-    void setCursorsWithMouse(vec2d finalPos, vec2d objectsScrollShift, const MouseClass & Mouse);
+    void setCursorsWithMouse(vec2d finalPos, const MouseClass & Mouse, const Camera2D *Camera);
 };
 
 #endif

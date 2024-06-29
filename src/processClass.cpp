@@ -290,17 +290,19 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
 void ProcessClass::selectLettersInText(const MouseClass & Mouse){
     if(isDraggingScrollbar || !Mouse.isPressed(0) || SelectedObject == nullptr || ActiveEditableText == nullptr
         || !SelectedObject->getIsActive()
-        || !Mouse.pressedInRectangle(SelectedObject->getPosOnCamera(SelectedCamera, false),
-        SelectedObject->getSize(), 0, SelectedObject->getIsPartOfInterface(), SelectedCamera)
+        || !Mouse.pressedInRectangle(
+                SelectedObject->getPos(), SelectedObject->getSize(), 0,
+                SelectedObject->getIsPartOfInterface(), SelectedCamera
+            )
     ){
         return;
     }
     //cout << "Selected object: '" << SelectedObject->getID() << "'; Select text: " << ActiveEditableText->getID() << "\n";
     ActiveEditableText->cursorPos = 0;
-    ActiveEditableText->setCursorsWithMouse(SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable()), SelectedObject->getScrollShift(), Mouse);
+    ActiveEditableText->setCursorsWithMouse(SelectedObject->getPos(), Mouse, SelectedCamera);
     if(Mouse.firstPressedInRectangle(
-        SelectedObject->getPosOnCamera(SelectedCamera, ActiveEditableText->getIsScrollable())
-        + ActiveEditableText->getPos(ActiveEditableText->getIsScrollable()),
+        SelectedObject->getPos()
+        + ActiveEditableText->getPos(),
         ActiveEditableText->getSize(),
         0, ActiveEditableText->getIsPartOfInterface(), SelectedCamera
     )){
@@ -345,8 +347,8 @@ void ProcessClass::checkMouseCollisions(EngineClass &Engine){
                     continue;
                 }
                 Collision.setMouseCollision('n');
-                vec2d pos(Collision.getPos(Collision.getIsScrollable()));
-                pos.translate(Layer.pos + Object.getPos(Object.getIsScrollable()) + SelectedCamera->pos);
+                vec2d pos(Collision.getPos());
+                pos.translate(Layer.pos + Object.getPos() + SelectedCamera->pos);
                 vec2d size(Collision.getSize());
                 if((Collision.getIsCircle() && Engine.Mouse.releasedInRadius(pos, size.x, 0, Collision.getIsPartOfInterface(), SelectedCamera))
                     || (!Collision.getIsCircle() && Engine.Mouse.releasedInRectangle(pos, size, 0, Collision.getIsPartOfInterface(), SelectedCamera))
@@ -5461,7 +5463,12 @@ void ProcessClass::executeFunctionForObjects(OperaClass & Operation, vector <Var
                 if(!Scrollbar.getIsActive()){
                     continue;
                 }
-                Object->setScrollShift(Scrollbar.countScrollShift());
+                Scrollbar.countScrollShift();
+                for(Camera2D & Camera : Cameras){
+                    if(isStringInVector(Scrollbar.cameraIDs, Camera.getID())){
+                        Camera.setVisionShift(-Scrollbar.scrollShift);
+                    }
+                }
             }
         }
         else{
@@ -7685,7 +7692,7 @@ VariableModule ProcessClass::getValueFromObjectInCamera(AncestorObject * Current
     bool newValue = false;
     if(attribute == "visible"){
         for(const Camera2D & Camera : Cameras){
-            if(!Camera.getIsDeleted() && Camera.isObjectVisible(CurrentObject->getPos(false), CurrentObject->getSize())){
+            if(!Camera.getIsDeleted() && Camera.isObjectVisible(CurrentObject->getPos(), CurrentObject->getSize())){
                 newValue = true;
                 break;
             }
@@ -7694,7 +7701,7 @@ VariableModule ProcessClass::getValueFromObjectInCamera(AncestorObject * Current
     else if(attribute == "visible_specific"){
         for(const Camera2D & Camera : Cameras){
             if(Camera.getID() == cameraID){
-                if(!Camera.getIsDeleted() && Camera.isObjectVisible(CurrentObject->getPos(false), CurrentObject->getSize())){
+                if(!Camera.getIsDeleted() && Camera.isObjectVisible(CurrentObject->getPos(), CurrentObject->getSize())){
                     newValue = true;
                 }
                 break;
@@ -7715,7 +7722,7 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
     if(attribute == "pressed"){
         if(SelectedCamera != nullptr && Mouse.firstPressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             result = Mouse.firstPressedInRectangle(
-                CurrentObject->getPosOnCamera(SelectedCamera, CurrentObject->getIsScrollable()),
+                CurrentObject->getPos(),
                 CurrentObject->getSize(),
                 button,
                 CurrentObject->getIsPartOfInterface(),
@@ -7726,7 +7733,7 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
     else if(attribute == "pressing"){
         if(SelectedCamera != nullptr && Mouse.pressedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             result = Mouse.pressedInRectangle(
-                CurrentObject->getPosOnCamera(SelectedCamera, CurrentObject->getIsScrollable()),
+                CurrentObject->getPos(),
                 CurrentObject->getSize(),
                 button,
                 CurrentObject->getIsPartOfInterface(),
@@ -7737,7 +7744,7 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
     else if(attribute == "released"){
         if(SelectedCamera != nullptr && Mouse.releasedInRectangle(SelectedCamera->pos, SelectedCamera->size, 0, true, SelectedCamera)){
             result = Mouse.releasedInRectangle(
-                CurrentObject->getPosOnCamera(SelectedCamera, CurrentObject->getIsScrollable()),
+                CurrentObject->getPos(),
                 CurrentObject->getSize(),
                 button,
                 CurrentObject->getIsPartOfInterface(),
@@ -8373,11 +8380,11 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                     << ": There are several Primitives in the context. Program will proceed with the last added Primitive.\n";
             }
             if(Condition.Location.attribute == "pos_x"){
-                NewValue.setDouble(Context->Modules.Primitives.back()->getPos(0).x);
+                NewValue.setDouble(Context->Modules.Primitives.back()->getPos().x);
                 return NewValue;
             }
             else if(Condition.Location.attribute == "pos_y"){
-                NewValue.setDouble(Context->Modules.Primitives.back()->getPos(0).y);
+                NewValue.setDouble(Context->Modules.Primitives.back()->getPos().y);
                 return NewValue;
             }
             cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Attribute '" << Condition.Location.attribute
@@ -9496,17 +9503,19 @@ void ProcessClass::detectStartPosOfDraggingObjects(const MouseClass & Mouse){
         && SelectedCamera->isLayerAccessible(SelectedLayer->getID())
     ){
         if(SelectedObject->getIsPartOfInterface()){
-            if(Mouse.inRectangle(SelectedCamera->pos + SelectedObject->getPos(false)+SelectedLayer->pos, SelectedObject->getSize(), true, SelectedCamera)){
+            if(Mouse.inRectangle(SelectedCamera->pos + SelectedObject->getPos()+SelectedLayer->pos,
+                SelectedObject->getSize(), true, SelectedCamera)
+            ){
                 wasMousePressedInSelectedObject = true;
-                dragStartingPos.set(Mouse.getPos()-SelectedObject->getPos(false));
+                dragStartingPos.set(Mouse.getPos()-SelectedObject->getPos());
             }
         }
         else{
-            if(Mouse.inRectangle(SelectedCamera->pos / SelectedCamera->zoom + SelectedObject->getPos(false) + SelectedCamera->visionShift,
+            if(Mouse.inRectangle(SelectedCamera->pos + SelectedObject->getPos()+SelectedLayer->pos,
                 SelectedObject->getSize(), false, SelectedCamera)
             ){
                 wasMousePressedInSelectedObject = true;
-                dragStartingPos.set(Mouse.getZoomedPos(SelectedCamera)-SelectedObject->getPos(false)-SelectedCamera->visionShift);
+                dragStartingPos.set(Mouse.getZoomedPos(SelectedCamera)-SelectedObject->getPos()-SelectedCamera->visionShift);
             }
         }
     }
@@ -9663,7 +9672,7 @@ void ProcessClass::startScrollbarDragging(const MouseClass & Mouse){
                 if(!Scrollbar.getIsActive()){
                     continue;
                 }
-                if(Scrollbar.startDragging(Object.getPos(false), Mouse, SelectedCamera)){
+                if(Scrollbar.startDragging(Object.getPos(), Mouse, SelectedCamera)){
                     isDraggingScrollbar = true;
                     return;
                 }
@@ -9692,9 +9701,10 @@ void ProcessClass::stopScrollbarDragging(){
     }
 }
 void ProcessClass::dragScrollbars(const MouseClass &Mouse){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
-        return;
-    }
+    // if(SelectedCamera == nullptr || !SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()){
+    //     return;
+    // }
+    vec2d scrollShift(0.0, 0.0);
     for(LayerClass & Layer : Layers){
         if(!Layer.getIsActive()){
             continue;
@@ -9707,11 +9717,21 @@ void ProcessClass::dragScrollbars(const MouseClass &Mouse){
                 if(!Scrollbar.getIsActive()){
                     continue;
                 }
+                scrollShift.set(0.0, 0.0);
                 if(Mouse.scrollPos != Mouse.lastScrollPos){
-                    Scrollbar.dragThumbWithMouseWheel(Object.scrollShift, Mouse);
+                    scrollShift = Scrollbar.dragThumbWithMouseWheel(Mouse);
                 }
-                else if(Scrollbar.dragThumb(Object.getPos(false), Mouse)){
-                    Object.setScrollShift(Scrollbar.countScrollShift());
+                else if(Scrollbar.dragThumb(Object.getPos(), Mouse)){
+                    //Object.setScrollShift(Scrollbar.countScrollShift());
+                    scrollShift = Scrollbar.countScrollShift();
+                }
+                else{
+                    continue;
+                }
+                for(Camera2D & Camera : Cameras){
+                    if(isStringInVector(Scrollbar.cameraIDs, Camera.getID())){
+                        Camera.setVisionShift(-scrollShift);
+                    }
                 }
             }
         }
@@ -9752,11 +9772,10 @@ void ProcessClass::moveParticles(const vector<short> & pressedKeys, const vector
                 if(!ParticleEffect.getIsActive()){
                     continue;
                 }
-                bool isScrollable = ParticleEffect.getIsScrollable();
                 if(canUserInteract){
                     allowParticlesSpawnFromUserInput(pressedKeys, releasedKeys, ParticleEffect);
                 }
-                ParticleEffect.spawnParticles(Object.getPos(isScrollable));
+                ParticleEffect.spawnParticles(Object.getPos());
                 ParticleEffect.updateParticles();
             }
         }
@@ -9780,8 +9799,8 @@ void ProcessClass::detectBackgroundCollisions(LayerClass & Layer, AncestorObject
 
                 if(ignoreDistantObjects){
                     //Check if objects are in range to collide
-                    if(!SolidCollision.isCloseEnough(SolidObject.getPos(false), SolidObject.getID(),
-                            Object.getPos(false), momentum, &Collision)){
+                    if(!SolidCollision.isCloseEnough(SolidObject.getPos(), SolidObject.getID(),
+                            Object.getPos(), momentum, &Collision)){
                         continue;
                     }
                 }
@@ -9789,9 +9808,9 @@ void ProcessClass::detectBackgroundCollisions(LayerClass & Layer, AncestorObject
                 Collision.detectOverlaping(
                     SolidObject.getID(),
                     SolidCollision.getID(),
-                    SolidObject.getPos(false) + SolidCollision.getPos(false),
+                    SolidObject.getPos() + SolidCollision.getPos(),
                     SolidCollision.getSize(),
-                    Object.getPos(false),
+                    Object.getPos(),
                     momentum
                 );
             }
@@ -9832,21 +9851,21 @@ void ProcessClass::detectRealCollisions(LayerClass & Layer, AncestorObject & Obj
                     continue;
                 }
 
-                if(ignoreDistantObjects && !SolidCollision.isCloseEnough(SolidObject.getPos(false), SolidObject.getID(), Object.getPos(false), Movement.getMomentum(), &Collision)){
+                if(ignoreDistantObjects && !SolidCollision.isCloseEnough(SolidObject.getPos(), SolidObject.getID(), Object.getPos(), Movement.getMomentum(), &Collision)){
                     continue;
                 }
 
                 if(shouldCheckOverlapingOnly(Collision, SolidObject, SolidCollision)){
                     Collision.detectOverlaping(
-                        SolidObject.getID(), SolidCollision.getID(), SolidObject.getPos(false) + SolidCollision.getPos(false),
-                        SolidCollision.getSize(), Object.getPos(false), Movement.getMomentum()
+                        SolidObject.getID(), SolidCollision.getID(), SolidObject.getPos() + SolidCollision.getPos(),
+                        SolidCollision.getSize(), Object.getPos(), Movement.getMomentum()
                     );
                     continue;
                 }
 
                 Collision.detectCollision(
-                    SolidObject.getID(), SolidCollision.getID(), SolidObject.getPos(false)+SolidCollision.getPos(false),
-                    SolidCollision.getSize(), Object.getPos(false), Movement.getMomentum()
+                    SolidObject.getID(), SolidCollision.getID(), SolidObject.getPos()+SolidCollision.getPos(),
+                    SolidCollision.getSize(), Object.getPos(), Movement.getMomentum()
                 );
             }
         }
@@ -9888,7 +9907,7 @@ void ProcessClass::adjustAndStopMomentum(AncestorObject & Object, MovementModule
 }
 void ProcessClass::updateCameraPosition(Camera2D & Camera, AncestorObject * FollowedByCamera){
     if(Camera.isFollowingObject && FollowedByCamera != nullptr){
-        vec2d newPos(-FollowedByCamera->getPos(false).x+Camera.size.x/2, -FollowedByCamera->getPos(false).y+Camera.size.y/2);
+        vec2d newPos(-FollowedByCamera->getPos().x+Camera.size.x/2, -FollowedByCamera->getPos().y+Camera.size.y/2);
         for(ImageModule Image : FollowedByCamera->ImageContainer){
             if(!Image.getIsActive()){
                 continue;
@@ -9934,8 +9953,8 @@ void ProcessClass::moveObjects(const vector<short> & pressedKeys, const MouseCla
                     Mouse.getPressed(pressedMouse);
                     Mouse.getReleased(releasedMouse);
                 }
-                Movement.updateStatesAndVectors(canUserInteract, pressedKeys, pressedMouse, releasedMouse, Mouse.getZoomedPos(SelectedCamera), Object.getPos(false));
-                Movement.updateMomentum(Object.getPos(false));
+                Movement.updateStatesAndVectors(canUserInteract, pressedKeys, pressedMouse, releasedMouse, Mouse.getZoomedPos(SelectedCamera), Object.getPos());
+                Movement.updateMomentum(Object.getPos());
 
                 //If object doesn't move, clear movement's collisions and detect overlaping objects
                 if(Movement.getMomentum().isEqual(0.0, 0.0)){
@@ -10036,17 +10055,15 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
     vec2d newPos;
     vec2d objectSize;
     vec2d scaledObjectSize;
-    bool isScrollable;
 
     for(PrimitivesModule & Primitives : Object.PrimitivesContainer){
         if(!Primitives.getIsActive()){
             continue;
         }
         
-        isScrollable = Primitives.getIsScrollable();
         if(drawOnlyVisibleObjects && !Primitives.getIsPartOfInterface()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(Primitives.getPos(false));
+            newPos.set(Object.getPos());
+            newPos.translate(Primitives.getPos());
             objectSize.set(Primitives.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(Primitives.getScale());
@@ -10061,7 +10078,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
                 continue;
             }
         }
-        Primitives.draw(Object.getPos(isScrollable)+Camera.pos, Camera, false);
+        Primitives.draw(Object.getPos()+Camera.pos, Camera, false);
         numberOfDrawnObjects++;
     }
 
@@ -10069,11 +10086,10 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         if(!Image.getIsActive()){
             continue;
         }
-        isScrollable = Image.getIsScrollable();
         //Image.drawFrame(x, y);
         if(drawOnlyVisibleObjects && !Image.getIsPartOfInterface()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(Image.getPos(false));
+            newPos.set(Object.getPos());
+            newPos.translate(Image.getPos());
             objectSize.set(Image.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(Image.getScale());
@@ -10088,7 +10104,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
                 continue;
             }
         }
-        Image.drawImage(Object.getPos(isScrollable)+Camera.pos, Camera, false);
+        Image.drawImage(Object.getPos()+Camera.pos, Camera, false);
         numberOfDrawnObjects++;
     }
 
@@ -10096,10 +10112,9 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         if(!Text.getIsActive()){
             continue;
         }
-        isScrollable = Text.getIsScrollable();
         if(drawOnlyVisibleObjects && !Text.getIsPartOfInterface()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(Text.getPos(false));
+            newPos.set(Object.getPos());
+            newPos.translate(Text.getPos());
             objectSize.set(Text.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(Text.getScale());
@@ -10118,7 +10133,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         //If a font exists in FontContainer, draw the text on screen.
         for(SingleFont font : FontContainer){
             if(Text.getFontID() == font.ID){
-                Text.drawText(Object.getPos(isScrollable)+Camera.pos, font.font, drawTextFieldBorders, Camera, 0, 0, false);
+                Text.drawText(Object.getPos()+Camera.pos, font.font, drawTextFieldBorders, Camera, 0, 0, false);
                 break;
             }
         }
@@ -10130,10 +10145,9 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         if(!SuperText.getIsActive()){
             continue;
         }
-        isScrollable = SuperText.getIsScrollable();
         if(drawOnlyVisibleObjects && !SuperText.getIsPartOfInterface()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(SuperText.getPos(false));
+            newPos.set(Object.getPos());
+            newPos.translate(SuperText.getPos());
             objectSize.set(SuperText.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(SuperText.getScale());
@@ -10149,7 +10163,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             }
         }
 
-        SuperText.draw(Object.getPos(isScrollable)+Camera.pos, drawTextFieldBorders, Camera, 0, 0, false, displaySize);
+        SuperText.draw(Object.getPos()+Camera.pos, drawTextFieldBorders, Camera, 0, 0, false, displaySize);
 
         numberOfDrawnObjects++;
     }
@@ -10158,10 +10172,9 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         if(!SuperEditableText.getIsActive()){
             continue;
         }
-        isScrollable = SuperEditableText.getIsScrollable();
         if(drawOnlyVisibleObjects && !SuperEditableText.getIsPartOfInterface()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(SuperEditableText.getPos(false));
+            newPos.set(Object.getPos());
+            newPos.translate(SuperEditableText.getPos());
             objectSize.set(SuperEditableText.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(SuperEditableText.getScale());
@@ -10177,7 +10190,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             }
         }
 
-        SuperEditableText.draw(Object.getPos(isScrollable)+Camera.pos, drawTextFieldBorders, Camera, 0, 0, false, displaySize);
+        SuperEditableText.draw(Object.getPos()+Camera.pos, drawTextFieldBorders, Camera, 0, 0, false, displaySize);
 
         numberOfDrawnObjects++;
     }
@@ -10186,11 +10199,9 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         if(!Editable.getIsActive()){
             continue;
         }
-
-        isScrollable = Editable.getIsScrollable();
         if(drawOnlyVisibleObjects && !Editable.getIsPartOfInterface()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(Editable.getPos(false));
+            newPos.set(Object.getPos());
+            newPos.translate(Editable.getPos());
             objectSize.set(Editable.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(Editable.getScale());
@@ -10209,7 +10220,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
         //If a font exists in FontContainer, draw the text on screen.
         for(auto font : FontContainer){
             if(Editable.getFontID() == font.ID){
-                Editable.drawText(Object.getPos(isScrollable)+Camera.pos, font.font, drawTextFieldBorders,
+                Editable.drawText(Object.getPos()+Camera.pos, font.font, drawTextFieldBorders,
                     Camera, Editable.getCursorPos(), Editable.secondCursorPos, Editable.getEditingIsActive()
                 );
             }
@@ -10222,10 +10233,9 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             continue;
         }
 
-        isScrollable = Scrollbar.getIsScrollable();
         if(drawOnlyVisibleObjects && !Scrollbar.getIsPartOfInterface()){
-            newPos.set(Object.getPos(isScrollable));
-            newPos.translate(Scrollbar.getPos(false));
+            newPos.set(Object.getPos());
+            newPos.translate(Scrollbar.getPos());
             objectSize.set(Scrollbar.getSize());
             scaledObjectSize.set(objectSize);
             scaledObjectSize.multiply(Scrollbar.getScale());
@@ -10240,7 +10250,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
                 continue;
             }
         }
-        Scrollbar.draw(Object.getPos(isScrollable)+Camera.pos, Object.ImageContainer, Camera);
+        Scrollbar.draw(Object.getPos()+Camera.pos, Object.ImageContainer, Camera);
         numberOfDrawnObjects++;
     }
 
@@ -10250,7 +10260,7 @@ void ProcessClass::drawModules(AncestorObject & Object, size_t iteration, Camera
             if(!Hitbox.getIsActive()){
                 continue;
             }
-            newPos = Object.getPos(false) + Hitbox.getPos(false);
+            newPos = Object.getPos() + Hitbox.getPos();
             hitboxSize = Hitbox.getSize();
             
             if(!Hitbox.getIsPartOfInterface()){
@@ -10312,7 +10322,6 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
     }
     if(Engine.Mouse.isPressed()){
         vec2d finalPos, finalSize;
-        bool isScrollable;
         for(LayerClass & Layer : Layers){
             if(!Layer.getIsActive()){
                 continue;
@@ -10326,9 +10335,8 @@ void ProcessClass::updateEditableTextFields(EngineClass & Engine){
                         continue;
                     }
                     if(SelectedCamera->isLayerAccessible(Layer.getID()) && TextField.getCanBeEdited()){
-                        isScrollable = TextField.getIsScrollable();
-                        finalPos.set(Object.getPos(isScrollable));
-                        finalPos.translate(TextField.getPos(false));
+                        finalPos.set(Object.getPos());
+                        finalPos.translate(TextField.getPos());
                         if(TextField.getIsPartOfInterface()){
                             finalPos.translate(SelectedCamera->pos);
                         }
@@ -10403,7 +10411,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
         for(AncestorObject & Object : Layer.Objects){
             //You can select text only if you can select its object. Without selecting the object, selecting more than one letter in a text field will be harder.
             if(!Object.getIsActive() || !Object.getCanBeSelected()
-                || !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera, false),
+                || !Mouse.pressedInRectangle(Object.getPos(),
                 Object.getSize(), 0, Object.getIsPartOfInterface(), SelectedCamera)
             ){
                 continue;
@@ -10419,20 +10427,19 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
             if(SelectedCamera->canEditText && !isDraggingScrollbar){
                 for(SuperEditableTextModule & SuperEditableText : Object.SuperEditableTextContainer){
                     if(!SuperEditableText.getIsActive() || !SuperEditableText.canBeEdited ||
-                        !Mouse.pressedInRectangle(Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable())
-                        + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
-                        SuperEditableText.getSize(), 0, SuperEditableText.getIsPartOfInterface(), SelectedCamera)
+                        !Mouse.pressedInRectangle(
+                            Object.getPos() + SuperEditableText.getPos(), SuperEditableText.getSize(), 0,
+                            SuperEditableText.getIsPartOfInterface(), SelectedCamera
+                        )
                     ){
                         continue;
                     }
                     ActiveEditableText = &SuperEditableText;
                     ActiveEditableText->isEditingActive = true;
                     ActiveEditableText->cursorPos = 0;
-                    ActiveEditableText->setCursorsWithMouse(Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable()), Object.getScrollShift(), Mouse);
+                    ActiveEditableText->setCursorsWithMouse(Object.getPos(), Mouse, SelectedCamera);
                     if(Mouse.pressedInRectangle(
-                        Object.getPosOnCamera(SelectedCamera, SuperEditableText.getIsScrollable())
-                        + SuperEditableText.getPos(SuperEditableText.getIsScrollable()),
-                        SuperEditableText.getSize(),
+                        Object.getPos() + SuperEditableText.getPos(), SuperEditableText.getSize(),
                         0, SuperEditableText.getIsPartOfInterface(), SelectedCamera
                     )){
                         ActiveEditableText->secondCursorPos = ActiveEditableText->cursorPos;
@@ -10476,7 +10483,7 @@ void ProcessClass::drawSelectionBorder(Camera2D Camera){
     if(SelectedObject == nullptr || !Camera.getCanMoveObjects()){
         return;
     }
-    vec2d borderPos(SelectedObject->getPos(false) + Camera.pos);
+    vec2d borderPos(SelectedObject->getPos() + Camera.pos);
     vec2d borderSize(SelectedObject->getSize());
     if(SelectedObject->getIsPartOfInterface()){
         al_draw_rectangle(borderPos.x, borderPos.y, borderPos.x + borderSize.x, borderPos.y + borderSize.y, al_map_rgb(216, 78, 213), 6);

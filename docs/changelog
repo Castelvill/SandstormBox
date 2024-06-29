@@ -1,3 +1,7 @@
+29.06.2024
+-Added "override" bool parameter to the "start" instruction. If "override" is true, the new event will override the event with the same id.
+-Connected scrollbars to the cameras via the vector of ids.
+
 20.06.2024
 -Added "ENABLE_NOT_ASCII" command for the .config file.
 -Improved automatic scrolling inside the text fields.

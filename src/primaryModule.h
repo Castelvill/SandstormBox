@@ -113,10 +113,8 @@ class PrimaryModule{
     bool isScaledFromCenter;
     bool isPartOfInterface; //Is a part of the user interface. Setting this value for the object propagates this value onto all its modules. New modules copy this value from their object.
     bool canBeSelected;
-    bool isScrollable;
 
     public:
-    vec2d scrollShift;
     void primaryConstructor(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void primaryConstructor(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
     void clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
@@ -135,8 +133,6 @@ class PrimaryModule{
     void control(string attribute, bool value, unsigned paramCount);
 
     void setPos(vec2d newPos);
-    void setScrollShift(vec2d newValue);
-    void translateScrollShiftY(double newValue);
     void setPos(double x, double y);
     void translatePos(vec2d newPos);
     void setSize(vec2d newSize);
@@ -157,16 +153,13 @@ class PrimaryModule{
     void setIsScaledFromCenter(bool newIsScaledFromCenter);
     void setIsPartOfInterface(bool newIsPartOfInterface);
     void setCanBeSelected(bool newValue);
-    void setIsScrollable(bool newValue);
     string getID() const;
     string &getLayerIDAddr();
     string getLayerID() const;
     string & getIDAddr();
     string getObjectID() const;
-    vec2d getPos(bool useScrollshift);
-    vec2d getRealPos(bool useScrollshift);
+    vec2d getPos();
     vec2d & getPosAddr();
-    vec2d getScrollShift() const;
     vec2d getSize();
     vec2d & getSizeAddr();
     vec2d getScale();
@@ -176,7 +169,6 @@ class PrimaryModule{
     bool getIsScaledFromCenter();
     bool getIsPartOfInterface();
     bool getCanBeSelected();
-    bool getIsScrollable();
     void getPrimaryContext(string attribute, vector <BasePointersStruct> & BasePointers);
 };
 

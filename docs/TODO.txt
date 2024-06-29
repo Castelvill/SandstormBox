@@ -1,6 +1,5 @@
--Remove "scrollShift" and "isScrollable" variables from the PrimaryModule.
--Connect scrollbars to the cameras via the vector of ids. This solution will be simpler and will allow to scroll many objects.
--Rename "isPartOfInterface" variable to “canBeMovedByCamera” in the PrimaryModule and adjust the rest of the engine to this change.
+-Rename "isPartOfInterface" variable to “canBeMovedByCameras” in the PrimaryModule and adjust the rest of the engine to this change.
+-Fix: When text is not wrapped, moving cursor down causes random movement.
 -Fix: Single \n sign in the line breaks the formatting while using "ls" instruction in the terminal. 
 -Test zooming and scaling on SuperEditableText.
 -Fix: Zooming edited text can move its position.

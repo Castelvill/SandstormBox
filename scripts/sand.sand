@@ -12,6 +12,7 @@ start onInit
     load_bitmap "images/amongus1.png" amongus1 false true
     load_bitmap "images/amongus2.png" amongus2 false true
     load_bitmap "images/amongus3.png" amongus3 false true
+    load_bitmap "images/minion1.png" minion1 false true
     load_bitmap "images/terry.png" terry false true
     load_bitmap "images/arch.jpg" arch false true
     load_bitmap "images/cobblestone.png" cobblestone false true
@@ -86,7 +87,7 @@ start buildTerminal
     fun Cam add_visible_layer string [KERNEL]
     fun Cam add_accessible_layer string [KERNEL]
     fun Cam set_tint double [1.0 1.0 1.0 1.0]
-    fun Cam set_is_vision_affected_by_mouse bool [1]
+    fun Cam set_is_vision_affected_by_mouse bool [0]
     fun Cam set_can_zoom_with_mouse bool [0]
     fun Cam set_can_move_with_keyboard bool [0]
     fun Cam set_can_zoom_with_keyboard bool [0]
@@ -136,8 +137,7 @@ start buildTerminal
     fun TerminalTextField set_ignore_vertical_arrows bool [true]
     fun TerminalTextField set_can_copy_format bool [true]
     fun TerminalTextField start_editing
-    fun TerminalTextField allow_scrolling
-    fun TerminalTextField add_to_the_interface
+    //fun TerminalTextField add_to_the_interface
 
     new image c me 1 _ _ thumb
     fun thumb set_id string [thumb]
@@ -169,6 +169,7 @@ start buildTerminal
     fun MainScrollbar set_thumb_image_id string [thumb]
     fun MainScrollbar set_track_image_id string [thumb_track]
     fun MainScrollbar set_mouse_wheel_speed double [40.0]
+    fun MainScrollbar add_camera string [Desktop]
 
     new super_editable_text c me 1 _ _ TextEditor
     clone TextEditor TerminalTextField
@@ -196,6 +197,7 @@ start buildTerminal
     fun TextEditorScrollbar set_track_image_id string [thumb_track]
     fun TextEditorScrollbar set_mouse_wheel_speed double [40.0]
     fun TextEditorScrollbar deactivate
+    fun TextEditorScrollbar add_camera string [Desktop]
 
     new particles c me 1 _ _ Particles
     fun Particles set_position int [200 200]
@@ -268,7 +270,8 @@ start selectTextWithMouse
     if ([mouse_pressing 0])
     index c me [0 1] _ super_editable_text TextField
     value ([c TextField cursor_pos_y]) cursorPosY
-    value ([c me scroll_shift_y]) scrollShiftY
+    index c me [0 1] _ scrollbar Scrollbar
+    value ([c Scrollbar scroll_shift_y]) scrollShiftY
     -= cursorPosY scrollShiftY
     value ([window_h]) windowH
     double [-30] windowLimitYDown
@@ -281,7 +284,8 @@ start selectTextWithKeys
     if ([any_key_pressing])
     index c me [0 1] _ super_editable_text TextField
     value ([c TextField cursor_pos_y]) cursorPosY
-    value ([c me scroll_shift_y]) scrollShiftY
+    index c me [0 1] _ scrollbar Scrollbar
+    value ([c Scrollbar scroll_shift_y]) scrollShiftY
     -= cursorPosY scrollShiftY
     value ([window_h]) windowH
     double [-20] windowLimitYDown
@@ -310,7 +314,8 @@ start spawnParticles
     index c me [0 0] _ particles Particles
     index c me [0 1] _ super_editable_text TextField
     value ([c TextField cursor_pos_x] [c TextField cursor_pos_y]) cursorPos
-    value ([c me scroll_shift_x] [c me scroll_shift_y]) scrollShift
+    index c me [0 1] _ scrollbar Scrollbar
+    value ([c Scrollbar scroll_shift_x] [c Scrollbar scroll_shift_y]) scrollShift
     -= cursorPos scrollShift
     fun Particles set_position c cursorPos
     fun Particles allow_spawning
@@ -350,7 +355,7 @@ start createWindowTemplate
     new object c WindowLayer 1 _ _ NewWindowObject
     fun NewWindowObject set_id string [WindowObject]
     fun NewWindowObject set_can_be_selected bool [true]
-    fun NewWindowObject add_to_the_interface
+    //fun NewWindowObject add_to_the_interface
     fun NewWindowObject set_can_be_moved_with_mouse bool [false]
     bind NewWindowObject literal ["scripts/windowTemplate.sand"]
     build NewWindowObject true
@@ -461,6 +466,7 @@ start createWindowTemplate
     fun title set_color int [0] double [1.0 1.0 1.0 1.0]
     fun title set_wrapping string [n]
     fun title set_content s ["Template Window"]
+    fun title add_to_the_interface
 end
 
 
@@ -502,7 +508,6 @@ end
 
 start note
     int [0] NewWindowLayer
-    //dump_context_stack
     string [""] fileName
     = fileName param1
     string ["Note"] param1
@@ -544,6 +549,7 @@ end
 start spawnMover
     index c me [0 1] _ super_editable_text Editable
     index c NewWindowLayer [0 0] _ object NewObject
+    fun NewObject set_can_be_selected bool [true]
     first context [NewObject] _ _ variable has_friends bool _ has_friends
     bool [true] true
     = has_friends true
@@ -552,7 +558,6 @@ start spawnMover
     fun Background set_color double [0.0 0.0 0.0 1.0]
     //value ([context my_layer id]) selectedLayerID
     value ([context NewWindowCamera id]) windowCameraID
-    //dump_context_stack
     new camera l 1 _ _ InsideCamera
     fun InsideCamera activate
     fun InsideCamera add_visible_layer c selectedLayerID
@@ -565,6 +570,7 @@ start spawnMover
     fun InsideCamera set_can_edit_text bool [false]
     fun InsideCamera set_id string ["insideCamera"]
     fun InsideCamera set_min_size int [0 0]
+    fun InsideCamera set_can_move_objects bool [true]
 
     value ([c InsideCamera id]) newCameraID
 
@@ -572,8 +578,9 @@ start spawnMover
     fun cameraID set_id string ["insideCameraID"]
     fun cameraID set_string c newCameraID
 
-    bind NewObject literal ["scripts/mover.sand"]
-    build NewObject false
+    //bind NewObject literal ["scripts/mover.sand"]
+    //build_subset NewObject false
+    load_build NewObject _ ["scripts/mover.sand"]
 end
 
 

@@ -2896,7 +2896,11 @@ float SuperEditableTextModule::getWidthOfLetterInTheText(unsigned currentCursorP
     char letter = content.substr(currentCursorPos, 1)[0];
     return al_get_text_width(Formatting[formatIdx].Font->font, string(1, letter).c_str());
 }
-void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, vec2d objectsScrollShift, const MouseClass & Mouse){
+void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, const MouseClass & Mouse, const Camera2D * Camera){
+    if(!isPartOfInterface){
+        basePos.translate(Camera->visionShift);
+    }
+    
     cursorPos = 0;
     unsigned lineIdx;
 
@@ -2907,7 +2911,7 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, vec2d objectsSc
         return;
     }
 
-    vec2d finalPos(basePos + getPos(isScrollable));
+    vec2d finalPos(basePos + getPos());
     
     double currentY = finalPos.y;
     for(lineIdx = 0; lineIdx < lineHeights.size(); lineIdx++){
