@@ -1217,7 +1217,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
-            else if(words[1] == "context" || words[1] == "_"){
+            else if(words[1] == "context" || words[1] == "c" || words[1] == "_"){
                 if(!gatherStringVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
                     return;
@@ -1232,6 +1232,9 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     return;
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
+            }
+            else{
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Source '" << words[1] << "' does not exist.\n";
             }
         }
         else if(words[0] == "index"){

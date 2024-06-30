@@ -115,7 +115,6 @@ start buildTerminal
     var string "0.0" terminalAccentColorB
     var string "1.0" terminalAccentColorA
 
-    var int 24 minScrollbarHeight
 
     new super_editable_text c me 1 _ _ TerminalTextField
     fun TerminalTextField set_id string [edi]
@@ -138,12 +137,14 @@ start buildTerminal
     fun TerminalTextField set_can_copy_format bool [true]
     fun TerminalTextField start_editing
 
+    var int 24 minScrollbarThumbHeight
+
     new image c me 1 _ _ thumb
     fun thumb set_id string [thumb]
     fun thumb deactivate
     fun thumb set_position int [2 2]
     fun thumb set_size int [16 16]
-    fun thumb resize int [12] c minScrollbarHeight
+    fun thumb resize int [12] c minScrollbarThumbHeight
     fun thumb connect_bitmap_via_alias string [sand_thumb]
     fun thumb disable_scrolling
 
@@ -154,6 +155,8 @@ start buildTerminal
     fun thumbTrack resize int [16 480]
     fun thumbTrack connect_bitmap_via_alias string [sand_thumb_track]
     fun thumbTrack disable_scrolling
+
+    var double 476 scrollbarHeight
 
     new scrollbar c me 1 _ _ MainScrollbar
     fun MainScrollbar disable_scrolling
@@ -169,6 +172,8 @@ start buildTerminal
     fun MainScrollbar set_track_image_id string [thumb_track]
     fun MainScrollbar set_mouse_wheel_speed double [40.0]
     fun MainScrollbar add_camera string [Desktop]
+
+    var int 30 commandLineHeight
 
     new super_editable_text c me 1 _ _ TextEditor
     clone TextEditor TerminalTextField
@@ -243,7 +248,7 @@ start buildTerminal
     var int 0 currentCommandNumber
     vec string [""] commandHistory
 
-    vec string [help neofetch winfetch hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history forgor sel_col xd wait sudo allegro] allowedPrograms
+    vec string [help neofetch winfetch hello ls sq cats sh fullscreen fs nw note mover spawn 222 cls cat print exit edit sand cd pwd reboot history forgor sel_col xd wait sudo allegro save_terminal load_terminal] allowedPrograms
 
     var string "scripts" dir
 
@@ -339,7 +344,7 @@ start createWindowTemplate
     fun WindowCamera set_zoom_increase double [0.02]
     fun WindowCamera bind_keys int [15 21 13 9 12 11 10]
     fun WindowCamera set_tint double [1.0 1.0 1.0 1.0]
-    fun WindowCamera set_drawing_borders bool [0]
+    fun WindowCamera set_drawing_borders bool [false]
     fun WindowCamera set_can_be_modified_by_mouse bool [1]
     fun WindowCamera set_is_vision_affected_by_mouse bool [1]
     //fun WindowCamera add_visible_layer string [WindowLayer]
@@ -350,6 +355,7 @@ start createWindowTemplate
     fun WindowCamera set_min_size int [300 34]
     fun WindowCamera set_keep_inside_screen bool [false]
     fun WindowCamera deactivate
+    fun WindowCamera forbid_drawing_object_borders
 
     new object c WindowLayer 1 _ _ NewWindowObject
     fun NewWindowObject set_id string [WindowObject]
@@ -498,7 +504,7 @@ start spawnNewWindow
     fun NewWindowCamera activate
     fun NewWindowCamera add_visible_layer c newLayerID
     fun NewWindowCamera add_accessible_layer c newLayerID
-    fun NewWindowCamera set_drawing_borders bool [true]
+    fun NewWindowCamera set_drawing_borders bool [false]
     index c NewWindowLayer [0 0 0] _ variable objectsCameraID
     = objectsCameraID newCameraID
     string [""] program
@@ -753,14 +759,26 @@ start forceRefresh
     fun background resize c w c h
 
     index c me [0 1] _ super_editable_text EditProgramTextField
+    value ([c EditProgramTextField size_y]) EditorSizeY
+    int [476] textHeight
+    = textHeight h
+    -= textHeight commandLineHeight
     fun EditProgramTextField set_size c w c h
+    fun EditProgramTextField update
+    fun EditProgramTextField crop_height_to_text
+
     index c me [0 0] _ super_editable_text TerminalTextField
     value ([c TerminalTextField size_y]) TerminalSizeY
     fun TerminalTextField set_size c w c TerminalSizeY
     fun TerminalTextField update
     fun TerminalTextField crop_height_to_text
     value ([c TerminalTextField size_y]) TerminalSizeY
-    run resizeTerminalIfSmall refreshScrollbar
+    run resizeTerminalIfSmall refreshScrollbar refreshTextEditorScrollbarIfEditing
+end
+
+start refreshTextEditorScrollbarIfEditing
+    if ([context program] [string "edit"] ==)
+    run refreshTextEditorScrollbar
 end
 
 start resizeTerminalIfSmall
@@ -773,6 +791,25 @@ start refreshScrollbar
     value ([c TerminalTextField size_y]) TerminalSizeY
     value ([window_h]) h
     -= TerminalSizeY h
+
+    = scrollbarHeight h
+    index c me [0 0] _ scrollbar MainScrollbar
+    value ([window_w]) windowW
+    int [16] scrollbarWidth
+    -= windowW scrollbarWidth
+    int [0] 0
+    fun MainScrollbar set_position c windowW c 0
+    fun MainScrollbar resize c scrollbarWidth c h
+    int [12] thumbWidth
+    fun MainScrollbar set_scrolling_area c thumbWidth c h
+    fun MainScrollbar set_thumb_size c thumbWidth c h
+
+    all c [me] _ _ image _ _ _ AllImages
+    string [thumb_track] trackID
+    find_by_id_2 AllImages trackID TrackImage
+    fun TrackImage resize c scrollbarWidth c h
+    fun me update_scrollbars
+
     run refreshScrollbarCheck
 end
 
@@ -783,13 +820,14 @@ start refreshScrollbarCheck
     fun MainScrollbar set_real_scrolling_area c 0 c TerminalSizeY
     += TerminalSizeY h
     int [12] 12
-    double [476] scrollbarSizeY
+    double [476] currentThumbHeight
+    = currentThumbHeight scrollbarHeight
     value ([window_h]) windowH
     double [1] divide
     = divide windowH
     /= divide TerminalSizeY
-    *= scrollbarSizeY divide
-    fun MainScrollbar set_thumb_size c 12 c scrollbarSizeY
+    *= currentThumbHeight divide
+    fun MainScrollbar set_thumb_size c 12 c currentThumbHeight
     fun MainScrollbar scroll_to_the_end
     fun me update_scrollbars
     run keepMinimalSizeOfScrollThumb
@@ -797,17 +835,18 @@ start refreshScrollbarCheck
 end
 
 start keepMinimalSizeOfScrollThumb
-    if([c scrollbarSizeY] [c minScrollbarHeight] <)
-    = scrollbarSizeY minScrollbarHeight 
-    fun MainScrollbar set_thumb_size c 12 c scrollbarSizeY
+    if([c currentThumbHeight] [c minScrollbarThumbHeight] <)
+    = currentThumbHeight minScrollbarThumbHeight 
+    fun MainScrollbar set_thumb_size c 12 c currentThumbHeight
     fun me update_scrollbars
 end
 
 start resetScrollbar
     index c me [0 0] _ scrollbar MainScrollbar
     int [12] 12
-    double [476] scrollbarSizeY
-    fun MainScrollbar set_thumb_size c 12 c scrollbarSizeY
+    double [476] currentThumbHeight
+    = currentThumbHeight scrollbarHeight
+    fun MainScrollbar set_thumb_size c 12 c currentThumbHeight
     fun me update_scrollbars
 end
 
@@ -887,6 +926,7 @@ end
 
 start moveInHistory
     triggers key_pressed
+    if([any_key_pressed] [c program] [string "sleep"] == &&)
     index camera [0] _ camera Camera
     run upArrow downArrow
 end
@@ -1030,6 +1070,25 @@ start refreshTextEditorScrollbar
     index c me [0 1] _ super_editable_text EditorTextField
     value ([c EditorTextField size_y]) EditorSizeY
     value ([window_h]) h
+
+    = scrollbarHeight h
+    index c me [0 1] _ scrollbar EditorScrollbar
+    value ([window_w]) windowW
+    int [16] scrollbarWidth
+    -= windowW scrollbarWidth
+    int [0] 0
+    fun EditorScrollbar set_position c windowW c 0
+    fun EditorScrollbar resize c scrollbarWidth c h
+    int [12] thumbWidth
+    fun EditorScrollbar set_scrolling_area c thumbWidth c h
+
+    all c [me] _ _ image _ _ _ AllImages
+    string [thumb_track] trackID
+    find_by_id_2 AllImages trackID TrackImage
+    fun TrackImage resize c scrollbarWidth c h
+    fun me update_scrollbars
+
+
     -= EditorSizeY h
     run refreshTextEditorScrollbarCheck
 end
@@ -1040,29 +1099,31 @@ start refreshTextEditorScrollbarCheck
     fun EditorScrollbar set_real_scrolling_area c 0 c EditorSizeY
     += EditorSizeY h
     int [12] 12
-    double [476] scrollbarSizeY
+    double [476] currentThumbHeight
+    = currentThumbHeight scrollbarHeight
     value ([window_h]) windowH
     double [1] divide
     = divide windowH
     /= divide EditorSizeY
-    *= scrollbarSizeY divide
-    fun EditorScrollbar set_thumb_size c 12 c scrollbarSizeY
+    *= currentThumbHeight divide
+    fun EditorScrollbar set_thumb_size c 12 c currentThumbHeight
     //fun EditorScrollbar scroll_to_the_end
     fun me update_scrollbars
     run keepMinimalSizeOfTextEditorScrollThumb
     else resetTextEditorScrollbar
 end
 start keepMinimalSizeOfTextEditorScrollThumb
-    if([c scrollbarSizeY] [c minScrollbarHeight] <)
-    = scrollbarSizeY minScrollbarHeight
-    fun EditorScrollbar set_thumb_size c 12 c scrollbarSizeY
+    if([c currentThumbHeight] [c minScrollbarThumbHeight] <)
+    = currentThumbHeight minScrollbarThumbHeight
+    fun EditorScrollbar set_thumb_size c 12 c currentThumbHeight
     fun me update_scrollbars
 end
 start resetTextEditorScrollbar
     index c me [0 1] _ scrollbar EditorScrollbar
     int [12] 12
-    double [476] scrollbarSizeY
-    fun EditorScrollbar set_thumb_size c 12 c scrollbarSizeY
+    double [476] currentThumbHeight
+    = currentThumbHeight scrollbarHeight
+    fun EditorScrollbar set_thumb_size c 12 c currentThumbHeight
     fun me update_scrollbars
 end
 
@@ -1113,8 +1174,6 @@ end
 
 
 start injectFormat
-    print ":" _ c startFragment
-    print \n _ c endFragment
     index context me [0 0] _ super_editable_text EditableText
     double [1.0] r
     double [0.0] g
@@ -1158,3 +1217,15 @@ end
 post
     delete_this_event
 end*/
+
+start save_terminal
+    index c me [0 0] _ super_editable_text TerminalTextField
+    fun TerminalTextField save_to_file c param1
+    string [""] program
+end
+
+start load_terminal
+    index c me [0 0] _ super_editable_text TerminalTextField
+    fun TerminalTextField load_from_file c param1
+    string [""] program
+end

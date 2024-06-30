@@ -236,7 +236,9 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
         controlText(EditableText, attribute, Values, IDs, FontContainer);
     }
 }
-void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, vector<SingleFont> & FontContainer){
+void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, const vector<VariableModule> & Values,
+    vector <string> & IDs, vector<SingleFont> & FontContainer, string EXE_PATH, string workingDirectory
+){
     if(attribute == "set_id" && Values.size() > 0){
         SuperText->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -284,6 +286,26 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     }
     else if(attribute == "add_to_text_line" && Values.size() >= 2){
         SuperText->addToTextLine(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
+    }
+    else if((attribute == "save_to_file" || attribute == "load_from_file") && Values.size() >= 1){
+        string fileName = Values[0].getStringUnsafe();
+        if(fileName == ""){
+            std::cout << "Error: In " << __FUNCTION__ << ": In event '" << ID << "': In function '" << attribute << "': File name is empty.\n";
+            return;
+        }
+        string finalPath = "";
+        if(fileName.substr(0, 2) == "~/"){
+            finalPath = EXE_PATH + fileName.substr(2, fileName.size()-2);
+        }
+        else{
+            finalPath = EXE_PATH + workingDirectory + fileName;
+        }
+        if(attribute == "save_to_file"){
+            SuperText->saveFormattedTextToTheFile(finalPath);
+        }
+        else{
+            SuperText->loadFormattedTextFromTheFile(finalPath, FontContainer);
+        }
     }
     else if(attribute == "add_format" && Values.size() >= 13){
         SuperText->addFormat(al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
@@ -436,7 +458,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     }
 }
 void EveModule::controlSuperEditableText(SuperEditableTextModule *& SuperEditableText, string attribute, const vector<VariableModule> & Values,
-    vector <string> & IDs, vector<SingleFont> & FontContainer, SuperEditableTextModule *& ActiveEditableText
+    vector <string> & IDs, vector<SingleFont> & FontContainer, SuperEditableTextModule *& ActiveEditableText, string EXE_PATH, string workingDirectory
 ){
     if(attribute == "set_can_be_edited" && Values.size() > 0){
         SuperEditableText->canBeEdited = Values[0].getBoolUnsafe();
@@ -534,7 +556,7 @@ void EveModule::controlSuperEditableText(SuperEditableTextModule *& SuperEditabl
         }
     }
     else{
-        controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer);
+        controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer, EXE_PATH, workingDirectory);
     }
 }
 void EveModule::controlImage(ImageModule *Image, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, vector<SingleBitmap> &BitmapContainer, string workingDirectory){
@@ -1055,6 +1077,9 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
     }
     else if(attribute == "set_position" && Values.size() >= 2){
         Scrollbar->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+    }
+    else if(attribute == "resize" && Values.size() >= 2){
+        Scrollbar->setSize(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else if(attribute == "set_thumb_position" && Values.size() >= 2){
         Scrollbar->setThumbPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));

@@ -328,7 +328,6 @@ void ScrollbarModule::setRealScrollingArea(vec2d newValue){
     realScrollingArea = newValue;
     realScrollingArea.x = std::max(realScrollingArea.x, 0.0);
     realScrollingArea.y = std::max(realScrollingArea.y, 0.0);
-
 }
 void ScrollbarModule::addRealScrollingArea(vec2d newValue){
     realScrollingArea.translate(newValue);

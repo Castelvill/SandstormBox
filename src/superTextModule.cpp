@@ -61,6 +61,17 @@ void SuperTextModule::clear(){
     Formatting.clear();
 }
 
+void SuperTextModule::mergeFormatting(){
+    for(unsigned formatIdx = 0; formatIdx < Formatting.size() - 1;){
+        if(Formatting[formatIdx].isTheSame(Formatting[formatIdx + 1])){
+            Formatting[formatIdx].limit += Formatting[formatIdx + 1].limit;
+            Formatting.erase(Formatting.begin() + formatIdx + 1);
+        }
+        else{
+            formatIdx++;
+        }
+    }
+}
 void SuperTextModule::update(){
     textLines.clear();
     textLines.push_back("");
@@ -89,16 +100,7 @@ void SuperTextModule::update(){
 
     lineHeights.back() = al_get_font_line_height(Formatting[0].Font->font);
     
-    //Merge the same formatting.
-    for(unsigned formatIdx = 0; formatIdx < Formatting.size() - 1;){
-        if(Formatting[formatIdx].isTheSame(Formatting[formatIdx + 1])){
-            Formatting[formatIdx].limit += Formatting[formatIdx + 1].limit;
-            Formatting.erase(Formatting.begin() + formatIdx + 1);
-        }
-        else{
-            formatIdx++;
-        }
-    }
+    mergeFormatting();
 
     //Expand the last formatting to match full text
     unsigned letterLimitSum = 0;
@@ -715,14 +717,6 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
         return;
     }
 
-    cout << "Start:\n";
-    unsigned limitSum = 0;
-    for(auto Format : Formatting){
-        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit  << "\n";
-        limitSum += Format.limit;
-    }
-    cout << "Limit sum: " << limitSum << "\n";
-
     unsigned startErase = 0;
     unsigned endErase = 0;
     unsigned leftLimitSaved = 0;
@@ -805,14 +799,6 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     Formatting[startErase].selected = isSelected;
     Formatting[startErase].limit = (fragmentEnd - fragmentStart) + 1;
     Formatting[startErase].drawingLimit = Formatting[startErase].limit;
-
-    cout << "End:\n";
-    limitSum = 0;
-    for(auto Format : Formatting){
-        cout << Format.color.r << "," << Format.color.g << "," << Format.color.b << "," << Format.color.a  << " " << Format.limit << " " << Format.drawingLimit << "\n"; 
-        limitSum += Format.limit;
-    }
-    cout << "Limit sum: " << limitSum << "\n\n";
 }
 void SuperTextModule::deleteFormat(size_t index)
 {
@@ -1073,6 +1059,128 @@ void SuperTextModule::cutContent(size_t newSize){
     content = content.substr(0, newSize);
     fitFormattingToContent();
     update();
+}
+void SuperTextModule::saveFormattedTextToTheFile(string filePath){
+    std::ofstream File(filePath);
+
+	if(!File){
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: '" << filePath << "'.\n";
+        return;
+    }
+
+    mergeFormatting();
+
+    File << Formatting.size() << " ";
+
+    for(const FormatClass & Format : Formatting){
+        File << Format.color.r << " " << Format.color.g << " " << Format.color.b << " " << Format.color.a << " ";
+        File << Format.accentColor.r << " " << Format.accentColor.g << " " << Format.accentColor.b << " " << Format.accentColor.a << " ";
+        File << Format.Font->ID << " ";
+        File << Format.offset.x << " " << Format.offset.y << " ";
+        File << Format.selected << " ";
+        File << Format.limit << " ";
+        File << Format.drawingLimit << " ";
+    }
+
+	File << content;
+    File.close();
+}
+void SuperTextModule::loadFormattedTextFromTheFile(string filePath, vector<SingleFont> & FontContainer){
+    std::ifstream File(filePath);
+
+	if(!File){
+		std::cerr << "Error: In " << __FUNCTION__ << ": Cannot open file: '" << filePath << "'.\n";
+        return;
+    }
+
+    unsigned formattingSize = 0;
+    string temp, error;
+    File >> temp;
+    formattingSize = cstoi(temp, error);
+
+    if(formattingSize > 0){
+        vector<string> buffer;
+        
+        while(buffer.size() < formattingSize * 14 && File >> temp){
+            buffer.push_back(temp);
+        }
+        char nextSpace;
+        File.get(nextSpace);
+        if(nextSpace != ' '){
+            std::cerr << "Error: In " << __FUNCTION__ << ": Expected a space, but got: '" << nextSpace << "'.\n";
+            return;
+        }
+        if(buffer.size() < formattingSize * 14){
+            std::cerr << "Error: In " << __FUNCTION__ << ": Formatting in the file: '" << filePath << "' is corrupted.\n";
+            return;
+        }
+
+        vector<FormatClass> FormattingBuffer;
+        FormattingBuffer.reserve(formattingSize);
+        
+        for(unsigned formatIdx = 0; formatIdx < formattingSize; formatIdx++){
+            FormattingBuffer.push_back(FormatClass());
+
+            FormattingBuffer.back().color.r = cstof(buffer[formatIdx * 14], error);
+            if(error.size() > 0){break;};
+            FormattingBuffer.back().color.g = cstof(buffer[1 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+            FormattingBuffer.back().color.b = cstof(buffer[2 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+            FormattingBuffer.back().color.a = cstof(buffer[3 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+
+            FormattingBuffer.back().accentColor.r = cstof(buffer[4 + formatIdx * 14], error);
+            if(error.size() > 0){break;};
+            FormattingBuffer.back().accentColor.g = cstof(buffer[5 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+            FormattingBuffer.back().accentColor.b = cstof(buffer[6 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+            FormattingBuffer.back().accentColor.a = cstof(buffer[7 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+
+            FormattingBuffer.back().Font = findFontByID(FontContainer, buffer[8 + (formatIdx * 14)]);
+
+            FormattingBuffer.back().offset.x = cstof(buffer[9 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+            FormattingBuffer.back().offset.y = cstof(buffer[10 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+
+            FormattingBuffer.back().selected = cstoi(buffer[11 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+
+            FormattingBuffer.back().limit = cstoi(buffer[12 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+            FormattingBuffer.back().drawingLimit = cstoi(buffer[13 + (formatIdx * 14)], error);
+            if(error.size() > 0){break;};
+        }
+        if(error.size() > 0){
+            std::cerr << "Error: In " << __FUNCTION__ << ": Formatting in the file: '" << filePath << "' is corrupted.\n";
+            std::cerr << error << "\n";
+            return;
+        }
+        Formatting = FormattingBuffer;
+    }
+    else{
+        std::cerr << "Warning: In " << __FUNCTION__ << ": File: '" << filePath << "' does not have any format.\n";
+        
+        if(error.size() == 0){ //If the first word was a number (length of the saved formatting), remove a next space to fix the loaded content.
+            char nextSpace;
+            File.get(nextSpace);
+            if(nextSpace != ' '){
+                std::cerr << "Error: In " << __FUNCTION__ << ": Expected a space, but got: '" << nextSpace << "'.\n";
+                return;
+            }
+        }
+    }
+    content.clear();
+    std::streampos currentPos = File.tellg();
+    File.seekg(0, std::ios::end);
+    std::streampos fileSize = File.tellg();
+    File.seekg(currentPos, std::ios::beg);
+    content.resize(fileSize - currentPos);
+    File.read(&content[0], fileSize - currentPos);
+    File.close();
 }
 
 void SuperEditableTextModule::setUpNewInstance(){

@@ -1,6 +1,10 @@
 "Modern" small strategy game
+-Based on "Bacteria X" universe.
+-Skill tree has both esper and magical abilities and buffs. 
+-Each skill may have many levels of mastery and players can advance further in the tree only after achieving 50%+ of this mastery.
+-Stats and perma buffs (blessing and curses) influence the skill tree progression (more or less points to max something out).
 -Turn based.
--Small battles like in King's bounty and Darkest Dungeon - two divided groups of characters on, for example, 4x4 grid.
+-Small battles like in King's bounty and Darkest Dungeon - two divided groups of characters on, for example, two 4x4 grids.
 -Unique characters with unique stats and one skill tree per race, each character can have unique set of items.
 -Each characters can have permanent or temporary buffs and debuffs that may stack.
 -Most characters will be based on normal characters templates, some (for example bosses) can be actually unique (from my universes).

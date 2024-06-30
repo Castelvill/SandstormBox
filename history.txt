@@ -623,3 +623,200 @@ neofetch
 ls
 ls
 edit
+ls
+ls
+nw
+nw
+nw
+fs
+fs
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+neofetch
+neofetch
+a
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+neofetch
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+cat docs/TODO.txt
+cat docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+cat docs/TODO.txt
+fs
+edit docs/TODO.txt
+save_terminal xdd
+ls
+cat xdd
+sh rm xdd
+ls
+neofetch
+ls
+save_terminal terminal
+ls
+cat terminal
+neofetch
+save_terminal terminal
+cat terminal
+neofetch
+ls
+save_terminal terminal
+cat terminal
+neofetch
+ls
+save_terminal terminal
+cat terminal
+load_terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+ls
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+load_terminal terminal
+ls
+ls
+ls
+ls
+load_terminal terminal
+sh rm terminal
+ls
+neofetch
+sq
+save_terminal terminal.ft
+ls
+load_terminal terminal.ft
+xd
+sh rm terminal.ft
+ls
+neofetch
+sq
+save_terminal terminal.ft
+ls
+ls
+ls
+hello
+load_terminal terminal.tf
+ls
+rm terminal.ft
+sh rm terminal.ft
+neofetch
+sq
+ls
+ls
+hello
+load_terminal terminal.ft
+ls
+ls
+neofetch
+sq
+ls
+hello
+neofetch
+sq
+neofetch
+sq
+save_terminal terminal.ft
+ls
+ls
+hello
+load_terminal terminal.ft
+ls
+edit xd.sand
+ls
+edit aa.sand
+ls
+sh rm aa.sand
+sh rm xd.sand
+ls
+cat terminal.ft
+ls
+ls
+ls
+
+edit a.sand
+ls
+ls
+cat terminal.ft
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+ls
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt
+edit docs/TODO.txt

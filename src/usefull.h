@@ -14,6 +14,7 @@ const vector<string> reservedIDs = {};
 
 int cstoi(string text, string & error);
 double cstod(string text, string & error);
+float cstof(string text, string & error);
 string shortToStr(short integer);
 string intToStr(int integer);
 string uIntToStr(unsigned int integer);

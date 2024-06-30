@@ -1,3 +1,7 @@
+30.06.2024
+-Created "save_to_file" and "load_from_file" function to the EditableText to enable saving and loading formatted text.
+-Scrollbars now dynamically adjust to the current window size.
+
 29.06.2024
 -Fixed: Cropping tabs at the ends of lines breaks the formatting.
 -Fixed: When text is not wrapped, moving cursor down from the not fully visible line causes a shift to the left.

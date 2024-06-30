@@ -26,6 +26,16 @@ double cstod(string text, string & error){
         return 0;
     }
 }
+float cstof(string text, string & error){
+    error = "";
+    try{
+        return stof(text);
+    }
+    catch(std::invalid_argument const& ex){
+        error = "Error: In cstod: In stod: string \"" + text + "\" triggers 'std::invalid_argument'.";
+        return 0;
+    }
+}
 string shortToStr(short integer){
     char buff[7];
     sprintf(buff, "%d", integer);

@@ -5611,12 +5611,16 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
                 if(!findObjectForFunction(ModulesObject, Layers, SuperText->getObjectID(), SuperText->getLayerID())){
                     continue;
                 }
-                Event->controlSuperText(SuperText, Operation.Location.attribute, Variables, ModulesObject->superTextContainerIDs, Engine.FontContainer);
+                Event->controlSuperText(SuperText, Operation.Location.attribute, Variables,
+                    ModulesObject->superTextContainerIDs, Engine.FontContainer, EXE_PATH, workingDirectory
+                );
             }
             return;
         }
         for(SuperTextModule * SuperText : Context->Modules.SuperTexts){
-            Event->controlSuperText(SuperText, Operation.Location.attribute, Variables, emptyString, Engine.FontContainer);
+            Event->controlSuperText(SuperText, Operation.Location.attribute, Variables,
+                emptyString, Engine.FontContainer, EXE_PATH, workingDirectory
+            );
         }
     }
     else if(Context->type == "super_editable_text"){
@@ -5626,13 +5630,15 @@ void ProcessClass::executeFunction(OperaClass Operation, vector<ContextClass> & 
                     continue;
                 }
                 Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables,
-                    ModulesObject->superEditableTextContainerIDs, Engine.FontContainer, ActiveEditableText
+                    ModulesObject->superEditableTextContainerIDs, Engine.FontContainer, ActiveEditableText, EXE_PATH, workingDirectory
                 );
             }
             return;
         }
         for(SuperEditableTextModule *& SuperEditableText : Context->Modules.SuperEditableTexts){
-            Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables, emptyString, Engine.FontContainer, ActiveEditableText);
+            Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables,
+                emptyString, Engine.FontContainer, ActiveEditableText, EXE_PATH, workingDirectory
+            );
         }
     }
     else if(Context->type == "image"){
@@ -9003,9 +9009,9 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
 
         do{
             removeOnInitTrigger(Event->primaryTriggerTypes);
-            if(printOutInstructions){
-                printInColor("\nCurrent event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
-            }
+            // if(printOutInstructions){
+            //     printInColor("\nCurrent event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
+            // }
             if(wereGlobalVariablesCreated){
                 addGlobalVariables(Context, Triggered->VariablesContainer);
                 addGlobalVectors(Context, Triggered->VectorContainer);
@@ -9014,6 +9020,9 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Engine, Context);
             }
             if(Event->conditionalStatus == 't' && Interrupt.instruction != EngineInstr::break_i){ //if true
+                if(printOutInstructions){
+                    printInColor("\nCurrent event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
+                }
                 if(!Event->areDependentOperationsDone){
                     Interrupt = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
                         Processes, StartingEvent, Event, MemoryStack, Engine

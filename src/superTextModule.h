@@ -49,6 +49,7 @@ public:
     void clone(const SuperTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clear();
 
+    void mergeFormatting();
     void update();
     void cropSizeToText();
     void cropWidthToText();
@@ -105,6 +106,8 @@ public:
     void setSecondCursorPos(int newPos);
     void divideFormattingByCursor();
     void cutContent(size_t newSize);
+    void saveFormattedTextToTheFile(string filePath);
+    void loadFormattedTextFromTheFile(string filePath, vector<SingleFont> & FontContainer);
 };
 
 class SuperEditableTextModule : public SuperTextModule{
