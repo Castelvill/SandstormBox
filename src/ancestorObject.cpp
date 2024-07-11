@@ -538,7 +538,23 @@ string findAndUseSpecialCharacters(string input){
     return output;
 }
 
-vector<string> tokenizeCode(string input){
+bool canStringBeDouble(string text){
+    if(text[0] == '.'){
+        return false;
+    }
+    bool hasPoint = false;
+    for(char a : text){
+        if(int(a) < 48 || int(a) > 57){
+            if(a == '.' && !hasPoint){
+                hasPoint = true;
+                continue;
+            }
+            return false;
+        }
+    }
+    return true;
+}
+vector<WordStruct> tokenizeCode(string input){
     std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|/=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
@@ -570,13 +586,16 @@ vector<string> tokenizeCode(string input){
         }
     }
 
-    vector <string> mergedOutput;
+    vector <WordStruct> mergedOutput;
     isInsideStringSector = false;
     unsigned sector = 0;
+    string error;
+
+    //If a word is not a part of a string, add it as a single word, otherwise add the whole string as a single word and ignore its parts. Don't add " to the words.
     for(unsigned i = 0; i < output.size(); i++){
         if(output[i][0] == '\"' && !isInsideStringSector){
             isInsideStringSector = true;
-            mergedOutput.push_back(stringSectors[sector]);
+            mergedOutput.push_back(WordStruct('s', stringSectors[sector]));
             sector++;
             continue;
         }
@@ -589,7 +608,25 @@ vector<string> tokenizeCode(string input){
         if(output[i] == "\t"){
             continue;
         }
-        mergedOutput.push_back(output[i]);
+        if(i == 0){
+            mergedOutput.push_back(WordStruct('o', output[i])); //operation
+            continue;
+        }
+        if(output[i] == "_"){
+            mergedOutput.push_back(WordStruct('e', output[i])); //empty / null
+            continue;
+        }
+        if(canStringBeDouble(output[i])){
+            cstod(output[i], error);
+            mergedOutput.push_back(WordStruct('d', output[i])); //double
+            continue;
+        }
+        cstoi(output[i], error);
+        if(error == ""){
+            mergedOutput.push_back(WordStruct('i', output[i])); //int
+            continue;
+        }
+        mergedOutput.push_back(WordStruct('c', output[i]));
     }
 
     return mergedOutput;
@@ -629,19 +666,19 @@ vector <string> mergeStrings(vector <string> code){
     }
     return merged;
 }
-bool prepareNewInstruction(vector<string> words, EveModule & NewEvent, OperaClass *& Operation, bool postOperations, unsigned minLength, unsigned lineNumber, string scriptName){
+bool prepareNewInstruction(vector<WordStruct> words, EveModule & NewEvent, OperaClass *& Operation, bool postOperations, unsigned minLength, unsigned lineNumber, string scriptName){
     if(words.size() < minLength){
-        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least \'" << minLength << "\' parameters.\n";
+        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least \'" << minLength << "\' parameters.\n";
         return false;
     }
     if(!postOperations){
         NewEvent.DependentOperations.push_back(OperaClass());
-        NewEvent.DependentOperations.back().instruction = transInstr(words[0]);
+        NewEvent.DependentOperations.back().instruction = transInstr(words[0].value);
         Operation = &NewEvent.DependentOperations.back();
     }
     else{
         NewEvent.PostOperations.push_back(OperaClass());
-        NewEvent.PostOperations.back().instruction = transInstr(words[0]);
+        NewEvent.PostOperations.back().instruction = transInstr(words[0].value);
         Operation = &NewEvent.PostOperations.back();
     }
     
@@ -653,120 +690,125 @@ string optional(const string & word){
     }
     return "";
 }
-bool optional(const vector<string> & words, unsigned & cursor, string & variable){
+bool optional(const vector<WordStruct> & words, unsigned & cursor, string & variable){
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor] != "_"){
-        variable = words[cursor];
+    if(words[cursor].type != 'e'){
+        variable = words[cursor].value;
     }
     cursor++;
     return false;
 }
-bool optional(const vector<string> & words, unsigned & cursor, vector<string> & strVec){
+bool optional(const vector<WordStruct> & words, unsigned & cursor, vector<string> & strVec){
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor] != "_"){
-        strVec.push_back(words[cursor]);
+    if(words[cursor].type != 'e'){
+        strVec.push_back(words[cursor].value);
     }
     cursor++;
     return false;
 }
-bool nextCond(const vector<string> & words, unsigned & cursor, string & variable, string scriptName, unsigned lineNumber){
+bool nextCond(const vector<WordStruct> & words, unsigned & cursor, string & variable, string scriptName, unsigned lineNumber){
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor] != "_" && words[cursor] != "]"){
-        variable = words[cursor];
+    if(words[cursor].type != 'e' && words[cursor].value != "]"){
+        variable = words[cursor].value;
     }
-    if(words[cursor] != "]"){
+    if(words[cursor].value != "]"){
         cursor++;
     }
     return false;
 }
-bool nextCond(const vector<string> & words, unsigned & cursor, VariableModule & variable, const char & type, string scriptName, unsigned lineNumber){
+bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModule & variable, const char & type, string scriptName, unsigned lineNumber){
     string error = "";
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor] != "_"){
+    if(words[cursor].type != 'e'){
         if(type == 'b'){
-            if(words[cursor] == "true"){
-                variable.setBool(true);
-            }
-            else if(words[cursor] == "false"){
-                variable.setBool(false);
-            }
-            else{
-                variable.setBool(cstoi(words[cursor], error));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
+            variable.setBool(cstoi(words[cursor].value, error));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
             }
         }
         else if(type == 'i'){
-            variable.setInt(cstoi(words[cursor], error));
+            variable.setInt(cstoi(words[cursor].value, error));
             if(error.size() > 0){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
             }
         }
         else if(type == 'd'){
-            variable.setInt(cstod(words[cursor], error));
+            variable.setDouble(cstod(words[cursor].value, error));
             if(error.size() > 0){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
             }
         }
         else if(type == 's'){
-            variable.setString(words[cursor]);
+            if(words[cursor].type == 's'){
+                variable.setString(words[cursor].value);
+            }
+            else{
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Parameter nr." << cursor+1 << " is not a string.\n";
+            }
+        }
+        else if(type == 'c'){
+            if(words[cursor].type == 'c'){
+                variable.setString(words[cursor].value);
+            }
+            else{
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Parameter nr." << cursor+1 << " is not a context.\n";
+            }
         }
     }
-    if(words[cursor] != "]"){
+    if(words[cursor].value != "]"){
         cursor++;
     }
     return false;
 }
-bool nextCond(const vector<string> & words, unsigned & cursor, int & variable, string scriptName, unsigned lineNumber){
+bool nextCond(const vector<WordStruct> & words, unsigned & cursor, int & variable, string scriptName, unsigned lineNumber){
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor] != "_"){
+    if(words[cursor].type != 'e'){
         string error;
-        variable = cstoi(words[cursor], error);
+        variable = cstoi(words[cursor].value, error);
         if(error.size() > 0){
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
         }
     }
-    if(words[cursor] != "]"){
+    if(words[cursor].value != "]"){
         cursor++;
     }
     return false;
 }
-bool nextCond(const vector<string> & words, unsigned & cursor, double & variable, string scriptName, unsigned lineNumber){
+bool nextCond(const vector<WordStruct> & words, unsigned & cursor, double & variable, string scriptName, unsigned lineNumber){
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor] != "_"){
+    if(words[cursor].type != 'e'){
         string error;
-        variable = cstod(words[cursor], error);
+        variable = cstod(words[cursor].value, error);
         if(error.size() > 0){
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
         }
     }
-    if(words[cursor] != "]"){
+    if(words[cursor].value != "]"){
         cursor++;
     }
     return false;
 }
-bool createExpression(const vector<string> & words, unsigned & cursor, vector<ConditionClass> & Expression, unsigned lineNumber, string scriptName){
+bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression, unsigned lineNumber, string scriptName){
     if(cursor >= words.size()){
         return true;
     }
-    if(words[cursor] == "_"){
+    if(words[cursor].type == 'e'){
         cursor++;
         return true;
     }
-    if(words[cursor] != "("){
+    if(words[cursor].value != "("){
         cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Every expression must begin with a parentheses.\n";
         return false;
     }
@@ -776,17 +818,17 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
         return false;
     }
     bool inCondition = false;
-    while(words[cursor] != ")"){
+    while(words[cursor].value != ")"){
         if(cursor >= words.size()){
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
-        if(words[cursor] == "["){
+        if(words[cursor].value == "["){
             Expression.push_back(ConditionClass(""));
             inCondition = true;
             cursor++;
         }
-        else if(words[cursor] == "]"){
+        else if(words[cursor].value == "]"){
             inCondition = false;
             cursor++;
         }
@@ -795,7 +837,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Operator cannot be added to an empty expression.\n";
                 return false;
             }
-            Expression.back().operators.push_back(transInstr(words[cursor]));
+            Expression.back().operators.push_back(transInstr(words[cursor].value));
             cursor++;
         }
         else{
@@ -819,20 +861,26 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 }
                 if(nextCond(words, cursor, Expression.back().Literal, 'd', scriptName, lineNumber)){ continue; };
             }
-            else if(Expression.back().Location.source == "string"
-                || Expression.back().Location.source == "exists"
-                || Expression.back().Location.source == "is_directory"
-            ){
-                if(words[cursor] == "]"){
+            else if(Expression.back().Location.source == "string"){
+                if(words[cursor].value == "]"){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
                         << ": In " << __FUNCTION__ << ": Source '" << Expression.back().Location.source
                         << "' requires one string literal.\n";
                     return false;
                 }
-                if(Expression.back().Location.source == "string"){
-                    Expression.back().Location.source = "literal";
-                }
+                Expression.back().Location.source = "literal";
                 if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+            }
+            else if(Expression.back().Location.source == "exists"
+                || Expression.back().Location.source == "is_directory"
+            ){
+                if(words[cursor].value == "]"){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
+                        << ": In " << __FUNCTION__ << ": Source '" << Expression.back().Location.source
+                        << "' requires one string literal.\n";
+                    return false;
+                }
+                if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
             }
             else if(Expression.back().Location.source == "vector" || Expression.back().Location.source == "v"){
                 if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
@@ -842,7 +890,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                     Expression.back().Location.attribute = "value";
                 }
                 else if(Expression.back().Location.attribute == "c" || Expression.back().Location.attribute == "context"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
                     Expression.back().Location.attribute = "value";
                 }
                 else if(Expression.back().Location.attribute == "s" || Expression.back().Location.attribute == "size"){
@@ -858,7 +906,7 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
                 }
             }
             else if(Expression.back().Location.source == "context" || Expression.back().Location.source == "c"){
-                if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+                if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
                 if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
                 if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
             }
@@ -902,15 +950,15 @@ bool createExpression(const vector<string> & words, unsigned & cursor, vector<Co
     cursor++;
     return true;
 }
-bool gatherStringVector(const vector<string> & words, unsigned & cursor, vector<string> & stringVector, unsigned lineNumber, string scriptName){
+bool gatherContextVector(const vector<WordStruct> & words, unsigned & cursor, vector<string> & stringVector, unsigned lineNumber, string scriptName){
     if(cursor >= words.size()){
         return true;
     }
-    if(words[cursor] == "_"){
+    if(words[cursor].type == 'e'){
         cursor++;
         return true;
     }
-    if(words[cursor] != "["){
+    if(words[cursor].value != "["){
         cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Every list of strings must begin with a square bracket.\n";
         return false;
     }
@@ -919,8 +967,12 @@ bool gatherStringVector(const vector<string> & words, unsigned & cursor, vector<
         cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
-    while(words[cursor] != "]"){
-        stringVector.push_back(words[cursor]);
+    while(words[cursor].value != "]"){
+        if(words[cursor].type != 'c'){
+            cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Parameter nr." << cursor+1 << " is not a string.\n";
+            return false;
+        }
+        stringVector.push_back(words[cursor].value);
         cursor++;
         if(cursor >= words.size()){
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
@@ -930,16 +982,17 @@ bool gatherStringVector(const vector<string> & words, unsigned & cursor, vector<
     cursor++;
     return true;
 }
-bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<VariableModule> & Literals, char type, unsigned lineNumber, string scriptName){
+bool gatherLiterals(const vector<WordStruct> & words, unsigned & cursor, vector<VariableModule> & Literals, char type, unsigned lineNumber, string scriptName){
     bool negate = false;
+    string error;
     if(cursor >= words.size()){
         return true;
     }
-    if(words[cursor] == "_"){
+    if(words[cursor].type == 'e'){
         cursor++;
         return true;
     }
-    if(words[cursor] != "["){
+    if(words[cursor].value != "["){
         cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Every list of literals must begin with a square bracket.\n";
         return false;
     }
@@ -948,23 +1001,15 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
         cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
-    while(words[cursor] != "]"){
-        if(words[cursor] == "-" && type != 's'){
+    while(words[cursor].value != "]"){
+        if(words[cursor].value == "-" && type != 's'){
             negate = true;
         }
         else if(type == 'b'){
-            if(words[cursor] == "true"){
-                Literals.push_back(VariableModule::newBool(true));
-            }
-            else if(words[cursor] == "false"){
-                Literals.push_back(VariableModule::newBool(false));
-            }
-            else{
-                string error;
-                Literals.push_back(VariableModule::newBool(cstoi(words[cursor], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
+            Literals.push_back(VariableModule::newBool(cstoi(words[cursor].value, error)));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                return false;
             }
             if(negate){
                 negate = false;
@@ -972,39 +1017,39 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
             }
         }
         else if(type == 'i'){
-            string error;
+            Literals.push_back(VariableModule::newInt(cstoi(words[cursor].value, error)));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                return false;
+            }
             if(negate){
                 negate = false;
-                Literals.push_back(VariableModule::newInt(-cstoi(words[cursor], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
-            }
-            else{
-                Literals.push_back(VariableModule::newInt(cstoi(words[cursor], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
+                Literals.back().negate();
             }
         }
         else if(type == 'd'){
-            string error;
+            Literals.push_back(VariableModule::newDouble(cstod(words[cursor].value, error)));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                return false;
+            }
             if(negate){
                 negate = false;
-                Literals.push_back(VariableModule::newDouble(-cstod(words[cursor], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
-            }
-            else{
-                Literals.push_back(VariableModule::newDouble(cstod(words[cursor], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
+                Literals.back().negate();
             }
         }
         else{
-            Literals.push_back(VariableModule::newString(words[cursor]));
+            if(words[cursor].type == 's'){
+                Literals.push_back(VariableModule::newString(words[cursor].value));
+            }
+            else{
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": Parameter '" << words[cursor].value << "' is not a string.\n";
+                return false;
+            }
+            if(negate){
+                negate = false;
+            }
         }
         cursor++;
         if(cursor >= words.size()){
@@ -1015,7 +1060,7 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
     cursor++;
     return true;
 }
-bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<VariableModule> & Literals, const string & type, unsigned lineNumber, string scriptName){
+bool gatherLiterals(const vector<WordStruct> & words, unsigned & cursor, vector<VariableModule> & Literals, const string & type, unsigned lineNumber, string scriptName){
     if(type == "bool" || type == "b"){
         if(!gatherLiterals(words, cursor, Literals, 'b', lineNumber, scriptName)){
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": \'" << type << "\' literal creation failed.\n";
@@ -1047,7 +1092,7 @@ bool gatherLiterals(const vector<string> & words, unsigned & cursor, vector<Vari
     return true;
 }
 void AncestorObject::eventAssembler(vector<string> code, string scriptName){
-    vector<string> words;
+    vector<WordStruct> words;
     EveModule NewEvent = EveModule();
     unsigned cursor = 0, lineNumber = 0;
     OperaClass * Operation;
@@ -1090,68 +1135,78 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             continue;
         }
         cursor = 1;
-        if(words[0] == "start"){
+        if(words[0].value == "start"){
             if(words.size() < 2){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
-                    ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires one parameter.\n";
+                    ": In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires one parameter.\n";
                 return;
             }
 
             bool overrideEvent = false;
 
             if(words.size() >= 4){
-                if(words[3] == "true"){
-                    overrideEvent = true;
-                }
-                else if(words[3] != "false" && words[3] != "_"){
-                    overrideEvent = cstoi(words[3], error);
-                    if(error.size() > 0){
-                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                    }
-                }
-            }
-
-            if(words[1][0] != '_' && isStringInVector(eveContainerIDs, words[1])){
-                if(overrideEvent){
-                    removeFromStringVector(eveContainerIDs, words[1]);
-                    removeModuleInstanceByID(EveContainer, words[1]);
+                if(words[3].type == 'i'){
+                    overrideEvent = cstoi(words[3].value, error);
                 }
                 else{
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
-                        ": In " << __FUNCTION__ << ": Event with id \'" << words[1] << "\' already exists.\n";
-                    return;
-                }
-            }
-            NewEvent = EveModule(words[1], &eveContainerIDs, getLayerID(), getID());
-            if(words.size() == 2){
-                continue;
-            }
-            if(words[2] == "true"){
-                NewEvent.loop = true;
-            }
-            else if(words[2] != "false" && words[2] != "_"){
-                NewEvent.loop = cstoi(words[2], error);
-                if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
                 }
             }
+
+            if(words[1].type != 'c' && words[1].type != 'e'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": In the 'start' instruction: The second parameter is not a context.\n";
+                return;
+            }
+
+            if(words[1].value[0] != '_' && isStringInVector(eveContainerIDs, words[1].value)){
+                if(overrideEvent){
+                    removeFromStringVector(eveContainerIDs, words[1].value);
+                    removeModuleInstanceByID(EveContainer, words[1].value);
+                }
+                else{
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
+                        ": In " << __FUNCTION__ << ": Event with id \'" << words[1].value << "\' already exists.\n";
+                    return;
+                }
+            }
+            NewEvent = EveModule(words[1].value, &eveContainerIDs, getLayerID(), getID());
+
+            if(words.size() == 2 || words[2].type == '_'){
+                continue;
+            }
+
+            if(words[2].type != 'i' && words[2].type != 'e'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": The second parameter is not an int.\n";
+                return;
+            }
+            if(words[2].type != 'e'){
+                NewEvent.loop = cstoi(words[2].value, error);
+            }
         }
-        else if(words[0] == "end"){
+        else if(words[0].value == "end"){
             EveContainer.push_back(NewEvent);
             NewEvent = EveModule();
             postOperations = false;
         }
-        else if(words[0] == "post"){
+        else if(words[0].value == "post"){
             postOperations = true;
         }
-        else if(words[0] == "triggers"){
+        else if(words[0].value == "triggers"){
             if(words.size() < 2){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires at least 2 parameters.\n";
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": Instruction \'" << words[0].value << "\' requires at least 2 parameters.\n";
                 return;
             }
             cursor = 1;
             while(cursor < words.size()){
-                NewEvent.primaryTriggerTypes.push_back(words[cursor]);
+                if(words[cursor].type != 'c'){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << words[0].value << "' instruction: Parameter nr. " << cursor+1 << " is not a context.\n";
+                    return;
+                }
+                if(words[cursor].type != 'e'){
+                    NewEvent.primaryTriggerTypes.push_back(words[cursor].value);
+                }
                 cursor++;
             }
             /*if(!gatherStringVector(words, cursor, NewEvent.primaryTriggerTypes, lineNumber, scriptName)){
@@ -1159,44 +1214,67 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }*/
         }
-        else if(words[0] == "run"){
+        else if(words[0].value == "run"){
             if(words.size() < 2){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": Instruction \'" << words[0].value << "\' requires 2 parameters.\n";
                 return;
             }
             cursor = 1;
             while(cursor < words.size()){
-                NewEvent.Children.push_back(ChildStruct(words[cursor], false));
+                if(words[cursor].type != 'c'){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << words[0].value << "' instruction: Parameter nr. " << cursor+1 << " is not a context.\n";
+                    return;
+                }
+                if(words[cursor].type != 'e'){
+                    NewEvent.Children.push_back(ChildStruct(words[cursor].value, false));
+                }
                 cursor++;
             }
         }
-        else if(words[0] == "if"){
+        else if(words[0].value == "if"){
             cursor = 1;
             if(!createExpression(words, cursor, NewEvent.ConditionalChain, lineNumber, scriptName)){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Expression creation failed.\n";
                 return;
             }
         }
-        else if(words[0] == "else"){
+        else if(words[0].value == "else"){
             if(words.size() < 2){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' requires 2 parameters.\n";
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": Instruction \'" << words[0].value << "\' requires one parameter of a string type.\n";
                 return;
             }
-            NewEvent.elseChildID = words[1];
+            if(words[1].type == 'c'){
+                NewEvent.elseChildID = words[1].value;
+            }
+            else if(words[1].type != 'e'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": Instruction \'" << words[0].value << "\' requires one parameter of a string type.\n";
+                return;
+            }
         }
-        else if(isStringInGroup(words[0], 9, "continue", "break", "return", "reboot", "power_off", "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag")){
+        else if(isStringInGroup(words[0].value, 9, "continue", "break", "return", "reboot", "power_off", "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
         }
-        else if(isStringInGroup(words[0], 4, "first", "last", "all", "random")){
+        else if(isStringInGroup(words[0].value, 4, "first", "last", "all", "random")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
+            if(words[1].type != 'c' && words[1].type != 'e'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            if(words[1].type != 'e'){
+                Operation->Location.source = words[1].value;
+            }
             
-            Operation->Location.source = words[1];
             cursor = 2;
-            if(words[1] == "camera"){
+            if(words[1].value == "camera"){
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName)){
@@ -1205,7 +1283,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
-            else if(words[1] == "layer"){
+            else if(words[1].value == "layer"){
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 if(optional(words, cursor, Operation->Location.objectID)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
@@ -1217,8 +1295,8 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
-            else if(words[1] == "context" || words[1] == "c" || words[1] == "_"){
-                if(!gatherStringVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
+            else if(words[1].value == "context" || words[1].value == "c" || words[1].type == 'e'){
+                if(!gatherContextVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
                     return;
                 }
@@ -1234,47 +1312,59 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
             else{
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Source '" << words[1] << "' does not exist.\n";
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": Source '" << words[1].value << "' does not exist.\n";
+                return;
             }
         }
-        else if(words[0] == "index"){
+        else if(words[0].value == "index"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->Location.source = words[1];
+            if(words[1].type != 'c' || words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                return;
+            }
+            Operation->Location.source = words[1].value;
             cursor = 2;
-            if(words[1] != "process" && words[1] != "layer" && words[1] != "camera"){
-                Operation->dynamicIDs.push_back(words[cursor]);
+            if(words[1].value != "process" && words[1].value != "layer" && words[1].value != "camera"){
+                Operation->dynamicIDs.push_back(words[2].value);
                 cursor++;
             }
             if(!gatherLiterals(words, cursor, Operation->Literals, 'i', lineNumber, scriptName)){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                 return;
             }
-            if(!gatherStringVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
+            if(!gatherContextVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
                 return;
             }
             if(optional(words, cursor, Operation->Location.attribute)){ continue; }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(isStringInGroup(words[0], 15, "sum", "intersection", "difference", "+", "-", "*", "/", "**", "=", "+=", "-=", "*=", "/=", "in", "find_by_id_2")){
+        else if(isStringInGroup(words[0].value, 15, "sum", "intersection", "difference", "+", "-", "*", "/", "**", "=", "+=", "-=", "*=", "/=", "in", "find_by_id_2")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->dynamicIDs.push_back(words[2]);
+            if(words[1].type != 'c' || words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->dynamicIDs.push_back(words[2].value);
             cursor = 3;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "++" || words[0] == "--" || words[0] == "delete" || words[0] == "demolish"){
+        else if(words[0].value == "++" || words[0].value == "--" || words[0].value == "delete" || words[0].value == "demolish"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
             if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "value"){
+        else if(words[0].value == "value"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
@@ -1285,30 +1375,30 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(isStringInGroup(words[0], 4, "bool", "int", "double", "string")){
+        else if(isStringInGroup(words[0].value, 4, "bool", "int", "double", "string")){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
             cursor = 1;
-            if(words[0] == "bool"){
+            if(words[0].value == "bool"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'b', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[0] == "int"){
+            else if(words[0].value == "int"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'i', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[0] == "double"){
+            else if(words[0].value == "double"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'd', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[0] == "string"){
+            else if(words[0].value == "string"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 's', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
@@ -1321,47 +1411,51 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "random_int"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+        else if(words[0].value == "random_int"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            if(words[1] == "literal"){
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
+            if(words[1].type == 'i' && words[2].type == 'i'){
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[1].value, error)));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2].value, error)));
+            }
+            else if(words[1].type == 'c' && words[2].type == 'c'){
+                Operation->dynamicIDs.push_back(words[1].value);
+                Operation->dynamicIDs.push_back(words[2].value);
             }
             else{
-                Operation->dynamicIDs.push_back(words[2]);
-                Operation->dynamicIDs.push_back(words[3]);
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of an int or context type.\n";
+                return;
             }
-            cursor = 4;
+            cursor = 3;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "find_by_id"){
+        else if(words[0].value == "find_by_id"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->Location.source = words[1];
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            Operation->Location.source = words[1].value;
             cursor = 2;
-            if(words[1] == "camera"){
+            if(words[1].value == "camera"){
                 if(words.size() < 4){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                        << ": \'find_by_id " << words[1] << "\' requires at least 2 additional parameters.\n";
+                        << ": \'find_by_id " << words[1].value << "\' requires at least 2 additional parameters.\n";
                     continue;
                 }
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
-            else if(words[1] == "layer"){
+            else if(words[1].value == "layer"){
                 if(words.size() < 7){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                        << ": \'find_by_id " << words[1] << "\' requires at least 5 additional parameters.\n";
+                        << ": \'find_by_id " << words[1].value << "\' requires at least 5 additional parameters.\n";
                     continue;
                 }
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
@@ -1371,14 +1465,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
-            else if(words[1] == "context" || words[1] == "_"){
-                if(!gatherStringVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
+            else if(words[1].value == "context" || words[1].value == "c" || words[1].type == 'e'){
+                if(!gatherContextVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
                     return;
                 }
                 if(words.size() < cursor + 5){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                        << ": \'find_by_id " << words[1] << " [context_list]\' requires at least 5 additional parameters.\n";
+                        << ": \'find_by_id " << words[1].value << " [context_list]\' requires at least 5 additional parameters.\n";
                     continue;
                 }
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
@@ -1389,48 +1483,61 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
         }
-        else if(words[0] == "let"){
+        else if(words[0].value == "let"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->newContextID = words[1];
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            Operation->newContextID = words[1].value;
             cursor = 2;
             if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
         }
-        else if(words[0] == "clone"){
+        else if(words[0].value == "clone"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->dynamicIDs.push_back(words[2]);
+            if(words[1].type != 'c' || words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->dynamicIDs.push_back(words[2].value);
             if(words.size() >= 4){
-                if(words[3] == "true"){
-                    Operation->Literals.push_back(VariableModule::newBool(true));
-                }
-                else if(words[3] == "false"){
-                    Operation->Literals.push_back(VariableModule::newBool(false));
-                }
-                else{
-                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[3], error)));
-                    if(error.size() > 0){
-                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                    }
+                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[3].value, error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
             }
         }
-        else if(words[0] == "new"){
+        else if(words[0].value == "new"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
                 return;
             }
-            Operation->Location.source = words[1];
-            Operation->Literals.push_back(VariableModule::newString(words[2]));
+            if(words[1].type != 'c' || words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                return;
+            }
+            Operation->Location.source = words[1].value;
+            Operation->Literals.push_back(VariableModule::newString(words[2].value));
             
             cursor = 3;
-            if(words[2] == "context" || words[2] == "c"){
-                Operation->dynamicIDs.push_back(words[cursor]);
+            if(words[2].value == "context" || words[2].value == "c"){
+                if(words[3].type != 'c'){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << words[0].value << "' instruction: The third parameter is not of a context type.\n";
+                    return;
+                }
+                Operation->dynamicIDs.push_back(words[3].value);
                 cursor++;
             }
-            else if(words[2] == "location" || words[2] == "l"){
+            else if(words[2].value == "location" || words[2].value == "l"){
                 if(Operation->Location.source == "object"){
                     if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 }
@@ -1440,14 +1547,15 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
             }
             else{
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": destination type \'" << words[2] << "\' does not exist.\n";
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": Destination type \'" << words[2].value << "\' does not exist.\n";
             }
             
             if(words.size() <= cursor){
                 continue;
             }
-            if(words[cursor] != "_"){
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[cursor], error)));
+            if(words[cursor].type != 'e'){
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[cursor].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
                 }
@@ -1457,58 +1565,71 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "bind"){
+        else if(words[0].value == "bind"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->Literals.push_back(VariableModule::newString(words[2]));
-            if(isStringInGroup(words[2], 5, "literal", "l", "remove_literal", "rliteral", "rl")){
+            if(words[1].type != 'c' || words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->Literals.push_back(VariableModule::newString(words[2].value));
+            if(isStringInGroup(words[2].value, 5, "literal", "l", "remove_literal", "rliteral", "rl")){
                 cursor = 3;
                 if(!gatherLiterals(words, cursor, Operation->Literals, 's', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(isStringInGroup(words[2], 5, "context", "c", "remove_context", "rcontext", "rc")){
+            else if(isStringInGroup(words[2].value, 5, "context", "c", "remove_context", "rcontext", "rc")){
                 if(words.size() > 3){
-                    Operation->dynamicIDs.push_back(words[3]);
+                    if(words[3].type != 'c'){
+                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                            << ": In '" << words[0].value << "' instruction: The third parameter is not of a context type.\n";
+                        return;
+                    }
+                    Operation->dynamicIDs.push_back(words[3].value);
                 }
                 else{
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": No context provided.\n";
                 }
             }
-            else if(words[2] != "reset" && words[2] != "r"){
+            else if(words[2].value != "reset" && words[2].value != "r"){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": In bind instruction, type must be equal to one of these values: "
                     "\"literal\", \"l\", \"remove_literal\", \"rliteral\", \"rl\", \"context\", \"c\", \"remove_context\", \"rcontext\", \"rc\", \"reset\", \"r\".\n";
                 return;
             }
         }
-        else if(words[0] == "build"){
+        else if(words[0].value == "build"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            if(words.size() > 2 && words[2] != "_"){
-                if(words[2] == "true"){
-                    Operation->Literals.push_back(VariableModule::newBool(true));
-                }
-                else if(words[2] == "false"){
-                    Operation->Literals.push_back(VariableModule::newBool(false));
-                }
-                else{
-                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2], error)));
-                    if(error.size() > 0){
-                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                    }
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            if(words.size() > 2 && words[2].type != 'e'){
+                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2].value, error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
             }     
         }
-        else if(words[0] == "load_build" || words[0] == "build_subset" || words[0] == "inject_code" || words[0] == "inject_instr"){
+        else if(words[0].value == "load_build" || words[0].value == "build_subset" || words[0].value == "inject_code" || words[0].value == "inject_instr"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
             cursor = 2;
             if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
             if(!gatherLiterals(words, cursor, Operation->Literals, 's', lineNumber, scriptName)){
@@ -1516,63 +1637,83 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
         }
-        else if(words[0] == "fun"){
+        else if(words[0].value == "fun"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->Location.attribute = words[2];
+            if(words[1].type != 'c' || words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->Location.attribute = words[2].value;
             cursor = 3;
             while(words.size() > cursor + 1){
-                if(words[cursor] == "context" || words[cursor] == "c"){
+                if(words[cursor].value == "context" || words[cursor].value == "c"){
                     cursor++;
-                    Operation->dynamicIDs.push_back(words[cursor]);
+                    Operation->dynamicIDs.push_back(words[cursor].value);
                     cursor++;
                 }
                 else{
                     cursor++;
-                    if(!gatherLiterals(words, cursor, Operation->Literals, words[cursor - 1], lineNumber, scriptName)){
+                    if(!gatherLiterals(words, cursor, Operation->Literals, words[cursor - 1].value, lineNumber, scriptName)){
                         return;
                     }
                 }
             }
         }
-        else if(words[0] == "env"){
+        else if(words[0].value == "env"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
-            if(words[1] == "window_title"){
-                Operation->Literals.push_back(VariableModule::newString(words[2]));
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
             }
-            else if(words[1] == "window_size"){
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
+            if(words[1].value == "window_title"){
+                if(words[1].type != 's'){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << words[0].value << "' instruction: The second parameter is not of a string type.\n";
+                    return;
+                }
+                Operation->Literals.push_back(VariableModule::newString(words[2].value));
+            }
+            else if(words[1].value == "window_size"){
                 if(words.size() < 4){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
                 }
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3], error)));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
                 }
             }
             else{
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
                 }
             }
         }
-        else if(words[0] == "edit_proc"){
+        else if(words[0].value == "edit_proc"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
-            if(isStringInGroup(words[1], 2, "clear_layers", "clear_cameras")){
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
+            if(isStringInGroup(words[1].value, 2, "clear_layers", "clear_cameras")){
                 continue;
             }
             if(words.size() < 3){
@@ -1580,247 +1721,302 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                 return;
             }
-            if(words[1] == "id"){
-                Operation->Literals.push_back(VariableModule::newString(words[2]));
+            if(words[1].value == "id"){
+                if(words[1].type != 's'){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << words[0].value << "' instruction: The second parameter is not of a string type.\n";
+                    return;
+                }
+                Operation->Literals.push_back(VariableModule::newString(words[2].value));
             }
-            else if(words[1] == "reservation_multiplier"){
-                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2], error)));
+            else if(words[1].value == "reservation_multiplier"){
+                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
                 }
             }
-            else if(words[1] == "window_pos" || words[1] == "window_size" || words[1] == "min_window_size"){
+            else if(words[1].value == "window_pos" || words[1].value == "window_size" || words[1].value == "min_window_size"){
                 if(words.size() < 4){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires two literals of a numeric type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3], error)));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[3].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
             }
-            else if(words[1] == "window_tint"){
+            else if(words[1].value == "window_tint"){
                 if(words.size() < 6){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << Operation->instruction <<
                         "\' with \'" << Operation->Literals[0].getString() << "\' attribute requires four literals of a double type.\n";
                     return;
                 }
-                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[2], error)));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[2].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
-                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[3], error)));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[3].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
-                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[4], error)));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[4].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
-                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[5], error)));
+                Operation->Literals.push_back(VariableModule::newDouble(cstoi(words[5].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
             }
             else{
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2].value, error)));
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
                 }
             }
         }
-        else if(words[0] == "load_bitmap"){
+        else if(words[0].value == "load_bitmap"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
-            Operation->Literals.push_back(VariableModule::newString(words[2]));
+            if(words[1].type != 's' || words[2].type != 's'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a string type.\n";
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
+            Operation->Literals.push_back(VariableModule::newString(words[2].value));
             if(words.size() > 3){
-                Operation->Literals.push_back(VariableModule::newBool(stringToBool(words[3])));
+                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[3].value, error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
+                }
             }
             if(words.size() > 4){
-                Operation->Literals.push_back(VariableModule::newBool(stringToBool(words[4])));
+                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[4].value, error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
+                }
             }
         }
-        else if(words[0] == "mkdir" || words[0] == "rm" || words[0] == "rmll"){
+        else if(words[0].value == "mkdir" || words[0].value == "rm" || words[0].value == "rmll"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1].type != 's'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a string type.\n";
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
         }
-        else if(words[0] == "rename"){
+        else if(words[0].value == "rename"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
-            Operation->Literals.push_back(VariableModule::newString(words[2]));
+            if(words[1].type != 's' || words[2].type != 's'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a string type.\n";
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
+            Operation->Literals.push_back(VariableModule::newString(words[2].value));
         }
-        else if(words[0] == "print"){
+        else if(words[0].value == "print"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            if(words[1] != "_"){
-                Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1].type == 'e'){
+                Operation->Literals.push_back(VariableModule::newString(""));
+            }
+            else if(words[1].type != 's'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a string type.\n";
+                return;
             }
             else{
-                Operation->Literals.push_back(VariableModule::newString(""));
+                Operation->Literals.push_back(VariableModule::newString(words[1].value));
             }
 
             if(words.size() < 3){
                 continue;
             }
 
-            if(words[2] != "_"){
-                Operation->newContextID = words[2];
+            if(words[2].type != 'c' && words[2].type != 'e'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The second parameter is not of a context type.\n";
+                return;
+            }
+            else if(words[2].type != 'e'){
+                Operation->newContextID = words[2].value;
             }
 
             if(words.size() == 4){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                    << ": \'" << words[3] << "\' type does not exist.\n";
+                    << ": \'" << words[3].value << "\' type does not exist.\n";
                 return;
             }
             
             cursor = 3;
             while(words.size() > cursor + 1){
-                if(words[cursor] == "context" || words[cursor] == "c"){
+                if(words[cursor].value == "context" || words[cursor].value == "c"){
                     cursor++;
-                    Operation->dynamicIDs.push_back(words[cursor]);
+                    Operation->dynamicIDs.push_back(words[cursor].value);
                     cursor++;
                 }
                 else{
                     cursor++;
-                    if(!gatherLiterals(words, cursor, Operation->Literals, words[cursor - 1], lineNumber, scriptName)){
+                    if(!gatherLiterals(words, cursor, Operation->Literals, words[cursor - 1].value, lineNumber, scriptName)){
                         return;
                     }
                 }
             }
         }
-        else if(words[0] == "load_text"){
+        else if(words[0].value == "load_text"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
             cursor = 2;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "save_text"){
+        else if(words[0].value == "save_text"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->dynamicIDs.push_back(words[2]);
+            if(words[1].type != 'c' || words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->dynamicIDs.push_back(words[2].value);
         }
-        else if(words[0] == "ls"){
+        else if(words[0].value == "ls"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
             if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "lse"){
+        else if(words[0].value == "lse"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1].type != 's'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a string type.\n";
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
             if(words.size() == 2){
                 continue;
             }
-            if(words[2] == "true"){
-                Operation->Literals.push_back(VariableModule::newBool(true));
-            }
-            else if(words[2] == "false"){
-                Operation->Literals.push_back(VariableModule::newBool(false));
-            }
-            else{
-                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
+            Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2].value, error)));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
             }
         }
-        else if(words[0] == "new_proc"){
+        else if(words[0].value == "new_proc"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1].type != 's'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a string type.\n";
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
             for(unsigned int i = 2; i < 5; i++){
                 if(words.size() <= i){
                     break;
                 }
-                Operation->Literals.push_back(VariableModule::newString(words[i]));
+                if(words[i].type != 's'){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << words[0].value << "' instruction: The parameter nr " << i+1 << ". is not of a string type.\n";
+                    return;
+                }
+                Operation->Literals.push_back(VariableModule::newString(words[i].value));
             }
         }
-        else if(words[0] == "var"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+        else if(words[0].value == "var"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
-            if(words[1] == "bool" || words[1] == "b"){
-                if(words[2] == "true" || words[2] == "t"){
-                    Operation->Literals.push_back(VariableModule::newBool(true));
-                }
-                else if(words[2] == "false" || words[2] == "f"){
-                    Operation->Literals.push_back(VariableModule::newBool(false));
-                }
-                else{
-                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[2], error)));
-                    if(error.size() > 0){
-                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                    }
-                }
+            if(words[1].value == "true" || words[1].value == "false"){
+                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[1].value, error)));
             }
-            else if(words[1] == "int" || words[1] == "i"){
-                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[2], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
+            else if(words[1].type == 'i'){
+                Operation->Literals.push_back(VariableModule::newInt(cstoi(words[1].value, error)));
             }
-            else if(words[1] == "double" || words[1] == "d"){
-                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[2], error)));
-                if(error.size() > 0){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
-                }
+            else if(words[1].type == 'd'){
+                Operation->Literals.push_back(VariableModule::newDouble(cstod(words[1].value, error)));
             }
-            else if(words[1] == "string" || words[1] == "s"){
-                Operation->Literals.push_back(VariableModule::newString(words[2]));
+            else if(words[1].type == 's'){
+                Operation->Literals.push_back(VariableModule::newString(words[1].value));
             }
             else{
                 cout << "Error: In script: " << scriptName << ":\n\tIn line " << lineNumber << ": In "
-                    << __FUNCTION__ << ": In instruction \'" << words[0] << "\' the type \'" << words[1] << "\' does not exist.\n";
+                    << __FUNCTION__ << ": In instruction \'" << words[0].value << "\' the value \'" << words[1].value << "\' is not of a literal type.\n";
+                    return;
                 continue;
             }
-            Operation->newContextID = words[3];
+            if(words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The second parameter is not of a context type.\n";
+                return;
+            }
+            Operation->newContextID = words[2].value;
         }
-        else if(words[0] == "vec"){
+        else if(words[0].value == "vec"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
             cursor = 2;
-            if(words[1] == "bool" || words[1] == "b"){
+            if(words[1].value == "bool" || words[1].value == "b"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'b', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[1] == "int" || words[1] == "i"){
+            else if(words[1].value == "int" || words[1].value == "i"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'i', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[1] == "double" || words[1] == "d"){
+            else if(words[1].value == "double" || words[1].value == "d"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 'd', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(words[1] == "string" || words[1] == "s"){
+            else if(words[1].value == "string" || words[1].value == "s"){
                 if(!gatherLiterals(words, cursor, Operation->Literals, 's', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
@@ -1828,85 +2024,131 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             else{
                 cout << "Error: In script: " << scriptName << ":\n\tIn line " << lineNumber << ": In "
-                    << __FUNCTION__ << ": In instruction \'" << words[0] << "\' the type \'" << words[1] << "\' does not exist.\n";
+                    << __FUNCTION__ << ": In instruction \'" << words[0].value << "\' the type \'" << words[1].value << "\' does not exist.\n";
                 continue;
             }
-            Operation->newContextID = words[cursor];
+            if(words[cursor].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The last parameter is not of a context type.\n";
+                return;
+            }
+            Operation->newContextID = words[cursor].value;
         }
-        else if(words[0] == "tokenize"){
+        else if(words[0].value == "tokenize"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1].type != 's'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a string type.\n";
+                return;
+            }
+            Operation->Literals.push_back(VariableModule::newString(words[1].value));
             cursor = 2;
             while(cursor < words.size()){
-                Operation->dynamicIDs.push_back(words[cursor]);
+                if(words[cursor].type != 'c'){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << words[0].value << "' instruction: Parameter nr " << cursor+1 << ". is not of a context type.\n";
+                    return;
+                }
+                Operation->dynamicIDs.push_back(words[cursor].value);
                 cursor++;
             }
         }
-        else if(words[0] == "tree" || words[0] == "pwd"){
+        else if(words[0].value == "tree" || words[0].value == "pwd"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "len" || words[0] == "size"){
+        else if(words[0].value == "len" || words[0].value == "size"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[cursor]);
+            if(words[1].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
             cursor++;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "substr"){
+        else if(words[0].value == "substr"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->dynamicIDs.push_back(words[2]);
-            Operation->dynamicIDs.push_back(words[3]);
+            if(words[1].type != 'c' || words[2].type != 'c' || words[3].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: All parameters must be of the context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->dynamicIDs.push_back(words[2].value);
+            Operation->dynamicIDs.push_back(words[3].value);
             cursor = 4;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0] == "load_font"){
+        else if(words[0].value == "load_font"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->dynamicIDs.push_back(words[2]);
-            Operation->dynamicIDs.push_back(words[3]);
+            if(words[1].type != 'c' || words[2].type != 'c' || words[3].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: All parameters must be of the context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->dynamicIDs.push_back(words[2].value);
+            Operation->dynamicIDs.push_back(words[3].value);
             if(words.size() > 4){
-                Operation->Literals.push_back(VariableModule::newBool(stringToBool(words[4])));
+                Operation->Literals.push_back(VariableModule::newBool(cstoi(words[4].value, error)));
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << words[0].value << "' instruction: The fourth parameter is not of bool type.\n";
+                    return;
+                }
             }
         }
-        else if(words[0] == "cd"){
+        else if(words[0].value == "cd"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
             if(words.size() == 1){
                 continue;
             }
-            if(words[1] != "_"){
-                Operation->Literals.push_back(VariableModule::newString(words[1]));
+            if(words[1].type == 's'){
+                Operation->Literals.push_back(VariableModule::newString(words[1].value));
             }
-            cursor++;
-            if(optional(words, cursor, Operation->dynamicIDs)){ continue; }
+            else if(words[1].type == 'c'){
+                Operation->dynamicIDs.push_back(words[1].value);
+            }
+            else {
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of string or context type.\n";
+                return;
+            }
         }
-        else if(words[0] == "similar"){
+        else if(words[0].value == "similar"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            Operation->dynamicIDs.push_back(words[1]);
-            Operation->dynamicIDs.push_back(words[2]);
-            cursor+=2;
+            if(words[1].type != 'c' || words[2].type != 'c'){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": In '" << words[0].value << "' instruction: All parameters must be of the context type.\n";
+                return;
+            }
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->dynamicIDs.push_back(words[2].value);
+            cursor = 3;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
         else{
-            cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0] << "\' does not exist.\n";
+            cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' does not exist.\n";
         }
     }
     if(words.size() > 0){
-        if(words[0] != "end"){
+        if(words[0].value != "end"){
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Every event must end with \"end\" instruction.\n";
         }
     }

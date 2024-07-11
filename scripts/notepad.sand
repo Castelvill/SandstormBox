@@ -41,7 +41,7 @@ start refreshWindowNotepad
     find_by_id_2 Layers myLayerID Layer
     index c Layer [0 0 0] _ super_editable_text Notepad
     fun Notepad set_size c sx c sy
-    fun Notepad update
+    //fun Notepad update
     run resizeObjectWhenNotBorderless
 end
 
@@ -49,7 +49,7 @@ start resizeObjectWhenNotBorderless
     if ([c isBorderless] !)
     index c my_layer [0 0] _ object WindowObject
     fun WindowObject set_size c sx c sy
-    fun Notepad update
+    //fun Notepad update
 end
 
 

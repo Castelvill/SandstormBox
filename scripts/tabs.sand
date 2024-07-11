@@ -8,7 +8,7 @@ start onInit
 
 	edit_proc draw_camera_borders 1
 
-	load_bitmap "images/background2.png" background2 false true
-	load_bitmap "images/background3.png" background3 false true
-	load_bitmap "images/amongus1.png" amongus1 false true
+	load_bitmap "images/background2.png" "background2" false true
+	load_bitmap "images/background3.png" "background3" false true
+	load_bitmap "images/amongus1.png" "amongus1" false true
 end

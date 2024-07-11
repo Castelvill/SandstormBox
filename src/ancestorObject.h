@@ -21,6 +21,11 @@ struct ModulesPointers{
     unsigned size() const;
 };
 
+struct WordStruct{
+    char type; //o - operation, s - string, d - double, i - int, e - empty, c - context
+    string value;
+};
+
 /**
 The most important class, a container for all modules that make an object.
 */
@@ -84,7 +89,7 @@ public:
     void propagateObjectID();
 };
 
-vector <string> tokenizeCode(string input);
+vector <WordStruct> tokenizeCode(string input);
 
 
 template<class Module>

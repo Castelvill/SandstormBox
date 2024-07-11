@@ -5991,7 +5991,8 @@ void ProcessClass::loadBitmap(OperaClass & Operation, vector<SingleBitmap> & Bit
         return;
     }
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString() << " " << Operation.Literals[1].getString() << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString() << " " << Operation.Literals[1].getString()
+            << " " << Operation.Literals[2].getString() << " " << Operation.Literals[3].getString() << "\n";
     }
     bool createLightBitmap = false, ignoreWarnings = false;
     if(Operation.Literals.size() > 2){
@@ -6473,18 +6474,13 @@ void ProcessClass::createNewProcess(OperaClass & Operation, vector<ProcessClass>
 void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
-    if(Operation.Literals.size() < 2){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires two literals.\n";
-        return;
-    }
-    if(Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires the first literal to be of a string type.\n";
+    if(Operation.Literals.size() == 0){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": " << transInstrToStr(Operation.instruction) << " requires a literal as the first parameter.\n";
         return;
     }
     
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString()
-            << " " << Operation.Literals[1].getStringUnsafe() << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getStringUnsafe() << " " << Operation.newContextID << "\n";
     }
 
     for(const VariableModule & Variable : Owner->VariablesContainer){
@@ -6498,49 +6494,29 @@ void ProcessClass::createNewOwnerVariable(OperaClass & Operation, vector<Context
     PointerRecalculator Recalculator;
     Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
     
-    if(Operation.Literals[0].getString() == "bool" || Operation.Literals[0].getString() == "b"){
-        if(Operation.Literals[1].getType() != 'b'){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
-                << Operation.Literals[0].getString() << " type.\n";
-            return;
-        }
+    if(Operation.Literals[0].getType() == 'b'){
         Owner->VariablesContainer.push_back(VariableModule::newBool(
-            Operation.Literals[1].getBool(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+            Operation.Literals[0].getBool(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
         ));
     }
-    else if(Operation.Literals[0].getString() == "int" || Operation.Literals[0].getString() == "i"){
-        if(Operation.Literals[1].getType() != 'i'){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
-                << Operation.Literals[0].getString() << " type.\n";
-            return;
-        }
+    else if(Operation.Literals[0].getType() == 'i'){
         Owner->VariablesContainer.push_back(VariableModule::newInt(
-            Operation.Literals[1].getInt(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+            Operation.Literals[0].getInt(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
         ));
     }
-    else if(Operation.Literals[0].getString() == "double" || Operation.Literals[0].getString() == "d"){
-        if(Operation.Literals[1].getType() != 'd'){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
-                << Operation.Literals[0].getString() << " type.\n";
-            return;
-        }
+    else if(Operation.Literals[0].getType() == 'd'){
         Owner->VariablesContainer.push_back(VariableModule::newDouble(
-            Operation.Literals[1].getDouble(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+            Operation.Literals[0].getDouble(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
         ));
     }
-    else if(Operation.Literals[0].getString() == "string" || Operation.Literals[0].getString() == "s"){
-        if(Operation.Literals[1].getType() != 's'){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction) << " instruction the second literal is not of a "
-                << Operation.Literals[0].getString() << " type.\n";
-            return;
-        }
+    else if(Operation.Literals[0].getType() == 's'){
         Owner->VariablesContainer.push_back(VariableModule::newString(
-            Operation.Literals[1].getString(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+            Operation.Literals[0].getString(), Operation.newContextID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
         ));
     }
     else{
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In " << transInstrToStr(Operation.instruction)
-            << " instruction the first parameter has incorrect value: \'" << Operation.Literals[0].getString() << "\'.\n";
+            << " instruction the first parameter has invalid value: \'" << Operation.Literals[0].getString() << "\'.\n";
         return;
     }
 
@@ -6680,7 +6656,7 @@ void ProcessClass::tokenizeStringFromContext(OperaClass & Operation, vector<Cont
     NewContext.type = "value";
     if(Operation.dynamicIDs.size() == 1){
         if(printOutInstructions){
-            cout << transInstrToStr(Operation.instruction) << " " << Operation.dynamicIDs[0] << "\n";
+            cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString()[0] << " " << Operation.dynamicIDs[0] << "\n";
         }
         for(string word : words){
             NewContext.Variables.push_back(VariableModule::newString(word));
@@ -6689,7 +6665,7 @@ void ProcessClass::tokenizeStringFromContext(OperaClass & Operation, vector<Cont
     }
     else if(Operation.dynamicIDs.size() == 2){
         if(printOutInstructions){
-            cout << transInstrToStr(Operation.instruction) << " " << Operation.dynamicIDs[0] << " " << Operation.dynamicIDs[1] << "\n";
+            cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString()[0] << " " << Operation.dynamicIDs[0] << " " << Operation.dynamicIDs[1] << "\n";
         }
         for(string word : words){
             NewContext.Variables.push_back(VariableModule::newString(word));
@@ -6698,7 +6674,7 @@ void ProcessClass::tokenizeStringFromContext(OperaClass & Operation, vector<Cont
     }
     else{
         if(printOutInstructions){
-            cout << transInstrToStr(Operation.instruction) << " " << Operation.dynamicIDs[0] << " ";
+            cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString()[0] << " " << Operation.dynamicIDs[0] << " ";
             for(size_t i = 0; i < words.size() && i+1 < Operation.dynamicIDs.size(); i++){
                 cout << Operation.dynamicIDs[i+1] << " ";
             }

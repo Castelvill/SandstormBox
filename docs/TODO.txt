@@ -1,43 +1,44 @@
--Add previous (for undo) and future (for redo) versions of content and formatting to the SuperEditableText. They will be saved on the start of editing and every entered white space just like in vs code. Remember to update support variables. 
--After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
--Test zooming and scaling in SuperEditableText.
--Fix: Zooming edited text can move its position.
--Add modules scaling from the edge of the camera.
--Implement arithmetic instructions and function for vector module (+=, -=, etc.).
--With updated arithmetic instructions improve the auto-complete (remove the loop).
--Moving cursor up or down shouldn't change the "localCursorPos" variable in order to optimize moving around the text.
--Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
--Remove old TextModule and EditableTextModule and rename new modules.
--Remove old, useless functions and methods.
-
-MILESTONE: Terminal and editor with scrolling. - Easy and cozy scripting inside the engine.
-
--Fix: In EditableTextModule "cropping" mode breaks cursor movement.
--Fix: Extended ASCII characters like "┌" break the text selection (three negative char-s create one wide character).
--Double clicking a word in the text should select this whole word.
--Pressing tab in the editable text module, if more than one letter is selected, should append a tab to the beginning of every selected line. 
--Add to PrimaryModule "vec2b reverseAxes" variable that controls the direction and starting point of the drawing axes on the camera.
--Add to PrimaryModule "vec2b centerAxes" variable that moves the start of the drawing axes to the center of the camera.
--Create the ImageViewer. It would take the image path and check if an image with same path exists. If yes then, it'd connect it to the window object, otherwise it'd load the bitmap to the memory (pseudo caching) and then connect it to the window object.
--Implement optional new line functionality for semicolons in order to divide instructions better.
--Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.  
+-Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.
+-if(optional(words, cursor, Operation->newContextID)){ continue; } -> if(optionalContext(words, cursor, Operation->newContextID)){ continue; }
+-Remove "bool", "int", "double" and "string" from parameters
 -Replace dynamicIDs and Literals in Operations with "struct Argument {VariableModule Value, bool isVariable}" in order to allow mixing Variables and Literals together in the instructions.
 -Add to each definition of instructions a function that extracts every value or pointer from the passed Arguments - put them inside the Context vector for example.  
--Replace "start...end" scopes with "func name {...}" "event name (triggers) {...}", "if (conditions) {}", "else if (conditions) {...}", "else {...}" and "while (conditions) {...}" scopes. Names of "if", "else if", "else" and "while" scopes will be generated automatically and start with "_" sign. During compilation, new types of scopes will be seperated from parent events by the parser and put into new events with auto-generated names.
 -Add explicit parameters to events and functions (trigger-less events) for better readability. Don't add them to loops, ifs and else, they doesn't need explicit parameters.
--Transform "fun context function [values...]" into "context.function([values...])". Do the same with all other instructions except the arithmetic ones.
 -Transform every Reverse Polish Notation into normal expressions.
--Change old move instructions syntax into "left_operand move_instr right_operand;". 
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: Command "sh print "xd\n"" does not work.
 -Fix: Print command doesn't use special signs.
--Update documentation: instructions that use moveOrRename should have a different definition of "output" parameter.
--Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
 -(?)Implement "set_if *event* *expression*" instruction.
 -Move "triggers" to the object definition or bind events to them - right now without using if statements triggers can cause script based bugs. 
 
 MILESTONE: Improve scripting language.
+
+-Replace "start...end" scopes with "func name {...}" "event name (triggers) {...}", "if (conditions) {}", "else if (conditions) {...}", "else {...}" and "while (conditions) {...}" scopes. Names of "if", "else if", "else" and "while" scopes will be generated automatically and start with "_" sign. During compilation, new types of scopes will be seperated from parent events by the parser and put into new events with auto-generated names.
+-Transform "fun context function [values...]" into "context.function([values...])". Do the same with all other instructions except the arithmetic ones.
+-Change old move instructions syntax into "left_operand move_instr right_operand;". 
+-Implement optional new line functionality for semicolons in order to divide instructions better.
+-Create a language wrapper in order to have as much debugger info (instruction list) as possible.
+
+MILESTONE: Create a new scripting language (a wrapper for the previous one).
+
+-Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
+-Update documentation: Instructions that use moveOrRename should have a different definition of "output" parameter.
+-Create the ImageViewer. It would take the image path and check if an image with same path exists. If yes, then it'd connect it to the window object, otherwise it'd load the bitmap to the memory (pseudo caching) and then connect it to the window object.
+-Remove old TextModule and EditableTextModule and rename new modules.
+-Add previous (for undo) and future (for redo) versions of content and formatting to the SuperEditableText. They will be saved on the start of editing and every entered white space just like in vs code. Remember to update support variables. 
+-After implementing undo and redo for SuperEditableText, add "original_content" to the "value" instruction (it will be used for editing variables).
+-Test zooming and scaling in SuperEditableText.
+-Fix: Zooming edited text can move its position.
+-Add modules scaling from the edge of the camera.
+
+-Implement arithmetic instructions and function for vector module (+=, -=, etc.).
+-With updated arithmetic instructions improve the auto-complete (remove the loop).
+-Fix: In EditableTextModule "cropping" mode breaks cursor movement.
+-Double clicking a word in the text should select this whole word.
+-Pressing tab in the editable text module, if more than one letter is selected, should append a tab to the beginning of every selected line. 
+-Add to PrimaryModule "vec2b reverseAxes" variable that controls the direction and starting point of the drawing axes on the camera.
+-Add to PrimaryModule "vec2b centerAxes" variable that moves the start of the drawing axes to the center of the camera.
 
 -Block "." and ".." links in filesystem commands.
 -Convert all "if forests" to switches.
@@ -134,6 +135,9 @@ MILESTONE: Improve scripting language.
 -Add 3D graphics - this will include adding 3D rendering inside the code editor for showing the models used by the scripts.
 
 OPTIMALIZATIONS
+-Remove old, useless functions and methods.
+-Moving cursor up or down shouldn't change the "localCursorPos" variable in order to optimize moving around the text.
+-Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
 -Use std::variant instead of unions.
 -Create special versions of engine instructions with a lower count of ifs - these instructions will be unsafe and could cause crashes, but when used in a right way (with other trusted instructions) they could speed up the engine. The script compiler will dynamically choose best versions of the instructions. Example: if one instruction WILL provide a non-null pointer, the second instruction should be able to ignore checking if this pointer is empty. 
 -Use constexpr - this will pre-calculate some functions in compile time, speeding up some of them to O(1).
@@ -153,8 +157,7 @@ OPTIMALIZATIONS
 -Add threads: one for moving and one for drawing particles.
 
 BUGS
--Keyboard input can be randomly and permamently doubled. Clue:
-"...just make sure you handle the ALLEGRO_EVENT_DISPLAY_LOST and ALLEGRO_EVENT_DISPLAY_FOUND events, and redraw when you get the latter event." 
+-Keyboard input can be randomly and permamently doubled. Clue: "...just make sure you handle the ALLEGRO_EVENT_DISPLAY_LOST and ALLEGRO_EVENT_DISPLAY_FOUND events, and redraw when you get the latter event." 
 -Vector movement doesn't support camera movement
 -60 FPS max
 -Random copies of letters in editable fields - when you release few buttons at once editable text does undefined behavior. Do: when one button is pressed, every [var] seconds letter is entered, but when another button is pressed, the previous ones are 100% blocked until release (like in notepad)

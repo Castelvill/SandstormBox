@@ -14,19 +14,19 @@ end
 
 start revertWindowIfMoved
 	if ([c isMaxed] [c Camera grabbed] &&)
-	bool [false] false
-	= isMaxed false
+	bool [false] False
+	= isMaxed False
 	fun Camera set_can_mouse_resize bool [true]
 	value ([mouse_x]) MouseX
 	value ([mouse_y]) MouseY
 	= posX MouseX
 	= posY MouseY
 	value ([c sizeX]) sizeXTemp
-	int [2] 2
-	/= sizeXTemp 2
+	int [2] Two
+	/= sizeXTemp Two
 	-= posX sizeXTemp
-	int [10] 10
-	-= posY 10
+	int [10] Ten
+	-= posY Ten
 	run revertBorderIfPossible revertWindowFromMax
 end
 
@@ -149,8 +149,8 @@ end
 
 start exitWindowCheck
     if([c ExitCollision release_on])
-    bool [true] true
-    = delete true
+    bool [true] True
+    = delete True
 end
 
 start deleteWindow

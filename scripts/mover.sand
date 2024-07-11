@@ -4,8 +4,8 @@ start deleteFriends
     all camera _ camera _ Cameras
     find_by_id_2 Cameras insideCameraID InsideCamera
     delete InsideCamera
-    bool [true] true 
-    = deleted_friends true
+    bool [true] True 
+    = deleted_friends True
 end
 
 start checkIfMouseMoved

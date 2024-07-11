@@ -3,7 +3,7 @@ start init false
     if ([on_boot])
     fun me set_can_be_selected bool [false]
     new object l KERNEL 1 _ _ First
-    fun First set_id string [KERNEL]
+    fun First set_id string ["KERNEL"]
     fun First set_can_be_selected bool [true]
     fun First set_can_be_moved_with_mouse bool [true]
     fun First enable_selection_border

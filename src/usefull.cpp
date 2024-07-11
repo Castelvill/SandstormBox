@@ -1,13 +1,13 @@
 #include "usefull.h"
 
 int cstoi(string text, string & error){
+    error = "";
     if(text == "true"){
         return 1;
     }
     if(text == "false"){
         return 0;
     }
-    error = "";
     try{
         return stoi(text);
     }

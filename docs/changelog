@@ -1,3 +1,7 @@
+1.07.2024
+-Minimized the scripting language with the type guessing (random_int, var, cd).
+-Described "rename" instruction.
+
 30.06.2024
 -Created "save_to_file" and "load_from_file" function to the EditableText to enable saving and loading formatted text.
 -Scrollbars now dynamically adjust to the current window size.

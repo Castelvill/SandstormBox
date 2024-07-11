@@ -252,7 +252,7 @@ value *expression* [output]
 
 **Syntax**
 
-random_int literal *min* *max* [output]
+random_int *min* *max* [output]
 
 **Description**
 
@@ -268,7 +268,7 @@ random_int literal *min* *max* [output]
 
 **Syntax**
 
-random_int context *min* *max* [output]
+random_int *min* *max* [output]
 
 **Description**
 
@@ -670,7 +670,7 @@ fun *context* *attribute* [[type] [value] … ]
 
 **Syntax**
 
-load_bitmap *path* *name* [light]
+load_bitmap *path* *name* [light] [ignore_warnings]
 
 **Description**
 
@@ -680,7 +680,8 @@ load_bitmap *path* *name* [light]
 
 - path (string) - path to an image file;
 - name (string) - name for the new bitmap;
-- light (bool) - if true, create a light bitmap for the loaded bitmap. False by default.
+- light (bool) - if true, create a light bitmap for the loaded bitmap. False by default;
+- ignore_warnings (bool) - if true, warnings about loading the same image will not be printed.
 
 ## load_font
 
@@ -739,6 +740,21 @@ rmll *path*
 **Parameters**
 
 - path (string) - path to the file or directory.
+
+## rename
+
+**Syntax**
+
+rename *path* *new_path*
+
+**Description**
+
+    Rename a file or directory. 
+
+**Parameters**
+
+- path (string) - path to the file or directory,
+- new_path (string) - a new path to the file or directory.
 
 ## print
 
@@ -821,7 +837,7 @@ lse *source* *detail*
 
 **Syntax**
 
-var *type* *value* *id*
+var *value* *id*
 
 **Description**
 
@@ -829,7 +845,6 @@ var *type* *value* *id*
 
 **Parameters**
 
-- type (string): bool, int, double, string;
 - value (VariableModule);
 - id (string) - id of the new variable and a new context.
 
@@ -936,7 +951,7 @@ substr text begin length [output]
 
 **Syntax**
 
-cd [directory1] [directory2]
+cd [directory]
 
 **Description**
 
@@ -944,8 +959,7 @@ cd [directory1] [directory2]
 
 **Parameters**
 
-- directory1 (string) - directory that will be added to the end of the working directory. 
-- directory2 (string) - id of the context with the new directory. Ignored when first argument is different than "_".
+- directory (string/context) - directory that will be added to the end of the working directory.
 
 ## pwd
 
