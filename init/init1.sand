@@ -14,8 +14,8 @@ end*/
     triggers on_boot
     if ([on_boot])
     new object l KERNEL 1 _ _ First
-    fun First set_can_be_selected bool [0]
-    fun me set_can_be_selected bool [0]
+    fun First set_can_be_selected false
+    fun me set_can_be_selected false
     bind First reset
     bind First literal ["scripts/KERNEL.txt"]
     build First true

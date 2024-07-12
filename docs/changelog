@@ -1,3 +1,7 @@
+12.07.2024
+-Removed variable types from "fun" instruction.
+-Fixed minuses.
+
 1.07.2024
 -Minimized the scripting language with the type guessing (random_int, var, cd).
 -Described "rename" instruction.

@@ -16,7 +16,7 @@ start revertWindowIfMoved
 	if ([c isMaxed] [c Camera grabbed] &&)
 	bool [false] False
 	= isMaxed False
-	fun Camera set_can_mouse_resize bool [true]
+	fun Camera set_can_mouse_resize true
 	value ([mouse_x]) MouseX
 	value ([mouse_y]) MouseY
 	= posX MouseX
@@ -45,7 +45,7 @@ start refreshWindowWithDisplay
 	find_by_id_2 Cameras cameraID Camera
 	value ([window_w]) sx
 	value ([window_h]) sy
-	fun Camera resize c sx c sy
+	fun Camera resize sx sy
 	run refreshWindow
 end
 
@@ -63,19 +63,19 @@ start refreshWindow
 	+= sxShift sx
 	int [30] height
 
-    fun Camera set_grabbing_area_size c sxShift c height
+    fun Camera set_grabbing_area_size sxShift height
 
     value ([context me layer_id]) myLayerID
     all layer _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
 
     index c Layer [0 0 0] _ primitives Primi
-    fun Primi set_size c sx c sy
+    fun Primi set_size sx sy
     fun Primi update_with_size
 
     index c Layer [0 0 1] _ primitives Primi
     int [30] height
-    fun Primi set_size c sx c height
+    fun Primi set_size sx height
     fun Primi update_with_size
 
     index c Layer [0 0 2] _ primitives Primi
@@ -83,38 +83,38 @@ start refreshWindow
     int [-4] syShift
     += sxShift sx
     += syShift sy
-    fun Primi set_size c sxShift c syShift
+    fun Primi set_size sxShift syShift
     fun Primi update_with_size
 
     index c Layer [0 0 3] _ primitives Primi
     int [-20] sxShift
     int [15] height
     += sxShift sx
-    fun Primi set_position c sxShift c height
+    fun Primi set_position sxShift height
     fun Primi update_with_size
 
     index c Layer [0 0 0] _ collision ExitCollision
-    fun ExitCollision set_position c sxShift c height
+    fun ExitCollision set_position sxShift height
 
     index c Layer [0 0 4] _ primitives Primi
     int [-50] sxShift
     int [15] height
     += sxShift sx
-    fun Primi set_position c sxShift c height
+    fun Primi set_position sxShift height
     fun Primi update_with_size
 
     index c Layer [0 0 1] _ collision MaxCollision
-    fun MaxCollision set_position c sxShift c height
+    fun MaxCollision set_position sxShift height
 
     index c Layer [0 0 5] _ primitives Primi
     int [-80] sxShift
     int [15] height
     += sxShift sx
-    fun Primi set_position c sxShift c height
+    fun Primi set_position sxShift height
     fun Primi update_with_size
 
     index c Layer [0 0 2] _ collision MinCollision
-    fun MinCollision set_position c sxShift c height
+    fun MinCollision set_position sxShift height
 
     run updateIfNotMaxed additionalUpdate
 end
@@ -188,20 +188,20 @@ start maxWindowIfTrue
     fun Border deactivate
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    fun Camera set_can_mouse_resize bool [false]
+    fun Camera set_can_mouse_resize false
     value ([window_w]) ww
     value ([window_h]) wh
-    fun Camera resize c ww c wh
-    fun Camera set_relative_position int [0 0]
+    fun Camera resize ww wh
+    fun Camera set_relative_position 0 0
     else revertWindowFromMax
 end
 
 start revertWindowFromMax
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    fun Camera set_can_mouse_resize bool [true]
-    fun Camera resize c sizeX c sizeY
-    fun Camera set_relative_position c posX c posY
+    fun Camera set_can_mouse_resize true
+    fun Camera resize sizeX sizeY
+    fun Camera set_relative_position posX posY
     restart_drag
     run revertBorderIfPossible
 end
@@ -243,7 +243,7 @@ end
 
 start switchToBorderless
     if ([c isBorderless])
-    fun me set_position int [-5 -30]
+    fun me set_position -5 -30
     all layer _ _ _ _ _ _ Layers
     value ([context me layer_id]) myLayerID
     find_by_id_2 Layers myLayerID Layer
@@ -267,8 +267,8 @@ start switchToBorderless
     fun MinCollision deactivate
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    fun Camera set_can_be_grabbed bool [false]
-    fun Camera set_can_mouse_resize bool [false]
+    fun Camera set_can_be_grabbed false
+    fun Camera set_can_mouse_resize false
     value ([context Camera size_x]) cpx
     value ([context Camera size_y]) cpy
     int [10] shiftX
@@ -276,14 +276,14 @@ start switchToBorderless
     += cpx shiftX
     += cpy shiftY
     index c Layer [0 0 0] _ primitives Background
-    fun Background set_size c cpx c cpy
+    fun Background set_size cpx cpy
     fun Background update_with_size
     else switchFromBorderless
 end
 
 start switchFromBorderless
     all layer _ _ _ _ _ _ Layers
-    fun me set_position int [0 0]
+    fun me set_position 0 0
     value ([context me layer_id]) myLayerID
     find_by_id_2 Layers myLayerID Layer
     index c Layer [0 0 1] _ primitives Toolbar
@@ -304,7 +304,7 @@ start switchFromBorderless
     fun MinCollision activate
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    fun Camera set_can_be_grabbed bool [true]
-    fun Camera set_can_mouse_resize bool [true]
+    fun Camera set_can_be_grabbed true
+    fun Camera set_can_mouse_resize true
     run revertBorderIfPossible
 end

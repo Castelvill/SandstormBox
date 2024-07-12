@@ -2,7 +2,7 @@ start help
     string [""] xd
     print " " result c allowedPrograms
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText modify_last_format double [1.0 0.8 0.0 1.0] double [0.0 0.0 0.0 1.0] string ["cascadia_code"] int [1]
+    fun EditableText modify_last_format 1.0 0.8 0.0 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
     string ["_enter"] program
     run printOnTerminal
 end
@@ -45,7 +45,7 @@ start colorIfDirectory
 end
 start colorIfDirectory2
 	if ([is_directory fullPath])
-    fun EditableText modify_last_format double [0.3 0.3 1.0 1.0] double [0.0 0.0 0.3 1.0] string ["cascadia_code"] int [1]
+    fun EditableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
 	else colorIfSandScript
 end
 start colorIfSandScript
@@ -57,16 +57,16 @@ start colorIfSandScript
 end
 start colorIfSandScript2
     if([c extension] [string ".sand"] ==)
-    fun EditableText modify_last_format double [0.0 0.9 0.0 1.0] double [0.0 0.3 0.0 1.0] string ["cascadia_code"] int [1]
+    fun EditableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
     else colorIfFormattedText
 end
 start colorIfFormattedText
     if([c extensionFT] [string ".ft"] ==)
-    fun EditableText modify_last_format double [0.85 0.85 0.0 1.0] double [0.5 0.5 0.0 1.0] string ["cascadia_code"] int [1]
+    fun EditableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
     else colorIfNormalFile
 end
 start colorIfNormalFile
-	fun EditableText modify_last_format double [0.86 0.85 0.86 1.0] double [0.0 0.0 0.0 1.0] string ["cascadia_code"] int [1]
+	fun EditableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
 end
 start printFileNameOnTerminal
 	print "  " result c file
@@ -77,7 +77,7 @@ end
 
 start cls
     index context me [0 0] _ super_editable_text History
-    fun History set_content string [""]
+    fun History set_content ""
     string [""] program
 end
 
@@ -102,7 +102,7 @@ start neofetch
 
 "]
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText modify_last_format double [0.0 1.0 0.0 1.0] double [0.0 1.0 0.0 1.0] string ["cascadia_code"] int [1]
+    fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     string [""] program
     run printOnTerminal
 end
@@ -119,7 +119,7 @@ start xd
 @       @  @@@@@@   
 "]
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText modify_last_format double [0.0 1.0 0.0 1.0] double [0.0 1.0 0.0 1.0] string ["cascadia_code"] int [1]
+    fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     string [""] program
     run printOnTerminal 
 end
@@ -229,73 +229,73 @@ end
 start spawn
     new layer l 1 _ _ AmogusLayer
     fun AmogusLayer activate
-    fun AmogusLayer set_id string ["AmogusLayer"]
+    fun AmogusLayer set_id "AmogusLayer"
     value ([context AmogusLayer id]) newLayerID
 
     //print ": " _ c AmogusLayer
 
     new camera l 1 _ _ NewWindow
-    fun NewWindow set_position int [0 0]
-    fun NewWindow set_id string ["AmogusWindow0"]
-    fun NewWindow set_active bool [true]
-    fun NewWindow resize int [640 480]
-    fun NewWindow set_zoom double [1.0]
-    fun NewWindow set_speed double [20]
-    fun NewWindow set_key_zoom_in int [15]
-    fun NewWindow set_key_zoom_out int [21]
-    fun NewWindow set_zoom_increase double [0.02]
-    fun NewWindow bind_keys int [15 21 13 9 12 11 10]
-    fun NewWindow set_tint double [1.0 1.0 1.0 1.0]
-    fun NewWindow set_drawing_borders bool [0]
-    fun NewWindow set_can_be_modified_by_mouse bool [1]
-    fun NewWindow set_is_vision_affected_by_mouse bool [1]
-    fun NewWindow add_visible_layer c newLayerID
-    fun NewWindow add_accessible_layer c newLayerID
-    fun NewWindow set_grabbing_area_size int [640 50]
-    fun NewWindow pin_to_camera string ["Desktop"]
+    fun NewWindow set_position 0 0
+    fun NewWindow set_id "AmogusWindow0"
+    fun NewWindow set_active true
+    fun NewWindow resize 640 480
+    fun NewWindow set_zoom 1.0
+    fun NewWindow set_speed 20
+    fun NewWindow set_key_zoom_in 15
+    fun NewWindow set_key_zoom_out 21
+    fun NewWindow set_zoom_increase 0.02
+    fun NewWindow bind_keys 15 21 13 9 12 11 10
+    fun NewWindow set_tint 1.0 1.0 1.0 1.0
+    fun NewWindow set_drawing_borders false
+    fun NewWindow set_can_be_modified_by_mouse true
+    fun NewWindow set_is_vision_affected_by_mouse true
+    fun NewWindow add_visible_layer newLayerID
+    fun NewWindow add_accessible_layer newLayerID
+    fun NewWindow set_grabbing_area_size 640 50
+    fun NewWindow pin_to_camera "Desktop"
     fun NewWindow activate_pin
     value ([context NewWindow id]) newWindowID
 
     //print \n _ c NewWindow
 
     new object c AmogusLayer 1 _ _ NewWindowObject
-    fun NewWindowObject set_id string ["Window"]
-    fun NewWindowObject set_can_be_selected bool [0]
+    fun NewWindowObject set_id "Window"
+    fun NewWindowObject set_can_be_selected false
 
     new primitives c NewWindowObject 1 _ _ border1
-    fun border1 set_id string ["background"]
-    fun border1 set_type string ["filled_rounded_rectangle"]
-    fun border1 add_point double [0.0 0.0]
-    fun border1 add_point double [880 980]
-    fun border1 add_point c roundingSize c roundingSize
-    fun border1 set_color double [0.0 0.0 0.0 0.7]
-    fun border1 set_thickness double [10.0]
-    fun border1 set_size int [640 480]
+    fun border1 set_id "background"
+    fun border1 set_type "filled_rounded_rectangle"
+    fun border1 add_point 0.0 0.0
+    fun border1 add_point 880 980
+    fun border1 add_point roundingSize roundingSize
+    fun border1 set_color 0.0 0.0 0.0 0.7
+    fun border1 set_thickness 10.0
+    fun border1 set_size 640 480
     fun border1 update_with_size
 
     new primitives c NewWindowObject 1 _ _ border2
     clone border2 border1
-    fun border2 set_id string ["toolbar"]
-    fun border2 set_color double [0.0 0.0 0.0 0.8]
-    fun border2 set_size int [640 50]
+    fun border2 set_id "toolbar"
+    fun border2 set_color 0.0 0.0 0.0 0.8
+    fun border2 set_size 640 50
     fun border2 update_with_size
 
     new super_text c NewWindowObject 1 _ _ title
-    fun title set_id string ["title"]
-    fun title set_position int [10 10]
-    fun title set_size int [400 50]
-    fun title add_format string ["cascadia_code_bold"] int [8]
-    fun title set_color int [0] double [1.0 1.0 1.0 1.0]
-    fun title set_wrapping string ["n"]
-    fun title set_content c param1
+    fun title set_id "title"
+    fun title set_position 10 10
+    fun title set_size 400 50
+    fun title add_format "cascadia_code_bold" 8
+    fun title set_color 0 1.0 1.0 1.0 1.0
+    fun title set_wrapping "n"
+    fun title set_content param1
 
     new object c AmogusLayer 1 _ _ NewAmo
-    fun NewAmo set_id string ["Amongus"]
-    fun NewAmo set_position double [0 80]
+    fun NewAmo set_id "Amongus"
+    fun NewAmo set_position 0 80
     new image c NewAmo 1 _ _ redAstronaut
-    fun redAstronaut set_id string ["amongus"]
-    fun redAstronaut connect_bitmap_via_alias c param1
-    fun redAstronaut set_scale double [0.6 0.6]
+    fun redAstronaut set_id "amongus"
+    fun redAstronaut connect_bitmap_via_alias param1
+    fun redAstronaut set_scale 0.6 0.6
     string [""] program
 end
 
@@ -331,7 +331,7 @@ start cat
     load_text param1 result
     string [""] program
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText modify_last_format double [0.2 0.74 0.7 1.0] double [0.0 0.0 0.0 1.0] string ["cascadia_code"] int [1]
+    fun EditableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
     run printOnTerminal
     else printNoSuchFile
 end

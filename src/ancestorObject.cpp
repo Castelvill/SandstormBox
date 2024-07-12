@@ -618,12 +618,25 @@ vector<WordStruct> tokenizeCode(string input){
         }
         if(canStringBeDouble(output[i])){
             cstod(output[i], error);
-            mergedOutput.push_back(WordStruct('d', output[i])); //double
+            if(mergedOutput.back().value == "-"){
+                mergedOutput.pop_back();
+                mergedOutput.push_back(WordStruct('d', "-" + output[i])); //double
+            }
+            else{
+                mergedOutput.push_back(WordStruct('d', output[i])); //double
+            }
             continue;
         }
         cstoi(output[i], error);
         if(error == ""){
-            mergedOutput.push_back(WordStruct('i', output[i])); //int
+            if(mergedOutput.back().value == "-"){
+                mergedOutput.pop_back();
+                mergedOutput.push_back(WordStruct('i', "-" + output[i])); //int
+            }
+            else{
+                mergedOutput.push_back(WordStruct('i', output[i])); //int
+            }
+            
             continue;
         }
         mergedOutput.push_back(WordStruct('c', output[i]));
@@ -1649,18 +1662,29 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             Operation->dynamicIDs.push_back(words[1].value);
             Operation->Location.attribute = words[2].value;
             cursor = 3;
-            while(words.size() > cursor + 1){
-                if(words[cursor].value == "context" || words[cursor].value == "c"){
-                    cursor++;
+            while(words.size() > cursor){
+                if(words[cursor].type == 'c'){
                     Operation->dynamicIDs.push_back(words[cursor].value);
-                    cursor++;
                 }
-                else{
-                    cursor++;
-                    if(!gatherLiterals(words, cursor, Operation->Literals, words[cursor - 1].value, lineNumber, scriptName)){
-                        return;
-                    }
+                else if(words[cursor].type == 'b'){
+                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[cursor].value, error)));
                 }
+                else if(words[cursor].type == 'i'){
+                    Operation->Literals.push_back(VariableModule::newInt(cstoi(words[cursor].value, error)));
+                }
+                else if(words[cursor].type == 'd'){
+                    Operation->Literals.push_back(VariableModule::newDouble(cstod(words[cursor].value, error)));
+                }
+                else if(words[cursor].type == 's'){
+                    Operation->Literals.push_back(VariableModule::newString(words[cursor].value));
+                }
+
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
+                }
+                
+                cursor++;
             }
         }
         else if(words[0].value == "env"){

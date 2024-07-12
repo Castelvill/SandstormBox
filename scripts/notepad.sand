@@ -22,7 +22,7 @@ start refreshWindowWithDisplayNotepad
     find_by_id_2 Cameras cameraID Camera
     value ([window_w]) sx
     value ([window_h]) sy
-    fun Camera resize c sx c sy
+    fun Camera resize sx sy
     run refreshWindowNotepad
 end
 
@@ -40,7 +40,7 @@ start refreshWindowNotepad
     all layer _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index c Layer [0 0 0] _ super_editable_text Notepad
-    fun Notepad set_size c sx c sy
+    fun Notepad set_size sx sy
     //fun Notepad update
     run resizeObjectWhenNotBorderless
 end
@@ -48,7 +48,7 @@ end
 start resizeObjectWhenNotBorderless
     if ([c isBorderless] !)
     index c my_layer [0 0] _ object WindowObject
-    fun WindowObject set_size c sx c sy
+    fun WindowObject set_size sx sy
     //fun Notepad update
 end
 
@@ -67,7 +67,7 @@ start resizeObjectWhenMaxedCheck
     value ([context Camera size_x]) sx
     value ([context Camera size_y]) sy
     index c my_layer [0 0] _ object WindowObject
-    fun WindowObject set_size c sx c sy
+    fun WindowObject set_size sx sy
     index c my_layer [0 0 0] _ super_editable_text Notepad
     fun Notepad update
 end
@@ -94,7 +94,7 @@ start resizeObjectForBorderlessMode
     += cpx shiftX
     += cpy shiftY
     index c my_layer [0 0] _ object WindowObject
-    fun WindowObject set_size c cpx c cpy
+    fun WindowObject set_size cpx cpy
     index c my_layer [0 0 0] _ super_editable_text Notepad
     fun Notepad update
     else resizeObjectFromBorderlessMode
@@ -104,7 +104,7 @@ start resizeObjectFromBorderlessMode
     value ([context Camera size_x]) cpx
     value ([context Camera size_y]) cpy
     index c my_layer [0 0] _ object WindowObject
-    fun WindowObject set_size c cpx c cpy
+    fun WindowObject set_size cpx cpy
     index c my_layer [0 0 0] _ super_editable_text Notepad
     fun Notepad update
 end

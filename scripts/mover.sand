@@ -20,5 +20,5 @@ start checkIfMouseMoved
     int [10] borderX
     -= sx borderX
     find_by_id_2 Cameras insideCameraID InsideCamera
-    fun InsideCamera resize c sx c sy
+    fun InsideCamera resize sx sy
 end

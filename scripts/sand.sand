@@ -74,33 +74,33 @@ start buildTerminal
     value ([window_h]) wh
 
     new camera l 1 _ _ Cam
-    //fun Cam set_position int [100 100]
-    fun Cam set_id string ["Desktop"]
-    fun Cam set_active bool [true]
-    fun Cam resize c ww c wh
-    //fun Cam resize int [200 100]
-    fun Cam set_zoom double [1.0]
-    fun Cam set_speed double [20]
-    fun Cam set_key_zoom_in int [15]
-    fun Cam set_key_zoom_out int [21]
-    fun Cam set_zoom_increase double [0.02]
-    fun Cam add_visible_layer string ["KERNEL"]
-    fun Cam add_accessible_layer string ["KERNEL"]
-    fun Cam set_tint double [1.0 1.0 1.0 1.0]
-    fun Cam set_is_vision_affected_by_mouse bool [0]
-    fun Cam set_can_zoom_with_mouse bool [0]
-    fun Cam set_can_move_with_keyboard bool [0]
-    fun Cam set_can_zoom_with_keyboard bool [0]
-    fun Cam set_drawing_borders bool [false]
+    //fun Cam set_position 100 100
+    fun Cam set_id "Desktop"
+    fun Cam set_active true
+    fun Cam resize ww wh
+    //fun Cam resize 200 100
+    fun Cam set_zoom 1.0
+    fun Cam set_speed 20
+    fun Cam set_key_zoom_in 15
+    fun Cam set_key_zoom_out 21
+    fun Cam set_zoom_increase 0.02
+    fun Cam add_visible_layer "KERNEL"
+    fun Cam add_accessible_layer "KERNEL"
+    fun Cam set_tint 1.0 1.0 1.0 1.0
+    fun Cam set_is_vision_affected_by_mouse false
+    fun Cam set_can_zoom_with_mouse false
+    fun Cam set_can_move_with_keyboard false
+    fun Cam set_can_zoom_with_keyboard false
+    fun Cam set_drawing_borders false
     fun Cam focus
 
-    //fun Cam set_can_edit_text bool [false]
-    fun Cam set_can_move_objects bool [false]
+    //fun Cam set_can_edit_text false
+    fun Cam set_can_move_objects false
 
     new image c me 1 _ _ background
-    fun background connect_bitmap_via_alias string ["background2"]
-    fun background resize c ww c wh
-    fun background set_color double [0.5 0.5 0.5 0.3]
+    fun background connect_bitmap_via_alias "background2"
+    fun background resize ww wh
+    fun background set_color 0.5 0.5 0.5 0.3
     fun background disable_scrolling
 
     int [0 0] editableTextPos
@@ -117,43 +117,43 @@ start buildTerminal
 
 
     new super_editable_text c me 1 _ _ TerminalTextField
-    fun TerminalTextField set_id string ["edi"]
-    fun TerminalTextField set_position c editableTextPos
-    fun TerminalTextField set_size c ww c wh
-    //fun TerminalTextField set_size int [884 480]
-    fun TerminalTextField add_format string ["cascadia_code"] int [1]
-    fun TerminalTextField set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
-    fun TerminalTextField set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
-    fun TerminalTextField set_wrapping string ["w"]
-    fun TerminalTextField set_can_be_edited bool [true]
-    fun TerminalTextField set_can_use_space bool [true]
-    fun TerminalTextField set_content string ["Welcome in Sandstorm Box terminal!"]
-    fun TerminalTextField set_input_delay double [0.3]
-    fun TerminalTextField set_repetition_delay double [0.05]
-    fun TerminalTextField set_can_use_tabs bool [false]
-    fun TerminalTextField set_can_use_enter bool [false]
-    fun TerminalTextField set_protected_area int [37]
-    fun TerminalTextField set_ignore_vertical_arrows bool [true]
-    fun TerminalTextField set_can_copy_format bool [true]
+    fun TerminalTextField set_id "edi"
+    fun TerminalTextField set_position editableTextPos
+    fun TerminalTextField set_size ww wh
+    //fun TerminalTextField set_size 884 480
+    fun TerminalTextField add_format "cascadia_code" 1
+    fun TerminalTextField set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
+    fun TerminalTextField set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
+    fun TerminalTextField set_wrapping "w"
+    fun TerminalTextField set_can_be_edited true
+    fun TerminalTextField set_can_use_space true
+    fun TerminalTextField set_content "Welcome in Sandstorm Box terminal!"
+    fun TerminalTextField set_input_delay 0.3
+    fun TerminalTextField set_repetition_delay 0.05
+    fun TerminalTextField set_can_use_tabs false
+    fun TerminalTextField set_can_use_enter false
+    fun TerminalTextField set_protected_area 37
+    fun TerminalTextField set_ignore_vertical_arrows true
+    fun TerminalTextField set_can_copy_format true
     fun TerminalTextField start_editing
 
     var 24 minScrollbarThumbHeight
 
     new image c me 1 _ _ thumb
-    fun thumb set_id string ["thumb"]
+    fun thumb set_id "thumb"
     fun thumb deactivate
-    fun thumb set_position int [2 2]
-    fun thumb set_size int [16 16]
-    fun thumb resize int [12] c minScrollbarThumbHeight
-    fun thumb connect_bitmap_via_alias string ["sand_thumb"]
+    fun thumb set_position 2 2
+    fun thumb set_size 16 16
+    fun thumb resize 12 minScrollbarThumbHeight
+    fun thumb connect_bitmap_via_alias "sand_thumb"
     fun thumb disable_scrolling
 
     new image c me 1 _ _ thumbTrack
-    fun thumbTrack set_id string ["thumb_track"]
+    fun thumbTrack set_id "thumb_track"
     fun thumbTrack deactivate
-    fun thumbTrack set_size int [100 500]
-    fun thumbTrack resize int [16 480]
-    fun thumbTrack connect_bitmap_via_alias string ["sand_thumb_track"]
+    fun thumbTrack set_size 100 500
+    fun thumbTrack resize 16 480
+    fun thumbTrack connect_bitmap_via_alias "sand_thumb_track"
     fun thumbTrack disable_scrolling
 
     var 476.0 scrollbarHeight
@@ -161,76 +161,76 @@ start buildTerminal
     new scrollbar c me 1 _ _ MainScrollbar
     fun MainScrollbar disable_scrolling
     //fun MainScrollbar deactivate
-    fun MainScrollbar set_can_be_drawn bool [true]
-    fun MainScrollbar set_id string ["MainScrollbar"]
-    fun MainScrollbar set_position int [884 0]
-    fun MainScrollbar set_thumb_position int [450 0]//450]
-    fun MainScrollbar set_thumb_size double [12 476]
-    fun MainScrollbar set_scrolling_area double [12 476]
-    fun MainScrollbar set_real_scrolling_area double [0 0]
-    fun MainScrollbar set_thumb_image_id string ["thumb"]
-    fun MainScrollbar set_track_image_id string ["thumb_track"]
-    fun MainScrollbar set_mouse_wheel_speed double [40.0]
-    fun MainScrollbar add_camera string ["Desktop"]
+    fun MainScrollbar set_can_be_drawn true
+    fun MainScrollbar set_id "MainScrollbar"
+    fun MainScrollbar set_position 884 0
+    fun MainScrollbar set_thumb_position 450 0 //450
+    fun MainScrollbar set_thumb_size 12 476
+    fun MainScrollbar set_scrolling_area 12 476
+    fun MainScrollbar set_real_scrolling_area 0 0
+    fun MainScrollbar set_thumb_image_id "thumb"
+    fun MainScrollbar set_track_image_id "thumb_track"
+    fun MainScrollbar set_mouse_wheel_speed 40.0
+    fun MainScrollbar add_camera "Desktop"
 
     var 30 commandLineHeight
 
     new super_editable_text c me 1 _ _ TextEditor
     clone TextEditor TerminalTextField
-    fun TextEditor add_format string ["cascadia_code_bold"] int [1]
-    fun TextEditor set_color int [0] double [0.2 0.74 0.7 1.0] //[0.0 0.7 0.0 1.0]
-	fun TextEditor set_accent_color int [0] double [0.0 0.0 0.0 1.0] //[0.0 0.2 0.0 1.0]
-    fun TextEditor set_id string ["TextEditor"]
-    fun TextEditor set_protected_area int [0]
-    fun TextEditor set_can_use_enter bool [1]
-    fun TextEditor set_content string [""]
-    fun TextEditor set_ignore_vertical_arrows bool [false]
-    fun TextEditor set_can_use_tabs bool [true]
+    fun TextEditor add_format "cascadia_code_bold" 1
+    fun TextEditor set_color 0 0.2 0.74 0.7 1.0 //[0.0 0.7 0.0 1.0]
+	fun TextEditor set_accent_color 0 0.0 0.0 0.0 1.0 //[0.0 0.2 0.0 1.0]
+    fun TextEditor set_id "TextEditor"
+    fun TextEditor set_protected_area 0
+    fun TextEditor set_can_use_enter true
+    fun TextEditor set_content ""
+    fun TextEditor set_ignore_vertical_arrows false
+    fun TextEditor set_can_use_tabs true
     fun TextEditor deactivate
 
     new scrollbar c me 1 _ _ TextEditorScrollbar
     fun TextEditorScrollbar disable_scrolling
-    fun TextEditorScrollbar set_can_be_drawn bool [true]
-    fun TextEditorScrollbar set_id string ["TextEditorScrollbar"]
-    fun TextEditorScrollbar set_position int [884 0]
-    fun TextEditorScrollbar set_thumb_position int [450 0]//450]
-    fun TextEditorScrollbar set_thumb_size double [12 476]
-    fun TextEditorScrollbar set_scrolling_area double [12 476]
-    fun TextEditorScrollbar set_real_scrolling_area double [0 0]
-    fun TextEditorScrollbar set_thumb_image_id string ["thumb"]
-    fun TextEditorScrollbar set_track_image_id string ["thumb_track"]
-    fun TextEditorScrollbar set_mouse_wheel_speed double [40.0]
+    fun TextEditorScrollbar set_can_be_drawn true
+    fun TextEditorScrollbar set_id "TextEditorScrollbar"
+    fun TextEditorScrollbar set_position 884 0
+    fun TextEditorScrollbar set_thumb_position 450 0//450
+    fun TextEditorScrollbar set_thumb_size 12 476
+    fun TextEditorScrollbar set_scrolling_area 12 476
+    fun TextEditorScrollbar set_real_scrolling_area 0 0
+    fun TextEditorScrollbar set_thumb_image_id "thumb"
+    fun TextEditorScrollbar set_track_image_id "thumb_track"
+    fun TextEditorScrollbar set_mouse_wheel_speed 40.0
     fun TextEditorScrollbar deactivate
-    fun TextEditorScrollbar add_camera string ["Desktop"]
+    fun TextEditorScrollbar add_camera "Desktop"
 
     new particles c me 1 _ _ Particles
-    fun Particles set_position int [200 200]
-    fun Particles set_size int [10 10]
+    fun Particles set_position 200 200
+    fun Particles set_size 10 10
     fun Particles activate
-    fun Particles set_block_spawning bool [true]
-    fun Particles spawn_on_key_release bool [false]
-    fun Particles set_spawn_rate int [100 100]
-    fun Particles set_spawn_cap int [500]
-    fun Particles set_max_time_to_spawn double [0.05]
-    fun Particles set_basic_speed double [0.1 1.0]
-    fun Particles set_speed double [0.1 1.0]
-    fun Particles set_environment double [0.0 0.0]
-    fun Particles set_environment_speed double [0.0 0.0]
-    fun Particles set_acceleration double [0.0 0.0]
-    fun Particles set_mass double [0.4 0.7]
-    fun Particles set_directional_degree double [0.0 360.0]
-    fun Particles set_rotation_speed double [0.0 0.0]
-    fun Particles set_time_to_negate_rotation double [0.0 0.0]
-    fun Particles set_radius double [1.0 1.0]
-    fun Particles set_time_to_death double [0.2 0.2]
-    fun Particles set_color_intensity double [0.8 1.0]
-    fun Particles set_shape_rotation_speed double [-2.0 2.0]
-    fun Particles set_shape int [0]
-    fun Particles set_use_images bool [false]
-    fun Particles set_drawing_details bool [false]
-    fun Particles set_is_static bool [false]
-    //fun Particles bind_key string ["p"]
-    //fun Particles add_image string ["insane"]
+    fun Particles set_block_spawning true
+    fun Particles spawn_on_key_release false
+    fun Particles set_spawn_rate 100 100
+    fun Particles set_spawn_cap 500
+    fun Particles set_max_time_to_spawn 0.05
+    fun Particles set_basic_speed 0.1 1.0
+    fun Particles set_speed 0.1 1.0
+    fun Particles set_environment 0.0 0.0
+    fun Particles set_environment_speed 0.0 0.0
+    fun Particles set_acceleration 0.0 0.0
+    fun Particles set_mass 0.4 0.7
+    fun Particles set_directional_degree 0.0 360.0
+    fun Particles set_rotation_speed 0.0 0.0
+    fun Particles set_time_to_negate_rotation 0.0 0.0
+    fun Particles set_radius 1.0 1.0
+    fun Particles set_time_to_death 0.2 0.2
+    fun Particles set_color_intensity 0.8 1.0
+    fun Particles set_shape_rotation_speed -2.0 2.0
+    fun Particles set_shape 0
+    fun Particles set_use_images false
+    fun Particles set_drawing_details false
+    fun Particles set_is_static false
+    //fun Particles bind_key "p"
+    //fun Particles add_image "insane"
     
 
     var "_enter" program
@@ -262,7 +262,7 @@ start loadCommandHistory
     load_text fileName loadedText
     tokenize "\n" loadedText loadedText
     fun commandHistory clear
-    fun commandHistory push_back c loadedText
+    fun commandHistory push_back loadedText
     value ([c commandHistory size]) newSize
     -- newSize
     = commandNumber newSize
@@ -300,14 +300,14 @@ end
 start moveScrollbarBySelectingText
     if ([c TextField is_editing_active] [c cursorPosY] [c windowLimitYDown] > &&)
     index c me [0 1] _ scrollbar Scrollbar
-    fun Scrollbar scroll_by_distance double [0 8]
+    fun Scrollbar scroll_by_distance 0 8
     fun me update_scrollbars
     else moveScrollbarBySelectingTextUp
 end
 start moveScrollbarBySelectingTextUp
     if ([c TextField is_editing_active] [c cursorPosY] [c windowLimitYUp] < &&)
     index c me [0 1] _ scrollbar Scrollbar
-    fun Scrollbar scroll_by_distance double [0 -8]
+    fun Scrollbar scroll_by_distance 0 -8
     fun me update_scrollbars
 end
 
@@ -321,7 +321,7 @@ start spawnParticles
     index c me [0 1] _ scrollbar Scrollbar
     value ([c Scrollbar scroll_shift_x] [c Scrollbar scroll_shift_y]) scrollShift
     -= cursorPos scrollShift
-    fun Particles set_position c cursorPos
+    fun Particles set_position cursorPos
     fun Particles allow_spawning
 end
 
@@ -329,148 +329,148 @@ end
 start createWindowTemplate
     new layer l 1 _ _ WindowLayer
     fun WindowLayer deactivate
-    fun WindowLayer set_id string ["WindowLayer"]
+    fun WindowLayer set_id "WindowLayer"
     value ([context WindowLayer id]) newLayerID
 
     new camera l 1 _ _ WindowCamera
-    fun WindowCamera set_position int [0 0]
-    fun WindowCamera set_id string ["WindowCamera"]
-    fun WindowCamera set_active bool [true]
-    fun WindowCamera resize int [640 480]
-    fun WindowCamera set_zoom double [1.0]
-    fun WindowCamera set_speed double [20]
-    fun WindowCamera set_key_zoom_in int [15]
-    fun WindowCamera set_key_zoom_out int [21]
-    fun WindowCamera set_zoom_increase double [0.02]
-    fun WindowCamera bind_keys int [15 21 13 9 12 11 10]
-    fun WindowCamera set_tint double [1.0 1.0 1.0 1.0]
-    fun WindowCamera set_drawing_borders bool [false]
-    fun WindowCamera set_can_be_modified_by_mouse bool [1]
-    fun WindowCamera set_is_vision_affected_by_mouse bool [1]
-    //fun WindowCamera add_visible_layer string ["WindowLayer"]
-    //fun WindowCamera add_accessible_layer string ["WindowLayer"]
-    fun WindowCamera set_grabbing_area_size int [540 50]
-    fun WindowCamera pin_to_camera string ["Desktop"]
+    fun WindowCamera set_position 0 0
+    fun WindowCamera set_id "WindowCamera"
+    fun WindowCamera set_active true
+    fun WindowCamera resize 640 480
+    fun WindowCamera set_zoom 1.0
+    fun WindowCamera set_speed 20
+    fun WindowCamera set_key_zoom_in 15
+    fun WindowCamera set_key_zoom_out 21
+    fun WindowCamera set_zoom_increase 0.02
+    fun WindowCamera bind_keys 15 21 13 9 12 11 10
+    fun WindowCamera set_tint 1.0 1.0 1.0 1.0
+    fun WindowCamera set_drawing_borders false
+    fun WindowCamera set_can_be_modified_by_mouse true
+    fun WindowCamera set_is_vision_affected_by_mouse true
+    //fun WindowCamera add_visible_layer "WindowLayer"
+    //fun WindowCamera add_accessible_layer "WindowLayer"
+    fun WindowCamera set_grabbing_area_size 540 50
+    fun WindowCamera pin_to_camera "Desktop"
     fun WindowCamera activate_pin
-    fun WindowCamera set_min_size int [300 34]
-    fun WindowCamera set_keep_inside_screen bool [false]
+    fun WindowCamera set_min_size 300 34
+    fun WindowCamera set_keep_inside_screen false
     fun WindowCamera deactivate
     fun WindowCamera forbid_drawing_object_borders
 
     new object c WindowLayer 1 _ _ NewWindowObject
-    fun NewWindowObject set_id string ["WindowObject"]
-    //fun NewWindowObject set_can_be_selected bool [true]
+    fun NewWindowObject set_id "WindowObject"
+    //fun NewWindowObject set_can_be_selected true
     fun NewWindowObject disable_scrolling
-    fun NewWindowObject set_can_be_moved_with_mouse bool [false]
+    fun NewWindowObject set_can_be_moved_with_mouse false
     bind NewWindowObject literal ["scripts/windowTemplate.sand"]
     build NewWindowObject true
 
     new variable c NewWindowObject 1 _ _ objectsCameraID
-    fun objectsCameraID set_id string ["cameraID"]
-    fun objectsCameraID set_string string ["WindowCamera"]
+    fun objectsCameraID set_id "cameraID"
+    fun objectsCameraID set_string "WindowCamera"
 
     new variable c NewWindowObject 1 _ _ isMaxed
-    fun isMaxed set_id string ["isMaxed"]
-    fun isMaxed set_bool bool [false]
+    fun isMaxed set_id "isMaxed"
+    fun isMaxed set_bool false
     new variable c NewWindowObject 1 _ _ sizeX
-    fun sizeX set_id string ["sizeX"]
-    fun sizeX set_double double [640]
+    fun sizeX set_id "sizeX"
+    fun sizeX set_double 640
     new variable c NewWindowObject 1 _ _ sizeY
-    fun sizeY set_id string ["sizeY"]
-    fun sizeY set_double double [480]
+    fun sizeY set_id "sizeY"
+    fun sizeY set_double 480
     new variable c NewWindowObject 1 _ _ posX
-    fun posX set_id string ["posX"]
-    fun posX set_double double [0]
+    fun posX set_id "posX"
+    fun posX set_double 0.0
     new variable c NewWindowObject 1 _ _ posY
-    fun posY set_id string ["posY"]
-    fun posY set_double double [0]
+    fun posY set_id "posY"
+    fun posY set_double 0
     new variable c NewWindowObject 1 _ _ isBorderless
-    fun isBorderless set_id string ["isBorderless"]
-    fun isBorderless set_bool bool [false]
+    fun isBorderless set_id "isBorderless"
+    fun isBorderless set_bool false
 
     new variable c NewWindowObject 1 _ _ newVal
-    fun newVal set_id string ["delete"]
-    fun newVal set_bool bool [false]
+    fun newVal set_id "delete"
+    fun newVal set_bool false
 
     new variable c NewWindowObject 1 _ _ newVal
-    fun newVal set_id string ["has_friends"]
-    fun newVal set_bool bool [false]
+    fun newVal set_id "has_friends"
+    fun newVal set_bool false
 
     new variable c NewWindowObject 1 _ _ newVal
-    fun newVal set_id string ["deleted_friends"]
-    fun newVal set_bool bool [false]
+    fun newVal set_id "deleted_friends"
+    fun newVal set_bool false
 
     new primitives c NewWindowObject 1 _ _ border1
-    fun border1 set_id string ["background"]
-    fun border1 set_type string ["filled_rectangle"]
-    fun border1 add_point double [0.0 0.0]
-    fun border1 add_point double [640 480]
-    fun border1 set_color double [1.0 1.0 1.0 0.7]
-    fun border1 set_size int [640 480]
+    fun border1 set_id "background"
+    fun border1 set_type "filled_rectangle"
+    fun border1 add_point 0.0 0.0
+    fun border1 add_point 640 480
+    fun border1 set_color 1.0 1.0 1.0 0.7
+    fun border1 set_size 640 480
     fun border1 update_with_size
 
     new primitives c NewWindowObject 1 _ _ border2
     clone border2 border1
-    fun border2 set_id string ["toolbar"]
-    fun border2 set_color double [0.109 0.537 0.2039 1.0]
-    fun border2 set_size int [640 30]
+    fun border2 set_id "toolbar"
+    fun border2 set_color 0.109 0.537 0.2039 1.0
+    fun border2 set_size 640 30
     fun border2 update_with_size
 
     new primitives c NewWindowObject 1 _ _ border3
     clone border3 border1
-    fun border3 set_id string ["border"]
-    fun border3 set_type string ["rectangle"]
-    fun border3 set_color double [0.109 0.537 0.2039 1.0]
-    fun border3 set_position int [2 2]
-    fun border3 set_size int [636 476]
-    fun border3 set_thickness double [5.0]
+    fun border3 set_id "border"
+    fun border3 set_type "rectangle"
+    fun border3 set_color 0.109 0.537 0.2039 1.0
+    fun border3 set_position 2 2
+    fun border3 set_size 636 476
+    fun border3 set_thickness 5.0
     fun border3 update_with_size
 
     new primitives c NewWindowObject 1 _ _ exitButton
-    fun exitButton set_id string ["exitButton"]
-    fun exitButton set_type string ["filled_circle"]
-    fun exitButton add_point double [0.0 0.0]
-    fun exitButton add_point double [5 5]
-    fun exitButton set_color double [1.0 0.0 0.0 1.0]
-    fun exitButton set_position int [620 15]
-    fun exitButton set_size int [20 20]
+    fun exitButton set_id "exitButton"
+    fun exitButton set_type "filled_circle"
+    fun exitButton add_point 0.0 0.0
+    fun exitButton add_point 5 5
+    fun exitButton set_color 1.0 0.0 0.0 1.0
+    fun exitButton set_position 620 15
+    fun exitButton set_size 20 20
     fun exitButton update_with_size
 
     new collision c NewWindowObject 1 _ _ ExitCollision
-    fun ExitCollision set_position double [620 15]
-    fun ExitCollision set_size double [10 10]
-    fun ExitCollision set_is_circle bool [true]
+    fun ExitCollision set_position 620 15
+    fun ExitCollision set_size 10 10
+    fun ExitCollision set_is_circle true
 
     new primitives c NewWindowObject 1 _ _ MaxButton
     clone MaxButton exitButton
-    fun MaxButton set_id string ["MaxButton"]
-    fun MaxButton set_position int [590 15]
-    fun MaxButton set_color double [1.0 1.0 0.0 1.0]
+    fun MaxButton set_id "MaxButton"
+    fun MaxButton set_position 590 15
+    fun MaxButton set_color 1.0 1.0 0.0 1.0
 
     new collision c NewWindowObject 1 _ _ MaxCollision
-    fun MaxCollision set_position double [590 15]
-    fun MaxCollision set_size double [10 10]
-    fun MaxCollision set_is_circle bool [true]
+    fun MaxCollision set_position 590 15
+    fun MaxCollision set_size 10 10
+    fun MaxCollision set_is_circle true
 
     new primitives c NewWindowObject 1 _ _ minimizeButton
     clone minimizeButton exitButton
-    fun minimizeButton set_id string ["minimizeButton"]
-    fun minimizeButton set_position int [560 15]
-    fun minimizeButton set_color double [0.0 1.0 0.0 1.0]
+    fun minimizeButton set_id "minimizeButton"
+    fun minimizeButton set_position 560 15
+    fun minimizeButton set_color 0.0 1.0 0.0 1.0
 
     new collision c NewWindowObject 1 _ _ MinCollision
-    fun MinCollision set_position double [560 15]
-    fun MinCollision set_size double [10 10]
-    fun MinCollision set_is_circle bool [true]
+    fun MinCollision set_position 560 15
+    fun MinCollision set_size 10 10
+    fun MinCollision set_is_circle true
 
     new super_text c NewWindowObject 1 _ _ title
-    fun title set_id string ["title"]
-    fun title set_position int [10 2]
-    fun title set_size int [400 50]
-    fun title add_format string ["cascadia_code_bold"] int [8]
-    fun title set_color int [0] double [1.0 1.0 1.0 1.0]
-    fun title set_wrapping string ["n"]
-    fun title set_content s ["Template Window"]
+    fun title set_id "title"
+    fun title set_position 10 2
+    fun title set_size 400 50
+    fun title add_format "cascadia_code_bold" 8
+    fun title set_color 0 1.0 1.0 1.0 1.0
+    fun title set_wrapping "n"
+    fun title set_content "Template Window"
     fun title disable_scrolling
 end
 
@@ -490,21 +490,21 @@ start spawnNewWindow
 
     new layer l 1 _ _ NewWindowLayer
     clone NewWindowLayer TemplateLayer
-    fun NewWindowLayer set_id c param1
+    fun NewWindowLayer set_id param1
     value ([context NewWindowLayer id]) newLayerID
     fun NewWindowLayer activate
 
     index c NewWindowLayer [0 0 0] _ super_text Title
-    fun Title set_content c param1
+    fun Title set_content param1
 
     new camera l 1 _ _ NewWindowCamera
     clone NewWindowCamera TemplateCamera
-    fun NewWindowCamera set_id c param1
+    fun NewWindowCamera set_id param1
     value ([context NewWindowCamera id]) newCameraID
     fun NewWindowCamera activate
-    fun NewWindowCamera add_visible_layer c newLayerID
-    fun NewWindowCamera add_accessible_layer c newLayerID
-    fun NewWindowCamera set_drawing_borders bool [false]
+    fun NewWindowCamera add_visible_layer newLayerID
+    fun NewWindowCamera add_accessible_layer newLayerID
+    fun NewWindowCamera set_drawing_borders false
     index c NewWindowLayer [0 0 0] _ variable objectsCameraID
     = objectsCameraID newCameraID
     string [""] program
@@ -522,17 +522,17 @@ start spawnNotepad
     index c me [0 1] _ super_editable_text Editable
     index c NewWindowLayer [0 0] _ object Object
     index c NewWindowLayer [0 0 0] _ primitives Background
-    fun Background set_color double [0.0 0.0 0.0 1.0]
+    fun Background set_color 0.0 0.0 0.0 1.0
     new super_editable_text c Object 1 _ _ TextEditor
     clone TextEditor Editable
-    fun TextEditor set_id string ["Notepad"]
-    fun TextEditor set_position int [5 30]
-    fun TextEditor set_size int [640 480]
-    fun TextEditor set_color int [0] double [1.0 0.0 0.0 1.0]
-    fun TextEditor set_wrapping string ["n"]
-    fun TextEditor set_content string [""]
+    fun TextEditor set_id "Notepad"
+    fun TextEditor set_position 5 30
+    fun TextEditor set_size 640 480
+    fun TextEditor set_color 0 1.0 0.0 0.0 1.0
+    fun TextEditor set_wrapping "n"
+    fun TextEditor set_content ""
     fun TextEditor activate
-    fun Object set_size int [640 480]
+    fun Object set_size 640 480
     bind Object literal ["scripts/notepad.sand"]
     build Object true
     run loadTextFromFile
@@ -555,28 +555,28 @@ start spawnMover
     = has_friends True
     find_by_id_2 NewObject has_friends 
     index c NewWindowLayer [0 0 0] _ primitives Background
-    fun Background set_color double [0.0 0.0 0.0 1.0]
+    fun Background set_color 0.0 0.0 0.0 1.0
     //value ([context my_layer id]) selectedLayerID
     value ([context NewWindowCamera id]) windowCameraID
     new camera l 1 _ _ InsideCamera
     fun InsideCamera activate
-    fun InsideCamera add_visible_layer c selectedLayerID
-    fun InsideCamera add_accessible_layer c selectedLayerID
-    fun InsideCamera pin_to_camera c windowCameraID
+    fun InsideCamera add_visible_layer selectedLayerID
+    fun InsideCamera add_accessible_layer selectedLayerID
+    fun InsideCamera pin_to_camera windowCameraID
     fun InsideCamera activate_pin
-    fun InsideCamera set_relative_position int [5 30]
-    fun InsideCamera resize int [630 440]
-    //fun InsideCamera set_can_move_objects bool [true]
-    fun InsideCamera set_can_edit_text bool [false]
-    fun InsideCamera set_id string ["insideCamera"]
-    fun InsideCamera set_min_size int [0 0]
+    fun InsideCamera set_relative_position 5 30
+    fun InsideCamera resize 630 440
+    //fun InsideCamera set_can_move_objects true
+    fun InsideCamera set_can_edit_text false
+    fun InsideCamera set_id "insideCamera"
+    fun InsideCamera set_min_size 0 0
     fun InsideCamera allow_drawing_object_borders 
 
     value ([c InsideCamera id]) newCameraID
 
     new variable c NewObject 1 _ _ cameraID
-    fun cameraID set_id string ["insideCameraID"]
-    fun cameraID set_string c newCameraID
+    fun cameraID set_id "insideCameraID"
+    fun cameraID set_string newCameraID
 
     //bind NewObject literal ["scripts/mover.sand"]
     //build_subset NewObject false
@@ -603,8 +603,8 @@ end
 start autoComplete1
     if ([c Camera is_selected])
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText set_last_color double [1.0 0.8 0.0 1.0]
-    fun EditableText set_last_accent_color double [0.0 0.0 0.0 1.0]
+    fun EditableText set_last_color 1.0 0.8 0.0 1.0
+    fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
     first _ [EditableText] _ _ _ _ content _ userInput
     first _ [EditableText] _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
@@ -621,11 +621,11 @@ start replaceWithAutoComplete
     if ([c completes size] [int 1] ==)
     fun EditableText cut_unprotected_area
     index context completes [0] _ value instance
-    fun EditableText add_content context instance
+    fun EditableText add_content instance
     fun EditableText update
     first _ [EditableText] _ _ _ _ content _ history
     len history historySize
-    fun EditableText set_cursor_pos c historySize
+    fun EditableText set_cursor_pos historySize
     else printPossibleCompletes
 end
 
@@ -656,8 +656,8 @@ start addAllCompletes true
 end
 
 start resetTerminalBuffer
-    fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
-    fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
+    fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
+    fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     string [""] result
 end
 
@@ -666,11 +666,11 @@ start printPossibleCompletes
 end
 
 start rewriteLastCommand
-    fun EditableText add_content context command
+    fun EditableText add_content command
     fun EditableText update
     first _ [EditableText] _ _ _ _ content _ history
     len history historySize
-    fun EditableText set_cursor_pos c historySize
+    fun EditableText set_cursor_pos historySize
 end
 
 
@@ -678,8 +678,8 @@ start controler
     triggers each_iteration
     if ([context program] [string ""] ==)
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
-    fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
+    fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
+    fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     string ["sleep"] program
     string [""] result
     run createPrompt printOnTerminal colorNormalText
@@ -702,16 +702,16 @@ start controlerWithEnter
     triggers each_iteration
     if ([context program] [string "_enter"] ==)
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText set_last_color c terminalColorR c terminalColorG c terminalColorB c terminalColorA
-    fun EditableText set_last_accent_color c terminalAccentColorR c terminalAccentColorG c terminalAccentColorB c terminalAccentColorA
+    fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
+    fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     string ["sleep"] program
     string ["\n"] result
     run createPrompt printOnTerminal colorNormalText
 end
 
 start colorNormalText
-    fun EditableText set_last_color double [0.86 0.85 0.86 1.0]
-    fun EditableText set_last_accent_color double [0.0 0.0 0.0 1.0]
+    fun EditableText set_last_color 0.86 0.85 0.86 1.0
+    fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
     string [" "] result
     run printOnTerminal
 end
@@ -754,22 +754,22 @@ start forceRefresh
     value ([window_w]) w
     value ([window_h]) h
     index camera [0] _ camera Cam0
-    fun Cam0 resize c w c h
+    fun Cam0 resize w h
     index context me [0 0] _ image background
-    fun background resize c w c h
+    fun background resize w h
 
     index c me [0 1] _ super_editable_text EditProgramTextField
     value ([c EditProgramTextField size_y]) EditorSizeY
     int [476] textHeight
     = textHeight h
     -= textHeight commandLineHeight
-    fun EditProgramTextField set_size c w c h
+    fun EditProgramTextField set_size w h
     fun EditProgramTextField update
     fun EditProgramTextField crop_height_to_text
 
     index c me [0 0] _ super_editable_text TerminalTextField
     value ([c TerminalTextField size_y]) TerminalSizeY
-    fun TerminalTextField set_size c w c TerminalSizeY
+    fun TerminalTextField set_size w TerminalSizeY
     fun TerminalTextField update
     fun TerminalTextField crop_height_to_text
     value ([c TerminalTextField size_y]) TerminalSizeY
@@ -783,7 +783,7 @@ end
 
 start resizeTerminalIfSmall
     if([c TerminalSizeY] [c h] < )
-    fun TerminalTextField set_size c w c h
+    fun TerminalTextField set_size w h
 end
 
 start refreshScrollbar
@@ -797,17 +797,17 @@ start refreshScrollbar
     value ([window_w]) windowW
     int [16] scrollbarWidth
     -= windowW scrollbarWidth
-    int [0] 0
-    fun MainScrollbar set_position c windowW c 0
-    fun MainScrollbar resize c scrollbarWidth c h
+    int [0] zero
+    fun MainScrollbar set_position windowW zero
+    fun MainScrollbar resize scrollbarWidth h
     int [12] thumbWidth
-    fun MainScrollbar set_scrolling_area c thumbWidth c h
-    fun MainScrollbar set_thumb_size c thumbWidth c h
+    fun MainScrollbar set_scrolling_area thumbWidth h
+    fun MainScrollbar set_thumb_size thumbWidth h
 
     all c [me] _ _ image _ _ _ AllImages
     string ["thumb_track"] trackID
     find_by_id_2 AllImages trackID TrackImage
-    fun TrackImage resize c scrollbarWidth c h
+    fun TrackImage resize scrollbarWidth h
     fun me update_scrollbars
 
     run refreshScrollbarCheck
@@ -816,10 +816,10 @@ end
 start refreshScrollbarCheck
     if([c TerminalSizeY] [int 0] >)
     index c me [0 0] _ scrollbar MainScrollbar
-    int [0] 0
-    fun MainScrollbar set_real_scrolling_area c 0 c TerminalSizeY
+    int [0] zero
+    fun MainScrollbar set_real_scrolling_area zero TerminalSizeY
     += TerminalSizeY h
-    int [12] 12
+    int [12] ree12
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
     value ([window_h]) windowH
@@ -827,7 +827,7 @@ start refreshScrollbarCheck
     = divide windowH
     /= divide TerminalSizeY
     *= currentThumbHeight divide
-    fun MainScrollbar set_thumb_size c 12 c currentThumbHeight
+    fun MainScrollbar set_thumb_size ree12 currentThumbHeight
     fun MainScrollbar scroll_to_the_end
     fun me update_scrollbars
     run keepMinimalSizeOfScrollThumb
@@ -837,16 +837,16 @@ end
 start keepMinimalSizeOfScrollThumb
     if([c currentThumbHeight] [c minScrollbarThumbHeight] <)
     = currentThumbHeight minScrollbarThumbHeight 
-    fun MainScrollbar set_thumb_size c 12 c currentThumbHeight
+    fun MainScrollbar set_thumb_size ree12 currentThumbHeight
     fun me update_scrollbars
 end
 
 start resetScrollbar
     index c me [0 0] _ scrollbar MainScrollbar
-    int [12] 12
+    int [12] ree12
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
-    fun MainScrollbar set_thumb_size c 12 c currentThumbHeight
+    fun MainScrollbar set_thumb_size ree12 currentThumbHeight
     fun me update_scrollbars
 end
 
@@ -887,10 +887,10 @@ end
 
 start saveCommand
     if ([c commandLength] [int 0] >)
-    fun commandHistory set c commandNumber c command
+    fun commandHistory set commandNumber command
     string ["~/history.txt"] fileName
     save_text fileName commandHistory
-    fun commandHistory push_back string [""]
+    fun commandHistory push_back ""
     ++ commandNumber
     = currentCommandNumber commandNumber
 end
@@ -920,7 +920,7 @@ start forgor
     string ["history.txt"] fileName
     save_text fileName commandHistory
     string [""] emptyString
-    fun commandHistory push_back c emptyString
+    fun commandHistory push_back emptyString
     string [""] program
 end
 
@@ -938,17 +938,17 @@ start upArrow
     first _ [EditableText] _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
-    fun commandHistory set c currentCommandNumber c command
+    fun commandHistory set currentCommandNumber command
 
     -- currentCommandNumber
 
     fun EditableText cut_unprotected_area
     value ([v commandHistory c currentCommandNumber]) diffCommand
-    fun EditableText add_content context diffCommand
+    fun EditableText add_content diffCommand
     fun EditableText update
     first _ [EditableText] _ _ _ _ content _ history
     len history historySize
-    fun EditableText set_cursor_pos c historySize
+    fun EditableText set_cursor_pos historySize
 end
 
 
@@ -959,17 +959,17 @@ start downArrow
     first _ [EditableText] _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
-    fun commandHistory set c currentCommandNumber c command
+    fun commandHistory set currentCommandNumber command
 
     ++ currentCommandNumber
 
     fun EditableText cut_unprotected_area
     value ([v commandHistory c currentCommandNumber]) diffCommand
-    fun EditableText add_content context diffCommand
+    fun EditableText add_content diffCommand
     fun EditableText update
     first _ [EditableText] _ _ _ _ content _ history
     len history historySize
-    fun EditableText set_cursor_pos c historySize
+    fun EditableText set_cursor_pos historySize
 end
 
 
@@ -982,14 +982,14 @@ end
 
 start printOnTerminal
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText add_content context result
+    fun EditableText add_content result
     fun EditableText update
     fun EditableText crop_height_to_text
 
     first _ [EditableText] _ _ _ _ content _ history
     len history historySize
-    fun EditableText set_protected_area c historySize
-    fun EditableText set_cursor_pos c historySize
+    fun EditableText set_protected_area historySize
+    fun EditableText set_cursor_pos historySize
 
     value ([window_w]) w
     value ([window_h]) h
@@ -1001,14 +1001,14 @@ end
 
 start printOnTerminalUnprotected
     index context me [0 0] _ super_editable_text EditableText
-    fun EditableText add_content context result
+    fun EditableText add_content result
     fun EditableText update
     fun EditableText crop_height_to_text
 
     first _ [EditableText] _ _ _ _ content _ history
     len history historySize
-    //fun EditableText set_protected_area c historySize
-    //fun EditableText set_cursor_pos c historySize
+    //fun EditableText set_protected_area historySize
+    //fun EditableText set_cursor_pos historySize
 
     value ([window_w]) w
     value ([window_h]) h
@@ -1031,8 +1031,8 @@ start edit
     fun TextEditorScrollbar scroll_to_the_beginning //scroll_to_the_end
     fun me update_scrollbars
     index c me [0 1] _ super_editable_text TextEditor
-    fun TextEditor set_content string [""]
-    fun TextEditor set_cursor_pos int [0]
+    fun TextEditor set_content ""
+    fun TextEditor set_cursor_pos 0
     fun TextEditor activate
     string [""] fileName
     = fileName param1
@@ -1042,9 +1042,9 @@ end
 start loadTextFromFile
     if ([exists fileName])
     load_text fileName loadedText
-    fun TextEditor set_content c loadedText
+    fun TextEditor set_content loadedText
     len loadedText loadedTextSize
-    //fun TextEditor set_cursor_pos c loadedTextSize
+    //fun TextEditor set_cursor_pos loadedTextSize
     fun TextEditor update
     fun TextEditor crop_height_to_text
     run refreshTextEditorScrollbar
@@ -1076,16 +1076,16 @@ start refreshTextEditorScrollbar
     value ([window_w]) windowW
     int [16] scrollbarWidth
     -= windowW scrollbarWidth
-    int [0] 0
-    fun EditorScrollbar set_position c windowW c 0
-    fun EditorScrollbar resize c scrollbarWidth c h
+    int [0] zero
+    fun EditorScrollbar set_position windowW zero
+    fun EditorScrollbar resize scrollbarWidth h
     int [12] thumbWidth
-    fun EditorScrollbar set_scrolling_area c thumbWidth c h
+    fun EditorScrollbar set_scrolling_area thumbWidth h
 
     all c [me] _ _ image _ _ _ AllImages
     string ["thumb_track"] trackID
     find_by_id_2 AllImages trackID TrackImage
-    fun TrackImage resize c scrollbarWidth c h
+    fun TrackImage resize scrollbarWidth h
     fun me update_scrollbars
 
 
@@ -1095,10 +1095,10 @@ end
 start refreshTextEditorScrollbarCheck
     if([c EditorSizeY] [int 0] >)
     index c me [0 1] _ scrollbar EditorScrollbar
-    int [0] 0
-    fun EditorScrollbar set_real_scrolling_area c 0 c EditorSizeY
+    int [0] zero
+    fun EditorScrollbar set_real_scrolling_area zero EditorSizeY
     += EditorSizeY h
-    int [12] 12
+    int [12] ree12
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
     value ([window_h]) windowH
@@ -1106,7 +1106,7 @@ start refreshTextEditorScrollbarCheck
     = divide windowH
     /= divide EditorSizeY
     *= currentThumbHeight divide
-    fun EditorScrollbar set_thumb_size c 12 c currentThumbHeight
+    fun EditorScrollbar set_thumb_size ree12 currentThumbHeight
     //fun EditorScrollbar scroll_to_the_end
     fun me update_scrollbars
     run keepMinimalSizeOfTextEditorScrollThumb
@@ -1115,15 +1115,15 @@ end
 start keepMinimalSizeOfTextEditorScrollThumb
     if([c currentThumbHeight] [c minScrollbarThumbHeight] <)
     = currentThumbHeight minScrollbarThumbHeight
-    fun EditorScrollbar set_thumb_size c 12 c currentThumbHeight
+    fun EditorScrollbar set_thumb_size ree12 currentThumbHeight
     fun me update_scrollbars
 end
 start resetTextEditorScrollbar
     index c me [0 1] _ scrollbar EditorScrollbar
-    int [12] 12
+    int [12] ree12
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
-    fun EditorScrollbar set_thumb_size c 12 c currentThumbHeight
+    fun EditorScrollbar set_thumb_size ree12 currentThumbHeight
     fun me update_scrollbars
 end
 
@@ -1180,7 +1180,7 @@ start injectFormat
     double [1.0] b
     double [1.0] a
     string ["cascadia_code"] font 
-    fun EditableText inject_format c startFragment c endFragment c r c g c b c a c r c g c b c a c font
+    fun EditableText inject_format startFragment endFragment r g b a r g b a font
 end
 
 start format
@@ -1220,12 +1220,12 @@ end*/
 
 start save_terminal
     index c me [0 0] _ super_editable_text TerminalTextField
-    fun TerminalTextField save_to_file c param1
+    fun TerminalTextField save_to_file param1
     string [""] program
 end
 
 start load_terminal
     index c me [0 0] _ super_editable_text TerminalTextField
-    fun TerminalTextField load_from_file c param1
+    fun TerminalTextField load_from_file param1
     string [""] program
 end

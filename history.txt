@@ -1,43 +1,12 @@
-history
-sel_col 0.0 0.5 0.1 1.0
-sel_col 0.0 0.5 0.1 1.0
-sel_col 0.0 0.5 0.1 1.0
-neofetch
-ls
+sel_col 1.0 1.0 0.0 1.0
+fds
 xd
 wait
-sudo
-sudo rm -rf --no-preserve-root /
 allegro
-save_terminal uhu.ft
+save_terminal
+save_terminal aaa
 neofetch
-load_terminal uhu.ft
-save_terminal uhu.ft
-load_terminal uhu.ft
-cat uhu.ft
-exit
-note docs/TODO.txt
-note docs/TODO.txt
-note docs/TODO.txt
-note docs/TODO.txt
-note docs/TODO.txt
-mover KERNEL
-ls
-cd sounds
-ls
-cd
-ls
-cd src
-ls
-cd
-ls src
-cd src
-ls
-cd
-cd scripts
-ls
-cd ..
-cd
-ls
+load_terminal
+load_terminal aaa
 edit docs/TODO.txt
-exit
+edit docs/TODO.txt

@@ -1,11 +1,11 @@
 start init false
     triggers on_boot
     if ([on_boot])
-    fun me set_can_be_selected bool [false]
+    fun me set_can_be_selected false
     new object l KERNEL 1 _ _ First
-    fun First set_id string ["KERNEL"]
-    fun First set_can_be_selected bool [true]
-    fun First set_can_be_moved_with_mouse bool [true]
+    fun First set_id "KERNEL"
+    fun First set_can_be_selected true
+    fun First set_can_be_moved_with_mouse true
     fun First enable_selection_border
     //fun First disable_scrolling
     bind First reset
