@@ -1,4 +1,4 @@
-start xd
+start xd2
     triggers each_iteration
     print "Hello world"
     print "Hello world"

@@ -834,6 +834,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
         return false;
     }
     bool inCondition = false;
+    WordStruct firstWord;
     while(words[cursor].value != ")"){
         if(cursor >= words.size()){
             cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
@@ -857,105 +858,123 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
             cursor++;
         }
         else{
-            if(nextCond(words, cursor, Expression.back().Location.source, scriptName, lineNumber)){ continue; };
-            if(Expression.back().Location.source == "bool"){
-                if(Expression.back().Location.source == "bool"){
-                    Expression.back().Location.source = "literal";
-                }
+            if(words.size() < cursor + 1){ continue; };
+            if(words[cursor].type != 'e' && words[cursor].value != "]"){
+                firstWord = words[cursor];
+            }
+            /*if(words[cursor].value != "]"){
+                cursor++;
+            }*/
+
+            Expression.back().Location.source = firstWord.value;
+
+            if(firstWord.type == 'b'){
+                Expression.back().Location.source = "literal";
                 if(nextCond(words, cursor, Expression.back().Literal, 'b', scriptName, lineNumber)){ continue; };
             }
-            else if(isStringInGroup(Expression.back().Location.source, 9, "int", "key_pressed", "key_pressing",
-                "key_released", "mouse_pressed", "mouse_pressing", "mouse_released", "screen_w", "screen_h")){
-                if(Expression.back().Location.source == "int"){
-                    Expression.back().Location.source = "literal";
-                }
+            else if(firstWord.type == 'i'){
+                Expression.back().Location.source = "literal";
                 if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
             }
-            else if(Expression.back().Location.source == "double"){
-                if(Expression.back().Location.source == "double"){
-                    Expression.back().Location.source = "literal";
-                }
+            else if(firstWord.type == 'd'){
+                Expression.back().Location.source = "literal";
                 if(nextCond(words, cursor, Expression.back().Literal, 'd', scriptName, lineNumber)){ continue; };
             }
-            else if(Expression.back().Location.source == "string"){
-                if(words[cursor].value == "]"){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
-                        << ": In " << __FUNCTION__ << ": Source '" << Expression.back().Location.source
-                        << "' requires one string literal.\n";
-                    return false;
-                }
+            else if(firstWord.type == 's'){
                 Expression.back().Location.source = "literal";
                 if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
             }
-            else if(Expression.back().Location.source == "exists"
-                || Expression.back().Location.source == "is_directory"
-            ){
-                if(words[cursor].value == "]"){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
-                        << ": In " << __FUNCTION__ << ": Source '" << Expression.back().Location.source
-                        << "' requires one string literal.\n";
-                    return false;
+            else if(firstWord.type == 'c'){
+                if(words[cursor].value != "]"){
+                    cursor++;
                 }
-                if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
-            }
-            else if(Expression.back().Location.source == "vector" || Expression.back().Location.source == "v"){
-                if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                if(Expression.back().Location.attribute == "i" || Expression.back().Location.attribute == "index"){
+                if(isStringInGroup(firstWord.value, 6, "key_pressed", "key_pressing",
+                    "key_released", "mouse_pressed", "mouse_pressing", "mouse_released")
+                ){
                     if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
-                    Expression.back().Location.attribute = "value";
                 }
-                else if(Expression.back().Location.attribute == "c" || Expression.back().Location.attribute == "context"){
+                else if(firstWord.value == "exists" || firstWord.value == "is_directory"){
+                    if(words[cursor].value == "]"){
+                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
+                            << ": In " << __FUNCTION__ << ": Source '" << firstWord.value
+                            << "' requires one string literal.\n";
+                        return false;
+                    }
                     if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
-                    Expression.back().Location.attribute = "value";
                 }
-                else if(Expression.back().Location.attribute == "s" || Expression.back().Location.attribute == "size"){
-                    Expression.back().Location.attribute = "size";
+                else if(isStringInGroup(firstWord.value, 19, "on_boot", "second_passed", "any_key_pressed",
+                    "any_key_pressing", "any_key_released", "mouse_x", "mouse_y", "mouse_moved", "screen_w",
+                    "screen_h", "window_w", "window_h", "fullscreen", "on_display_resize", "used_os",
+                    "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects")
+                ){
+                    continue;
                 }
-                else if(Expression.back().Location.attribute == "b" || Expression.back().Location.attribute == "back"){
-                    Expression.back().Location.attribute = "back";
+                else if(firstWord.value == "vector" || firstWord.value == "v"){
+                    if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
+                    if(Expression.back().Location.attribute == "i" || Expression.back().Location.attribute == "index"){
+                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                        Expression.back().Location.attribute = "value";
+                    }
+                    else if(Expression.back().Location.attribute == "c" || Expression.back().Location.attribute == "context"){
+                        if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
+                        Expression.back().Location.attribute = "value";
+                    }
+                    else if(Expression.back().Location.attribute == "s" || Expression.back().Location.attribute == "size"){
+                        Expression.back().Location.attribute = "size";
+                    }
+                    else if(Expression.back().Location.attribute == "b" || Expression.back().Location.attribute == "back"){
+                        Expression.back().Location.attribute = "back";
+                    }
+                    else{
+                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
+                            << ": In " << __FUNCTION__ << ": Invalid attribute.\n";
+                        return false;
+                    }
+                }
+                else if(firstWord.value == "camera"){
+                    if(nextCond(words, cursor, Expression.back().Location.cameraID, scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
+                }
+                else if(firstWord.value == "layer"){
+                    if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
+                    if(Expression.back().Location.attribute == "in_group"){
+                        if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+                    }
+                }
+                else if(firstWord.value == "object"){
+                    if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.objectID, scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.moduleType, scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
+                    if(isStringInGroup(Expression.back().Location.moduleType, 3, "ancestor", "text", "editable_text")){
+                        if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+                    }
+                    else if(Expression.back().Location.moduleType == "mouse"){
+                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                    }
+                    else if(Expression.back().Location.moduleType == "collision"){
+                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                        if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
+                    }
+                }
+                else if(firstWord.value == "variable"){
+                    if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
                 }
                 else{
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
-                        << ": In " << __FUNCTION__ << ": Invalid attribute.\n";
-                    return false;
-                }
-            }
-            else if(Expression.back().Location.source == "context" || Expression.back().Location.source == "c"){
-                if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
-            }
-            else if(Expression.back().Location.source == "camera"){
-                if(nextCond(words, cursor, Expression.back().Location.cameraID, scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-            }
-            else if(Expression.back().Location.source == "layer"){
-                if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                if(Expression.back().Location.attribute == "in_group"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
-                }
-            }
-            else if(Expression.back().Location.source == "object"){
-                if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.objectID, scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.moduleType, scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
-                if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                if(isStringInGroup(Expression.back().Location.moduleType, 3, "ancestor", "text", "editable_text")){
-                    if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
-                }
-                else if(Expression.back().Location.moduleType == "mouse"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
-                }
-                else if(Expression.back().Location.moduleType == "collision"){
-                    if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                    cursor--;
+                    Expression.back().Location.source = "context";
+                    if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
                     if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
                 }
             }
-            else if(Expression.back().Location.source == "variable"){
-                if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
+            else{
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber
+                    << ": In " << __FUNCTION__ << ": Word of the '" << firstWord.type << "' type is not valid.\n";
+                return false;
             }
         }
         if(cursor >= words.size()){
@@ -1623,28 +1642,29 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else if(words[0].value == "new"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            if(words[1].type != 'c' || words[2].type != 'c'){
+            if(words[1].type != 'c'){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                    << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
             Operation->Location.source = words[1].value;
-            Operation->Literals.push_back(VariableModule::newString(words[2].value));
             
-            cursor = 3;
-            if(words[2].value == "context" || words[2].value == "c"){
-                if(words[3].type != 'c'){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                        << ": In '" << words[0].value << "' instruction: The third parameter is not of a context type.\n";
-                    return;
-                }
-                Operation->dynamicIDs.push_back(words[3].value);
+            if(words[2].type == 'c'){
+                Operation->Literals.push_back(VariableModule::newString("context"));
+            }
+            else{
+                Operation->Literals.push_back(VariableModule::newString("location"));
+            }
+            
+            cursor = 2;
+            if(words[2].type == 'c'){
+                Operation->dynamicIDs.push_back(words[2].value);
                 cursor++;
             }
-            else if(words[2].value == "location" || words[2].value == "l"){
+            else{
                 if(Operation->Location.source == "object"){
                     if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 }
@@ -1652,10 +1672,6 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                     if(optional(words, cursor, Operation->Location.objectID)){ continue; }
                 }
-            }
-            else{
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                    << ": Destination type \'" << words[2].value << "\' does not exist.\n";
             }
             
             if(words.size() <= cursor){
@@ -1772,12 +1788,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 else if(words[cursor].type == 's'){
                     Operation->Literals.push_back(VariableModule::newString(words[cursor].value));
                 }
-
                 if(error.size() > 0){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
                     return;
                 }
-                
                 cursor++;
             }
         }
@@ -1982,26 +1996,29 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             else if(words[2].type != 'e'){
                 Operation->newContextID = words[2].value;
             }
-
-            if(words.size() == 4){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                    << ": \'" << words[3].value << "\' type does not exist.\n";
-                return;
-            }
             
             cursor = 3;
-            while(words.size() > cursor + 1){
-                if(words[cursor].value == "context" || words[cursor].value == "c"){
-                    cursor++;
+            while(words.size() > cursor){
+                if(words[cursor].type == 'c'){
                     Operation->dynamicIDs.push_back(words[cursor].value);
-                    cursor++;
                 }
-                else{
-                    cursor++;
-                    if(!gatherLiterals(words, cursor, Operation->Literals, words[cursor - 1].value, lineNumber, scriptName)){
-                        return;
-                    }
+                else if(words[cursor].type == 'b'){
+                    Operation->Literals.push_back(VariableModule::newBool(cstoi(words[cursor].value, error)));
                 }
+                else if(words[cursor].type == 'i'){
+                    Operation->Literals.push_back(VariableModule::newInt(cstoi(words[cursor].value, error)));
+                }
+                else if(words[cursor].type == 'd'){
+                    Operation->Literals.push_back(VariableModule::newDouble(cstod(words[cursor].value, error)));
+                }
+                else if(words[cursor].type == 's'){
+                    Operation->Literals.push_back(VariableModule::newString(words[cursor].value));
+                }
+                if(error.size() > 0){
+                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                    return;
+                }
+                cursor++;
             }
         }
         else if(words[0].value == "load_text"){

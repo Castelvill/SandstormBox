@@ -7314,7 +7314,6 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
     vector<EveModule>::iterator &Event, vector<MemoryStackStruct> &MemoryStack, EngineClass &Engine
 ){
     string buffor;
-    EventIds = EventDescription(OwnerLayer->getID(), Owner->getID(), Event->getID());
     for(OperaClass & Operation : Operations){
         switch(Operation.instruction){
             case continue_i:
@@ -8983,7 +8982,10 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
 
         wereGlobalVariablesCreated = false;
 
+        EventIds = EventDescription(TriggeredLayer->getID(), Triggered->getID(), Event->getID());
+
         do{
+            EventIds.eventID = Event->getID();
             removeOnInitTrigger(Event->primaryTriggerTypes);
             // if(printOutInstructions){
             //     printInColor("\nCurrent event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);

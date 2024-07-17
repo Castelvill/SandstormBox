@@ -12,7 +12,7 @@ end
 
 start checkIfDisplayResizeNotepad
     triggers on_display_resize
-    if ([c isMaxed] [on_display_resize] &&)
+    if ([isMaxed] [on_display_resize] &&)
     run refreshWindowWithDisplayNotepad
 end
 
@@ -29,14 +29,14 @@ end
 start refreshWindowWithCameraNotepad
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    value ([context Camera size_x]) sx
-    value ([context Camera size_y]) sy
+    value ([Camera size_x]) sx
+    value ([Camera size_y]) sy
     run refreshWindowNotepad
 end
 
 
 start refreshWindowNotepad
-    value ([context me layer_id]) myLayerID
+    value ([me layer_id]) myLayerID
     all layer _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 0] super_editable_text Notepad
@@ -46,7 +46,7 @@ start refreshWindowNotepad
 end
 
 start resizeObjectWhenNotBorderless
-    if ([c isBorderless] !)
+    if ([isBorderless] !)
     index my_layer [0 0] object WindowObject
     fun WindowObject set_size sx sy
     //fun Notepad update
@@ -61,11 +61,11 @@ start resizeObjectWhenMaxed
 end
 
 start resizeObjectWhenMaxedCheck
-    if([c MaxCollision release_on])
+    if([MaxCollision release_on])
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    value ([context Camera size_x]) sx
-    value ([context Camera size_y]) sy
+    value ([Camera size_x]) sx
+    value ([Camera size_y]) sy
     index my_layer [0 0] object WindowObject
     fun WindowObject set_size sx sy
     index my_layer [0 0 0] super_editable_text Notepad
@@ -81,14 +81,14 @@ start resizeObjectWhenSwitchingToBorderlessMode
 end
 
 start resizeObjectWhenSwitchingToBorderlessModeCheckFocus
-    if([c Camera is_focused])
+    if([Camera is_focused])
     run resizeObjectForBorderlessMode
 end
 
 start resizeObjectForBorderlessMode
-    if ([c isBorderless])
-    value ([context Camera size_x]) cpx
-    value ([context Camera size_y]) cpy
+    if ([isBorderless])
+    value ([Camera size_x]) cpx
+    value ([Camera size_y]) cpy
     int [10] shiftX
     int [40] shiftY
     += cpx shiftX
@@ -101,8 +101,8 @@ start resizeObjectForBorderlessMode
 end
 
 start resizeObjectFromBorderlessMode
-    value ([context Camera size_x]) cpx
-    value ([context Camera size_y]) cpy
+    value ([Camera size_x]) cpx
+    value ([Camera size_y]) cpy
     index my_layer [0 0] object WindowObject
     fun WindowObject set_size cpx cpy
     index my_layer [0 0 0] super_editable_text Notepad

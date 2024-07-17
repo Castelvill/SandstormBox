@@ -12,7 +12,7 @@ start *id* [loop] [override]
 
 **Parameters:**
 
-- id (string) - a name for the new event,
+- id (context) - a name for the new event,
 - [loop] (bool) - if true, the new event will be executed in every iteration of the parent process,
 - [override] (bool) - if true, the new event will override an existing event with the same id.
 
@@ -32,7 +32,7 @@ start *id* [loop] [override]
 
 **Syntax**
 
-triggers *trigger* [[trigger] ...]
+triggers *trigger* [[trigger]...]
 
 **Description**
 
@@ -40,7 +40,7 @@ triggers *trigger* [[trigger] ...]
 
 **Parameters:**
 
-- trigger (string) - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
+- trigger (context) - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
 
 ## if
 
@@ -68,7 +68,7 @@ else *event*
 
 **Parameters:**
 
-- event (string) - a name of an event to be executed.
+- event (context) - a name of an event to be executed.
 
 ## post
 
@@ -80,7 +80,7 @@ else *event*
 
 **Syntax**
 
-run *event* [[event] ...]
+run *event* [[event]...]
 
 **Description**
 
@@ -88,7 +88,7 @@ run *event* [[event] ...]
 
 **Parameters:**
 
-- event (string) - a name of an event to be executed.
+- event (context) - a name of an event to be executed.
 
 ## power_off
 
@@ -144,9 +144,9 @@ run *event* [[event] ...]
 
 **Parameters:**
 
-- aggregation_type (string): “all” - returns whole context, “first” - returns the first context, “last” - returns the last context, “random” - returns one random context;
-- source (string): “camera”, “layer”, “context”, “_” - if context ids are not provided, choose one of the highest types of abstractions. Each camera contains its attributes and a bitmap (screen/window), while each layer contains its attributes and objects;
-- [context_list] (string vector) - context ids will be used when source is equal to “context” or “_”. Each context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”. Type of the context affects other parameters;
+- aggregation_type (instruction): “all” - returns whole context, “first” - returns the first context, “last” - returns the last context, “random” - returns one random context;
+- source (context): camera, layer, context, _ - if context ids are not provided, choose one of the highest types of abstractions. Each camera contains its attributes and a bitmap (screen/window), while each layer contains its attributes and objects;
+- [context_list] (context vector) - context ids will be used when source is equal to “context” or “_”. Each context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”. Type of the context affects other parameters;
 - [expression] (ConditionClass vector) - the list of locations of values and the list of operators that create a relationship between those values, which in turn results in a single boolean value. This whole expression is calculated for each entity separately and if it returns truth, entity is aggregated into the new context. But if expression is empty, this boolean is equal to true by default;
 - [camera_id] (string) - if source is equal to “camera” or provided context is of a camera type, only the camera with this id can be aggregated;
 - [layer_id] (string) - if source is equal to “layer” or provided context is of a layer type, only the layer with this id can be aggregated;
@@ -154,7 +154,7 @@ run *event* [[event] ...]
 - [module_type] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
 - [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
 - attribute (string) - if provided, aggregate this attribute from selected entities;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## index
 
@@ -168,10 +168,10 @@ index *context* [indexes] [attribute] [output]
 
 **Parameters:**
 
-- context (string) - id of the context; 
-- [indexes] (int/string vector) - the list of indexes used to find an entity in the provided vector;
-- [attribute] (string) - if provided, aggregate this attribute from selected entities;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- context (context) - id of the context; 
+- [indexes] (int/context vector) - the list of indexes used to find an entity in the provided vector;
+- [attribute] (context) - if provided, aggregate this attribute from selected entities;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## sum
 
@@ -185,9 +185,9 @@ sum *left* *right* [output]
 
 **Parameters**
 
-- left (string) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (string) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (context) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (context) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## intersection
 
@@ -201,9 +201,9 @@ intersection *left* *right* [output]
 
 **Parameters**
 
-- left (string) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (string) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (context) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (context) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## difference
 
@@ -217,9 +217,9 @@ difference *left* *right* [output]
 
 **Parameters**
 
-- left (string) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (string) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (context) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (context) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## value
 
@@ -234,7 +234,7 @@ value *expression* [output]
 **Parameters**
 
 - expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “window_w”, “window_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## bool / int / double / string
 
@@ -248,9 +248,9 @@ value *expression* [output]
 
 **Parameters**
 
-- literal_type (string): bool, int, double, string;
+- literal_type (instruction): bool, int, double, string;
 - literals (VariableModule vector): bool, int, double, string;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## random_int
 
@@ -266,7 +266,7 @@ random_int *min* *max* [output]
 
 - min (VariableModule): bool, int, double, string - literal, minimal value of the output;
 - max (VariableModule): bool, int, double, string - literal, maximal value of the output;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## random_int
 
@@ -280,9 +280,9 @@ random_int *min* *max* [output]
 
 **Parameters**
 
-- min (string) - id of the choosen context. Context types allowed by this instruction are: “value” and “pointer”;
-- max (string) - id of the choosen context. Context types allowed by this instruction are: “value” and “pointer”;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- min (context) - id of the choosen context. Context types allowed by this instruction are: “value” and “pointer”;
+- max (context) - id of the choosen context. Context types allowed by this instruction are: “value” and “pointer”;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## find_by_id
 
@@ -296,15 +296,15 @@ find_by_id *source* [context_list] [camera_id] [layer_id] [object_id] [module_ty
 
 **Parameters**
 
-- source (string): “camera”, “layer”, “context”, “_” - if a context is not provided, choose one of the highest types of abstractions. Each camera contains its attributes and a bitmap (screen/window), while each layer contains its attributes and objects;
-- [context_list] (string vector) - context ids will be used when source is equal to “context” or “_”. Each context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”. Type of the context affects other parameters;
+- source (context): “camera”, “layer”, “context”, “_” - if a context is not provided, choose one of the highest types of abstractions. Each camera contains its attributes and a bitmap (screen/window), while each layer contains its attributes and objects;
+- [context_list] (context vector) - context ids will be used when source is equal to “context” or “_”. Each context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”. Type of the context affects other parameters;
 - [camera_id] (string) - if source is equal to “camera” or provided context is of a camera type, only the camera with this id can be aggregated;
 - [layer_id] (string) - if source is equal to “layer” or provided context is of a layer type, only the layer with this id can be aggregated;
 - [object_id] (string) - if source is equal to “layer” or provided context is of a layer or object type, only the object with this id can be aggregated;
 - [module_type] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
 - [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
-- [attribute] (string) - if provided, aggregate this this attribute from selected entities;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [attribute] (context) - if provided, aggregate this this attribute from selected entities;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## find_by_id layer
 
@@ -324,22 +324,22 @@ find_by_id layer *layer_id* *object_id* *module_type* *module_id* *attribute* [o
 - [module_type] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
 - [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
 - [attribute] (string) - if provided, aggregate this this attribute from selected entities;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## find_by_id_2
 
 **Syntax**
 
-find_by_id_2 input id [output]
+find_by_id_2 *input* *id* [output]
 
 **Description**
 
-    Return an entity with id equal to the one provided in the second context.
+    Return an entity with an id equal to the one provided in the second context.
 
 **Parameters**
 
-- input (string) - id of the context with a vector of entities,
-- id (string) - id of the context with an id string.
+- input (context) - id of the context with a vector of entities,
+- id (context) - id of the context with an id string.
 
 ## let
 
@@ -353,8 +353,8 @@ let *id* [context]
 
 **Parameters**
 
-- id (string) - id for the selected or last context.
-- context (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”.
+- id (context) - id for the selected or last context.
+- context (context) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”.
 
 
 ## clone
@@ -369,8 +369,8 @@ clone *left* *right* [changeOldID]
 
 **Parameters**
 
-- left (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (string) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- left (context) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (context) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
 - [changeOldID] (bool) - if true, the left context will inherit the id of the right context (with the last number incrementation). True by default.
 
 ## +, -, *, /
@@ -385,10 +385,10 @@ clone *left* *right* [changeOldID]
 
 **Parameters**
 
-- operator (string): "+", "-", "*", "/";
-- left (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- operator (instruction): "+", "-", "*", "/";
+- left (context) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- right (context) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## ++, --
 
@@ -402,8 +402,8 @@ clone *left* *right* [changeOldID]
 
 **Parameters**
 
-- operator (string): "++" - increment by 1, "--" - decrement by 1;
-- context (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”.
+- operator (context): "++" - increment by 1, "--" - decrement by 1;
+- context (context) - id of the context. This instruction accepts these two context types: “pointer” and “value”.
 
 ## =, +=, -=, *=, /=
 
@@ -417,9 +417,9 @@ clone *left* *right* [changeOldID]
 
 **Parameters**
 
-- operator (string): "=", "+=", "-=", "*=", "/=" - these work exactly like in c++;
-- left (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”.
+- operator (context): "=", "+=", "-=", "*=", "/=" - these work exactly like in c++;
+- left (context) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- right (context) - id of the context. This instruction accepts these two context types: “pointer” and “value”.
 
 ## in
 
@@ -433,15 +433,15 @@ in *left* *right* [output]
 
 **Parameters**
 
-- left (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right (string) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (context) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- right (context) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## new
 
 **Syntax**
 
-new *type* location/l [layer_id] [object_id] [size_1] [size_2] [new_ids] [output]
+new *type* [layer_id] [object_id] [size_1] [size_2] [new_ids] [output]
 
 **Description**
 
@@ -449,19 +449,19 @@ new *type* location/l [layer_id] [object_id] [size_1] [size_2] [new_ids] [output
 
 **Parameters**
 
-- type/source (string): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - the type of the new entities;
+- type/source (context): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - the type of the new entities;
 - layer_id/[layer_id] (string) - the id of the layer with the role of a container for new objects. Required only if the new entities are objects;
 - object_id/[object_id] (string) - the id of the object with the role of a container for new modules. Required only if the new entities are modules;
 - [size_1] (int) - this is the number of new entities that will be created. If not provided, operation will try to get this number from size2 *parameter*;
-- [size_2] (string) - id of the context of the type “pointer” or “value”. This is the number of new entities that will be created;
-- [new_ids] (string) - the id of the context with the type “pointer” or “value”. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [size_2] (context) - id of the context of the type “pointer” or “value”. This is the number of new entities that will be created;
+- [new_ids] (context) - the id of the context with the type “pointer” or “value”. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## new
 
 **Syntax**
 
-new *type* context/c [destination] [size_1] [size_2] [new_ids] [output]
+new *type* [destination] [size_1] [size_2] [new_ids] [output]
 
 **Description**
 
@@ -469,12 +469,12 @@ new *type* context/c [destination] [size_1] [size_2] [new_ids] [output]
 
 **Parameters**
 
-- type/source (string): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - the type of the new entities;
-- destination/[destination] (string) - id of the context with a container for new entities;
+- type/source (context): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - the type of the new entities;
+- destination/[destination] (context) - id of the context with a container for new entities;
 - [size_1] (int) - this is the number of new entities that will be created. If not provided, operation will try to get this number from size2 *parameter*;
-- [size_2] (string) - id of the context of the type “pointer” or “value”. This is the number of new entities that will be created;
-- [new_ids] (string) - the id of the context with the type “pointer” or “value”. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [size_2] (context) - id of the context of the type “pointer” or “value”. This is the number of new entities that will be created;
+- [new_ids] (context) - the id of the context with the type “pointer” or “value”. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## delete
 
@@ -488,7 +488,7 @@ delete *context*
 
 **Parameters**
 
-- context (string): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - id of the context with entities selected for deletion.
+- context (context): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - id of the context with entities selected for deletion.
 
 ## bind
 
@@ -502,8 +502,8 @@ bind *context* *source* *scripts*
 
 **Parameters**
 
-- context (string) - id of the context with objects;
-- source (string):
+- context (context) - id of the context with objects;
+- source (context):
     - “context” or “c” - next parameter will require an id of the context with paths to scripts. Instruction will bind those paths to provided objects;
     - “literal” or “l” - next parameter will require a list of string values - script paths. Instruction will bind those paths to provided objects;
     - “remove_context”, “rcontext” or “rc” - next parameter will require an id of the context with paths to scripts. Instruction will remove those paths from provided objects;
@@ -523,7 +523,7 @@ build *context* [reset]
 
 **Parameters**
 
-- context (string) - id of the context with objects intended for event building;
+- context (context) - id of the context with objects intended for event building;
 - [reset] (bool) - if true, before creating new events, instruction removes all events from provided objects.
 
 ## build_subset
@@ -538,8 +538,8 @@ build_subset *objects* [paths1] [paths2]
 
 **Parameters**
 
-- objects (string) - id of the context with objects intended for event building,
-- paths1 (string) - id of the context with paths to the scripts,
+- objects (context) - id of the context with objects intended for event building,
+- paths1 (context) - id of the context with paths to the scripts,
 - paths2 (VariableModule vector) - vector of paths to the scripts. 
 
 ## load_build
@@ -554,8 +554,8 @@ load_build *objects* [paths1] [paths2]
 
 **Parameters**
 
-- objects (string) - id of the context with objects intended for event building,
-- paths1 (string) - id of the context with paths to the scripts,
+- objects (context) - id of the context with objects intended for event building,
+- paths1 (context) - id of the context with paths to the scripts,
 - paths2 (VariableModule vector) - vector of paths to the scripts.
 
 ## inject_code
@@ -570,8 +570,8 @@ inject_code *objects* [code1] [code2]
 
 **Parameters**
 
-- objects (string) - id of the context with objects intended for event building,
-- code1 (string) - id of the context with code lines,
+- objects (context) - id of the context with objects intended for event building,
+- code1 (context) - id of the context with code lines,
 - code2 (VariableModule vector) - vector of code lines.
 
 ## inject_instr
@@ -586,8 +586,8 @@ inject_instr *objects* [instr1] [instr2]
 
 **Parameters**
 
-- objects (string) - id of the context with objects intended for event building,
-- instr1 (string) - id of the context with instructions,
+- objects (context) - id of the context with objects intended for event building,
+- instr1 (context) - id of the context with instructions,
 - instr2 (VariableModule vector) - vector with instructions.
 
 ## demolish
@@ -602,7 +602,7 @@ demolish *context*
 
 **Parameters**
 
-- context (string) - id of the context with objects intended for event building.
+- context (context) - id of the context with objects intended for event building.
 
 ## env
 
@@ -616,8 +616,8 @@ env *name* *variable* [value]
 
 **Parameters**
 
-- name (string): window_title, window_size, fullscreen, pixel_art, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, reservation_multiplier - the name of the variable selected for modification;
-- variable (string);
+- name (context): window_title, window_size, fullscreen, pixel_art, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, reservation_multiplier - the name of the variable selected for modification;
+- variable (context);
 - [value] (VariableModule): bool, int, double, string - the new value of the selected variable.
 
 ## edit_proc
@@ -633,7 +633,7 @@ edit_proc *name* *variable* [values]
 **Parameters**
 
 - name (string) - the name of the process to be modified;
-- variable (string): is_active, can_interact_with_user, is_rendering, draw_camera_borders, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, auto_print_stack, reservation_multiplier, window_pos, window_size, min_window_size, window_tint - the name of the variable selected for modification,
+- variable (context): is_active, can_interact_with_user, is_rendering, draw_camera_borders, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, auto_print_stack, reservation_multiplier, window_pos, window_size, min_window_size, window_tint - the name of the variable selected for modification,
 - [values] (VariableModule): bool, int, double, string - a new value or values for the selected variable.
 
 ## new_proc
@@ -657,7 +657,7 @@ new_proc *name* [layer] [object] [script]
 
 **Syntax**
 
-fun *context* *attribute* [[type] [value] … ]
+fun *context* *attribute* [[value]...]
 
 **Description**
 
@@ -665,10 +665,9 @@ fun *context* *attribute* [[type] [value] … ]
 
 **Parameters**
 
-- context (string) - id of the context with objects;
-- attribute (string) - name of the function intended for execution;
-- type (string): context, c, bool, int, double, string - type of the next parameter;
-- value (string / VariableModule vector) - id of the context with values or a list of values.
+- context (context) - id of the context with objects;
+- attribute (context) - name of the function intended for execution;
+- value (context / VariableModule) - id of the context with values or a list of values.
 
 ## load_bitmap
 
@@ -699,9 +698,9 @@ load_font *path* *size* *name*
 
 **Parameters**
 
-- path (string) - id of the context with a path to a font file;
-- size (string) - id of the context with a size of the new font;
-- name (string) - id of the context with the name for the new font.
+- path (context) - id of the context with a path to a font file;
+- size (context) - id of the context with a size of the new font;
+- name (context) - id of the context with the name for the new font.
 
 ## mkdir
 
@@ -764,7 +763,7 @@ rename *path* *new_path*
 
 **Syntax**
 
-print *delimeter* [output] [[type] [value] ... ] 
+print *delimeter* [output] [[value]...] 
 
 **Description**
 
@@ -773,9 +772,8 @@ print *delimeter* [output] [[type] [value] ... ]
 **Parameters**
 
 - delimeter (string) - text printed after each printed value. If it's the only parameter, delimeter will be printed alone;
-- output (string) - if equals to "_", print values to the stdout, otherwise create a new context in the current scope and overwrite the context of an existing variable with the same id;
-- type (string): context, c, bool, int, double, string - type of the next parameter;
-- value (string / VariableModule vector) - id of the context with values or a list of values that will be printed.
+- output (context) - if equals to "_", print values to the stdout, otherwise create a new context in the current scope and overwrite the context of an existing variable with the same id;
+- value (context / VariableModule) - id of the context with values or a literal that will be printed.
 
 ## load_text
 
@@ -789,8 +787,8 @@ load_text *path* [output]
 
 **Parameters**
 
-- path (string) - id of the path to a text file;
-- [output] (string) - id of the context for the loaded text.
+- path (context) - id of the context with the path to a text file;
+- [output] (context) - id of the context for the loaded text.
 
 ## save_text
 
@@ -804,8 +802,8 @@ save_text *path* *text*
 
 **Parameters**
 
-- path (string) - id of the context with a path to a text file;
-- text (string) - id of the context with a text to save.
+- path (context) - id of the context with a path to a text file;
+- text (context) - id of the context with a text to save.
 
 ## ls
 
@@ -819,8 +817,8 @@ ls [directory] [output]
 
 **Parameters**
 
-- directory (string) - id of the context with the directory path;
-- directory (string) - id of the output context.
+- directory (context) - id of the context with the directory path;
+- directory (context) - id of the output context.
 
 ## lse
 
@@ -834,7 +832,7 @@ lse *source* *detail*
 
 **Parameters**
 
-- source (string): processes, layers, cameras, bitmaps, fonts;
+- source (context): processes, layers, cameras, bitmaps, fonts;
 - detail (bool) - if true, prints items in the table with details.
 
 ## var
@@ -850,13 +848,13 @@ var *value* *id*
 **Parameters**
 
 - value (VariableModule);
-- id (string) - id of the new variable and a new context.
+- id (context) - id of the new variable and a new context.
 
 ## vec
 
 **Syntax**
 
-vec *type* *literals* *id*
+vec *type* *literals* *output*
 
 **Description**
 
@@ -864,15 +862,15 @@ vec *type* *literals* *id*
 
 **Parameters**
 
-- type (string): bool, int, double, string;
+- type (context): bool, int, double, string;
 - literals (VariableModule vector): bool, int, double, string;
-- id (string) - id of the new variable and a new context.
+- output (context) - id of the new variable and a new context.
 
 ## tokenize
 
 **Syntax**
 
-tokenize *delimeter* *context* [[output] ...]
+tokenize *delimeter* *context* [[output]...]
 
 **Description**
 
@@ -881,8 +879,8 @@ tokenize *delimeter* *context* [[output] ...]
 **Parameters**
 
 - delimeter (char) - a character that will divide the provided string;
-- context (string) - id of the context with a string to be tokenize;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- context (context) - id of the context with a string to be tokenize;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## tree
 
@@ -896,7 +894,7 @@ tree [output]
 
 **Parameters**
 
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## len
 
@@ -910,8 +908,8 @@ len text [output]
 
 **Parameters**
 
-- text (string) - id of the context with a string value;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- text (output) - id of the context with a string value;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
 ## size
 
@@ -925,8 +923,8 @@ size context [output]
 
 **Parameters**
 
-- context (string) - id of the context;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- context (context) - id of the context;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
 ## substr
 
@@ -940,10 +938,10 @@ substr text begin length [output]
 
 **Parameters**
 
-- text (string) - id of the context with a string value;
-- begin (string) - id of the context with an integer value, the start of the sub-string in the text;
-- length (string) - id of the context with an integer value, the length of the sub-string;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- text (output) - id of the context with a string value;
+- begin (output) - id of the context with an integer value, the start of the sub-string in the text;
+- length (output) - id of the context with an integer value, the length of the sub-string;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
 ## restart_drag
 
@@ -977,7 +975,7 @@ pwd [output]
 
 **Parameters**
 
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
 ## similar
 
@@ -991,6 +989,6 @@ similar pattern vector [output]
 
 **Parameters**
 
-- pattern (string) - id of the context with a string value;
-- vector (string) - id of the context with a vector of strings to be checked;
-- [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- pattern (output) - id of the context with a string value;
+- vector (output) - id of the context with a vector of strings to be checked;
+- [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.

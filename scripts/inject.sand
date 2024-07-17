@@ -4,8 +4,8 @@ start inject
     index Layers [0 1] object Terminal
     index Terminal [0 0] super_editable_text EditableText
 
-    value ([c EditableText cursor_pos]) cursorPos
-    value ([c EditableText second_cursor_pos]) secondCursorPos
+    value ([EditableText cursor_pos]) cursorPos
+    value ([EditableText second_cursor_pos]) secondCursorPos
     print ":" _ c cursorPos
     print "\n" _ c secondCursorPos
 
@@ -21,8 +21,8 @@ start inject
     fun EditableText inject_format 101 200  0.0 0.0 1.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code"
     fun EditableText inject_format 201 300  0.5 0.0 0.5 1.0  0.0 1.0 0.0 1.0 "cascadia_code"
 
-    value ([c EditableText cursor_pos]) cursorPos
-    value ([c EditableText second_cursor_pos]) secondCursorPos
+    value ([EditableText cursor_pos]) cursorPos
+    value ([EditableText second_cursor_pos]) secondCursorPos
     print ":" _ c cursorPos
     print "\n" _ c secondCursorPos
     post

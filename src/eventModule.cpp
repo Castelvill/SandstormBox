@@ -1115,7 +1115,7 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
         Scrollbar->scrollToTheEnd();
     }
     else if(attribute == "scroll_by_distance" && Values.size() >= 2){
-        Scrollbar->scrollByDistance(vec2d(Values[0].getDouble(), Values[1].getDouble()));
+        Scrollbar->scrollByDistance(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else if(attribute == "add_camera" && Values.size() >= 1){
         addUniqueToStringVector(Scrollbar->cameraIDs, Values[0].getString());

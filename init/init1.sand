@@ -2,7 +2,7 @@
     triggers on_boot
     if ([on_boot])
     //edit_proc can_interact_with_user false
-    new object l KERNEL 1 _ _ First
+    new object KERNEL 1 _ _ First
     //index Layers [0 1] object First
     bind First reset
     bind First literal ["scripts/KERNEL_editor.txt"]
@@ -13,7 +13,7 @@ end*/
 /*start init false
     triggers on_boot
     if ([on_boot])
-    new object l KERNEL 1 _ _ First
+    new object KERNEL 1 _ _ First
     fun First set_can_be_selected false
     fun me set_can_be_selected false
     bind First reset

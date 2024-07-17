@@ -1,6 +1,6 @@
 start deleteFriends
     triggers each_iteration
-    if ([c delete])
+    if ([delete])
     all camera _ camera _ Cameras
     find_by_id_2 Cameras insideCameraID InsideCamera
     delete InsideCamera
@@ -13,8 +13,8 @@ start checkIfMouseMoved
     if ([mouse_moved] || [on_display_resize])
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID MainCamera
-    value ([c MainCamera size_x]) sx
-    value ([c MainCamera size_y]) sy
+    value ([MainCamera size_x]) sx
+    value ([MainCamera size_y]) sy
     int [35] bordersY
     -= sy bordersY
     int [10] borderX

@@ -1,6 +1,6 @@
 start help
     string [""] xd
-    print " " result c allowedPrograms
+    print " " result allowedPrograms
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 1.0 0.8 0.0 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
     string ["_enter"] program
@@ -9,7 +9,7 @@ end
 
 
 start ls
-    if ([exists param1] [c param1] [string ""] == ||)
+    if ([exists param1] [param1] [""] == ||)
     ls param1 result
     tokenize " " result files
     index me [0 0] super_editable_text EditableText
@@ -20,7 +20,7 @@ post
     string ["_enter"] program
 end
 start lsColoringLoop true
-	if ([c fileIndex] [c files size] <)
+	if ([fileIndex] [files size] <)
 	index files [fileIndex] value file
     len file fileNameLength
     int [5] length
@@ -34,7 +34,7 @@ start lsColoringLoop true
 	run colorIfDirectory printFileNameOnTerminal
 end
 start colorIfDirectory
-	if([c param1 size] [int 0] >)
+	if([param1 size] [0] >)
     string [""] fullPath
     = fullPath param1 
     string ["/"] backslash
@@ -49,19 +49,19 @@ start colorIfDirectory2
 	else colorIfSandScript
 end
 start colorIfSandScript
-    if([c fileNameLength] [int 0] >)
+    if([fileNameLength] [0] >)
     substr file fileNameLength length extension
     substr file fileNameLengthFT lengthFT extensionFT
     run colorIfSandScript2
     else colorIfNormalFile
 end
 start colorIfSandScript2
-    if([c extension] [string ".sand"] ==)
+    if([extension] [".sand"] ==)
     fun EditableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
     else colorIfFormattedText
 end
 start colorIfFormattedText
-    if([c extensionFT] [string ".ft"] ==)
+    if([extensionFT] [".ft"] ==)
     fun EditableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
     else colorIfNormalFile
 end
@@ -69,7 +69,7 @@ start colorIfNormalFile
 	fun EditableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
 end
 start printFileNameOnTerminal
-	print "  " result c file
+	print "  " result file
 	run printOnTerminal
 end
 
@@ -83,7 +83,7 @@ end
 
 
 start neofetch
-    print _ result string ["
+    print _ result "
  ┌────────────────────┐   Mateusz                        
  │@*,*'*:*'**'*:**'**@│   -----------------------        
  │'$$##+  ' ,'- ,*,:$*│   OS: Sandstorm Box              
@@ -100,7 +100,7 @@ start neofetch
  │@:''*'.:*.*'.:**.#$@│                                  
  └────────────────────┘                                  
 
-"]
+"
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     string [""] program
@@ -108,7 +108,7 @@ start neofetch
 end
 
 start xd
-    print _ result string ["@       @  @@@@@@   
+    print _ result "@       @  @@@@@@   
  @     @   @     @@ 
   @   @    @       @
    @ @     @       @
@@ -117,7 +117,7 @@ start xd
   @   @    @       @
  @     @   @     @@ 
 @       @  @@@@@@   
-"]
+"
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     string [""] program
@@ -136,7 +136,7 @@ start v4
     int [1 2 3 4] x
     int [2 2 1 1] y
     += x x
-    print " " result c x
+    print " " result x
     string ["\n"] endl
     += result endl
     string [""] program
@@ -145,7 +145,7 @@ end
 
 
 start winfetch
-    print _ result string ["                                ..,   Mateusz@DESKTOP-JVU6QTR
+    print _ result "                                ..,   Mateusz@DESKTOP-JVU6QTR
                     ....,,:;+ccllll   -----------------------
       ...,,+:;  cllllllllllllllllll   OS: Windows 10 Pro x86_64
 ,cclllllllllll  lllllllllllllllllll   Host: Gigabyte
@@ -158,27 +158,27 @@ llllllllllllll  lllllllllllllllllll   Resolution: 1366x768
 llllllllllllll  lllllllllllllllllll   WM: Explorer
 llllllllllllll  lllllllllllllllllll   WM Theme: Custom
 llllllllllllll  lllllllllllllllllll   CPU: 12th Gen Intel i5-12600KF (16) @ 3.690GHz
-llllllllllllll  lllllllllllllllllll   GPU: Caption
 llllllllllllll  lllllllllllllllllll   GPU: AMD Radeon RX 6700 XT
-`'ccllllllllll  lllllllllllllllllll   GPU
-       `' \*::  :ccllllllllllllllll   Memory: 12819MiB / 32592MiB
+llllllllllllll  lllllllllllllllllll   Memory: 12819MiB / 32592MiB
+`'ccllllllllll  lllllllllllllllllll   
+       `' \*::  :ccllllllllllllllll   
                        ````''*::cll
                                  ``
-"]
+"
     string [""] program
     run printOnTerminal
 end
 
 
 start hello
-    print _ result string ["Hello, world!\n"]
+    print _ result "Hello, world!\n"
     string [""] program
     run printOnTerminal
 end
 
 
 start cats
-    print _ result string ["                      /^--^\     /^--^\     /^--^\
+    print _ result "                      /^--^\     /^--^\     /^--^\
                       \____/     \____/     \____/
                      /      \   /      \   /      \
                     |        | |        | |        |
@@ -190,14 +190,14 @@ start cats
 #########################################################################
 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
-"]
+"
     string [""] program
     run printOnTerminal
 end
 
 
 start sq
-    print _ result string ["        .--'''''''''--.
+    print _ result "        .--'''''''''--.
      .'      .---.      '.
     /    .-----------.    \
    /        .-----.        \
@@ -213,28 +213,28 @@ start sq
             |     |
             '.___.'
               | |
-"]
+"
     string [""] program
     run printOnTerminal
 end
 
 
 start print
-    print _ result c param1
+    print _ result param1
     string ["_enter"] program
     run printOnTerminal
 end
 
 
 start spawn
-    new layer l 1 _ _ AmogusLayer
+    new layer 1 _ _ AmogusLayer
     fun AmogusLayer activate
     fun AmogusLayer set_id "AmogusLayer"
-    value ([context AmogusLayer id]) newLayerID
+    value ([AmogusLayer id]) newLayerID
 
-    //print ": " _ c AmogusLayer
+    //print ": " _ AmogusLayer
 
-    new camera l 1 _ _ NewWindow
+    new camera 1 _ _ NewWindow
     fun NewWindow set_position 0 0
     fun NewWindow set_id "AmogusWindow0"
     fun NewWindow set_active true
@@ -254,15 +254,15 @@ start spawn
     fun NewWindow set_grabbing_area_size 640 50
     fun NewWindow pin_to_camera "Desktop"
     fun NewWindow activate_pin
-    value ([context NewWindow id]) newWindowID
+    value ([NewWindow id]) newWindowID
 
-    //print \n _ c NewWindow
+    //print \n _ NewWindow
 
-    new object c AmogusLayer 1 _ _ NewWindowObject
+    new object AmogusLayer 1 _ _ NewWindowObject
     fun NewWindowObject set_id "Window"
     fun NewWindowObject set_can_be_selected false
 
-    new primitives c NewWindowObject 1 _ _ border1
+    new primitives NewWindowObject 1 _ _ border1
     fun border1 set_id "background"
     fun border1 set_type "filled_rounded_rectangle"
     fun border1 add_point 0.0 0.0
@@ -273,14 +273,14 @@ start spawn
     fun border1 set_size 640 480
     fun border1 update_with_size
 
-    new primitives c NewWindowObject 1 _ _ border2
+    new primitives NewWindowObject 1 _ _ border2
     clone border2 border1
     fun border2 set_id "toolbar"
     fun border2 set_color 0.0 0.0 0.0 0.8
     fun border2 set_size 640 50
     fun border2 update_with_size
 
-    new super_text c NewWindowObject 1 _ _ title
+    new super_text NewWindowObject 1 _ _ title
     fun title set_id "title"
     fun title set_position 10 10
     fun title set_size 400 50
@@ -289,10 +289,10 @@ start spawn
     fun title set_wrapping "n"
     fun title set_content param1
 
-    new object c AmogusLayer 1 _ _ NewAmo
+    new object AmogusLayer 1 _ _ NewAmo
     fun NewAmo set_id "Amongus"
     fun NewAmo set_position 0 80
-    new image c NewAmo 1 _ _ redAstronaut
+    new image NewAmo 1 _ _ redAstronaut
     fun redAstronaut set_id "amongus"
     fun redAstronaut connect_bitmap_via_alias param1
     fun redAstronaut set_scale 0.6 0.6
@@ -316,10 +316,6 @@ start sh
     += instruction param6
     += instruction space
     += instruction param7
-
-    /*print \n _ c param1
-    print \n _ c param2
-    print \n _ c instruction*/
 
     string [""] program
     inject_instr me instruction
@@ -362,7 +358,7 @@ end
 
 
 start cd
-    if ([exists param1] [c param1] [string ""] == ||)
+    if ([exists param1] [param1] [""] == ||)
     string [""] program
     cd param1
     else informFileDoesNotExistForCD
@@ -386,7 +382,7 @@ start history
 end
 
 start printHistory true
-    if ([c i] [c commandHistorySize] <)
+    if ([i] [commandHistorySize] <)
     string [""] result
     int [0] j
     = j i
@@ -408,13 +404,13 @@ start wait
 end
 start executeWaiting
     triggers each_second
-    if ([context program] [string "wait"] == [second_passed] &&)
+    if ([program] ["wait"] == [second_passed] &&)
     index me [0 0] super_editable_text Terminal
     fun Terminal cut_unprotected_area
     run waitFor0 waitFor1 waitFor2
 end
 start waitFor0
-    if([c waitingTime] [int 0] ==)
+    if([waitingTime] [0] ==)
     string ["||||||||||||||||||||"] result
     ++ waitingTime
     run printOnTerminalUnprotected
@@ -422,7 +418,7 @@ post
     break
 end
 start waitFor1
-    if([c waitingTime] [int 1] ==)
+    if([waitingTime] [1] ==)
     string ["********************"] result
     ++ waitingTime
     run printOnTerminalUnprotected
@@ -430,7 +426,7 @@ post
     break
 end
 start waitFor2
-    if([c waitingTime] [int 2] ==)
+    if([waitingTime] [2] ==)
     string ["--------------------"] result
     int [0] waitingTime
     run printOnTerminalUnprotected
@@ -439,7 +435,7 @@ post
 end
 
 start sudo
-    if ([c param1] [string "rm"] == [c param2] [string "-rf"] == [c param3] [string "--no-preserve-root"] == [c param4] [string "/"] == && && &&)
+    if ([param1] ["rm"] == [param2] ["-rf"] == [param3] ["--no-preserve-root"] == [param4] ["/"] == && && &&)
     string ["Haha. No."] result
     string ["_enter"] program
     run printOnTerminal

@@ -1,4 +1,7 @@
 17.07.2024
+-Minimized "if" and "value" instructions by shortening the expressions.
+-Minimized "print" instruction by removing "type" parameter from the variadic part.
+-Updated documentation with a new "context" parameter type.
 -Added "breakpoint" instruction for triggering a breakpoint inside a debugger.
 -Minimized "index" instruction by removing "source" and "indexes_from_contexts" parameters.
 
