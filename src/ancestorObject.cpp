@@ -552,8 +552,11 @@ bool canStringBeDouble(string text){
             return false;
         }
     }
-    return true;
+    return hasPoint;
 }
+
+#include <signal.h>
+
 vector<WordStruct> tokenizeCode(string input){
     std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|/=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
@@ -995,6 +998,83 @@ bool gatherContextVector(const vector<WordStruct> & words, unsigned & cursor, ve
     cursor++;
     return true;
 }
+bool gatherArgumentVector(const vector<WordStruct> & words, unsigned & cursor, vector<string> & Variables, vector<VariableModule> & Literals, unsigned lineNumber, string scriptName){
+    bool negate = false;
+    string error;
+    if(cursor >= words.size()){
+        return true;
+    }
+    if(words[cursor].type == 'e'){
+        cursor++;
+        return true;
+    }
+    if(words[cursor].value != "["){
+        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Every list of strings must begin with a square bracket.\n";
+        return false;
+    }
+    cursor++;
+    if(cursor >= words.size()){
+        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
+        return false;
+    }
+    while(words[cursor].value != "]"){
+        if(words[cursor].value == "-"){
+            negate = true;
+        }
+        else if(words[cursor].type == 'c'){
+            Variables.push_back(words[cursor].value);
+        }
+        else if(words[cursor].type == 'b'){
+            Literals.push_back(VariableModule::newBool(cstoi(words[cursor].value, error)));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                return false;
+            }
+            if(negate){
+                negate = false;
+                Literals.back().toggleBool();
+            }
+        }
+        else if(words[cursor].type == 'i'){
+            Literals.push_back(VariableModule::newInt(cstoi(words[cursor].value, error)));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                return false;
+            }
+            if(negate){
+                negate = false;
+                Literals.back().negate();
+            }
+        }
+        else if(words[cursor].type == 'd'){
+            Literals.push_back(VariableModule::newDouble(cstod(words[cursor].value, error)));
+            if(error.size() > 0){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ":\n" << error << "\n";
+                return false;
+            }
+            if(negate){
+                negate = false;
+                Literals.back().negate();
+            }
+        }
+        else if(words[cursor].type == 's'){
+            Literals.push_back(VariableModule::newString(words[cursor].value));
+        }
+        else{
+            cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                << ": Parameter nr." << cursor+1 << " is not of a valid type: '" << words[cursor].type << "'.\n";
+            return false;
+        }
+        
+        cursor++;
+        if(cursor >= words.size()){
+            cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Command is too short.\n";
+            return false;
+        }
+    }
+    cursor++;
+    return true;
+}
 bool gatherLiterals(const vector<WordStruct> & words, unsigned & cursor, vector<VariableModule> & Literals, char type, unsigned lineNumber, string scriptName){
     bool negate = false;
     string error;
@@ -1137,6 +1217,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
     code = code2;
 
     string error;
+    bool triggerBreakpoint = false;
     
     for(string line : code){
         lineNumber++;
@@ -1148,7 +1229,16 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             continue;
         }
         cursor = 1;
-        if(words[0].value == "start"){
+
+        if(triggerBreakpoint){
+            raise(SIGINT);
+            triggerBreakpoint = false;
+        }
+        if(words[0].value == "breakpoint"){
+            triggerBreakpoint = true;
+            cout << "Warning: The 'breakpoint' instruction can be used only in the debugger.\n";
+        }
+        else if(words[0].value == "start"){
             if(words.size() < 2){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber <<
                     ": In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires one parameter.\n";
@@ -1331,26 +1421,30 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else if(words[0].value == "index"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            if(words[1].type != 'c' || words[2].type != 'c'){
+            if(words[1].type != 'c'){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
                     << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
                 return;
             }
-            Operation->Location.source = words[1].value;
+            if(words[1].value == "Processes"){
+                Operation->Location.source = "process";
+            }
+            else if(words[1].value == "Layers"){
+                Operation->Location.source = "layer";
+            }
+            else if(words[1].value == "Cameras"){
+                Operation->Location.source = "camera";
+            }
+            else{
+                Operation->Location.source = "context";
+                Operation->dynamicIDs.push_back(words[1].value);
+            }
             cursor = 2;
-            if(words[1].value != "process" && words[1].value != "layer" && words[1].value != "camera"){
-                Operation->dynamicIDs.push_back(words[2].value);
-                cursor++;
-            }
-            if(!gatherLiterals(words, cursor, Operation->Literals, 'i', lineNumber, scriptName)){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
-                return;
-            }
-            if(!gatherContextVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
+            if(!gatherArgumentVector(words, cursor, Operation->dynamicIDs, Operation->Literals, lineNumber, scriptName)){
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Creation of an argument vector failed.\n";
                 return;
             }
             if(optional(words, cursor, Operation->Location.attribute)){ continue; }

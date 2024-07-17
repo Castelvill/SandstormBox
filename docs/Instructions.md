@@ -22,6 +22,12 @@ start *id* [loop] [override]
 
     Close the instruction scope for the current event.
 
+## breakpoint
+
+**Description**
+
+    Trigger a debug breakpoint right before the next instruction. If the engine is executed outside the debugger, this instruction will trigger a crash instead.
+
 ## triggers
 
 **Syntax**
@@ -154,7 +160,7 @@ run *event* [[event] ...]
 
 **Syntax**
 
-index *source* *context* [indexes] [indexes_from_contexts] [attribute] [output]
+index *context* [indexes] [attribute] [output]
 
 **Description**
 
@@ -162,10 +168,8 @@ index *source* *context* [indexes] [indexes_from_contexts] [attribute] [output]
 
 **Parameters:**
 
-- source (string): “camera”, “layer”, “context”, “_”  - if source is equal to “camera” or “layer”, contexts from indexes_from_contexts are treated as indexes.
-- context (string) - id of the context. If source is not equal to "context", this parameter will be ignored; 
-- [indexes] (int/unsigned vector) - the list of indexes used to find entities in vectors;
-- [indexes_from_contexts] (string vector): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value” - ids of contexts
+- context (string) - id of the context; 
+- [indexes] (int/string vector) - the list of indexes used to find an entity in the provided vector;
 - [attribute] (string) - if provided, aggregate this attribute from selected entities;
 - [output] (string) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 

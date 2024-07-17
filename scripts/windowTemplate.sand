@@ -36,7 +36,7 @@ start revertBorderIfPossible
 	all layer _ _ _ _ _ _ Layers
 	value ([context me layer_id]) myLayerID
 	find_by_id_2 Layers myLayerID Layer
-	index c Layer [0 0 2] _ primitives Border
+	index Layer [0 0 2] primitives Border
 	fun Border activate
 end
 
@@ -69,16 +69,16 @@ start refreshWindow
     all layer _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
 
-    index c Layer [0 0 0] _ primitives Primi
+    index Layer [0 0 0] primitives Primi
     fun Primi set_size sx sy
     fun Primi update_with_size
 
-    index c Layer [0 0 1] _ primitives Primi
+    index Layer [0 0 1] primitives Primi
     int [30] height
     fun Primi set_size sx height
     fun Primi update_with_size
 
-    index c Layer [0 0 2] _ primitives Primi
+    index Layer [0 0 2] primitives Primi
     int [-4] sxShift
     int [-4] syShift
     += sxShift sx
@@ -86,34 +86,34 @@ start refreshWindow
     fun Primi set_size sxShift syShift
     fun Primi update_with_size
 
-    index c Layer [0 0 3] _ primitives Primi
+    index Layer [0 0 3] primitives Primi
     int [-20] sxShift
     int [15] height
     += sxShift sx
     fun Primi set_position sxShift height
     fun Primi update_with_size
 
-    index c Layer [0 0 0] _ collision ExitCollision
+    index Layer [0 0 0] collision ExitCollision
     fun ExitCollision set_position sxShift height
 
-    index c Layer [0 0 4] _ primitives Primi
+    index Layer [0 0 4] primitives Primi
     int [-50] sxShift
     int [15] height
     += sxShift sx
     fun Primi set_position sxShift height
     fun Primi update_with_size
 
-    index c Layer [0 0 1] _ collision MaxCollision
+    index Layer [0 0 1] collision MaxCollision
     fun MaxCollision set_position sxShift height
 
-    index c Layer [0 0 5] _ primitives Primi
+    index Layer [0 0 5] primitives Primi
     int [-80] sxShift
     int [15] height
     += sxShift sx
     fun Primi set_position sxShift height
     fun Primi update_with_size
 
-    index c Layer [0 0 2] _ collision MinCollision
+    index Layer [0 0 2] collision MinCollision
     fun MinCollision set_position sxShift height
 
     run updateIfNotMaxed additionalUpdate
@@ -143,7 +143,7 @@ start exitWindow
     value ([context me layer_id]) myLayerID
     all layer _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
-    index c Layer [0 0 0] _ collision ExitCollision
+    index Layer [0 0 0] collision ExitCollision
     run exitWindowCheck
 end
 
@@ -169,7 +169,7 @@ start maxWindow
     value ([context me layer_id]) myLayerID
     all layer _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
-    index c Layer [0 0 1] _ collision MaxCollision
+    index Layer [0 0 1] collision MaxCollision
     run maxWindowCheck
 end
 
@@ -184,7 +184,7 @@ start maxWindowIfTrue
     all layer _ _ _ _ _ _ Layers
     value ([context me layer_id]) myLayerID
     find_by_id_2 Layers myLayerID Layer
-    index c Layer [0 0 2] _ primitives Border
+    index Layer [0 0 2] primitives Border
     fun Border deactivate
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
@@ -213,7 +213,7 @@ start minimizeWindow
     value ([context me layer_id]) myLayerID
     all layer _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
-    index c Layer [0 0 2] _ collision MinCollision
+    index Layer [0 0 2] collision MinCollision
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     run minimizeWindowCheck
@@ -247,23 +247,23 @@ start switchToBorderless
     all layer _ _ _ _ _ _ Layers
     value ([context me layer_id]) myLayerID
     find_by_id_2 Layers myLayerID Layer
-    index c Layer [0 0 1] _ primitives Toolbar
+    index Layer [0 0 1] primitives Toolbar
     fun Toolbar deactivate
-    index c Layer [0 0 2] _ primitives Border
+    index Layer [0 0 2] primitives Border
     fun Border deactivate
-    index c Layer [0 0 3] _ primitives ExitButton
+    index Layer [0 0 3] primitives ExitButton
     fun ExitButton deactivate
-    index c Layer [0 0 4] _ primitives MaxButton
+    index Layer [0 0 4] primitives MaxButton
     fun MaxButton deactivate
-    index c Layer [0 0 5] _ primitives MinButton
+    index Layer [0 0 5] primitives MinButton
     fun MinButton deactivate
-    index c Layer [0 0 0] _ super_text Title
+    index Layer [0 0 0] super_text Title
     fun Title deactivate
-    index c Layer [0 0 0] _ collision ExitCollision
+    index Layer [0 0 0] collision ExitCollision
     fun ExitCollision deactivate
-    index c Layer [0 0 1] _ collision MaxCollision
+    index Layer [0 0 1] collision MaxCollision
     fun MaxCollision deactivate
-    index c Layer [0 0 2] _ collision MinCollision
+    index Layer [0 0 2] collision MinCollision
     fun MinCollision deactivate
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
@@ -275,7 +275,7 @@ start switchToBorderless
     int [80] shiftY
     += cpx shiftX
     += cpy shiftY
-    index c Layer [0 0 0] _ primitives Background
+    index Layer [0 0 0] primitives Background
     fun Background set_size cpx cpy
     fun Background update_with_size
     else switchFromBorderless
@@ -286,21 +286,21 @@ start switchFromBorderless
     fun me set_position 0 0
     value ([context me layer_id]) myLayerID
     find_by_id_2 Layers myLayerID Layer
-    index c Layer [0 0 1] _ primitives Toolbar
+    index Layer [0 0 1] primitives Toolbar
     fun Toolbar activate
-    index c Layer [0 0 3] _ primitives ExitButton
+    index Layer [0 0 3] primitives ExitButton
     fun ExitButton activate
-    index c Layer [0 0 4] _ primitives MaxButton
+    index Layer [0 0 4] primitives MaxButton
     fun MaxButton activate
-    index c Layer [0 0 5] _ primitives MinButton
+    index Layer [0 0 5] primitives MinButton
     fun MinButton activate
-    index c Layer [0 0 0] _ super_text Title
+    index Layer [0 0 0] super_text Title
     fun Title activate
-    index c Layer [0 0 0] _ collision ExitCollision
+    index Layer [0 0 0] collision ExitCollision
     fun ExitCollision activate
-    index c Layer [0 0 1] _ collision MaxCollision
+    index Layer [0 0 1] collision MaxCollision
     fun MaxCollision activate
-    index c Layer [0 0 2] _ collision MinCollision
+    index Layer [0 0 2] collision MinCollision
     fun MinCollision activate
     all camera _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera

@@ -1,3 +1,7 @@
+17.07.2024
+-Added "breakpoint" instruction for triggering a breakpoint inside a debugger.
+-Minimized "index" instruction by removing "source" and "indexes_from_contexts" parameters.
+
 12.07.2024
 -Removed variable types from "fun" instruction.
 -Fixed minuses.

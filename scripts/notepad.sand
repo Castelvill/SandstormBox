@@ -39,7 +39,7 @@ start refreshWindowNotepad
     value ([context me layer_id]) myLayerID
     all layer _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
-    index c Layer [0 0 0] _ super_editable_text Notepad
+    index Layer [0 0 0] super_editable_text Notepad
     fun Notepad set_size sx sy
     //fun Notepad update
     run resizeObjectWhenNotBorderless
@@ -47,7 +47,7 @@ end
 
 start resizeObjectWhenNotBorderless
     if ([c isBorderless] !)
-    index c my_layer [0 0] _ object WindowObject
+    index my_layer [0 0] object WindowObject
     fun WindowObject set_size sx sy
     //fun Notepad update
 end
@@ -56,7 +56,7 @@ end
 start resizeObjectWhenMaxed
     triggers mouse_released
     if ([mouse_released 0])
-    index c my_layer [0 0 1] _ collision MaxCollision
+    index my_layer [0 0 1] collision MaxCollision
     run resizeObjectWhenMaxedCheck
 end
 
@@ -66,9 +66,9 @@ start resizeObjectWhenMaxedCheck
     find_by_id_2 Cameras cameraID Camera
     value ([context Camera size_x]) sx
     value ([context Camera size_y]) sy
-    index c my_layer [0 0] _ object WindowObject
+    index my_layer [0 0] object WindowObject
     fun WindowObject set_size sx sy
-    index c my_layer [0 0 0] _ super_editable_text Notepad
+    index my_layer [0 0 0] super_editable_text Notepad
     fun Notepad update
 end
 
@@ -93,9 +93,9 @@ start resizeObjectForBorderlessMode
     int [40] shiftY
     += cpx shiftX
     += cpy shiftY
-    index c my_layer [0 0] _ object WindowObject
+    index my_layer [0 0] object WindowObject
     fun WindowObject set_size cpx cpy
-    index c my_layer [0 0 0] _ super_editable_text Notepad
+    index my_layer [0 0 0] super_editable_text Notepad
     fun Notepad update
     else resizeObjectFromBorderlessMode
 end
@@ -103,8 +103,8 @@ end
 start resizeObjectFromBorderlessMode
     value ([context Camera size_x]) cpx
     value ([context Camera size_y]) cpy
-    index c my_layer [0 0] _ object WindowObject
+    index my_layer [0 0] object WindowObject
     fun WindowObject set_size cpx cpy
-    index c my_layer [0 0 0] _ super_editable_text Notepad
+    index my_layer [0 0 0] super_editable_text Notepad
     fun Notepad update
 end

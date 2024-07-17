@@ -272,9 +272,9 @@ end
 start selectTextWithMouse
     triggers mouse_pressing
     if ([mouse_pressing 0])
-    index c me [0 1] _ super_editable_text TextField
+    index me [0 1] super_editable_text TextField
     value ([c TextField cursor_pos_y]) cursorPosY
-    index c me [0 1] _ scrollbar Scrollbar
+    index me [0 1] scrollbar Scrollbar
     value ([c Scrollbar scroll_shift_y]) scrollShiftY
     -= cursorPosY scrollShiftY
     value ([window_h]) windowH
@@ -286,9 +286,9 @@ end
 start selectTextWithKeys
     triggers any_key_pressing
     if ([any_key_pressing])
-    index c me [0 1] _ super_editable_text TextField
+    index me [0 1] super_editable_text TextField
     value ([c TextField cursor_pos_y]) cursorPosY
-    index c me [0 1] _ scrollbar Scrollbar
+    index me [0 1] scrollbar Scrollbar
     value ([c Scrollbar scroll_shift_y]) scrollShiftY
     -= cursorPosY scrollShiftY
     value ([window_h]) windowH
@@ -299,14 +299,14 @@ start selectTextWithKeys
 end
 start moveScrollbarBySelectingText
     if ([c TextField is_editing_active] [c cursorPosY] [c windowLimitYDown] > &&)
-    index c me [0 1] _ scrollbar Scrollbar
+    index me [0 1] scrollbar Scrollbar
     fun Scrollbar scroll_by_distance 0 8
     fun me update_scrollbars
     else moveScrollbarBySelectingTextUp
 end
 start moveScrollbarBySelectingTextUp
     if ([c TextField is_editing_active] [c cursorPosY] [c windowLimitYUp] < &&)
-    index c me [0 1] _ scrollbar Scrollbar
+    index me [0 1] scrollbar Scrollbar
     fun Scrollbar scroll_by_distance 0 -8
     fun me update_scrollbars
 end
@@ -315,10 +315,10 @@ start spawnParticles
     //triggers each_iteration
     //triggers key_pressing
     //if ([any_key_pressing])
-    index c me [0 0] _ particles Particles
-    index c me [0 1] _ super_editable_text TextField
+    index me [0 0] particles Particles
+    index me [0 1] super_editable_text TextField
     value ([c TextField cursor_pos_x] [c TextField cursor_pos_y]) cursorPos
-    index c me [0 1] _ scrollbar Scrollbar
+    index me [0 1] scrollbar Scrollbar
     value ([c Scrollbar scroll_shift_x] [c Scrollbar scroll_shift_y]) scrollShift
     -= cursorPos scrollShift
     fun Particles set_position cursorPos
@@ -494,7 +494,7 @@ start spawnNewWindow
     value ([context NewWindowLayer id]) newLayerID
     fun NewWindowLayer activate
 
-    index c NewWindowLayer [0 0 0] _ super_text Title
+    index NewWindowLayer [0 0 0] super_text Title
     fun Title set_content param1
 
     new camera l 1 _ _ NewWindowCamera
@@ -505,7 +505,7 @@ start spawnNewWindow
     fun NewWindowCamera add_visible_layer newLayerID
     fun NewWindowCamera add_accessible_layer newLayerID
     fun NewWindowCamera set_drawing_borders false
-    index c NewWindowLayer [0 0 0] _ variable objectsCameraID
+    index NewWindowLayer [0 0 0] variable objectsCameraID
     = objectsCameraID newCameraID
     string [""] program
 end
@@ -519,9 +519,9 @@ start note
     run spawnNewWindow spawnNotepad
 end
 start spawnNotepad
-    index c me [0 1] _ super_editable_text Editable
-    index c NewWindowLayer [0 0] _ object Object
-    index c NewWindowLayer [0 0 0] _ primitives Background
+    index me [0 1] super_editable_text Editable
+    index NewWindowLayer [0 0] object Object
+    index NewWindowLayer [0 0 0] primitives Background
     fun Background set_color 0.0 0.0 0.0 1.0
     new super_editable_text c Object 1 _ _ TextEditor
     clone TextEditor Editable
@@ -548,13 +548,13 @@ start mover
     run spawnNewWindow spawnMover
 end
 start spawnMover
-    index c me [0 1] _ super_editable_text Editable
-    index c NewWindowLayer [0 0] _ object NewObject
+    index me [0 1] super_editable_text Editable
+    index NewWindowLayer [0 0] object NewObject
     first context [NewObject] _ _ variable has_friends bool _ has_friends
     bool [true] True
     = has_friends True
     find_by_id_2 NewObject has_friends 
-    index c NewWindowLayer [0 0 0] _ primitives Background
+    index NewWindowLayer [0 0 0] primitives Background
     fun Background set_color 0.0 0.0 0.0 1.0
     //value ([context my_layer id]) selectedLayerID
     value ([context NewWindowCamera id]) windowCameraID
@@ -596,13 +596,13 @@ end
 start autoComplete
     triggers key_pressed
     if ([key_pressed 64] [context program] [string "sleep"] == &&)
-    index camera [0] _ camera Camera
+    index Cameras [0] camera Camera
     run autoComplete1
 end
 
 start autoComplete1
     if ([c Camera is_selected])
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText set_last_color 1.0 0.8 0.0 1.0
     fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
     first _ [EditableText] _ _ _ _ content _ userInput
@@ -620,7 +620,7 @@ end
 start replaceWithAutoComplete
     if ([c completes size] [int 1] ==)
     fun EditableText cut_unprotected_area
-    index context completes [0] _ value instance
+    index completes [0] value instance
     fun EditableText add_content instance
     fun EditableText update
     first _ [EditableText] _ _ _ _ content _ history
@@ -648,7 +648,7 @@ end
 
 start addAllCompletes true
     if ([c i] [c completes size] <)
-    index context completes _ [i] value instance
+    index completes [i] value instance
     += result instance
     string [" "] space
     += result space
@@ -677,7 +677,7 @@ end
 start controler
     triggers each_iteration
     if ([context program] [string ""] ==)
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     string ["sleep"] program
@@ -689,7 +689,7 @@ end
 start clearOnShortcut
     triggers key_pressed
     if ([context program] [string "sleep"] == [key_pressed 217] && [key_pressed 12] &&)
-    index camera [0] _ camera Camera
+    index Cameras [0] camera Camera
     run clearOnShortcutIfFocused
 end
 
@@ -701,7 +701,7 @@ end
 start controlerWithEnter
     triggers each_iteration
     if ([context program] [string "_enter"] ==)
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     string ["sleep"] program
@@ -753,12 +753,12 @@ end
 start forceRefresh
     value ([window_w]) w
     value ([window_h]) h
-    index camera [0] _ camera Cam0
+    index Cameras [0] camera Cam0
     fun Cam0 resize w h
-    index context me [0 0] _ image background
+    index me [0 0] image background
     fun background resize w h
 
-    index c me [0 1] _ super_editable_text EditProgramTextField
+    index me [0 1] super_editable_text EditProgramTextField
     value ([c EditProgramTextField size_y]) EditorSizeY
     int [476] textHeight
     = textHeight h
@@ -767,7 +767,7 @@ start forceRefresh
     fun EditProgramTextField update
     fun EditProgramTextField crop_height_to_text
 
-    index c me [0 0] _ super_editable_text TerminalTextField
+    index me [0 0] super_editable_text TerminalTextField
     value ([c TerminalTextField size_y]) TerminalSizeY
     fun TerminalTextField set_size w TerminalSizeY
     fun TerminalTextField update
@@ -787,13 +787,13 @@ start resizeTerminalIfSmall
 end
 
 start refreshScrollbar
-    index c me [0 0] _ super_editable_text TerminalTextField
+    index me [0 0] super_editable_text TerminalTextField
     value ([c TerminalTextField size_y]) TerminalSizeY
     value ([window_h]) h
     -= TerminalSizeY h
 
     = scrollbarHeight h
-    index c me [0 0] _ scrollbar MainScrollbar
+    index me [0 0] scrollbar MainScrollbar
     value ([window_w]) windowW
     int [16] scrollbarWidth
     -= windowW scrollbarWidth
@@ -815,7 +815,7 @@ end
 
 start refreshScrollbarCheck
     if([c TerminalSizeY] [int 0] >)
-    index c me [0 0] _ scrollbar MainScrollbar
+    index me [0 0] scrollbar MainScrollbar
     int [0] zero
     fun MainScrollbar set_real_scrolling_area zero TerminalSizeY
     += TerminalSizeY h
@@ -842,7 +842,7 @@ start keepMinimalSizeOfScrollThumb
 end
 
 start resetScrollbar
-    index c me [0 0] _ scrollbar MainScrollbar
+    index me [0 0] scrollbar MainScrollbar
     int [12] ree12
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
@@ -854,14 +854,14 @@ end
 start enter
     triggers key_pressed
     if ([key_pressed 67] [context program] [string "sleep"] == &&)
-    index camera [0] _ camera Camera
+    index Cameras [0] camera Camera
     run enter1
 end
 
 
 start enter1
     if ([c Camera is_selected])
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput
     first _ [EditableText] _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
@@ -927,13 +927,13 @@ end
 start moveInHistory
     triggers key_pressed
     if([any_key_pressed] [c program] [string "sleep"] == &&)
-    index camera [0] _ camera Camera
+    index Cameras [0] camera Camera
     run upArrow downArrow
 end
 
 start upArrow
     if ([c Camera is_selected] [key_pressed 84] [c program] [string "sleep"] == [c currentCommandNumber] [int 0] > && && &&)
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput
     first _ [EditableText] _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
@@ -954,7 +954,7 @@ end
 
 start downArrow
     if ([c Camera is_selected] [key_pressed 85] [c program] [string "sleep"] == [c currentCommandNumber] [c commandNumber] < && && &&)
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     first _ [EditableText] _ _ _ _ content _ userInput
     first _ [EditableText] _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
@@ -981,7 +981,7 @@ end
 
 
 start printOnTerminal
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText add_content result
     fun EditableText update
     fun EditableText crop_height_to_text
@@ -993,14 +993,14 @@ start printOnTerminal
 
     value ([window_w]) w
     value ([window_h]) h
-    index c me [0 0] _ super_editable_text TerminalTextField
+    index me [0 0] super_editable_text TerminalTextField
     value ([c TerminalTextField size_y]) TerminalSizeY
 
     run resizeTerminalIfSmall refreshScrollbar
 end
 
 start printOnTerminalUnprotected
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText add_content result
     fun EditableText update
     fun EditableText crop_height_to_text
@@ -1012,7 +1012,7 @@ start printOnTerminalUnprotected
 
     value ([window_w]) w
     value ([window_h]) h
-    index c me [0 0] _ super_editable_text TerminalTextField
+    index me [0 0] super_editable_text TerminalTextField
     value ([c TerminalTextField size_y]) TerminalSizeY
 
     run resizeTerminalIfSmall refreshScrollbar
@@ -1022,15 +1022,15 @@ end
 
 start edit
     string ["edit"] program
-    index c me [0 0] _ super_editable_text TerminalTextField
+    index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField deactivate
-    index c me [0 0] _ scrollbar MainScrollbar
+    index me [0 0] scrollbar MainScrollbar
     fun MainScrollbar deactivate
-    index c me [0 1] _ scrollbar TextEditorScrollbar
+    index me [0 1] scrollbar TextEditorScrollbar
     fun TextEditorScrollbar activate
     fun TextEditorScrollbar scroll_to_the_beginning //scroll_to_the_end
     fun me update_scrollbars
-    index c me [0 1] _ super_editable_text TextEditor
+    index me [0 1] super_editable_text TextEditor
     fun TextEditor set_content ""
     fun TextEditor set_cursor_pos 0
     fun TextEditor activate
@@ -1060,19 +1060,19 @@ end
 start autoUpdateScrollbarForTextEditor
     triggers key_pressing
     if([context program] [string "edit"] == [any_key_pressing] &&)
-    index c me [0 1] _ super_editable_text EditorTextField
+    index me [0 1] super_editable_text EditorTextField
     //fun TextEditor update
     fun EditorTextField crop_height_to_text
     run refreshTextEditorScrollbar
 end
 
 start refreshTextEditorScrollbar
-    index c me [0 1] _ super_editable_text EditorTextField
+    index me [0 1] super_editable_text EditorTextField
     value ([c EditorTextField size_y]) EditorSizeY
     value ([window_h]) h
 
     = scrollbarHeight h
-    index c me [0 1] _ scrollbar EditorScrollbar
+    index me [0 1] scrollbar EditorScrollbar
     value ([window_w]) windowW
     int [16] scrollbarWidth
     -= windowW scrollbarWidth
@@ -1094,7 +1094,7 @@ start refreshTextEditorScrollbar
 end
 start refreshTextEditorScrollbarCheck
     if([c EditorSizeY] [int 0] >)
-    index c me [0 1] _ scrollbar EditorScrollbar
+    index me [0 1] scrollbar EditorScrollbar
     int [0] zero
     fun EditorScrollbar set_real_scrolling_area zero EditorSizeY
     += EditorSizeY h
@@ -1119,7 +1119,7 @@ start keepMinimalSizeOfTextEditorScrollThumb
     fun me update_scrollbars
 end
 start resetTextEditorScrollbar
-    index c me [0 1] _ scrollbar EditorScrollbar
+    index me [0 1] scrollbar EditorScrollbar
     int [12] ree12
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
@@ -1137,7 +1137,7 @@ end
 start checkIfInsertPressed
     if([context isEditing] !)
     reset_keyboard
-    index context me [0 1] _ super_editable_text EditableText
+    index me [0 1] super_editable_text EditableText
     fun EditableText start_editing
 end
 
@@ -1145,16 +1145,16 @@ start textEditorExit
     triggers key_pressed
     if([context program] [string "edit"] == [key_pressed 217] && [key_pressed 17] &&)
     string [""] program
-    index context me [0 0] _ super_editable_text TerminalTextField
+    index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField activate
     fun TerminalTextField start_editing
-    index c me [0 1] _ scrollbar TextEditorScrollbar
+    index me [0 1] scrollbar TextEditorScrollbar
     fun TextEditorScrollbar deactivate
-    index c me [0 0] _ scrollbar MainScrollbar
+    index me [0 0] scrollbar MainScrollbar
     fun MainScrollbar activate
     fun MainScrollbar scroll_to_the_end
     fun me update_scrollbars
-    index c me [0 1] _ super_editable_text TextEditor
+    index me [0 1] super_editable_text TextEditor
     fun TextEditor deactivate
     fun TextEditor stop_editing
 end
@@ -1162,7 +1162,7 @@ end
 start textEditorSave
     triggers key_pressed
     if([context program] [string "edit"] == [key_pressed 217] && [key_pressed 19] &&)
-    index context me [0 1] _ super_editable_text TextEditor
+    index me [0 1] super_editable_text TextEditor
     first _ [TextEditor] _ _ _ _ content _ writtenText
     save_text param1 writtenText
 end
@@ -1174,7 +1174,7 @@ end
 
 
 start injectFormat
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     double [1.0] r
     double [0.0] g
     double [1.0] b
@@ -1186,7 +1186,7 @@ end
 start format
     triggers key_pressed
     if([key_pressed 217] && [key_pressed 5] &&)
-    index context me [0 0] _ super_editable_text Terminal
+    index me [0 0] super_editable_text Terminal
     value ([c Terminal cursor_pos]) cursorPos
     value ([c Terminal second_cursor_pos]) secondCursorPos
     run formatCheck
@@ -1219,13 +1219,13 @@ post
 end*/
 
 start save_terminal
-    index c me [0 0] _ super_editable_text TerminalTextField
+    index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField save_to_file param1
     string [""] program
 end
 
 start load_terminal
-    index c me [0 0] _ super_editable_text TerminalTextField
+    index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField load_from_file param1
     string [""] program
 end

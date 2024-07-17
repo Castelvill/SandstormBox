@@ -10,3 +10,40 @@ load_terminal
 load_terminal aaa
 edit docs/TODO.txt
 edit docs/TODO.txt
+ls
+xd
+edit docs/TODO.txt
+neofetch
+ls
+cat terminal.ft
+nw
+neofetch
+ls
+neofetch
+ls
+cd scripts
+ls
+edit sand.sand
+ls
+sh rm uhu.ft
+ls
+ls
+ls
+sh rm uhu.ft
+ls
+cat uhu.ft
+exit
+ls
+sh rm uhu.ft
+sh rm "uhu.ft"
+ls
+mover KERNEL
+nw xd
+note docs/TODO.txt
+nw xd
+exit
+ls
+ls
+ls
+help
+neofetch

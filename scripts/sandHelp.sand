@@ -1,7 +1,7 @@
 start help
     string [""] xd
     print " " result c allowedPrograms
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 1.0 0.8 0.0 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
     string ["_enter"] program
     run printOnTerminal
@@ -12,7 +12,7 @@ start ls
     if ([exists param1] [c param1] [string ""] == ||)
     ls param1 result
     tokenize " " result files
-    index c me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     int [0] fileIndex
 	run lsColoringLoop
     else informFileDoesNotExistForCD
@@ -21,7 +21,7 @@ post
 end
 start lsColoringLoop true
 	if ([c fileIndex] [c files size] <)
-	index c files _ [fileIndex] value file
+	index files [fileIndex] value file
     len file fileNameLength
     int [5] length
     -= fileNameLength length
@@ -76,7 +76,7 @@ end
 
 
 start cls
-    index context me [0 0] _ super_editable_text History
+    index me [0 0] super_editable_text History
     fun History set_content ""
     string [""] program
 end
@@ -101,7 +101,7 @@ start neofetch
  └────────────────────┘                                  
 
 "]
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     string [""] program
     run printOnTerminal
@@ -118,7 +118,7 @@ start xd
  @     @   @     @@ 
 @       @  @@@@@@   
 "]
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     string [""] program
     run printOnTerminal 
@@ -330,7 +330,7 @@ start cat
     if ([exists param1])
     load_text param1 result
     string [""] program
-    index context me [0 0] _ super_editable_text EditableText
+    index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
     run printOnTerminal
     else printNoSuchFile
@@ -409,7 +409,7 @@ end
 start executeWaiting
     triggers each_second
     if ([context program] [string "wait"] == [second_passed] &&)
-    index c me [0 0] _ super_editable_text Terminal
+    index me [0 0] super_editable_text Terminal
     fun Terminal cut_unprotected_area
     run waitFor0 waitFor1 waitFor2
 end

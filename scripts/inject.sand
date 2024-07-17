@@ -1,8 +1,8 @@
 start inject
     triggers each_iteration
 
-    index layer [0 1] _ object Terminal
-    index context Terminal [0 0] _ super_editable_text EditableText
+    index Layers [0 1] object Terminal
+    index Terminal [0 0] super_editable_text EditableText
 
     value ([c EditableText cursor_pos]) cursorPos
     value ([c EditableText second_cursor_pos]) secondCursorPos

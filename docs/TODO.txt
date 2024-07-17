@@ -155,6 +155,7 @@ OPTIMALIZATIONS
 -(Memory optimalization) Single Particles have only positions and Module has few vectors of randomized variables and single particles use them.
 -(Performance optimalization) Add a vector that tells which objects have particles.
 -Add threads: one for moving and one for drawing particles.
+-Create a program with cells like in jupyter notebook.
 
 BUGS
 -Keyboard input can be randomly and permamently doubled. Clue: "...just make sure you handle the ALLEGRO_EVENT_DISPLAY_LOST and ALLEGRO_EVENT_DISPLAY_FOUND events, and redraw when you get the latter event." 
