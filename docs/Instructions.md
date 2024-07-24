@@ -136,7 +136,7 @@ run *event* [[event]...]
 
 **Syntax**
 
-*aggregation_type* *source* [context_list] [camera_id] [layer_id] [object_id] [module_type] [module_id] [attribute] [expression] [output]
+*aggregation_type* *context* [camera_id] [layer_id] [object_id] [module_type] [module_id] [attribute] [expression] [output]
 
 **Description**
 
@@ -145,15 +145,14 @@ run *event* [[event]...]
 **Parameters:**
 
 - aggregation_type (instruction): “all” - returns whole context, “first” - returns the first context, “last” - returns the last context, “random” - returns one random context;
-- source (context): camera, layer, context, _ - if context ids are not provided, choose one of the highest types of abstractions. Each camera contains its attributes and a bitmap (screen/window), while each layer contains its attributes and objects;
-- [context_list] (context vector) - context ids will be used when source is equal to “context” or “_”. Each context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”. Type of the context affects other parameters;
-- [expression] (ConditionClass vector) - the list of locations of values and the list of operators that create a relationship between those values, which in turn results in a single boolean value. This whole expression is calculated for each entity separately and if it returns truth, entity is aggregated into the new context. But if expression is empty, this boolean is equal to true by default;
-- [camera_id] (string) - if source is equal to “camera” or provided context is of a camera type, only the camera with this id can be aggregated;
-- [layer_id] (string) - if source is equal to “layer” or provided context is of a layer type, only the layer with this id can be aggregated;
-- [object_id] (string) - if source is equal to “layer” or provided context is of a layer or object type, only the object with this id can be aggregated;
-- [module_type] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
-- [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
+- context (context) - id of the context. Each context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”. Type of the context affects other parameters;
+- [camera_id] (string) - if the provided context is of a camera type, only the camera with this id can be aggregated;
+- [layer_id] (string) - if the provided context is of a layer type, only the layer with this id can be aggregated;
+- [object_id] (string) - if the provided context is of a layer or object type, only the object with this id can be aggregated;
+- [module_type] (string) - if the provided context contains layers, objects or modules; only the module of this type can be aggregated;
+- [module_id] (string) - if the provided context contains layers, objects or modules; only the module with this id can be aggregated;
 - attribute (string) - if provided, aggregate this attribute from selected entities;
+- [expression] (ConditionClass vector) - the list of locations of values and the list of operators that create a relationship between those values, which in turn results in a single boolean value. This whole expression is calculated for each entity separately and if it returns truth, entity is aggregated into the new context. But if expression is empty, this boolean is equal to true by default;
 - [output] (context) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## index

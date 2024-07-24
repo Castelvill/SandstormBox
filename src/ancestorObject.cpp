@@ -1386,17 +1386,30 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
-            if(words[1].type != 'c' && words[1].type != 'e'){
+            if(words[1].type != 'c'){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
                     << ": In '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
-            if(words[1].type != 'e'){
-                Operation->Location.source = words[1].value;
+
+            if(words[1].value == "Layers"){
+                Operation->Location.source = "layer";
+            }
+            else if(words[1].value == "Cameras"){
+                Operation->Location.source = "camera";
+            }
+            else if(words[1].value != ""){
+                Operation->Location.source = "context";
+                Operation->dynamicIDs.push_back(words[1].value);
+            }
+            else{
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": First argument cannot be an empty context.\n";
+                return;
             }
             
             cursor = 2;
-            if(words[1].value == "camera"){
+            if(Operation->Location.source == "camera"){
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName)){
@@ -1405,7 +1418,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
-            else if(words[1].value == "layer"){
+            else if(Operation->Location.source == "layer"){
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 if(optional(words, cursor, Operation->Location.objectID)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
@@ -1417,11 +1430,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
                 if(optional(words, cursor, Operation->newContextID)){ continue; }
             }
-            else if(words[1].value == "context" || words[1].value == "c" || words[1].type == 'e'){
-                if(!gatherContextVector(words, cursor, Operation->dynamicIDs, lineNumber, scriptName)){
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Context gather failed.\n";
-                    return;
-                }
+            else if(Operation->Location.source == "context"){
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 if(optional(words, cursor, Operation->Location.objectID)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
@@ -1448,6 +1457,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     << ": In '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
                 return;
             }
+
             if(words[1].value == "Processes"){
                 Operation->Location.source = "process";
             }
@@ -1457,10 +1467,16 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             else if(words[1].value == "Cameras"){
                 Operation->Location.source = "camera";
             }
-            else{
+            else if(words[1].value != ""){
                 Operation->Location.source = "context";
                 Operation->dynamicIDs.push_back(words[1].value);
             }
+            else{
+                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                    << ": First argument cannot be an empty context.\n";
+                return;
+            }
+
             cursor = 2;
             if(!gatherArgumentVector(words, cursor, Operation->dynamicIDs, Operation->Literals, lineNumber, scriptName)){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Creation of an argument vector failed.\n";

@@ -1,6 +1,9 @@
--Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero" variables from scripts.
+-Minimize "bind" instruction.
+-Post operations does not have children.
+-Add literals to arithmetic instructions.
+-Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero", "True" and "False" variables from the scripts.
 -if(optional(words, cursor, Operation->newContextID)){ continue; } -> if(optionalContext(words, cursor, Operation->newContextID)){ continue; }
--Remove "bool", "int", "double" and "string" from parameters
+-Remove "bool", "int", "double" and "string" from parameters.
 -Replace dynamicIDs and Literals in Operations with "struct Argument {VariableModule Value, bool isVariable}" in order to allow mixing Variables and Literals together in the instructions.
 -Add to each definition of instructions a function that extracts every value or pointer from the passed Arguments - put them inside the Context vector for example.  
 -Add explicit parameters to events and functions (trigger-less events) for better readability. Don't add them to loops, ifs and else, they doesn't need explicit parameters.
@@ -11,6 +14,7 @@
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
 -(?)Implement "set_if *event* *expression*" instruction.
 -Move "triggers" to the object definition or bind events to them - right now without using if statements triggers can cause script based bugs. 
+-Thought: If S++ language is much slower than S, then: S++ will be used for easier development, while S for optimal deployment.
 
 MILESTONE: Improve scripting language.
 
@@ -18,10 +22,12 @@ MILESTONE: Improve scripting language.
 -Transform "fun context function [values...]" into "context.function([values...])". Do the same with all other instructions except the arithmetic ones.
 -Change old move instructions syntax into "left_operand move_instr right_operand;". 
 -Implement optional new line functionality for semicolons in order to divide instructions better.
--Create a language wrapper in order to have as much debugger info (instruction list) as possible.
+-Create a language wrapper in order to have as much debug info (instruction list) as possible.
+-Implement a C++ method for generating the syntax formatting for text modules with S/S++ code inside.
 
 MILESTONE: Create a new scripting language (a wrapper for the previous one).
 
+-Test the engine on the Arch.
 -Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Update documentation: Instructions that use moveOrRename should have a different definition of "output" parameter.
 -Create the ImageViewer. It would take the image path and check if an image with same path exists. If yes, then it'd connect it to the window object, otherwise it'd load the bitmap to the memory (pseudo caching) and then connect it to the window object.

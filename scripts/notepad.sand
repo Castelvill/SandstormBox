@@ -5,7 +5,7 @@ end
 start _checkIfWindowMovedNotepad
     triggers mouse_pressing
     if ([mouse_moved] [mouse_pressing 0] &&)
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     run refreshWindowWithCameraNotepad
 end
@@ -18,7 +18,7 @@ end
 
 
 start refreshWindowWithDisplayNotepad
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     value ([window_w]) sx
     value ([window_h]) sy
@@ -27,7 +27,7 @@ start refreshWindowWithDisplayNotepad
 end
 
 start refreshWindowWithCameraNotepad
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     value ([Camera size_x]) sx
     value ([Camera size_y]) sy
@@ -37,7 +37,7 @@ end
 
 start refreshWindowNotepad
     value ([me layer_id]) myLayerID
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 0] super_editable_text Notepad
     fun Notepad set_size sx sy
@@ -62,7 +62,7 @@ end
 
 start resizeObjectWhenMaxedCheck
     if([MaxCollision release_on])
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     value ([Camera size_x]) sx
     value ([Camera size_y]) sy
@@ -75,7 +75,7 @@ end
 start resizeObjectWhenSwitchingToBorderlessMode
     triggers key_pressed
     if ([key_pressed 57])
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     run resizeObjectWhenSwitchingToBorderlessModeCheckFocus
 end

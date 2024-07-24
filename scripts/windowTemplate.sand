@@ -1,7 +1,7 @@
 start checkIfWindowMoved
 	triggers mouse_pressing
 	if ([mouse_moved] [isBorderless] ! &&)
-	all camera _ camera _ Cameras
+	all Cameras _ camera _ Cameras
 	find_by_id_2 Cameras cameraID Camera
 	run revertWindowIfMoved refreshWindowWithCamera
 end
@@ -33,7 +33,7 @@ end
 
 start revertBorderIfPossible
 	if ([isBorderless] ! [isMaxed] ! &&)
-	all layer _ _ _ _ _ _ Layers
+	all Layers _ _ _ _ _ _ Layers
 	value ([me layer_id]) myLayerID
 	find_by_id_2 Layers myLayerID Layer
 	index Layer [0 0 2] primitives Border
@@ -41,7 +41,7 @@ start revertBorderIfPossible
 end
 
 start refreshWindowWithDisplay
-	all camera _ camera _ Cameras
+	all Cameras _ camera _ Cameras
 	find_by_id_2 Cameras cameraID Camera
 	value ([window_w]) sx
 	value ([window_h]) sy
@@ -50,7 +50,7 @@ start refreshWindowWithDisplay
 end
 
 start refreshWindowWithCamera
-	all camera _ camera _ Cameras
+	all Cameras _ camera _ Cameras
 	find_by_id_2 Cameras cameraID Camera
 	value ([Camera size_x]) sx
 	value ([Camera size_y]) sy
@@ -66,7 +66,7 @@ start refreshWindow
     fun Camera set_grabbing_area_size sxShift height
 
     value ([me layer_id]) myLayerID
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
 
     index Layer [0 0 0] primitives Primi
@@ -141,7 +141,7 @@ start exitWindow
     triggers mouse_released
     if ([mouse_released 0])
     value ([me layer_id]) myLayerID
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 0] collision ExitCollision
     run exitWindowCheck
@@ -156,7 +156,7 @@ end
 start deleteWindow
     triggers each_iteration
     if ([delete] [has_friends] ! [deleted_friends] || &&)
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     delete Camera
     delete my_layer
@@ -167,7 +167,7 @@ start maxWindow
     triggers mouse_released
     if ([mouse_released 0])
     value ([me layer_id]) myLayerID
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 1] collision MaxCollision
     run maxWindowCheck
@@ -181,12 +181,12 @@ end
 
 start maxWindowIfTrue
     if([isMaxed])
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     value ([me layer_id]) myLayerID
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 2] primitives Border
     fun Border deactivate
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     fun Camera set_can_mouse_resize false
     value ([window_w]) ww
@@ -197,7 +197,7 @@ start maxWindowIfTrue
 end
 
 start revertWindowFromMax
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     fun Camera set_can_mouse_resize true
     fun Camera resize sizeX sizeY
@@ -211,10 +211,10 @@ start minimizeWindow
     triggers mouse_released
     if ([mouse_released 0])
     value ([me layer_id]) myLayerID
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 2] collision MinCollision
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     run minimizeWindowCheck
 end
@@ -229,7 +229,7 @@ end
 start switchBorderlessMode
     triggers key_pressed
     if ([key_pressed 57])
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     run switchBorderlessModeCheckFocus
 end
@@ -244,7 +244,7 @@ end
 start switchToBorderless
     if ([isBorderless])
     fun me set_position -5 -30
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     value ([me layer_id]) myLayerID
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 1] primitives Toolbar
@@ -265,7 +265,7 @@ start switchToBorderless
     fun MaxCollision deactivate
     index Layer [0 0 2] collision MinCollision
     fun MinCollision deactivate
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     fun Camera set_can_be_grabbed false
     fun Camera set_can_mouse_resize false
@@ -282,7 +282,7 @@ start switchToBorderless
 end
 
 start switchFromBorderless
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     fun me set_position 0 0
     value ([me layer_id]) myLayerID
     find_by_id_2 Layers myLayerID Layer
@@ -302,7 +302,7 @@ start switchFromBorderless
     fun MaxCollision activate
     index Layer [0 0 2] collision MinCollision
     fun MinCollision activate
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     fun Camera set_can_be_grabbed true
     fun Camera set_can_mouse_resize true

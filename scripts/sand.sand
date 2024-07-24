@@ -248,7 +248,7 @@ start buildTerminal
     var 0 currentCommandNumber
     vec string [""] commandHistory
 
-    vec string ["help" "neofetch" "winfetch" "hello" "ls" "sq" "cats" "sh" "fullscreen" "fs" "nw" "note" "mover" "spawn" "v4" "cls" "cat" "print" "exit" "edit" "sand" "cd" "pwd" "reboot" "history" "forgor" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal"] allowedPrograms
+    vec string ["help" "neofetch" "winfetch" "hello" "ls" "sq" "cats" "sh" "fullscreen" "fs" "nw" "note" "mover" "spawn" "v4" "cls" "cat" "print" "exit" "edit" "sand" "cd" "pwd" "reboot" "history" "forgor" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal" "test"] allowedPrograms
 
     var "scripts" dir
 
@@ -481,10 +481,10 @@ end
 
 
 start spawnNewWindow
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     string ["WindowCamera"] cameraID
     find_by_id_2 Cameras cameraID TemplateCamera
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     string ["WindowLayer"] layerID
     find_by_id_2 Layers layerID TemplateLayer
 
@@ -550,7 +550,7 @@ end
 start spawnMover
     index me [0 1] super_editable_text Editable
     index NewWindowLayer [0 0] object NewObject
-    first context [NewObject] _ _ variable has_friends bool _ has_friends
+    first NewObject _ _ variable has_friends bool _ has_friends
     bool [true] True
     = has_friends True
     find_by_id_2 NewObject has_friends 
@@ -605,8 +605,8 @@ start autoComplete1
     index me [0 0] super_editable_text EditableText
     fun EditableText set_last_color 1.0 0.8 0.0 1.0
     fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
-    first _ [EditableText] _ _ _ _ content _ userInput
-    first _ [EditableText] _ _ _ _ protected_area _ protectedArea
+    first EditableText _ _ _ _ content _ userInput
+    first EditableText _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
     similar command allowedPrograms completes
@@ -623,7 +623,7 @@ start replaceWithAutoComplete
     index completes [0] value instance
     fun EditableText add_content instance
     fun EditableText update
-    first _ [EditableText] _ _ _ _ content _ history
+    first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_cursor_pos historySize
     else printPossibleCompletes
@@ -655,20 +655,26 @@ start addAllCompletes true
     ++ i
 end
 
-start resetTerminalBuffer
+start rstTermBuff
     fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     string [""] result
 end
 
+start printPrompt
+    string [""] result
+    index me [0 0] super_editable_text EditableText
+    run rstTermBuff createPrompt printOnTerminal colorNormalText
+end
+
 start printPossibleCompletes
-    run addAllCompletes putNewLine printOnTerminal resetTerminalBuffer createPrompt printOnTerminal colorNormalText rewriteLastCommand
+    run addAllCompletes putNewLine printOnTerminal printPrompt rewriteLastCommand
 end
 
 start rewriteLastCommand
     fun EditableText add_content command
     fun EditableText update
-    first _ [EditableText] _ _ _ _ content _ history
+    first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_cursor_pos historySize
 end
@@ -804,7 +810,7 @@ start refreshScrollbar
     fun MainScrollbar set_scrolling_area thumbWidth h
     fun MainScrollbar set_thumb_size thumbWidth h
 
-    all c [me] _ _ image _ _ _ AllImages
+    all me _ _ image _ _ _ AllImages
     string ["thumb_track"] trackID
     find_by_id_2 AllImages trackID TrackImage
     fun TrackImage resize scrollbarWidth h
@@ -862,8 +868,8 @@ end
 start enter1
     if ([Camera is_selected])
     index me [0 0] super_editable_text EditableText
-    first _ [EditableText] _ _ _ _ content _ userInput
-    first _ [EditableText] _ _ _ _ protected_area _ protectedArea
+    first EditableText _ _ _ _ content _ userInput
+    first EditableText _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
 
@@ -934,8 +940,8 @@ end
 start upArrow
     if ([Camera is_selected] [key_pressed 84] [program] ["sleep"] == [currentCommandNumber] [0] > && && &&)
     index me [0 0] super_editable_text EditableText
-    first _ [EditableText] _ _ _ _ content _ userInput
-    first _ [EditableText] _ _ _ _ protected_area _ protectedArea
+    first EditableText _ _ _ _ content _ userInput
+    first EditableText _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
     fun commandHistory set currentCommandNumber command
@@ -946,7 +952,7 @@ start upArrow
     value ([v commandHistory c currentCommandNumber]) diffCommand
     fun EditableText add_content diffCommand
     fun EditableText update
-    first _ [EditableText] _ _ _ _ content _ history
+    first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_cursor_pos historySize
 end
@@ -955,8 +961,8 @@ end
 start downArrow
     if ([Camera is_selected] [key_pressed 85] [program] ["sleep"] == [currentCommandNumber] [commandNumber] < && && &&)
     index me [0 0] super_editable_text EditableText
-    first _ [EditableText] _ _ _ _ content _ userInput
-    first _ [EditableText] _ _ _ _ protected_area _ protectedArea
+    first EditableText _ _ _ _ content _ userInput
+    first EditableText _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
     fun commandHistory set currentCommandNumber command
@@ -967,7 +973,7 @@ start downArrow
     value ([v commandHistory c currentCommandNumber]) diffCommand
     fun EditableText add_content diffCommand
     fun EditableText update
-    first _ [EditableText] _ _ _ _ content _ history
+    first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_cursor_pos historySize
 end
@@ -986,7 +992,7 @@ start printOnTerminal
     fun EditableText update
     fun EditableText crop_height_to_text
 
-    first _ [EditableText] _ _ _ _ content _ history
+    first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_protected_area historySize
     fun EditableText set_cursor_pos historySize
@@ -1005,7 +1011,7 @@ start printOnTerminalUnprotected
     fun EditableText update
     fun EditableText crop_height_to_text
 
-    first _ [EditableText] _ _ _ _ content _ history
+    first EditableText _ _ _ _ content _ history
     len history historySize
     //fun EditableText set_protected_area historySize
     //fun EditableText set_cursor_pos historySize
@@ -1082,7 +1088,7 @@ start refreshTextEditorScrollbar
     int [12] thumbWidth
     fun EditorScrollbar set_scrolling_area thumbWidth h
 
-    all c [me] _ _ image _ _ _ AllImages
+    all me _ _ image _ _ _ AllImages
     string ["thumb_track"] trackID
     find_by_id_2 AllImages trackID TrackImage
     fun TrackImage resize scrollbarWidth h
@@ -1130,7 +1136,7 @@ end
 start textEditorInsert
     triggers key_pressed
     if([program] ["edit"] == [key_pressed 217] && [key_pressed 9] &&)
-    first layer KERNEL KERNEL super_editable_text TextEditor is_editing_active _ isEditing
+    first Layers KERNEL KERNEL super_editable_text TextEditor is_editing_active _ isEditing
     run checkIfInsertPressed
 end
 
@@ -1141,9 +1147,7 @@ start checkIfInsertPressed
     fun EditableText start_editing
 end
 
-start textEditorExit
-    triggers key_pressed
-    if([program] ["edit"] == [key_pressed 217] && [key_pressed 17] &&)
+start triggerEditorExit
     string [""] program
     index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField activate
@@ -1159,11 +1163,17 @@ start textEditorExit
     fun TextEditor stop_editing
 end
 
+start textEditorExit
+    triggers key_pressed
+    if([program] ["edit"] == [key_pressed 217] && [key_pressed 17] &&)
+    run triggerEditorExit
+end
+
 start textEditorSave
     triggers key_pressed
     if([program] ["edit"] == [key_pressed 217] && [key_pressed 19] &&)
     index me [0 1] super_editable_text TextEditor
-    first _ [TextEditor] _ _ _ _ content _ writtenText
+    first TextEditor _ _ _ _ content _ writtenText
     save_text param1 writtenText
 end
 

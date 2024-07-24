@@ -1,7 +1,7 @@
 start deleteFriends
     triggers each_iteration
     if ([delete])
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras insideCameraID InsideCamera
     delete InsideCamera
     bool [true] True 
@@ -11,7 +11,7 @@ end
 start checkIfMouseMoved
     triggers mouse_pressing
     if ([mouse_moved] || [on_display_resize])
-    all camera _ camera _ Cameras
+    all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID MainCamera
     value ([MainCamera size_x]) sx
     value ([MainCamera size_y]) sy

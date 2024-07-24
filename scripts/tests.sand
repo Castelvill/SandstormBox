@@ -1,0 +1,50 @@
+start newLine
+    string ["\n"] result
+    run printOnTerminal
+end
+start nextTest
+    run printPrompt newLine
+end
+start testSpawn
+    string ["terry"] param1 
+    run spawn
+end
+start testNote
+    string ["history.txt"] param1
+    run note
+end
+start testMover
+    string ["KERNEL"] param1
+    run mover
+end
+start testCat
+    string [".config"] param1
+    run cat
+end
+start testPrint
+    string ["TEST TEST TEST\n"] param1
+    run print
+end
+start testEdit
+    string ["docs/TODO.txt"] param1
+    run edit
+end
+start testSand
+    string ["scripts/lol.sand"] param1
+    run sand
+end
+start testCd
+    string ["scripts"] param1
+    run cd
+end
+start testCd2
+    string [""] param1
+    run cd
+end
+start testSaveLoadTerminal
+    string ["test.ft"] param1
+    run save_terminal load_terminal
+end
+start test
+    run help nextTest neofetch nextTest winfetch nextTest hello nextTest ls nextTest sq nextTest cats nextTest fullscreen fs nw testNote testMover testSpawn v4 testCat nextTest testPrint nextTest testEdit triggerEditorExit testSand nextTest testCd pwd nextTest xd nextTest allegro nextTest testCd2 testSaveLoadTerminal //cls
+end

@@ -1,3 +1,8 @@
+24.07.2024
+-Added tests.
+-Fixed Scrollbar module: Image pointers were not invalidated after using the "new" instruction.
+-Minimized aggregation instructions.
+
 17.07.2024
 -Minimized "if" and "value" instructions by shortening the expressions.
 -Minimized "print" instruction by removing "type" parameter from the variadic part.
@@ -6,7 +11,7 @@
 -Minimized "index" instruction by removing "source" and "indexes_from_contexts" parameters.
 
 12.07.2024
--Removed variable types from "fun" instruction.
+-Removed variable types from the "fun" instruction.
 -Fixed minuses.
 
 1.07.2024
@@ -14,7 +19,7 @@
 -Described "rename" instruction.
 
 30.06.2024
--Created "save_to_file" and "load_from_file" function to the EditableText to enable saving and loading formatted text.
+-Created "save_to_file" and "load_from_file" functions for the EditableText to enable saving and loading formatted text.
 -Scrollbars now dynamically adjust to the current window size.
 
 29.06.2024

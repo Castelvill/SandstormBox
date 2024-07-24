@@ -1,1 +1,1 @@
-Display (SMS19A100): 1366x768
+README.md

@@ -1,6 +1,6 @@
 start changeColor
     triggers each_iteration
-    all layer _ _ _ _ _ _ Layers
+    all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers param2 Layer
     index Layer [0 0 1] primitives Primi
 

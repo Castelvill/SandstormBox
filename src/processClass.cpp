@@ -10817,6 +10817,16 @@ ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance
 void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
     vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, EventDescription EventIds
 ){
+    //Invalidate all pointers that reference other modules' instances.
+    for(LayerClass & Layer : Layers){
+        for(AncestorObject & Object : Layer.Objects){
+            for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
+                Scrollbar.TrackImage = nullptr;
+                Scrollbar.ThumbImage = nullptr;
+            }
+        }
+    }
+
     startingEventIndex = getIndex(StartingEvent, Layers, EventIds);
     eventIndex = getIndex(Event, Layers, EventIds);
     for(MemoryStackStruct & Memory : MemoryStack){

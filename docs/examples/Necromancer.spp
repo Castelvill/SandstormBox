@@ -1,0 +1,25 @@
+event initNecromancer(on_init){
+	Movement M1 = me.movement.new("M1");
+	M1.clone(Layers.Templates.Necromancer.movement["M1"]);
+	int JUMP = al_key_space;
+	int SPAWN = al_key_s;
+	int CLEAR_ZOMBIES = al_key_enter;
+}
+
+event jump(key_pressed(JUMP)){
+	Movement M1 = me.movement["M1"];	
+	M1.jump();
+}
+
+event spawn(key_pressed(SPAWN)){
+	if(Objects.all(group == "zombies").size() > 5){
+		return;
+	}	
+	Object NewZombie = Objects.new(_, group = "zombies");
+	NewZombie.clone(Layers.Templates.Objects["ZombieTemplate"]);
+}
+
+event clearZombies(key_pressed(CLEAR_ZOMBIES)){
+	Object[] AllZombies = Objects.all(group == "zombies");
+	AllZombies.delete();
+}

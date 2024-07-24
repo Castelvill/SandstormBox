@@ -12,9 +12,9 @@ class ScrollbarModule : public PrimaryModule{
     string thumbImageID;
     string trackImageID;
     Camera2D * FocusedCamera;
+public:
     ImageModule * TrackImage;
     ImageModule * ThumbImage;
-public:
     vector<string> cameraIDs; 
     vec2d scrollShift;
     bool canBeDrawn;

@@ -118,3 +118,130 @@ sand scripts/xd.sand
 edit scripts/xd.sand
 edit scripts/xd.sand
 edit scripts/xd.sand
+ls
+nw
+edit scripts/sand.sand
+exit
+ls
+edit tensorflow
+ls
+neofetch
+sq
+nw
+ls
+edit scripts/sand.sand
+ls
+ls
+pwd
+fs
+ls
+cd scripts
+ls
+edit sand.sand
+nw
+edit sand.sand
+mover KERNEL
+edit sand.sand
+ls
+exit
+edit docs/TODO.txt
+ls
+edit terminal.ft
+cat README.md
+nw
+mover KERNEL
+neofetch
+xd
+wait
+cats
+exit
+ls
+edit docs/TODO.txt
+test
+test
+cats
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+neofetch
+test
+test
+test
+test
+test
+test
+nw
+nw
+nw
+nw
+test
+test
+note history.txt
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+edit docs/TODO.txt
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
+test
