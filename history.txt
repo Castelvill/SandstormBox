@@ -245,3 +245,11 @@ test
 test
 test
 test
+nw
+mover KERNEL
+sh tree
+edit docs/TODO.txt
+edit scripts/sand.sand
+neofetch
+ls
+neofetch

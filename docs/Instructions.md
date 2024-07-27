@@ -4,7 +4,7 @@
 
 **Syntax**
 
-start *id* [loop] [override]
+start *id* [scope] [loop] [override]
 
 **Description**
 
@@ -13,6 +13,7 @@ start *id* [loop] [override]
 **Parameters:**
 
 - id (context) - a name for the new event,
+- [scope] (vector context) - if equal to "_", nothing changes, otherwise this new event will become a function: its context vector will be set to [scope];
 - [loop] (bool) - if true, the new event will be executed in every iteration of the parent process,
 - [override] (bool) - if true, the new event will override an existing event with the same id.
 

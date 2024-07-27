@@ -1,3 +1,6 @@
+27.07.2024
+-Created Makefile.
+
 24.07.2024
 -Added tests.
 -Fixed Scrollbar module: Image pointers were not invalidated after using the "new" instruction.

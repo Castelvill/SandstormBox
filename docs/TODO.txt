@@ -1,4 +1,6 @@
 -Minimize "bind" instruction.
+-Add a vector of ContextClass to the MemoryStackStruct to create a history of contexts: this will simplify the event loop and it's crucial for implementing the functions.
+-Implement the "scope" parameter to the "start" instruction. If it is not empty, the new event will become a function with a Context vector equal to the "scope".
 -Post operations does not have children.
 -Add literals to arithmetic instructions.
 -Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero", "True" and "False" variables from the scripts.
@@ -27,7 +29,6 @@ MILESTONE: Improve scripting language.
 
 MILESTONE: Create a new scripting language (a wrapper for the previous one).
 
--Test the engine on the Arch.
 -Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Update documentation: Instructions that use moveOrRename should have a different definition of "output" parameter.
 -Create the ImageViewer. It would take the image path and check if an image with same path exists. If yes, then it'd connect it to the window object, otherwise it'd load the bitmap to the memory (pseudo caching) and then connect it to the window object.
