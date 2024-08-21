@@ -40,3 +40,10 @@ After meeting this condition you can build the engine with:
     make
 
 Alternatively you can use Visual Studio Code to compile the engine with the CTRL+SHIFT+B shortcut and clicking "Compile Engine".
+
+## Screenshots from the engine
+
+<img src="screenshots/terminal.png" width="700"/>
+
+
+<img src="screenshots/cat.png" width="700"/>

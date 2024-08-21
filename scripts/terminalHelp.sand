@@ -100,16 +100,16 @@ start neofetch
  ┌────────────────────┐   Anon                        
  │@*,*'*:*'**'*:**'**@│   -----------------------        
  │'$$##+  ' ,'- ,*,:$*│   OS: SandstormBox              
- │* : *%+* .,. ,-  %:*│   Kernel: 0.2                    
- │:.  ,  g+$$kg, ,##,'│   Shell: Sandbox 0.2             
- │* ,*  d$$''?$b  +*.*│   Uptime: 420 hours, 4 mins      
- │' .'  d?x, :   *+, :│   Display (PHL 223V5): 1920x1080 
- │*' .*  sR$$&Y ' ', *│   Display (SMS19A100): 1366x768  
- │. *+,.., :`T$i * :,:│   DE: i4                         
+ │* : *%+* .,. ,-  %:*│   Kernel: 0.2              
+ │:.  ,  g+$$kg, ,##,'│   Shell: Sandbox 0.2
+ │* ,*  d$$''?$b  +*.*│   Uptime: 0 hours, 0 mins
+ │' .'  d?x, :   *+, :│   Display: 1920x1080 
+ │*' .*  sR$$&Y ' ', *│   Display: ???
+ │. *+,.., :`T$i * :,:│   DE: i4              
  │',,+  d$x,,$$i  ', *│   Theme: Bees Dark               
- │*,%#  `*c$$?+ ., . *│   CPU: 12th Gen Intel i5-12600KF 
- │* %, *., '  __ .   :│   GPU: AMD Radeon RX 6700 XT     
- │*$, ,, .'. ' *+%#% *│   Memory: 12819MiB / 32592MiB    
+ │*,%#  `*c$$?+ ., . *│   CPU: ???
+ │* %, *., '  __ .   :│   GPU: ???
+ │*$, ,, .'. ' *+%#% *│   Memory: ???   
  │@:''*'.:*.*'.:**.#$@│                                  
  └────────────────────┘                                  
 
