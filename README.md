@@ -15,6 +15,10 @@ Below are the most important working parts of the engine:
 
 Use 'help' command inside the terminal or press the TAB key to list all the available programs.
 
+## Scripts
+
+Currently, if you execute the engine binary without any scripts, you will get only a black screen. Directories "init" and "scripts" have necessary scripts for creating the terminal.
+
 ## Config file
 
 EXECUTE script_path - executes the script in a new process - on boot and restart.
