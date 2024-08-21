@@ -156,33 +156,6 @@ start v4
     run printOnTerminal
 end
 
-
-start winfetch
-    print _ result "                                ..,   Mateusz@DESKTOP-JVU6QTR
-                    ....,,:;+ccllll   -----------------------
-      ...,,+:;  cllllllllllllllllll   OS: Windows 10 Pro x86_64
-,cclllllllllll  lllllllllllllllllll   Host: Gigabyte
-llllllllllllll  lllllllllllllllllll   Kernel: 10.0.xxxx
-llllllllllllll  lllllllllllllllllll   Uptime: 10 hours, 4 mins
-llllllllllllll  lllllllllllllllllll   Packages: 4 (scoop)
-llllllllllllll  lllllllllllllllllll   Shell: bash 5.2.x
-llllllllllllll  lllllllllllllllllll   Resolution: 1366x768
-                                      DE: Aero
-llllllllllllll  lllllllllllllllllll   WM: Explorer
-llllllllllllll  lllllllllllllllllll   WM Theme: Custom
-llllllllllllll  lllllllllllllllllll   CPU: 12th Gen Intel i5-12600KF (16) @ 3.690GHz
-llllllllllllll  lllllllllllllllllll   GPU: AMD Radeon RX 6700 XT
-llllllllllllll  lllllllllllllllllll   Memory: 12819MiB / 32592MiB
-`'ccllllllllll  lllllllllllllllllll   
-       `' \*::  :ccllllllllllllllll   
-                       ````''*::cll
-                                 ``
-"
-    string [""] program
-    run printOnTerminal
-end
-
-
 start hello
     print _ result "Hello, world!\n"
     string [""] program
