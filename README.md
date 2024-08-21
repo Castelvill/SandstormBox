@@ -26,3 +26,13 @@ SAMPLES X - sets the number of samples used in antialiasing. Maximal recommended
 ENABLE_al_set_clipboard_text - al_set_clipboard_text can cause undefined behavior on some linux configurations so it's disabled by default. When enabled, allows to copy text from the engine to the clipboard of the host OS.
 
 ENABLE_NOT_ASCII - allows using characters other than ASCII.
+
+## Build
+
+To build and use the SandstormBox engine you need the Allegro5 library and the Make program.
+
+After meeting this condition you can build the engine with:
+
+    make
+
+Alternatively you can use Visual Studio Code to compile the engine with the CTRL+SHIFT+B shortcut and clicking "Compile Engine".
