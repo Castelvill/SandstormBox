@@ -1,0 +1,10 @@
+new_proc *id* [layer] [object] [script]
+
+Description
+	Create a new process, add one layer, one object and bind a 
+	script to it.
+
+-id (string) - id for the new process;
+-layer (string) - id for the first layer;
+-object (string) - id for the first object;
+-script (string) - path to the script file. 

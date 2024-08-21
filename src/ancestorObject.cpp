@@ -1972,17 +1972,17 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             Operation->Literals.push_back(VariableModule::newString(words[1].value));
         }
-        else if(words[0].value == "rename"){
+        else if(words[0].value == "mv"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            if(words[1].type != 's' || words[2].type != 's'){
+            if(words[1].type != 'c' || words[2].type != 'c'){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of a string type.\n";
+                    << ": In '" << words[0].value << "' instruction: The first two parameters are not of the context type.\n";
                 return;
             }
-            Operation->Literals.push_back(VariableModule::newString(words[1].value));
-            Operation->Literals.push_back(VariableModule::newString(words[2].value));
+            Operation->dynamicIDs.push_back(words[1].value);
+            Operation->dynamicIDs.push_back(words[2].value);
         }
         else if(words[0].value == "print"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){

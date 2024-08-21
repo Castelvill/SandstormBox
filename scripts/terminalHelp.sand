@@ -1,0 +1,484 @@
+start help
+    string [""] xd
+    print " " result allowedPrograms
+    index me [0 0] super_editable_text EditableText
+    fun EditableText modify_last_format 1.0 0.8 0.0 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
+    string ["_enter"] program
+    run printOnTerminal
+end
+
+
+start mv
+    if ([exists param1] [param2] [""] != &&)
+    mv param1 param2
+    string [""] program
+    else notMv
+end
+start notMv
+    string ["_enter"] program
+    string ["Instruction 'mv' failed."] result
+    run printOnTerminal
+end
+
+
+start ls
+    if ([exists param1] [param1] [""] == ||)
+    ls param1 result
+    tokenize " " result files
+    index me [0 0] super_editable_text EditableText
+    int [0] fileIndex
+	run lsColoringLoop
+    else informFileDoesNotExistForCD
+post
+    string ["_enter"] program
+end
+start lsColoringLoop true
+	if ([fileIndex] [files size] <)
+	index files [fileIndex] value file
+    len file fileNameLength
+    int [5] length
+    -= fileNameLength length
+    
+    len file fileNameLengthFT
+    int [3] lengthFT
+    -= fileNameLengthFT lengthFT
+
+	++ fileIndex
+	run colorIfDirectory printFileNameOnTerminal
+end
+start colorIfDirectory
+	if([param1 size] [0] >)
+    string [""] fullPath
+    = fullPath param1 
+    string ["/"] backslash
+    += fullPath backslash
+    += fullPath file
+    run colorIfDirectory2
+	else colorIfSandScript
+end
+start colorIfDirectory2
+	if ([is_directory fullPath])
+    fun EditableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
+	else colorIfSandScript
+end
+start colorIfSandScript
+    if([fileNameLength] [0] >)
+    substr file fileNameLength length extension
+    substr file fileNameLengthFT lengthFT extensionFT
+    run colorIfSandScript2
+    else colorIfNormalFile
+end
+start colorIfSandScript2
+    if([extension] [".sand"] ==)
+    fun EditableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
+    else colorIfFormattedText
+end
+start colorIfFormattedText
+    if([extensionFT] [".ft"] ==)
+    fun EditableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
+    else colorIfNormalFile
+end
+start colorIfNormalFile
+	fun EditableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
+end
+start printFileNameOnTerminal
+	print "  " result file
+	run printOnTerminal
+end
+
+
+
+start cls
+    index me [0 0] super_editable_text History
+    fun History set_content ""
+    string [""] program
+end
+
+
+start neofetch
+    print _ result "
+ ┌────────────────────┐   Mateusz                        
+ │@*,*'*:*'**'*:**'**@│   -----------------------        
+ │'$$##+  ' ,'- ,*,:$*│   OS: SandstormBox              
+ │* : *%+* .,. ,-  %:*│   Kernel: 0.2                    
+ │:.  ,  g+$$kg, ,##,'│   Shell: Sandbox 0.2             
+ │* ,*  d$$''?$b  +*.*│   Uptime: 420 hours, 4 mins      
+ │' .'  d?x, :   *+, :│   Display (PHL 223V5): 1920x1080 
+ │*' .*  sR$$&Y ' ', *│   Display (SMS19A100): 1366x768  
+ │. *+,.., :`T$i * :,:│   DE: i4                         
+ │',,+  d$x,,$$i  ', *│   Theme: Bees Dark               
+ │*,%#  `*c$$?+ ., . *│   CPU: 12th Gen Intel i5-12600KF 
+ │* %, *., '  __ .   :│   GPU: AMD Radeon RX 6700 XT     
+ │*$, ,, .'. ' *+%#% *│   Memory: 12819MiB / 32592MiB    
+ │@:''*'.:*.*'.:**.#$@│                                  
+ └────────────────────┘                                  
+
+"
+    index me [0 0] super_editable_text EditableText
+    fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
+    string [""] program
+    run printOnTerminal
+end
+
+start xd
+    print _ result "@       @  @@@@@@   
+ @     @   @     @@ 
+  @   @    @       @
+   @ @     @       @
+    @      @       @
+   @ @     @       @
+  @   @    @       @
+ @     @   @     @@ 
+@       @  @@@@@@   
+"
+    index me [0 0] super_editable_text EditableText
+    fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
+    string [""] program
+    run printOnTerminal 
+end
+
+start sel_col
+    = terminalColorR param1
+    = terminalColorG param2
+    = terminalColorB param3
+    = terminalColorA param4
+    string [""] program
+end
+
+start v4
+    int [1 2 3 4] x
+    int [2 2 1 1] y
+    += x x
+    print " " result x
+    string ["\n"] endl
+    += result endl
+    string [""] program
+    run printOnTerminal
+end
+
+
+start winfetch
+    print _ result "                                ..,   Mateusz@DESKTOP-JVU6QTR
+                    ....,,:;+ccllll   -----------------------
+      ...,,+:;  cllllllllllllllllll   OS: Windows 10 Pro x86_64
+,cclllllllllll  lllllllllllllllllll   Host: Gigabyte
+llllllllllllll  lllllllllllllllllll   Kernel: 10.0.xxxx
+llllllllllllll  lllllllllllllllllll   Uptime: 10 hours, 4 mins
+llllllllllllll  lllllllllllllllllll   Packages: 4 (scoop)
+llllllllllllll  lllllllllllllllllll   Shell: bash 5.2.x
+llllllllllllll  lllllllllllllllllll   Resolution: 1366x768
+                                      DE: Aero
+llllllllllllll  lllllllllllllllllll   WM: Explorer
+llllllllllllll  lllllllllllllllllll   WM Theme: Custom
+llllllllllllll  lllllllllllllllllll   CPU: 12th Gen Intel i5-12600KF (16) @ 3.690GHz
+llllllllllllll  lllllllllllllllllll   GPU: AMD Radeon RX 6700 XT
+llllllllllllll  lllllllllllllllllll   Memory: 12819MiB / 32592MiB
+`'ccllllllllll  lllllllllllllllllll   
+       `' \*::  :ccllllllllllllllll   
+                       ````''*::cll
+                                 ``
+"
+    string [""] program
+    run printOnTerminal
+end
+
+
+start hello
+    print _ result "Hello, world!\n"
+    string [""] program
+    run printOnTerminal
+end
+
+
+start cats
+    print _ result "                      /^--^\     /^--^\     /^--^\
+                      \____/     \____/     \____/
+                     /      \   /      \   /      \
+                    |        | |        | |        |
+                     \__  __/   \__  __/   \__  __/
+|^|^|^|^|^|^|^|^|^|^|^|^\ \^|^|^|^/ /^|^|^|^|^\ \^|^|^|^|^|^|^|^|^|^|^|^|
+| | | | | | | | | | | | |\ \| | |/ /| | | | | | \ \ | | | | | | | | | | |
+| | | | | | | | | | | | / / | | |\ \| | | | | |/ /| | | | | | | | | | | |
+| | | | | | | | | | | | \/| | | | \/| | | | | |\/ | | | | | | | | | | | |
+#########################################################################
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+"
+    string [""] program
+    run printOnTerminal
+end
+
+
+start sq
+    print _ result "        .--'''''''''--.
+     .'      .---.      '.
+    /    .-----------.    \
+   /        .-----.        \
+   |       .-.   .-.       |
+   |      /   \ /   \      |
+    \    | .-. | .-. |    /
+     '-._| | | | | | |_.-'
+         | '-' | '-' |
+          \___/ \___/
+       _.-'  /   \  `-._
+     .' _.--|     |--._ '.
+     ' _...-|     |-..._ '
+            |     |
+            '.___.'
+              | |
+"
+    string [""] program
+    run printOnTerminal
+end
+
+
+start print
+    print _ result param1
+    string ["_enter"] program
+    run printOnTerminal
+end
+
+
+start spawn
+    new layer 1 _ _ AmogusLayer
+    fun AmogusLayer activate
+    fun AmogusLayer set_id "AmogusLayer"
+    value ([AmogusLayer id]) newLayerID
+
+    //print ": " _ AmogusLayer
+
+    new camera 1 _ _ NewWindow
+    fun NewWindow set_position 0 0
+    fun NewWindow set_id "AmogusWindow0"
+    fun NewWindow set_active true
+    fun NewWindow resize 640 480
+    fun NewWindow set_zoom 1.0
+    fun NewWindow set_speed 20
+    fun NewWindow set_key_zoom_in 15
+    fun NewWindow set_key_zoom_out 21
+    fun NewWindow set_zoom_increase 0.02
+    fun NewWindow bind_keys 15 21 13 9 12 11 10
+    fun NewWindow set_tint 1.0 1.0 1.0 1.0
+    fun NewWindow set_drawing_borders false
+    fun NewWindow set_can_be_modified_by_mouse true
+    fun NewWindow set_is_vision_affected_by_mouse true
+    fun NewWindow add_visible_layer newLayerID
+    fun NewWindow add_accessible_layer newLayerID
+    fun NewWindow set_grabbing_area_size 640 50
+    fun NewWindow pin_to_camera "Desktop"
+    fun NewWindow activate_pin
+    value ([NewWindow id]) newWindowID
+
+    //print \n _ NewWindow
+
+    new object AmogusLayer 1 _ _ NewWindowObject
+    fun NewWindowObject set_id "Window"
+    fun NewWindowObject set_can_be_selected false
+
+    new primitives NewWindowObject 1 _ _ border1
+    fun border1 set_id "background"
+    fun border1 set_type "filled_rounded_rectangle"
+    fun border1 add_point 0.0 0.0
+    fun border1 add_point 880 980
+    fun border1 add_point roundingSize roundingSize
+    fun border1 set_color 0.0 0.0 0.0 0.7
+    fun border1 set_thickness 10.0
+    fun border1 set_size 640 480
+    fun border1 update_with_size
+
+    new primitives NewWindowObject 1 _ _ border2
+    clone border2 border1
+    fun border2 set_id "toolbar"
+    fun border2 set_color 0.0 0.0 0.0 0.8
+    fun border2 set_size 640 50
+    fun border2 update_with_size
+
+    new super_text NewWindowObject 1 _ _ title
+    fun title set_id "title"
+    fun title set_position 10 10
+    fun title set_size 400 50
+    fun title add_format "cascadia_code_bold" 8
+    fun title set_color 0 1.0 1.0 1.0 1.0
+    fun title set_wrapping "n"
+    fun title set_content param1
+
+    new object AmogusLayer 1 _ _ NewAmo
+    fun NewAmo set_id "Amongus"
+    fun NewAmo set_position 0 80
+    new image NewAmo 1 _ _ redAstronaut
+    fun redAstronaut set_id "amongus"
+    fun redAstronaut connect_bitmap_via_alias param1
+    fun redAstronaut set_scale 0.6 0.6
+    string [""] program
+end
+
+
+start sh
+    string [""] instruction
+    string [" "] space
+    += instruction param1
+    += instruction space
+    += instruction param2
+    += instruction space
+    += instruction param3
+    += instruction space
+    += instruction param4
+    += instruction space
+    += instruction param5
+    += instruction space
+    += instruction param6
+    += instruction space
+    += instruction param7
+
+    string [""] program
+    inject_instr me instruction
+end
+
+
+start cat
+    if ([exists param1])
+    load_text param1 result
+    string [""] program
+    index me [0 0] super_editable_text EditableText
+    fun EditableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
+    run printOnTerminal
+    else printNoSuchFile
+end
+
+
+start printNoSuchFile
+    string ["_enter"] program
+    string ["File '"] result
+    += result param1
+    string ["' does not exist."] notExist
+    += result notExist
+    run printOnTerminal
+end
+
+
+start exit
+    power_off
+end
+
+
+start pwd
+    string ["/"] result
+    pwd workingDir
+    += result workingDir
+    string ["_enter"] program
+    run printOnTerminal
+end
+
+
+start cd
+    if ([exists param1] [param1] [""] == ||)
+    string [""] program
+    cd param1
+    else informFileDoesNotExistForCD
+end
+start informFileDoesNotExistForCD
+    string [""] program
+    string ["Directory '"] result
+    += result param1
+    string ["' does not exist!\n"] secondPart
+    += result secondPart
+    run printOnTerminal
+end
+
+start history
+    int [0] i
+    value ([v commandHistory size]) commandHistorySize
+    -- commandHistorySize
+    string [""] program
+    string ["\t"] space
+    run printHistory
+end
+
+start printHistory true
+    if ([i] [commandHistorySize] <)
+    string [""] result
+    int [0] j
+    = j i
+    ++ j
+    += result j
+    += result space
+    value ([v commandHistory c i]) nextCommand
+    += result nextCommand
+    string ["\n"] endl
+    += result endl
+    ++ i
+    run printOnTerminal
+end
+
+
+start wait
+    string ["wait"] program
+    int [0] waitingTime
+end
+start executeWaiting
+    triggers each_second
+    if ([program] ["wait"] == [second_passed] &&)
+    index me [0 0] super_editable_text Terminal
+    fun Terminal cut_unprotected_area
+    run waitFor0 waitFor1 waitFor2
+end
+start waitFor0
+    if([waitingTime] [0] ==)
+    string ["||||||||||||||||||||"] result
+    ++ waitingTime
+    run printOnTerminalUnprotected
+post
+    break
+end
+start waitFor1
+    if([waitingTime] [1] ==)
+    string ["********************"] result
+    ++ waitingTime
+    run printOnTerminalUnprotected
+post
+    break
+end
+start waitFor2
+    if([waitingTime] [2] ==)
+    string ["--------------------"] result
+    int [0] waitingTime
+    run printOnTerminalUnprotected
+post
+    break
+end
+
+start sudo
+    if ([param1] ["rm"] == [param2] ["-rf"] == [param3] ["--no-preserve-root"] == [param4] ["/"] == && && &&)
+    string ["Haha. No."] result
+    string ["_enter"] program
+    run printOnTerminal
+    else resetProgram
+end
+start resetProgram
+    string [""] program
+end
+
+start allegro
+	//string ["I'd just like to interject for a moment. What you're referring to as SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, Allegro plus SandstormBox."] result
+	string ["                   ▄
+                  ▟█▙
+                 ▟███▙
+                ▟█████▙
+               ▟███████▙
+              ▂▔▀▜██████▙
+             ▟██▅▂▝▜█████▙
+            ▟█████████████▙
+           ▟███████████████▙
+          ▟█████████████████▙
+         ▟███████████████████▙
+        ▟█████████▛▀▀▜████████▙
+       ▟████████▛      ▜███████▙
+      ▟█████████        ████████▙
+     ▟██████████        █████▆▅▄▃▂
+    ▟██████████▛        ▜█████████▙
+   ▟██████▀▀▀              ▀▀██████▙
+  ▟███▀▘                       ▝▀███▙
+ ▟▛▀                               ▀▜▙"] result
+    string ["_enter"] program
+	run printOnTerminal
+end

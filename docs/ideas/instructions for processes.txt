@@ -1,0 +1,7 @@
+new_proc *id* [layer] [object] [script]
+delete_proc *name*
+clone_to_proc *destination* *source* (source<context>: process, layer, camera)
+clone_to_proc *destination* *dest_layer* *source* (source<context>: object)
+clone_to_proc *destination* *dest_layer* *dest_object* *source* (source<context>: module)
+edit_proc *name* *variable* [values]
+inject_script *process* *layer* *object* *path*

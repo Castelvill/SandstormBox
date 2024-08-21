@@ -9,7 +9,6 @@ start init false
     fun First enable_selection_border
     //fun First disable_scrolling
     bind First reset
-    //bind First literal ["scripts/terminal.txt" "scripts/terminalHelp.txt"]
-    bind First literal ["scripts/sand.sand" "scripts/sandHelp.sand" "scripts/tests.sand"]
+    bind First literal ["scripts/terminal.sand" "scripts/terminalHelp.sand" "scripts/tests.sand"]
     build First true
 end

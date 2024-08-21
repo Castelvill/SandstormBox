@@ -314,7 +314,7 @@ public:
     void createDirectory(OperaClass & Operation);
     void removeFileOrDirectory(OperaClass & Operation);
     void removeRecursivelyFileOrDirectory(OperaClass & Operation);
-    void renameFileOrDirectory(OperaClass & Operation);
+    void renameFileOrDirectory(OperaClass & Operation, vector<ContextClass> & EventContext);
     void executePrint(OperaClass & Operation, vector<ContextClass> & EventContext);
     void saveStringAsFile(OperaClass & Operation, vector<ContextClass> & EventContext);
     void loadFileAsString(OperaClass & Operation, vector<ContextClass> & EventContext);

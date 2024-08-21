@@ -1,3 +1,6 @@
+21.08.2024
+-Change 'rename' instruction to 'mv' and update it with context variables.
+
 27.07.2024
 -Created Makefile.
 

@@ -223,8 +223,8 @@ EngineInstr transInstr(string instruction){
     if(instruction == "rmll"){
         return EngineInstr::rmll;
     }
-    if(instruction == "rename"){
-        return EngineInstr::rename_i;
+    if(instruction == "mv"){
+        return EngineInstr::mv_i;
     }
     if(instruction == "print"){
         return EngineInstr::print;
@@ -435,8 +435,8 @@ string transInstrToStr(EngineInstr instruction){
             return "rm";
         case rmll:
             return "rmll";
-        case rename_i:
-            return "rename";
+        case mv_i:
+            return "mv";
         case print:
             return "print";
         case load_text:

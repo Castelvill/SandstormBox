@@ -1,5 +1,12 @@
+-Move ascii arts to the "ascii" program.
+-Forward errors from the "sh" instruction to the terminal.
 -Minimize "bind" instruction.
--Add a vector of ContextClass to the MemoryStackStruct to create a history of contexts: this will simplify the event loop and it's crucial for implementing the functions.
+-Create a SavedContext / CachedContext vector for removing the need to recreate needed context stack for each event/function in each iteration. Context elements initialized from SavedContext will be immutable in type and shape.
+-Add a pointer to the AncestorObject class that will point to the SavedContext vector (cached contexts).
+-Add "structure/cache context" instruction that will add provided context to the SavedContext/CachedContext vector.
+-Create "struct" scope for structuring the base context for objects. "Struct" will build the SavedContext vector as soon as possible like "init" events.
+-Idea: Stopping the use of indexes can help in isolating programs.
+-Add a vector of ContextClass to the MemoryStackStruct to create a history of contexts: this will isolate scopes (more freedom in naming variables and less ambiguity), simplify the event loop and it's crucial for implementing the functions.
 -Implement the "scope" parameter to the "start" instruction. If it is not empty, the new event will become a function with a Context vector equal to the "scope".
 -Post operations does not have children.
 -Add literals to arithmetic instructions.

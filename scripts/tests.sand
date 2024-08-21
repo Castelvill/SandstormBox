@@ -6,7 +6,7 @@ start nextTest
     run printPrompt newLine
 end
 start testSpawn
-    string ["terry"] param1 
+    string ["error"] param1 
     run spawn
 end
 start testNote

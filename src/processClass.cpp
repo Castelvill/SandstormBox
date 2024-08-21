@@ -6068,22 +6068,35 @@ void ProcessClass::removeRecursivelyFileOrDirectory(OperaClass & Operation){
         cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
     }
 }
-void ProcessClass::renameFileOrDirectory(OperaClass & Operation){
-    if(Operation.Literals.size() < 2 || Operation.Literals[0].getType() != 's' || Operation.Literals[1].getType() != 's'){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Instruction \'" << transInstrToStr(Operation.instruction) << "\' requires two strings (two paths to files or directories).\n";
+void ProcessClass::renameFileOrDirectory(OperaClass & Operation, vector<ContextClass> & EventContext){
+    ContextClass * LeftPathContext = nullptr, * RightPathContext = nullptr;
+    if(!getPairOfContexts(LeftPathContext, RightPathContext, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
-    if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << Operation.Literals[0].getString() << " " << Operation.Literals[1].getString() << "\n";
+
+    string originalPath = "";
+    if(!LeftPathContext->getStringOrAbort(originalPath, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'"
+            << transInstrToStr(Operation.instruction) << "\': getting the path from context failed.\n";
+        return;
     }
-    if(Operation.Literals[0].getString() == "" || Operation.Literals[0].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + Operation.Literals[0].getString() << "\'.\n"; 
+    if(originalPath == "" || originalPath == "~/" || originalPath[0] == ' '){
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + originalPath << "\'.\n"; 
     }
-    if(Operation.Literals[1].getString() == "" || Operation.Literals[1].getString()[0] == ' '){
-        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + Operation.Literals[1].getString() << "\'.\n"; 
+
+    string newPath = "";
+    if(!RightPathContext->getStringOrAbort(newPath, Operation.instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction)
+            << "\': getting the path from context failed.\n";
+        return;
     }
+    if(newPath == "" || newPath == "~/" || newPath[0] == ' '){
+        cout << "In " << __FUNCTION__ << ": Access denied to the path: \'" << EXE_PATH + workingDirectory + newPath << "\'.\n"; 
+    }
+
     try{
-        std::filesystem::rename(EXE_PATH + workingDirectory + Operation.Literals[0].getString(), EXE_PATH + workingDirectory + Operation.Literals[1].getString());
+        std::filesystem::rename(EXE_PATH + workingDirectory + originalPath, EXE_PATH + workingDirectory + newPath);
     }
     catch(std::filesystem::filesystem_error const& ex){
         cout << "In " << __FUNCTION__ << ": " << ex.what() << "\n";
@@ -6279,7 +6292,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
 
     string pathToTheFile = "";
     if(!PathContext->getStringOrAbort(pathToTheFile, Operation.instruction, EventIds)){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting path from context failed.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting the path from context failed.\n";
         return;
     }
     if(pathToTheFile == "" || pathToTheFile == "~/" || pathToTheFile[0] == ' '){
@@ -6287,7 +6300,7 @@ void ProcessClass::saveStringAsFile(OperaClass & Operation, vector<ContextClass>
     }
     string textFromContext = "";
     if(!TextContext->getStringOrAbort(textFromContext, Operation.instruction, EventIds)){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting text from context failed.\n";
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In \'" << transInstrToStr(Operation.instruction) << "\': getting the text from context failed.\n";
         return;
     }
 
@@ -7497,8 +7510,8 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
             case rmll:
                 removeRecursivelyFileOrDirectory(Operation);
                 break;
-            case rename_i:
-                renameFileOrDirectory(Operation);
+            case mv_i:
+                renameFileOrDirectory(Operation, EventContext);
                 break;
             case print:
                 executePrint(Operation, EventContext);
