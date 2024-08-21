@@ -12,7 +12,7 @@ SRC := $(SRC_DIR)/vectors.cpp $(SRC_DIR)/usefull.cpp $(SRC_DIR)/primaryModule.cp
        $(SRC_DIR)/ancestorObject.cpp $(SRC_DIR)/layerClass.cpp $(SRC_DIR)/processClass.cpp $(SRC_DIR)/engineClass.cpp \
        $(SRC_DIR)/main.cpp
 
-OUTPUT := SandstormBox.exe
+OUTPUT := SandstormBox
 
 # Default target
 all: $(OUTPUT)

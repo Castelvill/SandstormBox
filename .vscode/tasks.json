@@ -99,7 +99,7 @@
                     "${config:src}engineClass.cpp",
                     "${config:src}main.cpp",
                     "-o",
-                    "${workspaceFolder}${pathSeparator}SandstormBox.exe",
+                    "${workspaceFolder}${pathSeparator}SandstormBox",
                     "-lallegro",
                     "-lallegro_font",
                     "-lallegro_ttf",
