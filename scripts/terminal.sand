@@ -7,14 +7,8 @@ start onInit
 
     edit_proc draw_camera_borders 1
 
-    load_bitmap "images/background2.png" "background2" false true
-    load_bitmap "images/background3.png" "background3" false true
-    load_bitmap "images/amongus1.png" "amongus1" false true
-    load_bitmap "images/amongus2.png" "amongus2" false true
-    load_bitmap "images/amongus3.png" "amongus3" false true
+    load_bitmap "images/background.png" "background" false true
     load_bitmap "images/error.png" "error" false true
-    load_bitmap "images/arch.jpg" "arch" false true
-    load_bitmap "images/cobblestone.png" "cobblestone" false true
     load_bitmap "images/elephant.jpg" "elephant" false true
     load_bitmap "gui/sand_thumb_track.png" "sand_thumb_track" false true
     load_bitmap "gui/sand_thumb.png" "sand_thumb" false true
@@ -97,7 +91,7 @@ start buildTerminal
     fun Cam set_can_move_objects false
 
     new image me 1 _ _ background
-    fun background connect_bitmap_via_alias "background2"
+    fun background connect_bitmap_via_alias "background"
     fun background resize ww wh
     fun background set_color 0.5 0.5 0.5 0.3
     fun background disable_scrolling
@@ -252,12 +246,14 @@ start buildTerminal
     var "scripts" dir
 
     var 0 waitingTime
+
+    string ["history.txt"] fileName
     run loadCommandHistory
 end
 
 
 start loadCommandHistory
-    string ["history.txt"] fileName
+    if([exists fileName])
     load_text fileName loadedText
     tokenize "\n" loadedText loadedText
     fun commandHistory clear

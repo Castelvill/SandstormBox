@@ -213,16 +213,16 @@ end
 
 
 start spawn
-    new layer 1 _ _ AmogusLayer
-    fun AmogusLayer activate
-    fun AmogusLayer set_id "AmogusLayer"
-    value ([AmogusLayer id]) newLayerID
+    new layer 1 _ _ SpawnLayer
+    fun SpawnLayer activate
+    fun SpawnLayer set_id "SpawnLayer"
+    value ([SpawnLayer id]) newLayerID
 
-    //print ": " _ AmogusLayer
+    //print ": " _ SpawnLayer
 
     new camera 1 _ _ NewWindow
     fun NewWindow set_position 0 0
-    fun NewWindow set_id "AmogusWindow0"
+    fun NewWindow set_id "SpawnWindow0"
     fun NewWindow set_active true
     fun NewWindow resize 640 480
     fun NewWindow set_zoom 1.0
@@ -244,7 +244,7 @@ start spawn
 
     //print \n _ NewWindow
 
-    new object AmogusLayer 1 _ _ NewWindowObject
+    new object SpawnLayer 1 _ _ NewWindowObject
     fun NewWindowObject set_id "Window"
     fun NewWindowObject set_can_be_selected false
 
@@ -275,7 +275,7 @@ start spawn
     fun title set_wrapping "n"
     fun title set_content param1
 
-    new object AmogusLayer 1 _ _ NewAmo
+    new object SpawnLayer 1 _ _ NewAmo
     fun NewAmo set_id "Amongus"
     fun NewAmo set_position 0 80
     new image NewAmo 1 _ _ redAstronaut

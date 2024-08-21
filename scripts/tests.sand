@@ -6,7 +6,7 @@ start nextTest
     run printPrompt newLine
 end
 start testSpawn
-    string ["error"] param1 
+    string ["elephant"] param1 
     run spawn
 end
 start testNote
@@ -42,7 +42,8 @@ start testCd2
     run cd
 end
 start testSaveLoadTerminal
-    string ["test.ft"] param1
+    mkdir "temp"
+    string ["temp/test.ft"] param1
     run save_terminal load_terminal
 end
 start test

@@ -184,7 +184,7 @@ void ImageModule::checkImage(ALLEGRO_DISPLAY * window, string workingDirectory){
         image = al_load_bitmap((workingDirectory + "images/error.png").c_str());
         size.set(al_get_bitmap_width(image), al_get_bitmap_height(image));
         if(!image){
-            al_show_native_message_box(window, "Error", "", "You're fucked.", NULL, ALLEGRO_MESSAGEBOX_ERROR);
+            al_show_native_message_box(window, "Error", "", "Can't load an image.", NULL, ALLEGRO_MESSAGEBOX_ERROR);
         }
     }
 }
