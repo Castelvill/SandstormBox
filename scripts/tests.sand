@@ -30,7 +30,7 @@ start testEdit
     run edit
 end
 start testSand
-    string ["scripts/lol.sand"] param1
+    string ["scripts/lorem.sand"] param1
     run sand
 end
 start testCd
