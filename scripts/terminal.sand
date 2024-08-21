@@ -120,7 +120,7 @@ start buildTerminal
     fun TerminalTextField set_wrapping "w"
     fun TerminalTextField set_can_be_edited true
     fun TerminalTextField set_can_use_space true
-    fun TerminalTextField set_content "Welcome in SandstormBox terminal!"
+    fun TerminalTextField set_content "Welcome in the SandstormBox terminal!"
     fun TerminalTextField set_input_delay 0.3
     fun TerminalTextField set_repetition_delay 0.05
     fun TerminalTextField set_can_use_tabs false
