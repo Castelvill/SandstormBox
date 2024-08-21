@@ -241,7 +241,7 @@ start buildTerminal
     var 0 currentCommandNumber
     vec string [""] commandHistory
 
-    vec string ["help" "neofetch" "hello" "ls" "mv" "sq" "cats" "sh" "fullscreen" "fs" "nw" "note" "mover" "spawn" "v4" "cls" "cat" "print" "exit" "edit" "sand" "cd" "pwd" "reboot" "history" "forgor" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal" "test"] allowedPrograms
+    vec string ["help" "ls" "cls" "cat" "cd" "pwd" "mv" "print" "exit" "reboot" "history" "forgor" "edit" "sand" "sh" "nw" "note" "mover" "fullscreen" "fs" "neofetch" "spawn" "hello" "sq" "cats" "v4" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal" "test"] allowedPrograms
 
     var "scripts" dir
 
