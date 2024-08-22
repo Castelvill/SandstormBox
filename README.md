@@ -1,7 +1,7 @@
 # SandstormBox
 2D Game Engine written in c++ and Allegro5 graphical library.
 
-This engine uses Sand - a custom scripting language made out of engine instructions. You can find all the implemented instructions in the /docs/instructions.md file. To learn about this language read the /docs/language.md file. All programs and utilities that work inside the engine are written in the Sand language.
+This engine uses Sand - a custom scripting language made out of the engine's instructions. You can find all implemented instructions in the /docs/instructions.md file. To learn about this language read the /docs/language.md file. All programs and utilities that work inside the engine are written in the Sand language.
 
 ## Implemented functionality
 
