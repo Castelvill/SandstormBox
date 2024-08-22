@@ -400,7 +400,7 @@ start createWindowTemplate
     fun border1 set_type "filled_rectangle"
     fun border1 add_point 0.0 0.0
     fun border1 add_point 640 480
-    fun border1 set_color 1.0 1.0 1.0 0.7
+    fun border1 set_color 0.0 0.0 0.0 1.0
     fun border1 set_size 640 480
     fun border1 update_with_size
 
@@ -1173,8 +1173,15 @@ start textEditorSave
 end
 
 start sand
+	if([param1] [""] !=)
     load_build me param1
     string [""] program
+	else emptyInput1
+end
+start emptyInput1
+	string [""] program
+	string ["Error: This instruction requires 1 parameter!\n"] result
+	run printOnTerminal
 end
 
 

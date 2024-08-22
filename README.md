@@ -15,6 +15,25 @@ Below are the most important working parts of the engine:
 
 Use 'help' command inside the terminal or press the TAB key to list all the available programs.
 
+## Screenshots from the engine
+
+
+Terminal with help, ls, cd and sand:
+<br>
+<img src="screenshots/terminal.png" width="700"/>
+<br>
+Cat programs:
+<br>
+<img src="screenshots/cat.png" width="700"/>
+<br>
+Windows:
+<br>
+<img src="screenshots/windows.png" width="700"/>
+<br>
+Text editor:
+<br>
+<img src="screenshots/editor.png" width="700"/>
+
 ## Scripts
 
 Currently, if you execute the engine binary without any scripts, you will get only a black screen. Directories "init" and "scripts" have necessary scripts for creating the terminal.
@@ -40,10 +59,3 @@ After meeting this condition you can build the engine with:
     make
 
 Alternatively you can use Visual Studio Code to compile the engine with the CTRL+SHIFT+B shortcut and clicking "Compile Engine".
-
-## Screenshots from the engine
-
-<img src="screenshots/terminal.png" width="700"/>
-
-
-<img src="screenshots/cat.png" width="700"/>
