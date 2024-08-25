@@ -3,4 +3,4 @@ SandstormBox.exe
 .directory
 clipboard.txt
 history.txt
-temp/
+temp/*
