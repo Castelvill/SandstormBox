@@ -4841,10 +4841,6 @@ void ProcessClass::bindScriptsToObjectsFromContext(OperaClass & Operation, vecto
     }
 }
 void ProcessClass::bindScriptsToObjectsFromLiterals(OperaClass & Operation, vector<ContextClass> & EventContext){
-    if(Operation.Literals.size() == 1){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least two literals of string type.\n";
-        return;
-    }
     ContextClass * ContextA;
     if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
@@ -4855,23 +4851,20 @@ void ProcessClass::bindScriptsToObjectsFromLiterals(OperaClass & Operation, vect
         return;
     }
     if(printOutInstructions){
-        cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
+        cout << "bind " << Operation.dynamicIDs[0] << " [";
     }
     for(AncestorObject * Object : ContextA->Objects){
-        for(const VariableModule & Variable : vector<VariableModule>(Operation.Literals.begin()+1, Operation.Literals.end())){
+        for(const VariableModule & Variable : Operation.Literals){
             if(Variable.getType() != 's'){
-                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ <<
+                    ": Bind " << Operation.Literals[0].getString()
+                    << " accepts only literals of \'string'; type.\n";
                 continue;
             }
             if(printOutInstructions){
                 cout << "\"" << Variable.getString() << "\", ";
             }
-            if(isStringInGroup(Operation.Literals[0].getString(), 2, "literal", "l")){
-                Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable.getString());
-            }
-            else{
-                removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Variable.getString());
-            }
+            Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable.getString());
         }
     }
     if(printOutInstructions){

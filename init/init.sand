@@ -8,7 +8,7 @@ start init false
     fun First set_can_be_moved_with_mouse true
     fun First enable_selection_border
     //fun First disable_scrolling
-    bind First reset
-    bind First literal ["scripts/terminal.sand" "scripts/terminalHelp.sand" "scripts/tests.sand"]
+    rbind First
+    bind First ["scripts/terminal.sand" "scripts/terminalHelp.sand" "scripts/tests.sand"]
     build First true
 end

@@ -4,8 +4,8 @@
     //edit_proc can_interact_with_user false
     new object KERNEL 1 _ _ First
     //index Layers [0 1] object First
-    bind First reset
-    bind First literal ["scripts/KERNEL_editor.txt"]
+    rbind First
+    bind First ["scripts/KERNEL_editor.txt"]
     build First true
 end*/
 
@@ -16,7 +16,7 @@ end*/
     new object KERNEL 1 _ _ First
     fun First set_can_be_selected false
     fun me set_can_be_selected false
-    bind First reset
-    bind First literal ["scripts/KERNEL.txt"]
+    rbind First
+    bind First ["scripts/KERNEL.txt"]
     build First true
 end*/

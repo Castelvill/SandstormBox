@@ -1724,7 +1724,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
             }
             else{
-                Operation->dynamicIDs.push_back(words[3].value);
+                Operation->dynamicIDs.push_back(words[2].value);
             }
         }
         else if(words[0].value == "build"){

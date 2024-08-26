@@ -1,3 +1,6 @@
+26.08.2024
+-Minimize "bind" instruction and create "rbind" instruction, which removes all binded scripts from the chosen objects.  
+
 21.08.2024
 -Change 'rename' instruction to 'mv' and update it with context variables.
 

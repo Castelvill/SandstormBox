@@ -357,7 +357,7 @@ start createWindowTemplate
     //fun NewWindowObject set_can_be_selected true
     fun NewWindowObject disable_scrolling
     fun NewWindowObject set_can_be_moved_with_mouse false
-    bind NewWindowObject literal ["scripts/windowTemplate.sand"]
+    bind NewWindowObject ["scripts/windowTemplate.sand"]
     build NewWindowObject true
 
     new variable NewWindowObject 1 _ _ objectsCameraID
@@ -528,7 +528,7 @@ start spawnNotepad
     fun TextEditor set_content ""
     fun TextEditor activate
     fun Object set_size 640 480
-    bind Object literal ["scripts/notepad.sand"]
+    bind Object ["scripts/notepad.sand"]
     build Object true
     run loadTextFromFile
 end
@@ -573,7 +573,7 @@ start spawnMover
     fun cameraID set_id "insideCameraID"
     fun cameraID set_string newCameraID
 
-    //bind NewObject literal ["scripts/mover.sand"]
+    //bind NewObject ["scripts/mover.sand"]
     //build_subset NewObject false
     load_build NewObject _ ["scripts/mover.sand"]
 end
