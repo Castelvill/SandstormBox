@@ -1499,7 +1499,8 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             cursor = 3;
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
-        else if(words[0].value == "++" || words[0].value == "--" || words[0].value == "delete" || words[0].value == "demolish"){
+        else if(words[0].value == "++" || words[0].value == "--" || words[0].value == "delete"
+            || words[0].value == "demolish" || words[0].value == "rbind"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
@@ -1705,7 +1706,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(optional(words, cursor, Operation->newContextID)){ continue; }
         }
         else if(words[0].value == "bind"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c' || words[2].type != 'c'){
@@ -1714,31 +1715,16 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             Operation->dynamicIDs.push_back(words[1].value);
-            Operation->Literals.push_back(VariableModule::newString(words[2].value));
-            if(isStringInGroup(words[2].value, 5, "literal", "l", "remove_literal", "rliteral", "rl")){
-                cursor = 3;
+            
+            if(words[2].value[0] == '['){
+                cursor = 2;
                 if(!gatherLiterals(words, cursor, Operation->Literals, 's', lineNumber, scriptName)){
                     cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": Literal creation failed.\n";
                     return;
                 }
             }
-            else if(isStringInGroup(words[2].value, 5, "context", "c", "remove_context", "rcontext", "rc")){
-                if(words.size() > 3){
-                    if(words[3].type != 'c'){
-                        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                            << ": In '" << words[0].value << "' instruction: The third parameter is not of a context type.\n";
-                        return;
-                    }
-                    Operation->dynamicIDs.push_back(words[3].value);
-                }
-                else{
-                    cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": No context provided.\n";
-                }
-            }
-            else if(words[2].value != "reset" && words[2].value != "r"){
-                cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": In bind instruction, type must be equal to one of these values: "
-                    "\"literal\", \"l\", \"remove_literal\", \"rliteral\", \"rl\", \"context\", \"c\", \"remove_context\", \"rcontext\", \"rc\", \"reset\", \"r\".\n";
-                return;
+            else{
+                Operation->dynamicIDs.push_back(words[3].value);
             }
         }
         else if(words[0].value == "build"){

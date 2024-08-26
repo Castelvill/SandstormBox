@@ -294,7 +294,10 @@ public:
     );
     void getIndexes(const vector<VariableModule> & Literals, const vector<string> & dynamicIDs, vector<unsigned> & indexes, vector<ContextClass> & EventContext);
     void getReferenceByIndex(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void bindScriptsToObjectsFromContext(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void bindScriptsToObjectsFromLiterals(OperaClass & Operation, vector<ContextClass> & EventContext);
     void bindFilesToObjects(OperaClass & Operation, vector<ContextClass> & EventContext);
+    void removeBindedFilesFromObjects(OperaClass & Operation, vector<ContextClass> & EventContext);
     void buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
     );

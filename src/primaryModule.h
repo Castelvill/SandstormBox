@@ -14,7 +14,7 @@ enum EngineInstr : char{
     equal, not_equal, more, less, more_equal, less_equal, not_i,
     and_i, or_i, igT, igF, in, find_by_id_2, inc, dec, del, demolish,
     value, bool_i, int_i, double_i, string_i, rand_int, find_by_id,
-    let, clone_i, new_i, bind_i, build, load_build, build_subset,
+    let, clone_i, new_i, bind_i, rbind_i, build, load_build, build_subset,
     inject_code, inject_instr, fun, env, edit_proc, load_bitmap,
     mkdir_i, rm, rmll, mv_i, print, load_text, save_text, ls,
     lse, new_proc, var, vec, tokenize, tree, len, size, substr, load_font,

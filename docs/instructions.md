@@ -494,22 +494,30 @@ delete *context*
 
 **Syntax**
 
-bind *context* *source* *scripts*
+bind *context* *scripts*
 
 **Description**
 
-    Add or remove paths to scripts from objects.
+    Add paths to scripts from objects.
 
 **Parameters**
 
 - context (context) - id of the context with objects;
-- source (context):
-    - “context” or “c” - next parameter will require an id of the context with paths to scripts. Instruction will bind those paths to provided objects;
-    - “literal” or “l” - next parameter will require a list of string values - script paths. Instruction will bind those paths to provided objects;
-    - “remove_context”, “rcontext” or “rc” - next parameter will require an id of the context with paths to scripts. Instruction will remove those paths from provided objects;
-    - “remove_literal”, “rliteral” or “rl” - next parameter will require an id of the context with paths to scripts. Instruction will remove those paths from provided objects;
-    - “reset” - instruction will remove all binded paths from provided objects.
 - scripts (string / string vector) - paths to the scripts, their purpose depends from “source” parameter.
+
+## rbind
+
+**Syntax**
+
+rbind *context*
+
+**Description**
+
+    Remove paths to scripts from objects.
+
+**Parameters**
+
+- context (context) - id of the context with objects.
 
 ## build
 

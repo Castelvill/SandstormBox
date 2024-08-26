@@ -187,6 +187,9 @@ EngineInstr transInstr(string instruction){
     if(instruction == "bind"){
         return EngineInstr::bind_i;
     }
+    if(instruction == "rbind"){
+        return EngineInstr::rbind_i;
+    }
     if(instruction == "build"){
         return EngineInstr::build;
     }
@@ -411,6 +414,8 @@ string transInstrToStr(EngineInstr instruction){
             return "new";
         case bind_i:
             return "bind";
+        case rbind_i:
+            return "rbind";
         case build:
             return "build";
         case load_build:

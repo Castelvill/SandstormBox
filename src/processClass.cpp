@@ -4753,34 +4753,50 @@ void ProcessClass::getReferenceByIndex(OperaClass & Operation, vector<ContextCla
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClass> & EventContext){
-    if(Operation.dynamicIDs.size() == 0){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least one context.\n";
+void ProcessClass::bindScriptsToObjectsFromContext(OperaClass & Operation, vector<ContextClass> & EventContext){
+    ContextClass * ContextObject, * ContextFiles;
+    if(!getPairOfContexts(ContextObject, ContextFiles, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
         return;
     }
-    if(Operation.Literals.size() == 0 || Operation.Literals[0].getType() != 's'){
-        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least one literal of string type.\n";
+    if(ContextObject->Objects.size() == 0){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
         return;
     }
-    if(isStringInGroup(Operation.Literals[0].getString(), 5, "literal", "l", "remove_literal", "rliteral", "rl")){
-        if(Operation.Literals.size() == 1){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least two literals of string type.\n";
-            return;
-        }
-        ContextClass * ContextA;
-        if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
-            return;
-        }
-        if(ContextA->Objects.size() == 0){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+    if(ContextFiles->type == "pointer"){
+        if(ContextFiles->BasePointers.size() == 0){
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
             return;
         }
         if(printOutInstructions){
             cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
         }
-        for(AncestorObject * Object : ContextA->Objects){
-            for(const VariableModule & Variable : vector<VariableModule>(Operation.Literals.begin()+1, Operation.Literals.end())){
+        for(AncestorObject * Object : ContextObject->Objects){
+            for(const BasePointersStruct & Pointer : ContextFiles->BasePointers){
+                if(Pointer.type != "string"){
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only pointers of \'string'; type.\n";
+                    continue;
+                }
+                if(printOutInstructions){
+                    cout << "\"" << Pointer.getString() << "\", ";
+                }
+                Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Pointer.getString());
+            }
+        }
+        if(printOutInstructions){
+            cout << "]\n";
+        }
+    }
+    else if(ContextFiles->type == "value"){
+        if(ContextFiles->Variables.size() == 0){
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
+            return;
+        }
+        if(printOutInstructions){
+            cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
+        }
+        for(AncestorObject * Object : ContextObject->Objects){
+            for(const VariableModule & Variable : ContextFiles->Variables){
                 if(Variable.getType() != 's'){
                     cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
                     continue;
@@ -4788,136 +4804,116 @@ void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClas
                 if(printOutInstructions){
                     cout << "\"" << Variable.getString() << "\", ";
                 }
-                if(isStringInGroup(Operation.Literals[0].getString(), 2, "literal", "l")){
-                    Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable.getString());
-                }
-                else{
-                    removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Variable.getString());
-                }
+                Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable.getString());
             }
         }
         if(printOutInstructions){
             cout << "]\n";
         }
     }
-    else if(isStringInGroup(Operation.Literals[0].getString(), 5, "context", "c", "remove_context", "rcontext", "rc")){
-        ContextClass * ContextObject, * ContextFiles;
-        if(!getPairOfContexts(ContextObject, ContextFiles, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
-            return;
-        }
-        if(ContextObject->Objects.size() == 0){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
-            return;
-        }
-        if(ContextFiles->type == "pointer"){
-            if(ContextFiles->BasePointers.size() == 0){
-                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
-                return;
-            }
-            if(printOutInstructions){
-                cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
-            }
-            for(AncestorObject * Object : ContextObject->Objects){
-                for(const BasePointersStruct & Pointer : ContextFiles->BasePointers){
-                    if(Pointer.type != "string"){
-                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only pointers of \'string'; type.\n";
-                        continue;
-                    }
-                    if(printOutInstructions){
-                        cout << "\"" << Pointer.getString() << "\", ";
-                    }
-                    if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
-                        Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Pointer.getString());
-                    }
-                    else{
-                        removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Pointer.getString());
-                    }
-                }
-            }
-            if(printOutInstructions){
-                cout << "]\n";
-            }
-        }
-        else if(ContextFiles->type == "value"){
-            if(ContextFiles->Variables.size() == 0){
-                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
-                return;
-            }
-            if(printOutInstructions){
-                cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
-            }
-            for(AncestorObject * Object : ContextObject->Objects){
-                for(const VariableModule & Variable : ContextFiles->Variables){
-                    if(Variable.getType() != 's'){
-                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
-                        continue;
-                    }
-                    if(printOutInstructions){
-                        cout << "\"" << Variable.getString() << "\", ";
-                    }
-                    if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
-                        Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable.getString());
-                    }
-                    else{
-                        removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Variable.getString());
-                    }
-                }
-            }
-            if(printOutInstructions){
-                cout << "]\n";
-            }
-        }
-        else if(ContextFiles->type == "variable"){
-            if(ContextFiles->Modules.Variables.size() == 0){
-                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
-                return;
-            }
-            if(printOutInstructions){
-                cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
-            }
-            for(AncestorObject * Object : ContextObject->Objects){
-                for(const VariableModule * Variable : ContextFiles->Modules.Variables){
-                    if(Variable->getType() != 's'){
-                        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
-                        continue;
-                    }
-                    if(printOutInstructions){
-                        cout << "\"" << Variable->getString() << "\", ";
-                    }
-                    if(isStringInGroup(Operation.Literals[0].getString(), 2, "context", "c")){
-                        Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable->getString());
-                    }
-                    else{
-                        removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Variable->getString());
-                    }
-                }
-            }
-            if(printOutInstructions){
-                cout << "]\n";
-            }
-        }
-        else{
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " only accepts file input of types: \'pointer\' and \'value\'.\n";
-            return;
-        }
-    }
-    else if(Operation.Literals[0].getString() == "reset" || Operation.Literals[0].getString() == "r"){
-        ContextClass * ContextObject;
-        if(!getOneContext(ContextObject, EventContext, Operation.dynamicIDs)){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
-            return;
-        }
-        if(ContextObject->Objects.size() == 0){
-            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+    else if(ContextFiles->type == "variable"){
+        if(ContextFiles->Modules.Variables.size() == 0){
+            cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one pointer.\n";
             return;
         }
         if(printOutInstructions){
-            cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << "\n";
+            cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
         }
         for(AncestorObject * Object : ContextObject->Objects){
-            Object->bindedScripts.clear();
+            for(const VariableModule * Variable : ContextFiles->Modules.Variables){
+                if(Variable->getType() != 's'){
+                    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
+                    continue;
+                }
+                if(printOutInstructions){
+                    cout << "\"" << Variable->getString() << "\", ";
+                }
+                Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable->getString());
+            }
         }
+        if(printOutInstructions){
+            cout << "]\n";
+        }
+    }
+    else{
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " only accepts file input of types: \'pointer\' and \'value\'.\n";
+        return;
+    }
+}
+void ProcessClass::bindScriptsToObjectsFromLiterals(OperaClass & Operation, vector<ContextClass> & EventContext){
+    if(Operation.Literals.size() == 1){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least two literals of string type.\n";
+        return;
+    }
+    ContextClass * ContextA;
+    if(!getOneContext(ContextA, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
+        return;
+    }
+    if(ContextA->Objects.size() == 0){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+        return;
+    }
+    if(printOutInstructions){
+        cout << "bind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << " [";
+    }
+    for(AncestorObject * Object : ContextA->Objects){
+        for(const VariableModule & Variable : vector<VariableModule>(Operation.Literals.begin()+1, Operation.Literals.end())){
+            if(Variable.getType() != 's'){
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " accepts only literals of \'string'; type.\n";
+                continue;
+            }
+            if(printOutInstructions){
+                cout << "\"" << Variable.getString() << "\", ";
+            }
+            if(isStringInGroup(Operation.Literals[0].getString(), 2, "literal", "l")){
+                Object->bindedScripts.push_back(EXE_PATH + workingDirectory + Variable.getString());
+            }
+            else{
+                removeFromStringVector(Object->bindedScripts, EXE_PATH + workingDirectory + Variable.getString());
+            }
+        }
+    }
+    if(printOutInstructions){
+        cout << "]\n";
+    }
+}
+void ProcessClass::bindFilesToObjects(OperaClass & Operation, vector<ContextClass> & EventContext){
+    if(Operation.dynamicIDs.size() == 0){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least one context.\n";
+        return;
+    }
+    if(Operation.dynamicIDs.size() == 2){
+        bindScriptsToObjectsFromContext(Operation, EventContext);
+    }
+    else if(Operation.Literals.size() > 0 || Operation.Literals[0].getType() == 's'){
+        bindScriptsToObjectsFromLiterals(Operation, EventContext);
+    }
+    else{
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires two contexts or at least one literal of a string type.\n";
+        return;
+    }
+}
+void ProcessClass::removeBindedFilesFromObjects(OperaClass & Operation, vector<ContextClass> & EventContext){
+    if(Operation.dynamicIDs.size() == 0){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind requires at least one context.\n";
+        return;
+    }
+    
+    ContextClass * ContextObject;
+    if(!getOneContext(ContextObject, EventContext, Operation.dynamicIDs)){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": No context found.\n";
+        return;
+    }
+    if(ContextObject->Objects.size() == 0){
+        cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Bind " << Operation.Literals[0].getString() << " requires at least one object.\n";
+        return;
+    }
+    if(printOutInstructions){
+        cout << "rbind " << Operation.dynamicIDs[0] << " " << Operation.Literals[0].getString() << "\n";
+    }
+    for(AncestorObject * Object : ContextObject->Objects){
+        Object->bindedScripts.clear();
     }
 }
 void ProcessClass::buildEventsInObjects(OperaClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
@@ -7470,6 +7466,9 @@ OperaClass ProcessClass::executeInstructions(vector<OperaClass> Operations, Laye
                 return Operation;
             case bind_i:
                 bindFilesToObjects(Operation, EventContext);
+                break;
+            case rbind_i:
+                removeBindedFilesFromObjects(Operation, EventContext);
                 break;
             case build:
                 buildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack, Engine.allowNotAscii);
