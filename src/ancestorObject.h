@@ -22,7 +22,7 @@ struct ModulesPointers{
 };
 
 struct WordStruct{
-    char type; //o - operation, s - string, d - double, i - int, e - empty, c - context
+    char type; //o - operation, b - bool, i - int, d - double, s - string, e - empty, c - context
     string value;
 };
 

@@ -619,6 +619,14 @@ vector<WordStruct> tokenizeCode(string input){
             mergedOutput.push_back(WordStruct('e', output[i])); //empty / null
             continue;
         }
+        if(output[i] == "true"){
+            mergedOutput.push_back(WordStruct('b', "1")); //bool
+            continue;
+        }
+        if(output[i] == "false"){
+            mergedOutput.push_back(WordStruct('b', "0")); //bool
+            continue;
+        }
         if(canStringBeDouble(output[i])){
             cstod(output[i], error);
             if(mergedOutput.back().value == "-"){
@@ -1267,7 +1275,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             bool overrideEvent = false;
 
             if(words.size() >= 4){
-                if(words[3].type == 'i'){
+                if(words[3].type == 'b' || words[3].type == 'i'){
                     overrideEvent = cstoi(words[3].value, error);
                 }
                 else{
@@ -1297,7 +1305,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 continue;
             }
 
-            if(words[2].type != 'i' && words[2].type != 'e'){
+            if(words[2].type != 'b' && words[2].type != 'i' && words[2].type != 'e'){
                 cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__ << ": The second parameter is not an int.\n";
                 return;
             }

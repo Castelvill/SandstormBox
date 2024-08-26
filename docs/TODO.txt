@@ -1,4 +1,3 @@
--Minimize "bind" instruction and add "rbind".
 -Create a SavedContext / CachedContext vector for removing the need to recreate needed context stack for each event/function in each iteration. Context elements initialized from SavedContext will be immutable in type and shape.
 -Add a pointer to the AncestorObject class that will point to the SavedContext vector (cached contexts).
 -Add "structure/cache context" instruction that will add provided context to the SavedContext/CachedContext vector.
