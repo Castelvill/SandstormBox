@@ -42,8 +42,8 @@ void removeFromVector(vector <T> & Vec, T selectedValue){
 string findNewUniqueID(vector <string> IDs, string newID);
 
 
-template<typename Iterator, typename Pred, typename OperationClass>
-void for_each_if(Iterator begin, Iterator end, Pred p, OperationClass op) {
+template<typename Iterator, typename Pred, typename Operation>
+void for_each_if(Iterator begin, Iterator end, Pred p, Operation op) {
     for(; begin != end; begin++) {
         if (p(*begin)) {
             op(*begin);

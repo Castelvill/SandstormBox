@@ -15,28 +15,22 @@ start onInit
 	load_bitmap "images/despair.png" "despair" false true
 
     string ["fonts/CascadiaCode.ttf"] path
-    int [16] size
     string ["cascadia_code"] name
-    load_font path size name true
+    load_font path 16 name true
 
     string ["fonts/CascadiaCode-Bold.ttf"] path
-    int [20] size
     string ["cascadia_code_bold"] name
-    load_font path size name true
+    load_font path 20 name true
 
     string ["fonts/fira_mono.ttf"] path
-    int [20] size
     string ["fira_mono"] name
-    load_font path size name true
+    load_font path 20 name true
 
     run resizeDisplay buildTerminal createWindowTemplate runAfterInit
 end
 
 start runAfterInit
     //cd scripts
-    //bool [true] xd
-    //= xd false
-    //print "\n" _ xd
 	run forceRefresh
 end
 
@@ -69,7 +63,7 @@ start buildTerminal
     value ([window_w]) ww
     value ([window_h]) wh
 
-    new camera 1 _ _ Cam
+    new camera 1 _ Cam
     //fun Cam set_position 100 100
     fun Cam set_id "Desktop"
     fun Cam set_active true
@@ -93,7 +87,7 @@ start buildTerminal
     //fun Cam set_can_edit_text false
     fun Cam set_can_move_objects false
 
-    new image me 1 _ _ background
+    new image me 1 _ background
     fun background connect_bitmap_via_alias "background"
     fun background resize ww wh
     fun background set_color 0.5 0.5 0.5 0.3
@@ -112,7 +106,7 @@ start buildTerminal
     var 1.0 terminalAccentColorA
 
 
-    new super_editable_text me 1 _ _ TerminalTextField
+    new super_editable_text me 1 _ TerminalTextField
     fun TerminalTextField set_id "edi"
     fun TerminalTextField set_position editableTextPos
     fun TerminalTextField set_size ww wh
@@ -135,7 +129,7 @@ start buildTerminal
 
     var 24 minScrollbarThumbHeight
 
-    new image me 1 _ _ thumb
+    new image me 1 _ thumb
     fun thumb set_id "thumb"
     fun thumb deactivate
     fun thumb set_position 2 2
@@ -144,7 +138,7 @@ start buildTerminal
     fun thumb connect_bitmap_via_alias "sand_thumb"
     fun thumb disable_scrolling
 
-    new image me 1 _ _ thumbTrack
+    new image me 1 _ thumbTrack
     fun thumbTrack set_id "thumb_track"
     fun thumbTrack deactivate
     fun thumbTrack set_size 100 500
@@ -154,7 +148,7 @@ start buildTerminal
 
     var 476.0 scrollbarHeight
 
-    new scrollbar me 1 _ _ MainScrollbar
+    new scrollbar me 1 _ MainScrollbar
     fun MainScrollbar disable_scrolling
     //fun MainScrollbar deactivate
     fun MainScrollbar set_can_be_drawn true
@@ -171,7 +165,7 @@ start buildTerminal
 
     var 30 commandLineHeight
 
-    new super_editable_text me 1 _ _ TextEditor
+    new super_editable_text me 1 _ TextEditor
     clone TextEditor TerminalTextField
     fun TextEditor add_format "cascadia_code_bold" 1
     fun TextEditor set_color 0 0.2 0.74 0.7 1.0 //[0.0 0.7 0.0 1.0]
@@ -184,7 +178,7 @@ start buildTerminal
     fun TextEditor set_can_use_tabs true
     fun TextEditor deactivate
 
-    new scrollbar me 1 _ _ TextEditorScrollbar
+    new scrollbar me 1 _ TextEditorScrollbar
     fun TextEditorScrollbar disable_scrolling
     fun TextEditorScrollbar set_can_be_drawn true
     fun TextEditorScrollbar set_id "TextEditorScrollbar"
@@ -199,7 +193,7 @@ start buildTerminal
     fun TextEditorScrollbar deactivate
     fun TextEditorScrollbar add_camera "Desktop"
 
-    new particles me 1 _ _ Particles
+    new particles me 1 _ Particles
     fun Particles set_position 200 200
     fun Particles set_size 10 10
     fun Particles deactivate
@@ -325,12 +319,12 @@ end
 
 
 start createWindowTemplate
-    new layer 1 _ _ WindowLayer
+    new layer 1 _ WindowLayer
     fun WindowLayer deactivate
     fun WindowLayer set_id "WindowLayer"
     value ([WindowLayer id]) newLayerID
 
-    new camera 1 _ _ WindowCamera
+    new camera 1 _ WindowCamera
     fun WindowCamera set_position 0 0
     fun WindowCamera set_id "WindowCamera"
     fun WindowCamera set_active true
@@ -355,7 +349,7 @@ start createWindowTemplate
     fun WindowCamera deactivate
     fun WindowCamera forbid_drawing_object_borders
 
-    new object WindowLayer 1 _ _ NewWindowObject
+    new object WindowLayer 1 _ NewWindowObject
     fun NewWindowObject set_id "WindowObject"
     //fun NewWindowObject set_can_be_selected true
     fun NewWindowObject disable_scrolling
@@ -363,42 +357,42 @@ start createWindowTemplate
     bind NewWindowObject ["scripts/windowTemplate.sand"]
     build NewWindowObject true
 
-    new variable NewWindowObject 1 _ _ objectsCameraID
+    new variable NewWindowObject 1 _ objectsCameraID
     fun objectsCameraID set_id "cameraID"
     fun objectsCameraID set_string "WindowCamera"
 
-    new variable NewWindowObject 1 _ _ isMaxed
+    new variable NewWindowObject 1 _ isMaxed
     fun isMaxed set_id "isMaxed"
     fun isMaxed set_bool false
-    new variable NewWindowObject 1 _ _ sizeX
+    new variable NewWindowObject 1 _ sizeX
     fun sizeX set_id "sizeX"
     fun sizeX set_double 640
-    new variable NewWindowObject 1 _ _ sizeY
+    new variable NewWindowObject 1 _ sizeY
     fun sizeY set_id "sizeY"
     fun sizeY set_double 480
-    new variable NewWindowObject 1 _ _ posX
+    new variable NewWindowObject 1 _ posX
     fun posX set_id "posX"
     fun posX set_double 0.0
-    new variable NewWindowObject 1 _ _ posY
+    new variable NewWindowObject 1 _ posY
     fun posY set_id "posY"
     fun posY set_double 0
-    new variable NewWindowObject 1 _ _ isBorderless
+    new variable NewWindowObject 1 _ isBorderless
     fun isBorderless set_id "isBorderless"
     fun isBorderless set_bool false
 
-    new variable NewWindowObject 1 _ _ newVal
+    new variable NewWindowObject 1 _ newVal
     fun newVal set_id "delete"
     fun newVal set_bool false
 
-    new variable NewWindowObject 1 _ _ newVal
+    new variable NewWindowObject 1 _ newVal
     fun newVal set_id "has_friends"
     fun newVal set_bool false
 
-    new variable NewWindowObject 1 _ _ newVal
+    new variable NewWindowObject 1 _ newVal
     fun newVal set_id "deleted_friends"
     fun newVal set_bool false
 
-    new primitives NewWindowObject 1 _ _ border1
+    new primitives NewWindowObject 1 _ border1
     fun border1 set_id "background"
     fun border1 set_type "filled_rectangle"
     fun border1 add_point 0.0 0.0
@@ -407,14 +401,14 @@ start createWindowTemplate
     fun border1 set_size 640 480
     fun border1 update_with_size
 
-    new primitives NewWindowObject 1 _ _ border2
+    new primitives NewWindowObject 1 _ border2
     clone border2 border1
     fun border2 set_id "toolbar"
     fun border2 set_color 0.109 0.537 0.2039 1.0
     fun border2 set_size 640 30
     fun border2 update_with_size
 
-    new primitives NewWindowObject 1 _ _ border3
+    new primitives NewWindowObject 1 _ border3
     clone border3 border1
     fun border3 set_id "border"
     fun border3 set_type "rectangle"
@@ -424,7 +418,7 @@ start createWindowTemplate
     fun border3 set_thickness 5.0
     fun border3 update_with_size
 
-    new primitives NewWindowObject 1 _ _ exitButton
+    new primitives NewWindowObject 1 _ exitButton
     fun exitButton set_id "exitButton"
     fun exitButton set_type "filled_circle"
     fun exitButton add_point 0.0 0.0
@@ -434,34 +428,34 @@ start createWindowTemplate
     fun exitButton set_size 20 20
     fun exitButton update_with_size
 
-    new collision NewWindowObject 1 _ _ ExitCollision
+    new collision NewWindowObject 1 _ ExitCollision
     fun ExitCollision set_position 620 15
     fun ExitCollision set_size 10 10
     fun ExitCollision set_is_circle true
 
-    new primitives NewWindowObject 1 _ _ MaxButton
+    new primitives NewWindowObject 1 _ MaxButton
     clone MaxButton exitButton
     fun MaxButton set_id "MaxButton"
     fun MaxButton set_position 590 15
     fun MaxButton set_color 1.0 1.0 0.0 1.0
 
-    new collision NewWindowObject 1 _ _ MaxCollision
+    new collision NewWindowObject 1 _ MaxCollision
     fun MaxCollision set_position 590 15
     fun MaxCollision set_size 10 10
     fun MaxCollision set_is_circle true
 
-    new primitives NewWindowObject 1 _ _ minimizeButton
+    new primitives NewWindowObject 1 _ minimizeButton
     clone minimizeButton exitButton
     fun minimizeButton set_id "minimizeButton"
     fun minimizeButton set_position 560 15
     fun minimizeButton set_color 0.0 1.0 0.0 1.0
 
-    new collision NewWindowObject 1 _ _ MinCollision
+    new collision NewWindowObject 1 _ MinCollision
     fun MinCollision set_position 560 15
     fun MinCollision set_size 10 10
     fun MinCollision set_is_circle true
 
-    new super_text NewWindowObject 1 _ _ title
+    new super_text NewWindowObject 1 _ title
     fun title set_id "title"
     fun title set_position 10 2
     fun title set_size 400 50
@@ -480,13 +474,11 @@ end
 
 start spawnNewWindow
     all Cameras _ camera _ Cameras
-    string ["WindowCamera"] cameraID
-    find_by_id_2 Cameras cameraID TemplateCamera
+    find_by_id_2 Cameras "WindowCamera" TemplateCamera
     all Layers _ _ _ _ _ _ Layers
-    string ["WindowLayer"] layerID
-    find_by_id_2 Layers layerID TemplateLayer
+    find_by_id_2 Layers "WindowLayer" TemplateLayer
 
-    new layer 1 _ _ NewWindowLayer
+    new layer 1 _ NewWindowLayer
     clone NewWindowLayer TemplateLayer
     fun NewWindowLayer set_id param1
     value ([NewWindowLayer id]) newLayerID
@@ -495,7 +487,7 @@ start spawnNewWindow
     index NewWindowLayer [0 0 0] super_text Title
     fun Title set_content param1
 
-    new camera 1 _ _ NewWindowCamera
+    new camera 1 _ NewWindowCamera
     clone NewWindowCamera TemplateCamera
     fun NewWindowCamera set_id param1
     value ([NewWindowCamera id]) newCameraID
@@ -505,7 +497,7 @@ start spawnNewWindow
     fun NewWindowCamera set_drawing_borders false
     index NewWindowLayer [0 0 0] variable objectsCameraID
     = objectsCameraID newCameraID
-    string [""] program
+    = program ""
 end
 
 
@@ -513,7 +505,7 @@ start note
     int [0] NewWindowLayer
     string [""] fileName
     = fileName param1
-    string ["Note"] param1
+    = param1 "Note"
     run spawnNewWindow spawnNotepad
 end
 start spawnNotepad
@@ -521,7 +513,7 @@ start spawnNotepad
     index NewWindowLayer [0 0] object Object
     index NewWindowLayer [0 0 0] primitives Background
     fun Background set_color 0.0 0.0 0.0 1.0
-    new super_editable_text Object 1 _ _ TextEditor
+    new super_editable_text Object 1 _ TextEditor
     clone TextEditor Editable
     fun TextEditor set_id "Notepad"
     fun TextEditor set_position 5 30
@@ -541,7 +533,7 @@ start mover
     int [0] NewWindowLayer
     string [""] selectedLayerID
     = selectedLayerID param1
-    string ["Mover"] param1
+    = param1 "Mover"
     int [0] NewWindowCamera
     run spawnNewWindow spawnMover
 end
@@ -549,14 +541,12 @@ start spawnMover
     index me [0 1] super_editable_text Editable
     index NewWindowLayer [0 0] object NewObject
     first NewObject _ _ variable has_friends bool _ has_friends
-    bool [true] True
-    = has_friends True
-    find_by_id_2 NewObject has_friends 
+    = has_friends true
     index NewWindowLayer [0 0 0] primitives Background
     fun Background set_color 0.0 0.0 0.0 1.0
     //value ([my_layer id]) selectedLayerID
     value ([NewWindowCamera id]) windowCameraID
-    new camera 1 _ _ InsideCamera
+    new camera 1 _ InsideCamera
     fun InsideCamera activate
     fun InsideCamera add_visible_layer selectedLayerID
     fun InsideCamera add_accessible_layer selectedLayerID
@@ -572,13 +562,13 @@ start spawnMover
 
     value ([InsideCamera id]) newCameraID
 
-    new variable NewObject 1 _ _ cameraID
+    new variable NewObject 1 _ cameraID
     fun cameraID set_id "insideCameraID"
     fun cameraID set_string newCameraID
 
     //bind NewObject ["scripts/mover.sand"]
     //build_subset NewObject false
-    load_build NewObject _ ["scripts/mover.sand"]
+    load_build NewObject ["scripts/mover.sand"]
 end
 
 
@@ -586,7 +576,7 @@ start interrupt
     triggers key_pressed
     if ([key_pressed 215] [key_pressed 3] &&) //217-ctrl, 215-shift, 3-c
     
-    string [""] program
+    = program ""
     string ["^C\n"] result
     run printOnTerminal
 end
@@ -629,27 +619,21 @@ end
 
 start createPrompt
     //Cool way of creating prompt is not possible until extended ascii characters are not handled well in the editable text module.
-    //string ["┌/"] begin
-    string ["~/"] begin
-    += result begin
+    += result "~/"      //"┌/"
     pwd workingDir
     += result workingDir
-    //string ["\n└─$"] secondLine
-    string ["\n$"] secondLine
-    += result secondLine
+    += result "\n$"     //"\n└─$"
 end
 
 start putNewLine
-    string ["\n"] newLine
-    += result newLine
+    += result "\n"
 end
 
 start addAllCompletes true
     if ([i] [completes size] <)
     index completes [i] value instance
     += result instance
-    string [" "] space
-    += result space
+    += result " "
     ++ i
 end
 
@@ -684,7 +668,7 @@ start controler
     index me [0 0] super_editable_text EditableText
     fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
-    string ["sleep"] program
+    = program "sleep"
     string [""] result
     run createPrompt printOnTerminal colorNormalText
 end
@@ -708,7 +692,7 @@ start controlerWithEnter
     index me [0 0] super_editable_text EditableText
     fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
-    string ["sleep"] program
+    = program "sleep"
     string ["\n"] result
     run createPrompt printOnTerminal colorNormalText
 end
@@ -729,12 +713,12 @@ start fs_click false
 end
 
 start fullscreen
-    string [""] program
+    = program ""
     run setFullscreen
 end
 
 start fs
-    string [""] program
+    = program ""
     run setFullscreen
 end
 
@@ -801,16 +785,14 @@ start refreshScrollbar
     value ([window_w]) windowW
     int [16] scrollbarWidth
     -= windowW scrollbarWidth
-    int [0] zero
-    fun MainScrollbar set_position windowW zero
+    fun MainScrollbar set_position windowW 0
     fun MainScrollbar resize scrollbarWidth h
     int [12] thumbWidth
     fun MainScrollbar set_scrolling_area thumbWidth h
     fun MainScrollbar set_thumb_size thumbWidth h
 
     all me _ _ image _ _ _ AllImages
-    string ["thumb_track"] trackID
-    find_by_id_2 AllImages trackID TrackImage
+    find_by_id_2 AllImages "thumb_track" TrackImage
     fun TrackImage resize scrollbarWidth h
     fun me update_scrollbars
 
@@ -820,10 +802,8 @@ end
 start refreshScrollbarCheck
     if([TerminalSizeY] [0] >)
     index me [0 0] scrollbar MainScrollbar
-    int [0] zero
-    fun MainScrollbar set_real_scrolling_area zero TerminalSizeY
+    fun MainScrollbar set_real_scrolling_area 0 TerminalSizeY
     += TerminalSizeY h
-    int [12] ree12
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
     value ([window_h]) windowH
@@ -831,7 +811,7 @@ start refreshScrollbarCheck
     = divide windowH
     /= divide TerminalSizeY
     *= currentThumbHeight divide
-    fun MainScrollbar set_thumb_size ree12 currentThumbHeight
+    fun MainScrollbar set_thumb_size 12 currentThumbHeight
     fun MainScrollbar scroll_to_the_end
     fun me update_scrollbars
     run keepMinimalSizeOfScrollThumb
@@ -841,16 +821,15 @@ end
 start keepMinimalSizeOfScrollThumb
     if([currentThumbHeight] [minScrollbarThumbHeight] <)
     = currentThumbHeight minScrollbarThumbHeight 
-    fun MainScrollbar set_thumb_size ree12 currentThumbHeight
+    fun MainScrollbar set_thumb_size 12 currentThumbHeight
     fun me update_scrollbars
 end
 
 start resetScrollbar
     index me [0 0] scrollbar MainScrollbar
-    int [12] ree12
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
-    fun MainScrollbar set_thumb_size ree12 currentThumbHeight
+    fun MainScrollbar set_thumb_size 12 currentThumbHeight
     fun me update_scrollbars
 end
 
@@ -873,27 +852,26 @@ start enter1
 
     len command commandLength
 
-    string [""] param0
-    string [""] param1
-    string [""] param2
-    string [""] param3
-    string [""] param4
-    string [""] param5
-    string [""] param6
-    string [""] param7
+    = param0 ""
+    = param1 ""
+    = param2 ""
+    = param3 ""
+    = param4 ""
+    = param5 ""
+    = param6 ""
+    = param7 ""
 
     tokenize " " command param0 param1 param2 param3 param4 param5 param6 param7
 
     in param0 allowedPrograms isAllowed
-    string ["_enter"] program
+    = program "_enter"
     run saveCommand programCheck
 end
 
 start saveCommand
     if ([commandLength] [0] >)
     fun commandHistory set commandNumber command
-    string ["~/history.txt"] fileName
-    save_text fileName commandHistory
+    save_text "~/history.txt" commandHistory "\n"
     fun commandHistory push_back ""
     ++ commandNumber
     = currentCommandNumber commandNumber
@@ -903,7 +881,7 @@ start programCheck
     if ([isAllowed])
     string ["run "] run
     += run param0
-    string ["run"] program
+    = program "run"
     inject_instr me run
     string ["\n"] result
     run printOnTerminal
@@ -917,15 +895,12 @@ end
 
 
 start forgor
-    int [0] zero
-    = commandNumber zero
-    = currentCommandNumber zero
+    = commandNumber 0
+    = currentCommandNumber 0
     fun commandHistory clear
-    string ["history.txt"] fileName
-    save_text fileName commandHistory
-    string [""] emptyString
-    fun commandHistory push_back emptyString
-    string [""] program
+    save_text "history.txt" commandHistory
+    fun commandHistory push_back ""
+    = program ""
 end
 
 start moveInHistory
@@ -1025,7 +1000,7 @@ end
 
 
 start edit
-    string ["edit"] program
+    = program "edit"
     index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField deactivate
     index me [0 0] scrollbar MainScrollbar
@@ -1080,18 +1055,15 @@ start refreshTextEditorScrollbar
     value ([window_w]) windowW
     int [16] scrollbarWidth
     -= windowW scrollbarWidth
-    int [0] zero
-    fun EditorScrollbar set_position windowW zero
+    fun EditorScrollbar set_position windowW 0
     fun EditorScrollbar resize scrollbarWidth h
     int [12] thumbWidth
     fun EditorScrollbar set_scrolling_area thumbWidth h
 
     all me _ _ image _ _ _ AllImages
-    string ["thumb_track"] trackID
-    find_by_id_2 AllImages trackID TrackImage
+    find_by_id_2 AllImages "thumb_track" TrackImage
     fun TrackImage resize scrollbarWidth h
     fun me update_scrollbars
-
 
     -= EditorSizeY h
     run refreshTextEditorScrollbarCheck
@@ -1099,10 +1071,9 @@ end
 start refreshTextEditorScrollbarCheck
     if([EditorSizeY] [0] >)
     index me [0 1] scrollbar EditorScrollbar
-    int [0] zero
-    fun EditorScrollbar set_real_scrolling_area zero EditorSizeY
+    fun EditorScrollbar set_real_scrolling_area 0 EditorSizeY
     += EditorSizeY h
-    int [12] ree12
+    
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
     value ([window_h]) windowH
@@ -1110,7 +1081,7 @@ start refreshTextEditorScrollbarCheck
     = divide windowH
     /= divide EditorSizeY
     *= currentThumbHeight divide
-    fun EditorScrollbar set_thumb_size ree12 currentThumbHeight
+    fun EditorScrollbar set_thumb_size 12 currentThumbHeight
     //fun EditorScrollbar scroll_to_the_end
     fun me update_scrollbars
     run keepMinimalSizeOfTextEditorScrollThumb
@@ -1119,15 +1090,15 @@ end
 start keepMinimalSizeOfTextEditorScrollThumb
     if([currentThumbHeight] [minScrollbarThumbHeight] <)
     = currentThumbHeight minScrollbarThumbHeight
-    fun EditorScrollbar set_thumb_size ree12 currentThumbHeight
+    fun EditorScrollbar set_thumb_size 12 currentThumbHeight
     fun me update_scrollbars
 end
 start resetTextEditorScrollbar
     index me [0 1] scrollbar EditorScrollbar
-    int [12] ree12
+    
     double [476] currentThumbHeight
     = currentThumbHeight scrollbarHeight
-    fun EditorScrollbar set_thumb_size ree12 currentThumbHeight
+    fun EditorScrollbar set_thumb_size 12 currentThumbHeight
     fun me update_scrollbars
 end
 
@@ -1146,7 +1117,7 @@ start checkIfInsertPressed
 end
 
 start triggerEditorExit
-    string [""] program
+    = program ""
     index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField activate
     fun TerminalTextField start_editing
@@ -1178,11 +1149,11 @@ end
 start sand
 	if([param1] [""] !=)
     load_build me param1
-    string [""] program
+    = program ""
 	else emptyInput1
 end
 start emptyInput1
-	string [""] program
+	= program ""
 	string ["Error: This instruction requires 1 parameter!\n"] result
 	run printOnTerminal
 end
@@ -1190,12 +1161,8 @@ end
 
 start injectFormat
     index me [0 0] super_editable_text EditableText
-    double [1.0] r
-    double [0.0] g
-    double [1.0] b
-    double [1.0] a
     string ["cascadia_code"] font 
-    fun EditableText inject_format startFragment endFragment r g b a r g b a font
+    fun EditableText inject_format startFragment endFragment 1.0 0.0 1.0 1.0  1.0 0.0 1.0 1.0 font
 end
 
 start format
@@ -1236,11 +1203,11 @@ end*/
 start save_terminal
     index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField save_to_file param1
-    string [""] program
+    = program ""
 end
 
 start load_terminal
     index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField load_from_file param1
-    string [""] program
+    = program ""
 end

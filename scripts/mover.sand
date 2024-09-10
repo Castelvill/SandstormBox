@@ -4,8 +4,7 @@ start deleteFriends
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras insideCameraID InsideCamera
     delete InsideCamera
-    bool [true] True 
-    = deleted_friends True
+    = deleted_friends true
 end
 
 start checkIfMouseMoved
@@ -15,10 +14,8 @@ start checkIfMouseMoved
     find_by_id_2 Cameras cameraID MainCamera
     value ([MainCamera size_x]) sx
     value ([MainCamera size_y]) sy
-    int [35] bordersY
-    -= sy bordersY
-    int [10] borderX
-    -= sx borderX
+    -= sy 35
+    -= sx 10
     find_by_id_2 Cameras insideCameraID InsideCamera
     fun InsideCamera resize sx sy
 end

@@ -26,15 +26,34 @@ public:
     ConditionClass();
 };
 
-class OperaClass{
+struct ParameterStruct{
+    char type; //e - empty, l - literals, c - variable, v - vector
+    vector<VariableModule> Literals;
+    vector<string> variableIDs;
+    vector<stupidBool> negateVariable;
+    ParameterStruct();
+};
+
+struct WordStruct{
+    char type; //o - operation, b - bool, i - int, d - double, s - string, e - empty, c - context
+    string value;
+    bool negateVariable;
+};
+
+class OperationClass{
 public:
     vector <ConditionClass> ConditionalChain;
-    vector <VariableModule> Literals;
+    vector <ParameterStruct> Parameters;
     ValueLocation Location;
     EngineInstr instruction; //first, last, all, random, let, assigment, class method, run(), break, return
-    vector <string> dynamicIDs;
     string newContextID; //Assign an id to the result of operation.
-    OperaClass();
+    OperationClass();
+    
+    //Add literal or context. The type will be checked only if the provided word is a literal.
+    //Available types: a - anything, v - variable, n - number, b - bool, i - int, d - double, s - string.
+    bool addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words, unsigned index, char type, string name, bool optional);
+    bool addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words, unsigned & index, char type, string name, bool optional);
+    void addLiteralParameter(const VariableModule & Variable);
 };
 
 struct ChildStruct{
@@ -45,8 +64,8 @@ struct ChildStruct{
 class EveModule: public PrimaryModule{
 public:
 	vector <ConditionClass> ConditionalChain;
-    vector <OperaClass> DependentOperations;
-	vector <OperaClass> PostOperations; //Post operations can be executed ONLY if ConditionalChain returns true - otherwise only the else scope will be called and executed.
+    vector <OperationClass> DependentOperations;
+	vector <OperationClass> PostOperations; //Post operations can be executed ONLY if ConditionalChain returns true - otherwise only the else scope will be called and executed.
 	vector <ChildStruct> Children;
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events with the use of "run" and "else" commands.
     //Types: on_boot, on_init, each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.

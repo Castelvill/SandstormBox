@@ -47,7 +47,7 @@ SingleBitmap::SingleBitmap(){
 void SingleBitmap::loadBitmap(string newID, string newFilePath, string workingDirectory, bool createLightBitmap){
     if(bitmap){
         al_destroy_bitmap(bitmap);
-        cout << "Bitmap '" << ID << "' destroyed! Prepare for memory leaks :)\n";
+        cout << "Bitmap '" << ID << "' destroyed! Prepare for the memory leaks :)\n";
     }
     filePath = newFilePath;
     ID = newID;

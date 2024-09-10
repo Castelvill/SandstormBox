@@ -4,8 +4,239 @@ ConditionClass::ConditionClass(unsigned int newID) : Literal(newID, nullptr, "",
 ConditionClass::ConditionClass(string newID) : Literal(newID, nullptr, "", ""){}
 ConditionClass::ConditionClass() : Literal(){}
 
-OperaClass::OperaClass(){
+OperationClass::OperationClass(){
     instruction = EngineInstr::null;
+}
+bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words,
+    unsigned index, char type, string name, bool optional
+){
+    auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
+        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+            << ": In '" << instruction << "' instruction: " << error << ".\n";
+    };
+    error = "";
+    if(index >= words.size()){
+        if(optional){
+            return true;
+        }
+        error = "For parameter '" + name + "': ";
+        error += "Index " + intToStr(index+1);
+        error += " is out of scope (" + intToStr(words.size());
+        error += ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+    if(words[index].type == 'e'){
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'e';
+        return false;
+    }
+    if(words[index].type == 'c'){
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'c';
+        Parameters.back().variableIDs.push_back(words[index].value);
+        Parameters.back().negateVariable.push_back(stupidBool(words[index].negateVariable));
+        return false;
+    }
+    if(type == 'c'){
+        error = "Parameter '" + name + "' (";
+        error += intToStr(index+1) + ") must be a variable.";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+    if(words[index].type == 's'){
+        if(type != 'a' && type != 's'){
+            error = "Parameter '" + name + "' (";
+            error += intToStr(index+1) + ") cannot be a string.";
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'l';
+        Parameters.back().Literals.push_back(VariableModule::newString(words[index].value));
+        return false;
+    }
+    if(type == 's'){
+        error = "Parameter '" + name + "' (";
+        error += intToStr(index+1) + ") must be a string.";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+    if(words[index].type == 'd'){
+        if(type == 'i' || type == 'b'){
+            error = "Parameter '" + name + "' (";
+            error += intToStr(index+1) + ") cannot have a floating point.";
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'l';
+        Parameters.back().Literals.push_back(VariableModule::newDouble(cstod(words[index].value, error)));
+        if(error.size() > 0){
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        return false;
+    }
+    if(words[index].type == 'i'){
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'l';
+        Parameters.back().Literals.push_back(VariableModule::newInt(cstoi(words[index].value, error)));
+        if(error.size() > 0){
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        return false;
+    }
+    if(words[index].type == 'b'){
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'l';
+        Parameters.back().Literals.push_back(VariableModule::newBool(cstoi(words[index].value, error)));
+        if(error.size() > 0){
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        return false;
+    }
+    error = "Parameter '" + name + "' (";
+    error += intToStr(index+1) + ") cannot be of the type '";
+    error += words[index].type + "'.";
+    printError(scriptName, lineNumber, words[0].value, error);
+    return true;
+}
+bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words, unsigned & index, char type, string name, bool optional){
+    auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
+        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
+                        << ": In '" << instruction << "' instruction: " << error << ".\n";
+    };
+    error = "";
+    if(index >= words.size()){
+        if(optional){
+            return true;
+        }
+        error = "For parameter '" + name + "': ";
+        error += "Index " + intToStr(index+1);
+        error += " is out of scope (" + intToStr(words.size());
+        error += ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+    if(words[index].type == 'e'){
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'e';
+        index++;
+        return false;
+    }
+    if(words[index].type != 'c'){
+        error = "Parameter '" + name + "' (";
+        error += intToStr(index+1) + ") must be a vector or a context. Vectors must begin and end with square brackets.";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+    if(words[index].value != "["){
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'c';
+        Parameters.back().variableIDs.push_back(words[index].value);
+        Parameters.back().negateVariable.push_back(stupidBool(words[index].negateVariable));
+        index++;
+        return false;
+    }
+
+    //Gather a vector
+    index++;
+    if(index >= words.size()){
+        error = "Failed to build a vector for the parameter '" + name + "' (";
+        error += intToStr(index+1) + ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+
+    Parameters.push_back(ParameterStruct());
+    Parameters.back().type = 'v';
+    while(index < words.size() && words[index].value != "]"){
+        if(words[index].type == 'c'){
+            Parameters.back().variableIDs.push_back(words[index].value);
+            Parameters.back().negateVariable.push_back(stupidBool(words[index].negateVariable));
+            index++;
+            continue;
+        }
+        if(type == 'c'){
+            error = "Parameter '" + name + "' (";
+            error += intToStr(index+1) + ") must be a variable.";
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        if(words[index].type == 's'){
+            if(type != 'a' && type != 's'){
+                error = "Parameter '" + name + "' (";
+                error += intToStr(index+1) + ") cannot be a string.";
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            Parameters.back().Literals.push_back(VariableModule::newString(words[index].value));
+            index++;
+            continue;
+        }
+        if(type == 's'){
+            error = "Parameter '" + name + "' (";
+            error += intToStr(index+1) + ") must be a string.";
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        if(words[index].type == 'd'){
+            if(type == 'i' || type == 'b'){
+                error = "Parameter '" + name + "' (";
+                error += intToStr(index+1) + ") cannot have a floating point.";
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            Parameters.back().Literals.push_back(VariableModule::newDouble(cstod(words[index].value, error)));
+            if(error.size() > 0){
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            index++;
+            continue;
+        }
+        if(words[index].type == 'i'){
+            Parameters.back().Literals.push_back(VariableModule::newInt(cstoi(words[index].value, error)));
+            if(error.size() > 0){
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            index++;
+            continue;
+        }
+        if(words[index].type == 'b'){
+            Parameters.back().Literals.push_back(VariableModule::newBool(cstoi(words[index].value, error)));
+            if(error.size() > 0){
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            index++;
+            continue;
+        }
+        error = "Parameter '" + name + "' (";
+        error += intToStr(index+1) + ") cannot be of the type '";
+        error += words[index].type + "'.";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+
+    if(index >= words.size()){
+        error = "There is no closing square bracket in the parameter '" + name + "' (";
+        error += intToStr(index+1) + ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+
+    index++;
+    return false;
+}
+void OperationClass::addLiteralParameter(const VariableModule & Variable){
+    Parameters.push_back(ParameterStruct());
+    Parameters.back().type = 'l';
+    Parameters.back().Literals.push_back(Variable);
 }
 
 void EveModule::clone(const EveModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
@@ -1274,4 +1505,8 @@ void ValueLocation::print(string dynamicID){
         cout << "." << spareID;
     }
     cout << " ";
+}
+
+ParameterStruct::ParameterStruct(){
+    type = 'e';
 }

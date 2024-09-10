@@ -22,6 +22,8 @@ class VectorModule{
 public:
     VectorModule();
     VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, string newType);
+    VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, char newType);
     void clear();
     void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clone(const VectorModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
@@ -31,9 +33,13 @@ public:
     void setObjectID(string);
     bool setType(char newType);
     bool pushBool(bool newValue);
+    void pushBoolUnsafe(bool newValue);
     bool pushInt(int newValue);
+    void pushIntUnsafe(int newValue);
     bool pushDouble(double newValue);
+    void pushDoubleUnsafe(double newValue);
     bool pushString(string newValue);
+    void pushStringUnsafe(string newValue);
     bool setBool(size_t index, bool newValue);
     bool setInt(size_t index, int newValue);
     bool setDouble(size_t index, double newValue);
@@ -53,6 +59,7 @@ public:
     string getFullTypeName() const;
 
     VariableModule getValue(string attribute, size_t index) const;
+    vector<VariableModule> getValues() const;
     string getAnyStringValue(size_t index) const;
     string getAnyStringValueUnsafe(long index) const;
     vector <string> getAllValuesAsStringVector() const;

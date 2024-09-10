@@ -14,19 +14,16 @@ end
 
 start revertWindowIfMoved
 	if ([isMaxed] [Camera grabbed] &&)
-	bool [false] False
-	= isMaxed False
+	= isMaxed false
 	fun Camera set_can_mouse_resize true
 	value ([mouse_x]) MouseX
 	value ([mouse_y]) MouseY
 	= posX MouseX
 	= posY MouseY
 	value ([sizeX]) sizeXTemp
-	int [2] Two
-	/= sizeXTemp Two
+	/= sizeXTemp 2
 	-= posX sizeXTemp
-	int [10] Ten
-	-= posY Ten
+	-= posY 10
 	run revertBorderIfPossible revertWindowFromMax
 end
 
@@ -149,8 +146,7 @@ end
 
 start exitWindowCheck
     if([ExitCollision release_on])
-    bool [true] True
-    = delete True
+    = delete true
 end
 
 start deleteWindow
@@ -271,10 +267,8 @@ start switchToBorderless
     fun Camera set_can_mouse_resize false
     value ([Camera size_x]) cpx
     value ([Camera size_y]) cpy
-    int [10] shiftX
-    int [80] shiftY
-    += cpx shiftX
-    += cpy shiftY
+    += cpx 10
+    += cpy 80
     index Layer [0 0 0] primitives Background
     fun Background set_size cpx cpy
     fun Background update_with_size

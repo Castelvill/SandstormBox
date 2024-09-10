@@ -1,8 +1,18 @@
+9.09.2024
+-Updated types of parameters in the documentation.
+-Removed useless variables from the scripts.
+-Added literals to arithmetic instructions.
+-Standardized error handling in the instructions.
+-Updated the event assembler (jit compiler) with the new type of parameters.
+-Replaced dynamicIDs and literals in operations with Parameter structure in order to allow mixing variables and literals together in the instructions.
+-Restricted variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Removeed all "zero", "True" and "False" variables from the scripts.
+-Removed "bool", "int", "double" and "string" contexts from parameters.
+
 26.08.2024
--Minimize "bind" instruction and create "rbind" instruction, which removes all binded scripts from the chosen objects.  
+-Minimized "bind" instruction and create "rbind" instruction, which removes all binded scripts from the chosen objects.  
 
 21.08.2024
--Change 'rename' instruction to 'mv' and update it with context variables.
+-Changed 'rename' instruction to 'mv' and update it with context variables.
 
 27.07.2024
 -Created Makefile.

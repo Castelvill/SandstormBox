@@ -52,8 +52,7 @@ string VariableModule::getLayerID() const{
 string VariableModule::getObjectID() const{
     return objectID;
 }
-string &VariableModule::getIDAddr()
-{
+string &VariableModule::getIDAddr(){
     return ID;
 }
 string VariableModule::getAnyValue() const{

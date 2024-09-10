@@ -8,7 +8,7 @@ class VariableModule{
     string ID;
     string layerID; //This ID is needed in events' trigger detection.
     string objectID;
-    char type;
+    char type; //n - null, b - bool, i - int, d - double, s - string
     bool vBool;
     int vInt;
 	double vDouble;

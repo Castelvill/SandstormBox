@@ -21,11 +21,6 @@ struct ModulesPointers{
     unsigned size() const;
 };
 
-struct WordStruct{
-    char type; //o - operation, b - bool, i - int, d - double, s - string, e - empty, c - context
-    string value;
-};
-
 /**
 The most important class, a container for all modules that make an object.
 */

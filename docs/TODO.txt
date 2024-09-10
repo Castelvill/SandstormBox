@@ -1,3 +1,8 @@
+-All errors should also print the instruction and its parameters.
+-Remove "cout.flush();" from the method "executeInstructions". It probably hurts the performance.
+-Check file path checks: "", "~/" and ''.
+-Change "char type" instances to enum in classes like VariableModule.
+-Use emplace_back instead of push_back when dealing with adding the temporary objects to the vector. Method emplace_back only passes the object's constructor to the vector.
 -Create a SavedContext / CachedContext vector for removing the need to recreate needed context stack for each event/function in each iteration. Context elements initialized from SavedContext will be immutable in type and shape.
 -Add a pointer to the AncestorObject class that will point to the SavedContext vector (cached contexts).
 -Add "structure/cache context" instruction that will add provided context to the SavedContext/CachedContext vector.
@@ -5,17 +10,10 @@
 -Idea: Stopping the use of indexes can help in isolating programs.
 -Add a vector of ContextClass to the MemoryStackStruct to create a history of contexts: this will isolate scopes (more freedom in naming variables and less ambiguity), simplify the event loop and it's crucial for implementing the functions.
 -Implement the "scope" parameter to the "start" instruction. If it is not empty, the new event will become a function with a Context vector equal to the "scope".
--Post operations does not have children.
--Add literals to arithmetic instructions.
--Restrict variables' names by not allowing strings that start with numbers and \". Remove the distinction between using context and literals in all instructions. Remove all "zero", "True" and "False" variables from the scripts.
--if(optional(words, cursor, Operation->newContextID)){ continue; } -> if(optionalContext(words, cursor, Operation->newContextID)){ continue; }
--Remove "bool", "int", "double" and "string" from parameters.
--Replace dynamicIDs and Literals in Operations with "struct Argument {VariableModule Value, bool isVariable}" in order to allow mixing Variables and Literals together in the instructions.
--Add to each definition of instructions a function that extracts every value or pointer from the passed Arguments - put them inside the Context vector for example.  
--Add explicit parameters to events and functions (trigger-less events) for better readability. Don't add them to loops, ifs and else, they doesn't need explicit parameters.
+-Fix: Post operations does not have children.
+-Add explicit parameters to events and functions (trigger-less events) for better readability. Don't add them to loops, ifs and else, they don't need explicit parameters.
 -Transform every Reverse Polish Notation into normal expressions.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
--Fix: Command "sh print "xd\n"" does not work.
 -Fix: Print command doesn't use special signs.
 -Implement "set_triggers *event* [[trigger] ...]" instruction.
 -(?)Implement "set_if *event* *expression*" instruction.

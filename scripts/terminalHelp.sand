@@ -1,9 +1,8 @@
 start help
-    string [""] xd
     print " " result allowedPrograms
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 1.0 0.8 0.0 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
-    string ["_enter"] program
+    = program "_enter"
     run printOnTerminal
 end
 
@@ -11,11 +10,11 @@ end
 start mv
     if ([exists param1] [param2] [""] != &&)
     mv param1 param2
-    string [""] program
+    = program ""
     else notMv
 end
 start notMv
-    string ["_enter"] program
+    = program "_enter"
     string ["Instruction 'mv' failed."] result
     run printOnTerminal
 end
@@ -30,7 +29,7 @@ start ls
 	run lsColoringLoop
     else informFileDoesNotExistForCD
 post
-    string ["_enter"] program
+    = program "_enter"
 end
 start lsColoringLoop true
 	if ([fileIndex] [files size] <)
@@ -50,8 +49,7 @@ start colorIfDirectory
 	if([param1 size] [0] >)
     string [""] fullPath
     = fullPath param1 
-    string ["/"] backslash
-    += fullPath backslash
+    += fullPath "/"
     += fullPath file
     run colorIfDirectory2
 	else colorIfSandScript
@@ -91,7 +89,7 @@ end
 start cls
     index me [0 0] super_editable_text History
     fun History set_content ""
-    string [""] program
+    = program ""
 end
 
 
@@ -116,7 +114,7 @@ start neofetch
 "
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
-    string [""] program
+    = program ""
     run printOnTerminal
 end
 
@@ -133,7 +131,7 @@ start xd
 "
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
-    string [""] program
+    = program ""
     run printOnTerminal 
 end
 
@@ -142,7 +140,7 @@ start sel_col
     = terminalColorG param2
     = terminalColorB param3
     = terminalColorA param4
-    string [""] program
+    = program ""
 end
 
 start v4
@@ -150,15 +148,14 @@ start v4
     int [2 2 1 1] y
     += x x
     print " " result x
-    string ["\n"] endl
-    += result endl
-    string [""] program
+    += result "\n"
+    = program ""
     run printOnTerminal
 end
 
 start hello
     print _ result "Hello, world!\n"
-    string [""] program
+    = program ""
     run printOnTerminal
 end
 
@@ -177,7 +174,7 @@ start cats
 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 "
-    string [""] program
+    = program ""
     run printOnTerminal
 end
 
@@ -200,27 +197,27 @@ start sq
             '.___.'
               | |
 "
-    string [""] program
+    = program ""
     run printOnTerminal
 end
 
 
 start print
-    print _ result param1
-    string ["_enter"] program
+    print _ result param1 param2 param3
+    = program "_enter"
     run printOnTerminal
 end
 
 
 start spawn
-    new layer 1 _ _ SpawnLayer
+    new layer 1 _ SpawnLayer
     fun SpawnLayer activate
     fun SpawnLayer set_id "SpawnLayer"
     value ([SpawnLayer id]) newLayerID
 
     //print ": " _ SpawnLayer
 
-    new camera 1 _ _ NewWindow
+    new camera 1 _ NewWindow
     fun NewWindow set_position 0 0
     fun NewWindow set_id "SpawnWindow0"
     fun NewWindow set_active true
@@ -244,11 +241,11 @@ start spawn
 
     //print \n _ NewWindow
 
-    new object SpawnLayer 1 _ _ NewWindowObject
+    new object SpawnLayer 1 _ NewWindowObject
     fun NewWindowObject set_id "Window"
     fun NewWindowObject set_can_be_selected false
 
-    new primitives NewWindowObject 1 _ _ border1
+    new primitives NewWindowObject 1 _ border1
     fun border1 set_id "background"
     fun border1 set_type "filled_rounded_rectangle"
     fun border1 add_point 0.0 0.0
@@ -259,14 +256,14 @@ start spawn
     fun border1 set_size 640 480
     fun border1 update_with_size
 
-    new primitives NewWindowObject 1 _ _ border2
+    new primitives NewWindowObject 1 _ border2
     clone border2 border1
     fun border2 set_id "toolbar"
     fun border2 set_color 0.0 0.0 0.0 0.8
     fun border2 set_size 640 50
     fun border2 update_with_size
 
-    new super_text NewWindowObject 1 _ _ title
+    new super_text NewWindowObject 1 _ title
     fun title set_id "title"
     fun title set_position 10 10
     fun title set_size 400 50
@@ -275,35 +272,34 @@ start spawn
     fun title set_wrapping "n"
     fun title set_content param1
 
-    new object SpawnLayer 1 _ _ NewAmo
+    new object SpawnLayer 1 _ NewAmo
     fun NewAmo set_id "Amongus"
     fun NewAmo set_position 0 80
-    new image NewAmo 1 _ _ redAstronaut
+    new image NewAmo 1 _ redAstronaut
     fun redAstronaut set_id "amongus"
     fun redAstronaut connect_bitmap_via_alias param1
     fun redAstronaut set_scale 0.6 0.6
-    string [""] program
+    = program ""
 end
 
 
 start sh
     string [""] instruction
-    string [" "] space
     += instruction param1
-    += instruction space
+    += instruction " "
     += instruction param2
-    += instruction space
+    += instruction " "
     += instruction param3
-    += instruction space
+    += instruction " "
     += instruction param4
-    += instruction space
+    += instruction " "
     += instruction param5
-    += instruction space
+    += instruction " "
     += instruction param6
-    += instruction space
+    += instruction " "
     += instruction param7
 
-    string [""] program
+    = program ""
     inject_instr me instruction
 end
 
@@ -311,7 +307,7 @@ end
 start cat
     if ([exists param1])
     load_text param1 result
-    string [""] program
+    = program ""
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
     run printOnTerminal
@@ -320,11 +316,10 @@ end
 
 
 start printNoSuchFile
-    string ["_enter"] program
+    = program "_enter"
     string ["File '"] result
     += result param1
-    string ["' does not exist."] notExist
-    += result notExist
+    += result "' does not exist."
     run printOnTerminal
 end
 
@@ -338,23 +333,22 @@ start pwd
     string ["/"] result
     pwd workingDir
     += result workingDir
-    string ["_enter"] program
+    = program "_enter"
     run printOnTerminal
 end
 
 
 start cd
     if ([exists param1] [param1] [""] == ||)
-    string [""] program
+    = program ""
     cd param1
     else informFileDoesNotExistForCD
 end
 start informFileDoesNotExistForCD
-    string [""] program
+    = program ""
     string ["Directory '"] result
     += result param1
-    string ["' does not exist!\n"] secondPart
-    += result secondPart
+    += result "' does not exist!\n"
     run printOnTerminal
 end
 
@@ -362,8 +356,7 @@ start history
     int [0] i
     value ([v commandHistory size]) commandHistorySize
     -- commandHistorySize
-    string [""] program
-    string ["\t"] space
+    = program ""
     run printHistory
 end
 
@@ -374,18 +367,17 @@ start printHistory true
     = j i
     ++ j
     += result j
-    += result space
+    += result "\t"
     value ([v commandHistory c i]) nextCommand
     += result nextCommand
-    string ["\n"] endl
-    += result endl
+    += result "\n"
     ++ i
     run printOnTerminal
 end
 
 
 start wait
-    string ["wait"] program
+    = program "wait"
     int [0] waitingTime
 end
 start executeWaiting
@@ -423,16 +415,16 @@ end
 start sudo
     if ([param1] ["rm"] == [param2] ["-rf"] == [param3] ["--no-preserve-root"] == [param4] ["/"] == && && &&)
     string ["Haha. No."] result
-    string ["_enter"] program
+    = program "_enter"
     run printOnTerminal
     else resetProgram
 end
 start resetProgram
-    string [""] program
+    = program ""
 end
 
 start allegro
 	string ["I'd just like to interject for a moment. What you're referring to as SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, Allegro plus SandstormBox."] result
-    string ["_enter"] program
+    = program "_enter"
 	run printOnTerminal
 end

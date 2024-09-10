@@ -10,6 +10,40 @@ VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLa
     setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
     clear();
 }
+VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, string newType){
+    deleted = false;
+    setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
+    clear();
+    if(newType == "null"){
+        type = 'n';
+    }
+    else if(newType == "bool"){
+        type = 'b';
+    }
+    else if(newType == "int"){
+        type = 'i';
+    }
+    else if(newType == "double"){
+        type = 'd';
+    }
+    else if(newType == "string"){
+        type = 's';
+    }
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": Type '" << newType << "' is not valid.\n";
+    }
+}
+VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, char newType){
+    deleted = false;
+    setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
+    clear();
+    if(newType == 'n' || newType == 'b' || newType == 'i' || newType == 'd' || newType == 's'){
+        type = newType;
+    }
+    else{
+        cout << "Error: In " << __FUNCTION__ << ": Type '" << newType << "' is not valid.\n";
+    }
+}
 void VectorModule::clear(){
     type = 'n';
     vBool.clear();
@@ -86,6 +120,9 @@ bool VectorModule::pushBool(bool newValue){
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'bool' type to a '" << type << "' vector.\n";
     return false;
 }
+void VectorModule::pushBoolUnsafe(bool newValue){
+    vBool.push_back(stupidBool(newValue));
+}
 bool VectorModule::pushInt(int newValue){
     if(type == 'b'){
         vBool.push_back(stupidBool(newValue));
@@ -106,6 +143,9 @@ bool VectorModule::pushInt(int newValue){
     }
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'int' type to a '" << type << "' vector.\n";
     return false;
+}
+void VectorModule::pushIntUnsafe(int newValue){
+    vInt.push_back(newValue);
 }
 bool VectorModule::pushDouble(double newValue){
     if(type == 'b'){
@@ -128,6 +168,9 @@ bool VectorModule::pushDouble(double newValue){
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'double' type to a '" << type << "' vector.\n";
     return false;
 }
+void VectorModule::pushDoubleUnsafe(double newValue){
+    vDouble.push_back(newValue);
+}
 bool VectorModule::pushString(string newValue){
     if(type == 's' || type == 'n'){
         vString.push_back(newValue);
@@ -136,6 +179,9 @@ bool VectorModule::pushString(string newValue){
     }
     cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'string' type to a '" << type << "' vector.\n";
     return false;
+}
+void VectorModule::pushStringUnsafe(string newValue){
+    vString.push_back(newValue);
 }
 bool VectorModule::popBack(){
     if(type == 'b' && vBool.size() > 0){
@@ -333,6 +379,38 @@ VariableModule VectorModule::getValue(string attribute, size_t index) const{
         cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Attribute '" << attribute << "' does not exist in the context of Vector module.\n";
     }
     return VariableModule::newBool(false, "null");
+}
+vector<VariableModule> VectorModule::getValues() const{
+    vector<VariableModule> Vector;
+    if(type == 'b'){
+        for(stupidBool value : vBool){
+            Vector.push_back(VariableModule::newBool(value.value));
+        }
+        return Vector;
+    }
+    if(type == 'i'){
+        for(int value : vInt){
+            Vector.push_back(VariableModule::newInt(value));
+        }
+        return Vector;
+    }
+    if(type == 'd'){
+        for(double value : vDouble){
+            Vector.push_back(VariableModule::newDouble(value));
+        }
+        return Vector;
+    }
+    if(type == 's'){
+        for(string value : vString){
+            Vector.push_back(VariableModule::newString(value));
+        }
+        return Vector;
+    }
+    if(type == 'n'){
+        return Vector;
+    }
+    cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Type '" << type << "' is not valid for last value extraction.\n";
+    return Vector;
 }
 string VectorModule::getAnyStringValue(size_t index) const{
     if(type == 'b' && index < vBool.size()){

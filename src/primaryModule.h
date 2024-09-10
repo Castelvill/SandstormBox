@@ -95,7 +95,7 @@ struct EventDescription{
     string layerID;
     string objectID;
     string eventID;
-    string describe();
+    string describe() const;
 };
 
 class PrimaryModule{

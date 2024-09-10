@@ -1508,6 +1508,6 @@ string BasePointersStruct::getString() const{
     return "[invalid type]";
 }
 
-string EventDescription::describe(){
+string EventDescription::describe() const{
     return layerID + "::" + objectID + "::" + eventID;
 }
