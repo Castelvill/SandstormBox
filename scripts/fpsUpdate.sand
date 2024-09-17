@@ -1,6 +1,6 @@
 start putRectangleOnScreen
     triggers on_boot
-
+    if([on_boot])
     value ([window_w]) windowWidth
     value ([window_h]) windowHeight
 
@@ -36,7 +36,7 @@ start putRectangleOnScreen
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
 
 
-    new super_text me 1 _ Text
+    new super_editable_text me 1 _ Text
     fun Text set_id "Text"
     fun Text set_position 50 50
     fun Text set_size 400 50
@@ -48,7 +48,7 @@ end
 
 start fps
     triggers each_iteration
-    index me [0 0] super_text Text
+    index me [0 0] super_editable_text Text
     value ([fps]) FPS
     fun Text set_content FPS
 end

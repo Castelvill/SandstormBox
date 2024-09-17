@@ -2,6 +2,7 @@
 
 start helloWorld
     triggers on_boot
+    if([on_boot])
     print "Hello, World!\n"
     power_off
 end

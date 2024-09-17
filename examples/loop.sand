@@ -2,6 +2,8 @@
 
 start main
     triggers on_boot
+    if([on_boot])
+    
     int [0] iterator
     run loop
 after //"After" sub-scope will be executed after all events passed to the "run" instruction are finished.

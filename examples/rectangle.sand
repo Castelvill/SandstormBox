@@ -1,5 +1,6 @@
 start putRectangleOnScreen
     triggers on_boot
+    if([on_boot])
 
     value ([window_w]) windowWidth
     value ([window_h]) windowHeight

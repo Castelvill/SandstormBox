@@ -1,5 +1,7 @@
 start quickMath
     triggers on_boot
+    if([on_boot])
+    
     int [2] a
     print "a = 2\n"
     int [4] b

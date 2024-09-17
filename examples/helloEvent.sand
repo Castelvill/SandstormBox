@@ -3,7 +3,6 @@
 
 start helloWorldEvent
     triggers each_iteration
-    print "Hello world"
-    print "Hello world"
+    print "Hello, World!\n"
     delete_this_event
 end

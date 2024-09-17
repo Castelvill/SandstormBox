@@ -1878,6 +1878,7 @@ inline void printBasicFile(){
     cout << "Basic \"Hello world\" program:\n"
         << "start helloWorld\n"
         << "\ttriggers on_boot\n"
+        << "\tif([on_boot])\n"
         << "\tprint \"Hello, World!\\n\"\n"
         << "\tpower_off\n"
         << "end\n";
