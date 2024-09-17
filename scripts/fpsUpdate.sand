@@ -1,0 +1,55 @@
+start putRectangleOnScreen
+    triggers on_boot
+
+    value ([window_w]) windowWidth
+    value ([window_h]) windowHeight
+
+    new camera 1 _ Cam
+    fun Cam set_id "Camera"
+    fun Cam resize windowWidth windowHeight
+    fun Cam add_visible_layer "KERNEL"
+
+    fun Cam set_zoom 1.0
+    fun Cam set_speed 20
+    fun Cam set_key_zoom_in 15
+    fun Cam set_key_zoom_out 21
+    fun Cam set_zoom_increase 0.02
+    fun Cam add_accessible_layer "KERNEL"
+    fun Cam set_tint 1.0 1.0 1.0 1.0
+    fun Cam set_is_vision_affected_by_mouse false
+    fun Cam set_can_zoom_with_mouse false
+    fun Cam set_can_move_with_keyboard false
+    fun Cam set_can_zoom_with_keyboard false
+    fun Cam set_drawing_borders false
+    fun Cam focus
+
+    new primitives me 1 _ Rectangle
+    fun Rectangle set_id "Rectangle"
+    fun Rectangle set_type "filled_rectangle"
+    fun Rectangle add_point 0.0 0.0
+    fun Rectangle add_point 1.0 1.0
+    fun Rectangle set_color 1.0 0.0 0.0 1.0
+    fun Rectangle set_position 50 50
+    fun Rectangle set_size 200 200
+    fun Rectangle update_with_size
+
+    load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
+
+
+    new super_text me 1 _ Text
+    fun Text set_id "Text"
+    fun Text set_position 50 50
+    fun Text set_size 400 50
+    fun Text add_format "cascadia_code" 1
+    fun Text set_color 0 0.0 1.0 0.0 1.0
+    fun Text set_wrapping "n"
+    fun Text set_content "To exit the program use the key shortcut: ESC + CTRL\n"
+end
+
+start fps
+    triggers each_iteration
+    index me [0 0] super_text Text
+    value ([fps]) FPS
+    fun Text set_content FPS
+end
+

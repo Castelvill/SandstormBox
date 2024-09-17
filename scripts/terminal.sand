@@ -14,17 +14,11 @@ start onInit
     load_bitmap "gui/sand_thumb.png" "sand_thumb" false true
 	load_bitmap "images/despair.png" "despair" false true
 
-    string ["fonts/CascadiaCode.ttf"] path
-    string ["cascadia_code"] name
-    load_font path 16 name true
+    load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
 
-    string ["fonts/CascadiaCode-Bold.ttf"] path
-    string ["cascadia_code_bold"] name
-    load_font path 20 name true
+    load_font "fonts/CascadiaCode-Bold.ttf" 20 "cascadia_code_bold" true
 
-    string ["fonts/fira_mono.ttf"] path
-    string ["fira_mono"] name
-    load_font path 20 name true
+    load_font "fonts/fira_mono.ttf" 20 "fira_mono" true
 
     run resizeDisplay buildTerminal createWindowTemplate runAfterInit
 end
@@ -1196,7 +1190,7 @@ end
     triggers each_iteration
     string ["xd"] param1
     run edit
-post
+after
     delete_this_event
 end*/
 

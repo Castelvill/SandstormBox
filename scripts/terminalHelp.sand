@@ -28,7 +28,7 @@ start ls
     int [0] fileIndex
 	run lsColoringLoop
     else informFileDoesNotExistForCD
-post
+after
     = program "_enter"
 end
 start lsColoringLoop true
@@ -392,7 +392,7 @@ start waitFor0
     string ["||||||||||||||||||||"] result
     ++ waitingTime
     run printOnTerminalUnprotected
-post
+after
     break
 end
 start waitFor1
@@ -400,7 +400,7 @@ start waitFor1
     string ["********************"] result
     ++ waitingTime
     run printOnTerminalUnprotected
-post
+after
     break
 end
 start waitFor2
@@ -408,7 +408,7 @@ start waitFor2
     string ["--------------------"] result
     int [0] waitingTime
     run printOnTerminalUnprotected
-post
+after
     break
 end
 

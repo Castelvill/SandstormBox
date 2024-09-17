@@ -1,4 +1,6 @@
+-Fix: The text in the file "fpsUpdate.sand" is not updated correctly.
 -Rename EveModule to EventModule.
+-Maybe the "start" instruction could be used inside the existing scope? If it would work, then you could easily create the "if" scope. 
 -Maybe a window should be created only if "allegro_init" or "create_window" instruction is called in the code.
 -When referencing the error in the file, the line number should be inserted right after the file name like this: "...main.sand::300:..." to shorten the message. 
 -All errors should also print the instruction and its parameters.
@@ -13,7 +15,7 @@
 -Idea: Stopping the use of indexes can help in isolating programs.
 -Add a vector of ContextClass to the MemoryStackStruct to create a history of contexts: this will isolate scopes (more freedom in naming variables and less ambiguity), simplify the event loop and it's crucial for implementing the functions.
 -Implement the "scope" parameter to the "start" instruction. If it is not empty, the new event will become a function with a Context vector equal to the "scope".
--Fix: Post operations does not have children.
+-Fix: Post/After operations does not have children.
 -Add explicit parameters to events and functions (trigger-less events) for better readability. Don't add them to loops, ifs and else, they don't need explicit parameters.
 -Transform every Reverse Polish Notation into normal expressions.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
@@ -173,6 +175,6 @@ OPTIMALIZATIONS
 BUGS
 -Keyboard input can be randomly and permamently doubled. Clue: "...just make sure you handle the ALLEGRO_EVENT_DISPLAY_LOST and ALLEGRO_EVENT_DISPLAY_FOUND events, and redraw when you get the latter event." 
 -Vector movement doesn't support camera movement
--60 FPS max
+-Fix 60 FPS max cap.
 -Random copies of letters in editable fields - when you release few buttons at once editable text does undefined behavior. Do: when one button is pressed, every [var] seconds letter is entered, but when another button is pressed, the previous ones are 100% blocked until release (like in notepad)
 -Pointers in contexts may point to deleted entities (deleted = true).

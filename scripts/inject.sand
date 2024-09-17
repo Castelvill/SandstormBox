@@ -25,6 +25,6 @@ start inject
     value ([EditableText second_cursor_pos]) secondCursorPos
     print ":" _ c cursorPos
     print "\n" _ c secondCursorPos
-    post
+after
     delete_this_event
 end

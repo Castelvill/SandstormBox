@@ -881,7 +881,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                     }
                     if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
                 }
-                else if(isStringInGroup(firstWord.value, 19, "on_boot", "second_passed", "any_key_pressed",
+                else if(isStringInGroup(firstWord.value, 20, "on_boot", "second_passed", "fps", "any_key_pressed",
                     "any_key_pressing", "any_key_released", "mouse_x", "mouse_y", "mouse_moved", "screen_w",
                     "screen_h", "window_w", "window_h", "fullscreen", "on_display_resize", "used_os",
                     "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects")
@@ -1071,7 +1071,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             NewEvent = EveModule();
             postOperations = false;
         }
-        else if(words[0].value == "post"){
+        else if(words[0].value == "after"){
             postOperations = true;
         }
         else if(words[0].value == "triggers"){

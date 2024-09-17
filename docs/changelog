@@ -1,4 +1,6 @@
 17.09.2024
+-Add script examples.
+-Rename "post" instruction to "after".
 -Added basic program printing when no valid files are passed to the engine.
 
 9.09.2024

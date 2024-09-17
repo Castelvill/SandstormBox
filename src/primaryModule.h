@@ -6,7 +6,7 @@
 using std::string;
 
 enum EngineInstr : char{
-    null, start, end_i, post, triggers, run, if_i, else_i, continue_i,
+    null, start, end_i, after, triggers, run, if_i, else_i, continue_i,
     break_i, return_i, reboot, power_off, delete_this_event,
     reset_keyboard, dump_context_stack, first, last, all,
     random_i, index_i, sum, intersection, diff, add, sub, mul,

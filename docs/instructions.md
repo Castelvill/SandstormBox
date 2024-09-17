@@ -4,7 +4,7 @@
 
 **Syntax**
 
-start *id* [scope] [loop] [override]
+start *id* [loop] [override] [scope]
 
 **Description**
 
@@ -13,9 +13,9 @@ start *id* [scope] [loop] [override]
 **Parameters:**
 
 - id (variable) - a name for the new event,
-- [scope] (variable vector) - if equal to "_", nothing changes, otherwise this new event will become a function: its context vector will be set to [scope];
 - [loop] (bool) - if true, the new event will be executed in every iteration of the parent process,
-- [override] (bool) - if true, the new event will override an existing event with the same id.
+- [override] (bool) - if true, the new event will override an existing event with the same id,
+- [scope] (variable vector) - NOT-IMPLEMENTED - if equal to "_", nothing changes, otherwise this new event will become a function: its context vector will be set to [scope].
 
 ## end
 
@@ -71,11 +71,11 @@ else *event*
 
 - event (variable) - a name of an event to be executed.
 
-## post
+## after
 
 **Description**
 
-    Start a new instruction scope for the current event. Instructions in this scope will be executed only when the if statement returns true and only after the main scope finishes its execution. If the current event is a loop, post instructions will be ignored. This instruction can be used only once in any given event.
+    Start a new instruction scope for the current event. Instructions in this scope will be executed only when the if statement returns true and only after the main scope finishes its execution. If the current event is a loop, "after" instructions will be ignored. This instruction can be used only once in any given event.
 
 ## run
 

@@ -1,0 +1,9 @@
+//Create a simple single-use event without closing the engine.
+//To close the engine use ESC+CTRL or power_off instruction inside the code.
+
+start helloWorldEvent
+    triggers each_iteration
+    print "Hello world"
+    print "Hello world"
+    delete_this_event
+end

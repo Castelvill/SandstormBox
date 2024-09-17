@@ -1,0 +1,7 @@
+//Create a simple event that will close the engine.
+
+start helloWorld
+    triggers on_boot
+    print "Hello, World!\n"
+    power_off
+end

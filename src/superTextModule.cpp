@@ -98,6 +98,16 @@ void SuperTextModule::update(){
         return;
     }
 
+    if(Formatting[0].Font == nullptr){
+        cout << "Error: The first font was not loaded. Text update failed.\n";
+        return;
+    }
+
+    if(Formatting[0].Font->font == nullptr){
+        cout << "Error: Font " << Formatting[0].Font->ID << " was not loaded. Text update failed.\n";
+        return;
+    }
+
     lineHeights.back() = al_get_font_line_height(Formatting[0].Font->font);
     
     mergeFormatting();
@@ -510,6 +520,14 @@ void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection, vec2i dis
     for(lineIdx = 0; lineIdx < textLines.size(); lineIdx++){
         previousLength = 0.0;
         linePos.set(finalPos);
+        if(Format->Font == nullptr){
+            cout << "Error: Font was not loaded. Text update failed.\n";
+            return;
+        }
+        if(Format->Font->font == nullptr){
+            cout << "Error: Font " << Format->Font->ID << " was not loaded. Text update failed.\n";
+            return;
+        }
         linePos.y = finalPos.y + Format->offset.y + lineIdx * (Format->Font->height + paddingBetweenLines);
         if(rotation == 0 && linePos.y > displaySize.y){
             break;

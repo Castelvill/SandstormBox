@@ -387,14 +387,6 @@ void ProcessClass::renderOnDisplay(EngineClass & Engine){
 
     al_set_target_backbuffer(Engine.display);
     al_draw_bitmap(Engine.backbuffer, 0, 0, 0);
-
-    string updatedFpsLabel = "FPS: " + intToStr(Engine.fps.get());
-
-    if(Layers[0].Objects.size() > 0){
-        if(Layers[0].Objects[0].TextContainer.size() > 0){
-            Layers[0].Objects[0].TextContainer[0].modifyContentAndResize(0, updatedFpsLabel, Engine.FontContainer);
-        }
-    }
 }
 void unfocusCameras(vector<Camera2D> & Cameras, Camera2D *& SelectedCamera, string currentProcessID, string &focusedProcessID){
     for(Camera2D & Camera : Cameras){
@@ -3985,7 +3977,7 @@ void createNewModule(vector <Module> & Container, vector <string> & allIDs, vect
         if(i < newIDs.size()){
             ID = newIDs[i];
         }
-        Container.push_back(Module(ID, &allIDs, layerID, objectID));
+        Container.emplace_back(Module(ID, &allIDs, layerID, objectID));
         Context.push_back(&Container.back());
     }
 }
@@ -4156,8 +4148,8 @@ void ProcessClass::createNewEntities(OperationClass & Operation, vector<ContextC
             if(i < newIDs.size()){
                 ID = newIDs[i];
             }
-            Cameras.push_back(Camera2D());
-            Cameras.back().setUpInstance(ID, camerasIDs, false, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0));
+            Cameras.emplace_back(Camera2D());
+            Cameras.back().setUpInstance(ID, camerasIDs, true, vec2d(0.0, 0.0), vec2d(50.0, 50.0), vec2d(0.0, 0.0));
             NewContext.Cameras.push_back(&Cameras.back());
             camerasOrder.push_back(camerasOrder.size());
         }
@@ -4177,7 +4169,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, vector<ContextC
             if(i < newIDs.size()){
                 ID = newIDs[i];
             }
-            Layers.push_back(LayerClass(ID, layersIDs));
+            Layers.emplace_back(LayerClass(ID, layersIDs));
             NewContext.Layers.push_back(&Layers.back());
         }
     }
@@ -4194,7 +4186,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, vector<ContextC
             if(i < newIDs.size()){
                 ID = newIDs[i];
             }
-            CurrentLayer->Objects.push_back(AncestorObject());
+            CurrentLayer->Objects.emplace_back(AncestorObject());
             CurrentLayer->Objects.back().primaryConstructor(ID, &CurrentLayer->objectsIDs, layerID, "");
             NewContext.Objects.push_back(&CurrentLayer->Objects.back());
         }
@@ -8360,6 +8352,10 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
     }
     if(Condition.Location.source == "second_passed"){
         NewValue.setBool(Engine.secondHasPassed());
+        return NewValue;
+    }
+    if(Condition.Location.source == "fps"){
+        NewValue.setInt(Engine.fps.get());
         return NewValue;
     }
     if(Condition.Location.source == "exists" || Condition.Location.source == "is_directory"){

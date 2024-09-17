@@ -1,0 +1,29 @@
+start quickMath
+    triggers on_boot
+    int [2] a
+    print "a = 2\n"
+    int [4] b
+    print "a = 4\n"
+    + a b c
+    print "" _ "a + b = " c "\n"
+
+    * a b c
+    print "" _ "a * b = " c "\n"
+
+    ** a b c
+    print "" _ "a ** b = " c "\n\n"
+
+    int [0 1 2 3 4 5 6 7] vecA
+    print "vecA = [ 0 1 2 3 4 5 6 7 ]\n"
+    += vecA vecA
+    print "vecA += vecA\n"
+    print "vecA: [ "
+    print " " _  vecA "]"
+    print "\n"
+
+    + vecA 10 vecB
+    print "vecA + 10 = [ "
+    print " " _  vecB "]\n"
+
+    power_off
+end

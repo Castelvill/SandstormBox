@@ -7,8 +7,8 @@ EngineInstr transInstr(string instruction){
     if(instruction == "end"){
         return EngineInstr::end_i;
     }
-    if(instruction == "post"){
-        return EngineInstr::post;
+    if(instruction == "after"){
+        return EngineInstr::after;
     }
     if(instruction == "triggers"){
         return EngineInstr::triggers;
@@ -294,8 +294,8 @@ string transInstrToStr(EngineInstr instruction){
             return "start";
         case end_i:
             return "end";
-        case post:
-            return "post";
+        case after:
+            return "after";
         case triggers:
             return "triggers";
         case run:

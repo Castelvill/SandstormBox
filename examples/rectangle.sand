@@ -1,0 +1,23 @@
+start putRectangleOnScreen
+    triggers on_boot
+
+    value ([window_w]) windowWidth
+    value ([window_h]) windowHeight
+
+    new camera 1 _ Camera
+    fun Camera set_id "Camera"
+    fun Camera resize windowWidth windowHeight
+    fun Camera add_visible_layer "KERNEL"
+
+    new primitives me 1 _ Rectangle
+    fun Rectangle set_id "Rectangle"
+    fun Rectangle set_type "filled_rectangle"
+    fun Rectangle add_point 0.0 0.0
+    fun Rectangle add_point 1.0 1.0
+    fun Rectangle set_color 1.0 0.0 0.0 1.0
+    fun Rectangle set_position 50 50
+    fun Rectangle set_size 200 200
+    fun Rectangle update_with_size
+
+    print "To exit the program use the key shortcut: ESC + CTRL\n"
+end
