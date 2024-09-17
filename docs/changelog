@@ -1,3 +1,6 @@
+17.09.2024
+-Added basic program printing when no valid files are passed to the engine.
+
 9.09.2024
 -Updated types of parameters in the documentation.
 -Removed useless variables from the scripts.

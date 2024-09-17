@@ -1870,40 +1870,67 @@ void AncestorObject::clearAllEvents(){
     EveContainer.clear();
     eveContainerIDs.clear();
 }
+inline void printEmptyFileWarning(string scriptName){
+    cout << "Warning: In " << __FUNCTION__
+        << ": script \'" << scriptName << "\' is empty or cannot be opened.\n";
+}
+inline void printBasicFile(){
+    cout << "Basic \"Hello world\" program:\n"
+        << "start helloWorld\n"
+        << "\ttriggers on_boot\n"
+        << "\tprint \"Hello, World!\\n\"\n"
+        << "\tpower_off\n"
+        << "end\n";
+}
 void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii){
     if(clearEvents){
         clearAllEvents();
     }
 
     vector<string> code;
+    bool somethingWasAssembled = false;
     
     for(string scriptName : bindedScripts){
         code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
+            somethingWasAssembled = true;
             eventAssembler(code, scriptName);
             code.clear();
         }
         else{
-            cout << "Warning: In " << __FUNCTION__ << ": script \'" << scriptName << "\' is empty or cannot be opened.\n";
+            printEmptyFileWarning(scriptName);
         }
+    }
+
+    if(!somethingWasAssembled){
+        printBasicFile();
     }
 }
 void AncestorObject::translateScriptsFromPaths(vector<string> scriptsPaths, bool allowNotAscii){
     vector<string> code;
+
+    bool somethingWasAssembled = false;
     
     for(string scriptName : scriptsPaths){
         code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
+            somethingWasAssembled = true;
             eventAssembler(code, scriptName);
             code.clear();
         }
         else{
-            cout << "Warning: In " << __FUNCTION__ << ": script \'" << scriptName << "\' is empty or cannot be opened.\n";
+            printEmptyFileWarning(scriptName);
         }
+    }
+
+    if(!somethingWasAssembled){
+        printBasicFile();
     }
 }
 void AncestorObject::translateSubsetBindedScripts(vector<string> scripts, bool allowNotAscii){
     vector<string> code;
+
+    bool somethingWasAssembled = false;
     
     for(string scriptName : bindedScripts){
         if(!isStringInVector(scripts, scriptName)){
@@ -1911,12 +1938,17 @@ void AncestorObject::translateSubsetBindedScripts(vector<string> scripts, bool a
         }
         code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
+            somethingWasAssembled = true;
             eventAssembler(code, scriptName);
             code.clear();
         }
         else{
-            cout << "Warning: In " << __FUNCTION__ << ": script \'" << scriptName << "\' is empty or cannot be opened.\n";
+            printEmptyFileWarning(scriptName);
         }
+    }
+
+    if(!somethingWasAssembled){
+        printBasicFile();
     }
 }
 void AncestorObject::injectCode(vector<string> code){

@@ -1,3 +1,6 @@
+-Rename EveModule to EventModule.
+-Maybe a window should be created only if "allegro_init" or "create_window" instruction is called in the code.
+-When referencing the error in the file, the line number should be inserted right after the file name like this: "...main.sand::300:..." to shorten the message. 
 -All errors should also print the instruction and its parameters.
 -Remove "cout.flush();" from the method "executeInstructions". It probably hurts the performance.
 -Check file path checks: "", "~/" and ''.

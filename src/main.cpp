@@ -26,6 +26,16 @@ int main(int argc, char* argv[]){
             Processes.back().create(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
                 initFile, "Init0", "KERNEL", "Init", Engine.processIDs);
         }
+        if(Processes.size() == 0){
+            cout << "No source files provided.\n"
+                << "Basic \"Hello world\" program:\n"
+                << "start helloWorld\n"
+                << "\ttriggers on_boot\n"
+                << "\tprint \"Hello, World!\\n\"\n"
+                << "\tpower_off\n"
+                << "end\n";
+            break;
+        }
         do{
             Engine.redraw = false;
             do{
