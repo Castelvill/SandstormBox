@@ -12,8 +12,8 @@ start checkIfMouseMoved
     if ([mouse_moved] || [on_display_resize])
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID MainCamera
-    value ([MainCamera size_x]) sx
-    value ([MainCamera size_y]) sy
+    access sx [[MainCamera size_x]]
+    access sy [[MainCamera size_y]]
     -= sy 35
     -= sx 10
     find_by_id_2 Cameras insideCameraID InsideCamera

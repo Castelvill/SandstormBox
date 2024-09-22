@@ -1,0 +1,62 @@
+start putRectangleOnScreen
+    triggers each_iteration 
+
+    var WINDOW_W 640
+    var WINDOW_H 480
+    env window_size WINDOW_W WINDOW_H
+
+    new camera 1 _ Camera
+    fun Camera set_id "Camera"
+    fun Camera resize WINDOW_W WINDOW_H
+    fun Camera add_visible_layer "KERNEL"
+
+    var KEY_LCTRL 217
+    var KEY_ESC 59
+    
+    var SIZE_X 120
+    var SIZE_Y 100
+    var x 10.0
+	var y 10.0
+    var velX 4.0
+    var velY 4.0
+
+    new primitives me 1 _ Rectangle
+    fun Rectangle set_id "Rectangle"
+    fun Rectangle set_type "filled_rectangle"
+    fun Rectangle add_point 0.0 0.0
+    fun Rectangle add_point 1.0 1.0
+    fun Rectangle set_color 1.0 0.0 0.0 1.0
+    fun Rectangle set_pos x y
+    fun Rectangle set_size SIZE_X SIZE_Y
+    fun Rectangle update_with_size
+
+	delete_this_event
+end
+
+start moveRectangle
+	triggers each_iteration
+    + x SIZE_X xs
+    + y SIZE_Y ys
+    run bounceY bounceX
+after
+	+= x velX
+	+= y velY
+    index me [0 0] primitives Rectangle
+	fun Rectangle set_pos x y
+end
+
+start bounceX
+    if([x] [0] <= [xs] [WINDOW_W] >= ||)
+    *= velX -1.0
+end
+
+start bounceY
+    if([y] [0] <= [ys] [WINDOW_H] >= ||)
+    *= velY -1.0
+end
+
+start exitProgram
+    triggers key_pressed
+    if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
+    power_off
+end

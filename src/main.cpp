@@ -9,17 +9,18 @@ int main(int argc, char* argv[]){
     srand(time(NULL));
 
     EngineClass Engine;
-    Engine.resetState("Sandstorm Box", true);
+    Engine.resetState(true);
+    Engine.readCommandLine(argc, argv);
     Engine.initAllegro();
     vector <ProcessClass> Processes;
     vec2d oldMousePos[2];
 
     do{
-        Engine.resetState("Sandstorm Box", false);
-        for(int file = 1; file < argc; ++file){
+        Engine.resetState(false);
+        for(string file : Engine.inputFiles){
             Processes.push_back(ProcessClass());
             Processes.back().create(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
-                argv[file], "Init0", "KERNEL", "Init", Engine.processIDs);
+                file, "Init0", "KERNEL", "Init", Engine.processIDs);
         }
         for(string initFile : Engine.initFiles){
             Processes.push_back(ProcessClass());
@@ -28,13 +29,13 @@ int main(int argc, char* argv[]){
         }
         if(Processes.size() == 0){
             cout << "No source files provided.\n"
-                << "Basic \"Hello world\" program:\n"
+                << "Basic \"Hello World\" program:\n\n"
                 << "start helloWorld\n"
                 << "\ttriggers on_boot\n"
                 << "\tif([on_boot])\n"
                 << "\tprint \"Hello, World!\\n\"\n"
                 << "\tpower_off\n"
-                << "end\n";
+                << "end\n\n";
             break;
         }
         do{
@@ -81,6 +82,8 @@ int main(int argc, char* argv[]){
     }while(Engine.reboot);
     
     Engine.exitAllegro();
+
+    //cout << "Program terminated gracefully.\n";
 
     return 0;
 }

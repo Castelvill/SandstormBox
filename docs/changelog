@@ -1,3 +1,11 @@
+21.09.2024
+-Disabled CTRL+ESC shortcut and added it by hand to the examples and the terminal.
+-Added command line arguments for the engine's binary.
+-Made square brackets optional in the instructions: bool, int, double and string.
+-Renamed "value" instruction to "access".
+-Changed parentheses to square brackets inside the "value" instruction.
+-Swapped the parameters: values and variable ids, in the instructions: value, var, vec, bool, int, double, string.
+
 17.09.2024
 -Add script examples.
 -Rename "post" instruction to "after".

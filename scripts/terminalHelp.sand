@@ -15,7 +15,7 @@ start mv
 end
 start notMv
     = program "_enter"
-    string ["Instruction 'mv' failed."] result
+    string result "Instruction 'mv' failed."
     run printOnTerminal
 end
 
@@ -25,7 +25,7 @@ start ls
     ls param1 result
     tokenize " " result files
     index me [0 0] super_editable_text EditableText
-    int [0] fileIndex
+    int fileIndex 0
 	run lsColoringLoop
     else informFileDoesNotExistForCD
 after
@@ -35,11 +35,11 @@ start lsColoringLoop true
 	if ([fileIndex] [files size] <)
 	index files [fileIndex] value file
     len file fileNameLength
-    int [5] length
+    int length 5
     -= fileNameLength length
     
     len file fileNameLengthFT
-    int [3] lengthFT
+    int lengthFT 3
     -= fileNameLengthFT lengthFT
 
 	++ fileIndex
@@ -47,7 +47,7 @@ start lsColoringLoop true
 end
 start colorIfDirectory
 	if([param1 size] [0] >)
-    string [""] fullPath
+    string fullPath ""
     = fullPath param1 
     += fullPath "/"
     += fullPath file
@@ -144,8 +144,8 @@ start sel_col
 end
 
 start v4
-    int [1 2 3 4] x
-    int [2 2 1 1] y
+    int x [1 2 3 4]
+    int y [2 2 1 1]
     += x x
     print " " result x
     += result "\n"
@@ -213,12 +213,12 @@ start spawn
     new layer 1 _ SpawnLayer
     fun SpawnLayer activate
     fun SpawnLayer set_id "SpawnLayer"
-    value ([SpawnLayer id]) newLayerID
+    access newLayerID [[SpawnLayer id]]
 
     //print ": " _ SpawnLayer
 
     new camera 1 _ NewWindow
-    fun NewWindow set_position 0 0
+    fun NewWindow set_pos 0 0
     fun NewWindow set_id "SpawnWindow0"
     fun NewWindow set_active true
     fun NewWindow resize 640 480
@@ -237,7 +237,7 @@ start spawn
     fun NewWindow set_grabbing_area_size 640 50
     fun NewWindow pin_to_camera "Desktop"
     fun NewWindow activate_pin
-    value ([NewWindow id]) newWindowID
+    access newWindowID [[NewWindow id]]
 
     //print \n _ NewWindow
 
@@ -265,7 +265,7 @@ start spawn
 
     new super_text NewWindowObject 1 _ title
     fun title set_id "title"
-    fun title set_position 10 10
+    fun title set_pos 10 10
     fun title set_size 400 50
     fun title add_format "cascadia_code_bold" 8
     fun title set_color 0 1.0 1.0 1.0 1.0
@@ -274,7 +274,7 @@ start spawn
 
     new object SpawnLayer 1 _ NewAmo
     fun NewAmo set_id "Amongus"
-    fun NewAmo set_position 0 80
+    fun NewAmo set_pos 0 80
     new image NewAmo 1 _ redAstronaut
     fun redAstronaut set_id "amongus"
     fun redAstronaut connect_bitmap_via_alias param1
@@ -284,7 +284,7 @@ end
 
 
 start sh
-    string [""] instruction
+    string instruction ""
     += instruction param1
     += instruction " "
     += instruction param2
@@ -317,7 +317,7 @@ end
 
 start printNoSuchFile
     = program "_enter"
-    string ["File '"] result
+    string result "File '"
     += result param1
     += result "' does not exist."
     run printOnTerminal
@@ -330,7 +330,7 @@ end
 
 
 start pwd
-    string ["/"] result
+    string result "/"
     pwd workingDir
     += result workingDir
     = program "_enter"
@@ -346,15 +346,15 @@ start cd
 end
 start informFileDoesNotExistForCD
     = program ""
-    string ["Directory '"] result
+    string result "Directory '"
     += result param1
     += result "' does not exist!\n"
     run printOnTerminal
 end
 
 start history
-    int [0] i
-    value ([v commandHistory size]) commandHistorySize
+    int i 0
+    access commandHistorySize [[v commandHistory size]]
     -- commandHistorySize
     = program ""
     run printHistory
@@ -362,13 +362,13 @@ end
 
 start printHistory true
     if ([i] [commandHistorySize] <)
-    string [""] result
-    int [0] j
+    string result ""
+    int j 0
     = j i
     ++ j
     += result j
     += result "\t"
-    value ([v commandHistory c i]) nextCommand
+    access nextCommand [[v commandHistory c i]]
     += result nextCommand
     += result "\n"
     ++ i
@@ -378,7 +378,7 @@ end
 
 start wait
     = program "wait"
-    int [0] waitingTime
+    int waitingTime 0
 end
 start executeWaiting
     triggers each_second
@@ -389,7 +389,7 @@ start executeWaiting
 end
 start waitFor0
     if([waitingTime] [0] ==)
-    string ["||||||||||||||||||||"] result
+    string result "||||||||||||||||||||"
     ++ waitingTime
     run printOnTerminalUnprotected
 after
@@ -397,7 +397,7 @@ after
 end
 start waitFor1
     if([waitingTime] [1] ==)
-    string ["********************"] result
+    string result "********************"
     ++ waitingTime
     run printOnTerminalUnprotected
 after
@@ -405,8 +405,8 @@ after
 end
 start waitFor2
     if([waitingTime] [2] ==)
-    string ["--------------------"] result
-    int [0] waitingTime
+    string result "--------------------"
+    int waitingTime 0
     run printOnTerminalUnprotected
 after
     break
@@ -414,7 +414,7 @@ end
 
 start sudo
     if ([param1] ["rm"] == [param2] ["-rf"] == [param3] ["--no-preserve-root"] == [param4] ["/"] == && && &&)
-    string ["Haha. No."] result
+    string result "Haha. No."
     = program "_enter"
     run printOnTerminal
     else resetProgram
@@ -424,7 +424,7 @@ start resetProgram
 end
 
 start allegro
-	string ["I'd just like to interject for a moment. What you're referring to as SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, Allegro plus SandstormBox."] result
+	string result "I'd just like to interject for a moment. What you're referring to as SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, Allegro plus SandstormBox."
     = program "_enter"
 	run printOnTerminal
 end

@@ -1,3 +1,8 @@
+start onInit
+    triggers on_init
+    var KEY_F11 57
+end
+
 start checkIfWindowMoved
 	triggers mouse_pressing
 	if ([mouse_moved] [isBorderless] ! &&)
@@ -16,11 +21,11 @@ start revertWindowIfMoved
 	if ([isMaxed] [Camera grabbed] &&)
 	= isMaxed false
 	fun Camera set_can_mouse_resize true
-	value ([mouse_x]) MouseX
-	value ([mouse_y]) MouseY
+    access MouseX [[mouse_x]]
+	access MouseY [[mouse_y]]
 	= posX MouseX
 	= posY MouseY
-	value ([sizeX]) sizeXTemp
+	access sizeXTemp [[sizeX]]
 	/= sizeXTemp 2
 	-= posX sizeXTemp
 	-= posY 10
@@ -31,7 +36,7 @@ end
 start revertBorderIfPossible
 	if ([isBorderless] ! [isMaxed] ! &&)
 	all Layers _ _ _ _ _ _ Layers
-	value ([me layer_id]) myLayerID
+	access myLayerID [[me layer_id]]
 	find_by_id_2 Layers myLayerID Layer
 	index Layer [0 0 2] primitives Border
 	fun Border activate
@@ -40,8 +45,8 @@ end
 start refreshWindowWithDisplay
 	all Cameras _ camera _ Cameras
 	find_by_id_2 Cameras cameraID Camera
-	value ([window_w]) sx
-	value ([window_h]) sy
+	access sx [[window_w]]
+	access sy [[window_h]]
 	fun Camera resize sx sy
 	run refreshWindow
 end
@@ -49,20 +54,20 @@ end
 start refreshWindowWithCamera
 	all Cameras _ camera _ Cameras
 	find_by_id_2 Cameras cameraID Camera
-	value ([Camera size_x]) sx
-	value ([Camera size_y]) sy
+	access sx [[Camera size_x]]
+	access sy [[Camera size_y]]
 	run refreshWindow
 end
 
 
 start refreshWindow
-	int [-100] sxShift
+	int sxShift -100
 	+= sxShift sx
-	int [30] height
+	int height 30
 
     fun Camera set_grabbing_area_size sxShift height
 
-    value ([me layer_id]) myLayerID
+    access myLayerID [[me layer_id]]
     all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
 
@@ -71,47 +76,47 @@ start refreshWindow
     fun Primi update_with_size
 
     index Layer [0 0 1] primitives Primi
-    int [30] height
+    int height 30
     fun Primi set_size sx height
     fun Primi update_with_size
 
     index Layer [0 0 2] primitives Primi
-    int [-4] sxShift
-    int [-4] syShift
+    int sxShift -4
+    int syShift -4
     += sxShift sx
     += syShift sy
     fun Primi set_size sxShift syShift
     fun Primi update_with_size
 
     index Layer [0 0 3] primitives Primi
-    int [-20] sxShift
-    int [15] height
+    int sxShift -20
+    int height 15
     += sxShift sx
-    fun Primi set_position sxShift height
+    fun Primi set_pos sxShift height
     fun Primi update_with_size
 
     index Layer [0 0 0] collision ExitCollision
-    fun ExitCollision set_position sxShift height
+    fun ExitCollision set_pos sxShift height
 
     index Layer [0 0 4] primitives Primi
-    int [-50] sxShift
-    int [15] height
+    int sxShift -50
+    int height 15
     += sxShift sx
-    fun Primi set_position sxShift height
+    fun Primi set_pos sxShift height
     fun Primi update_with_size
 
     index Layer [0 0 1] collision MaxCollision
-    fun MaxCollision set_position sxShift height
+    fun MaxCollision set_pos sxShift height
 
     index Layer [0 0 5] primitives Primi
-    int [-80] sxShift
-    int [15] height
+    int sxShift -80
+    int height 15
     += sxShift sx
-    fun Primi set_position sxShift height
+    fun Primi set_pos sxShift height
     fun Primi update_with_size
 
     index Layer [0 0 2] collision MinCollision
-    fun MinCollision set_position sxShift height
+    fun MinCollision set_pos sxShift height
 
     run updateIfNotMaxed additionalUpdate
 end
@@ -123,21 +128,22 @@ start updateIfNotMaxed
     = sizeY sy
     //print "x" _ c sx
     //print "\n" _ c sy
-    value ([Camera pos_x]) cpx
-    value ([Camera pos_y]) cpy
+    access cpx [[Camera pos_x]]
+    access cpy [[Camera pos_y]]
     = posX cpx
     = posY cpy
 end
 
 
 start additionalUpdate
+
 end
 
 
 start exitWindow
     triggers mouse_released
     if ([mouse_released 0])
-    value ([me layer_id]) myLayerID
+    access myLayerID [[me layer_id]]
     all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 0] collision ExitCollision
@@ -162,7 +168,7 @@ end
 start maxWindow
     triggers mouse_released
     if ([mouse_released 0])
-    value ([me layer_id]) myLayerID
+    access myLayerID [[me layer_id]]
     all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 1] collision MaxCollision
@@ -178,15 +184,15 @@ end
 start maxWindowIfTrue
     if([isMaxed])
     all Layers _ _ _ _ _ _ Layers
-    value ([me layer_id]) myLayerID
+    access myLayerID [[me layer_id]]
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 2] primitives Border
     fun Border deactivate
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     fun Camera set_can_mouse_resize false
-    value ([window_w]) ww
-    value ([window_h]) wh
+    access ww [[window_w]]
+    access wh [[window_h]]
     fun Camera resize ww wh
     fun Camera set_relative_position 0 0
     else revertWindowFromMax
@@ -206,7 +212,7 @@ end
 start minimizeWindow
     triggers mouse_released
     if ([mouse_released 0])
-    value ([me layer_id]) myLayerID
+    access myLayerID [[me layer_id]]
     all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 2] collision MinCollision
@@ -224,7 +230,7 @@ end
 
 start switchBorderlessMode
     triggers key_pressed
-    if ([key_pressed 57])
+    if ([key_pressed KEY_F11])
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     run switchBorderlessModeCheckFocus
@@ -239,9 +245,9 @@ end
 
 start switchToBorderless
     if ([isBorderless])
-    fun me set_position -5 -30
+    fun me set_pos -5 -30
     all Layers _ _ _ _ _ _ Layers
-    value ([me layer_id]) myLayerID
+    access myLayerID [[me layer_id]]
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 1] primitives Toolbar
     fun Toolbar deactivate
@@ -265,8 +271,8 @@ start switchToBorderless
     find_by_id_2 Cameras cameraID Camera
     fun Camera set_can_be_grabbed false
     fun Camera set_can_mouse_resize false
-    value ([Camera size_x]) cpx
-    value ([Camera size_y]) cpy
+    access cpx [[Camera size_x]]
+    access cpy [[Camera size_y]]
     += cpx 10
     += cpy 80
     index Layer [0 0 0] primitives Background
@@ -277,8 +283,8 @@ end
 
 start switchFromBorderless
     all Layers _ _ _ _ _ _ Layers
-    fun me set_position 0 0
-    value ([me layer_id]) myLayerID
+    fun me set_pos 0 0
+    access myLayerID [[me layer_id]]
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 1] primitives Toolbar
     fun Toolbar activate

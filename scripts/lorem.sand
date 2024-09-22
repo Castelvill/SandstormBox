@@ -1,6 +1,6 @@
 start lol
     triggers each_iteration
-    string ["Lorem ipsum lool\n"] result
+    string result "Lorem ipsum lool\n"
     run printOnTerminal printOnTerminal 
 after
     delete_this_event

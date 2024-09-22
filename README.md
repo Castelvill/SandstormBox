@@ -38,6 +38,26 @@ Text editor:
 
 Currently, if you execute the engine binary without any scripts, you will get only a black screen. Directories "init" and "scripts" have necessary scripts for creating the terminal.
 
+## Command line arguments
+
+    -i, --ignore-config
+        Ignore .config file.
+
+    -b, --buffer-size
+        Set the backbuffer size.
+
+    -s, --samples
+        Set the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, you must set this value to 0.
+
+    -p, --pixel-art
+        Disable the pixel blur while drawing bitmaps.
+
+    -f, --fullscreen
+        Go to fullscreen mode when a window is created.
+
+    -n, --not-ascii
+        Allow use of other character encodings.
+
 ## Config file
 
 EXECUTE script_path - executes the script in a new process - on boot and restart.

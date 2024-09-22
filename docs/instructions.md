@@ -47,7 +47,7 @@ triggers *trigger* [[trigger]...]
 
 **Syntax**
 
-if *expression*
+if ( *expression* )
 
 **Description**
 
@@ -221,26 +221,26 @@ difference *left* *right* [output]
 - right (variable) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
 - [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
-## value
+## access
 
 **Syntax**
 
-value *expression* [output]
+access *output* [*sources*]
 
 **Description**
 
-    Return a context made out of given literals or values found in provided sources.
+    Access the values from the provided sources and put them inside the variable.
 
 **Parameters**
 
-- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “window_w”, “window_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id;
+- sources (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “window_w”, “window_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
 
 ## bool / int / double / string
 
 **Syntax**
 
-*literal_type* *values* [output]
+*literal_type* *output* *values*
 
 **Description**
 
@@ -249,8 +249,8 @@ value *expression* [output]
 **Parameters**
 
 - literal_type (instruction): bool, int, double, string;
-- values (variable / bool vector / int vector / double vector / string vector);
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id;
+- values (variable / bool vector / int vector / double vector / string vector).
 
 ## random_int
 
@@ -842,7 +842,7 @@ lse *source* [detail]
 
 **Syntax**
 
-var *value* [output]
+var *output* *value*
 
 **Description**
 
@@ -850,14 +850,14 @@ var *value* [output]
 
 **Parameters**
 
-- value (variable / any literal);
-- [output] (variable) - id of the new variable and a new context.
+- output (variable) - id of the new variable and a new context;
+- value (variable / any literal).
 
 ## vec
 
 **Syntax**
 
-vec *type* *values* [output]
+vec *type* *output* *values*
 
 **Description**
 
@@ -866,8 +866,8 @@ vec *type* *values* [output]
 **Parameters**
 
 - type (variable): bool, int, double, string;
-- values (variable / variable vector / any literal vector);
-- [output] (variable) - id of the new variable and a new context.
+- output (variable) - id of the new variable and a new context;
+- values (variable / variable vector / any literal vector).
 
 ## tokenize
 

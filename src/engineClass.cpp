@@ -91,12 +91,68 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
     return releasedKeys;
 }
 
-void EngineClass::resetState(string title, bool resetScreen){
-    isPixelArt = false;
+void EngineClass::readCommandLine(int argc, char *argv[]){
+    for(int argument = 1; argument < argc; ++argument){
+        if(strcmp(argv[argument], "--ignore-config") == 0 || strcmp(argv[argument], "-i") == 0){
+            loadConfig = false;
+            continue;
+        }
+        if(strcmp(argv[argument], "--buffer-size") == 0 || strcmp(argv[argument], "-b") == 0){
+            if(argument + 2 >= argc){
+                cout << "Error: In " << __FUNCTION__ << ": Parameter '" << argv[argument]
+                    << "' requires 2 more arguments of the integer type\n.";
+                return;
+            }
+            argument++;
+            string error;
+            bufferSizeX = cstoi(argv[argument], error);
+            if(error.size() > 0){
+                cout << "Error: In " << __FUNCTION__ << ": " << error << "\n";
+                return;
+            }
+            argument++;
+            bufferSizeY = cstoi(argv[argument], error);
+            if(error.size() > 0){
+                cout << "Error: In " << __FUNCTION__ << ": " << error << "\n";
+                return;
+            }
+            continue;
+        }
+        if(strcmp(argv[argument], "--samples") == 0 || strcmp(argv[argument], "-s") == 0){
+            if(argument + 1 >= argc){
+                cout << "Error: In " << __FUNCTION__ << ": Parameter '" << argv[argument]
+                    << "' requires 1 more arguments of the integer type\n.";
+                return;
+            }
+            argument++;
+            string error;
+            samples = cstoi(argv[argument], error);
+            if(error.size() > 0){
+                cout << "Error: In " << __FUNCTION__ << ": " << error << "\n";
+                return;
+            }
+            continue;
+        }
+        if(strcmp(argv[argument], "--pixel-art") == 0 || strcmp(argv[argument], "-p") == 0){
+            isPixelArt = true;
+            continue;
+        }
+        if(strcmp(argv[argument], "--fullscreen") == 0 || strcmp(argv[argument], "-f") == 0){
+            fullscreen = true;
+            continue;
+        }
+        if(strcmp(argv[argument], "--not-ascii") == 0 || strcmp(argv[argument], "-n") == 0){
+            allowNotAscii = true;
+            continue;
+        }
+        inputFiles.push_back(argv[argument]);
+    }
+}
+
+void EngineClass::resetState(bool resetScreen){
     cursorBitmap = NULL;
-    windowTitle = title;
     if(resetScreen){
-        displaySize.set(1280, 720);
+        displaySize.set(640, 480);
         fullscreen = false;
     }
     closeProgram = false;
@@ -144,6 +200,7 @@ void EngineClass::initAllegro(){
     int SCREEN_H = 480;
     //getDesktopResolution(0, &SCREEN_W, &SCREEN_H);
 
+    displaySize.set(SCREEN_W, SCREEN_H);
     display = al_create_display(SCREEN_W, SCREEN_H);
     al_set_window_title(display, windowTitle.c_str());
     al_set_window_position(display, 0, 0);
@@ -177,78 +234,74 @@ void EngineClass::initAllegro(){
 
     al_start_timer(timer);
 
-    ENABLE_al_set_clipboard_text = false;
-    allowNotAscii = false;
-
-    std::ifstream File(EXE_PATH+".config");
-    unsigned short samples = 0;
-    unsigned bufferSizeX = 1920, bufferSizeY = 1080;
-
-	if(File){
-        string buffer;
-        vector<string> words;
-        while(getline(File, buffer)){
-            if(buffer == ""){
-                continue;
-            }
-            words = tokenizeString(buffer, ' ');
-            if(words.size() == 0 || words[0][0] == '#' || words[0] == ""){
-                continue;
-            }
-            if(words[0] == "SAMPLES"){
-                if(words.size() > 1){
-                    samples = atoi(words[1].c_str());
+    if(loadConfig){
+        std::ifstream File(EXE_PATH+".config");
+        if(File){
+            string buffer;
+            vector<string> words;
+            while(getline(File, buffer)){
+                if(buffer == ""){
+                    continue;
+                }
+                words = tokenizeString(buffer, ' ');
+                if(words.size() == 0 || words[0][0] == '#' || words[0] == ""){
+                    continue;
+                }
+                if(words[0] == "SAMPLES"){
+                    if(words.size() > 1){
+                        samples = atoi(words[1].c_str());
+                    }
+                    else{
+                        cout << "Error: In " << __FUNCTION__ << ": SAMPLES command requires one numeric argument (0-4 recommended).\n";
+                    }
+                }
+                else if(words[0] == "BUFFER_SIZE"){
+                    if(words.size() > 2){
+                        bufferSizeX = atoi(words[1].c_str());
+                        bufferSizeY = atoi(words[1].c_str());
+                    }
+                    else{
+                        cout << "Error: In " << __FUNCTION__ << ": BUFFER_SIZE command requires two numeric argument.\n";
+                    }
+                }
+                else if(words[0] == "ENABLE_al_set_clipboard_text"){
+                    ENABLE_al_set_clipboard_text = true;
+                }
+                else if(words[0] == "ENABLE_NOT_ASCII"){
+                    allowNotAscii = true;
+                }
+                else if(words[0] == "EXECUTE"){
+                    if(words.size() > 1){
+                        initFiles.push_back(words[1]);
+                    }
+                    else{
+                        cout << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one numeric argument (0-4 recommended).\n";
+                    }
+                    File >> buffer;
+                    
                 }
                 else{
-                    cout << "Error: In " << __FUNCTION__ << ": SAMPLES command requires one numeric argument (0-4 recommended).\n";
+                    cout << "Error: In " << __FUNCTION__ << ": Configuration option '" << words[0] << "' is not valid.\n";
                 }
-            }
-            else if(words[0] == "BUFFER_SIZE"){
-                if(words.size() > 2){
-                    bufferSizeX = atoi(words[1].c_str());
-                    bufferSizeY = atoi(words[1].c_str());
-                }
-                else{
-                    cout << "Error: In " << __FUNCTION__ << ": BUFFER_SIZE command requires two numeric argument.\n";
-                }
-            }
-            else if(words[0] == "ENABLE_al_set_clipboard_text"){
-                ENABLE_al_set_clipboard_text = true;
-            }
-            else if(words[0] == "ENABLE_NOT_ASCII"){
-                allowNotAscii = true;
-            }
-            else if(words[0] == "EXECUTE"){
-                if(words.size() > 1){
-                    initFiles.push_back(words[1]);
-                }
-                else{
-                    cout << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one numeric argument (0-4 recommended).\n";
-                }
-                File >> buffer;
-                
-            }
-            else{
-                cout << "Error: In " << __FUNCTION__ << ": Configuration option '" << words[0] << "' is not valid.\n";
             }
         }
-	}
-    File.close();
-    
+        File.close();
+    }
+
     if(samples > 8){
         samples = 8;
     }
     if(bufferSizeX > 3840){
         bufferSizeX = 3840;
     }
-    if(bufferSizeX < 100){
-        bufferSizeX = 100;
+    if(bufferSizeX < 10){
+        bufferSizeX = 10;
     }
     if(bufferSizeY > 2160){
         bufferSizeY = 2160;
     }
-    if(bufferSizeY < 100){
-        bufferSizeY = 100;
+    if(bufferSizeY < 10){
+        bufferSizeY = 10;
     }
     al_set_new_bitmap_samples(samples);
     backbuffer = al_create_bitmap(bufferSizeX, bufferSizeY);
@@ -311,7 +364,7 @@ void EngineClass::updateEvents(){
                 cout << "Rebooting...";
             }
             else if(key[ALLEGRO_KEY_LCTRL] && key[ALLEGRO_KEY_ESCAPE]){
-                closeProgram = true;
+                //closeProgram = true;
             }
             break;
         case ALLEGRO_EVENT_MOUSE_AXES:

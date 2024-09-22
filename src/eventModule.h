@@ -52,6 +52,7 @@ public:
     //Add literal or context. The type will be checked only if the provided word is a literal.
     //Available types: a - anything, v - variable, n - number, b - bool, i - int, d - double, s - string.
     bool addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words, unsigned index, char type, string name, bool optional);
+    bool addLiteralOrVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words, unsigned & index, char type, string name, bool optional);
     bool addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words, unsigned & index, char type, string name, bool optional);
     void addLiteralParameter(const VariableModule & Variable);
 };

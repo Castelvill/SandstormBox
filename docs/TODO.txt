@@ -1,7 +1,13 @@
+-Fix: In the file windowTemplate.sand, "onInit" event does not update the context immediately.
+-Allegro window should be created only when "create_window width height title" instruction is called. 
+-Implement the autocomplete for files.
+-Skip the repeating commands in the history.
+-Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
+-Fix: in "sand scripts/dvd.sand" variables x and y are not instantly added to the context and the second event executes without them causing errors.
+-Fix: "find_by_id_2" instruction does not throw error when it doesn't find the object for example in the code "find_by_id_2 me "Rectangle" Rectangle".
 -Rename EveModule to EventModule.
 -Do something about "if([on_boot])".
 -Maybe the "start" instruction could be used inside the existing scope? If it would work, then you could easily create the "if" scope. 
--Maybe a window should be created only if "allegro_init" or "create_window" instruction is called in the code.
 -When referencing the error in the file, the line number should be inserted right after the file name like this: "...main.sand::300:..." to shorten the message. 
 -All errors should also print the instruction and its parameters.
 -Remove "cout.flush();" from the method "executeInstructions". It probably hurts the performance.
@@ -48,7 +54,7 @@ MILESTONE: Create a new scripting language (a wrapper for the previous one).
 -Add modules scaling from the edge of the camera.
 
 -Implement arithmetic instructions and function for vector module (+=, -=, etc.).
--With updated arithmetic instructions improve the auto-complete (remove the loop).
+-With updated arithmetic instructions improve the autocomplete (remove the loop).
 -Fix: In EditableTextModule "cropping" mode breaks cursor movement.
 -Double clicking a word in the text should select this whole word.
 -Pressing tab in the editable text module, if more than one letter is selected, should append a tab to the beginning of every selected line. 

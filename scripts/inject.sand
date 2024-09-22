@@ -4,25 +4,24 @@ start inject
     index Layers [0 1] object Terminal
     index Terminal [0 0] super_editable_text EditableText
 
-    value ([EditableText cursor_pos]) cursorPos
-    value ([EditableText second_cursor_pos]) secondCursorPos
+    access cursorPos [[EditableText cursor_pos]]
+    access secondCursorPos [[EditableText second_cursor_pos]]
     print ":" _ c cursorPos
     print "\n" _ c secondCursorPos
 
-    int [3] starto
-    int [6] endo
-    double [1.0] r
-    double [0.0] g
-    double [1.0] b
-    double [1.0] a
-    string ["cascadia_code"] font
-    //fun EditableText inject_format starto endo r g b a r g b a font
+    int starto 3
+    int endo 6
+    double r 1.0
+    double g 0.0
+    double b 1.0
+    double a 1.0
+    //fun EditableText inject_format starto endo r g b a r g b a "cascadia_code"
     fun EditableText inject_format 0 100  1.0 0.2 0.2 1.0  0.0 1.0 0.0 1.0 "cascadia_code"
     fun EditableText inject_format 101 200  0.0 0.0 1.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code"
     fun EditableText inject_format 201 300  0.5 0.0 0.5 1.0  0.0 1.0 0.0 1.0 "cascadia_code"
 
-    value ([EditableText cursor_pos]) cursorPos
-    value ([EditableText second_cursor_pos]) secondCursorPos
+    access cursorPos [[EditableText cursor_pos]]
+    access secondCursorPos [[EditableText second_cursor_pos]]
     print ":" _ c cursorPos
     print "\n" _ c secondCursorPos
 after

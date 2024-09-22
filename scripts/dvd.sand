@@ -1,0 +1,76 @@
+start putRectangleOnScreen
+    triggers each_iteration
+
+    var WINDOW_W 640
+    var WINDOW_H 480
+    access window_w [[window_w]]
+    access window_h [[window_h]]
+    = WINDOW_W window_w
+    = WINDOW_H window_h
+
+    var SIZE_X 120
+    var SIZE_Y 100
+    var x 10.0
+	var y 10.0
+    var velX 4.0
+    var velY 10.0
+
+    new primitives me 1 _ Rectangle
+    fun Rectangle set_id "Rectangle"
+    fun Rectangle set_type "filled_rectangle"
+    fun Rectangle add_point 0.0 0.0
+    fun Rectangle add_point 1.0 1.0
+    fun Rectangle set_color 1.0 0.0 0.0 1.0
+    fun Rectangle set_pos x y
+    fun Rectangle set_size SIZE_X SIZE_Y
+    fun Rectangle update_with_size
+
+    load_font "fonts/CascadiaCode.ttf" 50 "cascadia_code_2" true
+
+    new super_text me 1 _ FpsText
+    fun FpsText set_id "Fps"
+    fun FpsText set_pos 0 0
+    fun FpsText set_size 400 50
+    fun FpsText add_format "cascadia_code_2" 1
+    fun FpsText set_color 0 0.0 1.0 0.0 1.0
+    fun FpsText set_wrapping "n"
+    fun FpsText set_content "FPS"
+
+	delete_this_event
+end
+
+start printFPS
+    triggers each_iteration
+
+    all me _ _ super_text _ _ _ Texts
+    find_by_id_2 Texts "Fps" FpsText
+    access fpsValue [[fps]]
+    string fpsString "FPS: "
+    += fpsString fpsValue
+    fun FpsText set_content fpsString
+end
+
+start moveRectangle
+	triggers each_iteration
+    
+    + x SIZE_X xs
+    + y SIZE_Y ys
+    run bounceY bounceX
+after
+	+= x velX
+	+= y velY
+    index me [0 0] primitives Rectangle
+	fun Rectangle set_pos x y
+end
+
+start bounceX
+    if([x] [0] <= [xs] [WINDOW_W] >= ||)
+    *= velX -1.0
+end
+
+start bounceY
+    if([y] [0] <= [ys] [WINDOW_H] >= ||)
+    *= velY -1.0
+end
+
+

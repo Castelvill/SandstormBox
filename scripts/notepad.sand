@@ -20,8 +20,8 @@ end
 start refreshWindowWithDisplayNotepad
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    value ([window_w]) sx
-    value ([window_h]) sy
+    access sx [[window_w]]
+    access sy [[window_h]]
     fun Camera resize sx sy
     run refreshWindowNotepad
 end
@@ -29,14 +29,14 @@ end
 start refreshWindowWithCameraNotepad
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    value ([Camera size_x]) sx
-    value ([Camera size_y]) sy
+    access sx [[Camera size_x]]
+    access sy [[Camera size_y]]
     run refreshWindowNotepad
 end
 
 
 start refreshWindowNotepad
-    value ([me layer_id]) myLayerID
+    access myLayerID [[me layer_id]]
     all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
     index Layer [0 0 0] super_editable_text Notepad
@@ -64,8 +64,8 @@ start resizeObjectWhenMaxedCheck
     if([MaxCollision release_on])
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    value ([Camera size_x]) sx
-    value ([Camera size_y]) sy
+    access sx [[Camera size_x]]
+    access sy [[Camera size_y]]
     index my_layer [0 0] object WindowObject
     fun WindowObject set_size sx sy
     index my_layer [0 0 0] super_editable_text Notepad
@@ -74,7 +74,7 @@ end
 
 start resizeObjectWhenSwitchingToBorderlessMode
     triggers key_pressed
-    if ([key_pressed 57])
+    if ([key_pressed KEY_F11])
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     run resizeObjectWhenSwitchingToBorderlessModeCheckFocus
@@ -87,10 +87,10 @@ end
 
 start resizeObjectForBorderlessMode
     if ([isBorderless])
-    value ([Camera size_x]) cpx
-    value ([Camera size_y]) cpy
-    int [10] shiftX
-    int [40] shiftY
+    access cpx [[Camera size_x]]
+    access cpy [[Camera size_y]]
+    int shiftX 10
+    int shiftY 40
     += cpx shiftX
     += cpy shiftY
     index my_layer [0 0] object WindowObject
@@ -101,8 +101,8 @@ start resizeObjectForBorderlessMode
 end
 
 start resizeObjectFromBorderlessMode
-    value ([Camera size_x]) cpx
-    value ([Camera size_y]) cpy
+    access cpx [[Camera size_x]]
+    access cpy [[Camera size_y]]
     index my_layer [0 0] object WindowObject
     fun WindowObject set_size cpx cpy
     index my_layer [0 0 0] super_editable_text Notepad

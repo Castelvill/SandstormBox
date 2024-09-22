@@ -35,10 +35,10 @@ void ProcessClass::setID(string newID, vector<string> &listOfIDs){
     listOfIDs.push_back(ID);
 }
 string instructionError(EventDescription EventIds, EngineInstr instruction, string functionName){
-    return "Error: In " + EventIds.describe() + ": In '" + transInstrToStr(instruction) + "' instruction: In " + functionName + ": "; 
+    return "Error: In " + EventIds.describe() + ": In the '" + transInstrToStr(instruction) + "' instruction: In " + functionName + ": "; 
 }
 string instructionWarning(EventDescription EventIds, EngineInstr instruction, string functionName){
-    return "Warning: In " + EventIds.describe() + ": In '" + transInstrToStr(instruction) + "' instruction: In " + functionName + ": "; 
+    return "Warning: In " + EventIds.describe() + ": In the '" + transInstrToStr(instruction) + "' instruction: In " + functionName + ": "; 
 }
 void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID,
     string newLayerID, string newObjectID, vector<string> &listOfIDs
@@ -928,7 +928,7 @@ bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction, EventDesc
     if(type == "value"){
         if(Values.size() == 0){
             cout << instructionError(EventIds, instruction, __FUNCTION__) << "Context is empty.\n";
-            return false;
+            return true;
         }
         if(Values.size() != 1){
             cout << instructionWarning(EventIds, instruction, __FUNCTION__) << "Context has more than 1 value - only the last value will be used.\n";
@@ -938,7 +938,7 @@ bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction, EventDesc
     else if(type == "pointer"){
         if(BasePointers.size() == 0){
             cout << instructionError(EventIds, instruction, __FUNCTION__) << "Context is empty.\n";
-            return false;
+            return true;
         }
         if(BasePointers.size() != 1){
             cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << "Context has more than 1 value - only the last value will be used.\n";
@@ -948,7 +948,7 @@ bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction, EventDesc
     else if(type == "variable"){
         if(Modules.Variables.size() == 0){
             cout << instructionError(EventIds, instruction, __FUNCTION__) << "Context is empty.\n";
-            return false;
+            return true;
         }
         if(Modules.Variables.size() != 1){
             cout << instructionWarning(EventIds, instruction, __FUNCTION__) << "Context has more than 1 value - only the last value will be used.\n";
@@ -958,9 +958,9 @@ bool ContextClass::getIntOrAbort(int &number, EngineInstr instruction, EventDesc
     else{
         cout << instructionError(EventIds, instruction, __FUNCTION__) << "Context \'" << ID
             << "\' has invalid type: \'" << type << "\'.\n";
-        return false;
+        return true;
     }
-    return true;
+    return false;
 }
 bool ContextClass::getStringOrAbort(string & text, EngineInstr instruction, EventDescription EventIds){
     if(type == "value"){
@@ -5297,7 +5297,7 @@ void ProcessClass::executeFunctionForCameras(OperationClass & Operation, vector 
         else if(Operation.Location.attribute == "toggle"){
             Camera->toggleIsActive();
         }
-        else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
+        else if(Operation.Location.attribute == "set_pos" && Variables.size() > 1){
             Camera->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
             updateTreeOfCamerasFromSelectedRoot(Camera);
             for(Camera2D & Pin : Cameras){
@@ -5534,7 +5534,7 @@ void ProcessClass::executeFunctionForLayers(OperationClass & Operation, vector <
         else if(Operation.Location.attribute == "remove_group" && Variables.size() > 0){
             Layer->removeGroup(Variables[0].getStringUnsafe());
         }
-        else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
+        else if(Operation.Location.attribute == "set_pos" && Variables.size() > 1){
             Layer->pos.x = Variables[0].getDoubleUnsafe();
             Layer->pos.y = Variables[1].getDoubleUnsafe();
         }
@@ -5580,7 +5580,7 @@ void ProcessClass::executeFunctionForObjects(OperationClass & Operation, vector 
         else if(Operation.Location.attribute == "toggle"){
             Object->toggleIsActive();
         }
-        else if(Operation.Location.attribute == "set_position" && Variables.size() > 1){
+        else if(Operation.Location.attribute == "set_pos" && Variables.size() > 1){
             Object->setPos(Variables[0].getDoubleUnsafe(), Variables[1].getDoubleUnsafe());
         }
         else if(Operation.Location.attribute == "set_size" && Variables.size() > 1){
@@ -5749,7 +5749,7 @@ void ProcessClass::executeFunction(OperationClass Operation, vector<ContextClass
         }
     }
     else if(Context->type == "image"){
-        if(isStringInGroup(Operation.Location.attribute, 6, "set_id", "set_position", "set_size", "set_scale", "resize", "connect_bitmap")){
+        if(isStringInGroup(Operation.Location.attribute, 6, "set_id", "set_pos", "set_size", "set_scale", "resize", "connect_bitmap")){
             for(ImageModule * Image : Context->Modules.Images){
                 if(!findObjectForFunction(ModulesObject, Layers, Image->getObjectID(), Image->getLayerID())){
                     continue;
@@ -7689,7 +7689,7 @@ OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operatio
             case diff: //Execute operations on sets.
                 aggregateTwoSets(Operation, EventContext);
                 break;
-            case value: //Get only values from the environment.
+            case access_i: //Get only values from the environment.
                 aggregateValues(EventContext, Operation, OwnerLayer, Owner, Engine, &Processes);
                 break;
             case bool_i: //Get literals prepared in the event.
@@ -8338,10 +8338,27 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
     cout << instructionError(EventIds, currentInstruction, __FUNCTION__) << "Value not found.\n";
     return VariableModule::newBool(false, "null");
 }
+inline bool getIntFromContext(EngineInstr instruction, EventDescription EventIds, string function,
+    vector<ContextClass> &EventContext, string variableID, int & value
+){
+    ContextClass * Context = getContextByID(instruction, EventContext, variableID, true, EventIds);
+    if(Context == nullptr){
+        cout << "Error: In " << EventIds.describe() << ": In " << function
+            << ": Variable with the name '" << variableID << "' does not exist.\n";
+        return true;
+    }
+    if(Context->getIntOrAbort(value, instruction, EventIds)){
+        cout << "Error: In " << EventIds.describe() << ": In " << function
+            << ": Could not get an integer from the variable with name '" << variableID << "'.\n";
+        return true;
+    }
+    return false;
+}
 VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
     const EngineClass & Engine, vector<ProcessClass> * Processes, vector<ContextClass> &EventContext
 ){
     VariableModule NewValue(Condition.Location.source, nullptr, "", "");
+    int tempInt = 0;
     if(Condition.Location.source == "fullscreen"){
         NewValue.setBool(Engine.fullscreen);
         return NewValue;
@@ -8365,7 +8382,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         }
         else{
             string file = "";
-            Context->getStringOrIgnore(file, EngineInstr::value);
+            Context->getStringOrIgnore(file, EngineInstr::access_i);
             if(file == ""){
                 NewValue.setBool(false);
             }
@@ -8394,14 +8411,23 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         return NewValue;
     }
     if(Condition.Location.source == "screen_w" || Condition.Location.source == "screen_h"){
-        if(Condition.Literal.getType() != 'i'){
+        int SCREEN_W = 0, SCREEN_H = 0;
+        if(Condition.Literal.getType() == 's'){
+            if(getIntFromContext(currentInstruction, EventIds, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                NewValue.setBool(false);
+                return NewValue;
+            }
+        }
+        else if(Condition.Literal.getType() == 'i'){
+            tempInt = Condition.Literal.getInt();
+        }
+        else{
             cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
-                << ": Accessing value \'" << Condition.Location.source << "\' requires a screen id of the int type.\n";
+                << ": Accessing value \'" << Condition.Location.source << "\' requires a screen id of the integer type.\n";
             NewValue.setBool(false);
             return NewValue;
         }
-        int SCREEN_W = 0, SCREEN_H = 0;
-        getDesktopResolution(Condition.Literal.getInt(), &SCREEN_W, &SCREEN_H);
+        getDesktopResolution(tempInt, &SCREEN_W, &SCREEN_H);
         if(Condition.Location.source == "screen_w"){
             NewValue.setInt(SCREEN_W);
         }
@@ -8412,15 +8438,42 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
     }
     if(canUserInteract){
         if(Condition.Location.source == "key_pressed"){
-            NewValue.setBool(isKeyFirstPressed(Condition.Literal.getInt(), Engine.firstPressedKeys));
+            if(Condition.Literal.getType() == 's'){
+                if(getIntFromContext(currentInstruction, EventIds, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                    NewValue.setBool(false);
+                    return NewValue;
+                }
+                NewValue.setBool(isKeyFirstPressed(tempInt, Engine.firstPressedKeys));
+            }
+            else{
+                NewValue.setBool(isKeyFirstPressed(Condition.Literal.getInt(), Engine.firstPressedKeys));
+            }
             return NewValue;
         }
         if(Condition.Location.source == "key_pressing"){
-            NewValue.setBool(isKeyPressed(Condition.Literal.getInt(), Engine.pressedKeys));
+            if(Condition.Literal.getType() == 's'){
+                if(getIntFromContext(currentInstruction, EventIds, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                    NewValue.setBool(false);
+                    return NewValue;
+                }
+                NewValue.setBool(isKeyPressed(tempInt, Engine.pressedKeys));
+            }
+            else{
+                NewValue.setBool(isKeyPressed(Condition.Literal.getInt(), Engine.pressedKeys));
+            }
             return NewValue;
         }
         if(Condition.Location.source == "key_released"){
-            NewValue.setBool(isKeyReleased(Condition.Literal.getInt(), Engine.releasedKeys));
+            if(Condition.Literal.getType() == 's'){
+                if(getIntFromContext(currentInstruction, EventIds, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                    NewValue.setBool(false);
+                    return NewValue;
+                }
+                NewValue.setBool(isKeyReleased(tempInt, Engine.releasedKeys));
+            }
+            else{
+                NewValue.setBool(isKeyReleased(Condition.Literal.getInt(), Engine.releasedKeys));
+            }
             return NewValue;
         }
         if(Condition.Location.source == "any_key_pressed"){
@@ -8440,15 +8493,42 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
         if(Condition.Location.source == "mouse_pressed"){
-            NewValue.setBool(Engine.Mouse.isFirstPressed(Condition.Literal.getInt()));
+            if(Condition.Literal.getType() == 's'){
+                if(getIntFromContext(currentInstruction, EventIds, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                    NewValue.setBool(false);
+                    return NewValue;
+                }
+                NewValue.setBool(Engine.Mouse.isFirstPressed(tempInt));
+            }
+            else{
+                NewValue.setBool(Engine.Mouse.isFirstPressed(Condition.Literal.getInt()));
+            }
             return NewValue;
         }
         if(Condition.Location.source == "mouse_pressing"){
-            NewValue.setBool(Engine.Mouse.isPressed(Condition.Literal.getInt()));
+            if(Condition.Literal.getType() == 's'){
+                if(getIntFromContext(currentInstruction, EventIds, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                    NewValue.setBool(false);
+                    return NewValue;
+                }
+                NewValue.setBool(Engine.Mouse.isPressed(tempInt));
+            }
+            else{
+                NewValue.setBool(Engine.Mouse.isPressed(Condition.Literal.getInt()));
+            }
             return NewValue;
         }
         if(Condition.Location.source == "mouse_released"){
-            NewValue.setBool(Engine.Mouse.isReleased(Condition.Literal.getInt()));
+            if(Condition.Literal.getType() == 's'){
+                if(getIntFromContext(currentInstruction, EventIds, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                    NewValue.setBool(false);
+                    return NewValue;
+                }
+                NewValue.setBool(Engine.Mouse.isReleased(tempInt));
+            }
+            else{
+                NewValue.setBool(Engine.Mouse.isReleased(Condition.Literal.getInt()));
+            }
             return NewValue;
         }
         if(Condition.Location.source == "mouse_x"){
@@ -8603,7 +8683,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         else if(Condition.Literal.getType() == 's'){
             ContextClass * IndexContext = getContextByID(currentInstruction, EventContext, Condition.Literal.getStringUnsafe(), true, EventIds);
             unsigned vectorIdx = 0;
-            if(IndexContext == nullptr || !IndexContext->getUnsignedOrAbort(vectorIdx, EngineInstr::value, EventIds)){
+            if(IndexContext == nullptr || !IndexContext->getUnsignedOrAbort(vectorIdx, EngineInstr::access_i, EventIds)){
                 cout << instructionError(EventIds, currentInstruction, __FUNCTION__) << "Cannot find a context for an index.\n";
                 NewValue.setBool(false);
                 return NewValue;
@@ -8850,7 +8930,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
     NewValue.setBool(false);
     return NewValue;
 }
-char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, vector<ContextClass> &EventContext){
+char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer,
+    const EngineClass & Engine, vector<ContextClass> &EventContext){
     short ignoreFlagOr = 0, ignoreFlagAnd = 0;
     bool comparasion;
     int resultInt;

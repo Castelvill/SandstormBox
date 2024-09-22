@@ -154,8 +154,8 @@ EngineInstr transInstr(string instruction){
     if(instruction == "demolish"){
         return EngineInstr::demolish;
     }
-    if(instruction == "value"){
-        return EngineInstr::value;
+    if(instruction == "access"){
+        return EngineInstr::access_i;
     }
     if(instruction == "bool"){
         return EngineInstr::bool_i;
@@ -392,8 +392,8 @@ string transInstrToStr(EngineInstr instruction){
             return "delete";
         case demolish:
             return "demolish";
-        case value:
-            return "value";
+        case access_i:
+            return "access";
         case bool_i:
             return "bool";
         case int_i:
@@ -1404,27 +1404,27 @@ double BasePointersStruct::getDouble() const{
         return *pDouble;
     }
     if(type == "bool"){
-        cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pBool;
     }
     else if(type == "char"){
-        cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pChar;
     }
     else if(type == "short"){
-        cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pShort;
     }
     else if(type == "unsigned_short"){
-        cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pUShort;
     }
     else if(type == "int"){
-        cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pInt;
     }
     else if(type == "unsigned_int"){
-        cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
+        //cout << "Warning: In " << __FUNCTION__ << ": No floating point.\n";
         return *pUInt;
     }
     else if(type == "float"){

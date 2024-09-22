@@ -48,12 +48,18 @@ public:
     ALLEGRO_EVENT event;
 
     Fps fps;
-    string windowTitle;
+    string windowTitle = "SandstormBox";
     vec2i displaySize;
-    bool fullscreen;
-    bool isPixelArt; //If true, zoomed bitmaps will not look blurry.
-    bool ENABLE_al_set_clipboard_text; //al_set_clipboard_text can cause undefined behavior on GNU/Linux (it depends on window manager used).
-    bool allowNotAscii;
+
+    bool loadConfig = true;
+    unsigned short samples = 0;
+    unsigned bufferSizeX = 640, bufferSizeY = 480;
+    bool fullscreen = false;
+    bool isPixelArt = false; //If true, zoomed bitmaps will not look blurry.
+    bool ENABLE_al_set_clipboard_text = false; //al_set_clipboard_text can cause undefined behavior on GNU/Linux (it depends on window manager used).
+    bool allowNotAscii = false;
+
+    vector<string> inputFiles;
 
     string internalClipboard;
     vector<FormatClass> CopiedFormatting;
@@ -76,7 +82,8 @@ public:
 
     vector <string> initFiles;
 
-    void resetState(string title, bool resetScreen);
+    void readCommandLine(int argc, char* argv[]);
+    void resetState(bool resetScreen);
     EngineClass();
     void initAllegro();
     void clear();

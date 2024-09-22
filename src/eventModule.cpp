@@ -7,12 +7,14 @@ ConditionClass::ConditionClass() : Literal(){}
 OperationClass::OperationClass(){
     instruction = EngineInstr::null;
 }
+inline string errorSpacing(){return "\t";}; 
 bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words,
     unsigned index, char type, string name, bool optional
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-            << ": In '" << instruction << "' instruction: " << error << ".\n";
+        cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": In the '" << instruction << "' instruction: " << error << ".\n";
     };
     error = "";
     if(index >= words.size()){
@@ -20,7 +22,7 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
             return true;
         }
         error = "For parameter '" + name + "': ";
-        error += "Index " + intToStr(index+1);
+        error += "Index " + intToStr(index+0);
         error += " is out of scope (" + intToStr(words.size());
         error += ").";
         printError(scriptName, lineNumber, words[0].value, error);
@@ -40,14 +42,14 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
     }
     if(type == 'c'){
         error = "Parameter '" + name + "' (";
-        error += intToStr(index+1) + ") must be a variable.";
+        error += intToStr(index+0) + ") must be a variable.";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
     if(words[index].type == 's'){
         if(type != 'a' && type != 's'){
             error = "Parameter '" + name + "' (";
-            error += intToStr(index+1) + ") cannot be a string.";
+            error += intToStr(index+0) + ") cannot be a string.";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
@@ -58,14 +60,14 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
     }
     if(type == 's'){
         error = "Parameter '" + name + "' (";
-        error += intToStr(index+1) + ") must be a string.";
+        error += intToStr(index+0) + ") must be a string.";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
     if(words[index].type == 'd'){
         if(type == 'i' || type == 'b'){
             error = "Parameter '" + name + "' (";
-            error += intToStr(index+1) + ") cannot have a floating point.";
+            error += intToStr(index+0) + ") cannot have a floating point.";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
@@ -99,15 +101,18 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
         return false;
     }
     error = "Parameter '" + name + "' (";
-    error += intToStr(index+1) + ") cannot be of the type '";
+    error += intToStr(index+0) + ") cannot be of the type '";
     error += words[index].type + "'.";
     printError(scriptName, lineNumber, words[0].value, error);
     return true;
 }
-bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words, unsigned & index, char type, string name, bool optional){
+bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string &error,
+    vector<WordStruct> words, unsigned &index, char type, string name, bool optional
+){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cout << "Error: In script: " << scriptName << ":\nIn line " << lineNumber << ": In " << __FUNCTION__
-                        << ": In '" << instruction << "' instruction: " << error << ".\n";
+        cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": In the '" << instruction << "' instruction: " << error << "\n";
     };
     error = "";
     if(index >= words.size()){
@@ -115,7 +120,75 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
             return true;
         }
         error = "For parameter '" + name + "': ";
-        error += "Index " + intToStr(index+1);
+        error += "Index " + intToStr(index+0);
+        error += " is out of scope (" + intToStr(words.size());
+        error += ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+    if(words[index].type == 'b' || words[index].type == 'i' || words[index].type == 'd'){
+        if(type == 'b' || (words[index].type == 'b' && type == 'a')){
+            Parameters.push_back(ParameterStruct());
+            Parameters.back().type = 'l';
+            Parameters.back().Literals.push_back(VariableModule::newBool(cstoi(words[index].value, error)));
+        }
+        else if(type == 'i' || (words[index].type == 'i' && type == 'a')){
+            Parameters.push_back(ParameterStruct());
+            Parameters.back().type = 'l';
+            Parameters.back().Literals.push_back(VariableModule::newInt(cstoi(words[index].value, error)));
+        }
+        else if(type == 'd' || (words[index].type == 'd' && type == 'a')){
+            Parameters.push_back(ParameterStruct());
+            Parameters.back().type = 'l';
+            Parameters.back().Literals.push_back(VariableModule::newDouble(cstod(words[index].value, error)));
+        }
+        else{
+            error = "Parameter '" + name + "' (";
+            error += intToStr(index+0) + ") of the type '" + type;
+            error += "' cannot be created from the value of the '" + words[index].type;
+            error += "' type.";
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        if(error.size() > 0){
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        index++;
+        return false;
+    }
+    if(words[index].type == 's'){
+        if(type != 's' && type != 'a'){
+            error = "Parameter '" + name + "' (";
+            error += intToStr(index+0) + ") of the type '" + type;
+            error += "' cannot be created from the value of the '" + words[index].type;
+            error += "' type.";
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        Parameters.push_back(ParameterStruct());
+        Parameters.back().type = 'l';
+        Parameters.back().Literals.push_back(VariableModule::newString(words[index].value));
+        index++;
+        return false;
+    }
+    return addVectorOrVariableToParameters(scriptName, lineNumber, error, words, index, type, name, optional);
+}
+bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string &error,
+    vector<WordStruct> words, unsigned &index, char type, string name, bool optional)
+{
+    auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
+        cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": In the '" << instruction << "' instruction: " << error << "\n";
+    };
+    error = "";
+    if(index >= words.size()){
+        if(optional){
+            return true;
+        }
+        error = "For parameter '" + name + "': ";
+        error += "Index " + intToStr(index+0);
         error += " is out of scope (" + intToStr(words.size());
         error += ").";
         printError(scriptName, lineNumber, words[0].value, error);
@@ -129,7 +202,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
     }
     if(words[index].type != 'c'){
         error = "Parameter '" + name + "' (";
-        error += intToStr(index+1) + ") must be a vector or a context. Vectors must begin and end with square brackets.";
+        error += intToStr(index+0) + ") must be a vector or a context. Vectors must begin and end with square brackets.";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
@@ -146,7 +219,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
     index++;
     if(index >= words.size()){
         error = "Failed to build a vector for the parameter '" + name + "' (";
-        error += intToStr(index+1) + ").";
+        error += intToStr(index+0) + ").";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
@@ -162,14 +235,14 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
         }
         if(type == 'c'){
             error = "Parameter '" + name + "' (";
-            error += intToStr(index+1) + ") must be a variable.";
+            error += intToStr(index+0) + ") must be a variable.";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
         if(words[index].type == 's'){
             if(type != 'a' && type != 's'){
                 error = "Parameter '" + name + "' (";
-                error += intToStr(index+1) + ") cannot be a string.";
+                error += intToStr(index+0) + ") cannot be a string.";
                 printError(scriptName, lineNumber, words[0].value, error);
                 return true;
             }
@@ -179,17 +252,11 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
         }
         if(type == 's'){
             error = "Parameter '" + name + "' (";
-            error += intToStr(index+1) + ") must be a string.";
+            error += intToStr(index+0) + ") must be a string.";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
         if(words[index].type == 'd'){
-            if(type == 'i' || type == 'b'){
-                error = "Parameter '" + name + "' (";
-                error += intToStr(index+1) + ") cannot have a floating point.";
-                printError(scriptName, lineNumber, words[0].value, error);
-                return true;
-            }
             Parameters.back().Literals.push_back(VariableModule::newDouble(cstod(words[index].value, error)));
             if(error.size() > 0){
                 printError(scriptName, lineNumber, words[0].value, error);
@@ -217,7 +284,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
             continue;
         }
         error = "Parameter '" + name + "' (";
-        error += intToStr(index+1) + ") cannot be of the type '";
+        error += intToStr(index+0) + ") cannot be of the type '";
         error += words[index].type + "'.";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
@@ -225,7 +292,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
 
     if(index >= words.size()){
         error = "There is no closing square bracket in the parameter '" + name + "' (";
-        error += intToStr(index+1) + ").";
+        error += intToStr(index+0) + ").";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
@@ -292,7 +359,7 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
     if(attribute == "set_id" && Values.size() > 0){
         Text->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "set_position" && Values.size() >= 2){
+    else if(attribute == "set_pos" && Values.size() >= 2){
         Text->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_size" && Values.size() >= 2){
@@ -473,7 +540,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     if(attribute == "set_id" && Values.size() > 0){
         SuperText->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "set_position" && Values.size() >= 2){
+    else if(attribute == "set_pos" && Values.size() >= 2){
         SuperText->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_size" && Values.size() >= 2){
@@ -521,7 +588,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
     else if((attribute == "save_to_file" || attribute == "load_from_file") && Values.size() >= 1){
         string fileName = Values[0].getStringUnsafe();
         if(fileName == ""){
-            std::cout << "Error: In " << __FUNCTION__ << ": In event '" << ID << "': In function '" << attribute << "': File name is empty.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': File name is empty.\n";
             return;
         }
         string finalPath = "";
@@ -646,7 +713,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
             SuperText->setWrapping(Values[0].getStringUnsafe()[0]);
         }
         else{
-            std::cout << "Error: In " << __FUNCTION__ << ": In event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
         }
     }
     else if(attribute == "set_horizontal_align" && Values.size() >= 1){
@@ -654,7 +721,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
             SuperText->setHorizontalAlign(Values[0].getStringUnsafe()[0]);
         }
         else{
-            std::cout << "Error: In " << __FUNCTION__ << ": In event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
         }
     }
     else if(attribute == "set_vertical_align" && Values.size() >= 1){
@@ -662,7 +729,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
             SuperText->setVerticalAlign(Values[0].getStringUnsafe()[0]);
         }
         else{
-            std::cout << "Error: In " << __FUNCTION__ << ": In event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+            std::cout << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
         }
     }
     else if(attribute == "set_padding_between_lines" && Values.size() >= 1){
@@ -794,7 +861,7 @@ void EveModule::controlImage(ImageModule *Image, string attribute, const vector<
     if(attribute == "set_id" && Values.size() > 0){
         Image->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "set_position" && Values.size() >= 2){
+    else if(attribute == "set_pos" && Values.size() >= 2){
         Image->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_size" && Values.size() >= 2){
@@ -1007,7 +1074,7 @@ void EveModule::controlCollision(CollisionModule * Collision, string attribute, 
     if(attribute == "set_id" && Values.size() > 0){
         Collision->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "set_position" && Values.size() >= 2){
+    else if(attribute == "set_pos" && Values.size() >= 2){
         Collision->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_size" && Values.size() >= 2){
@@ -1061,7 +1128,7 @@ void EveModule::controlParticles(ParticleEffectModule * Particles, string attrib
     if(attribute == "set_id" && Values.size() > 0){
         Particles->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "set_position" && Values.size() >= 2){
+    else if(attribute == "set_pos" && Values.size() >= 2){
         Particles->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
     else if(attribute == "set_size" && Values.size() >= 2){
@@ -1306,7 +1373,7 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
     if(attribute == "set_id" && Values.size() > 0){
         Scrollbar->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "set_position" && Values.size() >= 2){
+    else if(attribute == "set_pos" && Values.size() >= 2){
         Scrollbar->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else if(attribute == "resize" && Values.size() >= 2){
@@ -1372,7 +1439,7 @@ void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribut
     else if(attribute == "set_id" && Values.size() > 0){
         Primitives->setID(Values[0].getStringUnsafe(), IDs);
     }
-    else if(attribute == "set_position" && Values.size() >= 2){
+    else if(attribute == "set_pos" && Values.size() >= 2){
         Primitives->setPos(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
     }
     else if(attribute == "set_size" && Values.size() >= 2){

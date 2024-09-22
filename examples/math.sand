@@ -2,9 +2,9 @@ start quickMath
     triggers on_boot
     if([on_boot])
     
-    int [2] a
+    int a 2
     print "a = 2\n"
-    int [4] b
+    int b 4
     print "a = 4\n"
     + a b c
     print "" _ "a + b = " c "\n"
@@ -15,7 +15,7 @@ start quickMath
     ** a b c
     print "" _ "a ** b = " c "\n\n"
 
-    int [0 1 2 3 4 5 6 7] vecA
+    int vecA [0 1 2 3 4 5 6 7]
     print "vecA = [ 0 1 2 3 4 5 6 7 ]\n"
     += vecA vecA
     print "vecA += vecA\n"

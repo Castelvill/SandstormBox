@@ -4,7 +4,6 @@ start onInit
     //edit_proc print_instructions 1
     //edit_proc auto_print_stack 1
     edit_proc draw_text_borders 0
-
     edit_proc draw_camera_borders 1
 
     load_bitmap "images/background.png" "background" false true
@@ -26,6 +25,12 @@ end
 start runAfterInit
     //cd scripts
 	run forceRefresh
+end
+
+start exitProgram
+    triggers key_pressed
+    if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
+    power_off
 end
 
 start resizeDisplay
@@ -54,11 +59,25 @@ end
 
 
 start buildTerminal
-    value ([window_w]) ww
-    value ([window_h]) wh
+    var KEY_LCTRL 217
+    var KEY_ESC 59
+    var KEY_SHIFT 215
+    var KEY_C 3
+    var KEY_TAB 64
+    var KEY_L 12
+    var KEY_F12 58
+    var KEY_ENTER 67
+    var KEY_ARROW_UP 84
+    var KEY_ARROW_DOWN 85
+    var KEY_I 9
+    var KEY_Q 17
+    var KEY_S 19
+
+    access ww [[window_w]]
+    access wh [[window_h]]
 
     new camera 1 _ Cam
-    //fun Cam set_position 100 100
+    //fun Cam set_pos 100 100
     fun Cam set_id "Desktop"
     fun Cam set_active true
     fun Cam resize ww wh
@@ -87,22 +106,21 @@ start buildTerminal
     fun background set_color 0.5 0.5 0.5 0.3
     fun background disable_scrolling
 
-    int [0 0] editableTextPos
+    var terminalColorR "0.988235294"
+    var terminalColorG "0.909803922"
+    var terminalColorB "0.764705882"
+    var terminalColorA "1.0"
 
-    var "0.988235294" terminalColorR
-    var "0.909803922" terminalColorG
-    var "0.764705882" terminalColorB
-    var "1.0" terminalColorA
+    var terminalAccentColorR 0.2
+    var terminalAccentColorG 0.0
+    var terminalAccentColorB 0.0
+    var terminalAccentColorA 1.0
 
-    var 0.2 terminalAccentColorR
-    var 0.0 terminalAccentColorG
-    var 0.0 terminalAccentColorB
-    var 1.0 terminalAccentColorA
-
+    int editableTextPos [0 0]
 
     new super_editable_text me 1 _ TerminalTextField
     fun TerminalTextField set_id "edi"
-    fun TerminalTextField set_position editableTextPos
+    fun TerminalTextField set_pos editableTextPos
     fun TerminalTextField set_size ww wh
     //fun TerminalTextField set_size 884 480
     fun TerminalTextField add_format "cascadia_code" 1
@@ -121,12 +139,12 @@ start buildTerminal
     fun TerminalTextField set_can_copy_format true
     fun TerminalTextField start_editing
 
-    var 24 minScrollbarThumbHeight
+    var minScrollbarThumbHeight 24
 
     new image me 1 _ thumb
     fun thumb set_id "thumb"
     fun thumb deactivate
-    fun thumb set_position 2 2
+    fun thumb set_pos 2 2
     fun thumb set_size 16 16
     fun thumb resize 12 minScrollbarThumbHeight
     fun thumb connect_bitmap_via_alias "sand_thumb"
@@ -140,14 +158,14 @@ start buildTerminal
     fun thumbTrack connect_bitmap_via_alias "sand_thumb_track"
     fun thumbTrack disable_scrolling
 
-    var 476.0 scrollbarHeight
+    var scrollbarHeight 476.0
 
     new scrollbar me 1 _ MainScrollbar
     fun MainScrollbar disable_scrolling
     //fun MainScrollbar deactivate
     fun MainScrollbar set_can_be_drawn true
     fun MainScrollbar set_id "MainScrollbar"
-    fun MainScrollbar set_position 884 0
+    fun MainScrollbar set_pos 884 0
     fun MainScrollbar set_thumb_position 450 0 //450
     fun MainScrollbar set_thumb_size 12 476
     fun MainScrollbar set_scrolling_area 12 476
@@ -157,7 +175,7 @@ start buildTerminal
     fun MainScrollbar set_mouse_wheel_speed 40.0
     fun MainScrollbar add_camera "Desktop"
 
-    var 30 commandLineHeight
+    var commandLineHeight 30
 
     new super_editable_text me 1 _ TextEditor
     clone TextEditor TerminalTextField
@@ -176,7 +194,7 @@ start buildTerminal
     fun TextEditorScrollbar disable_scrolling
     fun TextEditorScrollbar set_can_be_drawn true
     fun TextEditorScrollbar set_id "TextEditorScrollbar"
-    fun TextEditorScrollbar set_position 884 0
+    fun TextEditorScrollbar set_pos 884 0
     fun TextEditorScrollbar set_thumb_position 450 0//450
     fun TextEditorScrollbar set_thumb_size 12 476
     fun TextEditorScrollbar set_scrolling_area 12 476
@@ -188,7 +206,7 @@ start buildTerminal
     fun TextEditorScrollbar add_camera "Desktop"
 
     new particles me 1 _ Particles
-    fun Particles set_position 200 200
+    fun Particles set_pos 200 200
     fun Particles set_size 10 10
     fun Particles deactivate
     fun Particles set_block_spawning true
@@ -217,28 +235,28 @@ start buildTerminal
     //fun Particles add_image "insane"
     
 
-    var "_enter" program
-    var "" param0
-    var "" param1
-    var "" param2
-    var "" param3
-    var "" param4
-    var "" param5
-    var "" param6
-    var "" param7
-    var 20 roundingSize
+    var program "_enter"
+    var param0 ""
+    var param1 ""
+    var param2 ""
+    var param3 ""
+    var param4 ""
+    var param5 ""
+    var param6 ""
+    var param7 ""
+    var roundingSize 20
 
-    var 0 commandNumber
-    var 0 currentCommandNumber
-    vec string [""] commandHistory
+    var commandNumber 0
+    var currentCommandNumber 0
+    vec string commandHistory [""]
 
-    vec string ["help" "ls" "cls" "cat" "cd" "pwd" "mv" "print" "exit" "reboot" "history" "forgor" "edit" "sand" "sh" "nw" "note" "mover" "fullscreen" "fs" "neofetch" "spawn" "hello" "sq" "cats" "v4" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal" "test"] allowedPrograms
+    vec string allowedPrograms ["help" "ls" "cls" "cat" "cd" "pwd" "mv" "print" "exit" "reboot" "history" "forgor" "edit" "sand" "sh" "nw" "note" "mover" "fullscreen" "fs" "neofetch" "spawn" "hello" "sq" "cats" "v4" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal" "test"]
 
-    var "scripts" dir
+    var dir "scripts"
 
-    var 0 waitingTime
+    var waitingTime 0
 
-    string ["history.txt"] fileName
+    string fileName "history.txt"
     run loadCommandHistory
 end
 
@@ -249,7 +267,7 @@ start loadCommandHistory
     tokenize "\n" loadedText loadedText
     fun commandHistory clear
     fun commandHistory push_back loadedText
-    value ([commandHistory size]) newSize
+    access newSize [[commandHistory size]]
     -- newSize
     = commandNumber newSize
     = currentCommandNumber newSize
@@ -259,28 +277,28 @@ start selectTextWithMouse
     triggers mouse_pressing
     if ([mouse_pressing 0])
     index me [0 1] super_editable_text TextField
-    value ([TextField cursor_pos_y]) cursorPosY
+    access cursorPosY [[TextField cursor_pos_y]]
     index me [0 1] scrollbar Scrollbar
-    value ([Scrollbar scroll_shift_y]) scrollShiftY
+    access scrollShiftY [[Scrollbar scroll_shift_y]]
     -= cursorPosY scrollShiftY
-    value ([window_h]) windowH
-    double [-30] windowLimitYDown
+    access windowH [[window_h]]
+    double windowLimitYDown -30.0
     += windowLimitYDown windowH
-    double [10] windowLimitYUp
+    double windowLimitYUp 10.0
     run moveScrollbarBySelectingText
 end
 start selectTextWithKeys
     triggers any_key_pressing
     if ([any_key_pressing])
     index me [0 1] super_editable_text TextField
-    value ([TextField cursor_pos_y]) cursorPosY
+    access cursorPosY [[TextField cursor_pos_y]]
     index me [0 1] scrollbar Scrollbar
-    value ([Scrollbar scroll_shift_y]) scrollShiftY
+    access scrollShiftY [[Scrollbar scroll_shift_y]]
     -= cursorPosY scrollShiftY
-    value ([window_h]) windowH
-    double [-20] windowLimitYDown
+    access windowH [[window_h]]
+    double windowLimitYDown -20.0
     += windowLimitYDown windowH
-    double [0] windowLimitYUp
+    double windowLimitYUp 0.0
     run moveScrollbarBySelectingText
 end
 start moveScrollbarBySelectingText
@@ -303,11 +321,11 @@ start spawnParticles
     //if ([any_key_pressing])
     /*index me [0 0] particles Particles
     index me [0 1] super_editable_text TextField
-    value ([TextField cursor_pos_x] [TextField cursor_pos_y]) cursorPos
+    access cursorPos [[TextField cursor_pos_x] [TextField cursor_pos_y]]
     index me [0 1] scrollbar Scrollbar
-    value ([Scrollbar scroll_shift_x] [Scrollbar scroll_shift_y]) scrollShift
+    access scrollShift [[Scrollbar scroll_shift_x] [Scrollbar scroll_shift_y]]
     -= cursorPos scrollShift
-    fun Particles set_position cursorPos
+    fun Particles set_pos cursorPos
     fun Particles allow_spawning*/
 end
 
@@ -316,10 +334,10 @@ start createWindowTemplate
     new layer 1 _ WindowLayer
     fun WindowLayer deactivate
     fun WindowLayer set_id "WindowLayer"
-    value ([WindowLayer id]) newLayerID
+    access newLayerID [[WindowLayer id]]
 
     new camera 1 _ WindowCamera
-    fun WindowCamera set_position 0 0
+    fun WindowCamera set_pos 0 0
     fun WindowCamera set_id "WindowCamera"
     fun WindowCamera set_active true
     fun WindowCamera resize 640 480
@@ -407,7 +425,7 @@ start createWindowTemplate
     fun border3 set_id "border"
     fun border3 set_type "rectangle"
     fun border3 set_color 0.109 0.537 0.2039 1.0
-    fun border3 set_position 2 2
+    fun border3 set_pos 2 2
     fun border3 set_size 636 476
     fun border3 set_thickness 5.0
     fun border3 update_with_size
@@ -418,40 +436,40 @@ start createWindowTemplate
     fun exitButton add_point 0.0 0.0
     fun exitButton add_point 5 5
     fun exitButton set_color 1.0 0.0 0.0 1.0
-    fun exitButton set_position 620 15
+    fun exitButton set_pos 620 15
     fun exitButton set_size 20 20
     fun exitButton update_with_size
 
     new collision NewWindowObject 1 _ ExitCollision
-    fun ExitCollision set_position 620 15
+    fun ExitCollision set_pos 620 15
     fun ExitCollision set_size 10 10
     fun ExitCollision set_is_circle true
 
     new primitives NewWindowObject 1 _ MaxButton
     clone MaxButton exitButton
     fun MaxButton set_id "MaxButton"
-    fun MaxButton set_position 590 15
+    fun MaxButton set_pos 590 15
     fun MaxButton set_color 1.0 1.0 0.0 1.0
 
     new collision NewWindowObject 1 _ MaxCollision
-    fun MaxCollision set_position 590 15
+    fun MaxCollision set_pos 590 15
     fun MaxCollision set_size 10 10
     fun MaxCollision set_is_circle true
 
     new primitives NewWindowObject 1 _ minimizeButton
     clone minimizeButton exitButton
     fun minimizeButton set_id "minimizeButton"
-    fun minimizeButton set_position 560 15
+    fun minimizeButton set_pos 560 15
     fun minimizeButton set_color 0.0 1.0 0.0 1.0
 
     new collision NewWindowObject 1 _ MinCollision
-    fun MinCollision set_position 560 15
+    fun MinCollision set_pos 560 15
     fun MinCollision set_size 10 10
     fun MinCollision set_is_circle true
 
     new super_text NewWindowObject 1 _ title
     fun title set_id "title"
-    fun title set_position 10 2
+    fun title set_pos 10 2
     fun title set_size 400 50
     fun title add_format "cascadia_code_bold" 8
     fun title set_color 0 1.0 1.0 1.0 1.0
@@ -475,7 +493,7 @@ start spawnNewWindow
     new layer 1 _ NewWindowLayer
     clone NewWindowLayer TemplateLayer
     fun NewWindowLayer set_id param1
-    value ([NewWindowLayer id]) newLayerID
+    access newLayerID [[NewWindowLayer id]]
     fun NewWindowLayer activate
 
     index NewWindowLayer [0 0 0] super_text Title
@@ -484,7 +502,7 @@ start spawnNewWindow
     new camera 1 _ NewWindowCamera
     clone NewWindowCamera TemplateCamera
     fun NewWindowCamera set_id param1
-    value ([NewWindowCamera id]) newCameraID
+    access newCameraID [[NewWindowCamera id]]
     fun NewWindowCamera activate
     fun NewWindowCamera add_visible_layer newLayerID
     fun NewWindowCamera add_accessible_layer newLayerID
@@ -496,8 +514,8 @@ end
 
 
 start note
-    int [0] NewWindowLayer
-    string [""] fileName
+    int NewWindowLayer 0
+    string fileName ""
     = fileName param1
     = param1 "Note"
     run spawnNewWindow spawnNotepad
@@ -510,7 +528,7 @@ start spawnNotepad
     new super_editable_text Object 1 _ TextEditor
     clone TextEditor Editable
     fun TextEditor set_id "Notepad"
-    fun TextEditor set_position 5 30
+    fun TextEditor set_pos 5 30
     fun TextEditor set_size 640 480
     fun TextEditor set_color 0 1.0 0.0 0.0 1.0
     fun TextEditor set_wrapping "n"
@@ -524,11 +542,11 @@ end
 
 
 start mover
-    int [0] NewWindowLayer
-    string [""] selectedLayerID
+    int NewWindowLayer 0
+    string selectedLayerID ""
     = selectedLayerID param1
     = param1 "Mover"
-    int [0] NewWindowCamera
+    int NewWindowCamera 0
     run spawnNewWindow spawnMover
 end
 start spawnMover
@@ -538,8 +556,8 @@ start spawnMover
     = has_friends true
     index NewWindowLayer [0 0 0] primitives Background
     fun Background set_color 0.0 0.0 0.0 1.0
-    //value ([my_layer id]) selectedLayerID
-    value ([NewWindowCamera id]) windowCameraID
+    //access selectedLayerID [[my_layer id]]
+    access windowCameraID [[NewWindowCamera id]]
     new camera 1 _ InsideCamera
     fun InsideCamera activate
     fun InsideCamera add_visible_layer selectedLayerID
@@ -554,7 +572,7 @@ start spawnMover
     fun InsideCamera set_min_size 0 0
     fun InsideCamera allow_drawing_object_borders 
 
-    value ([InsideCamera id]) newCameraID
+    access newCameraID [[InsideCamera id]]
 
     new variable NewObject 1 _ cameraID
     fun cameraID set_id "insideCameraID"
@@ -568,16 +586,16 @@ end
 
 start interrupt
     triggers key_pressed
-    if ([key_pressed 215] [key_pressed 3] &&) //217-ctrl, 215-shift, 3-c
+    if ([key_pressed KEY_SHIFT] [key_pressed KEY_C] &&)
     
     = program ""
-    string ["^C\n"] result
+    string result "^C\n"
     run printOnTerminal
 end
 
 start autoComplete
     triggers key_pressed
-    if ([key_pressed 64] [program] ["sleep"] == &&)
+    if ([key_pressed KEY_TAB] [program] ["sleep"] == &&)
     index Cameras [0] camera Camera
     run autoComplete1
 end
@@ -592,10 +610,10 @@ start autoComplete1
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
     similar command allowedPrograms completes
-    string ["\n"] result
+    string result "\n"
     //+= result completes
-    value ([completes size]) size
-    int [0] i
+    access size [[completes size]]
+    int i 0
     run replaceWithAutoComplete
 end
 
@@ -634,11 +652,11 @@ end
 start rstTermBuff
     fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
-    string [""] result
+    string result ""
 end
 
 start printPrompt
-    string [""] result
+    string result ""
     index me [0 0] super_editable_text EditableText
     run rstTermBuff createPrompt printOnTerminal colorNormalText
 end
@@ -663,14 +681,14 @@ start controler
     fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
-    string [""] result
+    string result ""
     run createPrompt printOnTerminal colorNormalText
 end
 
 
 start clearOnShortcut
     triggers key_pressed
-    if ([program] ["sleep"] == [key_pressed 217] && [key_pressed 12] &&)
+    if ([program] ["sleep"] == [key_pressed KEY_LCTRL] && [key_pressed KEY_L] &&)
     index Cameras [0] camera Camera
     run clearOnShortcutIfFocused
 end
@@ -687,14 +705,14 @@ start controlerWithEnter
     fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
-    string ["\n"] result
+    string result "\n"
     run createPrompt printOnTerminal colorNormalText
 end
 
 start colorNormalText
     fun EditableText set_last_color 0.86 0.85 0.86 1.0
     fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
-    string [" "] result
+    string result " "
     run printOnTerminal
 end
 
@@ -702,7 +720,7 @@ end
 
 start fs_click false
     triggers key_pressed
-    if ([key_pressed 58])
+    if ([key_pressed KEY_F12])
     run setFullscreen
 end
 
@@ -733,16 +751,16 @@ start refresh
 end
 
 start forceRefresh
-    value ([window_w]) w
-    value ([window_h]) h
+    access w [[window_w]]
+    access h [[window_h]]
     index Cameras [0] camera Cam0
     fun Cam0 resize w h
     index me [0 0] image background
     fun background resize w h
 
     index me [0 1] super_editable_text EditProgramTextField
-    value ([EditProgramTextField size_y]) EditorSizeY
-    int [476] textHeight
+    access EditorSizeY [[EditProgramTextField size_y]]
+    int textHeight 476
     = textHeight h
     -= textHeight commandLineHeight
     fun EditProgramTextField set_size w h
@@ -750,11 +768,11 @@ start forceRefresh
     fun EditProgramTextField crop_height_to_text
 
     index me [0 0] super_editable_text TerminalTextField
-    value ([TerminalTextField size_y]) TerminalSizeY
+    access TerminalSizeY [[TerminalTextField size_y]]
     fun TerminalTextField set_size w TerminalSizeY
     fun TerminalTextField update
     fun TerminalTextField crop_height_to_text
-    value ([TerminalTextField size_y]) TerminalSizeY
+    access TerminalSizeY [[TerminalTextField size_y]]
     run resizeTerminalIfSmall refreshScrollbar refreshTextEditorScrollbarIfEditing
 end
 
@@ -770,18 +788,18 @@ end
 
 start refreshScrollbar
     index me [0 0] super_editable_text TerminalTextField
-    value ([TerminalTextField size_y]) TerminalSizeY
-    value ([window_h]) h
+    access TerminalSizeY [[TerminalTextField size_y]]
+    access h [[window_h]]
     -= TerminalSizeY h
 
     = scrollbarHeight h
     index me [0 0] scrollbar MainScrollbar
-    value ([window_w]) windowW
-    int [16] scrollbarWidth
+    access windowW [[window_w]]
+    int scrollbarWidth 16
     -= windowW scrollbarWidth
-    fun MainScrollbar set_position windowW 0
+    fun MainScrollbar set_pos windowW 0
     fun MainScrollbar resize scrollbarWidth h
-    int [12] thumbWidth
+    int thumbWidth 12
     fun MainScrollbar set_scrolling_area thumbWidth h
     fun MainScrollbar set_thumb_size thumbWidth h
 
@@ -798,10 +816,10 @@ start refreshScrollbarCheck
     index me [0 0] scrollbar MainScrollbar
     fun MainScrollbar set_real_scrolling_area 0 TerminalSizeY
     += TerminalSizeY h
-    double [476] currentThumbHeight
+    double currentThumbHeight 476.0
     = currentThumbHeight scrollbarHeight
-    value ([window_h]) windowH
-    double [1] divide
+    access windowH [[window_h]]
+    double divide 1.0
     = divide windowH
     /= divide TerminalSizeY
     *= currentThumbHeight divide
@@ -821,7 +839,7 @@ end
 
 start resetScrollbar
     index me [0 0] scrollbar MainScrollbar
-    double [476] currentThumbHeight
+    double currentThumbHeight 476.0
     = currentThumbHeight scrollbarHeight
     fun MainScrollbar set_thumb_size 12 currentThumbHeight
     fun me update_scrollbars
@@ -830,7 +848,7 @@ end
 
 start enter
     triggers key_pressed
-    if ([key_pressed 67] [program] ["sleep"] == &&)
+    if ([key_pressed KEY_ENTER] [program] ["sleep"] == &&)
     index Cameras [0] camera Camera
     run enter1
 end
@@ -873,11 +891,11 @@ end
 
 start programCheck
     if ([isAllowed])
-    string ["run "] run
+    string run "run "
     += run param0
     = program "run"
     inject_instr me run
-    string ["\n"] result
+    string result "\n"
     run printOnTerminal
     else programNotFound
 end
@@ -905,7 +923,7 @@ start moveInHistory
 end
 
 start upArrow
-    if ([Camera is_selected] [key_pressed 84] [program] ["sleep"] == [currentCommandNumber] [0] > && && &&)
+    if ([Camera is_selected] [key_pressed KEY_ARROW_UP] [program] ["sleep"] == [currentCommandNumber] [0] > && && &&)
     index me [0 0] super_editable_text EditableText
     first EditableText _ _ _ _ content _ userInput
     first EditableText _ _ _ _ protected_area _ protectedArea
@@ -916,7 +934,7 @@ start upArrow
     -- currentCommandNumber
 
     fun EditableText cut_unprotected_area
-    value ([v commandHistory c currentCommandNumber]) diffCommand
+    access diffCommand [[v commandHistory c currentCommandNumber]]
     fun EditableText add_content diffCommand
     fun EditableText update
     first EditableText _ _ _ _ content _ history
@@ -926,7 +944,7 @@ end
 
 
 start downArrow
-    if ([Camera is_selected] [key_pressed 85] [program] ["sleep"] == [currentCommandNumber] [commandNumber] < && && &&)
+    if ([Camera is_selected] [key_pressed KEY_ARROW_DOWN] [program] ["sleep"] == [currentCommandNumber] [commandNumber] < && && &&)
     index me [0 0] super_editable_text EditableText
     first EditableText _ _ _ _ content _ userInput
     first EditableText _ _ _ _ protected_area _ protectedArea
@@ -937,7 +955,7 @@ start downArrow
     ++ currentCommandNumber
 
     fun EditableText cut_unprotected_area
-    value ([v commandHistory c currentCommandNumber]) diffCommand
+    access diffCommand [[v commandHistory c currentCommandNumber]]
     fun EditableText add_content diffCommand
     fun EditableText update
     first EditableText _ _ _ _ content _ history
@@ -948,7 +966,7 @@ end
 
 start programNotFound
     if ([param0] [""] !=)
-    string ["\nCommand not found!"] result
+    string result "\nCommand not found!"
     run printOnTerminal
 end
 
@@ -964,10 +982,10 @@ start printOnTerminal
     fun EditableText set_protected_area historySize
     fun EditableText set_cursor_pos historySize
 
-    value ([window_w]) w
-    value ([window_h]) h
+    access w [[window_w]]
+    access h [[window_h]]
     index me [0 0] super_editable_text TerminalTextField
-    value ([TerminalTextField size_y]) TerminalSizeY
+    access TerminalSizeY [[TerminalTextField size_y]]
 
     run resizeTerminalIfSmall refreshScrollbar
 end
@@ -983,10 +1001,10 @@ start printOnTerminalUnprotected
     //fun EditableText set_protected_area historySize
     //fun EditableText set_cursor_pos historySize
 
-    value ([window_w]) w
-    value ([window_h]) h
+    access w [[window_w]]
+    access h [[window_h]]
     index me [0 0] super_editable_text TerminalTextField
-    value ([TerminalTextField size_y]) TerminalSizeY
+    access TerminalSizeY [[TerminalTextField size_y]]
 
     run resizeTerminalIfSmall refreshScrollbar
 end
@@ -1007,7 +1025,7 @@ start edit
     fun TextEditor set_content ""
     fun TextEditor set_cursor_pos 0
     fun TextEditor activate
-    string [""] fileName
+    string fileName ""
     = fileName param1
     run loadTextFromFile
 end
@@ -1041,17 +1059,17 @@ end
 
 start refreshTextEditorScrollbar
     index me [0 1] super_editable_text EditorTextField
-    value ([EditorTextField size_y]) EditorSizeY
-    value ([window_h]) h
+    access EditorSizeY [[EditorTextField size_y]]
+    access h [[window_h]]
 
     = scrollbarHeight h
     index me [0 1] scrollbar EditorScrollbar
-    value ([window_w]) windowW
-    int [16] scrollbarWidth
+    access windowW [[window_w]]
+    int scrollbarWidth 16
     -= windowW scrollbarWidth
-    fun EditorScrollbar set_position windowW 0
+    fun EditorScrollbar set_pos windowW 0
     fun EditorScrollbar resize scrollbarWidth h
-    int [12] thumbWidth
+    int thumbWidth 12
     fun EditorScrollbar set_scrolling_area thumbWidth h
 
     all me _ _ image _ _ _ AllImages
@@ -1068,10 +1086,10 @@ start refreshTextEditorScrollbarCheck
     fun EditorScrollbar set_real_scrolling_area 0 EditorSizeY
     += EditorSizeY h
     
-    double [476] currentThumbHeight
+    double currentThumbHeight 476.0
     = currentThumbHeight scrollbarHeight
-    value ([window_h]) windowH
-    double [1] divide
+    access windowH [[window_h]]
+    double divide 1.0
     = divide windowH
     /= divide EditorSizeY
     *= currentThumbHeight divide
@@ -1090,7 +1108,7 @@ end
 start resetTextEditorScrollbar
     index me [0 1] scrollbar EditorScrollbar
     
-    double [476] currentThumbHeight
+    double currentThumbHeight 476.0
     = currentThumbHeight scrollbarHeight
     fun EditorScrollbar set_thumb_size 12 currentThumbHeight
     fun me update_scrollbars
@@ -1098,7 +1116,7 @@ end
 
 start textEditorInsert
     triggers key_pressed
-    if([program] ["edit"] == [key_pressed 217] && [key_pressed 9] &&)
+    if([program] ["edit"] == [key_pressed KEY_LCTRL] && [key_pressed KEY_I] &&)
     first Layers KERNEL KERNEL super_editable_text TextEditor is_editing_active _ isEditing
     run checkIfInsertPressed
 end
@@ -1128,13 +1146,13 @@ end
 
 start textEditorExit
     triggers key_pressed
-    if([program] ["edit"] == [key_pressed 217] && [key_pressed 17] &&)
+    if([program] ["edit"] == [key_pressed KEY_LCTRL] && [key_pressed KEY_Q] &&)
     run triggerEditorExit
 end
 
 start textEditorSave
     triggers key_pressed
-    if([program] ["edit"] == [key_pressed 217] && [key_pressed 19] &&)
+    if([program] ["edit"] == [key_pressed KEY_LCTRL] && [key_pressed KEY_S] &&)
     index me [0 1] super_editable_text TextEditor
     first TextEditor _ _ _ _ content _ writtenText
     save_text param1 writtenText
@@ -1148,39 +1166,39 @@ start sand
 end
 start emptyInput1
 	= program ""
-	string ["Error: This instruction requires 1 parameter!\n"] result
+	string result "Error: This instruction requires 1 parameter!\n"
 	run printOnTerminal
 end
 
 
 start injectFormat
     index me [0 0] super_editable_text EditableText
-    string ["cascadia_code"] font 
+    string font "cascadia_code"
     fun EditableText inject_format startFragment endFragment 1.0 0.0 1.0 1.0  1.0 0.0 1.0 1.0 font
 end
 
 start format
     triggers key_pressed
-    if([key_pressed 217] && [key_pressed 5] &&)
+    if([key_pressed KEY_LCTRL] && [key_pressed 5] &&)
     index me [0 0] super_editable_text Terminal
-    value ([Terminal cursor_pos]) cursorPos
-    value ([Terminal second_cursor_pos]) secondCursorPos
+    access cursorPos [[Terminal cursor_pos]]
+    access secondCursorPos [[Terminal second_cursor_pos]]
     run formatCheck
 end 
 
 start formatCheck
     if ([cursorPos] [secondCursorPos] <)
     else formatElseCheck
-    int [0] startFragment
-    int [0] endFragment
+    int startFragment 0
+    int endFragment 0
     = startFragment cursorPos
     = endFragment secondCursorPos
     run injectFormat
 end
 
 start formatElseCheck
-    int [0] startFragment
-    int [0] endFragment
+    int startFragment 0
+    int endFragment 0
     = startFragment secondCursorPos
     = endFragment cursorPos
     run injectFormat
@@ -1188,7 +1206,7 @@ end
 
 /*start lol
     triggers each_iteration
-    string ["xd"] param1
+    string param1 "xd"
     run edit
 after
     delete_this_event

@@ -1,49 +1,49 @@
 start newLine
-    string ["\n"] result
+    string result "\n"
     run printOnTerminal
 end
 start nextTest
     run printPrompt newLine
 end
 start testSpawn
-    string ["elephant"] param1 
+    string param1 "elephant"
     run spawn
 end
 start testNote
-    string ["history.txt"] param1
+    string param1 "history.txt"
     run note
 end
 start testMover
-    string ["KERNEL"] param1
+    string param1 "KERNEL"
     run mover
 end
 start testCat
-    string [".config"] param1
+    string param1 ".config"
     run cat
 end
 start testPrint
-    string ["TEST TEST TEST\n"] param1
+    string param1 "TEST TEST TEST\n"
     run print
 end
 start testEdit
-    string ["docs/TODO.txt"] param1
+    string param1 "docs/TODO.txt"
     run edit
 end
 start testSand
-    string ["scripts/lorem.sand"] param1
+    string param1 "scripts/lorem.sand"
     run sand
 end
 start testCd
-    string ["scripts"] param1
+    string param1 "scripts"
     run cd
 end
 start testCd2
-    string [""] param1
+    string param1 ""
     run cd
 end
 start testSaveLoadTerminal
     mkdir "temp"
-    string ["temp/test.ft"] param1
+    string param1 "temp/test.ft"
     run save_terminal load_terminal
 end
 start test
