@@ -1,8 +1,7 @@
 //Create a simple event that will close the engine.
 
 start helloWorld
-    triggers on_boot
-    if([on_boot])
+    triggers on_init
     print "Hello, World!\n"
-    power_off
+    exit
 end

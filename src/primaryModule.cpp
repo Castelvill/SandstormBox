@@ -34,8 +34,8 @@ EngineInstr transInstr(string instruction){
     if(instruction == "reboot"){
         return EngineInstr::reboot;
     }
-    if(instruction == "power_off"){
-        return EngineInstr::power_off;
+    if(instruction == "exit"){
+        return EngineInstr::exit_i;
     }
     if(instruction == "delete_this_event"){
         return EngineInstr::delete_this_event;
@@ -283,6 +283,12 @@ EngineInstr transInstr(string instruction){
     if(instruction == "similar"){
         return EngineInstr::similar;
     }
+    if(instruction == "create_display"){
+        return EngineInstr::create_display;
+    }
+    if(instruction == "console_input"){
+        return EngineInstr::console_input;
+    }
     cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return EngineInstr::null;
 }
@@ -312,8 +318,8 @@ string transInstrToStr(EngineInstr instruction){
             return "return";
         case reboot:
             return "reboot";
-        case power_off:
-            return "power_off";
+        case exit_i:
+            return "exit";
         case delete_this_event:
             return "delete_this_event";
         case reset_keyboard:
@@ -478,6 +484,10 @@ string transInstrToStr(EngineInstr instruction){
             return "pwd";
         case similar:
             return "similar";
+        case create_display:
+            return "create_display";
+        case console_input:
+            return "console_input";
     }
     cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return "null";

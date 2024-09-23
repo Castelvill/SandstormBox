@@ -1,0 +1,7 @@
+start interpreter
+    triggers each_iteration
+    pwd path
+    print _ _ path ">> "
+    console_input input
+    inject_instr me input
+end

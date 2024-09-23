@@ -38,9 +38,41 @@ vector<string> removeComments(const vector<string> & lines){
     
     return newLines;
 }
+inline vector<string> builtInScriptInterpreter = {
+    "start interpreter",
+    "triggers each_iteration",
+    "pwd path",
+    "print _ _ path \">> \"",
+    "console_input input",
+    "inject_instr me input",
+    "end"
+};
+inline vector<string> builtInScriptHello = {
+    "start interpreter",
+    "triggers on_init",
+    "print \"Hello, World!\n\"",
+    "exit",
+    "end"
+};
 vector<string> readLines(const string& filename, bool allowNotAscii) {
-	std::ifstream File(filename);
-	vector<string> lines;
+	if(filename.size() == 0){
+        std::cout << "Error: In " << __FUNCTION__ << ": The file name cannot be empty.\n";
+        return vector<string>();
+    }
+    if(filename[0] == '?'){
+        if(filename == "?interpreter"){
+            return builtInScriptInterpreter;
+        }
+        if(filename == "?hello"){
+            return builtInScriptHello;
+        }
+        std::cout << "Error: In " << __FUNCTION__ << ": There is no built-in script with the name: \""
+            << filename << "\".\n";
+        return vector<string>();
+    }
+    vector<string> lines;
+
+    std::ifstream File(filename);
 
 	if(!File){
 		std::cerr << "Cannot open file: " << filename << "\n";
@@ -840,7 +872,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     bool inCondition = false;
     WordStruct firstWord;
     
-    while(words[cursor].value != endingChar){
+    while(words[cursor].value != endingChar || inCondition){
         if(cursor >= words.size()){
             cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
@@ -917,7 +949,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 }
                 else if(isStringInGroup(firstWord.value, 18, "on_boot", "second_passed", "fps", "any_key_pressed",
                     "any_key_pressing", "any_key_released", "mouse_x", "mouse_y", "mouse_moved",
-                    "window_w", "window_h", "fullscreen", "on_display_resize", "used_os",
+                    "display_w", "display_h", "fullscreen", "on_display_resize", "used_os",
                     "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects")
                 ){
                     continue;
@@ -1182,7 +1214,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
         }
-        else if(isStringInGroup(words[0].value, 9, "continue", "break", "return", "reboot", "power_off",
+        else if(isStringInGroup(words[0].value, 9, "continue", "break", "return", "reboot", "exit",
             "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag")
         ){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
@@ -1580,7 +1612,11 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'b', "reset", true)){
                 if(error.size() == 0){ continue; }
                 return;
-            } 
+            }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "do_not_preserve", true)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
         }
         else if(words[0].value == "load_build" || words[0].value == "build_subset" || words[0].value == "inject_code" || words[0].value == "inject_instr"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
@@ -1595,6 +1631,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 parameterName = "instructions";
             }
             if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', parameterName, false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'b', "reset", true)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor + 1, 'b', "do_not_preserve", true)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
         }
         else if(words[0].value == "fun"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
@@ -1622,7 +1666,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(words[1].value == "window_title"){
                 if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "title", false)){ return; }
             }
-            else if(words[1].value == "window_size"){
+            else if(words[1].value == "display_size"){
                 if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "width", false)){ return; }
                 if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "height", false)){ return; }
             }
@@ -1734,7 +1778,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", true)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
                 if(error.size() == 0){ continue; }
@@ -1837,7 +1884,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 cursor++;
             }
         }
-        else if(words[0].value == "tree" || words[0].value == "pwd"){
+        else if(words[0].value == "tree" || words[0].value == "pwd" || words[0].value == "console_input"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
                 return;
             }
@@ -1914,6 +1961,19 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
         }
+        else if(words[0].value == "create_display"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 5, lineNumber, scriptName)){
+                return;
+            }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'i', "display_width", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "display_height", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "backbuffer_width", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'i', "backbuffer_height", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 5, 'b', "auto_scale_backbuffer", true)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
+        }
         else{
             cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' does not exist.\n";
@@ -1940,10 +2000,9 @@ inline void printEmptyFileWarning(string scriptName, string functionName){
 inline void printBasicFile(){
     cout << "Basic \"Hello World\" program:\n\n"
         << "start helloWorld\n"
-        << "\ttriggers on_boot\n"
-        << "\tif([on_boot])\n"
+        << "\ttriggers on_init\n"
         << "\tprint \"Hello, World!\\n\"\n"
-        << "\tpower_off\n"
+        << "\texit\n"
         << "end\n\n";
 }
 void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii){
@@ -1970,7 +2029,10 @@ void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii){
         printBasicFile();
     }
 }
-void AncestorObject::translateScriptsFromPaths(vector<string> scriptsPaths, bool allowNotAscii){
+void AncestorObject::translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii){
+    if(clearEvents){
+        clearAllEvents();
+    }
     vector<string> code;
 
     bool somethingWasAssembled = false;
@@ -1991,7 +2053,11 @@ void AncestorObject::translateScriptsFromPaths(vector<string> scriptsPaths, bool
         printBasicFile();
     }
 }
-void AncestorObject::translateSubsetBindedScripts(vector<string> scripts, bool allowNotAscii){
+void AncestorObject::translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii){
+    if(clearEvents){
+        clearAllEvents();
+    }
+
     vector<string> code;
 
     bool somethingWasAssembled = false;
@@ -2015,14 +2081,22 @@ void AncestorObject::translateSubsetBindedScripts(vector<string> scripts, bool a
         printBasicFile();
     }
 }
-void AncestorObject::injectCode(vector<string> code){
+void AncestorObject::injectCode(bool clearEvents, vector<string> code){
+    if(clearEvents){
+        clearAllEvents();
+    }
+
     code = removeComments(code);
     
     if(code.size() > 0){
         eventAssembler(code, "<injection>");
     }
 }
-void AncestorObject::injectInstructions(vector<string> instructions){
+void AncestorObject::injectInstructions(bool clearEvents, vector<string> instructions){
+    if(clearEvents){
+        clearAllEvents();
+    }
+    
     vector<string> preprocessed;
     for(string line : instructions){
         string output;

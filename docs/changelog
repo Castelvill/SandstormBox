@@ -1,3 +1,11 @@
+22.09.2024
+-Added "reset" and "do_not_preserve" parameters to the instructions: build, load_build, build_subset, inject_code, inject_instr. 
+-Renamed "power_off" to "exit".
+-Created a simple interpreter and built-in scripts.
+-Created the "console_input" instruction.
+-Removed the automatic Allegro display creation and implemented the "create_display" instruction instead. 
+-Rename attributes "window_w", "window_h" and "window_size" to "display_w", "display_h" and "display_size" in the "access" and "env" instructions.
+
 21.09.2024
 -Disabled CTRL+ESC shortcut and added it by hand to the examples and the terminal.
 -Added command line arguments for the engine's binary.

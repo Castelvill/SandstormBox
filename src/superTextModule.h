@@ -147,12 +147,12 @@ public:
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
 
     bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
-    void executeOneBackspaceOrCtrlX(char pKey, string text, ALLEGRO_DISPLAY * window, unsigned & leftCursorOnFormatIdx,
+    void executeOneBackspaceOrCtrlX(char pKey, string text, ALLEGRO_DISPLAY * display, unsigned & leftCursorOnFormatIdx,
         unsigned & rightCursorOnFormatIdx, bool ENABLE_al_set_clipboard_text, string & internalClipboard,
         vector<FormatClass> & CopiedFormatting, string EXE_PATH
     );
     void executeOneDeletion(string text, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
-    bool deleteFromText(char pKey, string text, bool & control, ALLEGRO_DISPLAY * window,
+    bool deleteFromText(char pKey, string text, bool & control, ALLEGRO_DISPLAY * display,
         unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
         bool ENABLE_al_set_clipboard_text, string & internalClipboard,
         vector<FormatClass> & CopiedFormatting, string EXE_PATH
@@ -185,7 +185,7 @@ public:
     void moveCursorToLeft(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorToRightByOne(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorToRight(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
-    void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
+    void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * display,
         bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting,
         string EXE_PATH, bool allowNotAscii
     );

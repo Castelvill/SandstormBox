@@ -1,12 +1,12 @@
 start putRectangleOnScreen
     triggers each_iteration
 
-    var WINDOW_W 640
-    var WINDOW_H 480
-    access window_w [[window_w]]
-    access window_h [[window_h]]
-    = WINDOW_W window_w
-    = WINDOW_H window_h
+    var DISPLAY_W 640
+    var DISPLAY_H 480
+    access display_w [[display_w]]
+    access display_h [[display_h]]
+    = DISPLAY_W display_w
+    = DISPLAY_H display_h
 
     var SIZE_X 120
     var SIZE_Y 100
@@ -64,12 +64,12 @@ after
 end
 
 start bounceX
-    if([x] [0] <= [xs] [WINDOW_W] >= ||)
+    if([x] [0] <= [xs] [DISPLAY_W] >= ||)
     *= velX -1.0
 end
 
 start bounceY
-    if([y] [0] <= [ys] [WINDOW_H] >= ||)
+    if([y] [0] <= [ys] [DISPLAY_H] >= ||)
     *= velY -1.0
 end
 

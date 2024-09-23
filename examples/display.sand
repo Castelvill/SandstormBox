@@ -1,0 +1,18 @@
+//Create a display and bind a shortcut for closing the program.
+
+start helloWorldEvent
+    triggers on_init
+
+    create_display 640 480 640 480
+
+    print "To close the program use the CTRL+ESC shortcut or just click the exit button.\n"
+    
+    var KEY_LCTRL 217
+    var KEY_ESC 59
+end
+
+start exitProgram
+    triggers key_pressed
+    if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
+    exit
+end

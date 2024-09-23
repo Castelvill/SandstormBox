@@ -45,8 +45,8 @@ end
 start refreshWindowWithDisplay
 	all Cameras _ camera _ Cameras
 	find_by_id_2 Cameras cameraID Camera
-	access sx [[window_w]]
-	access sy [[window_h]]
+	access sx [[display_w]]
+	access sy [[display_h]]
 	fun Camera resize sx sy
 	run refreshWindow
 end
@@ -191,8 +191,8 @@ start maxWindowIfTrue
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
     fun Camera set_can_mouse_resize false
-    access ww [[window_w]]
-    access wh [[window_h]]
+    access ww [[display_w]]
+    access wh [[display_h]]
     fun Camera resize ww wh
     fun Camera set_relative_position 0 0
     else revertWindowFromMax

@@ -1,13 +1,13 @@
 start putRectangleOnScreen
-    triggers each_iteration 
+    triggers on_init
 
-    var WINDOW_W 640
-    var WINDOW_H 480
-    env window_size WINDOW_W WINDOW_H
+    var DISPLAY_W 640
+    var DISPLAY_H 480
+    create_display DISPLAY_W DISPLAY_H DISPLAY_W DISPLAY_H
 
     new camera 1 _ Camera
     fun Camera set_id "Camera"
-    fun Camera resize WINDOW_W WINDOW_H
+    fun Camera resize DISPLAY_W DISPLAY_H
     fun Camera add_visible_layer "KERNEL"
 
     var KEY_LCTRL 217
@@ -29,8 +29,6 @@ start putRectangleOnScreen
     fun Rectangle set_pos x y
     fun Rectangle set_size SIZE_X SIZE_Y
     fun Rectangle update_with_size
-
-	delete_this_event
 end
 
 start moveRectangle
@@ -46,17 +44,17 @@ after
 end
 
 start bounceX
-    if([x] [0] <= [xs] [WINDOW_W] >= ||)
+    if([x] [0] <= [xs] [DISPLAY_W] >= ||)
     *= velX -1.0
 end
 
 start bounceY
-    if([y] [0] <= [ys] [WINDOW_H] >= ||)
+    if([y] [0] <= [ys] [DISPLAY_H] >= ||)
     *= velY -1.0
 end
 
 start exitProgram
     triggers key_pressed
     if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
-    power_off
+    exit
 end

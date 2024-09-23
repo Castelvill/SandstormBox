@@ -20,8 +20,8 @@ end
 start refreshWindowWithDisplayNotepad
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
-    access sx [[window_w]]
-    access sy [[window_h]]
+    access sx [[display_w]]
+    access sy [[display_h]]
     fun Camera resize sx sy
     run refreshWindowNotepad
 end

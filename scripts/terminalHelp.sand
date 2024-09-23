@@ -325,7 +325,7 @@ end
 
 
 start exit
-    power_off
+    exit
 end
 
 

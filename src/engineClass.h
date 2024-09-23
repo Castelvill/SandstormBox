@@ -14,6 +14,8 @@ void getDesktopResolution(int adapter, int *w, int *h);
 #define KEY_SEEN     1
 #define KEY_RELEASED 2
 
+inline int TERMINATION_TIME = 500;
+
 class Interval{
 private:
     unsigned int initial_;
@@ -38,10 +40,10 @@ public:
 
 class EngineClass{
 public:
-    ALLEGRO_DISPLAY * display;
+    ALLEGRO_DISPLAY * display = nullptr;
     ALLEGRO_BITMAP * cursorBitmap;
-    ALLEGRO_BITMAP * iconBitmap;
-    ALLEGRO_BITMAP * backbuffer;
+    ALLEGRO_BITMAP * iconBitmap = nullptr;
+    ALLEGRO_BITMAP * backbuffer = nullptr;
     ALLEGRO_MOUSE_CURSOR * mouseCursor;
     ALLEGRO_TIMER * timer;
     ALLEGRO_EVENT_QUEUE * eventQueue;
@@ -49,15 +51,16 @@ public:
 
     Fps fps;
     string windowTitle = "SandstormBox";
-    vec2i displaySize;
+    vec2i displaySize, backbufferSize;
 
+    bool canTerminateWithTimeout = true;
     bool loadConfig = true;
     unsigned short samples = 0;
-    unsigned bufferSizeX = 640, bufferSizeY = 480;
     bool fullscreen = false;
     bool isPixelArt = false; //If true, zoomed bitmaps will not look blurry.
     bool ENABLE_al_set_clipboard_text = false; //al_set_clipboard_text can cause undefined behavior on GNU/Linux (it depends on window manager used).
     bool allowNotAscii = false;
+    bool autoScaleBackbuffer = false;
 
     vector<string> inputFiles;
 
@@ -65,6 +68,7 @@ public:
     vector<FormatClass> CopiedFormatting;
 
     bool closeProgram, reboot, redraw, displayResized;
+    int terminationTimer = TERMINATION_TIME;
     string EXE_PATH;
 
     vector <SingleFont> FontContainer;
@@ -86,6 +90,7 @@ public:
     void resetState(bool resetScreen);
     EngineClass();
     void initAllegro();
+    void createDisplay();
     void clear();
     void exitAllegro();
     void updateEvents();
@@ -94,9 +99,9 @@ public:
     void loadNewFont(string path, int size, string newID);
 
     bool isRunning() const;
-    int getWindowW() const;
-    int getWindowH() const;
-    ALLEGRO_DISPLAY *getWindow();
+    int getDisplayW() const;
+    int getDisplayH() const;
+    ALLEGRO_DISPLAY *getDisplay();
     vec2i getDisplaySize() const;
     bool secondHasPassed() const;
 };

@@ -1,9 +1,8 @@
 -Fix: In the file windowTemplate.sand, "onInit" event does not update the context immediately.
--Allegro window should be created only when "create_window width height title" instruction is called. 
+-Fix: in "sand scripts/dvd.sand" variables x and y are not instantly added to the context and the second event executes without them causing errors.
 -Implement the autocomplete for files.
 -Skip the repeating commands in the history.
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
--Fix: in "sand scripts/dvd.sand" variables x and y are not instantly added to the context and the second event executes without them causing errors.
 -Fix: "find_by_id_2" instruction does not throw error when it doesn't find the object for example in the code "find_by_id_2 me "Rectangle" Rectangle".
 -Rename EveModule to EventModule.
 -Do something about "if([on_boot])".

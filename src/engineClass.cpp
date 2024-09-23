@@ -93,29 +93,12 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
 
 void EngineClass::readCommandLine(int argc, char *argv[]){
     for(int argument = 1; argument < argc; ++argument){
-        if(strcmp(argv[argument], "--ignore-config") == 0 || strcmp(argv[argument], "-i") == 0){
-            loadConfig = false;
+        if(strcmp(argv[argument], "--interpreter") == 0 || strcmp(argv[argument], "-i") == 0){
+            inputFiles.push_back("?interpreter");
             continue;
         }
-        if(strcmp(argv[argument], "--buffer-size") == 0 || strcmp(argv[argument], "-b") == 0){
-            if(argument + 2 >= argc){
-                cout << "Error: In " << __FUNCTION__ << ": Parameter '" << argv[argument]
-                    << "' requires 2 more arguments of the integer type\n.";
-                return;
-            }
-            argument++;
-            string error;
-            bufferSizeX = cstoi(argv[argument], error);
-            if(error.size() > 0){
-                cout << "Error: In " << __FUNCTION__ << ": " << error << "\n";
-                return;
-            }
-            argument++;
-            bufferSizeY = cstoi(argv[argument], error);
-            if(error.size() > 0){
-                cout << "Error: In " << __FUNCTION__ << ": " << error << "\n";
-                return;
-            }
+        if(strcmp(argv[argument], "--ignore-config") == 0 || strcmp(argv[argument], "-c") == 0){
+            loadConfig = false;
             continue;
         }
         if(strcmp(argv[argument], "--samples") == 0 || strcmp(argv[argument], "-s") == 0){
@@ -185,25 +168,9 @@ void EngineClass::initAllegro(){
     al_init_font_addon();
     al_init_ttf_addon();
 
-    if(fullscreen){
-        al_set_new_display_flags(ALLEGRO_OPENGL | ALLEGRO_FULLSCREEN_WINDOW | ALLEGRO_RESIZABLE | ALLEGRO_NOFRAME);
-    }
-    else{
-        al_set_new_display_flags(ALLEGRO_OPENGL | ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
-    }
-    al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST); //antialias stuff
-    al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST); //antialias stuff
-    al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
-
-
-    int SCREEN_W = 640;
-    int SCREEN_H = 480;
     //getDesktopResolution(0, &SCREEN_W, &SCREEN_H);
 
-    displaySize.set(SCREEN_W, SCREEN_H);
-    display = al_create_display(SCREEN_W, SCREEN_H);
-    al_set_window_title(display, windowTitle.c_str());
-    al_set_window_position(display, 0, 0);
+    displaySize.set(640, 480);
 
     EXE_PATH = "";
     ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
@@ -211,13 +178,11 @@ void EngineClass::initAllegro(){
     sprintf(buffer, "%s", al_path_cstr(path, ALLEGRO_NATIVE_PATH_SEP));
     EXE_PATH = string(buffer);
 
-
     eventQueue = al_create_event_queue();
 
     timer = al_create_timer(1.0 / FPS);
 
     al_register_event_source(eventQueue, al_get_keyboard_event_source());
-    al_register_event_source(eventQueue, al_get_display_event_source(display));
     al_register_event_source(eventQueue, al_get_timer_event_source(timer));
     al_register_event_source(eventQueue, al_get_mouse_event_source());
 
@@ -255,15 +220,6 @@ void EngineClass::initAllegro(){
                         cout << "Error: In " << __FUNCTION__ << ": SAMPLES command requires one numeric argument (0-4 recommended).\n";
                     }
                 }
-                else if(words[0] == "BUFFER_SIZE"){
-                    if(words.size() > 2){
-                        bufferSizeX = atoi(words[1].c_str());
-                        bufferSizeY = atoi(words[1].c_str());
-                    }
-                    else{
-                        cout << "Error: In " << __FUNCTION__ << ": BUFFER_SIZE command requires two numeric argument.\n";
-                    }
-                }
                 else if(words[0] == "ENABLE_al_set_clipboard_text"){
                     ENABLE_al_set_clipboard_text = true;
                 }
@@ -287,26 +243,50 @@ void EngineClass::initAllegro(){
         }
         File.close();
     }
+}
+void EngineClass::createDisplay(){
+    if(display != nullptr){
+        cout << "Warning: Display already exists. Nothing to be done.\n";
+        return;
+    }
 
     if(samples > 8){
         samples = 8;
     }
-    if(bufferSizeX > 3840){
-        bufferSizeX = 3840;
+    if(backbufferSize.x > 3840){
+        backbufferSize.x = 3840;
     }
-    if(bufferSizeX < 10){
-        bufferSizeX = 10;
+    if(backbufferSize.x < 10){
+        backbufferSize.x = 10;
     }
-    if(bufferSizeY > 2160){
-        bufferSizeY = 2160;
+    if(backbufferSize.y > 2160){
+        backbufferSize.y = 2160;
     }
-    if(bufferSizeY < 10){
-        bufferSizeY = 10;
+    if(backbufferSize.y < 10){
+        backbufferSize.y = 10;
     }
     al_set_new_bitmap_samples(samples);
-    backbuffer = al_create_bitmap(bufferSizeX, bufferSizeY);
+    backbuffer = al_create_bitmap(backbufferSize.x, backbufferSize.y);
     al_set_target_bitmap(backbuffer);
     al_set_new_bitmap_samples(0);
+
+    if(fullscreen){
+        al_set_new_display_flags(ALLEGRO_OPENGL | ALLEGRO_FULLSCREEN_WINDOW | ALLEGRO_RESIZABLE | ALLEGRO_NOFRAME);
+    }
+    else{
+        al_set_new_display_flags(ALLEGRO_OPENGL | ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
+    }
+    al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST); //antialias stuff
+    al_set_new_display_option(ALLEGRO_SAMPLES, samples, ALLEGRO_SUGGEST); //antialias stuff
+    al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
+
+    //getDesktopResolution(0, &SCREEN_W, &SCREEN_H);
+
+    display = al_create_display(displaySize.x, displaySize.y);
+    al_set_window_title(display, windowTitle.c_str());
+    al_set_window_position(display, 0, 0);
+
+    al_register_event_source(eventQueue, al_get_display_event_source(display));
 
     if(cursorBitmap){
         mouseCursor = al_create_mouse_cursor(cursorBitmap, 0, 0);
@@ -330,15 +310,20 @@ void EngineClass::clear(){
 void EngineClass::exitAllegro(){
     freeFontsFromContainer(FontContainer);
     freeBitmapsFromContainer(BitmapContainer);
-    al_destroy_bitmap(backbuffer);
-    al_destroy_display(display);
+    if(backbuffer != nullptr){
+        al_destroy_bitmap(backbuffer);
+    }
+    if(display != nullptr){
+        al_destroy_display(display);
+        cout << "Display destroyed.\n";
+    }
     al_destroy_timer(timer);
     al_destroy_event_queue(eventQueue);
     if(cursorBitmap){
         al_destroy_bitmap(cursorBitmap);
         al_destroy_mouse_cursor(mouseCursor);
     }
-    if(iconBitmap){
+    if(iconBitmap != nullptr){
         al_destroy_bitmap(iconBitmap);
     }
     //al_uninstall_keyboard();
@@ -347,11 +332,24 @@ void EngineClass::exitAllegro(){
 void EngineClass::updateEvents(){
     switch(event.type){
         case ALLEGRO_EVENT_DISPLAY_RESIZE:
+            if(display == nullptr){
+                break;
+            }
             al_acknowledge_resize(display);
             displaySize.set(al_get_display_width(display), al_get_display_height(display));
             displayResized = true;
             break;
         case ALLEGRO_EVENT_TIMER:
+            if(display == nullptr && canTerminateWithTimeout){
+                terminationTimer--;
+                if(terminationTimer <= 0){
+                    closeProgram = true;
+                    cout << "Program has been terminated due to a timeout.\n";
+                }
+            }
+            else{
+                terminationTimer = TERMINATION_TIME;
+            }
             releasedKeys.clear();
             releasedKeys = getReleasedKeys(key, pressedKeys);
             pressedKeys.clear();
@@ -435,13 +433,13 @@ void EngineClass::loadNewFont(string path, int size, string newID){
 bool EngineClass::isRunning() const{
     return !closeProgram;
 }
-int EngineClass::getWindowW() const{
+int EngineClass::getDisplayW() const{
     return displaySize.x;
 }
-int EngineClass::getWindowH() const{
+int EngineClass::getDisplayH() const{
     return displaySize.y;
 }
-ALLEGRO_DISPLAY *EngineClass::getWindow(){
+ALLEGRO_DISPLAY *EngineClass::getDisplay(){
     return display;
 }
 vec2i EngineClass::getDisplaySize() const{

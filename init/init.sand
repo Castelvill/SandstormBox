@@ -1,6 +1,7 @@
 start init false
-    triggers on_boot
-    if ([on_boot])
+    triggers on_init
+    //triggers on_boot
+    //if ([on_boot])
     fun me set_can_be_selected false
     new object "KERNEL" 1 _ First
     fun First set_id "KERNEL"

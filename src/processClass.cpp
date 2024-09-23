@@ -93,7 +93,12 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
     Layers.back().Objects.push_back(AncestorObject());
     Layers.back().Objects.back().primaryConstructor(newObjectID, &Layers.back().objectsIDs, Layers.back().getID(), "");
     if(initFilePath != ""){
-        Layers.back().Objects.back().bindedScripts.push_back(EXE_PATH + initFilePath);
+        if(initFilePath[0] == '?'){ // Script paths that start with a question mark are built-in scripts.
+            Layers.back().Objects.back().bindedScripts.push_back(initFilePath);
+        }
+        else{
+            Layers.back().Objects.back().bindedScripts.push_back(EXE_PATH + initFilePath);
+        }
         Layers.back().Objects.back().translateAllScripts(true, allowNotAscii);
     }
     
@@ -217,7 +222,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             }
             break;
         case ALLEGRO_EVENT_MOUSE_AXES:
-            if(!canUserInteract || Engine.focusedProcessID != getID()){
+            if(/*Engine.display == nullptr ||*/ !canUserInteract || Engine.focusedProcessID != getID()){
                 break;
             }
             changeCursor(Engine.display, Engine.Mouse);
@@ -386,7 +391,21 @@ void ProcessClass::renderOnDisplay(EngineClass & Engine){
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 
     al_set_target_backbuffer(Engine.display);
-    al_draw_bitmap(Engine.backbuffer, 0, 0, 0);
+    if(Engine.autoScaleBackbuffer){
+        float destinationWidth = Engine.displaySize.x;
+        float destinationHeight = Engine.displaySize.y;
+        if(destinationWidth < Engine.backbufferSize.x){
+            destinationWidth = Engine.backbufferSize.x;
+        }
+        if(destinationHeight < Engine.backbufferSize.y){
+            destinationHeight = Engine.backbufferSize.y;
+        }
+        al_draw_scaled_bitmap(Engine.backbuffer, 0, 0, Engine.backbufferSize.x, Engine.backbufferSize.y,
+            0, 0, destinationWidth, destinationHeight, 0);
+    }
+    else{
+        al_draw_bitmap(Engine.backbuffer, 0, 0, 0);
+    }
 }
 void unfocusCameras(vector<Camera2D> & Cameras, Camera2D *& SelectedCamera, string currentProcessID, string &focusedProcessID){
     for(Camera2D & Camera : Cameras){
@@ -1609,6 +1628,29 @@ bool getUnsignedFromTheParameter(vector<ContextClass> & EventContext, const Even
         return true;
     }
     newUnsigned = newInt;
+    return false;
+}
+bool getIntFromTheParameter(vector<ContextClass> & EventContext, const EventDescription & EventIds, EngineInstr instruction,
+    const vector<ParameterStruct> & Parameters, unsigned index, int & newInteger, bool printErrors
+){
+    vector<VariableModule> Literals;
+    if(getValuesFromTheParameter(EventContext, EventIds, instruction, Parameters, index, Literals, printErrors)){
+        printErrors && cout << instructionError(EventIds, instruction, __FUNCTION__)
+            << "Failed to get a value from the parameter " << index+1 << ".\n";
+        return true;
+    }
+    if(Literals.size() == 0 || (Literals.back().getType() != 'b' && Literals.back().getType() != 'i')){
+        printErrors && cout << instructionError(EventIds, instruction, __FUNCTION__)
+            << "No bool value in the parameter " << index+1 << ".\n";
+        return true;
+    }
+    int newInt = Literals.back().getIntUnsafe();
+    if(newInt < 0){
+        printErrors && cout << instructionError(EventIds, instruction, __FUNCTION__)
+            << "Integer " << newInt << " is not usigned in the parameter " << index+1 << ".\n";
+        return true;
+    }
+    newInteger = newInt;
     return false;
 }
 
@@ -3988,7 +4030,9 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(OperationClass & Operation, vec
         skipOneParameter = true;
     }
 
-    if(getUnsignedFromTheParameter(EventContext, EventIds, Operation.instruction, Operation.Parameters, skipOneParameter + 1, newVectorSize, false)){
+    if(getUnsignedFromTheParameter(EventContext, EventIds, Operation.instruction,
+        Operation.Parameters, skipOneParameter + 1, newVectorSize, false)
+    ){
         cout << instructionError(EventIds, currentInstruction, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return false;
     }
@@ -5076,20 +5120,20 @@ void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation, vect
         Object->bindedScripts.clear();
     }
 }
-void ProcessClass::buildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
+bool ProcessClass::buildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
     vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
 ){
     ContextClass ObjectContext;
     if(ObjectContext.copyFromTheParameter(EventContext, EventIds, Operation.instruction, Operation.Parameters, 0, true)){
         cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "Failed to get any objects from the first parameter.\n";
-        return;
+        return false;
     }
 
     if(ObjectContext.Objects.size() == 0){
         if(printOutInstructions){
             cout << transInstrToStr(Operation.instruction) << " <null>\n";
         }
-        return;
+        return false;
     }
 
     if(printOutInstructions){
@@ -5098,8 +5142,10 @@ void ProcessClass::buildEventsInObjects(OperationClass & Operation, vector<Conte
     }
     
     bool canResetEvents = false;
-
     getBoolFromTheParameter(EventContext, EventIds, currentInstruction, Operation.Parameters, 1, canResetEvents, false);
+
+    bool canDeleteEventsOfItsOwner = false;
+    getBoolFromTheParameter(EventContext, EventIds, currentInstruction, Operation.Parameters, 2, canDeleteEventsOfItsOwner, false);
 
     if(printOutInstructions){
         if(canResetEvents){
@@ -5113,32 +5159,41 @@ void ProcessClass::buildEventsInObjects(OperationClass & Operation, vector<Conte
     PointerRecalculator Recalculator;
     Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
     
+    bool myEventsAreDeleted = false;
     for(AncestorObject * Object : ObjectContext.Objects){
         if(canResetEvents && Object == Owner){
-            std::cout << instructionError(EventIds, Operation.instruction, __FUNCTION__)
+            if(!canDeleteEventsOfItsOwner){
+                std::cout << instructionError(EventIds, Operation.instruction, __FUNCTION__)
                 << "Cannot delete events of the owner of the currently executed event.\n";
-            continue;
+                continue;
+            }
+            myEventsAreDeleted = true;
         }
         Object->translateAllScripts(canResetEvents, allowNotAscii);
         wasAnyEventUpdated = true;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
+    if(!myEventsAreDeleted){
+        Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
+    }
+
+    return myEventsAreDeleted;
 }
-void ProcessClass::customBuildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode, bool allowNotAscii
+bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext,
+    AncestorObject * Owner, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event,
+    vector<MemoryStackStruct> & MemoryStack, char mode, bool allowNotAscii
 ){
     ContextClass ObjectContext;
     if(ObjectContext.copyFromTheParameter(EventContext, EventIds, Operation.instruction, Operation.Parameters, 0, true)){
         cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "Failed to get any objects from the first parameter. Instruction requires two parameters.\n";
-        return;
+        return false;
     }
 
     if(ObjectContext.Objects.size() == 0){
         if(printOutInstructions){
             cout << transInstrToStr(Operation.instruction) << " <null>\n";
         }
-        return;
+        return false;
     }
 
     if(printOutInstructions){
@@ -5150,15 +5205,21 @@ void ProcessClass::customBuildEventsInObjects(OperationClass & Operation, vector
     if(getStringVectorFromTheParameter(EventContext, EventIds, currentInstruction, Operation.Parameters, 1, stringVector, true)){
         cout << instructionError(EventIds, currentInstruction, __FUNCTION__)
             << "Failed to get a value from the parameter 2. A vector of strings was expected.\n";
-        return;
+        return false;
     }
 
     if(stringVector.size() == 0){
         if(printOutInstructions){
             cout << "<null>\n";
         }
-        return;
+        return false;
     }
+
+    bool canResetEvents = false;
+    getBoolFromTheParameter(EventContext, EventIds, currentInstruction, Operation.Parameters, 2, canResetEvents, false);
+
+    bool canDeleteEventsOfItsOwner = false;
+    getBoolFromTheParameter(EventContext, EventIds, currentInstruction, Operation.Parameters, 3, canDeleteEventsOfItsOwner, false);
 
     if(printOutInstructions){
         printStringVectorForInstruction(stringVector);
@@ -5168,22 +5229,32 @@ void ProcessClass::customBuildEventsInObjects(OperationClass & Operation, vector
     //All indexes linked with events must be recalculated - after adding new events, some contexts of event type might be invalid.  
     PointerRecalculator Recalculator;
     Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
+
+    bool myEventsAreDeleted = false;
     
     for(AncestorObject * Object : ObjectContext.Objects){
+        if(canResetEvents && Object == Owner){
+            if(!canDeleteEventsOfItsOwner){
+                std::cout << instructionError(EventIds, Operation.instruction, __FUNCTION__)
+                << "Cannot delete events of the owner of the currently executed event.\n";
+                continue;
+            }
+            myEventsAreDeleted = true;
+        }
         if(mode == 'p'){
             for(string & path : stringVector){
                 path = EXE_PATH + workingDirectory + path;
             }
-            Object->translateScriptsFromPaths(stringVector, allowNotAscii);
+            Object->translateScriptsFromPaths(canResetEvents, stringVector, allowNotAscii);
         }
         else if(mode == 's'){
             for(string & path : stringVector){
                 path = EXE_PATH + workingDirectory + path;
             }
-            Object->translateSubsetBindedScripts(stringVector, allowNotAscii);
+            Object->translateSubsetBindedScripts(canResetEvents, stringVector, allowNotAscii);
         }
         else if(mode == 'c'){
-            Object->injectCode(stringVector);
+            Object->injectCode(canResetEvents, stringVector);
         }
         else if(mode == 'i'){
             bool isInsideStringSector = false;
@@ -5207,19 +5278,22 @@ void ProcessClass::customBuildEventsInObjects(OperationClass & Operation, vector
                     cout << "\t" << line << "\n";
                 }
             }
-            Object->injectInstructions(preprocessed);
+            Object->injectInstructions(canResetEvents, preprocessed);
         }
         else{
             cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "\'" << mode << "\' mode does not exist."
                 << "Allowed modes: p (uses translateScriptsFromPaths), s (uses translateSubsetBindedScripts),"
                 << "c (uses injectCode), i (uses injectInstructions)\n";
-            return;
+            return false;
         }
         
         wasAnyEventUpdated = true;
     }
+    if(!myEventsAreDeleted){
+        Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
+    }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, EventIds);
+    return myEventsAreDeleted;
 }
 void ProcessClass::clearEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner){
     ContextClass ObjectContext;
@@ -5926,13 +6000,23 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, vector<Cont
     }
 
     if(attribute == "window_title"){
+        if(Engine.display == nullptr){
+            cout << instructionWarning(EventIds, Operation.instruction, __FUNCTION__)
+                << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
+            return;
+        }
         if(Engine.windowTitle == FirstValue.getStringUnsafe()){
             return;
         }
         Engine.windowTitle = FirstValue.getStringUnsafe();
         al_set_window_title(Engine.display, Engine.windowTitle.c_str());
     }
-    else if(attribute == "window_size"){
+    else if(attribute == "display_size"){
+        if(Engine.display == nullptr){
+            cout << instructionWarning(EventIds, Operation.instruction, __FUNCTION__)
+                << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
+            return;
+        }
         if(SecondValue.getType() == 'n'){
             cout << instructionError(EventIds, Operation.instruction, __FUNCTION__)
                 << "Changing the attribute '" << attribute << "' requires 2 values.\n";
@@ -5943,9 +6027,12 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, vector<Cont
                 << "Changing the attribute '" << attribute << "' requires 2 last parameters to be of a numeric type.\n";
             return;
         }
+        if(Engine.displaySize.isEqual(FirstValue.getInt(), SecondValue.getInt())){
+            return;
+        }
         Engine.displaySize.set(FirstValue.getInt(), SecondValue.getInt());
         if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
-            //cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
+            cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
             /*#if __WIN32__
                 cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
             #else
@@ -5954,6 +6041,11 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, vector<Cont
         }
     }
     else if(attribute == "fullscreen"){
+        if(Engine.display == nullptr){
+            cout << instructionWarning(EventIds, Operation.instruction, __FUNCTION__)
+                << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
+            return;
+        }
         if(FirstValue.getBool() == Engine.fullscreen){
             return;
         }
@@ -5975,6 +6067,9 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, vector<Cont
         else{
             al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR);
         }   
+    }
+    else if(attribute == "afk_timeout"){
+        Engine.canTerminateWithTimeout = FirstValue.getBool();
     }
     else{
         cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "Attribute '" << attribute << "' does not exist.\n";
@@ -7631,6 +7726,53 @@ void ProcessClass::findSimilarStrings(OperationClass &Operation, vector<ContextC
     }
     moveOrRename(EventContext, NewContext, Operation.newContextID);
 }
+void ProcessClass::getConsoleInput(OperationClass & Operation, vector<ContextClass> & EventContext, int & terminationTimer, ALLEGRO_EVENT_QUEUE * eventQueue){
+    string consoleInput = "";
+    terminationTimer = TERMINATION_TIME;
+    std::getline(std::cin, consoleInput);
+    if(consoleInput == "start"){
+        consoleInput = "";
+        string temp = "";
+        while(std::getline(std::cin, temp) && temp != "end"){
+            consoleInput += temp + "\n";
+        }
+    }
+    al_flush_event_queue(eventQueue);
+    ContextClass NewContext;
+    NewContext.type = "value";
+    NewContext.Values.push_back(VariableModule::newString(consoleInput));
+    moveOrRename(EventContext, NewContext, Operation.newContextID);
+}
+void ProcessClass::createDisplay(OperationClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine){
+    if(getIntFromTheParameter(EventContext, EventIds, Operation.instruction,
+        Operation.Parameters, 0, Engine.displaySize.x, true)
+    ){
+        cout << instructionError(EventIds, currentInstruction, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        return;
+    }
+    if(getIntFromTheParameter(EventContext, EventIds, Operation.instruction,
+        Operation.Parameters, 1, Engine.displaySize.y, true)
+    ){
+        cout << instructionError(EventIds, currentInstruction, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        return;
+    }
+    if(getIntFromTheParameter(EventContext, EventIds, Operation.instruction,
+        Operation.Parameters, 2, Engine.backbufferSize.x, true)
+    ){
+        cout << instructionError(EventIds, currentInstruction, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        return;
+    }
+    if(getIntFromTheParameter(EventContext, EventIds, Operation.instruction,
+        Operation.Parameters, 3, Engine.backbufferSize.y, true)
+    ){
+        cout << instructionError(EventIds, currentInstruction, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        return;
+    }
+    getBoolFromTheParameter(EventContext, EventIds, Operation.instruction,
+        Operation.Parameters, 4, Engine.autoScaleBackbuffer, false);
+    
+    Engine.createDisplay();
+}
 OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operations, LayerClass *&OwnerLayer,
     AncestorObject *&Owner, vector<ContextClass> &EventContext, vector<AncestorObject *> &TriggeredObjects,
     vector<ProcessClass> &Processes, vector<EveModule>::iterator &StartingEvent,
@@ -7660,7 +7802,7 @@ OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operatio
                     cout << transInstrToStr(Operation.instruction) << "\n";
                 }
                 return Operation;
-            case power_off:
+            case exit_i:
                 if(printOutInstructions){
                     cout << transInstrToStr(Operation.instruction) << "\n";
                 }
@@ -7781,19 +7923,34 @@ OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operatio
                 removeBindedFilesFromObjects(Operation, EventContext);
                 break;
             case build:
-                buildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack, Engine.allowNotAscii);
+                if(buildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack, Engine.allowNotAscii)){
+                    Operation.instruction = return_i;
+                    return Operation;
+                }
                 break;
             case load_build:
-                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'p', Engine.allowNotAscii);
+                if(customBuildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack, 'p', Engine.allowNotAscii)){
+                    Operation.instruction = return_i;
+                    return Operation;
+                }
                 break;
             case build_subset:
-                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 's', Engine.allowNotAscii);
+                if(customBuildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack, 's', Engine.allowNotAscii)){
+                    Operation.instruction = return_i;
+                    return Operation;
+                }
                 break;
             case inject_code:
-                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'c', Engine.allowNotAscii);
+                if(customBuildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack, 'c', Engine.allowNotAscii)){
+                    Operation.instruction = return_i;
+                    return Operation;
+                }
                 break;
             case inject_instr:
-                customBuildEventsInObjects(Operation, EventContext, StartingEvent, Event, MemoryStack, 'i', Engine.allowNotAscii);
+                if(customBuildEventsInObjects(Operation, EventContext, Owner, StartingEvent, Event, MemoryStack, 'i', Engine.allowNotAscii)){
+                    Operation.instruction = return_i;
+                    return Operation;
+                }
                 break;
             case demolish:
                 clearEventsInObjects(Operation, EventContext, Owner);
@@ -7892,6 +8049,12 @@ OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operatio
                 break;
             case similar:
                 findSimilarStrings(Operation, EventContext);
+                break;
+            case create_display:
+                createDisplay(Operation, EventContext, Engine);
+                break;
+            case console_input:
+                getConsoleInput(Operation, EventContext, Engine.terminationTimer, Engine.eventQueue);
                 break;
             default:
                 cout << "Error: In " << OwnerLayer->getID() << "::" << Owner->getID() << "::" << Event->getID()
@@ -8550,11 +8713,11 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
     }
-    if(Condition.Location.source == "window_w"){
+    if(Condition.Location.source == "display_w"){
         NewValue.setInt(Engine.displaySize.x);
         return NewValue;
     }
-    if(Condition.Location.source == "window_h"){
+    if(Condition.Location.source == "display_h"){
         NewValue.setInt(Engine.displaySize.y);
         return NewValue;
     }
@@ -9412,7 +9575,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                     Interrupt = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
                         Processes, StartingEvent, Event, MemoryStack, Engine
                     );
-                    if(Interrupt.instruction == EngineInstr::power_off){
+                    if(Interrupt.instruction == EngineInstr::exit_i){
                         Engine.closeProgram = true;
                         return;
                     }
@@ -9470,7 +9633,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 Interrupt = executeInstructions(Event->PostOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
                     Processes, StartingEvent, Event, MemoryStack, Engine
                 );
-                if(Interrupt.instruction == EngineInstr::power_off){
+                if(Interrupt.instruction == EngineInstr::exit_i){
                     Engine.closeProgram = true;
                     return;
                 }
@@ -9723,7 +9886,9 @@ void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
             adjustPositionOfAllCameras();
             break;
         default:
-            al_set_system_mouse_cursor(Engine.display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+            if(Engine.display != nullptr){
+                al_set_system_mouse_cursor(Engine.display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+            }
             break;
     }
 }
@@ -9943,6 +10108,9 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
     if(SelectedCamera == nullptr){
         return;
     }
+    if(display == nullptr){
+        return;
+    }
     
     if(!SelectedCamera->getIsActive() || SelectedCamera->getIsMinimized()
         || !SelectedCamera->canBeModifiedByMouse || !SelectedCamera->canMouseResizeNow
@@ -9979,6 +10147,9 @@ void ProcessClass::changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mou
     }
 }
 void ProcessClass::detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, const MouseClass & Mouse){
+    if(display == nullptr){
+        return;
+    }
     activeCameraMoveType = NONE;
     if(!Mouse.isPressed(0) || SelectedCamera == nullptr || !SelectedCamera->getIsActive()
         || SelectedCamera->getIsMinimized() || !SelectedCamera->canBeModifiedByMouse
@@ -11421,7 +11592,6 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, v
         }
     }
     if(didActiveEditableTextExist){
-        
         ActiveEditableText = ActiveEditableTextIndex.getModulePointer<SuperEditableTextModule>(Layers);
     }
 }

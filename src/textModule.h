@@ -148,10 +148,10 @@ public:
     bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
     void getNumbers(char pKey, char & character, bool shift);
     void getLetters(char pKey, char & character, bool shift);
-    bool deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * window);
+    bool deleteFromText(char pKey, char character, string text, bool & control, ALLEGRO_DISPLAY * display);
     void addFloatingPoint(char pKey, char & character, string text);
     bool addMinus(char pKey, char & character, string text);
-    void editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer, ALLEGRO_DISPLAY * window);
+    void editText(vector <short> releasedKeys, vector <short> pressedKeys, vector <SingleFont> & FontContainer, ALLEGRO_DISPLAY * display);
     //Function checks if the new id is unique and if it is, function changes previous id and updates listOfIds.
     bool tryUpdatingID(vector <string> & listOfIDs, string & currentID, string newID);
     bool controlAncestor(PrimaryModule & Primary, vector <string> & listOfAncestorIDs);

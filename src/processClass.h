@@ -304,11 +304,12 @@ public:
     void getReferenceByIndex(OperationClass & Operation, vector<ContextClass> & EventContext);
     void bindFilesToObjects(OperationClass & Operation, vector<ContextClass> & EventContext);
     void removeBindedFilesFromObjects(OperationClass & Operation, vector<ContextClass> & EventContext);
-    void buildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
+    bool buildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
         vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
     );
-    void customBuildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, char mode, bool allowNotAscii
+    bool customBuildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext,
+        AncestorObject * Owner, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event,
+        vector<MemoryStackStruct> & MemoryStack, char mode, bool allowNotAscii
     );
     void clearEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner);
     void executeFunctionForCameras(OperationClass & Operation, vector <VariableModule> & Variables,
@@ -349,6 +350,8 @@ public:
     void changeWorkingDirectory(OperationClass & Operation, vector<ContextClass> & EventContext);
     void printWorkingDirectory(OperationClass & Operation, vector<ContextClass> & EventContext);
     void findSimilarStrings(OperationClass & Operation, vector<ContextClass> & EventContext);
+    void getConsoleInput(OperationClass & Operation, vector<ContextClass> & EventContext, int & terminationTimer, ALLEGRO_EVENT_QUEUE * eventQueue);
+    void createDisplay(OperationClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine);
     OperationClass executeInstructions(vector<OperationClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,

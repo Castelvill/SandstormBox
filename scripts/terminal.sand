@@ -1,5 +1,6 @@
 start onInit
     triggers on_init
+    create_display 920 480 920 480 true
     //edit_proc draw_hitboxes 1
     //edit_proc print_instructions 1
     //edit_proc auto_print_stack 1
@@ -30,31 +31,26 @@ end
 start exitProgram
     triggers key_pressed
     if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
-    power_off
+    exit
 end
 
 start resizeDisplay
     if ([used_os] ["windows"] ==)
-    //env window_size 1366 568
-    //edit_proc window_size 1366 568
-    edit_proc window_size 1920 1080
-    env window_size 1366 768//640 480//1920 1080
+    env display_size 640 480
+    edit_proc window_size 640 480
     else resizeDisplayLinux
 end
 
 start resizeDisplayLinux
     if ([used_os] ["linux"] == [fullscreen] ! &&)
-    //env window_size 1366 568
-    //edit_proc window_size 1366 568
-    //env window_size 800 300
-    env window_size 920 480
-    edit_proc window_size 1920 1080
+    env display_size 920 480
+    edit_proc window_size 920 480
     else resizeDisplayLinuxIfFullscreen
 end
 
 start resizeDisplayLinuxIfFullscreen
     if([fullscreen])
-    //env window_size 1920 1080
+    env display_size 1920 1080
 end
 
 
@@ -73,8 +69,8 @@ start buildTerminal
     var KEY_Q 17
     var KEY_S 19
 
-    access ww [[window_w]]
-    access wh [[window_h]]
+    access ww [[display_w]]
+    access wh [[display_h]]
 
     new camera 1 _ Cam
     //fun Cam set_pos 100 100
@@ -281,7 +277,7 @@ start selectTextWithMouse
     index me [0 1] scrollbar Scrollbar
     access scrollShiftY [[Scrollbar scroll_shift_y]]
     -= cursorPosY scrollShiftY
-    access windowH [[window_h]]
+    access windowH [[display_h]]
     double windowLimitYDown -30.0
     += windowLimitYDown windowH
     double windowLimitYUp 10.0
@@ -295,7 +291,7 @@ start selectTextWithKeys
     index me [0 1] scrollbar Scrollbar
     access scrollShiftY [[Scrollbar scroll_shift_y]]
     -= cursorPosY scrollShiftY
-    access windowH [[window_h]]
+    access windowH [[display_h]]
     double windowLimitYDown -20.0
     += windowLimitYDown windowH
     double windowLimitYUp 0.0
@@ -751,8 +747,8 @@ start refresh
 end
 
 start forceRefresh
-    access w [[window_w]]
-    access h [[window_h]]
+    access w [[display_w]]
+    access h [[display_h]]
     index Cameras [0] camera Cam0
     fun Cam0 resize w h
     index me [0 0] image background
@@ -789,12 +785,12 @@ end
 start refreshScrollbar
     index me [0 0] super_editable_text TerminalTextField
     access TerminalSizeY [[TerminalTextField size_y]]
-    access h [[window_h]]
+    access h [[display_h]]
     -= TerminalSizeY h
 
     = scrollbarHeight h
     index me [0 0] scrollbar MainScrollbar
-    access windowW [[window_w]]
+    access windowW [[display_w]]
     int scrollbarWidth 16
     -= windowW scrollbarWidth
     fun MainScrollbar set_pos windowW 0
@@ -818,7 +814,7 @@ start refreshScrollbarCheck
     += TerminalSizeY h
     double currentThumbHeight 476.0
     = currentThumbHeight scrollbarHeight
-    access windowH [[window_h]]
+    access windowH [[display_h]]
     double divide 1.0
     = divide windowH
     /= divide TerminalSizeY
@@ -982,8 +978,8 @@ start printOnTerminal
     fun EditableText set_protected_area historySize
     fun EditableText set_cursor_pos historySize
 
-    access w [[window_w]]
-    access h [[window_h]]
+    access w [[display_w]]
+    access h [[display_h]]
     index me [0 0] super_editable_text TerminalTextField
     access TerminalSizeY [[TerminalTextField size_y]]
 
@@ -1001,8 +997,8 @@ start printOnTerminalUnprotected
     //fun EditableText set_protected_area historySize
     //fun EditableText set_cursor_pos historySize
 
-    access w [[window_w]]
-    access h [[window_h]]
+    access w [[display_w]]
+    access h [[display_h]]
     index me [0 0] super_editable_text TerminalTextField
     access TerminalSizeY [[TerminalTextField size_y]]
 
@@ -1060,11 +1056,11 @@ end
 start refreshTextEditorScrollbar
     index me [0 1] super_editable_text EditorTextField
     access EditorSizeY [[EditorTextField size_y]]
-    access h [[window_h]]
+    access h [[display_h]]
 
     = scrollbarHeight h
     index me [0 1] scrollbar EditorScrollbar
-    access windowW [[window_w]]
+    access windowW [[display_w]]
     int scrollbarWidth 16
     -= windowW scrollbarWidth
     fun EditorScrollbar set_pos windowW 0
@@ -1088,7 +1084,7 @@ start refreshTextEditorScrollbarCheck
     
     double currentThumbHeight 476.0
     = currentThumbHeight scrollbarHeight
-    access windowH [[window_h]]
+    access windowH [[display_h]]
     double divide 1.0
     = divide windowH
     /= divide EditorSizeY

@@ -43,6 +43,24 @@ triggers *trigger* [[trigger]...]
 
 - trigger (variable) - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
 
+## create_display
+
+**Syntax**
+
+create_display *display_width* *display_height* *backbuffer_width* *backbuffer_height* [auto_scale_backbuffer]
+
+**Description**
+
+    Create an Allegro5 display.
+
+**Parameters:**
+
+-display_width (variable / int);
+-display_height (variable / int);
+-backbuffer_width (variable / int);
+-backbuffer_height (variable / int);
+-[auto_scale_backbuffer] (variable / bool).
+
 ## if
 
 **Syntax**
@@ -55,7 +73,7 @@ if ( *expression* )
 
 **Parameters**
 
-- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “window_w”, “window_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
+- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
 
 ## else
 
@@ -91,7 +109,7 @@ run *event* [[event]...]
 
 - event (variable) - a name of an event to be executed.
 
-## power_off
+## exit
 
 **Description**
    
@@ -234,7 +252,7 @@ access *output* [*sources*]
 **Parameters**
 
 - output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id;
-- sources (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “window_w”, “window_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
+- sources (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
 
 ## bool / int / double / string
 
@@ -522,7 +540,7 @@ rbind *objects*
 
 **Syntax**
 
-build *objects* [reset]
+build *objects* [reset] [do_not_preserve]
 
 **Description**
 
@@ -531,13 +549,14 @@ build *objects* [reset]
 **Parameters**
 
 - objects (variable) - id of the context with objects intended for event building;
-- [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects.
+- [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
+- [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
 
 ## build_subset
 
 **Syntax**
 
-build_subset *objects* *paths*
+build_subset *objects* *paths* [reset] [do_not_preserve]
 
 **Description**
 
@@ -546,13 +565,15 @@ build_subset *objects* *paths*
 **Parameters**
 
 - objects (variable) - id of the context with objects intended for event building,
-- paths (variable / variable vector / string vector) - vector of paths to the scripts.
+- paths (variable / variable vector / string vector) - vector of paths to the scripts;
+- [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
+- [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
 
 ## load_build
 
 **Syntax**
 
-load_build *objects* *paths*
+load_build *objects* *paths* [reset] [do_not_preserve]
 
 **Description**
 
@@ -560,14 +581,16 @@ load_build *objects* *paths*
 
 **Parameters**
 
-- objects (variable) - id of the context with objects intended for event building,
-- paths (variable / variable vector / string vector) - vector of paths to the scripts.
+- objects (variable) - id of the context with objects intended for event building;
+- paths (variable / variable vector / string vector) - vector of paths to the scripts;
+- [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
+- [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
 
 ## inject_code
 
 **Syntax**
 
-inject_code *objects* *code*
+inject_code *objects* *code* [reset] [do_not_preserve]
 
 **Description**
 
@@ -576,13 +599,15 @@ inject_code *objects* *code*
 **Parameters**
 
 - objects (variable) - id of the context with objects intended for event building,
-- code (variable / variable vector / string vector) - vector of code lines.
+- code (variable / variable vector / string vector) - vector of code lines;
+- [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
+- [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
 
 ## inject_instr
 
 **Syntax**
 
-inject_instr *objects* *instructions*
+inject_instr *objects* *instructions* [reset] [do_not_preserve]
 
 **Description**
 
@@ -591,7 +616,9 @@ inject_instr *objects* *instructions*
 **Parameters**
 
 - objects (variable) - id of the context with objects intended for event building,
-- instructions (variable / variable vector / string vector) - vector with instructions.
+- instructions (variable / variable vector / string vector) - vector with instructions;
+- [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
+- [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
 
 ## demolish
 
@@ -619,7 +646,7 @@ env *attribute* *value* [value]
 
 **Parameters**
 
-- attribute (variable): window_title, window_size, fullscreen, pixel_art, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, reservation_multiplier - the name of the variable selected for modification;
+- attribute (variable): window_title, display_size, fullscreen, pixel_art, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, reservation_multiplier - the name of the variable selected for modification;
 - value (variable / any literal) - a new value for the selected attribute.
 
 ## edit_proc
@@ -994,4 +1021,18 @@ similar *pattern* *vector* [output]
 
 - pattern (variable / string) - pattern that will be compared to every string in the vector;
 - vector (variable / vector variable / vector string) - vector of strings to be compared;
+- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+
+## console_input
+
+**Syntax**
+
+console_input [output]
+
+**Description**
+
+    Halt the program and wait for the user input from the standard input stream (console).
+
+**Parameters**
+
 - [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.

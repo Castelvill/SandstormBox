@@ -48,7 +48,7 @@ public:
     void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
 
     void connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string workingDirectory);
-    void checkImage(ALLEGRO_DISPLAY * window, string workingDirectory);
+    void checkImage(ALLEGRO_DISPLAY * display, string workingDirectory);
     void drawImage(vec2d base, Camera2D Camera, bool outSourcing);
     void drawFrame(vec2d base);
     void setRotPos(vec2d newRotPos);

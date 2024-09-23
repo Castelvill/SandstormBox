@@ -1,13 +1,12 @@
 start putRectangleOnScreen
-    triggers on_boot
-    if([on_boot])
+    triggers on_init
 
     var KEY_LCTRL 217
     var KEY_ESC 59
 
     int windowWidth 640
     int windowHeight 480
-    env window_size windowWidth windowHeight
+    create_display windowWidth windowHeight windowWidth windowHeight
 
     new camera 1 _ Camera
     fun Camera set_id "Camera"
@@ -20,15 +19,15 @@ start putRectangleOnScreen
     fun Rectangle add_point 0.0 0.0
     fun Rectangle add_point 1.0 1.0
     fun Rectangle set_color 1.0 0.0 0.0 1.0
-    fun Rectangle set_pos 50 50
+    fun Rectangle set_pos 220 140
     fun Rectangle set_size 200 200
     fun Rectangle update_with_size
 
-    print "To exit the program use the key shortcut: CTRL+ESC or click the exit button.\n"
+    print "To close the program use the CTRL+ESC shortcut or just click the exit button.\n"
 end
 
 start exitProgram
     triggers key_pressed
     if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
-    power_off
+    exit
 end

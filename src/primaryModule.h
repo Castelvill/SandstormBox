@@ -7,7 +7,7 @@ using std::string;
 
 enum EngineInstr : char{
     null, start, end_i, after, triggers, run, if_i, else_i, continue_i,
-    break_i, return_i, reboot, power_off, delete_this_event,
+    break_i, return_i, reboot, exit_i, delete_this_event,
     reset_keyboard, dump_context_stack, first, last, all,
     random_i, index_i, sum, intersection, diff, add, sub, mul,
     div_i, mod, pow_i, move, add_move, sub_move, mul_move, div_move,
@@ -18,7 +18,7 @@ enum EngineInstr : char{
     inject_code, inject_instr, fun, env, edit_proc, load_bitmap,
     mkdir_i, rm, rmll, mv_i, print, load_text, save_text, ls,
     lse, new_proc, var, vec, tokenize, tree, len, size, substr, load_font,
-    restart_drag, cd, pwd, similar
+    restart_drag, cd, pwd, similar, create_display, console_input
 };
 EngineInstr transInstr(string instruction);
 string transInstrToStr(EngineInstr instruction);

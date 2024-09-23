@@ -76,10 +76,10 @@ public:
     void eventAssembler(vector<string> code, string scriptName);
     void clearAllEvents();
     void translateAllScripts(bool clearEvents, bool allowNotAscii);
-    void translateScriptsFromPaths(vector<string> scriptsPaths, bool allowNotAscii);
-    void translateSubsetBindedScripts(vector<string> scripts, bool allowNotAscii);
-    void injectCode(vector<string> code);
-    void injectInstructions(vector<string> instructions);
+    void translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii);
+    void translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii);
+    void injectCode(bool clearEvents, vector<string> code);
+    void injectInstructions(bool clearEvents, vector<string> instructions);
     void propagateLayerID();
     void propagateObjectID();
 };

@@ -1,13 +1,12 @@
 //Basic loop program that counts to 10.
 
 start main
-    triggers on_boot
-    if([on_boot])
-    
+    triggers on_init
     int iterator 0
     run loop
-after //"After" sub-scope will be executed after all events passed to the "run" instruction are finished.
-    power_off
+after
+    //"After" sub-scope will be executed after all events passed to the "run" instruction are finished.
+    exit
 end
 
 start loop true

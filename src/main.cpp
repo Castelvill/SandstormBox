@@ -31,10 +31,9 @@ int main(int argc, char* argv[]){
             cout << "No source files provided.\n"
                 << "Basic \"Hello World\" program:\n\n"
                 << "start helloWorld\n"
-                << "\ttriggers on_boot\n"
-                << "\tif([on_boot])\n"
+                << "\ttriggers on_init\n"
                 << "\tprint \"Hello, World!\\n\"\n"
-                << "\tpower_off\n"
+                << "\texit\n"
                 << "end\n\n";
             break;
         }
@@ -64,7 +63,7 @@ int main(int argc, char* argv[]){
                 break;
             }
 
-            if(Engine.redraw){
+            if(Engine.display != nullptr && Engine.redraw){
                 for(ProcessClass & Process : Processes){
                     Process.renderOnDisplay(Engine);
                 }

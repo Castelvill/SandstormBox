@@ -1511,7 +1511,7 @@ bool SuperEditableTextModule::prepareEditing(const vector <short> & releasedKeys
 
     return true;
 }
-void SuperEditableTextModule::executeOneBackspaceOrCtrlX(char pKey, string text, ALLEGRO_DISPLAY * window, unsigned & leftCursorOnFormatIdx,
+void SuperEditableTextModule::executeOneBackspaceOrCtrlX(char pKey, string text, ALLEGRO_DISPLAY * display, unsigned & leftCursorOnFormatIdx,
     unsigned & rightCursorOnFormatIdx, bool ENABLE_al_set_clipboard_text, string & internalClipboard,
     vector<FormatClass> & CopiedFormatting, string EXE_PATH
 ){
@@ -1534,7 +1534,9 @@ void SuperEditableTextModule::executeOneBackspaceOrCtrlX(char pKey, string text,
             internalClipboard = clipboard;
 
             if(ENABLE_al_set_clipboard_text){
-                al_set_clipboard_text(window, clipboard.c_str());
+                if(display != nullptr){
+                    al_set_clipboard_text(display, clipboard.c_str());
+                }
             }
             else{
                 std::ofstream File(EXE_PATH + "clipboard.txt", std::ios::trunc | std::ios::out);
@@ -1630,7 +1632,7 @@ void SuperEditableTextModule::executeOneDeletion(string text, unsigned & leftCur
     secondCursorPos = cursorPos;
 }
 bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & control,
-    ALLEGRO_DISPLAY * window, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
+    ALLEGRO_DISPLAY * display, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
     bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting,
     string EXE_PATH
 ){
@@ -1667,7 +1669,7 @@ bool SuperEditableTextModule::deleteFromText(char pKey, string text, bool & cont
 
         for(; letterShift > 0; letterShift--){
             text = content;
-            executeOneBackspaceOrCtrlX(pKey, text, window, leftCursorOnFormatIdx, rightCursorOnFormatIdx,
+            executeOneBackspaceOrCtrlX(pKey, text, display, leftCursorOnFormatIdx, rightCursorOnFormatIdx,
                 ENABLE_al_set_clipboard_text, internalClipboard, CopiedFormatting, EXE_PATH
             );
         }
@@ -2718,7 +2720,7 @@ void SuperEditableTextModule::moveCursorToRight(bool shift, bool control, unsign
         moveCursorToRightByOne(shift, leftCursorOnFormatIdx, rightCursorOnFormatIdx);
     }
 }
-void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * window,
+void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * display,
     bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting, string EXE_PATH, bool allowNotAscii
 ){
     if(!getIsActive() || !isEditingActive){
@@ -2773,7 +2775,7 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
             continue;
         }
 
-        if(deleteFromText(pKey, text, control, window, leftCursorOnFormatIdx, rightCursorOnFormatIdx,
+        if(deleteFromText(pKey, text, control, display, leftCursorOnFormatIdx, rightCursorOnFormatIdx,
             ENABLE_al_set_clipboard_text, internalClipboard, CopiedFormatting, EXE_PATH))
         {
             continue;
@@ -2798,7 +2800,9 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                 internalClipboard = clipboard;
 
                 if(ENABLE_al_set_clipboard_text){
-                    al_set_clipboard_text(window, clipboard.c_str());
+                    if(display != nullptr){
+                        al_set_clipboard_text(display, clipboard.c_str());
+                    }
                 }
                 else{
                     std::ofstream File(EXE_PATH + "clipboard.txt", std::ios::trunc | std::ios::out);
@@ -2826,14 +2830,17 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
                 string clipboard = "";
 
                 if(ENABLE_al_set_clipboard_text || shift){
-                    if(!al_clipboard_has_text(window)){
+                    if(display == nullptr){
+                        continue;
+                    }
+                    if(!al_clipboard_has_text(display)){
                         continue;
                     }
                     if(allowNotAscii){
-                        clipboard = al_get_clipboard_text(window);
+                        clipboard = al_get_clipboard_text(display);
                     }
                     else{
-                        clipboard = removeNotAscii(al_get_clipboard_text(window));
+                        clipboard = removeNotAscii(al_get_clipboard_text(display));
                     }
                 }
                 else{

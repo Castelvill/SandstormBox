@@ -1,6 +1,5 @@
 start quickMath
-    triggers on_boot
-    if([on_boot])
+    triggers on_init
     
     int a 2
     print "a = 2\n"
@@ -27,5 +26,5 @@ start quickMath
     print "vecA + 10 = [ "
     print " " _  vecB "]\n"
 
-    power_off
+    exit
 end
