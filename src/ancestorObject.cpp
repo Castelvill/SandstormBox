@@ -695,7 +695,7 @@ inline string errorSpacing(){return "\t";};
 bool prepareNewInstruction(vector<WordStruct> words, EveModule & NewEvent, OperationClass *& Operation, bool postOperations, unsigned minLength, unsigned lineNumber, string scriptName){
     if(words.size() < minLength){
         cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least \'" << minLength << "\' parameters.\n";
+            << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least " << minLength << " parameters.\n";
         return false;
     }
     if(!postOperations){
@@ -947,9 +947,9 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                     }
                     if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
                 }
-                else if(isStringInGroup(firstWord.value, 18, "on_boot", "second_passed", "fps", "any_key_pressed",
+                else if(isStringInGroup(firstWord.value, 18, "booting", "second_passed", "fps", "any_key_pressed",
                     "any_key_pressing", "any_key_released", "mouse_x", "mouse_y", "mouse_moved",
-                    "display_w", "display_h", "fullscreen", "on_display_resize", "used_os",
+                    "display_w", "display_h", "fullscreen", "display_resized", "used_os",
                     "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects")
                 ){
                     continue;
@@ -1536,15 +1536,12 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else if(words[0].value == "clone"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
                 return;
             }
             if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "left", false)){ return; }
             if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'c', "right", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "changeOldID", true)){
-                if(error.size() == 0){ continue; }
-                return;
-            }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "changeOldID", false)){ return; }
         }
         else if(words[0].value == "new"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
@@ -1586,11 +1583,10 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             cursor++;
-            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'c', "new_ids", true)){
+            if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "new_ids", true)){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            cursor++;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
                 if(error.size() == 0){ continue; }
                 return;

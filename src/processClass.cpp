@@ -463,7 +463,7 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
                     else if(type == "each_iteration"){
                         BaseOfTriggerableObjects.IterationTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
-                    else if(type == "second_passed"){
+                    else if(type == "each_second"){
                         BaseOfTriggerableObjects.TimeTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
                     else if(type == "key_pressed"){
@@ -511,143 +511,159 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
                     else if(type == "on_display_resize"){
                         BaseOfTriggerableObjects.ResizeTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
                     }
+                    else{
+                        cout << "Error: In: " << __FUNCTION__ << ": Trigger type '" << type << "' is not valid.\n";
+                    }
                 }
             }
         }
     }
 }
-void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects){
+void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers){
     if(printOutInstructions){
         cout << "\nAll triggered objects: \n";
     }
-    AncestorObject * tempObject = nullptr;
+    AncestorObject * TempObject = nullptr;
     TriggeredObjects.clear();
+    CurrentTriggers.clear();
     if(firstIteration){
+        CurrentTriggers.active.insert("on_boot");
         for(AncestorIndex & Index : BaseOfTriggerableObjects.BootTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
+            TempObject = Index.object(Layers);
+            if(TempObject != nullptr && TempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*TempObject));
                 if(printOutInstructions){
-                    cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (on_boot), ";
+                    cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_boot), ";
                 }
             }
         }
     }
     for(AncestorIndex & Index : BaseOfTriggerableObjects.InitTriggered){
-        tempObject = Index.object(Layers);
-        if(tempObject != nullptr && tempObject->getIsActive()){
-            TriggeredObjects.push_back(&(*tempObject));
+        TempObject = Index.object(Layers);
+        if(TempObject != nullptr && TempObject->getIsActive()){
+            CurrentTriggers.active.insert("on_init");
+            TriggeredObjects.push_back(&(*TempObject));
             if(printOutInstructions){
-                cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (on_init), ";
+                cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_init), ";
             }
         }
     }
     BaseOfTriggerableObjects.InitTriggered.clear();
+    CurrentTriggers.active.insert("each_iteration");
     for(AncestorIndex & Index : BaseOfTriggerableObjects.IterationTriggered){
-        tempObject = Index.object(Layers);
-        if(tempObject != nullptr && tempObject->getIsActive()){
-            TriggeredObjects.push_back(&(*tempObject));
+        TempObject = Index.object(Layers);
+        if(TempObject != nullptr && TempObject->getIsActive()){
+            TriggeredObjects.push_back(&(*TempObject));
             if(printOutInstructions){
-                cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (each_iteration), ";
+                cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (each_iteration), ";
             }
         }
     }
-    if(Engine.secondHasPassed()){ 
+    if(Engine.secondHasPassed()){
+        CurrentTriggers.active.insert("each_second");
         for(AncestorIndex & Index : BaseOfTriggerableObjects.TimeTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
+            TempObject = Index.object(Layers);
+            if(TempObject != nullptr && TempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*TempObject));
                 if(printOutInstructions){
-                    cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (second_passed), ";
+                    cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (each_second), ";
                 }
             }
         }
     }
     if(canUserInteract){
         if(Engine.firstPressedKeys.size() > 0){
+            CurrentTriggers.active.insert("key_pressed");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressedTriggered){
-                tempObject = Index.object(Layers);
-                if(tempObject != nullptr && tempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*tempObject));
+                TempObject = Index.object(Layers);
+                if(TempObject != nullptr && TempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*TempObject));
                     if(printOutInstructions){
-                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (key_pressed), ";
+                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (key_pressed), ";
                     }
                 }
             }
         }
         if(Engine.pressedKeys.size() > 0){
+            CurrentTriggers.active.insert("key_pressing");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressingTriggered){
-                tempObject = Index.object(Layers);
-                if(tempObject != nullptr && tempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*tempObject));
+                TempObject = Index.object(Layers);
+                if(TempObject != nullptr && TempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*TempObject));
                     if(printOutInstructions){
-                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (key_pressing), ";
+                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (key_pressing), ";
                     }
                 }
             }
         }
         if(Engine.releasedKeys.size() > 0){
+            CurrentTriggers.active.insert("key_released");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyReleasedTriggered){
-                tempObject = Index.object(Layers);
-                if(tempObject != nullptr && tempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*tempObject));
+                TempObject = Index.object(Layers);
+                if(TempObject != nullptr && TempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*TempObject));
                     if(printOutInstructions){
-                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (key_released), ";
+                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (key_released), ";
                     }
                 }
             }
         }
         if(Engine.Mouse.didMouseMove){
+            CurrentTriggers.active.insert("mouse_moved");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseMovedTriggered){
-                tempObject = Index.object(Layers);
-                if(tempObject != nullptr && tempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*tempObject));
+                TempObject = Index.object(Layers);
+                if(TempObject != nullptr && TempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*TempObject));
                     if(printOutInstructions){
-                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_moved), ";
+                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_moved), ";
                     }
                 }
             }
         }
         if(!Engine.Mouse.didMouseMove){
+            CurrentTriggers.active.insert("mouse_not_moved");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseNotMovedTriggered){
-                tempObject = Index.object(Layers);
-                if(tempObject != nullptr && tempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*tempObject));
+                TempObject = Index.object(Layers);
+                if(TempObject != nullptr && TempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*TempObject));
                     if(printOutInstructions){
-                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_not_moved), ";
+                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_not_moved), ";
                     }
                 }
             }
         }
         if(Engine.Mouse.isFirstPressed()){
+            CurrentTriggers.active.insert("mouse_pressed");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressedTriggered){
-                tempObject = Index.object(Layers);
-                if(tempObject != nullptr && tempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*tempObject));
+                TempObject = Index.object(Layers);
+                if(TempObject != nullptr && TempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*TempObject));
                     if(printOutInstructions){
-                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_pressed), ";
+                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_pressed), ";
                     }
                 }
             }
         }
         if(Engine.Mouse.isPressed()){
+            CurrentTriggers.active.insert("mouse_pressing");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressingTriggered){
-                tempObject = Index.object(Layers);
-                if(tempObject != nullptr && tempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*tempObject));
+                TempObject = Index.object(Layers);
+                if(TempObject != nullptr && TempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*TempObject));
                     if(printOutInstructions){
-                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_pressing), ";
+                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_pressing), ";
                     }
                 }
             }
         }
         if(Engine.Mouse.isReleased()){
+            CurrentTriggers.active.insert("mouse_released");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseReleasedTriggered){
-                tempObject = Index.object(Layers);
-                if(tempObject != nullptr && tempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*tempObject));
+                TempObject = Index.object(Layers);
+                if(TempObject != nullptr && TempObject->getIsActive()){
+                    TriggeredObjects.push_back(&(*TempObject));
                     if(printOutInstructions){
-                        cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (mouse_released), ";
+                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_released), ";
                     }
                 }
             }
@@ -655,52 +671,57 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
     }
     
     if(Engine.displayResized){
+        CurrentTriggers.active.insert("on_display_resize");
         for(AncestorIndex & Index : BaseOfTriggerableObjects.ResizeTriggered){
-            tempObject = Index.object(Layers);
-            if(tempObject != nullptr && tempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*tempObject));
+            TempObject = Index.object(Layers);
+            if(TempObject != nullptr && TempObject->getIsActive()){
+                TriggeredObjects.push_back(&(*TempObject));
                 if(printOutInstructions){
-                    cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (on_display_resize), ";
+                    cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_display_resize), ";
                 }
             }
         }
     }
     
     for(AncestorIndex & Index : BaseOfTriggerableObjects.MovementTriggered){
-        tempObject = Index.object(Layers);
-        if(tempObject == nullptr || !tempObject->getIsActive()){
+        TempObject = Index.object(Layers);
+        if(TempObject == nullptr || !TempObject->getIsActive()){
             continue;
         }
-        for(const MovementModule & Movement : tempObject->MovementContainer){
+        for(const MovementModule & Movement : TempObject->MovementContainer){
             if(!Movement.getIsActive()){
                 continue;
             }
             if(Movement.isMoving()){
-                TriggeredObjects.push_back(&(*tempObject));
+                CurrentTriggers.active.insert("movement");
+                CurrentTriggers.movingObjects.insert(TempObject->getID());
+                TriggeredObjects.push_back(&(*TempObject));
                 if(printOutInstructions){
-                    cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (movement), ";
+                    cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (movement), ";
                 }
                 break;
             }
         }
     }
-    bool triggered;
+    bool triggered = true;
     for(AncestorIndex & Index : BaseOfTriggerableObjects.StillnessTriggered){
-        tempObject = Index.object(Layers);
-        if(tempObject == nullptr || !tempObject->getIsActive()){
+        TempObject = Index.object(Layers);
+        if(TempObject == nullptr || !TempObject->getIsActive()){
             continue;
         }
         triggered = true;
-        for(const MovementModule & Movement : tempObject->MovementContainer){
+        for(const MovementModule & Movement : TempObject->MovementContainer){
             if(Movement.getIsActive() && Movement.isMoving()){
                 triggered = false;
                 break;
             }
         }
         if(triggered){
-            TriggeredObjects.push_back(&(*tempObject));
+            CurrentTriggers.active.insert("stillness");
+            CurrentTriggers.stillObjects.insert(TempObject->getID());
+            TriggeredObjects.push_back(&(*TempObject));
             if(printOutInstructions){
-                cout << tempObject->getLayerID() << "::" << tempObject->getID() << " (stillness), ";
+                cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (stillness), ";
             }
         }
     }
@@ -822,7 +843,7 @@ string ContextClass::getValue(EventDescription EventIds){
     else if(type == "value"){
         buffer = "[";
         for(const VariableModule & Variable: Values){
-            buffer += Variable.getStringUnsafe();
+            buffer += Variable.getAnyValue();
             buffer += ", ";
         }
         buffer += "]<";
@@ -3232,8 +3253,8 @@ void ProcessClass::moveValues(OperationClass & Operation, vector<ContextClass> &
     moveRightToLeft(currentInstruction, LeftOperand, RightOperand, EventIds);
 }
 void ProcessClass::cloneEntities(OperationClass & Operation, vector<ContextClass> &EventContext, vector<LayerClass> &Layers){
-    if(Operation.Parameters.size() < 2){
-        cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
+    if(Operation.Parameters.size() < 3){
+        cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "Instruction requires at least 3 parameters.\n";
         return;
     }
     
@@ -3250,8 +3271,12 @@ void ProcessClass::cloneEntities(OperationClass & Operation, vector<ContextClass
         return;
     }
 
-    bool changeOldID = true;
-    getBoolFromTheParameter(EventContext, EventIds, Operation.instruction, Operation.Parameters, 2, changeOldID, false);
+    bool changeOldID = false;
+    if(getBoolFromTheParameter(EventContext, EventIds, Operation.instruction, Operation.Parameters, 2, changeOldID, true)){
+        cout << instructionError(EventIds, Operation.instruction, __FUNCTION__)
+            << "Failed to get a bool value from the parameter 3.\n";
+        return;
+    }
 
     unsigned i = 0, j = 0;
     bool sameSize = false;
@@ -8526,7 +8551,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
         NewValue.setBool(Engine.fullscreen);
         return NewValue;
     }
-    if(Condition.Location.source == "on_display_resize"){
+    if(Condition.Location.source == "display_resized"){
         NewValue.setBool(Engine.displayResized);
         return NewValue;
     }
@@ -8764,7 +8789,7 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return VariableModule::newBool(false);
         }
     }
-    if(Condition.Location.source == "on_boot"){
+    if(Condition.Location.source == "booting"){
         NewValue.setBool(Process->firstIteration);
         return NewValue;
     }
@@ -9421,18 +9446,6 @@ void addGlobalVectors(vector<ContextClass> & EventContext, vector<VectorModule> 
         EventContext.back().ID = Vector.getID();
     }
 }
-unsigned returnRealPrimaryTriggers(vector<string> primaryTriggerTypes){
-    unsigned realTriggersSum = 0;
-    for(string trigger : primaryTriggerTypes){
-        if(isStringInGroup(trigger, 19, "on_init", "each_iteration", "second_passed", "key_pressed", "key_pressing",
-            "key_released", "mouse_moved", "mouse_not_moved", "mouse_pressed", "mouse_pressing", "mouse_released",
-            "objects", "variables", "collision", "editables", "movement", "stillness", "on_display_resize")
-        ){
-            realTriggersSum++;
-        }
-    }
-    return realTriggersSum;
-}
 void removeOnInitTrigger(vector<string> & primaryTriggerTypes){
     for(auto primaryTrigger = primaryTriggerTypes.begin(); primaryTrigger != primaryTriggerTypes.end();){
         if((*primaryTrigger) == "on_init"){
@@ -9442,6 +9455,27 @@ void removeOnInitTrigger(vector<string> & primaryTriggerTypes){
             ++primaryTrigger;
         }
     }
+}
+bool isEventTriggered(const Triggers & CurrentTriggers, const std::vector<EveModule>::iterator & Event){
+    if(Event->getIsDeleted() || !Event->getIsActive() || Event->primaryTriggerTypes.size() == 0){
+        return false;
+    }
+    for(string eventTrigger : Event->primaryTriggerTypes){
+        if(eventTrigger == "movement"){
+            if(CurrentTriggers.movingObjects.contains(Event->getObjectID())){
+                return true;
+            }
+        }
+        else if(eventTrigger == "stillness"){
+            if(CurrentTriggers.stillObjects.contains(Event->getObjectID())){
+                return true;
+            }
+        }
+        else if(CurrentTriggers.active.contains(eventTrigger)){
+            return true;
+        }
+    }
+    return false;
 }
 void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes){
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
@@ -9457,8 +9491,8 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         wasAnyEventUpdated = false;
     }
     
-    
-    detectTriggeredEvents(Engine, TriggeredObjects);
+    Triggers CurrentTriggers;
+    detectTriggeredEvents(Engine, TriggeredObjects, CurrentTriggers);
 
     if(TriggeredObjects.size() == 0){
         return;
@@ -9507,7 +9541,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         noTriggerableEvents = true;
         Event = Triggered->EveContainer.begin();
         for(; Event < Triggered->EveContainer.end(); Event++){
-            if(!Event->getIsDeleted() && Event->getIsActive() && Event->primaryTriggerTypes.size() > 0){
+            if(isEventTriggered(CurrentTriggers, Event)){
                 noTriggerableEvents = false;
                 break;
             }
@@ -9672,7 +9706,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
             do{
                 Event++;
                 StartingEvent++;
-            }while(Event != Triggered->EveContainer.end() && (Event->getIsDeleted() || !Event->getIsActive() || Event->primaryTriggerTypes.size() == 0));
+            }while(Event != Triggered->EveContainer.end() && !isEventTriggered(CurrentTriggers, Event));
         }while(Event != Triggered->EveContainer.end());
 
         for(auto _ : Context){
@@ -9690,7 +9724,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
             }
             if(deleteEntities()){
                 updateBaseOfTriggerableObjects();
-                detectTriggeredEvents(Engine, TriggeredObjects);
+                detectTriggeredEvents(Engine, TriggeredObjects, CurrentTriggers);
                 triObjIdx -= deletedBeforeIndex - 1;
                 wasDeleteExecuted = false;
             }
@@ -11601,4 +11635,10 @@ LayerClass * PointerRecalculator::getOwnerLayer(vector <LayerClass> & Layers){
         return nullptr;
     }
     return &Layers[eventOwnerLayerIndex];
+}
+
+void Triggers::clear(){
+    active.clear();
+    movingObjects.clear();
+    stillObjects.clear();
 }

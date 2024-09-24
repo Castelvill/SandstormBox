@@ -250,26 +250,6 @@ void EngineClass::createDisplay(){
         return;
     }
 
-    if(samples > 8){
-        samples = 8;
-    }
-    if(backbufferSize.x > 3840){
-        backbufferSize.x = 3840;
-    }
-    if(backbufferSize.x < 10){
-        backbufferSize.x = 10;
-    }
-    if(backbufferSize.y > 2160){
-        backbufferSize.y = 2160;
-    }
-    if(backbufferSize.y < 10){
-        backbufferSize.y = 10;
-    }
-    al_set_new_bitmap_samples(samples);
-    backbuffer = al_create_bitmap(backbufferSize.x, backbufferSize.y);
-    al_set_target_bitmap(backbuffer);
-    al_set_new_bitmap_samples(0);
-
     if(fullscreen){
         al_set_new_display_flags(ALLEGRO_OPENGL | ALLEGRO_FULLSCREEN_WINDOW | ALLEGRO_RESIZABLE | ALLEGRO_NOFRAME);
     }
@@ -299,6 +279,26 @@ void EngineClass::createDisplay(){
     if(iconBitmap){
         al_set_display_icon(display, iconBitmap);
     }
+
+    if(samples > 8){
+        samples = 8;
+    }
+    if(backbufferSize.x > 3840){
+        backbufferSize.x = 3840;
+    }
+    if(backbufferSize.x < 10){
+        backbufferSize.x = 10;
+    }
+    if(backbufferSize.y > 2160){
+        backbufferSize.y = 2160;
+    }
+    if(backbufferSize.y < 10){
+        backbufferSize.y = 10;
+    }
+    al_set_new_bitmap_samples(samples);
+    backbuffer = al_create_bitmap(backbufferSize.x, backbufferSize.y);
+    al_set_target_bitmap(backbuffer);
+    al_set_new_bitmap_samples(0);
 }
 void EngineClass::clear(){
     processIDs.clear();

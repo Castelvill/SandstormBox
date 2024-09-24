@@ -9,7 +9,7 @@ end
 
 start checkIfMouseMoved
     triggers mouse_pressing
-    if ([mouse_moved] || [on_display_resize])
+    if ([mouse_moved] [display_resized] ||)
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID MainCamera
     access sx [[MainCamera size_x]]

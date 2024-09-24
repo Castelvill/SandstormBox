@@ -5,8 +5,7 @@ start putRectangleOnScreen
     var DISPLAY_H 480
     create_display DISPLAY_W DISPLAY_H DISPLAY_W DISPLAY_H
 
-    new camera 1 _ Camera
-    fun Camera set_id "Camera"
+    new camera 1 "Camera" Camera
     fun Camera resize DISPLAY_W DISPLAY_H
     fun Camera add_visible_layer "KERNEL"
 
@@ -20,8 +19,7 @@ start putRectangleOnScreen
     var velX 4.0
     var velY 4.0
 
-    new primitives me 1 _ Rectangle
-    fun Rectangle set_id "Rectangle"
+    new primitives me 1 "Rectangle" Rectangle
     fun Rectangle set_type "filled_rectangle"
     fun Rectangle add_point 0.0 0.0
     fun Rectangle add_point 1.0 1.0
@@ -29,6 +27,7 @@ start putRectangleOnScreen
     fun Rectangle set_pos x y
     fun Rectangle set_size SIZE_X SIZE_Y
     fun Rectangle update_with_size
+    tree
 end
 
 start moveRectangle

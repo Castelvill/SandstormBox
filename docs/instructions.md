@@ -41,7 +41,7 @@ triggers *trigger* [[trigger]...]
 
 **Parameters:**
 
-- trigger (variable) - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
+- trigger (variable) - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, each_second, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
 
 ## create_display
 
@@ -73,7 +73,7 @@ if ( *expression* )
 
 **Parameters**
 
-- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
+- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", "booting", “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "display_resized", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
 
 ## else
 
@@ -252,7 +252,7 @@ access *output* [*sources*]
 **Parameters**
 
 - output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id;
-- sources (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", “on_boot”, “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "on_display_resize", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
+- sources (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", "booting", “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "display_resized", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
 
 ## bool / int / double / string
 
@@ -268,7 +268,7 @@ access *output* [*sources*]
 
 - literal_type (instruction): bool, int, double, string;
 - output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id;
-- values (variable / bool vector / int vector / double vector / string vector).
+- values (variable / (bool/int/double/string) vector / (bool/int/double/string)).
 
 ## random_int
 
@@ -380,7 +380,7 @@ let *new_variable* [old_variable]
 
 **Syntax**
 
-clone *left* *right* [changeOldID]
+clone *left* *right* *changeOldID*
 
 **Description**
 
@@ -390,7 +390,7 @@ clone *left* *right* [changeOldID]
 
 - left (variable) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
 - right (variable) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- [changeOldID] (bool) - if true, the left context will inherit the id of the right context (with the last number incrementation). True by default.
+- changeOldID (bool) - if true, the left context will inherit the id of the right context (with the last number incrementation).
 
 ## +, -, *, /
 
@@ -472,7 +472,7 @@ new *type* [layer_id] [object_id] [quantity] [new_ids] [output]
 - layer_id/[layer_id] (string) - the id of the layer with the role of a container for new objects. Required only if the new entities are objects;
 - object_id/[object_id] (string) - the id of the object with the role of a container for new modules. Required only if the new entities are modules;
 - [quantity] (variable / int) - the number of new entities that will be created. A literal or an id of the context of the “pointer” or “value” type.
-- [new_ids] (variable) - the id of the context with the type “pointer” or “value”. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
+- [new_ids] (variable / vector variable / string / string vector) - the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
 - [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
 ## new

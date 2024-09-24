@@ -10,7 +10,8 @@ start testSpawn
     run spawn
 end
 start testNote
-    string param1 "history.txt"
+    //string param1 "history.txt"
+    string param1 "examples/hello.sand"
     run note
 end
 start testMover

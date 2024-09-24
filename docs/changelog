@@ -1,3 +1,9 @@
+23.09.2024
+-Renamed some attributes of "triggers", "if" and "access" instructions.
+-In the "new" instruction changed the "new_ids" parameter type into "variable / vector variable / string / string vector".
+-Fixed the backbuffer: it ruined the performance when a lot of text was present.
+-Fixed: events could be activated with any trigger.
+
 22.09.2024
 -Added "reset" and "do_not_preserve" parameters to the instructions: build, load_build, build_subset, inject_code, inject_instr. 
 -Renamed "power_off" to "exit".

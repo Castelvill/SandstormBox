@@ -210,16 +210,14 @@ end
 
 
 start spawn
-    new layer 1 _ SpawnLayer
+    new layer 1 "SpawnLayer" SpawnLayer
     fun SpawnLayer activate
-    fun SpawnLayer set_id "SpawnLayer"
     access newLayerID [[SpawnLayer id]]
 
     //print ": " _ SpawnLayer
 
-    new camera 1 _ NewWindow
+    new camera 1 "SpawnWindow0" NewWindow
     fun NewWindow set_pos 0 0
-    fun NewWindow set_id "SpawnWindow0"
     fun NewWindow set_active true
     fun NewWindow resize 640 480
     fun NewWindow set_zoom 1.0
@@ -241,12 +239,10 @@ start spawn
 
     //print \n _ NewWindow
 
-    new object SpawnLayer 1 _ NewWindowObject
-    fun NewWindowObject set_id "Window"
+    new object SpawnLayer 1 "Window" NewWindowObject
     fun NewWindowObject set_can_be_selected false
 
-    new primitives NewWindowObject 1 _ border1
-    fun border1 set_id "background"
+    new primitives NewWindowObject 1 "background" border1
     fun border1 set_type "filled_rounded_rectangle"
     fun border1 add_point 0.0 0.0
     fun border1 add_point 880 980
@@ -256,15 +252,13 @@ start spawn
     fun border1 set_size 640 480
     fun border1 update_with_size
 
-    new primitives NewWindowObject 1 _ border2
-    clone border2 border1
-    fun border2 set_id "toolbar"
+    new primitives NewWindowObject 1 "toolbar" border2
+    clone border2 border1 false
     fun border2 set_color 0.0 0.0 0.0 0.8
     fun border2 set_size 640 50
     fun border2 update_with_size
 
-    new super_text NewWindowObject 1 _ title
-    fun title set_id "title"
+    new super_text NewWindowObject 1 "title" title
     fun title set_pos 10 10
     fun title set_size 400 50
     fun title add_format "cascadia_code_bold" 8
@@ -272,11 +266,9 @@ start spawn
     fun title set_wrapping "n"
     fun title set_content param1
 
-    new object SpawnLayer 1 _ NewAmo
-    fun NewAmo set_id "Amongus"
+    new object SpawnLayer 1 "Amongus" NewAmo
     fun NewAmo set_pos 0 80
-    new image NewAmo 1 _ redAstronaut
-    fun redAstronaut set_id "amongus"
+    new image NewAmo 1 "amongus" redAstronaut
     fun redAstronaut connect_bitmap_via_alias param1
     fun redAstronaut set_scale 0.6 0.6
     = program ""

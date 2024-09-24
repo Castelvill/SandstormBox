@@ -2,6 +2,7 @@
 #define PROCESSCLASS_H_INCLUDED
 
 #include "engineClass.h"
+#include <unordered_set>
 
 enum CAMERA_MOVE: unsigned char{NONE, CAMERA_FULL, CAMERA_N, CAMERA_NE, CAMERA_E, CAMERA_SE, CAMERA_S, CAMERA_SW, CAMERA_W, CAMERA_NW};
 
@@ -169,6 +170,12 @@ Entity * lastNotDeletedInVector(vector<Entity> &Vector);
 template<class Entity>
 Entity * lastNotDeletedInVector(vector<Entity*> &Vector);
 
+struct Triggers{
+    std::unordered_set<string> active;
+    std::unordered_set<string> movingObjects;
+    std::unordered_set<string> stillObjects;
+    void clear();
+};
 
 class ProcessClass{
 private:
@@ -410,7 +417,7 @@ public:
     void stopScrollbarDragging();
     void dragScrollbars(const MouseClass & Mouse);
     void updateBaseOfTriggerableObjects();
-    void detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects);
+    void detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers);
     size_t countLayers() const;
     size_t countCameras() const;
     

@@ -5,7 +5,7 @@
 
 struct ValueLocation{
     string process;
-    string source; //on_boot, second_passed, fps, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, variable, camera, layer, owner, object, pointer
+    string source; //booting, second_passed, fps, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, variable, camera, layer, owner, object, pointer, display_resized
     string cameraID;
     string layerID;
     string objectID;
@@ -69,7 +69,7 @@ public:
 	vector <OperationClass> PostOperations; //Post operations can be executed ONLY if ConditionalChain returns true - otherwise only the else scope will be called and executed.
 	vector <ChildStruct> Children;
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events with the use of "run" and "else" commands.
-    //Types: on_boot, on_init, each_iteration, second_passed, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
+    //Types: on_boot, on_init, each_iteration, each_second, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
     vector <string> primaryTriggerTypes;
     char conditionalStatus; //n-null, t-true, f-false
     string elseChildID; //Ignore if empty. "Else if" statements can be created by adding conditions to the "else child" Event. Each Event can only have one else statement ("else child") - it's a normal thing in branching. It's the optimal way. Do not argue, stupid.

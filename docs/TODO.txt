@@ -41,6 +41,7 @@ MILESTONE: Improve scripting language.
 
 MILESTONE: Create a new scripting language (a wrapper for the previous one).
 
+-Implement the triggers: objects, variables, collision, editables.
 -Forward errors from the "sh" instruction to the terminal.
 -Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Update documentation: Instructions that use moveOrRename should have a different definition of "output" parameter.

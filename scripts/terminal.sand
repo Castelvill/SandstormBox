@@ -1,6 +1,6 @@
 start onInit
     triggers on_init
-    create_display 920 480 920 480 true
+    create_display 920 480 1920 1080 false
     //edit_proc draw_hitboxes 1
     //edit_proc print_instructions 1
     //edit_proc auto_print_stack 1
@@ -72,12 +72,9 @@ start buildTerminal
     access ww [[display_w]]
     access wh [[display_h]]
 
-    new camera 1 _ Cam
-    //fun Cam set_pos 100 100
-    fun Cam set_id "Desktop"
+    new camera 1 "Desktop" Cam
     fun Cam set_active true
     fun Cam resize ww wh
-    //fun Cam resize 200 100
     fun Cam set_zoom 1.0
     fun Cam set_speed 20
     fun Cam set_key_zoom_in 15
@@ -96,7 +93,7 @@ start buildTerminal
     //fun Cam set_can_edit_text false
     fun Cam set_can_move_objects false
 
-    new image me 1 _ background
+    new image me 1 "background" background
     fun background connect_bitmap_via_alias "background"
     fun background resize ww wh
     fun background set_color 0.5 0.5 0.5 0.3
@@ -114,8 +111,7 @@ start buildTerminal
 
     int editableTextPos [0 0]
 
-    new super_editable_text me 1 _ TerminalTextField
-    fun TerminalTextField set_id "edi"
+    new super_editable_text me 1 "edi" TerminalTextField
     fun TerminalTextField set_pos editableTextPos
     fun TerminalTextField set_size ww wh
     //fun TerminalTextField set_size 884 480
@@ -137,8 +133,7 @@ start buildTerminal
 
     var minScrollbarThumbHeight 24
 
-    new image me 1 _ thumb
-    fun thumb set_id "thumb"
+    new image me 1 "thumb" thumb
     fun thumb deactivate
     fun thumb set_pos 2 2
     fun thumb set_size 16 16
@@ -146,8 +141,7 @@ start buildTerminal
     fun thumb connect_bitmap_via_alias "sand_thumb"
     fun thumb disable_scrolling
 
-    new image me 1 _ thumbTrack
-    fun thumbTrack set_id "thumb_track"
+    new image me 1 "thumb_track" thumbTrack
     fun thumbTrack deactivate
     fun thumbTrack set_size 100 500
     fun thumbTrack resize 16 480
@@ -156,11 +150,10 @@ start buildTerminal
 
     var scrollbarHeight 476.0
 
-    new scrollbar me 1 _ MainScrollbar
+    new scrollbar me 1 "MainScrollbar" MainScrollbar
     fun MainScrollbar disable_scrolling
     //fun MainScrollbar deactivate
     fun MainScrollbar set_can_be_drawn true
-    fun MainScrollbar set_id "MainScrollbar"
     fun MainScrollbar set_pos 884 0
     fun MainScrollbar set_thumb_position 450 0 //450
     fun MainScrollbar set_thumb_size 12 476
@@ -173,12 +166,11 @@ start buildTerminal
 
     var commandLineHeight 30
 
-    new super_editable_text me 1 _ TextEditor
-    clone TextEditor TerminalTextField
+    new super_editable_text me 1 "TextEditor" TextEditor
+    clone TextEditor TerminalTextField false
     fun TextEditor add_format "cascadia_code_bold" 1
     fun TextEditor set_color 0 0.2 0.74 0.7 1.0 //[0.0 0.7 0.0 1.0]
 	fun TextEditor set_accent_color 0 0.0 0.0 0.0 1.0 //[0.0 0.2 0.0 1.0]
-    fun TextEditor set_id "TextEditor"
     fun TextEditor set_protected_area 0
     fun TextEditor set_can_use_enter true
     fun TextEditor set_content ""
@@ -186,10 +178,9 @@ start buildTerminal
     fun TextEditor set_can_use_tabs true
     fun TextEditor deactivate
 
-    new scrollbar me 1 _ TextEditorScrollbar
+    new scrollbar me 1 "TextEditorScrollbar" TextEditorScrollbar
     fun TextEditorScrollbar disable_scrolling
     fun TextEditorScrollbar set_can_be_drawn true
-    fun TextEditorScrollbar set_id "TextEditorScrollbar"
     fun TextEditorScrollbar set_pos 884 0
     fun TextEditorScrollbar set_thumb_position 450 0//450
     fun TextEditorScrollbar set_thumb_size 12 476
@@ -201,7 +192,7 @@ start buildTerminal
     fun TextEditorScrollbar deactivate
     fun TextEditorScrollbar add_camera "Desktop"
 
-    new particles me 1 _ Particles
+    new particles me 1 "Particles" Particles
     fun Particles set_pos 200 200
     fun Particles set_size 10 10
     fun Particles deactivate
@@ -284,8 +275,7 @@ start selectTextWithMouse
     run moveScrollbarBySelectingText
 end
 start selectTextWithKeys
-    triggers any_key_pressing
-    if ([any_key_pressing])
+    triggers key_pressing
     index me [0 1] super_editable_text TextField
     access cursorPosY [[TextField cursor_pos_y]]
     index me [0 1] scrollbar Scrollbar
@@ -327,14 +317,12 @@ end
 
 
 start createWindowTemplate
-    new layer 1 _ WindowLayer
+    new layer 1 "WindowLayer" WindowLayer
     fun WindowLayer deactivate
-    fun WindowLayer set_id "WindowLayer"
     access newLayerID [[WindowLayer id]]
 
-    new camera 1 _ WindowCamera
+    new camera 1 "WindowCamera" WindowCamera
     fun WindowCamera set_pos 0 0
-    fun WindowCamera set_id "WindowCamera"
     fun WindowCamera set_active true
     fun WindowCamera resize 640 480
     fun WindowCamera set_zoom 1.0
@@ -357,51 +345,39 @@ start createWindowTemplate
     fun WindowCamera deactivate
     fun WindowCamera forbid_drawing_object_borders
 
-    new object WindowLayer 1 _ NewWindowObject
-    fun NewWindowObject set_id "WindowObject"
+    new object WindowLayer 1 "WindowObject" NewWindowObject
     //fun NewWindowObject set_can_be_selected true
     fun NewWindowObject disable_scrolling
     fun NewWindowObject set_can_be_moved_with_mouse false
     bind NewWindowObject ["scripts/windowTemplate.sand"]
     build NewWindowObject true
 
-    new variable NewWindowObject 1 _ objectsCameraID
-    fun objectsCameraID set_id "cameraID"
+    new variable NewWindowObject 1 "cameraID" objectsCameraID
     fun objectsCameraID set_string "WindowCamera"
 
-    new variable NewWindowObject 1 _ isMaxed
-    fun isMaxed set_id "isMaxed"
+    new variable NewWindowObject 1 "isMaxed" isMaxed
     fun isMaxed set_bool false
-    new variable NewWindowObject 1 _ sizeX
-    fun sizeX set_id "sizeX"
+    new variable NewWindowObject 1 "sizeX" sizeX
     fun sizeX set_double 640
-    new variable NewWindowObject 1 _ sizeY
-    fun sizeY set_id "sizeY"
+    new variable NewWindowObject 1 "sizeY" sizeY
     fun sizeY set_double 480
-    new variable NewWindowObject 1 _ posX
-    fun posX set_id "posX"
+    new variable NewWindowObject 1 "posX" posX
     fun posX set_double 0.0
-    new variable NewWindowObject 1 _ posY
-    fun posY set_id "posY"
+    new variable NewWindowObject 1 "posY" posY
     fun posY set_double 0
-    new variable NewWindowObject 1 _ isBorderless
-    fun isBorderless set_id "isBorderless"
+    new variable NewWindowObject 1 "isBorderless" isBorderless
     fun isBorderless set_bool false
 
-    new variable NewWindowObject 1 _ newVal
-    fun newVal set_id "delete"
+    new variable NewWindowObject 1 "delete" newVal
     fun newVal set_bool false
 
-    new variable NewWindowObject 1 _ newVal
-    fun newVal set_id "has_friends"
+    new variable NewWindowObject 1 "has_friends" newVal
     fun newVal set_bool false
 
-    new variable NewWindowObject 1 _ newVal
-    fun newVal set_id "deleted_friends"
+    new variable NewWindowObject 1 "deleted_friends" newVal
     fun newVal set_bool false
 
-    new primitives NewWindowObject 1 _ border1
-    fun border1 set_id "background"
+    new primitives NewWindowObject 1 "background" border1
     fun border1 set_type "filled_rectangle"
     fun border1 add_point 0.0 0.0
     fun border1 add_point 640 480
@@ -409,16 +385,14 @@ start createWindowTemplate
     fun border1 set_size 640 480
     fun border1 update_with_size
 
-    new primitives NewWindowObject 1 _ border2
-    clone border2 border1
-    fun border2 set_id "toolbar"
+    new primitives NewWindowObject 1 "toolbar" border2
+    clone border2 border1 false
     fun border2 set_color 0.109 0.537 0.2039 1.0
     fun border2 set_size 640 30
     fun border2 update_with_size
 
-    new primitives NewWindowObject 1 _ border3
-    clone border3 border1
-    fun border3 set_id "border"
+    new primitives NewWindowObject 1 "border" border3
+    clone border3 border1 false
     fun border3 set_type "rectangle"
     fun border3 set_color 0.109 0.537 0.2039 1.0
     fun border3 set_pos 2 2
@@ -426,8 +400,7 @@ start createWindowTemplate
     fun border3 set_thickness 5.0
     fun border3 update_with_size
 
-    new primitives NewWindowObject 1 _ exitButton
-    fun exitButton set_id "exitButton"
+    new primitives NewWindowObject 1 "exitButton" exitButton
     fun exitButton set_type "filled_circle"
     fun exitButton add_point 0.0 0.0
     fun exitButton add_point 5 5
@@ -436,35 +409,32 @@ start createWindowTemplate
     fun exitButton set_size 20 20
     fun exitButton update_with_size
 
-    new collision NewWindowObject 1 _ ExitCollision
+    new collision NewWindowObject 1 "ExitCollision" ExitCollision
     fun ExitCollision set_pos 620 15
     fun ExitCollision set_size 10 10
     fun ExitCollision set_is_circle true
 
-    new primitives NewWindowObject 1 _ MaxButton
-    clone MaxButton exitButton
-    fun MaxButton set_id "MaxButton"
+    new primitives NewWindowObject 1 "MaxButton" MaxButton
+    clone MaxButton exitButton false
     fun MaxButton set_pos 590 15
     fun MaxButton set_color 1.0 1.0 0.0 1.0
 
-    new collision NewWindowObject 1 _ MaxCollision
+    new collision NewWindowObject 1 "MaxCollision" MaxCollision
     fun MaxCollision set_pos 590 15
     fun MaxCollision set_size 10 10
     fun MaxCollision set_is_circle true
 
-    new primitives NewWindowObject 1 _ minimizeButton
-    clone minimizeButton exitButton
-    fun minimizeButton set_id "minimizeButton"
+    new primitives NewWindowObject 1 "minimizeButton" minimizeButton
+    clone minimizeButton exitButton false
     fun minimizeButton set_pos 560 15
     fun minimizeButton set_color 0.0 1.0 0.0 1.0
 
-    new collision NewWindowObject 1 _ MinCollision
+    new collision NewWindowObject 1 "MinCollision" MinCollision
     fun MinCollision set_pos 560 15
     fun MinCollision set_size 10 10
     fun MinCollision set_is_circle true
 
-    new super_text NewWindowObject 1 _ title
-    fun title set_id "title"
+    new super_text NewWindowObject 1 "title" title
     fun title set_pos 10 2
     fun title set_size 400 50
     fun title add_format "cascadia_code_bold" 8
@@ -486,18 +456,16 @@ start spawnNewWindow
     all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers "WindowLayer" TemplateLayer
 
-    new layer 1 _ NewWindowLayer
-    clone NewWindowLayer TemplateLayer
-    fun NewWindowLayer set_id param1
+    new layer 1 param1 NewWindowLayer
+    clone NewWindowLayer TemplateLayer false
     access newLayerID [[NewWindowLayer id]]
     fun NewWindowLayer activate
 
     index NewWindowLayer [0 0 0] super_text Title
     fun Title set_content param1
 
-    new camera 1 _ NewWindowCamera
-    clone NewWindowCamera TemplateCamera
-    fun NewWindowCamera set_id param1
+    new camera 1 param1 NewWindowCamera
+    clone NewWindowCamera TemplateCamera false
     access newCameraID [[NewWindowCamera id]]
     fun NewWindowCamera activate
     fun NewWindowCamera add_visible_layer newLayerID
@@ -521,9 +489,8 @@ start spawnNotepad
     index NewWindowLayer [0 0] object Object
     index NewWindowLayer [0 0 0] primitives Background
     fun Background set_color 0.0 0.0 0.0 1.0
-    new super_editable_text Object 1 _ TextEditor
-    clone TextEditor Editable
-    fun TextEditor set_id "Notepad"
+    new super_editable_text Object 1 "Notepad" TextEditor
+    clone TextEditor Editable false
     fun TextEditor set_pos 5 30
     fun TextEditor set_size 640 480
     fun TextEditor set_color 0 1.0 0.0 0.0 1.0
@@ -554,7 +521,7 @@ start spawnMover
     fun Background set_color 0.0 0.0 0.0 1.0
     //access selectedLayerID [[my_layer id]]
     access windowCameraID [[NewWindowCamera id]]
-    new camera 1 _ InsideCamera
+    new camera 1 "insideCamera" InsideCamera
     fun InsideCamera activate
     fun InsideCamera add_visible_layer selectedLayerID
     fun InsideCamera add_accessible_layer selectedLayerID
@@ -564,14 +531,12 @@ start spawnMover
     fun InsideCamera resize 630 440
     //fun InsideCamera set_can_move_objects true
     fun InsideCamera set_can_edit_text false
-    fun InsideCamera set_id "insideCamera"
     fun InsideCamera set_min_size 0 0
     fun InsideCamera allow_drawing_object_borders 
 
     access newCameraID [[InsideCamera id]]
 
-    new variable NewObject 1 _ cameraID
-    fun cameraID set_id "insideCameraID"
+    new variable NewObject 1 "insideCameraID" cameraID
     fun cameraID set_string newCameraID
 
     //bind NewObject ["scripts/mover.sand"]
@@ -742,7 +707,6 @@ end
 
 start refresh
     triggers on_display_resize
-    if([on_display_resize])
     run forceRefresh
 end
 
@@ -913,7 +877,7 @@ end
 
 start moveInHistory
     triggers key_pressed
-    if([any_key_pressed] [program] ["sleep"] == &&)
+    if([program] ["sleep"] ==)
     index Cameras [0] camera Camera
     run upArrow downArrow
 end
@@ -1046,7 +1010,7 @@ end
 
 start autoUpdateScrollbarForTextEditor
     triggers key_pressing
-    if([program] ["edit"] == [any_key_pressing] &&)
+    if([program] ["edit"] ==)
     index me [0 1] super_editable_text EditorTextField
     //fun TextEditor update
     fun EditorTextField crop_height_to_text

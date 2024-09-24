@@ -13,7 +13,7 @@ end
 
 start checkIfDisplayResize
 	triggers on_display_resize
-	if ([isMaxed] [on_display_resize] &&)
+	if ([isMaxed])
 	run refreshWindowWithDisplay
 end
 

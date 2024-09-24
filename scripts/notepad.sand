@@ -12,7 +12,7 @@ end
 
 start checkIfDisplayResizeNotepad
     triggers on_display_resize
-    if ([isMaxed] [on_display_resize] &&)
+    if ([isMaxed])
     run refreshWindowWithDisplayNotepad
 end
 
