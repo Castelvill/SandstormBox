@@ -2,7 +2,7 @@ start onInit
     triggers on_init
     create_display 920 480 1920 1080 false
     //edit_proc draw_hitboxes 1
-    //edit_proc print_instructions 1
+    edit_proc print_instructions 0
     //edit_proc auto_print_stack 1
     edit_proc draw_text_borders 0
     edit_proc draw_camera_borders 1

@@ -940,5 +940,5 @@ VariableModule VariableModule::newString(string val, string newID, vector<string
 }
 
 bool VariableModule::isNumeric() const{
-    return type != 's';
+    return type != 'n' && type != 's';
 }

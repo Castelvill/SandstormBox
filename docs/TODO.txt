@@ -1,5 +1,3 @@
--Fix: In the file windowTemplate.sand, "onInit" event does not update the context immediately.
--Fix: in "sand scripts/dvd.sand" variables x and y are not instantly added to the context and the second event executes without them causing errors.
 -Implement the autocomplete for files.
 -Skip the repeating commands in the history.
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.

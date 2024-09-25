@@ -27,7 +27,6 @@ start putRectangleOnScreen
     fun Rectangle set_pos x y
     fun Rectangle set_size SIZE_X SIZE_Y
     fun Rectangle update_with_size
-    tree
 end
 
 start moveRectangle

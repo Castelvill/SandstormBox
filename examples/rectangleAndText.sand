@@ -17,7 +17,7 @@ start putRectangleOnScreen
     fun Rectangle add_point 0.0 0.0
     fun Rectangle add_point 1.0 1.0
     fun Rectangle set_color 1.0 0.0 0.0 1.0
-    fun Rectangle set_pos 220 140
+    fun Rectangle set_pos 50 100
     fun Rectangle set_size 200 200
     fun Rectangle update_with_size
 

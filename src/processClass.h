@@ -66,9 +66,11 @@ struct ContextClass{
     vector <Camera2D*> Cameras;
     ContextClass();
     void clear();
-    void setID(EngineInstr instruction, vector<ContextClass> &EventContext, string newID, const bool & printOutInstructions, EventDescription EventIds);
+    void setID(EngineInstr instruction, vector<ContextClass> &EventContext, string newID,
+        const bool & printOutInstructions, EventDescription EventIds, int maxLengthOfValuesPrinting
+    );
     size_t getVectorSize() const;
-    string getValue(EventDescription EventIds);
+    string getValue(EventDescription EventIds, int maxLengthOfValuesPrinting);
     bool getUnsignedOrAbort(unsigned & number, EngineInstr instruction, EventDescription EventIds);
     bool getIntOrAbort(int & number, EngineInstr instruction, EventDescription EventIds);
     bool getStringOrAbort(string & text, EngineInstr instruction, EventDescription EventIds);
@@ -218,6 +220,7 @@ private:
     int totalNumberOfBitmapLayers;
     bool printOutLogicalEvaluations;
     bool printOutInstructions;
+    int maxLengthOfValuesPrinting = 100; //Used in printing values of variables while debugging.
     bool printOutStackAutomatically;
     float reservationMultiplier;
 
@@ -380,7 +383,7 @@ public:
     vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
     bool deleteEntities();
     void resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered);
-    void triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes);
+    void executeEvents(EngineClass & Engine, vector<ProcessClass> & Processes);
     void updateTreeOfCamerasFromSelectedRoot(Camera2D * Selected);
     void updateWholeForestOfCameras();
     void adjustPositionOfAllCameras();

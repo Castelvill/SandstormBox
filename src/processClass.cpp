@@ -1,4 +1,5 @@
 #include "processClass.h"
+#include <signal.h>
 
 void EventsLookupTable::clear(){
     BootTriggered.clear();
@@ -209,7 +210,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
                 checkMouseCollisions(Engine);
             }
             
-            triggerEve(Engine, Processes);
+            executeEvents(Engine, Processes);
 
             if(Engine.closeProgram){
                 return;
@@ -519,55 +520,65 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
         }
     }
 }
+#include <unordered_map>
+inline bool canObjectBeTriggered(AncestorObject * Object, LayerClass * Layer){
+    return Object != nullptr && Layer->getIsActive() && !Layer->getIsDeleted()
+        && Object->getIsActive() && !Object->getIsDeleted();
+} 
 void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers){
     if(printOutInstructions){
-        cout << "\nAll triggered objects: \n";
+        cout << "\n\n=====All triggered objects=====\n";
     }
     AncestorObject * TempObject = nullptr;
+    std::unordered_map<string, std::unordered_set<string>> consecutiveTriggers;
     TriggeredObjects.clear();
     CurrentTriggers.clear();
     if(firstIteration){
         CurrentTriggers.active.insert("on_boot");
         for(AncestorIndex & Index : BaseOfTriggerableObjects.BootTriggered){
             TempObject = Index.object(Layers);
-            if(TempObject != nullptr && TempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*TempObject));
+            if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                 if(printOutInstructions){
                     cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_boot), ";
                 }
+                TriggeredObjects.push_back(&(*TempObject));
+                consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_boot");
             }
         }
     }
     for(AncestorIndex & Index : BaseOfTriggerableObjects.InitTriggered){
         TempObject = Index.object(Layers);
-        if(TempObject != nullptr && TempObject->getIsActive()){
-            CurrentTriggers.active.insert("on_init");
-            TriggeredObjects.push_back(&(*TempObject));
+        if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
             if(printOutInstructions){
                 cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_init), ";
             }
+            CurrentTriggers.active.insert("on_init");
+            TriggeredObjects.push_back(&(*TempObject));
+            consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_init");
         }
     }
     BaseOfTriggerableObjects.InitTriggered.clear();
     CurrentTriggers.active.insert("each_iteration");
     for(AncestorIndex & Index : BaseOfTriggerableObjects.IterationTriggered){
         TempObject = Index.object(Layers);
-        if(TempObject != nullptr && TempObject->getIsActive()){
-            TriggeredObjects.push_back(&(*TempObject));
+        if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
             if(printOutInstructions){
                 cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (each_iteration), ";
             }
+            TriggeredObjects.push_back(&(*TempObject));
+            consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("each_iteration");
         }
     }
     if(Engine.secondHasPassed()){
         CurrentTriggers.active.insert("each_second");
         for(AncestorIndex & Index : BaseOfTriggerableObjects.TimeTriggered){
             TempObject = Index.object(Layers);
-            if(TempObject != nullptr && TempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*TempObject));
+            if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                 if(printOutInstructions){
                     cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (each_second), ";
                 }
+                TriggeredObjects.push_back(&(*TempObject));
+                consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("each_second");
             }
         }
     }
@@ -576,11 +587,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             CurrentTriggers.active.insert("key_pressed");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressedTriggered){
                 TempObject = Index.object(Layers);
-                if(TempObject != nullptr && TempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*TempObject));
+                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                     if(printOutInstructions){
                         cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (key_pressed), ";
                     }
+                    TriggeredObjects.push_back(&(*TempObject));
+                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("key_pressed");
                 }
             }
         }
@@ -588,11 +600,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             CurrentTriggers.active.insert("key_pressing");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressingTriggered){
                 TempObject = Index.object(Layers);
-                if(TempObject != nullptr && TempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*TempObject));
+                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                     if(printOutInstructions){
                         cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (key_pressing), ";
                     }
+                    TriggeredObjects.push_back(&(*TempObject));
+                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("key_pressing");
                 }
             }
         }
@@ -600,11 +613,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             CurrentTriggers.active.insert("key_released");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyReleasedTriggered){
                 TempObject = Index.object(Layers);
-                if(TempObject != nullptr && TempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*TempObject));
+                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                     if(printOutInstructions){
                         cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (key_released), ";
                     }
+                    TriggeredObjects.push_back(&(*TempObject));
+                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("key_released");
                 }
             }
         }
@@ -612,11 +626,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             CurrentTriggers.active.insert("mouse_moved");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseMovedTriggered){
                 TempObject = Index.object(Layers);
-                if(TempObject != nullptr && TempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*TempObject));
+                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                     if(printOutInstructions){
                         cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_moved), ";
                     }
+                    TriggeredObjects.push_back(&(*TempObject));
+                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("mouse_moved");
                 }
             }
         }
@@ -624,11 +639,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             CurrentTriggers.active.insert("mouse_not_moved");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseNotMovedTriggered){
                 TempObject = Index.object(Layers);
-                if(TempObject != nullptr && TempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*TempObject));
+                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                     if(printOutInstructions){
                         cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_not_moved), ";
                     }
+                    TriggeredObjects.push_back(&(*TempObject));
+                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("mouse_not_moved");
                 }
             }
         }
@@ -636,11 +652,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             CurrentTriggers.active.insert("mouse_pressed");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressedTriggered){
                 TempObject = Index.object(Layers);
-                if(TempObject != nullptr && TempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*TempObject));
+                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                     if(printOutInstructions){
                         cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_pressed), ";
                     }
+                    TriggeredObjects.push_back(&(*TempObject));
+                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("mouse_pressed");
                 }
             }
         }
@@ -648,11 +665,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             CurrentTriggers.active.insert("mouse_pressing");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressingTriggered){
                 TempObject = Index.object(Layers);
-                if(TempObject != nullptr && TempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*TempObject));
+                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                     if(printOutInstructions){
                         cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_pressing), ";
                     }
+                    TriggeredObjects.push_back(&(*TempObject));
+                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("mouse_pressing");
                 }
             }
         }
@@ -660,11 +678,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             CurrentTriggers.active.insert("mouse_released");
             for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseReleasedTriggered){
                 TempObject = Index.object(Layers);
-                if(TempObject != nullptr && TempObject->getIsActive()){
-                    TriggeredObjects.push_back(&(*TempObject));
+                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                     if(printOutInstructions){
                         cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (mouse_released), ";
                     }
+                    TriggeredObjects.push_back(&(*TempObject));
+                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("mouse_released");
                 }
             }
         }
@@ -674,18 +693,19 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
         CurrentTriggers.active.insert("on_display_resize");
         for(AncestorIndex & Index : BaseOfTriggerableObjects.ResizeTriggered){
             TempObject = Index.object(Layers);
-            if(TempObject != nullptr && TempObject->getIsActive()){
-                TriggeredObjects.push_back(&(*TempObject));
+            if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
                 if(printOutInstructions){
                     cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_display_resize), ";
                 }
+                TriggeredObjects.push_back(&(*TempObject));
+                consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_display_resize");
             }
         }
     }
     
     for(AncestorIndex & Index : BaseOfTriggerableObjects.MovementTriggered){
         TempObject = Index.object(Layers);
-        if(TempObject == nullptr || !TempObject->getIsActive()){
+        if(!canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
             continue;
         }
         for(const MovementModule & Movement : TempObject->MovementContainer){
@@ -693,12 +713,13 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
                 continue;
             }
             if(Movement.isMoving()){
-                CurrentTriggers.active.insert("movement");
-                CurrentTriggers.movingObjects.insert(TempObject->getID());
-                TriggeredObjects.push_back(&(*TempObject));
                 if(printOutInstructions){
                     cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (movement), ";
                 }
+                CurrentTriggers.active.insert("movement");
+                CurrentTriggers.movingObjects.insert(TempObject->getID());
+                TriggeredObjects.push_back(&(*TempObject));
+                consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("movement");
                 break;
             }
         }
@@ -706,7 +727,7 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
     bool triggered = true;
     for(AncestorIndex & Index : BaseOfTriggerableObjects.StillnessTriggered){
         TempObject = Index.object(Layers);
-        if(TempObject == nullptr || !TempObject->getIsActive()){
+        if(!canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
             continue;
         }
         triggered = true;
@@ -717,13 +738,18 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             }
         }
         if(triggered){
-            CurrentTriggers.active.insert("stillness");
-            CurrentTriggers.stillObjects.insert(TempObject->getID());
-            TriggeredObjects.push_back(&(*TempObject));
             if(printOutInstructions){
                 cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (stillness), ";
             }
+            CurrentTriggers.active.insert("stillness");
+            CurrentTriggers.stillObjects.insert(TempObject->getID());
+            TriggeredObjects.push_back(&(*TempObject));
+            consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("stillness");
         }
+    }
+
+    if(printOutInstructions){
+        cout << "\n---Filtered triggered objects---\n";
     }
 
     //Remove duplicates
@@ -737,11 +763,12 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
         }
     }
 
+    //Remove objects with no active events and with disabled layers. 
     bool noEventsActive;
     for(auto Object = TriggeredObjects.begin(); Object != TriggeredObjects.end();){
         noEventsActive = true;
         for(const EveModule & Event : (*Object)->EveContainer){
-            if(Event.getIsActive()){
+            if(Event.getIsActive() && !Event.getIsDeleted()){
                 noEventsActive = false;
                 break;
             }
@@ -750,6 +777,18 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             Object = TriggeredObjects.erase(Object);
         }
         else{
+            if(printOutInstructions){
+                cout << (*Object)->getLayerID() << "::" << (*Object)->getID() << "<";
+                if((*Object)->getLayerID() == "0" && (*Object)->getID() == "WindowObject" && 
+                    consecutiveTriggers[(*Object)->getID()+(*Object)->getLayerID()].size() == 3)
+                {
+                    //raise(SIGINT);
+                }
+                for(string triggers : consecutiveTriggers[(*Object)->getID()+(*Object)->getLayerID()]){
+                    cout << triggers << ", ";
+                }
+                cout << ">, ";
+            }
             ++Object;
         }
     }
@@ -835,7 +874,25 @@ size_t ContextClass::getVectorSize() const{
     }
     return 0;
 }
-string ContextClass::getValue(EventDescription EventIds){
+inline string shortenText(string text, int textLimit){
+    string newText = text;
+    if(textLimit >= 0 && text.size() > unsigned(textLimit)){
+        newText = text.substr(0, textLimit);
+        newText += "(+" + intToStr(text.size()-textLimit);
+        newText += ")";
+    }
+    string squeezedText = "";
+    for(char letter : newText){
+        if(letter == '\n'){
+            squeezedText += "\\n";
+        }
+        else{
+            squeezedText += letter;
+        }
+    }
+    return squeezedText;
+}
+string ContextClass::getValue(EventDescription EventIds, int maxLengthOfValuesPrinting){
     string buffer = "";
     if(type == ""){
         cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": Context does not have type.\n";
@@ -843,7 +900,7 @@ string ContextClass::getValue(EventDescription EventIds){
     else if(type == "value"){
         buffer = "[";
         for(const VariableModule & Variable: Values){
-            buffer += Variable.getAnyValue();
+            buffer += shortenText(Variable.getAnyValue(), maxLengthOfValuesPrinting);
             buffer += ", ";
         }
         buffer += "]<";
@@ -853,7 +910,7 @@ string ContextClass::getValue(EventDescription EventIds){
     else if(type == "pointer"){
         buffer = "[";
         for(const BasePointersStruct & Pointer: BasePointers){
-            buffer += Pointer.getString();
+            buffer += shortenText(Pointer.getString(), maxLengthOfValuesPrinting);
             if(Pointer.readOnly){
                 buffer += "(R)";
             }
@@ -868,10 +925,11 @@ string ContextClass::getValue(EventDescription EventIds){
         for(const VariableModule * Variable: Modules.Variables){
             if(Variable == nullptr){
                 buffer += "<nullptr>, ";
-                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In the context \'" << ID << "\' the pointer to the variable has a nullptr value.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": In the context \'" << ID << "\' the pointer to the variable has a nullptr value.\n";
                 continue;
             }
-            buffer += Variable->getStringUnsafe();
+            buffer += shortenText(Variable->getStringUnsafe(), maxLengthOfValuesPrinting);
             buffer += ", ";
         }
         buffer += "]<";
@@ -883,12 +941,13 @@ string ContextClass::getValue(EventDescription EventIds){
         for(const VectorModule * Vector: Modules.Vectors){
             if(Vector == nullptr){
                 buffer += "<nullptr>, ";
-                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In the context \'" << ID << "\' the pointer to the vector has a nullptr value.\n";
+                cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+                    << ": In the context \'" << ID << "\' the pointer to the vector has a nullptr value.\n";
                 continue;
             }
             buffer += "[";
             for(size_t i = 0; i < Vector->getSize(); i++){
-                buffer += Vector->getAnyStringValueUnsafe(i) + ", ";
+                buffer += shortenText(Vector->getAnyStringValueUnsafe(i), maxLengthOfValuesPrinting) + ", ";
             }
             buffer += "]";
 
@@ -905,16 +964,6 @@ string ContextClass::getValue(EventDescription EventIds){
     }
     if(readOnly){
         buffer += "(R)";
-    }
-
-    string squeezedBuffer = "";
-    for(char letter : buffer){
-        if(letter == '\n'){
-            squeezedBuffer += "\\n";
-        }
-        else{
-            squeezedBuffer += letter;
-        }
     }
 
     return buffer;
@@ -2762,7 +2811,7 @@ void ProcessClass::executeOperationsOnSets(vector<Entity> & NewContext, vector<E
 void ProcessClass::addNewContext(vector<ContextClass> & EventContext, const ContextClass & NewContext, string type, string newID){
     EventContext.push_back(NewContext);
     EventContext.back().type = type;
-    EventContext.back().setID(currentInstruction, EventContext, newID, printOutInstructions, EventIds);
+    EventContext.back().setID(currentInstruction, EventContext, newID, printOutInstructions, EventIds, maxLengthOfValuesPrinting);
 }
 void ProcessClass::aggregateTwoSets(OperationClass & Operation, vector<ContextClass> & EventContext){
     ContextClass NewContext;
@@ -2779,7 +2828,8 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, vector<ContextCl
 
     if(printOutInstructions){
         cout << transInstrToStr(Operation.instruction) << " " << LeftOperand.ID << ":" << LeftOperand.type << ":"
-            << LeftOperand.getValue(EventIds) << " " << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds) << "\n";
+            << LeftOperand.getValue(EventIds, maxLengthOfValuesPrinting)
+            << " " << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
     }
 
     if(LeftOperand.type != RightOperand.type){
@@ -3079,7 +3129,7 @@ void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, Operation
     ContextClass NewContext;
     for(ConditionClass & ValueLocation : Operation.ConditionalChain){
         if(printOutInstructions){
-            cout << "inner_find ";
+            cout << ">inner_find ";
             ValueLocation.Location.print("");
             cout << "\n";
         }
@@ -3088,7 +3138,7 @@ void ProcessClass::aggregateValues(vector<ContextClass> &EventContext, Operation
     NewContext.type = "value";
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue(EventIds) << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue(EventIds, maxLengthOfValuesPrinting) << " " << Operation.newContextID << "\n";
     }
 
     moveOrRename(EventContext, NewContext, Operation.newContextID);
@@ -3102,9 +3152,7 @@ void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, Operati
     if(Operation.Location.source == "layer" || Operation.Location.source == "camera"){
         if(printOutInstructions){
             cout << "find_by_id (in environment)\n";
-        }
-        if(printOutInstructions){
-            cout << "inner_find ";
+            cout << ">inner_find ";
             Operation.Location.print("");
             cout << "\n";
         }
@@ -3121,7 +3169,7 @@ void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, Operati
                 return;
             }
             if(printOutInstructions){
-                cout << "inner_find ";
+                cout << ">inner_find ";
                 Operation.Location.print(Context->ID);
                 cout << "\n";
             }
@@ -3131,7 +3179,7 @@ void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, Operati
 
     if(NewContext.type != ""){
         if(printOutInstructions){
-            cout << "found: " << NewContext.getValue(EventIds) << "\n";
+            cout << ">found: " << NewContext.getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
         }
         addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
     }
@@ -3140,7 +3188,9 @@ void ProcessClass::aggregateOnlyById(vector<ContextClass> &EventContext, Operati
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void ContextClass::setID(EngineInstr instruction, vector<ContextClass> &EventContext, string newID, const bool & printOutInstructions, EventDescription EventIds){
+void ContextClass::setID(EngineInstr instruction, vector<ContextClass> &EventContext, string newID,
+    const bool & printOutInstructions, EventDescription EventIds, int maxLengthOfValuesPrinting
+){
     if(newID == ""){
         return;
     }
@@ -3149,8 +3199,8 @@ void ContextClass::setID(EngineInstr instruction, vector<ContextClass> &EventCon
 
     if(OldVariable != nullptr){
         if(printOutInstructions){
-            cout << "delete "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue(EventIds) << "\n";
-            cout << "let " << newID << " " << ID << ":" << type << ":" << getValue(EventIds) << "\n";
+            cout << ">delete "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
+            cout << ">let " << newID << " " << ID << ":" << type << ":" << getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
         }
         *OldVariable = *this;
         OldVariable->ID = newID;
@@ -3159,7 +3209,7 @@ void ContextClass::setID(EngineInstr instruction, vector<ContextClass> &EventCon
     }
     else{
         if(printOutInstructions){
-            cout << "let " << newID << " " << ID << ":" << type << ":" << getValue(EventIds) << "\n";
+            cout << ">let " << newID << " " << ID << ":" << type << ":" << getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
         }
         ID = newID;
     }
@@ -3170,10 +3220,10 @@ void ProcessClass::nameVariable(vector<ContextClass> &EventContext, OperationCla
     getContextPointerFromTheParameter(Context, EventContext, EventIds, Operation.instruction, Operation.Parameters, 0, false);
 
     if(Context != nullptr){
-        Context->setID(currentInstruction, EventContext, Operation.newContextID, printOutInstructions, EventIds);
+        Context->setID(currentInstruction, EventContext, Operation.newContextID, printOutInstructions, EventIds, maxLengthOfValuesPrinting);
     }
     else if(EventContext.size() > 0){
-        EventContext.back().setID(currentInstruction, EventContext, Operation.newContextID, printOutInstructions, EventIds);
+        EventContext.back().setID(currentInstruction, EventContext, Operation.newContextID, printOutInstructions, EventIds, maxLengthOfValuesPrinting);
     }
     else{
         cout << instructionError(EventIds, Operation.instruction, __FUNCTION__)
@@ -3246,8 +3296,9 @@ void ProcessClass::moveValues(OperationClass & Operation, vector<ContextClass> &
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue(EventIds)
-            << " " << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds) << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << LeftOperand->ID << ":" << LeftOperand->type
+            << ":" << LeftOperand->getValue(EventIds, maxLengthOfValuesPrinting)
+            << " " << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
     }
     
     moveRightToLeft(currentInstruction, LeftOperand, RightOperand, EventIds);
@@ -3282,8 +3333,9 @@ void ProcessClass::cloneEntities(OperationClass & Operation, vector<ContextClass
     bool sameSize = false;
 
     if(printOutInstructions){
-        cout << "clone " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue(EventIds)
-            << " " << RightOperand->ID << ":" << RightOperand->type << ":" << RightOperand->getValue(EventIds) << " " << changeOldID << "\n";
+        cout << "clone " << LeftOperand->ID << ":" << LeftOperand->type << ":" << LeftOperand->getValue(EventIds, maxLengthOfValuesPrinting)
+            << " " << RightOperand->ID << ":" << RightOperand->type
+            << ":" << RightOperand->getValue(EventIds, maxLengthOfValuesPrinting) << " " << changeOldID << "\n";
     }
 
     if(LeftOperand->readOnly){
@@ -3467,7 +3519,8 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, vector<Context
 
     if(printOutInstructions){
         cout << transInstrToStr(Operation.instruction) << " " << LeftOperand.ID << ":" << LeftOperand.type
-            << ":" << LeftOperand.getValue(EventIds) << " " << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds) << "\n";
+            << ":" << LeftOperand.getValue(EventIds, maxLengthOfValuesPrinting)
+            << " " << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
     }
 
     if(LeftOperand.type == "pointer" && RightOperand.type == "pointer"){
@@ -3637,7 +3690,7 @@ void ProcessClass::createLiteral(vector<ContextClass> & EventContext, const Oper
         if(printOutInstructions){
             cout << "[";
             for(const VariableModule & Value : NewVariables){
-                cout << Value.getAnyValue() << ", ";
+                cout << shortenText(Value.getAnyValue(), maxLengthOfValuesPrinting) << ", ";
             }
             cout << "], ";
         }
@@ -3674,7 +3727,8 @@ void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, co
 
     if(printOutInstructions){
         cout << transInstrToStr(Operation.instruction) << " " << LeftOperand.ID << ":" << LeftOperand.type
-            << ":" << LeftOperand.getValue(EventIds) << " " << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds) << "\n";
+            << ":" << LeftOperand.getValue(EventIds, maxLengthOfValuesPrinting)
+            << " " << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
     }
 
     if(LeftOperand.type == "pointer" && RightOperand.type == "pointer"){
@@ -3747,7 +3801,8 @@ void ProcessClass::generateRandomVariable(vector<ContextClass> &EventContext, co
     NewContext.type = "value";
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << NewContext.getValue(EventIds) << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " "
+            << NewContext.getValue(EventIds, maxLengthOfValuesPrinting) << " " << Operation.newContextID << "\n";
     }
 
     moveOrRename(EventContext, NewContext, Operation.newContextID);
@@ -3787,8 +3842,8 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, vecto
     unsigned i = 0, j = 0;
 
     if(printOutInstructions){
-        cout << "in " << LeftOperand.ID << ":" << LeftOperand.type << ":" << LeftOperand.getValue(EventIds) << " "
-            << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds) << "\n";
+        cout << "in " << LeftOperand.ID << ":" << LeftOperand.type << ":" << LeftOperand.getValue(EventIds, maxLengthOfValuesPrinting) << " "
+            << RightOperand.ID << ":" << RightOperand.type << ":" << RightOperand.getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
     }
 
     if(LeftOperand.type != RightOperand.type){
@@ -4366,7 +4421,8 @@ void ProcessClass::createNewEntities(OperationClass & Operation, vector<ContextC
         );
     }
     else{
-        cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "Entity type \'" << transInstrToStr(Operation.instruction) << "\' does not exist.\n";
+        cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "Entity type \'"
+            << transInstrToStr(Operation.instruction) << "\' does not exist.\n";
     }
 
     if(NewContext.type != ""){
@@ -4374,7 +4430,8 @@ void ProcessClass::createNewEntities(OperationClass & Operation, vector<ContextC
         wasNewExecuted = true;
     }
     else{
-        cout << instructionError(EventIds, Operation.instruction, __FUNCTION__) << "Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
+        cout << instructionError(EventIds, Operation.instruction, __FUNCTION__)
+            << "Instruction \'" << transInstrToStr(Operation.instruction) << "\' failed.\n";
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
@@ -4405,7 +4462,7 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, vector<Co
     }
 
     if(printOutInstructions){
-        cout << "delete " << DeletedContext->getValue(EventIds) << "\n";
+        cout << "delete " << DeletedContext->getValue(EventIds, maxLengthOfValuesPrinting) << "\n";
     }
 
     wasDeleteExecuted = true;
@@ -5064,14 +5121,14 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, vector<Contex
         addNewContext(EventContext, NewContext, "null", Operation.newContextID);
     }
 }
-void printStringVectorForInstruction(vector<string> values){
+void printStringVectorForInstruction(vector<string> values, int maxLengthOfValuesPrinting){
     if(values.size() == 1){
         cout << values.back() << " ";
     }
     else if(values.size() > 1){
         cout << " [";
-        for(string path : values){
-            cout << path << ", ";
+        for(string text : values){
+            cout << "\"" << shortenText(text, maxLengthOfValuesPrinting) << "\", ";
         }
         cout << "] ";
     }
@@ -5112,7 +5169,7 @@ void ProcessClass::bindFilesToObjects(OperationClass & Operation, vector<Context
     }
 
     if(printOutInstructions){
-        printStringVectorForInstruction(scriptPaths);
+        printStringVectorForInstruction(scriptPaths, maxLengthOfValuesPrinting);
         cout << "\n";
     }
 
@@ -5247,7 +5304,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, vector
     getBoolFromTheParameter(EventContext, EventIds, currentInstruction, Operation.Parameters, 3, canDeleteEventsOfItsOwner, false);
 
     if(printOutInstructions){
-        printStringVectorForInstruction(stringVector);
+        printStringVectorForInstruction(stringVector, maxLengthOfValuesPrinting);
         cout << "\n";
     }
 
@@ -5763,7 +5820,7 @@ void ProcessClass::executeFunction(OperationClass Operation, vector<ContextClass
         if(Variables.size() > 0){
             cout << "[";
             for(const VariableModule & Var : Variables){
-                cout << Var.getStringUnsafe() << ", ";
+                cout << shortenText(Var.getAnyValue(), maxLengthOfValuesPrinting) << ", ";
             }
             cout << "]<" << Variables.size() << ">";
         }
@@ -6010,14 +6067,14 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, vector<Cont
         return;
     }
     if(printOutInstructions){
-        cout << FirstValue.getAnyValue() << " ";
+        cout << shortenText(FirstValue.getAnyValue(), maxLengthOfValuesPrinting) << " ";
     }
 
     VariableModule SecondValue; //sometimes optional
     getValueFromTheParameter(EventContext, EventIds, currentInstruction, Operation.Parameters, 2, SecondValue, false);
     if(printOutInstructions){
         if(SecondValue.getType() != 'n'){
-            cout << SecondValue.getAnyValue() << "\n";
+            cout << shortenText(SecondValue.getAnyValue(), maxLengthOfValuesPrinting) << "\n";
         }
         else{
             cout << "\n";
@@ -6154,14 +6211,14 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, vector<Con
         return;
     }
     if(printOutInstructions){
-        cout << FirstValue.getAnyValue() << " ";
+        cout << shortenText(FirstValue.getAnyValue(), maxLengthOfValuesPrinting) << " ";
     }
 
     VariableModule SecondValue; //sometimes optional
     getValueFromTheParameter(EventContext, EventIds, currentInstruction, Operation.Parameters, 2, SecondValue, false);
     if(printOutInstructions){
         if(SecondValue.getType() != 'n'){
-            cout << SecondValue.getAnyValue() << " ";
+            cout << shortenText(SecondValue.getAnyValue(), maxLengthOfValuesPrinting) << " ";
         }
         if(attribute != "window_tint"){
             cout << "\n";
@@ -6208,7 +6265,10 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, vector<Con
         printOutLogicalEvaluations = FirstValue.getBool(); 
     }
     else if(attribute == "print_instructions"){
-        printOutInstructions = FirstValue.getBool(); 
+        printOutInstructions = FirstValue.getBool();
+        if(SecondValue.isNumeric()){
+            maxLengthOfValuesPrinting = SecondValue.getIntUnsafe();
+        }
     }
     else if(attribute == "auto_print_stack"){
         printOutStackAutomatically = FirstValue.getBool(); 
@@ -6284,7 +6344,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, vector<Con
             return;
         }
         if(printOutInstructions){
-            cout << ThirdValue.getAnyValue() << " ";
+            cout << shortenText(ThirdValue.getAnyValue(), maxLengthOfValuesPrinting) << " ";
         }
 
         VariableModule FourthValue;
@@ -6296,7 +6356,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, vector<Con
             return;
         }
         if(printOutInstructions){
-            cout << FourthValue.getAnyValue() << "\n";
+            cout << shortenText(FourthValue.getAnyValue(), maxLengthOfValuesPrinting) << "\n";
         }
         
         if(!FirstValue.isNumeric() || !SecondValue.isNumeric()
@@ -6690,7 +6750,7 @@ void ProcessClass::saveStringAsFile(OperationClass & Operation, vector<ContextCl
 
     if(printOutInstructions){
         cout << transInstrToStr(Operation.instruction) << " " << pathToTheFile << " ";
-        printStringVectorForInstruction(textToWrite);
+        printStringVectorForInstruction(textToWrite, maxLengthOfValuesPrinting);
         cout << "\"" << delimeter << "\"\n";
     }
 
@@ -6894,7 +6954,8 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, vector<Con
     }
     
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << Value.getAnyValue() << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << shortenText(Value.getAnyValue(), maxLengthOfValuesPrinting)
+            << " " << Operation.newContextID << "\n";
     }
 
     for(const VariableModule & Variable : Owner->VariablesContainer){
@@ -6973,7 +7034,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation, vector<Conte
     if(printOutInstructions){
         cout << transInstrToStr(Operation.instruction) << " " << vectorType << " [";
         for(const VariableModule & Value : Values){
-            cout << Value.getAnyValue() << ", ";
+            cout << shortenText(Value.getAnyValue(), maxLengthOfValuesPrinting) << ", ";
         }
         cout << "] " << Operation.newContextID << "\n";
     }
@@ -7109,7 +7170,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, vector<
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << delimeter << " " << text << " ";
+        cout << transInstrToStr(Operation.instruction) << " " << delimeter << " \"" << shortenText(text, maxLengthOfValuesPrinting) << "\" ";
         for(string output : outputContextsIds){
             cout << output << " ";
         }
@@ -7294,7 +7355,7 @@ void ProcessClass::getStringSizeFromContext(OperationClass & Operation, vector<C
     }
     
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " \"" << text << "\" " << Operation.newContextID << " " << "\n";
+        cout << transInstrToStr(Operation.instruction) << " \"" << shortenText(text, 100) << "\" " << Operation.newContextID << " " << "\n";
     }
 
     ContextClass NewContext;
@@ -7357,7 +7418,8 @@ void ProcessClass::getSubStringFromContext(OperationClass & Operation, vector<Co
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " \"" << text << "\" " << beginning << " " << length << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " \"" << shortenText(text, maxLengthOfValuesPrinting)
+            << "\" " << beginning << " " << length << " " << Operation.newContextID << "\n";
     }
 
     ContextClass NewContext;
@@ -8058,7 +8120,7 @@ OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operatio
             case dump_context_stack:
                 buffor = "\nStack: ";
                 for(auto context : EventContext){
-                    buffor += context.ID + ":" + context.type + ":" + context.getValue(EventIds) + ", ";
+                    buffor += context.ID + ":" + context.type + ":" + context.getValue(EventIds, maxLengthOfValuesPrinting) + ", ";
                 }
                 buffor += "\n\n";
                 printInColor(buffor, 11);
@@ -8092,7 +8154,7 @@ OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operatio
         if(printOutInstructions && printOutStackAutomatically && Operation.instruction != EngineInstr::dump_context_stack){
             buffor = "\nStack: ";
             for(auto context : EventContext){
-                buffor += context.ID + ":" + context.type + ":" + context.getValue(EventIds) + ", ";
+                buffor += context.ID + ":" + context.type + ":" + context.getValue(EventIds, maxLengthOfValuesPrinting) + ", ";
             }
             buffor += "\n\n";
             printInColor(buffor, 11);
@@ -9191,7 +9253,9 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                     comparasion = leftOperand.isConditionMet(op, &rightOperand);
                     
                     if(printOutLogicalEvaluations){
-                        cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << transInstrToStr(op) << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << comparasion << "\n";
+                        cout << leftOperand.getID() << ":"  << shortenText(leftOperand.getAnyValue(), maxLengthOfValuesPrinting) << " "
+                            << transInstrToStr(op) << " " << rightOperand.getID() << ":"
+                                << shortenText(rightOperand.getAnyValue(), maxLengthOfValuesPrinting) << " -> " << comparasion << "\n";
                     }
                     
                     resultStack.back().setBool(comparasion);
@@ -9203,7 +9267,9 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                         resultDouble = leftOperand.floatingOperation(op, &rightOperand);
 
                         if(printOutLogicalEvaluations){
-                            cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << transInstrToStr(op) << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << resultDouble << "\n";
+                            cout << leftOperand.getID() << ":"  << shortenText(leftOperand.getAnyValue(), maxLengthOfValuesPrinting)
+                                << " " << transInstrToStr(op) << " " << rightOperand.getID() << ":"
+                                << shortenText(rightOperand.getAnyValue(), maxLengthOfValuesPrinting) << " -> " << resultDouble << "\n";
                         }
 
                         resultStack.back().setDouble(resultDouble);
@@ -9212,7 +9278,9 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                         resultInt = leftOperand.intOperation(op, &rightOperand);
 
                         if(printOutLogicalEvaluations){
-                            cout << leftOperand.getID() << ":"  << leftOperand.getAnyValue() << " " << transInstrToStr(op) << " " << rightOperand.getID() << ":" << rightOperand.getAnyValue() << " -> " << resultInt << "\n";
+                            cout << leftOperand.getID() << ":"  << shortenText(leftOperand.getAnyValue(), maxLengthOfValuesPrinting) << " "
+                                << transInstrToStr(op) << " " << rightOperand.getID() << ":"
+                                << shortenText(rightOperand.getAnyValue(), maxLengthOfValuesPrinting) << " -> " << resultInt << "\n";
                         }
 
                         resultStack.back().setInt(resultInt);
@@ -9477,7 +9545,7 @@ bool isEventTriggered(const Triggers & CurrentTriggers, const std::vector<EveMod
     }
     return false;
 }
-void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Processes){
+void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Processes){
     //Only events from TriggeredObjects can be executed in the current iteration - events of newly created objects 
     //must wait with execution for the next iteration, unless run() command will be used.
     vector <AncestorObject*> TriggeredObjects;
@@ -9498,32 +9566,18 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         return;
     }
 
-    if(printOutInstructions){
-        cout << "Final triggered "<< TriggeredObjects.size() << " objects: ";
-        for(AncestorObject * Triggered : TriggeredObjects){
-            cout << Triggered->getLayerID() << "::" << Triggered->getID() << ", ";
-        }
-        cout << "\n";
-    }
-
     //Remember to delete pointers to destroyed objects during the iteration
     
     vector<EveModule>::iterator StartingEvent, Event;
     vector<MemoryStackStruct> MemoryStack;
     vector<ContextClass> Context; //All dynamic context created from instructions. It's inherited by the children of an event.
-
-    bool noTriggerableEvents = true;
-    
-
-    unsigned triObjIdx = 0;
-
-    unsigned preGeneratedContextSize = 0;
-
     LayerClass * TriggeredLayer;
     OperationClass Interrupt;
     AncestorObject * Triggered = nullptr;
+    bool noTriggerableEvents = true;
+    unsigned preGeneratedContextSize = 0;
 
-    for(triObjIdx = 0; triObjIdx < TriggeredObjects.size(); triObjIdx++){
+    for(unsigned triObjIdx = 0; triObjIdx < TriggeredObjects.size(); triObjIdx++){
         Triggered = TriggeredObjects[triObjIdx];
         if(Triggered == nullptr || Triggered->getIsDeleted() || !Triggered->getIsActive()){
             continue;
@@ -9598,13 +9652,36 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 addGlobalVariables(Context, Triggered->VariablesContainer);
                 addGlobalVectors(Context, Triggered->VectorContainer);
             }
+            if(printOutInstructions){
+                printInColor("\n---Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
+            }
             if(Event->conditionalStatus == 'n' && Interrupt.instruction != EngineInstr::break_i){
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Triggered, TriggeredLayer, Engine, Context);
+                if(printOutInstructions){
+                    if(Event->conditionalStatus == 'n'){
+                        printInColor("---null\n", 14);
+                    }
+                    else if(Event->conditionalStatus == 't'){
+                        printInColor("---true\n", 14);
+                    }
+                    else if(Event->conditionalStatus == 'f'){
+                        printInColor("---false\n", 14);
+                    }
+                    else{
+                        printInColor("---" + Event->conditionalStatus, 14);
+                        printInColor("\n", 14);
+                    }
+                }
+            }
+            else if(printOutInstructions){
+                if(Interrupt.instruction == EngineInstr::break_i){
+                    printInColor("---break\n", 14);
+                }
+                else{
+                    printInColor("---go_back\n", 14);
+                }
             }
             if(Event->conditionalStatus == 't' && Interrupt.instruction != EngineInstr::break_i){ //if true
-                if(printOutInstructions){
-                    printInColor("\nCurrent event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
-                }
                 if(!Event->areDependentOperationsDone){
                     Interrupt = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, Context, TriggeredObjects,
                         Processes, StartingEvent, Event, MemoryStack, Engine
@@ -9636,7 +9713,9 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                     MemoryStack.pop_back();
                 }
             }
-            else if(Event->conditionalStatus == 'f' && Interrupt.instruction != EngineInstr::break_i && Event->elseChildID != "" && !Event->elseChildFinished){ //else
+            else if(Event->conditionalStatus == 'f' && Interrupt.instruction != EngineInstr::break_i
+                && Event->elseChildID != "" && !Event->elseChildFinished)
+            { //else
                 MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                 Event = FindElseEvent(Triggered, Event);
                 if(MemoryStack.back().Event->elseChildFinished){ //True if else event has been found.
@@ -9715,7 +9794,7 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
         Context.clear();
         MemoryStack.clear();
 
-        if(wasDeleteExecuted){
+        /*if(wasDeleteExecuted){ Deleting entities in the middle of events execution will cause event ordering problems.
             unsigned deletedBeforeIndex = 0;
             for(unsigned objIdx = 0; objIdx <= triObjIdx; objIdx++){
                 if(TriggeredObjects[objIdx] != nullptr && TriggeredObjects[objIdx]->getIsDeleted()){
@@ -9723,12 +9802,17 @@ void ProcessClass::triggerEve(EngineClass & Engine, vector<ProcessClass> & Proce
                 }
             }
             if(deleteEntities()){
+                if(printOutInstructions){
+                    printInColor("\n\n=========================\n", 14);
+                    printInColor("=====Delete Entities=====\n", 14);
+                    printInColor("=========================\n", 14);
+                }
                 updateBaseOfTriggerableObjects();
                 detectTriggeredEvents(Engine, TriggeredObjects, CurrentTriggers);
                 triObjIdx -= deletedBeforeIndex - 1;
                 wasDeleteExecuted = false;
             }
-        }
+        }*/
 
         if(wasNewExecuted || wasAnyEventUpdated){
             updateBaseOfTriggerableObjects();
