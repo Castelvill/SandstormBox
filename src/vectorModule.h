@@ -44,7 +44,7 @@ public:
     bool setInt(size_t index, int newValue);
     bool setDouble(size_t index, double newValue);
     bool setString(size_t index, string newValue);
-    void move(std::vector<VariableModule *> Variables, EngineInstr instruction, EventDescription EventIds);
+    void move(std::vector<VariableModule *> Variables, const InstrDescription & CurrentInstr);
 
     bool popBack();
     bool removeIndex(size_t index);

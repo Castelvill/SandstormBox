@@ -1521,3 +1521,23 @@ string BasePointersStruct::getString() const{
 string EventDescription::describe() const{
     return layerID + "::" + objectID + "::" + eventID;
 }
+
+string errorSpacing(){return "\t";}; 
+string instructionError(InstrDescription Description, string functionName){
+    if(Description.scriptName == ""){
+        return "Error: In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
+            + ": In the '" + transInstrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
+    }
+    return "Error in: " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
+        + errorSpacing() + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
+        + ": In the '" + transInstrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
+}
+string instructionWarning(InstrDescription Description, string functionName){
+    if(Description.scriptName == ""){
+        return "Error: In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
+            + ": In the '" + transInstrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
+    }
+    return "Error in: " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
+        + errorSpacing() + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
+        + ": In the '" + transInstrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
+}

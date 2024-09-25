@@ -66,14 +66,14 @@ struct ContextClass{
     vector <Camera2D*> Cameras;
     ContextClass();
     void clear();
-    void setID(EngineInstr instruction, vector<ContextClass> &EventContext, string newID,
-        const bool & printOutInstructions, EventDescription EventIds, int maxLengthOfValuesPrinting
+    void setID(const InstrDescription & CurrentInstr, vector<ContextClass> &EventContext, string newID,
+        const bool & printOutInstructions, int maxLengthOfValuesPrinting
     );
     size_t getVectorSize() const;
-    string getValue(EventDescription EventIds, int maxLengthOfValuesPrinting);
-    bool getUnsignedOrAbort(unsigned & number, EngineInstr instruction, EventDescription EventIds);
-    bool getIntOrAbort(int & number, EngineInstr instruction, EventDescription EventIds);
-    bool getStringOrAbort(string & text, EngineInstr instruction, EventDescription EventIds);
+    string getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting);
+    bool getUnsignedOrAbort(unsigned & number, const InstrDescription & CurrentInstr);
+    bool getIntOrAbort(int & number, const InstrDescription & CurrentInstr);
+    bool getStringOrAbort(string & text, const InstrDescription & CurrentInstr);
     bool getStringOrIgnore(string & text, EngineInstr instruction);
     bool getStringVectorOrIgnore(vector<string> & result, EngineInstr instruction);
     template<typename T>
@@ -108,8 +108,8 @@ struct ContextClass{
     void setFirstModule(PrimitivesModule * Module);
     void setFirstModule(VectorModule * Module);
 
-    bool copyFromTheParameter(vector<ContextClass> & EventContext, EventDescription EventIds,
-        EngineInstr instruction, const vector<ParameterStruct> & Parameters, unsigned index, bool printErrors
+    bool copyFromTheParameter(vector<ContextClass> & EventContext, const InstrDescription & CurrentInstr,
+        const vector<ParameterStruct> & Parameters, unsigned index, bool printErrors
     );
 
     void leaveOneRandomBasePointer();
@@ -149,23 +149,23 @@ struct PointerRecalculator{
     void findIndexesForObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
     template <class Module>
-    ModuleIndex getIndex(Module *& Instance, vector<LayerClass> & Layers, EventDescription EventIds);
-    ModuleIndex getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers, EventDescription EventIds);
+    ModuleIndex getIndex(Module *& Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
+    ModuleIndex getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
     template <class Module>
-    void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, EventDescription EventIds);
+    void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
     void findIndexesForModules(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, EventDescription EventIds);
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
     void updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext,
-        Camera2D *& SelectedCamera, string processID, string & focusedProcessID, EventDescription EventIds);
-    void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer, EventDescription EventIds);
+        Camera2D *& SelectedCamera, string processID, string & focusedProcessID, const InstrDescription & CurrentInstr);
+    void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr);
     void updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
-        vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, EventDescription EventIds);
+        vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, const InstrDescription & CurrentInstr);
     void updatePointersToModules(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, EventDescription EventIds);
+        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
     LayerClass * getOwnerLayer(vector <LayerClass> & Layers);
 };
 
-ContextClass * getContextByID(EngineInstr instruction, vector<ContextClass> & AllContexts, string contextID, bool printError, EventDescription EventIds);
+ContextClass * getContextByID(const InstrDescription & CurrentInstr, vector<ContextClass> & AllContexts, string contextID, bool printError);
 void extractPointersFromModules(ModulesPointers & ContextModules, AncestorObject * Object, string moduleType);
 template<class Entity>
 Entity * lastNotDeletedInVector(vector<Entity> &Vector);
@@ -230,7 +230,7 @@ private:
 public:
     vector <unsigned> camerasOrder;
     EventDescription EventIds;
-    EngineInstr currentInstruction;
+    InstrDescription CurrentInstr;
 
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);

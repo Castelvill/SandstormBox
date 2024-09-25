@@ -303,9 +303,9 @@ void VectorModule::reserve(unsigned newSize){
         cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Cannot reserve memory for a vector of '" << type << "' type.\n";
     }
 }
-void VectorModule::move(vector<VariableModule*> Variables, EngineInstr instruction, EventDescription EventIds){
-    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": In '"
-        << transInstrToStr(instruction) << "': Not yet implemented!\n";
+void VectorModule::move(vector<VariableModule*> Variables, const InstrDescription & CurrentInstr){
+    cout << instructionError(CurrentInstr, __FUNCTION__)
+        << "': Not yet implemented!\n";
 }
 
 bool VectorModule::getIsDeleted() const{

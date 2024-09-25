@@ -12,7 +12,7 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
     unsigned index, char type, string name, bool optional
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
+        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << ".\n";
     };
@@ -110,7 +110,7 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName,
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
+        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << "\n";
     };
@@ -178,7 +178,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional)
 {
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cout << "Error: In script: " << scriptName << ":" << lineNumber << ":\n"
+        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << "\n";
     };

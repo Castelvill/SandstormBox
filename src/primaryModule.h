@@ -91,6 +91,19 @@ public:
     bool isNumeric() const;
 };
 
+struct InstrDescription{
+    string layerID;
+    string objectID;
+    string eventID;
+    EngineInstr instruction;
+    string scriptName = "";
+    unsigned lineNumber = 0;
+};
+
+string errorSpacing();
+string instructionError(InstrDescription Description, string functionName);
+string instructionWarning(InstrDescription Description, string functionName);
+
 struct EventDescription{
     string layerID;
     string objectID;

@@ -1,12 +1,9 @@
+-Rename EveModule to EventModule.
+-Fix: "find_by_id_2" instruction does not throw error when it doesn't find the object for example in the code "find_by_id_2 me "Rectangle" Rectangle".
 -Implement the autocomplete for files.
 -Skip the repeating commands in the history.
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
--Fix: "find_by_id_2" instruction does not throw error when it doesn't find the object for example in the code "find_by_id_2 me "Rectangle" Rectangle".
--Rename EveModule to EventModule.
--Do something about "if([on_boot])".
 -Maybe the "start" instruction could be used inside the existing scope? If it would work, then you could easily create the "if" scope. 
--When referencing the error in the file, the line number should be inserted right after the file name like this: "...main.sand::300:..." to shorten the message. 
--All errors should also print the instruction and its parameters.
 -Remove "cout.flush();" from the method "executeInstructions". It probably hurts the performance.
 -Check file path checks: "", "~/" and ''.
 -Change "char type" instances to enum in classes like VariableModule.

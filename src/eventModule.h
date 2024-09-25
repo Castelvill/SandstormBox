@@ -46,6 +46,8 @@ public:
     vector <ParameterStruct> Parameters;
     ValueLocation Location;
     EngineInstr instruction; //first, last, all, random, let, assigment, class method, run(), break, return
+    string scriptName;
+    unsigned lineNumber;
     string newContextID; //Assign an id to the result of operation.
     OperationClass();
     
