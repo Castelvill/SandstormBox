@@ -1,3 +1,7 @@
+27.09.2024
+-Fixed: Newly created global variables were deleted from the context when retracing the event stack. 
+-Fixed small memory leak: ALLEGRO_PATH pointer was never destroyed.
+
 25.09.2024
 -Added script paths and line numbers to error messages.
 -Fixed event ordering by removing entity deletion in the middle of event execution (executeEvents()).

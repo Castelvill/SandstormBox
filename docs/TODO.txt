@@ -1,5 +1,6 @@
 -Rename EveModule to EventModule.
 -Fix: "find_by_id_2" instruction does not throw error when it doesn't find the object for example in the code "find_by_id_2 me "Rectangle" Rectangle".
+-Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
 -Implement the autocomplete for files.
 -Skip the repeating commands in the history.
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.

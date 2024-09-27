@@ -47,6 +47,10 @@ start testSaveLoadTerminal
     string param1 "temp/test.ft"
     run save_terminal load_terminal
 end
+start dvd
+    = param1 "scripts/dvd.sand"
+    run sand
+end
 start test
-    run help nextTest neofetch nextTest nextTest hello nextTest ls nextTest sq nextTest cats nextTest fullscreen fs nw testNote testMover testSpawn v4 testCat nextTest testPrint nextTest testEdit triggerEditorExit testSand nextTest testCd pwd nextTest xd nextTest allegro nextTest testCd2 testSaveLoadTerminal //cls
+    run help nextTest neofetch nextTest nextTest hello nextTest ls nextTest sq nextTest cats nextTest fullscreen fs nw testNote testMover testSpawn v4 testCat nextTest testPrint nextTest testEdit triggerEditorExit testSand nextTest testCd pwd nextTest xd nextTest allegro nextTest testCd2 testSaveLoadTerminal dvd//cls
 end

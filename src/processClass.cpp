@@ -9506,9 +9506,10 @@ void ProcessClass::resetChildren(vector<EveModule>::iterator & Event, AncestorOb
         }
     }
 }
-void addGlobalVariables(vector<ContextClass> & EventContext, vector<VariableModule> & VariablesContainer){
+void addGlobalVariables(vector<ContextClass> & EventContext, vector<VariableModule> & VariablesContainer, bool printOutInstructions){
     bool exists = false;
     for(VariableModule & Variable : VariablesContainer){
+        exists = false;
         for(const ContextClass & Context : EventContext){
             if(Variable.getID() == Context.ID){
                 exists = true;
@@ -9522,11 +9523,16 @@ void addGlobalVariables(vector<ContextClass> & EventContext, vector<VariableModu
         EventContext.back().type = "variable";
         EventContext.back().Modules.Variables.push_back(&Variable);
         EventContext.back().ID = Variable.getID();
+        if(printOutInstructions){
+            cout << "global var " << Variable.getLayerID() << ":" << Variable.getObjectID() << ":"
+                << EventContext.back().ID << ": " << shortenText(Variable.getAnyValue(), 100) << "\n";
+        }
     }
 }
-void addGlobalVectors(vector<ContextClass> & EventContext, vector<VectorModule> & VectorContainer){
+void addGlobalVectors(vector<ContextClass> & EventContext, vector<VectorModule> & VectorContainer, bool printOutInstructions){
     bool exists = false;
     for(VectorModule & Vector : VectorContainer){
+        exists = false;
         for(const ContextClass & Context : EventContext){
             if(Vector.getID() == Context.ID){
                 exists = true;
@@ -9540,6 +9546,12 @@ void addGlobalVectors(vector<ContextClass> & EventContext, vector<VectorModule> 
         EventContext.back().type = "vector";
         EventContext.back().Modules.Vectors.push_back(&Vector);
         EventContext.back().ID = Vector.getID();
+        if(printOutInstructions){
+            cout << "global vec " << Vector.getLayerID() << ":" << Vector.getObjectID() << ":"
+                << EventContext.back().ID << ":";
+            printStringVectorForInstruction(Vector.getAllValuesAsStringVector(), 100);
+            cout << "\n";
+        }
     }
 }
 void removeOnInitTrigger(vector<string> & primaryTriggerTypes){
@@ -9662,8 +9674,8 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
         Context.back().type = "layer";
         Context.back().Layers.push_back(TriggeredLayer);
         Context.back().ID = "my_layer";
-        addGlobalVariables(Context, Triggered->VariablesContainer);
-        addGlobalVectors(Context, Triggered->VectorContainer);
+        addGlobalVariables(Context, Triggered->VariablesContainer, printOutInstructions);
+        addGlobalVectors(Context, Triggered->VectorContainer, printOutInstructions);
         preGeneratedContextSize = Context.size();
 
         wereGlobalVariablesCreated = false;
@@ -9673,12 +9685,14 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
         do{
             EventIds.eventID = Event->getID();
             removeOnInitTrigger(Event->primaryTriggerTypes);
-            // if(printOutInstructions){
-            //     printInColor("\nCurrent event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
-            // }
             if(wereGlobalVariablesCreated){
-                addGlobalVariables(Context, Triggered->VariablesContainer);
-                addGlobalVectors(Context, Triggered->VectorContainer);
+                if(printOutInstructions){
+                    cout << "---Update global variables:\n";
+                }
+                wereGlobalVariablesCreated = false;
+                addGlobalVariables(Context, Triggered->VariablesContainer, printOutInstructions);
+                addGlobalVectors(Context, Triggered->VectorContainer, printOutInstructions);
+                preGeneratedContextSize = Context.size();
             }
             if(printOutInstructions){
                 printInColor("\n---Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
@@ -9733,6 +9747,9 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                     Event->areDependentOperationsDone = true;
                 }
                 if(!Event->checkIfAllChildrenFinished() && Interrupt.instruction != EngineInstr::break_i){
+                    if(preGeneratedContextSize > Context.size()){
+                        cout << "Error: In run: Pre-generated context is bigger than the context!\n";
+                    }
                     MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
                     Event = FindUnfinishedEvent(Triggered, Event);
                     if(Event != MemoryStack.back().Event){
@@ -9744,7 +9761,7 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
             else if(Event->conditionalStatus == 'f' && Interrupt.instruction != EngineInstr::break_i
                 && Event->elseChildID != "" && !Event->elseChildFinished)
             { //else
-                MemoryStack.push_back(MemoryStackStruct(Event, Context.size()));
+                MemoryStack.push_back(MemoryStackStruct(Event, Context.size() ));
                 Event = FindElseEvent(Triggered, Event);
                 if(MemoryStack.back().Event->elseChildFinished){ //True if else event has been found.
                     continue;
@@ -9754,11 +9771,25 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
 
             if(Event->loop && Event->conditionalStatus != 'f' && Interrupt.instruction != EngineInstr::break_i){ //loop back
                 if(MemoryStack.size() > 0){
-                    Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
+                    if(preGeneratedContextSize > MemoryStack.back().contextSize){ //Global variables were created.
+                        // cout << "Erase in loop back: {" << preGeneratedContextSize << ", " << Context.size()
+                        //     << "}, pre = " << preGeneratedContextSize << "\n";
+                        Context.erase(Context.begin() + preGeneratedContextSize, Context.end());
+                    }
+                    else{
+                        // cout << "Erase in loop back: {" << MemoryStack.back().contextSize << ", " << Context.size()
+                        //     << "}, pre = " << preGeneratedContextSize << "\n";
+                        Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
+                    }
                 }
                 if(wereGlobalVariablesCreated){
-                    addGlobalVariables(Context, Triggered->VariablesContainer);
-                    addGlobalVectors(Context, Triggered->VectorContainer);
+                    if(printOutInstructions){
+                        cout << "---Update global variables:\n";
+                    }
+                    wereGlobalVariablesCreated = false;
+                    addGlobalVariables(Context, Triggered->VariablesContainer, printOutInstructions);
+                    addGlobalVectors(Context, Triggered->VectorContainer, printOutInstructions);
+                    preGeneratedContextSize = Context.size();
                 }
                 
                 Event->conditionalStatus = 'n';
@@ -9798,8 +9829,16 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                 resetChildren(Event, Triggered);
 
                 Event = MemoryStack.back().Event;
-
-                Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
+                if(preGeneratedContextSize > MemoryStack.back().contextSize){ //Global variables were created.
+                    // cout << "Erase in jump back: {" << preGeneratedContextSize << ", " << Context.size()
+                    //     << "}, pre = " << preGeneratedContextSize << "\n";
+                    Context.erase(Context.begin() + preGeneratedContextSize, Context.end());
+                }
+                else{
+                    // cout << "Erase in jump back: {" << MemoryStack.back().contextSize << ", " << Context.size()
+                    //     << "}, pre = " << preGeneratedContextSize << "\n";
+                    Context.erase(Context.begin() + MemoryStack.back().contextSize, Context.end());
+                }
                 
                 MemoryStack.pop_back();
                 continue;
@@ -9807,6 +9846,7 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
             for(unsigned i = preGeneratedContextSize; i < Context.size(); i++){
                 Context[i].clear();
             }
+            //cout << "Erase in finish event: {" << preGeneratedContextSize << ", " << Context.size() << "}, pre = " << preGeneratedContextSize << "\n";
             Context.erase(Context.begin() + preGeneratedContextSize, Context.end());
             MemoryStack.clear();
             
@@ -9821,6 +9861,7 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
         }
         Context.clear();
         MemoryStack.clear();
+        preGeneratedContextSize = 0;
 
         /*if(wasDeleteExecuted){ Deleting entities in the middle of events execution will cause event ordering problems.
             unsigned deletedBeforeIndex = 0;

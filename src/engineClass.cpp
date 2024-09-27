@@ -178,6 +178,8 @@ void EngineClass::initAllegro(){
     sprintf(buffer, "%s", al_path_cstr(path, ALLEGRO_NATIVE_PATH_SEP));
     EXE_PATH = string(buffer);
 
+    al_destroy_path(path);
+
     eventQueue = al_create_event_queue();
 
     timer = al_create_timer(1.0 / FPS);
@@ -314,9 +316,13 @@ void EngineClass::exitAllegro(){
         al_destroy_bitmap(backbuffer);
     }
     if(display != nullptr){
+        al_unregister_event_source(eventQueue, al_get_display_event_source(display));
         al_destroy_display(display);
         cout << "Display destroyed.\n";
     }
+    al_unregister_event_source(eventQueue, al_get_keyboard_event_source());
+    al_unregister_event_source(eventQueue, al_get_timer_event_source(timer));
+    al_unregister_event_source(eventQueue, al_get_mouse_event_source());
     al_destroy_timer(timer);
     al_destroy_event_queue(eventQueue);
     if(cursorBitmap){
@@ -326,8 +332,16 @@ void EngineClass::exitAllegro(){
     if(iconBitmap != nullptr){
         al_destroy_bitmap(iconBitmap);
     }
-    //al_uninstall_keyboard();
-    //al_uninstall_system();
+    al_shutdown_image_addon();
+    al_shutdown_font_addon();
+    al_shutdown_ttf_addon();
+    al_shutdown_primitives_addon();
+    al_uninstall_keyboard();
+    al_uninstall_mouse();
+    al_uninstall_system();
+    if(al_is_keyboard_installed()){
+        cout << "BAZINGA\n";
+    }
 }
 void EngineClass::updateEvents(){
     switch(event.type){
