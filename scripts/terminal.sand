@@ -570,24 +570,64 @@ start autoComplete1
     first EditableText _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
-    similar command allowedPrograms completes
+    tokenize " " command params
+    run autoCompletePrograms
+end
+
+start autoCompleteFiles
+    access lastParameter [[params back]]
+    count "/" lastParameter depth
+    ++ depth
+    ls "" files true depth
+    tokenize " " files filesTokenized
+    similar lastParameter filesTokenized false completes
+    similar lastParameter filesTokenized true commonPart
     string result "\n"
-    //+= result completes
-    access size [[completes size]]
     int i 0
-    run replaceWithAutoComplete
+    run autoCompleteCheckIfDirectory replaceWithAutoComplete
+end
+
+start autoCompleteCheckIfDirectory
+    if([completes size] [1] == [is_directory completes] &&)
+    else autoCompleteCheckIfFile
+    print _ completes completes "/"
+end
+
+start autoCompleteCheckIfFile
+    if([completes size] [1] ==)
+    print _ completes completes " "
+end
+
+start autoCompletePrograms
+    if([params size] [1] ==)
+    else autoCompleteFiles
+    similar command allowedPrograms false completes
+    similar command allowedPrograms true commonPart
+    string lastParameter ""
+    = lastParameter command
+    string result "\n"
+    int i 0
+    run autoCompleteProgramsIfOne replaceWithAutoComplete
+end
+
+start autoCompleteProgramsIfOne
+    if([completes size] [1] ==)
+    print _ completes completes " "
 end
 
 start replaceWithAutoComplete
     if ([completes size] [1] ==)
+    else printPossibleCompletes
     fun EditableText cut_unprotected_area
-    index completes [0] value instance
-    fun EditableText add_content instance
+    fun params pop_back
+    fun params push_back completes
+    print " " autocompletedText params
+    //index completes [0] value instance
+    fun EditableText add_content autocompletedText
     fun EditableText update
     first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_cursor_pos historySize
-    else printPossibleCompletes
 end
 
 start createPrompt
@@ -622,8 +662,18 @@ start printPrompt
     run rstTermBuff createPrompt printOnTerminal colorNormalText
 end
 
+start addCommonPartToCommand
+    if([completes size] [0] >)
+    len lastParameter lastParameterLength
+    len commonPart commonPartLength
+    -= commonPartLength lastParameterLength
+    substr commonPart lastParameterLength commonPartLength commonPart
+    += command commonPart
+end
+
 start printPossibleCompletes
-    run addAllCompletes putNewLine printOnTerminal printPrompt rewriteLastCommand
+    if([completes size] [0] >)
+    run addAllCompletes putNewLine printOnTerminal printPrompt addCommonPartToCommand rewriteLastCommand
 end
 
 start rewriteLastCommand

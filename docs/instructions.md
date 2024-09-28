@@ -55,11 +55,11 @@ create_display *display_width* *display_height* *backbuffer_width* *backbuffer_h
 
 **Parameters:**
 
--display_width (variable / int);
--display_height (variable / int);
--backbuffer_width (variable / int);
--backbuffer_height (variable / int);
--[auto_scale_backbuffer] (variable / bool).
+- display_width (variable / int);
+- display_height (variable / int);
+- backbuffer_width (variable / int);
+- backbuffer_height (variable / int);
+- [auto_scale_backbuffer] (variable / bool).
 
 ## if
 
@@ -99,7 +99,7 @@ else *event*
 
 **Syntax**
 
-run *event* [[event]...]
+run *event* [event] ...
 
 **Description**
 
@@ -348,15 +348,15 @@ find_by_id layer *layer_id* *object_id* *module_type* *module_id* *attribute* [o
 
 **Syntax**
 
-find_by_id_2 *input* *id* [output]
+find_by_id_2 *source* *id* [output]
 
 **Description**
 
-    Return the entity with an id equal to the one provided in the second context.
+    Return the entity from the "source" context with an id equal to the second parameter. Only an entity of the same type as the "source" context can be accessed.
 
 **Parameters**
 
-- input (variable) - id of the context with a vector of entities,
+- source (variable) - id of the context with a vector of entities,
 - id (variable / string) - instruction will return the entity with this id,
 - [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
 
@@ -792,7 +792,7 @@ mv *path* *new_path*
 
 **Syntax**
 
-print *delimeter* [output] [[value]...] 
+print *delimeter* [output] [value] ... 
 
 **Description**
 
@@ -839,7 +839,7 @@ save_text *path* *text* [delimeter]
 
 **Syntax**
 
-ls [path] [output]
+ls [path] [output] [recursive] [max_depth]
 
 **Description**
 
@@ -848,7 +848,9 @@ ls [path] [output]
 **Parameters**
 
 - [path] (variable / string) - id of the context with the directory path;
-- [output] (variable) - id of the output context.
+- [output] (variable) - id of the output context;
+- [recursive] (variable / bool) - if true, list out files recursively;
+- [max_depth] (variable / int) - max depth of recursive file search.
 
 ## lse
 
@@ -1011,16 +1013,33 @@ pwd [output]
 
 **Syntax**
 
-similar *pattern* *vector* [output]
+similar *pattern* *vector* [longest_common_part] [output]
 
 **Description**
 
-    Returns a vector of strings that start with the provided pattern.
+    Return a vector of strings that start with the provided pattern or a string that is the longest common part of all similar strings.
 
 **Parameters**
 
 - pattern (variable / string) - pattern that will be compared to every string in the vector;
 - vector (variable / vector variable / vector string) - vector of strings to be compared;
+- [longest_common_part] (variable / bool) - if true, the output will return the longest common part within the similar strings;
+- [output] (variable) - if of the output variable; if the "longest_common_part" parameter is false or empty, return strings that start with the same pattern.
+
+## count
+
+**Syntax**
+
+count *pattern* *text* [output]
+
+**Description**
+
+    Count occurrences of the pattern inside the text.
+
+**Parameters**
+
+- pattern (variable / string);
+- text (variable / string);
 - [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
 ## console_input
@@ -1036,3 +1055,4 @@ console_input [output]
 **Parameters**
 
 - [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+

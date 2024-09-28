@@ -283,6 +283,9 @@ EngineInstr transInstr(string instruction){
     if(instruction == "similar"){
         return EngineInstr::similar;
     }
+    if(instruction == "count"){
+        return EngineInstr::count;
+    }
     if(instruction == "create_display"){
         return EngineInstr::create_display;
     }
@@ -484,6 +487,8 @@ string transInstrToStr(EngineInstr instruction){
             return "pwd";
         case similar:
             return "similar";
+        case count:
+            return "count";
         case create_display:
             return "create_display";
         case console_input:

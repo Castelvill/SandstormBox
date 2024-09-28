@@ -12,5 +12,5 @@ end
 start loop true
     if ([iterator] [10] <)
     ++ iterator
-    print "" _ iterator "\n"
+    print _ _ iterator "\n"
 end

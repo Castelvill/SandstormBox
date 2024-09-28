@@ -18,7 +18,7 @@ enum EngineInstr : char{
     inject_code, inject_instr, fun, env, edit_proc, load_bitmap,
     mkdir_i, rm, rmll, mv_i, print, load_text, save_text, ls,
     lse, new_proc, var, vec, tokenize, tree, len, size, substr, load_font,
-    restart_drag, cd, pwd, similar, create_display, console_input
+    restart_drag, cd, pwd, similar, count, create_display, console_input
 };
 EngineInstr transInstr(string instruction);
 string transInstrToStr(EngineInstr instruction);

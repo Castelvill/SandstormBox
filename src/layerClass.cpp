@@ -179,7 +179,7 @@ void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, co
         for(ParticleEffectModule & Particle : Object.ParticlesContainer){
             Particle.setLayerID(getID());
         }
-        for(EveModule & Event : Object.EveContainer){
+        for(EventModule & Event : Object.EveContainer){
             Event.setLayerID(getID());
             for(ConditionClass & Trigger : Event.ConditionalChain){
                 if(Trigger.Location.layerID == Original.getID()){

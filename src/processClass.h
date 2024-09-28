@@ -26,7 +26,7 @@ struct ModuleIndex : AncestorIndex{
     ModuleIndex(unsigned layer, unsigned object, unsigned module);
     template <class Module>
     Module * getModulePointer(vector <LayerClass> & Layers);
-    vector<EveModule>::iterator module(vector<LayerClass> &Layers);
+    vector<EventModule>::iterator module(vector<LayerClass> &Layers);
 };
 
 //This struct consists of pointers to every object that has at least one event triggerable by the right source  
@@ -88,7 +88,7 @@ struct ContextClass{
     void addModule(MovementModule * Module);
     void addModule(CollisionModule * Module);
     void addModule(ParticleEffectModule * Module);
-    void addModule(EveModule * Module);
+    void addModule(EventModule * Module);
     void addModule(VariableModule * Module);
     void addModule(ScrollbarModule * Module);
     void addModule(PrimitivesModule * Module);
@@ -102,7 +102,7 @@ struct ContextClass{
     void setFirstModule(MovementModule * Module);
     void setFirstModule(CollisionModule * Module);
     void setFirstModule(ParticleEffectModule * Module);
-    void setFirstModule(EveModule * Module);
+    void setFirstModule(EventModule * Module);
     void setFirstModule(VariableModule * Module);
     void setFirstModule(ScrollbarModule * Module);
     void setFirstModule(PrimitivesModule * Module);
@@ -120,7 +120,7 @@ struct ContextClass{
 };
 
 struct MemoryStackStruct{
-    vector<EveModule>::iterator Event;
+    vector<EventModule>::iterator Event;
     size_t contextSize;
 };
 
@@ -150,18 +150,18 @@ struct PointerRecalculator{
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
     template <class Module>
     ModuleIndex getIndex(Module *& Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
-    ModuleIndex getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
+    ModuleIndex getIndex(vector<EventModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
     template <class Module>
     void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
-    void findIndexesForModules(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
+    void findIndexesForModules(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, vector<EventModule>::iterator & StartingEvent,
+        vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
     void updatePointersToCameras(vector<Camera2D> &Cameras, vector<ContextClass> & EventContext,
         Camera2D *& SelectedCamera, string processID, string & focusedProcessID, const InstrDescription & CurrentInstr);
     void updatePointersToLayers(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr);
     void updatePointersToObjects(vector<LayerClass> &Layers, vector<ContextClass> & EventContext, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, const InstrDescription & CurrentInstr);
-    void updatePointersToModules(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
+    void updatePointersToModules(vector<LayerClass> &Layers, vector<ContextClass> &EventContext, vector<EventModule>::iterator & StartingEvent,
+        vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
     LayerClass * getOwnerLayer(vector <LayerClass> & Layers);
 };
 
@@ -304,8 +304,8 @@ public:
     bool prepareVectorSizeAndIDsForNew(OperationClass & Operation, vector<ContextClass> & EventContext, unsigned & newVectorSize, vector <string> & newIDs);
     bool prepareDestinationForNew(OperationClass & Operation, vector<ContextClass> & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
     void createNewEntities(OperationClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, string & focusedProcessID
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & StartingEvent,
+        vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, string & focusedProcessID
     );
     void markEntitiesForDeletion(OperationClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, string & focusedProcess
@@ -315,10 +315,10 @@ public:
     void bindFilesToObjects(OperationClass & Operation, vector<ContextClass> & EventContext);
     void removeBindedFilesFromObjects(OperationClass & Operation, vector<ContextClass> & EventContext);
     bool buildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
+        vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
     );
     bool customBuildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext,
-        AncestorObject * Owner, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event,
+        AncestorObject * Owner, vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event,
         vector<MemoryStackStruct> & MemoryStack, char mode, bool allowNotAscii
     );
     void clearEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner);
@@ -327,7 +327,7 @@ public:
     );
     void executeFunctionForLayers(OperationClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
     void executeFunctionForObjects(OperationClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
-    void executeFunction(OperationClass Operation, vector<ContextClass> & EventContext, vector<EveModule>::iterator & Event, EngineClass & Engine);
+    void executeFunction(OperationClass Operation, vector<ContextClass> & EventContext, vector<EventModule>::iterator & Event, EngineClass & Engine);
     void changeEngineVariables(OperationClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine);
     void changeProcessVariables(OperationClass & Operation, vector<ContextClass> & EventContext, vector <string> & processIDs);
     void loadBitmap(OperationClass & Operation, vector<ContextClass> & EventContext, vector<SingleBitmap> & BitmapContainer);
@@ -340,14 +340,14 @@ public:
     void loadFileAsString(OperationClass & Operation, vector<ContextClass> & EventContext);
     void listOutEntities(OperationClass & Operation, vector<ContextClass> & EventContext, const vector<ProcessClass> & Processes, const EngineClass & Engine);
     void createNewProcess(OperationClass & Operation, vector<ProcessClass> & Processes, vector<ContextClass> &EventContext,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & StartingEvent,
+        vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
     );
     void createNewOwnerVariable(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+        vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
     );
     void createNewOwnerVector(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-        vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+        vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
     );
     void tokenizeStringFromContext(OperationClass & Operation, vector<ContextClass> & EventContext);
     void printTree(OperationClass & Operation, vector<ContextClass> & EventContext, vector<ProcessClass> & Processes);
@@ -360,12 +360,13 @@ public:
     void changeWorkingDirectory(OperationClass & Operation, vector<ContextClass> & EventContext);
     void printWorkingDirectory(OperationClass & Operation, vector<ContextClass> & EventContext);
     void findSimilarStrings(OperationClass & Operation, vector<ContextClass> & EventContext);
+    void countPatternOccurrences(OperationClass &Operation, vector<ContextClass> &EventContext);
     void getConsoleInput(OperationClass & Operation, vector<ContextClass> & EventContext, int & terminationTimer, ALLEGRO_EVENT_QUEUE * eventQueue);
     void createDisplay(OperationClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine);
     OperationClass executeInstructions(vector<OperationClass> Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector<ContextClass> & EventContext, vector<AncestorObject*> & TriggeredObjects,
-        vector<ProcessClass> & Processes, vector<EveModule>::iterator & StartingEvent,
-        vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
+        vector<ProcessClass> & Processes, vector<EventModule>::iterator & StartingEvent,
+        vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
     );
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
     VariableModule getValueFromObjectInCamera(AncestorObject * CurrentObject,
@@ -379,10 +380,10 @@ public:
         const EngineClass & Engine, vector<ProcessClass> * Processes, vector<ContextClass> &EventContext);
     char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, AncestorObject * Owner, LayerClass * OwnerLayer,
         const EngineClass & Engine, vector<ContextClass> &EventContext);
-    vector<EveModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
-    vector<EveModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event);
+    vector<EventModule>::iterator FindUnfinishedEvent(AncestorObject * Triggered, vector<EventModule>::iterator & Event);
+    vector<EventModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EventModule>::iterator & Event);
     bool deleteEntities();
-    void resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered);
+    void resetChildren(vector<EventModule>::iterator & Event, AncestorObject * Triggered);
     void executeEvents(EngineClass & Engine, vector<ProcessClass> & Processes);
     void updateTreeOfCamerasFromSelectedRoot(Camera2D * Selected);
     void updateWholeForestOfCameras();

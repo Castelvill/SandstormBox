@@ -449,7 +449,7 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
     
     for(unsigned layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
         for(objectIndex = 0; objectIndex < Layers[layerIndex].Objects.size(); objectIndex++){
-            for(const EveModule & Event : Layers[layerIndex].Objects[objectIndex].EveContainer){
+            for(const EventModule & Event : Layers[layerIndex].Objects[objectIndex].EveContainer){
                 for(const string & type : Event.primaryTriggerTypes){
                     if(type == "on_boot"){
                         BaseOfTriggerableObjects.BootTriggered.push_back(AncestorIndex(layerIndex, objectIndex));
@@ -763,7 +763,7 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
     bool noEventsActive;
     for(auto Object = TriggeredObjects.begin(); Object != TriggeredObjects.end();){
         noEventsActive = true;
-        for(const EveModule & Event : (*Object)->EveContainer){
+        for(const EventModule & Event : (*Object)->EveContainer){
             if(Event.getIsActive() && !Event.getIsDeleted()){
                 noEventsActive = false;
                 break;
@@ -843,6 +843,12 @@ size_t ContextClass::getVectorSize() const{
     }
     if(type == "editable_text"){
         return Modules.EditableTexts.size();
+    }
+    if(type == "super_text"){
+        return Modules.SuperTexts.size();
+    }
+    if(type == "super_editable_text"){
+        return Modules.SuperEditableTexts.size();
     }
     if(type == "image"){
         return Modules.Images.size();
@@ -1233,7 +1239,7 @@ void ContextClass::addModule(ParticleEffectModule * Module){
         Modules.Particles.push_back(Module);
     }
 }
-void ContextClass::addModule(EveModule * Module){
+void ContextClass::addModule(EventModule * Module){
     if(Module != nullptr){
         Modules.Events.push_back(Module);
     }
@@ -1355,7 +1361,7 @@ void ContextClass::setFirstModule(ParticleEffectModule * Module){
         Modules.Particles.back() = Module;
     }
 }
-void ContextClass::setFirstModule(EveModule * Module){
+void ContextClass::setFirstModule(EventModule * Module){
     if(Module == nullptr){
         return;
     }
@@ -2600,7 +2606,7 @@ void ProcessClass::aggregateModulesById(string moduleType, string moduleID, stri
         getContextFromModuleVectorById<ParticleEffectModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Particles);
     }
     else if(moduleType == "event" && AggregatedModules.Events.size() > 0){
-        getContextFromModuleVectorById<EveModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Events);
+        getContextFromModuleVectorById<EventModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Events);
     }
     else if(moduleType == "variable" && AggregatedModules.Variables.size() > 0){
         getContextFromModuleVectorById<VariableModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Variables);
@@ -4113,7 +4119,7 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, vecto
 template <class Module>
 void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const unsigned & newVectorSize,
     const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, vector<ContextClass> & EventContext,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack,
+    vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack,
     double reservationMultiplier, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
     if(Container.size() + newVectorSize > Container.capacity()){
@@ -4238,8 +4244,8 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation, vector<C
     return true;
 }
 void ProcessClass::createNewEntities(OperationClass & Operation, vector<ContextClass> & EventContext, LayerClass *& OwnerLayer,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, string & focusedProcessID
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & StartingEvent,
+    vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, string & focusedProcessID
 ){
     LayerClass * CurrentLayer = nullptr;
     AncestorObject * CurrentObject = nullptr;
@@ -4592,7 +4598,7 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, vector<Co
         }
     }
     else if(DeletedContext->type == "event"){
-        for(EveModule * Event : DeletedContext->Modules.Events){
+        for(EventModule * Event : DeletedContext->Modules.Events){
             if(Event != nullptr){
                 Event->deleteLater();
             }
@@ -5231,7 +5237,7 @@ void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation, vect
     }
 }
 bool ProcessClass::buildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
+    vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, bool allowNotAscii
 ){
     ContextClass ObjectContext;
     if(ObjectContext.copyFromTheParameter(EventContext, CurrentInstr, Operation.Parameters, 0, true)){
@@ -5290,7 +5296,7 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, vector<Conte
     return myEventsAreDeleted;
 }
 bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, vector<ContextClass> & EventContext,
-    AncestorObject * Owner, vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event,
+    AncestorObject * Owner, vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event,
     vector<MemoryStackStruct> & MemoryStack, char mode, bool allowNotAscii
 ){
     ContextClass ObjectContext;
@@ -5823,7 +5829,7 @@ void ProcessClass::executeFunctionForObjects(OperationClass & Operation, vector 
     }
 }
 void ProcessClass::executeFunction(OperationClass Operation, vector<ContextClass> & EventContext,
-    vector<EveModule>::iterator & Event, EngineClass & Engine
+    vector<EventModule>::iterator & Event, EngineClass & Engine
 ){
     ContextClass * Context = nullptr;
 
@@ -5994,7 +6000,7 @@ void ProcessClass::executeFunction(OperationClass Operation, vector<ContextClass
     else if(Context->type == "event"){
         /*
         if(Operation.Location.attribute == "set_id"){
-            for(EveModule * Event : Context->Modules.Events){
+            for(EventModule * Event : Context->Modules.Events){
                 if(!findObjectForFunction(ModuleObject, Layers, EditableText->getObjectID(), EditableText->getLayerID())){
                     continue;
                 }
@@ -6002,7 +6008,7 @@ void ProcessClass::executeFunction(OperationClass Operation, vector<ContextClass
             }
         }
         return;
-        for(EveModule * Event : Context->Modules.Events){
+        for(EventModule * Event : Context->Modules.Events){
             Event->controlEvent(Event, Operation.Location.attribute, Variables, emptyString);
         }*/
     }
@@ -6062,8 +6068,28 @@ void ProcessClass::executeFunction(OperationClass Operation, vector<ContextClass
             Event->controlVector(Vector, Operation.Location.attribute, Variables, emptyString);
         }
     }
+    else if(Context->type == "value"){
+        if(Operation.Location.attribute == "pop_back"){
+            if(Context->Values.size() == 0){
+                cout << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Vector of literals is empty. Cannot use 'pop_back' function.\n";
+                return;
+            }
+            Context->Values.pop_back();
+        }
+        else if(Operation.Location.attribute == "push_back" && Variables.size() > 0){
+            Context->Values.reserve(Context->Values.size() + Variables.size());
+            for(const VariableModule & Value : Variables){
+                Context->Values.push_back(Value);
+            }
+        }
+        else{
+            cout << instructionError(CurrentInstr, __FUNCTION__)
+                << "Function " << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
+        }
+    }
     else{
-        cout << instructionError(CurrentInstr, __FUNCTION__) << "type \'" << Context->type << "\' does not exist.\n";
+        cout << instructionError(CurrentInstr, __FUNCTION__) << "Type \'" << Context->type << "\' does not exist.\n";
     }
 }
 void ProcessClass::changeEngineVariables(OperationClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine){
@@ -6603,7 +6629,7 @@ void ProcessClass::executePrint(OperationClass & Operation, vector<ContextClass>
     }
 
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << delimeter << " ";
+        cout << transInstrToStr(Operation.instruction) << " \"" << delimeter << "\" ";
         if(Operation.newContextID != ""){
             cout << Operation.newContextID << " ";
         }
@@ -6695,6 +6721,9 @@ void ProcessClass::executePrint(OperationClass & Operation, vector<ContextClass>
 
     if(buffer == ""){
         buffer += delimeter;
+    }
+    else{
+        buffer = buffer.substr(0, buffer.size() - delimeter.size());
     }
 
     if(Operation.newContextID == ""){
@@ -6921,8 +6950,8 @@ void ProcessClass::listOutEntities(OperationClass & Operation, vector<ContextCla
     }
 }
 void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessClass> & Processes, vector<ContextClass> &EventContext,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & StartingEvent,
+    vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, EngineClass & Engine
 ){
     if(Operation.Parameters.size() < 1){
         cout << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
@@ -6967,7 +6996,7 @@ void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessCl
     }
 }
 void ProcessClass::createNewOwnerVariable(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     if(Operation.Parameters.size() < 1){
         cout << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 parameter.\n";
@@ -7038,7 +7067,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, vector<Con
     }
 }
 void ProcessClass::createNewOwnerVector(OperationClass & Operation, vector<ContextClass> & EventContext, AncestorObject * Owner,
-    vector<EveModule>::iterator & StartingEvent, vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
+    vector<EventModule>::iterator & StartingEvent, vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack
 ){
     if(Operation.Parameters.size() < 2){
         cout << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
@@ -7314,7 +7343,7 @@ void ProcessClass::printTree(OperationClass & Operation, vector<ContextClass> & 
                     }
                     buffor += "\n";
                 }
-                for(const EveModule & Event : Object.EveContainer){
+                for(const EventModule & Event : Object.EveContainer){
                     buffor += "\t\t\tEvent " + Event.getID();
                     if(!Event.getIsActive()){
                         buffor += " (disabled)";
@@ -7514,8 +7543,8 @@ void ProcessClass::findByIDInEventContext(OperationClass & Operation, vector<Con
         return;
     }
 
-    ContextClass Context;
-    if(Context.copyFromTheParameter(EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    ContextClass SourceContext;
+    if(SourceContext.copyFromTheParameter(EventContext, CurrentInstr, Operation.Parameters, 0, true)){
         cout << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a context from the parameter 1.\n";
         return;
@@ -7528,149 +7557,157 @@ void ProcessClass::findByIDInEventContext(OperationClass & Operation, vector<Con
         return;
     }
 
-    ContextClass NewContext;
-    NewContext.type = Context.type;
-
-    if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << Context.ID << " " << entityID << " " << Operation.newContextID << "\n";
-    }
-
     if(entityID == ""){
-        addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
+        cout << instructionError(CurrentInstr, __FUNCTION__)
+            << "Parameter 2 (id) cannot be empty.\n";
         return;
     }
+
+    ContextClass NewContext;
+    NewContext.type = SourceContext.type;
+
+    if(printOutInstructions){
+        cout << transInstrToStr(Operation.instruction) << " " << SourceContext.ID << " " << entityID << " " << Operation.newContextID << "\n";
+    }
     
-    if(Context.type == "variable"){
-        for(VariableModule * Variable : Context.Modules.Variables){
+    if(SourceContext.type == "variable"){
+        for(VariableModule * Variable : SourceContext.Modules.Variables){
             if(Variable->getID() == entityID){
-                Context.Modules.Variables.push_back(Variable);
+                SourceContext.Modules.Variables.push_back(Variable);
                 break;
             }
         }
     }
-    else if(Context.type == "camera"){
-        for(Camera2D * Camera : Context.Cameras){
+    else if(SourceContext.type == "camera"){
+        for(Camera2D * Camera : SourceContext.Cameras){
             if(Camera->getID() == entityID){
                 NewContext.Cameras.push_back(Camera);
                 break;
             }
         }
     }
-    else if(Context.type == "layer"){
-        for(LayerClass * Layer : Context.Layers){
+    else if(SourceContext.type == "layer"){
+        for(LayerClass * Layer : SourceContext.Layers){
             if(Layer->getID() == entityID){
                 NewContext.Layers.push_back(Layer);
                 break;
             }
         }
     }
-    else if(Context.type == "object"){
-        for(AncestorObject * Object : Context.Objects){
+    else if(SourceContext.type == "object"){
+        for(AncestorObject * Object : SourceContext.Objects){
             if(Object->getID() == entityID){
                 NewContext.Objects.push_back(Object);
                 break;
             }
         }
     }
-    else if(Context.type == "text"){
-        for(TextModule * Text : Context.Modules.Texts){
+    else if(SourceContext.type == "text"){
+        for(TextModule * Text : SourceContext.Modules.Texts){
             if(Text->getID() == entityID){
                 NewContext.Modules.Texts.push_back(Text);
                 break;
             }
         }
     }
-    else if(Context.type == "editable_text"){
-        for(EditableTextModule * EditableText : Context.Modules.EditableTexts){
+    else if(SourceContext.type == "editable_text"){
+        for(EditableTextModule * EditableText : SourceContext.Modules.EditableTexts){
             if(EditableText->getID() == entityID){
                 NewContext.Modules.EditableTexts.push_back(EditableText);
                 break;
             }
         }
     }
-    else if(Context.type == "super_text"){
-        for(SuperTextModule * SuperText : Context.Modules.SuperTexts){
+    else if(SourceContext.type == "super_text"){
+        for(SuperTextModule * SuperText : SourceContext.Modules.SuperTexts){
             if(SuperText->getID() == entityID){
                 NewContext.Modules.SuperTexts.push_back(SuperText);
                 break;
             }
         }
     }
-    else if(Context.type == "super_editable_text"){
-        for(SuperEditableTextModule * SuperEditableText : Context.Modules.SuperEditableTexts){
+    else if(SourceContext.type == "super_editable_text"){
+        for(SuperEditableTextModule * SuperEditableText : SourceContext.Modules.SuperEditableTexts){
             if(SuperEditableText->getID() == entityID){
                 NewContext.Modules.SuperEditableTexts.push_back(SuperEditableText);
                 break;
             }
         }
     }
-    else if(Context.type == "image"){
-        for(ImageModule * Image : Context.Modules.Images){
+    else if(SourceContext.type == "image"){
+        for(ImageModule * Image : SourceContext.Modules.Images){
             if(Image->getID() == entityID){
                 NewContext.Modules.Images.push_back(Image);
                 break;
             }
         }
     }
-    else if(Context.type == "movement"){
-        for(MovementModule * Movement : Context.Modules.Movements){
+    else if(SourceContext.type == "movement"){
+        for(MovementModule * Movement : SourceContext.Modules.Movements){
             if(Movement->getID() == entityID){
                 NewContext.Modules.Movements.push_back(Movement);
                 break;
             }
         }
     }
-    else if(Context.type == "collision"){
-        for(CollisionModule * Collision : Context.Modules.Collisions){
+    else if(SourceContext.type == "collision"){
+        for(CollisionModule * Collision : SourceContext.Modules.Collisions){
             if(Collision->getID() == entityID){
                 NewContext.Modules.Collisions.push_back(Collision);
                 break;
             }
         }
     }
-    else if(Context.type == "particles"){
-        for(ParticleEffectModule * Particle : Context.Modules.Particles){
+    else if(SourceContext.type == "particles"){
+        for(ParticleEffectModule * Particle : SourceContext.Modules.Particles){
             if(Particle->getID() == entityID){
                 NewContext.Modules.Particles.push_back(Particle);
                 break;
             }
         }
     }
-    else if(Context.type == "event"){
-        for(EveModule * Event : Context.Modules.Events){
+    else if(SourceContext.type == "event"){
+        for(EventModule * Event : SourceContext.Modules.Events){
             if(Event->getID() == entityID){
                 NewContext.Modules.Events.push_back(Event);
                 break;
             }
         }
     }
-    else if(Context.type == "scrollbar"){
-        for(ScrollbarModule * Scrollbar : Context.Modules.Scrollbars){
+    else if(SourceContext.type == "scrollbar"){
+        for(ScrollbarModule * Scrollbar : SourceContext.Modules.Scrollbars){
             if(Scrollbar->getID() == entityID){
                 NewContext.Modules.Scrollbars.push_back(Scrollbar);
                 break;
             }
         }
     }
-    else if(Context.type == "primitives"){
-        for(PrimitivesModule * Primitive : Context.Modules.Primitives){
+    else if(SourceContext.type == "primitives"){
+        for(PrimitivesModule * Primitive : SourceContext.Modules.Primitives){
             if(Primitive->getID() == entityID){
                 NewContext.Modules.Primitives.push_back(Primitive);
                 break;
             }
         }
     }
-    else if(Context.type == "vector"){
-        for(VectorModule * Vector : Context.Modules.Vectors){
+    else if(SourceContext.type == "vector"){
+        for(VectorModule * Vector : SourceContext.Modules.Vectors){
             if(Vector->getID() == entityID){
                 NewContext.Modules.Vectors.push_back(Vector);
                 break;
             }
         }
     }
+    if(NewContext.getVectorSize() == 0){
+        cout << instructionError(CurrentInstr, __FUNCTION__)
+            << "There is no entity with an id '" << entityID << "' and of the type '"
+            << SourceContext.type << "' A new context with id '"
+            << Operation.newContextID << "' cannot be created.\n";
+        return;
+    }
     addNewContext(EventContext, NewContext, NewContext.type, Operation.newContextID);
 }
-vector<string> getAllFilesNamesWithinFolder(string directory, char mode, const InstrDescription & CurrentInstr){
+vector<string> getAllFilesNamesWithinFolder(string directory, string workingDirectory, int depth, char mode, const InstrDescription & CurrentInstr){
     vector<string> names;
     if(!std::filesystem::exists(directory)){
         cout << instructionError(CurrentInstr, __FUNCTION__) << ": Directory '" << directory
@@ -7680,6 +7717,18 @@ vector<string> getAllFilesNamesWithinFolder(string directory, char mode, const I
     if(mode == 'f'){
         for(const auto & entry : std::filesystem::directory_iterator(directory)){
             names.push_back(entry.path().string());
+        }
+    }
+    else if(mode == 'r'){
+        for (auto entry = std::filesystem::recursive_directory_iterator(directory);
+            entry != std::filesystem::recursive_directory_iterator();
+            ++entry)
+        {
+            if(depth <= -1 || entry.depth() < depth){
+                string temp = entry->path().string();
+                temp = temp.substr(workingDirectory.size(), temp.size()-workingDirectory.size());
+                names.push_back(temp);
+            }
         }
     }
     else{
@@ -7699,15 +7748,36 @@ void ProcessClass::listOutFiles(OperationClass & Operation, vector<ContextClass>
         return;
     }
 
+    bool recursiveSearch = false;
+    getBoolFromTheParameter(EventContext, CurrentInstr, Operation.Parameters, 1, recursiveSearch, false);
+
+    int depth = -1;
+    getIntFromTheParameter(EventContext, CurrentInstr, Operation.Parameters, 2, depth, false);
+
     if(printOutInstructions){
-        cout << transInstrToStr(Operation.instruction) << " " << directory << " " << Operation.newContextID << "\n";
+        cout << transInstrToStr(Operation.instruction) << " " << directory
+            << " " << Operation.newContextID << " " << recursiveSearch;
+        if(depth > -1){
+            cout << " " << depth;
+        }
+        cout << "\n";
     }
 
     vector <string> fileNames;
     #if _WIN32
-        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n', CurrentInstr);
+        if(recursiveSearch){
+            fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, EXE_PATH + workingDirectory, depth, 'r', CurrentInstr);
+        }
+        else{
+            fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, EXE_PATH + workingDirectory, depth, 'n', CurrentInstr);
+        }
     #elif __linux__
-        fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, 'n', CurrentInstr);
+        if(recursiveSearch){
+            fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, EXE_PATH + workingDirectory, depth, 'r', CurrentInstr);
+        }
+        else{
+            fileNames = getAllFilesNamesWithinFolder(EXE_PATH + workingDirectory + directory, EXE_PATH + workingDirectory, depth, 'n', CurrentInstr);
+        }
     #endif
 
     vector <string> directories, normalFiles;
@@ -7783,7 +7853,10 @@ void ProcessClass::changeWorkingDirectory(OperationClass & Operation, vector<Con
         return;
     }
     else{
-        string testPath = workingDirectory + newDirectory + "/";
+        string testPath = workingDirectory + newDirectory;
+        if(newDirectory.back() != '/'){
+            testPath += '/';
+        }
         if(!std::filesystem::exists(EXE_PATH + testPath)){
             cout << instructionError(CurrentInstr, __FUNCTION__) << "Directory '" << EXE_PATH + testPath << "' does not exist.\n";
             return;
@@ -7820,6 +7893,15 @@ void ProcessClass::findSimilarStrings(OperationClass &Operation, vector<ContextC
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
+
+    bool returnTheLongestCommonPart = false;
+    if(getBoolFromTheParameter(EventContext, CurrentInstr, Operation.Parameters, 2, returnTheLongestCommonPart, false));
+
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << shortenText(pattern, maxLengthOfValuesPrinting) << " ";
+        printStringVectorForInstruction(stringVector, maxLengthOfValuesPrinting);
+        cout << " " << returnTheLongestCommonPart << " " << Operation.newContextID;
+    }
     
     ContextClass NewContext;
     NewContext.type = "value";
@@ -7836,7 +7918,84 @@ void ProcessClass::findSimilarStrings(OperationClass &Operation, vector<ContextC
             }
         }
         if(match){
-            NewContext.Values.push_back(VariableModule::newString(text));
+            NewContext.Values.emplace_back(VariableModule::newString(text));
+        }
+    }
+    if(returnTheLongestCommonPart){
+        if(pattern == "" || NewContext.Values.size() == 0){
+            NewContext.Values.clear();
+            NewContext.Values.emplace_back(VariableModule::newString(""));
+            moveOrRename(EventContext, NewContext, Operation.newContextID);
+            return;
+        }
+        string commonPart = NewContext.Values[0].getString();
+        for(const VariableModule & SimilarText : NewContext.Values){
+            string text = SimilarText.getString();
+            if(commonPart.size() > text.size()){
+                commonPart = commonPart.substr(0, text.size());
+            }
+            if(text.substr(0, commonPart.size()) == commonPart){
+                continue;
+            }
+            for(unsigned i = pattern.size(); i < commonPart.size(); ++i){
+                if(commonPart[i] != text[i]){
+                    commonPart = commonPart.substr(0, i);
+                    break;
+                }
+            }
+        }
+        NewContext.Values.clear();
+        NewContext.Values.emplace_back(VariableModule::newString(commonPart));
+    }
+    moveOrRename(EventContext, NewContext, Operation.newContextID);
+}
+void ProcessClass::countPatternOccurrences(OperationClass &Operation, vector<ContextClass> &EventContext){
+    if(Operation.Parameters.size() < 2){
+        cout << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
+        return;
+    }
+
+    string pattern = "";
+    if(getStringFromTheParameter(EventContext, CurrentInstr, Operation.Parameters, 0, pattern, true)){
+        cout << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to get a string value from the parameter 1 (pattern).\n";
+        return;
+    }
+
+    string text = "";
+    if(getStringFromTheParameter(EventContext, CurrentInstr, Operation.Parameters, 1, text, true)){
+        cout << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to get a string value from the parameter 2 (text).\n";
+        return;
+    }
+
+    if(printOutInstructions){
+        cout << Operation.instruction << " " << shortenText(pattern, maxLengthOfValuesPrinting)
+            << " " << shortenText(text, maxLengthOfValuesPrinting) << " " <<  Operation.newContextID;
+    }
+    
+    ContextClass NewContext;
+    NewContext.type = "value";
+    NewContext.Values.emplace_back(VariableModule::newInt(0));
+    if(pattern == ""){
+        moveOrRename(EventContext, NewContext, Operation.newContextID);
+        return;
+    }
+    unsigned j = 0;
+    for(unsigned i = 0; i < text.size(); ++i){
+        if(text[i] != pattern[0]){
+            continue;
+        }
+        if(text.size() - pattern.size() < 0){
+            break;
+        }
+        for(j = 1; j < pattern.size(); ++j){
+            if(text[i + j] != pattern[j]){
+                break;
+            }
+        }
+        if(j == pattern.size() && text[i + j - 1] == pattern[j - 1]){
+            NewContext.Values.back().addInt(1);
         }
     }
     moveOrRename(EventContext, NewContext, Operation.newContextID);
@@ -7890,8 +8049,8 @@ void ProcessClass::createDisplay(OperationClass & Operation, vector<ContextClass
 }
 OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operations, LayerClass *&OwnerLayer,
     AncestorObject *&Owner, vector<ContextClass> &EventContext, vector<AncestorObject *> &TriggeredObjects,
-    vector<ProcessClass> &Processes, vector<EveModule>::iterator &StartingEvent,
-    vector<EveModule>::iterator &Event, vector<MemoryStackStruct> &MemoryStack, EngineClass &Engine
+    vector<ProcessClass> &Processes, vector<EventModule>::iterator &StartingEvent,
+    vector<EventModule>::iterator &Event, vector<MemoryStackStruct> &MemoryStack, EngineClass &Engine
 ){
     string buffor;
     for(OperationClass & Operation : Operations){
@@ -8164,6 +8323,9 @@ OperationClass ProcessClass::executeInstructions(vector<OperationClass> Operatio
                 break;
             case similar:
                 findSimilarStrings(Operation, EventContext);
+                break;
+            case count:
+                countPatternOccurrences(Operation, EventContext);
                 break;
             case create_display:
                 createDisplay(Operation, EventContext, Engine);
@@ -8952,8 +9114,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             return NewValue;
         }
         if(Context->Modules.Vectors.size() != 1){
-            cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                << ": There are several Vectors in the context. Program will proceed with the last added vector.\n";
+            cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                << "There are several Vectors in the context. Program will proceed with the last added vector.\n";
         }
         if(Condition.Literal.getType() == 'i'){
             return Context->Modules.Vectors.back()->getValue("value", Condition.Literal.getIntUnsafe());
@@ -8984,14 +9146,17 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
             if(Condition.Location.attribute == "size"){
                 return VariableModule::newInt(Context->Values.size());
             }
+            if(Condition.Location.attribute == "back"){
+                return Context->Values.back();
+            }
             if(Context->Values.size() == 0){
                 cout << instructionError(CurrentInstr, __FUNCTION__) << "There are no literals in the context.\n";
                 NewValue.setBool(false);
                 return NewValue;
             }
             if(Context->Values.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several literals in the context. Program will proceed with the last added literal.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several literals in the context. Program will proceed with the last added literal.\n";
             }
             return Context->Values.back();
         }
@@ -9005,8 +9170,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->BasePointers.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several pointers in the context. Program will proceed with the last added pointer.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several pointers in the context. Program will proceed with the last added pointer.\n";
             }
             NewValue.setValueFromPointer(Context->BasePointers.back());
             return NewValue;
@@ -9021,8 +9186,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Variables.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several variables in the context. Program will proceed with the last added variable.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several variables in the context. Program will proceed with the last added variable.\n";
             }
             return *Context->Modules.Variables.back();
         }
@@ -9033,8 +9198,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Collisions.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several collisions in the context. Program will proceed with the last added collision.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several collisions in the context. Program will proceed with the last added collision.\n";
             }
             if(Condition.Location.attribute == "detected"){
                 for(const DetectedCollision & Detected : Context->Modules.Collisions.back()->Detected){
@@ -9062,8 +9227,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Primitives.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several Primitives in the context. Program will proceed with the last added Primitive.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several Primitives in the context. Program will proceed with the last added Primitive.\n";
             }
             if(Condition.Location.attribute == "pos_x"){
                 NewValue.setDouble(Context->Modules.Primitives.back()->getPos().x);
@@ -9085,8 +9250,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.EditableTexts.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several EditableTexts in the context. Program will proceed with the last added EditableText.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several EditableTexts in the context. Program will proceed with the last added EditableText.\n";
             }
             return Context->Modules.EditableTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
         }
@@ -9097,8 +9262,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.SuperTexts.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several SuperTexts in the context. Program will proceed with the last added SuperTexts.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several SuperTexts in the context. Program will proceed with the last added SuperTexts.\n";
             }
             return Context->Modules.SuperTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), EventIds);
         }
@@ -9109,8 +9274,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.SuperEditableTexts.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several SuperEditableTexts in the context. Program will proceed with the last added SuperEditableText.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several SuperEditableTexts in the context. Program will proceed with the last added SuperEditableText.\n";
             }
             return Context->Modules.SuperEditableTexts.back()->getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), EventIds);
         }
@@ -9121,8 +9286,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Vectors.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several Vectors in the context. Program will proceed with the last added vector.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several Vectors in the context. Program will proceed with the last added vector.\n";
             }
             return Context->Modules.Vectors.back()->getValue(Condition.Location.attribute, Context->Modules.Vectors.back()->getSize());
         }
@@ -9133,8 +9298,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Objects.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several objects in the context. Program will proceed with the last added object.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several objects in the context. Program will proceed with the last added object.\n";
             }
             Condition.Location.layerID = Context->Objects.back()->getLayerID();
             Condition.Location.objectID = Context->Objects.back()->getID();
@@ -9147,8 +9312,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Layers.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several layers in the context. Program will proceed with the last added layer.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several layers in the context. Program will proceed with the last added layer.\n";
             }
             NewValue = Context->Layers.back()->getValue(Condition.Location.attribute, Condition.Location.spareID);
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
@@ -9161,8 +9326,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Cameras.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several cameras in the context. Program will proceed with the last added camera.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several cameras in the context. Program will proceed with the last added camera.\n";
             }
             if(Condition.Location.attribute == "is_selected"){
                 NewValue.setBool(SelectedCamera == Context->Cameras.back());
@@ -9180,8 +9345,8 @@ VariableModule ProcessClass::findNextValue(ConditionClass & Condition, AncestorO
                 return NewValue;
             }
             if(Context->Modules.Scrollbars.size() != 1){
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__
-                    << ": There are several Scrollbars in the context. Program will proceed with the last added Scrollbar.\n";
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "There are several Scrollbars in the context. Program will proceed with the last added Scrollbar.\n";
             }
             return Context->Modules.Scrollbars.back()->getValue(Condition.Location.attribute, EventIds);
         }
@@ -9342,8 +9507,8 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
     
     return 't';
 }
-vector<EveModule>::iterator ProcessClass::FindUnfinishedEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event){
-    vector<EveModule>::iterator Unfinished;
+vector<EventModule>::iterator ProcessClass::FindUnfinishedEvent(AncestorObject * Triggered, vector<EventModule>::iterator & Event){
+    vector<EventModule>::iterator Unfinished;
     bool doesChildExist;
     for(ChildStruct & Child : Event->Children){
         doesChildExist = false;
@@ -9366,8 +9531,8 @@ vector<EveModule>::iterator ProcessClass::FindUnfinishedEvent(AncestorObject * T
     }
     return Event;
 }
-vector<EveModule>::iterator ProcessClass::FindElseEvent(AncestorObject * Triggered, vector<EveModule>::iterator & Event){
-    vector<EveModule>::iterator ElseEvent;
+vector<EventModule>::iterator ProcessClass::FindElseEvent(AncestorObject * Triggered, vector<EventModule>::iterator & Event){
+    vector<EventModule>::iterator ElseEvent;
     for(ElseEvent = Triggered->EveContainer.begin(); ElseEvent != Triggered->EveContainer.end(); ElseEvent++){
         if(!ElseEvent->getIsDeleted() && ElseEvent->getIsActive() && ElseEvent->getID() == Event->elseChildID){
             Event->elseChildFinished = true;
@@ -9390,7 +9555,7 @@ void deleteModuleInstance(vector<Module> & Container, vector<string> & IDs, bool
         }
     }
 }
-void deleteEventInstance(vector<EveModule> & Container, vector<string> & IDs, bool & layersWereModified){
+void deleteEventInstance(vector<EventModule> & Container, vector<string> & IDs, bool & layersWereModified){
     for(auto Instance = Container.begin(); Instance != Container.end();){
         if(Instance->getIsDeleted() || Instance->willBeDeleted){
             removeFromVector(IDs, Instance->getID());
@@ -9473,16 +9638,16 @@ bool ProcessClass::deleteEntities(){
     }
     return layersWereModified;
 }
-void ProcessClass::resetChildren(vector<EveModule>::iterator & Event, AncestorObject * Triggered){
-    vector<EveModule*> StackOfEvents = {&(*Event)};
-    EveModule * CurrentEvent;
+void ProcessClass::resetChildren(vector<EventModule>::iterator & Event, AncestorObject * Triggered){
+    vector<EventModule*> StackOfEvents = {&(*Event)};
+    EventModule * CurrentEvent;
     while(StackOfEvents.size() > 0){
         CurrentEvent = StackOfEvents.back();
         StackOfEvents.pop_back();
 
         for(ChildStruct & Child : CurrentEvent->Children){
             Child.finished = false;
-            for(EveModule & ChildEvent: Triggered->EveContainer){
+            for(EventModule & ChildEvent: Triggered->EveContainer){
                 if(ChildEvent.getID() == Child.ID){
                     ChildEvent.conditionalStatus = 'n';
                     ChildEvent.areDependentOperationsDone = false;
@@ -9494,7 +9659,7 @@ void ProcessClass::resetChildren(vector<EveModule>::iterator & Event, AncestorOb
         }
 
         if(CurrentEvent->elseChildID != ""){
-            for(EveModule & ChildEvent: Triggered->EveContainer){
+            for(EventModule & ChildEvent: Triggered->EveContainer){
                 if(ChildEvent.getID() == CurrentEvent->elseChildID){
                     ChildEvent.conditionalStatus = 'n';
                     ChildEvent.areDependentOperationsDone = false;
@@ -9564,7 +9729,7 @@ void removeOnInitTrigger(vector<string> & primaryTriggerTypes){
         }
     }
 }
-bool isEventTriggered(const Triggers & CurrentTriggers, const std::vector<EveModule>::iterator & Event){
+bool isEventTriggered(const Triggers & CurrentTriggers, const std::vector<EventModule>::iterator & Event){
     if(Event->getIsDeleted() || !Event->getIsActive() || Event->primaryTriggerTypes.size() == 0){
         return false;
     }
@@ -9608,7 +9773,7 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
 
     //Remember to delete pointers to destroyed objects during the iteration
     
-    vector<EveModule>::iterator StartingEvent, Event;
+    vector<EventModule>::iterator StartingEvent, Event;
     vector<MemoryStackStruct> MemoryStack;
     vector<ContextClass> Context; //All dynamic context created from instructions. It's inherited by the children of an event.
     LayerClass * TriggeredLayer;
@@ -9622,7 +9787,7 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
         if(Triggered == nullptr || Triggered->getIsDeleted() || !Triggered->getIsActive()){
             continue;
         }
-        for(EveModule & Eve : Triggered->EveContainer){
+        for(EventModule & Eve : Triggered->EveContainer){
             Eve.conditionalStatus = 'n';
             Eve.areDependentOperationsDone = false;
             Eve.elseChildFinished = false;
@@ -11346,7 +11511,7 @@ Module * ModuleIndex::getModulePointer(vector<LayerClass> &Layers){
         }
         return &Layers[layerIndex].Objects[objectIndex].ParticlesContainer[moduleIndex];
     }
-    else if constexpr (std::is_same<Module, EveModule>::value){
+    else if constexpr (std::is_same<Module, EventModule>::value){
         if(Layers[layerIndex].Objects[objectIndex].EveContainer.size() <= moduleIndex){
             cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
             return nullptr;
@@ -11387,22 +11552,22 @@ ModuleIndex::ModuleIndex(unsigned layer, unsigned object, unsigned module){
     objectIndex = object;
     moduleIndex = module;
 }
-vector<EveModule>::iterator ModuleIndex::module(vector<LayerClass> &Layers)
+vector<EventModule>::iterator ModuleIndex::module(vector<LayerClass> &Layers)
 {
     if(Layers.size() <= layerIndex){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": layerIndex(" << layerIndex << ") goes out of scope of Layers<" << Layers.size() << ">.\n";
-        return vector<EveModule>::iterator();
+        return vector<EventModule>::iterator();
     }
     if(Layers[layerIndex].Objects.size() <= objectIndex){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": objectIndex(" << objectIndex << ") goes out of scope of Layers["
             << layerIndex << "].Objects<" << Layers[layerIndex].Objects.size() << ">.\n";
-        return vector<EveModule>::iterator();
+        return vector<EventModule>::iterator();
     }
     if(Layers[layerIndex].Objects[objectIndex].EveContainer.size() <= moduleIndex){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex(" << moduleIndex
             << ") goes out of scope of Layers[" << layerIndex << "].Objects[" << objectIndex
             << "].EveContainer<" << Layers[layerIndex].Objects[objectIndex].EveContainer.size() << ">\n";
-        return vector<EveModule>::iterator();
+        return vector<EventModule>::iterator();
     }
     return Layers[layerIndex].Objects[objectIndex].EveContainer.begin() + moduleIndex;
 }
@@ -11528,7 +11693,7 @@ ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass>
             else if constexpr (std::is_same<Module, ParticleEffectModule>::value){
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].ParticlesContainer[0]);
             }
-            else if constexpr (std::is_same<Module, EveModule>::value){
+            else if constexpr (std::is_same<Module, EventModule>::value){
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].EveContainer[0]);
             }
             else if constexpr (std::is_same<Module, VariableModule>::value){
@@ -11555,7 +11720,7 @@ void PointerRecalculator::findIndexesInModule(vector<Module*> Instances, vector<
         ModuleIndexes.back().push_back(getIndex(Instance, Layers, CurrentInstr));
     }
 }
-ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr){
+ModuleIndex PointerRecalculator::getIndex(vector<EventModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr){
     if(Instance->getLayerID() == ""){
         cout << instructionError(CurrentInstr, __FUNCTION__) << ": Event instance does not belong to any layer.\n";
     }
@@ -11579,8 +11744,8 @@ ModuleIndex PointerRecalculator::getIndex(vector<EveModule>::iterator & Instance
     }
     return ModuleIndex(0, 0, 0);
 }
-void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
+void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EventModule>::iterator & StartingEvent,
+    vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
     //Invalidate all pointers that reference other modules' instances.
     for(LayerClass & Layer : Layers){
@@ -11715,8 +11880,8 @@ void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, ve
         SelectedObject = SelectedObjectIndex.object(Layers);
     }
 }
-void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EveModule>::iterator & StartingEvent,
-    vector<EveModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
+void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, vector<ContextClass> & EventContext, vector<EventModule>::iterator & StartingEvent,
+    vector<EventModule>::iterator & Event, vector<MemoryStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
     StartingEvent = startingEventIndex.module(Layers);
     Event = eventIndex.module(Layers);

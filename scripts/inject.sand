@@ -1,13 +1,11 @@
 start inject
-    triggers each_iteration
+    triggers on_init
 
     index Layers [0 1] object Terminal
     index Terminal [0 0] super_editable_text EditableText
 
     access cursorPos [[EditableText cursor_pos]]
     access secondCursorPos [[EditableText second_cursor_pos]]
-    print ":" _ c cursorPos
-    print "\n" _ c secondCursorPos
 
     int starto 3
     int endo 6
@@ -22,8 +20,6 @@ start inject
 
     access cursorPos [[EditableText cursor_pos]]
     access secondCursorPos [[EditableText second_cursor_pos]]
-    print ":" _ c cursorPos
-    print "\n" _ c secondCursorPos
-after
+
     delete_this_event
 end

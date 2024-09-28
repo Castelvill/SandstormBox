@@ -131,7 +131,7 @@ void AncestorObject::deleteLater(){
     for(ParticleEffectModule & Particles : ParticlesContainer){
         Particles.deleteLater();
     }
-    for(EveModule & Event : EveContainer){
+    for(EventModule & Event : EveContainer){
         Event.deleteLater();
     }
     for(VariableModule & Variable : VariablesContainer){
@@ -191,8 +191,8 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         ParticlesContainer.push_back(ParticleEffectModule());
         ParticlesContainer.back().clone(Particle, particlesContainerIDs, newLayerID, getID(), true);
     }
-    for(const EveModule & Event : Original.EveContainer){
-        EveContainer.push_back(EveModule());
+    for(const EventModule & Event : Original.EveContainer){
+        EveContainer.push_back(EventModule());
         EveContainer.back().clone(Event, eveContainerIDs, newLayerID, getID(), true);
     }
     for(const VariableModule & Variable : Original.VariablesContainer){
@@ -256,7 +256,7 @@ void AncestorObject::clear(){
     for(ParticleEffectModule & Particle : ParticlesContainer){
         Particle.clear();
     }
-    for(EveModule & Event : EveContainer){
+    for(EventModule & Event : EveContainer){
         Event.clear();
     }
     for(VariableModule & Variable : VariablesContainer){
@@ -407,7 +407,7 @@ void AncestorObject::createVectorsOfIds(){
     for(const ParticleEffectModule & content : ParticlesContainer){
         particlesContainerIDs.push_back(content.getID());
     }
-    for(const EveModule & content : EveContainer){
+    for(const EventModule & content : EveContainer){
         eveContainerIDs.push_back(content.getID());
     }
     for(const VariableModule & content : VariablesContainer){
@@ -692,7 +692,7 @@ vector <string> mergeStrings(vector <string> code){
     return merged;
 }
 inline string errorSpacing(){return "\t";}; 
-bool prepareNewInstruction(vector<WordStruct> words, EveModule & NewEvent, OperationClass *& Operation,
+bool prepareNewInstruction(vector<WordStruct> words, EventModule & NewEvent, OperationClass *& Operation,
     bool postOperations, unsigned minLength, unsigned lineNumber, string scriptName
 ){
     if(words.size() < minLength){
@@ -737,7 +737,7 @@ bool optionalOutput(string scriptName, unsigned lineNumber, string & error, cons
         error += ") must be a context.";
         cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
-            << ": In the '" << words[0].value << "' instruction: " << error << ".\n";
+            << ": In the '" << words[0].value << "' instruction: " << error << "\n";
         return true;
     }
     if(words[cursor].type == 'c'){
@@ -1039,7 +1039,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
 }
 void AncestorObject::eventAssembler(vector<string> code, string scriptName){
     vector<WordStruct> words;
-    EveModule NewEvent = EveModule();
+    EventModule NewEvent = EventModule();
     unsigned cursor = 0, lineNumber = 0;
     OperationClass * Operation;
     bool postOperations = false;
@@ -1128,7 +1128,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     return;
                 }
             }
-            NewEvent = EveModule(words[1].value, &eveContainerIDs, getLayerID(), getID());
+            NewEvent = EventModule(words[1].value, &eveContainerIDs, getLayerID(), getID());
 
             if(words.size() == 2 || words[2].type == '_'){
                 continue;
@@ -1145,7 +1145,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
         }
         else if(words[0].value == "end"){
             EveContainer.push_back(NewEvent);
-            NewEvent = EveModule();
+            NewEvent = EventModule();
             postOperations = false;
         }
         else if(words[0].value == "after"){
@@ -1386,7 +1386,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "input", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "source", false)){ return; }
             if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "id", false)){ return; }
             cursor = 3;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
@@ -1789,6 +1789,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(error.size() == 0){ continue; }
                 return;
             }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "recursive", true)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'i', "max_depth", true)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
         }
         else if(words[0].value == "lse"){
             if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
@@ -1958,6 +1966,23 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "pattern", false)){ return; }
             cursor = 2;
             if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "vector", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'b', "longest_common_part", true)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
+            cursor++;
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+                if(error.size() == 0){ continue; }
+                return;
+            }
+        }
+        else if(words[0].value == "count"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+                return;
+            }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "pattern", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "text", false)){ return; }
+            cursor = 3;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
                 if(error.size() == 0){ continue; }
                 return;
@@ -2146,7 +2171,7 @@ void AncestorObject::propagateLayerID(){
     for(ParticleEffectModule & Particles : ParticlesContainer){
         Particles.setLayerID(layerID);
     }
-    for(EveModule & Event : EveContainer){
+    for(EventModule & Event : EveContainer){
         Event.setLayerID(layerID);
     }
     for(VariableModule & Variable : VariablesContainer){
@@ -2187,7 +2212,7 @@ void AncestorObject::propagateObjectID(){
     for(ParticleEffectModule & Particles : ParticlesContainer){
         Particles.setObjectID(layerID);
     }
-    for(EveModule & Event : EveContainer){
+    for(EventModule & Event : EveContainer){
         Event.setObjectID(layerID);
     }
     for(VariableModule & Variable : VariablesContainer){

@@ -12,7 +12,7 @@ struct ModulesPointers{
     vector <MovementModule*> Movements;
     vector <CollisionModule*> Collisions;
     vector <ParticleEffectModule*> Particles;
-    vector <EveModule*> Events;
+    vector <EventModule*> Events;
     vector <VariableModule*> Variables;
     vector <ScrollbarModule*> Scrollbars;
     vector <PrimitivesModule*> Primitives;
@@ -34,7 +34,7 @@ public:
     vector <MovementModule> MovementContainer;
     vector <CollisionModule> CollisionContainer;
     vector <ParticleEffectModule> ParticlesContainer;
-    vector <EveModule> EveContainer;
+    vector <EventModule> EveContainer;
     vector <VariableModule> VariablesContainer;
     vector <ScrollbarModule> ScrollbarContainer;
     vector <PrimitivesModule> PrimitivesContainer;

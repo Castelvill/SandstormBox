@@ -126,8 +126,6 @@ start updateIfNotMaxed
     if([isMaxed] !)
     = sizeX sx
     = sizeY sy
-    //print "x" _ c sx
-    //print "\n" _ c sy
     access cpx [[Camera pos_x]]
     access cpy [[Camera pos_y]]
     = posX cpx

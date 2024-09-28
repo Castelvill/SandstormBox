@@ -1,4 +1,11 @@
+28.09.2024
+-Implemented the autocomplete for file paths.
+-Improved the "similar" instruction with an alternative output - the longest common substring.
+-Added the "count" instruction.
+
 27.09.2024
+-Added error checks to the "find_by_id_2" instruction.
+-Renamed EveModule to EventModule.
 -Fixed: Newly created global variables were deleted from the context when retracing the event stack. 
 -Fixed small memory leak: ALLEGRO_PATH pointer was never destroyed.
 

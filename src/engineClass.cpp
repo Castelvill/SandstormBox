@@ -248,7 +248,7 @@ void EngineClass::initAllegro(){
 }
 void EngineClass::createDisplay(){
     if(display != nullptr){
-        cout << "Warning: Display already exists. Nothing to be done.\n";
+        cout << "Warning: You can't create a new display, because one already exists. Nothing to be done.\n";
         return;
     }
 

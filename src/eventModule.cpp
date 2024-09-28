@@ -306,14 +306,14 @@ void OperationClass::addLiteralParameter(const VariableModule & Variable){
     Parameters.back().Literals.push_back(Variable);
 }
 
-void EveModule::clone(const EveModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+void EventModule::clone(const EventModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
     *this = Original;
     ID = oldID;
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 
-void EveModule::setUpNewInstance(){
+void EventModule::setUpNewInstance(){
     conditionalStatus = 'n';
     elseChildID = "";
     areDependentOperationsDone = false;
@@ -321,32 +321,32 @@ void EveModule::setUpNewInstance(){
     loop = false;
     willBeDeleted = false;
 }
-EveModule::EveModule(){
+EventModule::EventModule(){
     primaryConstructor("", nullptr, "", "");
     setUpNewInstance();
 }
-EveModule::EveModule(unsigned int eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+EventModule::EventModule(unsigned int eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-EveModule::EveModule(string eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+EventModule::EventModule(string eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
     setUpNewInstance();
 }
-EveModule::~EveModule(){
+EventModule::~EventModule(){
 
 }
-void EveModule::clear(){
+void EventModule::clear(){
     ConditionalChain.clear();
     PostOperations.clear();
     Children.clear();
 }
-void EveModule::resetStatus(){
+void EventModule::resetStatus(){
 	for(ChildStruct & Child : Children){
 		Child.finished = false;
 	}
 }
-bool EveModule::checkIfAllChildrenFinished(){
+bool EventModule::checkIfAllChildrenFinished(){
     for(ChildStruct Child : Children){
         if(!Child.finished){
             return false;
@@ -355,7 +355,7 @@ bool EveModule::checkIfAllChildrenFinished(){
     return true;
 }
 
-void EveModule::controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer){
+void EventModule::controlText(TextModule * Text, string attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer){
     if(attribute == "set_id" && Values.size() > 0){
         Text->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -457,7 +457,7 @@ void EveModule::controlText(TextModule * Text, string attribute, const vector<Va
         Text->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlEditableText(EditableTextModule *EditableText, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, const vector<SingleFont> &FontContainer){
+void EventModule::controlEditableText(EditableTextModule *EditableText, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, const vector<SingleFont> &FontContainer){
     if(attribute == "set_editable" && Values.size() > 0){
         EditableText->setCanBeEdited(Values[0].getBoolUnsafe());
     }
@@ -534,7 +534,7 @@ void EveModule::controlEditableText(EditableTextModule *EditableText, string att
         controlText(EditableText, attribute, Values, IDs, FontContainer);
     }
 }
-void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, const vector<VariableModule> & Values,
+void EventModule::controlSuperText(SuperTextModule * SuperText, string attribute, const vector<VariableModule> & Values,
     vector <string> & IDs, vector<SingleFont> & FontContainer, string EXE_PATH, string workingDirectory
 ){
     if(attribute == "set_id" && Values.size() > 0){
@@ -755,7 +755,7 @@ void EveModule::controlSuperText(SuperTextModule * SuperText, string attribute, 
         SuperText->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlSuperEditableText(SuperEditableTextModule *& SuperEditableText, string attribute, const vector<VariableModule> & Values,
+void EventModule::controlSuperEditableText(SuperEditableTextModule *& SuperEditableText, string attribute, const vector<VariableModule> & Values,
     vector <string> & IDs, vector<SingleFont> & FontContainer, SuperEditableTextModule *& ActiveEditableText, string EXE_PATH, string workingDirectory
 ){
     if(attribute == "set_can_be_edited" && Values.size() > 0){
@@ -857,7 +857,7 @@ void EveModule::controlSuperEditableText(SuperEditableTextModule *& SuperEditabl
         controlSuperText(SuperEditableText, attribute, Values, IDs, FontContainer, EXE_PATH, workingDirectory);
     }
 }
-void EveModule::controlImage(ImageModule *Image, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, vector<SingleBitmap> &BitmapContainer, string workingDirectory){
+void EventModule::controlImage(ImageModule *Image, string attribute, const vector<VariableModule> &Values, vector<string> &IDs, vector<SingleBitmap> &BitmapContainer, string workingDirectory){
     if(attribute == "set_id" && Values.size() > 0){
         Image->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -923,7 +923,7 @@ void EveModule::controlImage(ImageModule *Image, string attribute, const vector<
         Image->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EventModule::controlMovement(MovementModule * Movement, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
     if(attribute == "move" && Values.size() >= 2){
         Movement->addMomentum(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
     }
@@ -1070,7 +1070,7 @@ void EveModule::controlMovement(MovementModule * Movement, string attribute, con
         Movement->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EventModule::controlCollision(CollisionModule * Collision, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
     if(attribute == "set_id" && Values.size() > 0){
         Collision->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -1124,7 +1124,7 @@ void EveModule::controlCollision(CollisionModule * Collision, string attribute, 
         Collision->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EventModule::controlParticles(ParticleEffectModule * Particles, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
     if(attribute == "set_id" && Values.size() > 0){
         Particles->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -1265,7 +1265,7 @@ void EveModule::controlParticles(ParticleEffectModule * Particles, string attrib
         Particles->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EventModule::controlVariables(VariableModule * Variable, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
     if(attribute == "set_id" && Values.size() > 0){
         Variable->setID(Values[0].getStringUnsafe(), &IDs);
     }
@@ -1369,7 +1369,7 @@ void EveModule::controlVariables(VariableModule * Variable, string attribute, co
         cout << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << Values.size() << "> does not exist.\n";
     }
 }
-void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EventModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
     if(attribute == "set_id" && Values.size() > 0){
         Scrollbar->setID(Values[0].getStringUnsafe(), IDs);
     }
@@ -1432,7 +1432,7 @@ void EveModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, 
         Scrollbar->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EventModule::controlPrimitives(PrimitivesModule * Primitives, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
     if(attribute == "update_with_size"){
         Primitives->updateWithSize();
     }
@@ -1468,7 +1468,7 @@ void EveModule::controlPrimitives(PrimitivesModule * Primitives, string attribut
         Primitives->control(attribute, temp, Values.size());
     }
 }
-void EveModule::controlVector(VectorModule * Vector, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EventModule::controlVector(VectorModule * Vector, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
     if(attribute == "set_id" && Values.size() > 0){
         Vector->setID(Values[0].getStringUnsafe(), &IDs);
     }
@@ -1529,7 +1529,7 @@ void EveModule::controlVector(VectorModule * Vector, string attribute, const vec
     }
 }
 
-void EveModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
+void EventModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
     if(attribute == "else_child_id"){
         BasePointers.push_back(BasePointersStruct());
         BasePointers.back().setPointer(&elseChildID);

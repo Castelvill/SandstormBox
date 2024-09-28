@@ -80,7 +80,7 @@ start colorIfNormalFile
 	fun EditableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
 end
 start printFileNameOnTerminal
-	print "  " result file
+	print _ result file "  "
 	run printOnTerminal
 end
 
@@ -214,8 +214,6 @@ start spawn
     fun SpawnLayer activate
     access newLayerID [[SpawnLayer id]]
 
-    //print ": " _ SpawnLayer
-
     new camera 1 "SpawnWindow0" NewWindow
     fun NewWindow set_pos 0 0
     fun NewWindow set_active true
@@ -236,8 +234,6 @@ start spawn
     fun NewWindow pin_to_camera "Desktop"
     fun NewWindow activate_pin
     access newWindowID [[NewWindow id]]
-
-    //print \n _ NewWindow
 
     new object SpawnLayer 1 "Window" NewWindowObject
     fun NewWindowObject set_can_be_selected false

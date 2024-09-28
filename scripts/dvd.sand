@@ -27,6 +27,7 @@ start putRectangleOnScreen
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code_2" true
 
     new super_text me 1 "Fps" FpsText
+    fun FpsText disable_scrolling
     fun FpsText set_pos 400 0
     fun FpsText set_size 400 50
     fun FpsText add_format "cascadia_code_2" 1
@@ -67,8 +68,10 @@ start moveRectangle
 after
 	+= x velX
 	+= y velY
-    index me [0 0] primitives Rectangle
-	fun Rectangle set_pos x y
+    //index me [0 0] primitives Rectangle
+    all me _ _ primitives _ _ _ Primitives
+	find_by_id_2 Primitives "Rectangle" Rectangle
+    fun Rectangle set_pos x y
 end
 
 start bounceX
