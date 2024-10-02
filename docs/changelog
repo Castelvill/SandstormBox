@@ -1,3 +1,7 @@
+02.09.2024
+-Added skipping of repeated commands in the command history.
+-Converted instruction parameters to one-dimensional trees.
+
 28.09.2024
 -Implemented the autocomplete for file paths.
 -Improved the "similar" instruction with an alternative output - the longest common substring.

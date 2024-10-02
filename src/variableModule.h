@@ -3,16 +3,20 @@
 
 #include "movementModule.h"
 
-class VariableModule{
-    bool deleted;
-    string ID;
-    string layerID; //This ID is needed in events' trigger detection.
-    string objectID;
+class UniversalVariable{
+public:
     char type; //n - null, b - bool, i - int, d - double, s - string
     bool vBool;
     int vInt;
 	double vDouble;
 	string vString;
+};
+
+class VariableModule: public UniversalVariable{
+    bool deleted;
+    string ID;
+    string layerID; //This ID is needed in events' trigger detection.
+    string objectID;
 public:
     VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);

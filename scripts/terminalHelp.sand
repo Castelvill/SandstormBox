@@ -342,10 +342,11 @@ end
 
 start history
     int i 0
-    access commandHistorySize [[v commandHistory size]]
+    access commandHistorySize [[vector commandHistory size]]
     -- commandHistorySize
     = program ""
-    run printHistory
+    index me [0 0] super_editable_text EditableText
+    run printHistory updateTerminalHistory
 end
 
 start printHistory true
@@ -356,10 +357,15 @@ start printHistory true
     ++ j
     += result j
     += result "\t"
-    access nextCommand [[v commandHistory c i]]
+    access nextCommand [[vector commandHistory context i]]
     += result nextCommand
     += result "\n"
     ++ i
+    fun EditableText add_content result
+end
+
+start updateTerminalHistory
+    string result ""
     run printOnTerminal
 end
 

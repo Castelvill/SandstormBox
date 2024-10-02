@@ -1,11 +1,13 @@
--Skip the repeating commands in the history.
+-Use UniversalVariable class in most places where ID, deletion, layers and objects of variables does not matter.
 -Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
+-Update: "Access" instruction still uses "vector" and "context" specifiers. 
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
 -Maybe the "start" instruction could be used inside the existing scope? If it would work, then you could easily create the "if" scope. 
 -Remove "cout.flush();" from the method "executeInstructions". It probably hurts the performance.
 -Check file path checks: "", "~/" and ''.
 -Change "char type" instances to enum in classes like VariableModule.
 -Use emplace_back instead of push_back when dealing with adding the temporary objects to the vector. Method emplace_back only passes the object's constructor to the vector.
+-Before creating CachedContext, think about the functional programming.
 -Create a SavedContext / CachedContext vector for removing the need to recreate needed context stack for each event/function in each iteration. Context elements initialized from SavedContext will be immutable in type and shape.
 -Add a pointer to the AncestorObject class that will point to the SavedContext vector (cached contexts).
 -Add "structure/cache context" instruction that will add provided context to the SavedContext/CachedContext vector.

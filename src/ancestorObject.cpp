@@ -696,8 +696,14 @@ bool prepareNewInstruction(vector<WordStruct> words, EventModule & NewEvent, Ope
     bool postOperations, unsigned minLength, unsigned lineNumber, string scriptName
 ){
     if(words.size() < minLength){
-        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least " << minLength << " parameters.\n";
+        if(minLength == 2){
+            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least 1 parameter.\n";
+        }
+        else{
+            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least " << minLength-1 << " parameters.\n";
+        }
         return false;
     }
     if(!postOperations){
@@ -960,21 +966,21 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 ){
                     continue;
                 }
-                else if(firstWord.value == "vector" || firstWord.value == "v"){
+                else if(firstWord.value == "vector"){
                     if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
                     if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
                     if(Expression.back().Location.attribute == "i" || Expression.back().Location.attribute == "index"){
                         if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
                         Expression.back().Location.attribute = "value";
                     }
-                    else if(Expression.back().Location.attribute == "c" || Expression.back().Location.attribute == "context"){
+                    else if(Expression.back().Location.attribute == "context"){
                         if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
                         Expression.back().Location.attribute = "value";
                     }
-                    else if(Expression.back().Location.attribute == "s" || Expression.back().Location.attribute == "size"){
+                    else if(Expression.back().Location.attribute == "size"){
                         Expression.back().Location.attribute = "size";
                     }
-                    else if(Expression.back().Location.attribute == "b" || Expression.back().Location.attribute == "back"){
+                    else if(Expression.back().Location.attribute == "back"){
                         Expression.back().Location.attribute = "back";
                     }
                     else{

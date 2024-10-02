@@ -1,5 +1,6 @@
 start init
     triggers on_init
+    edit_proc print_instructions 0
     fun me set_can_be_selected false
     new object my_layer 1 "KERNEL" First
     fun First set_can_be_selected true

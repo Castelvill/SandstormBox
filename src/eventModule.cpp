@@ -29,15 +29,19 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
         return true;
     }
     if(words[index].type == 'e'){
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'e';
+        ++rootParametersSize;
         return false;
     }
     if(words[index].type == 'c'){
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'c';
-        Parameters.back().variableIDs.push_back(words[index].value);
-        Parameters.back().negateVariable.push_back(stupidBool(words[index].negateVariable));
+        Parameters.back().variableID = words[index].value;
+        Parameters.back().negateVariable = words[index].negateVariable;
+        ++rootParametersSize;
         return false;
     }
     if(type == 'c'){
@@ -53,9 +57,11 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'l';
-        Parameters.back().Literals.push_back(VariableModule::newString(words[index].value));
+        Parameters.back().Literal.setString(words[index].value);
+        ++rootParametersSize;
         return false;
     }
     if(type == 's'){
@@ -71,9 +77,11 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'l';
-        Parameters.back().Literals.push_back(VariableModule::newDouble(cstod(words[index].value, error)));
+        Parameters.back().Literal.setDouble(cstod(words[index].value, error));
+        ++rootParametersSize;
         if(error.size() > 0){
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
@@ -81,9 +89,11 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
         return false;
     }
     if(words[index].type == 'i'){
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'l';
-        Parameters.back().Literals.push_back(VariableModule::newInt(cstoi(words[index].value, error)));
+        Parameters.back().Literal.setInt(cstoi(words[index].value, error));
+        ++rootParametersSize;
         if(error.size() > 0){
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
@@ -91,9 +101,11 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
         return false;
     }
     if(words[index].type == 'b'){
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'l';
-        Parameters.back().Literals.push_back(VariableModule::newBool(cstoi(words[index].value, error)));
+        Parameters.back().Literal.setBool(cstoi(words[index].value, error));
+        ++rootParametersSize;
         if(error.size() > 0){
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
@@ -128,19 +140,25 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName,
     }
     if(words[index].type == 'b' || words[index].type == 'i' || words[index].type == 'd'){
         if(type == 'b' || (words[index].type == 'b' && type == 'a')){
-            Parameters.push_back(ParameterStruct());
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 0;
             Parameters.back().type = 'l';
-            Parameters.back().Literals.push_back(VariableModule::newBool(cstoi(words[index].value, error)));
+            Parameters.back().Literal.setBool(cstoi(words[index].value, error));
+            ++rootParametersSize;
         }
         else if(type == 'i' || (words[index].type == 'i' && type == 'a')){
-            Parameters.push_back(ParameterStruct());
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 0;
             Parameters.back().type = 'l';
-            Parameters.back().Literals.push_back(VariableModule::newInt(cstoi(words[index].value, error)));
+            Parameters.back().Literal.setInt(cstoi(words[index].value, error));
+            ++rootParametersSize;
         }
         else if(type == 'd' || (words[index].type == 'd' && type == 'a')){
-            Parameters.push_back(ParameterStruct());
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 0;
             Parameters.back().type = 'l';
-            Parameters.back().Literals.push_back(VariableModule::newDouble(cstod(words[index].value, error)));
+            Parameters.back().Literal.setDouble(cstod(words[index].value, error));
+            ++rootParametersSize;
         }
         else{
             error = "Parameter '" + name + "' (";
@@ -166,9 +184,11 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName,
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'l';
-        Parameters.back().Literals.push_back(VariableModule::newString(words[index].value));
+        Parameters.back().Literal.setString(words[index].value);
+        ++rootParametersSize;
         index++;
         return false;
     }
@@ -195,8 +215,10 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
         return true;
     }
     if(words[index].type == 'e'){
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'e';
+        ++rootParametersSize;
         index++;
         return false;
     }
@@ -207,10 +229,12 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
         return true;
     }
     if(words[index].value != "["){
-        Parameters.push_back(ParameterStruct());
+        Parameters.emplace_back(ParameterStruct());
+        Parameters.back().treeLevel = 0;
         Parameters.back().type = 'c';
-        Parameters.back().variableIDs.push_back(words[index].value);
-        Parameters.back().negateVariable.push_back(stupidBool(words[index].negateVariable));
+        Parameters.back().variableID = words[index].value;
+        Parameters.back().negateVariable = words[index].negateVariable;
+        ++rootParametersSize;
         index++;
         return false;
     }
@@ -224,12 +248,17 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
         return true;
     }
 
-    Parameters.push_back(ParameterStruct());
+    Parameters.emplace_back(ParameterStruct());
+    Parameters.back().treeLevel = 0;
     Parameters.back().type = 'v';
+    ++rootParametersSize;
     while(index < words.size() && words[index].value != "]"){
         if(words[index].type == 'c'){
-            Parameters.back().variableIDs.push_back(words[index].value);
-            Parameters.back().negateVariable.push_back(stupidBool(words[index].negateVariable));
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'c';
+            Parameters.back().variableID = words[index].value;
+            Parameters.back().negateVariable = words[index].negateVariable;
             index++;
             continue;
         }
@@ -246,7 +275,10 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
                 printError(scriptName, lineNumber, words[0].value, error);
                 return true;
             }
-            Parameters.back().Literals.push_back(VariableModule::newString(words[index].value));
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'l';
+            Parameters.back().Literal.setString(words[index].value);
             index++;
             continue;
         }
@@ -257,7 +289,10 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
             return true;
         }
         if(words[index].type == 'd'){
-            Parameters.back().Literals.push_back(VariableModule::newDouble(cstod(words[index].value, error)));
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'l';
+            Parameters.back().Literal.setDouble(cstod(words[index].value, error));
             if(error.size() > 0){
                 printError(scriptName, lineNumber, words[0].value, error);
                 return true;
@@ -266,7 +301,10 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
             continue;
         }
         if(words[index].type == 'i'){
-            Parameters.back().Literals.push_back(VariableModule::newInt(cstoi(words[index].value, error)));
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'l';
+            Parameters.back().Literal.setInt(cstoi(words[index].value, error));
             if(error.size() > 0){
                 printError(scriptName, lineNumber, words[0].value, error);
                 return true;
@@ -275,7 +313,10 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
             continue;
         }
         if(words[index].type == 'b'){
-            Parameters.back().Literals.push_back(VariableModule::newBool(cstoi(words[index].value, error)));
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'l';
+            Parameters.back().Literal.setBool(cstoi(words[index].value, error));
             if(error.size() > 0){
                 printError(scriptName, lineNumber, words[0].value, error);
                 return true;
@@ -301,9 +342,11 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
     return false;
 }
 void OperationClass::addLiteralParameter(const VariableModule & Variable){
-    Parameters.push_back(ParameterStruct());
+    Parameters.emplace_back(ParameterStruct());
+    Parameters.back().treeLevel = 0;
     Parameters.back().type = 'l';
-    Parameters.back().Literals.push_back(Variable);
+    Parameters.back().Literal = Variable;
+    ++rootParametersSize;
 }
 
 void EventModule::clone(const EventModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
@@ -1572,8 +1615,4 @@ void ValueLocation::print(string dynamicID){
         cout << "." << spareID;
     }
     cout << " ";
-}
-
-ParameterStruct::ParameterStruct(){
-    type = 'e';
 }

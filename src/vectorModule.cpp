@@ -501,6 +501,16 @@ bool VectorModule::getBoolUnsafe(long index) const{
 
     return vBool[index].value;
 }
+vector<stupidBool> VectorModule::getAllBools() const{
+    return vBool;
+}
+vector<VariableModule> VectorModule::getAllBoolsAsVariables(){
+    vector<VariableModule> Values;
+    for(stupidBool stupidValue : vBool){
+        Values.push_back(VariableModule::newBool(stupidValue.value));
+    }
+    return Values;
+}
 int VectorModule::getInt(size_t index) const{
     if(index >= vInt.size()){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
@@ -524,6 +534,16 @@ int VectorModule::getIntUnsafe(long index) const{
     
     return vInt[index];
 }
+vector<int> VectorModule::getAllInts() const{
+    return vInt;
+}
+vector<VariableModule> VectorModule::getAllIntsAsVariables(){
+    vector<VariableModule> Values;
+    for(int value : vInt){
+        Values.emplace_back(VariableModule::newInt(value));
+    }
+    return Values;
+}
 double VectorModule::getDouble(size_t index) const{
     if(index >= vDouble.size()){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
@@ -546,6 +566,16 @@ double VectorModule::getDoubleUnsafe(long index) const{
     }
     
     return vDouble[index];
+}
+vector<double> VectorModule::getAllDoubles() const{
+    return vDouble;
+}
+vector<VariableModule> VectorModule::getAllDoublesAsVariables(){
+    vector<VariableModule> Values;
+    for(double value : vDouble){
+        Values.emplace_back(VariableModule::newDouble(value));
+    }
+    return Values;
 }
 string VectorModule::getString(size_t index) const{
     if(index >= vString.size()){
@@ -592,6 +622,13 @@ string VectorModule::getLastValue() const{
 vector<string> VectorModule::getAllStrings() const{
     return vString;
 }
+vector<VariableModule> VectorModule::getAllStringsAsVariables(){
+    vector<VariableModule> Values;
+    for(string value : vString){
+        Values.emplace_back(VariableModule::newString(value));
+    }
+    return Values;
+}
 bool VectorModule::getLastBool() const
 {
     if(vBool.size() == 0){
@@ -615,7 +652,7 @@ double VectorModule::getLastDouble() const{
     return vDouble.back();
 }
 string VectorModule::getLastString() const{
-    if(vBool.size() == 0){
+    if(vString.size() == 0){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return "";
     }
@@ -629,21 +666,21 @@ bool VectorModule::getFirstBool() const{
     return vBool[0].value;
 }
 int VectorModule::getFirstInt() const{
-    if(vBool.size() == 0){
+    if(vInt.size() == 0){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return 0;
     }
     return vInt[0];
 }
 double VectorModule::getFirstDouble() const{
-    if(vBool.size() == 0){
+    if(vDouble.size() == 0){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return 0.0;
     }
     return vDouble[0];
 }
 string VectorModule::getFirstString() const{
-    if(vBool.size() == 0){
+    if(vString.size() == 0){
         cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return "";
     }

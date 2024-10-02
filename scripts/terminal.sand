@@ -856,15 +856,15 @@ start resetScrollbar
 end
 
 
-start enter
+start enterCommand
     triggers key_pressed
     if ([key_pressed KEY_ENTER] [program] ["sleep"] == &&)
     index Cameras [0] camera Camera
-    run enter1
+    run enterCommand1
 end
 
 
-start enter1
+start enterCommand1
     if ([Camera is_selected])
     index me [0 0] super_editable_text EditableText
     first EditableText _ _ _ _ content _ userInput
@@ -887,16 +887,27 @@ start enter1
 
     in param0 allowedPrograms isAllowed
     = program "_enter"
-    run saveCommand programCheck
+    string lastCommand ""
+    run ignoreRepetition saveCommand programCheck
+after
+    = currentCommandNumber commandNumber
+end
+
+start ignoreRepetition
+    if([commandNumber] [0] >)
+    //dump_context_stack
+    //breakpoint
+    int lastParameterIndex commandNumber
+    -- lastParameterIndex
+    index commandHistory [0 lastParameterIndex] value lastCommand
 end
 
 start saveCommand
-    if ([commandLength] [0] >)
+    if ([commandLength] [0] > [command] [lastCommand] != &&)
     fun commandHistory set commandNumber command
     save_text "~/history.txt" commandHistory "\n"
     fun commandHistory push_back ""
     ++ commandNumber
-    = currentCommandNumber commandNumber
 end
 
 start programCheck
@@ -944,7 +955,7 @@ start upArrow
     -- currentCommandNumber
 
     fun EditableText cut_unprotected_area
-    access diffCommand [[v commandHistory c currentCommandNumber]]
+    access diffCommand [[vector commandHistory context currentCommandNumber]]
     fun EditableText add_content diffCommand
     fun EditableText update
     first EditableText _ _ _ _ content _ history
@@ -965,7 +976,7 @@ start downArrow
     ++ currentCommandNumber
 
     fun EditableText cut_unprotected_area
-    access diffCommand [[v commandHistory c currentCommandNumber]]
+    access diffCommand [[vector commandHistory context currentCommandNumber]]
     fun EditableText add_content diffCommand
     fun EditableText update
     first EditableText _ _ _ _ content _ history
@@ -1022,6 +1033,8 @@ end
 
 
 start edit
+    if([param1] [""] !=)
+    else informNonEmptyFileName
     = program "edit"
     index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField deactivate
@@ -1053,9 +1066,16 @@ start loadTextFromFile
 end
 
 start informFileDoesNotExist
-    print "Warning: File '"
-    print _ _ fileName
-    print "' does not exist.\n"
+    string result "Warning: File '"
+    += result fileName
+    += result "' does not exist.\n"
+    run printOnTerminal
+end
+
+start informNonEmptyFileName
+    = program "_enter"
+    string result "Error: Edit program requires a name of the file."
+    run printOnTerminal
 end
 
 start autoUpdateScrollbarForTextEditor

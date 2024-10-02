@@ -27,11 +27,11 @@ public:
 };
 
 struct ParameterStruct{
-    char type; //e - empty, l - literals, c - variable, v - vector
-    vector<VariableModule> Literals;
-    vector<string> variableIDs;
-    vector<stupidBool> negateVariable;
-    ParameterStruct();
+    unsigned treeLevel = 0;
+    char type = 'e'; //e - empty, l - literal, c - variable, v - vector
+    VariableModule Literal;
+    string variableID = "";
+    bool negateVariable = false;
 };
 
 struct WordStruct{
@@ -44,6 +44,7 @@ class OperationClass{
 public:
     vector <ConditionClass> ConditionalChain;
     vector <ParameterStruct> Parameters;
+    unsigned rootParametersSize = 0;
     ValueLocation Location;
     EngineInstr instruction; //first, last, all, random, let, assigment, class method, run(), break, return
     string scriptName;
