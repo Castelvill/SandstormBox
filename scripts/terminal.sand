@@ -563,6 +563,7 @@ end
 
 start autoComplete1
     if ([Camera is_selected])
+    print "AAAA"
     index me [0 0] super_editable_text EditableText
     fun EditableText set_last_color 1.0 0.8 0.0 1.0
     fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
@@ -601,6 +602,7 @@ end
 start autoCompletePrograms
     if([params size] [1] ==)
     else autoCompleteFiles
+    print "BBBB"
     similar command allowedPrograms false completes
     similar command allowedPrograms true commonPart
     string lastParameter ""
@@ -613,18 +615,20 @@ end
 start autoCompleteProgramsIfOne
     if([completes size] [1] ==)
     print _ completes completes " "
+    print "CCCC"
 end
 
 start replaceWithAutoComplete
     if ([completes size] [1] ==)
     else printPossibleCompletes
+    print "DDDD"
     fun EditableText cut_unprotected_area
     fun params pop_back
     fun params push_back completes
     print " " autocompletedText params
     //index completes [0] value instance
     fun EditableText add_content autocompletedText
-    fun EditableText update
+    //fun EditableText update
     first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_cursor_pos historySize
@@ -659,7 +663,9 @@ end
 start printPrompt
     string result ""
     index me [0 0] super_editable_text EditableText
-    run rstTermBuff createPrompt printOnTerminal colorNormalText
+    run rstTermBuff createPrompt cout colorNormalText
+after
+    print "FFFF"
 end
 
 start addCommonPartToCommand
@@ -669,19 +675,24 @@ start addCommonPartToCommand
     -= commonPartLength lastParameterLength
     substr commonPart lastParameterLength commonPartLength commonPart
     += command commonPart
+after
+    print "GGGG"
 end
 
 start printPossibleCompletes
     if([completes size] [0] >)
-    run addAllCompletes putNewLine printOnTerminal printPrompt addCommonPartToCommand rewriteLastCommand
+    print "EEEE"
+    run addAllCompletes putNewLine cout printPrompt addCommonPartToCommand rewriteLastCommand updateTerminal
 end
 
 start rewriteLastCommand
     fun EditableText add_content command
-    fun EditableText update
+    //fun EditableText update
     first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_cursor_pos historySize
+after
+    print "HHHH"
 end
 
 
@@ -693,7 +704,7 @@ start controler
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
     string result ""
-    run createPrompt printOnTerminal colorNormalText
+    run createPrompt cout colorNormalText updateTerminal
 end
 
 
@@ -717,14 +728,14 @@ start controlerWithEnter
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
     string result "\n"
-    run createPrompt printOnTerminal colorNormalText
+    run createPrompt cout colorNormalText updateTerminal
 end
 
 start colorNormalText
     fun EditableText set_last_color 0.86 0.85 0.86 1.0
     fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
     string result " "
-    run printOnTerminal
+    run cout
 end
 
 
@@ -890,6 +901,7 @@ start enterCommand1
     string lastCommand ""
     run ignoreRepetition saveCommand programCheck
 after
+    print "JJJJ"
     = currentCommandNumber commandNumber
 end
 
@@ -917,7 +929,7 @@ start programCheck
     = program "run"
     inject_instr me run
     string result "\n"
-    run printOnTerminal
+    run cout
     else programNotFound
 end
 
@@ -990,46 +1002,6 @@ start programNotFound
     string result "\nCommand not found!"
     run printOnTerminal
 end
-
-
-start printOnTerminal
-    index me [0 0] super_editable_text EditableText
-    fun EditableText add_content result
-    fun EditableText update
-    fun EditableText crop_height_to_text
-
-    first EditableText _ _ _ _ content _ history
-    len history historySize
-    fun EditableText set_protected_area historySize
-    fun EditableText set_cursor_pos historySize
-
-    access w [[display_w]]
-    access h [[display_h]]
-    index me [0 0] super_editable_text TerminalTextField
-    access TerminalSizeY [[TerminalTextField size_y]]
-
-    run resizeTerminalIfSmall refreshScrollbar
-end
-
-start printOnTerminalUnprotected
-    index me [0 0] super_editable_text EditableText
-    fun EditableText add_content result
-    fun EditableText update
-    fun EditableText crop_height_to_text
-
-    first EditableText _ _ _ _ content _ history
-    len history historySize
-    //fun EditableText set_protected_area historySize
-    //fun EditableText set_cursor_pos historySize
-
-    access w [[display_w]]
-    access h [[display_h]]
-    index me [0 0] super_editable_text TerminalTextField
-    access TerminalSizeY [[TerminalTextField size_y]]
-
-    run resizeTerminalIfSmall refreshScrollbar
-end
-
 
 
 start edit

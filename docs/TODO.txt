@@ -1,6 +1,4 @@
--Use UniversalVariable class in most places where ID, deletion, layers and objects of variables does not matter.
 -Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
--Update: "Access" instruction still uses "vector" and "context" specifiers. 
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
 -Maybe the "start" instruction could be used inside the existing scope? If it would work, then you could easily create the "if" scope. 
 -Remove "cout.flush();" from the method "executeInstructions". It probably hurts the performance.
@@ -24,6 +22,7 @@
 -(?)Implement "set_if *event* *expression*" instruction.
 -Move "triggers" to the object definition or bind events to them - right now without using if statements triggers can cause script based bugs. 
 -Thought: If S++ language is much slower than S, then: S++ will be used for easier development, while S for optimal deployment.
+-Update: "Access" instruction still uses "vector" and "context" specifiers. 
 
 MILESTONE: Improve scripting language.
 
@@ -152,6 +151,7 @@ MILESTONE: Create a new scripting language (a wrapper for the previous one).
 
 OPTIMALIZATIONS
 -Remove old, useless functions and methods.
+-Use UniversalVariable class in most places where ID, deletion, layers and objects of variables does not matter.
 -Moving cursor up or down shouldn't change the "localCursorPos" variable in order to optimize moving around the text.
 -Try to remove SuperEditableText's variables from SuperText in order to save on memory. Maybe create copies of some functions like update just for the SuperEditableText.     
 -Use std::variant instead of unions.

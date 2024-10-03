@@ -73,6 +73,8 @@ void SuperTextModule::mergeFormatting(){
     }
 }
 void SuperTextModule::update(){
+    cout << "Update!";
+    cout.flush();
     textLines.clear();
     textLines.push_back("");
     lineWidths.clear();
@@ -644,7 +646,7 @@ void SuperTextModule::fitFormattingToContent(){
         Formatting.erase(Formatting.begin() + 1, Formatting.end());
         Formatting[0].limit = 1;
         Formatting[0].drawingLimit = 1;
-        update();
+        //update();
         return;
     }
     unsigned limitSum = 0;
@@ -657,12 +659,12 @@ void SuperTextModule::fitFormattingToContent(){
     }
     if(formatIdx == Formatting.size()){
         Formatting.back().limit += contentSize - limitSum + 1;
-        update();
+        //update();
         return;
     }
     Formatting[formatIdx].limit = (contentSize - (limitSum - Formatting[formatIdx].limit)) + 1;
     if(formatIdx == Formatting.size() - 1){
-        update();
+        //update();
         return;
     }
     Formatting.erase(Formatting.begin() + formatIdx + 1, Formatting.end());
@@ -670,12 +672,13 @@ void SuperTextModule::fitFormattingToContent(){
 void SuperTextModule::setContent(string newContent){
     content = newContent;
     fitFormattingToContent();
-    update();
+    //update();
 }
 void SuperTextModule::addContent(string newContent){
     content += newContent;
     Formatting.back().limit += newContent.size();
-    update();
+
+    //update();
 }
 void SuperTextModule::addNewTextLine(string newLine){
     textLines.push_back(newLine);
@@ -1076,7 +1079,7 @@ void SuperTextModule::setSecondCursorPos(int newPos){
 void SuperTextModule::cutContent(size_t newSize){
     content = content.substr(0, newSize);
     fitFormattingToContent();
-    update();
+    //update();
 }
 void SuperTextModule::saveFormattedTextToTheFile(string filePath){
     std::ofstream File(filePath);

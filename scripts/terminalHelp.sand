@@ -1,9 +1,62 @@
+start printOnTerminal
+    index me [0 0] super_editable_text EditableText
+    fun EditableText add_content result
+    fun EditableText update
+    fun EditableText crop_height_to_text
+
+    first EditableText _ _ _ _ content _ history
+    len history historySize
+    fun EditableText set_protected_area historySize
+    fun EditableText set_cursor_pos historySize
+
+    access w [[display_w]]
+    access h [[display_h]]
+    index me [0 0] super_editable_text TerminalTextField
+    access TerminalSizeY [[TerminalTextField size_y]]
+
+    run resizeTerminalIfSmall refreshScrollbar
+end
+
+start printOnTerminalUnprotected
+    index me [0 0] super_editable_text EditableText
+    fun EditableText add_content result
+    fun EditableText update
+    fun EditableText crop_height_to_text
+
+    first EditableText _ _ _ _ content _ history
+    len history historySize
+    //fun EditableText set_protected_area historySize
+    //fun EditableText set_cursor_pos historySize
+
+    access w [[display_w]]
+    access h [[display_h]]
+    index me [0 0] super_editable_text TerminalTextField
+    access TerminalSizeY [[TerminalTextField size_y]]
+
+    run resizeTerminalIfSmall refreshScrollbar
+end
+
+start cout
+    fun EditableText add_content result
+    first EditableText _ _ _ _ content _ history
+    len history historySize
+    fun EditableText set_cursor_pos historySize
+end
+
+start updateTerminal
+    string result ""
+    run printOnTerminal
+after
+    print "IIII"
+end
+
+
 start help
     print " " result allowedPrograms
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 1.0 0.8 0.0 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
     = program "_enter"
-    run printOnTerminal
+    run cout
 end
 
 
@@ -16,7 +69,7 @@ end
 start notMv
     = program "_enter"
     string result "Instruction 'mv' failed."
-    run printOnTerminal
+    run cout
 end
 
 
@@ -26,6 +79,7 @@ start ls
     tokenize " " result files
     index me [0 0] super_editable_text EditableText
     int fileIndex 0
+    string result ""
 	run lsColoringLoop
     else informFileDoesNotExistForCD
 after
@@ -80,8 +134,8 @@ start colorIfNormalFile
 	fun EditableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
 end
 start printFileNameOnTerminal
-	print _ result file "  "
-	run printOnTerminal
+	+ file "  " result
+	run cout
 end
 
 
@@ -115,7 +169,7 @@ start neofetch
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     = program ""
-    run printOnTerminal
+    run cout
 end
 
 start xd
@@ -132,7 +186,7 @@ start xd
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     = program ""
-    run printOnTerminal 
+    run cout 
 end
 
 start sel_col
@@ -150,13 +204,13 @@ start v4
     print " " result x
     += result "\n"
     = program ""
-    run printOnTerminal
+    run cout
 end
 
 start hello
     print _ result "Hello, world!\n"
     = program ""
-    run printOnTerminal
+    run cout
 end
 
 
@@ -175,7 +229,7 @@ start cats
 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 "
     = program ""
-    run printOnTerminal
+    run cout
 end
 
 
@@ -198,14 +252,14 @@ start sq
               | |
 "
     = program ""
-    run printOnTerminal
+    run cout
 end
 
 
 start print
     print _ result param1 param2 param3
     = program "_enter"
-    run printOnTerminal
+    run cout
 end
 
 
@@ -298,7 +352,7 @@ start cat
     = program ""
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
-    run printOnTerminal
+    run cout
     else printNoSuchFile
 end
 
@@ -308,7 +362,7 @@ start printNoSuchFile
     string result "File '"
     += result param1
     += result "' does not exist."
-    run printOnTerminal
+    run cout
 end
 
 
@@ -322,7 +376,7 @@ start pwd
     pwd workingDir
     += result workingDir
     = program "_enter"
-    run printOnTerminal
+    run cout
 end
 
 
@@ -337,7 +391,7 @@ start informFileDoesNotExistForCD
     string result "Directory '"
     += result param1
     += result "' does not exist!\n"
-    run printOnTerminal
+    run cout
 end
 
 start history
@@ -346,7 +400,7 @@ start history
     -- commandHistorySize
     = program ""
     index me [0 0] super_editable_text EditableText
-    run printHistory updateTerminalHistory
+    run printHistory
 end
 
 start printHistory true
@@ -362,11 +416,6 @@ start printHistory true
     += result "\n"
     ++ i
     fun EditableText add_content result
-end
-
-start updateTerminalHistory
-    string result ""
-    run printOnTerminal
 end
 
 
@@ -410,7 +459,7 @@ start sudo
     if ([param1] ["rm"] == [param2] ["-rf"] == [param3] ["--no-preserve-root"] == [param4] ["/"] == && && &&)
     string result "Haha. No."
     = program "_enter"
-    run printOnTerminal
+    run cout
     else resetProgram
 end
 start resetProgram
@@ -420,5 +469,5 @@ end
 start allegro
 	string result "I'd just like to interject for a moment. What you're referring to as SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, Allegro plus SandstormBox."
     = program "_enter"
-	run printOnTerminal
+	run cout
 end

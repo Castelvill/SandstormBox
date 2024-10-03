@@ -1,3 +1,7 @@
+03.09.2024
+-Reduced the number of text updates.
+-Reduced the frequency of mouse updates related to text selection.
+
 02.09.2024
 -Added skipping of repeated commands in the command history.
 -Converted instruction parameters to one-dimensional trees.
