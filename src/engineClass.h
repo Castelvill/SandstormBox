@@ -61,6 +61,7 @@ public:
     bool ENABLE_al_set_clipboard_text = false; //al_set_clipboard_text can cause undefined behavior on GNU/Linux (it depends on window manager used).
     bool allowNotAscii = false;
     bool autoScaleBackbuffer = false;
+    unsigned mouseTextSelectionSkip = 1;
 
     vector<string> inputFiles;
 

@@ -128,6 +128,26 @@ void EngineClass::readCommandLine(int argc, char *argv[]){
             allowNotAscii = true;
             continue;
         }
+        if(strcmp(argv[argument], "--mouse-text-skip") == 0){
+            if(argument + 1 >= argc){
+                cout << "Error: In " << __FUNCTION__ << ": Parameter '" << argv[argument]
+                    << "' requires 1 more arguments of the integer type.\n";
+                return;
+            }
+            argument++;
+            string error;
+            mouseTextSelectionSkip = cstoi(argv[argument], error);
+            if(mouseTextSelectionSkip == 0){
+                cout << "Error: In " << __FUNCTION__ << ": 'mouseTextSelectionSkip' requires one numeric argument bigger than 0.\n";
+                mouseTextSelectionSkip = 1;
+                return;
+            }
+            if(error.size() > 0){
+                cout << "Error: In " << __FUNCTION__ << ": " << error << "\n";
+                return;
+            }
+            continue;
+        }
         inputFiles.push_back(argv[argument]);
     }
 }
@@ -233,10 +253,20 @@ void EngineClass::initAllegro(){
                         initFiles.push_back(words[1]);
                     }
                     else{
-                        cout << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one numeric argument (0-4 recommended).\n";
+                        cout << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one string argument.\n";
                     }
-                    File >> buffer;
-                    
+                }
+                else if(words[0] == "MOUSE_TEXT_SKIP"){
+                    if(words.size() > 1){
+                        mouseTextSelectionSkip = atoi(words[1].c_str());
+                        if(mouseTextSelectionSkip == 0){
+                            cout << "Error: In " << __FUNCTION__ << ": 'mouseTextSelectionSkip' requires one numeric argument bigger than 0.\n";
+                            mouseTextSelectionSkip = 1;
+                        }
+                    }
+                    else{
+                        cout << "Error: In " << __FUNCTION__ << ": '" << words[0] << "' command requires one numeric argument bigger than 0.\n";
+                    }
                 }
                 else{
                     cout << "Error: In " << __FUNCTION__ << ": Configuration option '" << words[0] << "' is not valid.\n";

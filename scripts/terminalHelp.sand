@@ -37,6 +37,7 @@ start printOnTerminalUnprotected
 end
 
 start cout
+    index me [0 0] super_editable_text EditableText
     fun EditableText add_content result
     first EditableText _ _ _ _ content _ history
     len history historySize
@@ -46,8 +47,6 @@ end
 start updateTerminal
     string result ""
     run printOnTerminal
-after
-    print "IIII"
 end
 
 
@@ -75,13 +74,13 @@ end
 
 start ls
     if ([exists param1] [param1] [""] == ||)
+    else informFileDoesNotExistForCD
     ls param1 result
     tokenize " " result files
     index me [0 0] super_editable_text EditableText
     int fileIndex 0
     string result ""
 	run lsColoringLoop
-    else informFileDoesNotExistForCD
 after
     = program "_enter"
 end
@@ -388,7 +387,7 @@ start cd
 end
 start informFileDoesNotExistForCD
     = program ""
-    string result "Directory '"
+    string result "Error: Directory '"
     += result param1
     += result "' does not exist!\n"
     run cout

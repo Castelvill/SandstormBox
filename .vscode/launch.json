@@ -10,7 +10,7 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}${pathSeparator}SandstormBox",
-        "args": [],
+        "args": [""],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",
         "environment": [],

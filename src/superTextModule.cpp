@@ -73,8 +73,9 @@ void SuperTextModule::mergeFormatting(){
     }
 }
 void SuperTextModule::update(){
-    cout << "Update!";
-    cout.flush();
+    //cout << "Update!";
+    //cout.flush();
+    
     textLines.clear();
     textLines.push_back("");
     lineWidths.clear();

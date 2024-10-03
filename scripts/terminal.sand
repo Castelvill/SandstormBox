@@ -563,7 +563,6 @@ end
 
 start autoComplete1
     if ([Camera is_selected])
-    print "AAAA"
     index me [0 0] super_editable_text EditableText
     fun EditableText set_last_color 1.0 0.8 0.0 1.0
     fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
@@ -602,7 +601,6 @@ end
 start autoCompletePrograms
     if([params size] [1] ==)
     else autoCompleteFiles
-    print "BBBB"
     similar command allowedPrograms false completes
     similar command allowedPrograms true commonPart
     string lastParameter ""
@@ -615,13 +613,11 @@ end
 start autoCompleteProgramsIfOne
     if([completes size] [1] ==)
     print _ completes completes " "
-    print "CCCC"
 end
 
 start replaceWithAutoComplete
     if ([completes size] [1] ==)
     else printPossibleCompletes
-    print "DDDD"
     fun EditableText cut_unprotected_area
     fun params pop_back
     fun params push_back completes
@@ -664,8 +660,6 @@ start printPrompt
     string result ""
     index me [0 0] super_editable_text EditableText
     run rstTermBuff createPrompt cout colorNormalText
-after
-    print "FFFF"
 end
 
 start addCommonPartToCommand
@@ -675,14 +669,11 @@ start addCommonPartToCommand
     -= commonPartLength lastParameterLength
     substr commonPart lastParameterLength commonPartLength commonPart
     += command commonPart
-after
-    print "GGGG"
 end
 
 start printPossibleCompletes
     if([completes size] [0] >)
-    print "EEEE"
-    run addAllCompletes putNewLine cout printPrompt addCommonPartToCommand rewriteLastCommand updateTerminal
+    run addAllCompletes putNewLine cout printPrompt addCommonPartToCommand rewriteLastCommand //updateTerminal
 end
 
 start rewriteLastCommand
@@ -691,8 +682,6 @@ start rewriteLastCommand
     first EditableText _ _ _ _ content _ history
     len history historySize
     fun EditableText set_cursor_pos historySize
-after
-    print "HHHH"
 end
 
 
@@ -704,7 +693,7 @@ start controler
     fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
     string result ""
-    run createPrompt cout colorNormalText updateTerminal
+    run createPrompt cout colorNormalText
 end
 
 
@@ -735,7 +724,7 @@ start colorNormalText
     fun EditableText set_last_color 0.86 0.85 0.86 1.0
     fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
     string result " "
-    run cout
+    run printOnTerminal
 end
 
 
@@ -901,7 +890,6 @@ start enterCommand1
     string lastCommand ""
     run ignoreRepetition saveCommand programCheck
 after
-    print "JJJJ"
     = currentCommandNumber commandNumber
 end
 
@@ -1038,6 +1026,7 @@ start loadTextFromFile
 end
 
 start informFileDoesNotExist
+    = program ""
     string result "Warning: File '"
     += result fileName
     += result "' does not exist.\n"
@@ -1161,15 +1150,24 @@ start textEditorSave
 end
 
 start sand
-	if([param1] [""] !=)
+	if([param1] [""] != [exists param1] &&)
     load_build me param1
     = program ""
 	else emptyInput1
 end
 start emptyInput1
+    if([param1] [""] ==)
+    else informFileDoesNotExistForSand
 	= program ""
 	string result "Error: This instruction requires 1 parameter!\n"
 	run printOnTerminal
+end
+start informFileDoesNotExistForSand
+    = program ""
+    string result "Error: File '"
+    += result param1
+    += result "' does not exist.\n"
+    run printOnTerminal
 end
 
 

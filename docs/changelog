@@ -1,4 +1,6 @@
 03.09.2024
+-Added "MOUSE_TEXT_SKIP" config command and "--mouse-text-skip" command line argument.
+-Fixed the autocomplete events.
 -Reduced the number of text updates.
 -Reduced the frequency of mouse updates related to text selection.
 

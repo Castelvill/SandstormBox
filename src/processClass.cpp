@@ -231,7 +231,12 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
                 SelectedCamera->visionShift = Engine.Mouse.getZoomedPos(SelectedCamera) - dragCameraStaringPos;
             }
             updateCamerasPositions(Engine);
-            if(Engine.Mouse.didMouseMove && al_get_timer_count(Engine.timer) % 2 == 0){
+            if(Engine.Mouse.didMouseMove){
+                if(Engine.mouseTextSelectionSkip != 0
+                    && al_get_timer_count(Engine.timer) % Engine.mouseTextSelectionSkip != 0
+                ){
+                    break;
+                }
                 selectLettersInText(Engine.Mouse);
             }
             break;

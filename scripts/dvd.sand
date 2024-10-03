@@ -50,7 +50,7 @@ start updateFiledWithResize
 end
 
 start printFPS
-    triggers each_iteration
+    triggers each_second
 
     all me _ _ super_text _ _ _ Texts
     find_by_id_2 Texts "Fps" FpsText
@@ -58,6 +58,7 @@ start printFPS
     string fpsString "FPS: "
     += fpsString fpsValue
     fun FpsText set_content fpsString
+	fun FpsText update
 end
 
 start moveRectangle
