@@ -1,4 +1,3 @@
--Add "bring_forward" and "minimize" functions for the drawing orders of layers and objects.
 -Implement optional automatic sorting of objects' drawing order. 
 -Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.

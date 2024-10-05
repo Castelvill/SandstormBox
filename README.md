@@ -20,19 +20,19 @@ Use 'help' command inside the terminal or press the TAB key to list all the avai
 
 Terminal with help, ls, cd and sand:
 <br>
-<img src="screenshots/terminal.png" width="700"/>
+<img src="assets/terminal.png" width="700"/>
 <br>
 Cat programs:
 <br>
-<img src="screenshots/cat.png" width="700"/>
+<img src="assets/cat.png" width="700"/>
 <br>
 Windows:
 <br>
-<img src="screenshots/windows.png" width="700"/>
+<img src="assets/windows.png" width="700"/>
 <br>
 Text editor:
 <br>
-<img src="screenshots/editor.png" width="700"/>
+<img src="assets/editor.png" width="700"/>
 
 ## Scripts
 

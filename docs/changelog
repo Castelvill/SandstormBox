@@ -1,3 +1,6 @@
+05.10.2024
+-Added "minimize" and "bring_forward" functions for the drawing orders of layers and objects.
+
 04.10.2024
 -Created drawing orders for layers and objects.
 -Replaced std::cout with std::cerr for printing errors and warnings.

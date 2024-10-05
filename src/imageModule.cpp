@@ -149,7 +149,7 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     
     if(!bitmapExists){
         if(newImageID != ""){
-            cerr << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not found.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not loaded into memory.\n";
         }
         else if(newFilePath != ""){
             cerr << "Error: In " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";

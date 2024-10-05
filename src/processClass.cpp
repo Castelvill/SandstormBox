@@ -5569,7 +5569,6 @@ bool findObjectForFunction(AncestorObject *& ModuleObject, vector<LayerClass> &L
 void ProcessClass::executeFunctionForCameras(OperationClass & Operation, vector <VariableModule> & Variables,
     vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera, string & focusedProcessID
 ){
-    unsigned cameraIndex = 0;
     for(Camera2D * Camera : CamerasFromContext){
         if(Camera->getIsDeleted()){
             continue;
@@ -5747,28 +5746,20 @@ void ProcessClass::executeFunctionForCameras(OperationClass & Operation, vector 
         }
         else if(Operation.Location.attribute == "minimize"){
             Camera->minimize();
-            for(;cameraIndex < Cameras.size(); cameraIndex++){
-                if(Cameras[cameraIndex].getID() == Camera->getID()){
-                    break;
-                }
-            }
-            for(unsigned i = 0; i < camerasOrder.size(); i++){
-                if(camerasOrder[i] == cameraIndex){
-                    auto it = camerasOrder.rbegin() + camerasOrder.size() - 1 - i;
+            unsigned cameraIndex = Camera - &Cameras[0];
+            for(unsigned indexInOrder = 0; indexInOrder < camerasOrder.size(); indexInOrder++){
+                if(camerasOrder[indexInOrder] == cameraIndex){
+                    auto it = camerasOrder.rbegin() + camerasOrder.size() - 1 - indexInOrder;
                     std::rotate(it, it + 1, camerasOrder.rend());
                     break;
                 }
             }
         }
         else if(Operation.Location.attribute == "bring_forward"){
-            for(;cameraIndex < Cameras.size(); cameraIndex++){
-                if(Cameras[cameraIndex].getID() == Camera->getID()){
-                    break;
-                }
-            }
-            for(unsigned xd = 0; xd < camerasOrder.size(); xd++){
-                if(camerasOrder[xd] == cameraIndex){
-                    bringCameraForward(xd, Camera);
+            unsigned cameraIndex = Camera - &Cameras[0];
+            for(unsigned indexInOrder = 0; indexInOrder < camerasOrder.size(); indexInOrder++){
+                if(camerasOrder[indexInOrder] == cameraIndex){
+                    bringCameraForward(indexInOrder, Camera);
                     break;
                 }
             }
@@ -5851,6 +5842,38 @@ void ProcessClass::moveLayerInDrawingOrder(LayerClass * Layer, unsigned newIndex
         }
     }
 }
+void ProcessClass::minimizeLayerInDrawingOrder(LayerClass * Layer){
+    unsigned indexInTheContainer = Layer - &Layers[0];
+    unsigned oldIndex = 0;
+    for(; oldIndex < layersOrder.size(); oldIndex++){
+        if(layersOrder[oldIndex] == indexInTheContainer){
+            break;
+        }
+    }
+    if(oldIndex == layersOrder.size()){
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer '" << Layer->getID() << "' was not found in the drawing order.\n";   
+        return;
+    }
+    for(; oldIndex > 0; --oldIndex){
+        std::swap(layersOrder[oldIndex], layersOrder[oldIndex - 1]);
+    }
+}
+void ProcessClass::bringForwardLayerInDrawingOrder(LayerClass * Layer){
+    unsigned indexInTheContainer = Layer - &Layers[0];
+    unsigned oldIndex = 0;
+    for(; oldIndex < layersOrder.size(); oldIndex++){
+        if(layersOrder[oldIndex] == indexInTheContainer){
+            break;
+        }
+    }
+    if(oldIndex == layersOrder.size()){
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer '" << Layer->getID() << "' was not found in the drawing order.\n";   
+        return;
+    }
+    for(; oldIndex < layersOrder.size(); ++oldIndex){
+        std::swap(layersOrder[oldIndex], layersOrder[oldIndex + 1]);
+    }
+}
 void ProcessClass::executeFunctionForLayers(OperationClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & ContextLayers){
     for(LayerClass * Layer : ContextLayers){
         if(Layer->getIsDeleted()){
@@ -5888,14 +5911,19 @@ void ProcessClass::executeFunctionForLayers(OperationClass & Operation, vector <
         else if(Operation.Location.attribute == "move_in_drawing_order" && Variables.size() > 0){
             moveLayerInDrawingOrder(Layer, Variables[0].getIntUnsafe());
         }
+        else if(Operation.Location.attribute == "minimize"){
+            minimizeLayerInDrawingOrder(Layer);
+        }
+        else if(Operation.Location.attribute == "bring_forward"){
+            minimizeLayerInDrawingOrder(Layer);
+        }
         else{
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Function "
                 << Operation.Location.attribute << "<" << Variables.size() << "> does not exist.\n";
         }
     }
 }
-void ProcessClass::moveObjectInDrawingOrder(AncestorObject * Object, unsigned newIndex){    
-    LayerClass * ObjectLayer = nullptr;
+inline bool ProcessClass::getLayerOfTheObject(LayerClass *& ObjectLayer, AncestorObject * Object, string functionName){
     for(LayerClass & Layer : Layers){
         if(Layer.getID() == Object->getLayerID()){
             ObjectLayer = &Layer;
@@ -5903,13 +5931,34 @@ void ProcessClass::moveObjectInDrawingOrder(AncestorObject * Object, unsigned ne
         }
     }
     if(ObjectLayer == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer '" << Object->getID()
+        cerr << instructionError(CurrentInstr, functionName) << "Layer '" << Object->getID()
             << "' with an object '" << Object->getID() << "' was not found in the drawing order.\n";   
-        return;
+        return true;
     }
     if(ObjectLayer->getIsDeleted()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer '" << ObjectLayer->getID()
+        cerr << instructionError(CurrentInstr, functionName) << "Layer '" << ObjectLayer->getID()
             << "' with an object '" << Object->getID() << "' was deleted.\n";  
+        return true;
+    }
+    return false;
+}
+inline bool ProcessClass::findCurrentIndexInObjectsDrawingOrder(LayerClass * ObjectLayer, AncestorObject * Object, string functionName, unsigned & currentIndex){
+    unsigned indexInTheContainer = Object - &ObjectLayer->Objects[0];
+    for(; currentIndex < ObjectLayer->objectsOrder.size(); currentIndex++){
+        if(ObjectLayer->objectsOrder[currentIndex] == indexInTheContainer){
+            break;
+        }
+    }
+    if(currentIndex == ObjectLayer->objectsOrder.size()){
+        cerr << instructionError(CurrentInstr, functionName) << "Layer '" << Object->getID()
+            << "' with an object '" << Object->getID() << "' was not found in the drawing order.\n";   
+        return true;
+    }
+    return false;
+}
+void ProcessClass::moveObjectInDrawingOrder(AncestorObject * Object, unsigned newIndex){    
+    LayerClass * ObjectLayer = nullptr;
+    if(getLayerOfTheObject(ObjectLayer, Object, __FUNCTION__)){
         return;
     }
     if(newIndex >= ObjectLayer->objectsOrder.size()){
@@ -5917,24 +5966,16 @@ void ProcessClass::moveObjectInDrawingOrder(AncestorObject * Object, unsigned ne
             << " is out of scope of objects' drawing order of size " << ObjectLayer->objectsOrder.size() << ".\n";  
         return;
     }
-    unsigned indexInTheContainer = Object - &ObjectLayer->Objects[0];
-    unsigned oldIndex = 0;
-    for(; oldIndex < ObjectLayer->objectsOrder.size(); oldIndex++){
-        if(ObjectLayer->objectsOrder[oldIndex] == indexInTheContainer){
-            break;
-        }
-    }
-    if(oldIndex == ObjectLayer->objectsOrder.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer '" << Object->getID()
-            << "' with an object '" << Object->getID() << "' was not found in the drawing order.\n";   
+    unsigned currentIndex = 0;
+    if(findCurrentIndexInObjectsDrawingOrder(ObjectLayer, Object, __FUNCTION__, currentIndex)){
         return;
     }
-    if(newIndex == oldIndex){
+    if(newIndex == currentIndex){
         return;
     }
 
     //While swapping objects, skip deleted objects
-    int distance = oldIndex - newIndex;
+    int distance = currentIndex - newIndex;
     if(distance > 0){
         for(; distance < 0; --distance){
             if(ObjectLayer->Objects[ObjectLayer->objectsOrder[newIndex + distance]].getIsDeleted()){
@@ -5952,6 +5993,32 @@ void ProcessClass::moveObjectInDrawingOrder(AncestorObject * Object, unsigned ne
             }
             std::swap(ObjectLayer->objectsOrder[newIndex + distance], ObjectLayer->objectsOrder[newIndex + distance + 1]);
         }
+    }
+}
+void ProcessClass::minimizeObjectInDrawingOrder(AncestorObject * Object){
+    LayerClass * ObjectLayer = nullptr;
+    if(getLayerOfTheObject(ObjectLayer, Object, __FUNCTION__)){
+        return;
+    }
+    unsigned currentIndex = 0;
+    if(findCurrentIndexInObjectsDrawingOrder(ObjectLayer, Object, __FUNCTION__, currentIndex)){
+        return;
+    }
+    for(; currentIndex > 0; --currentIndex){
+        std::swap(ObjectLayer->objectsOrder[currentIndex], ObjectLayer->objectsOrder[currentIndex - 1]);
+    }
+}
+void ProcessClass::bringForwardObjectInDrawingOrder(AncestorObject * Object){
+    LayerClass * ObjectLayer = nullptr;
+    if(getLayerOfTheObject(ObjectLayer, Object, __FUNCTION__)){
+        return;
+    }
+    unsigned currentIndex = 0;
+    if(findCurrentIndexInObjectsDrawingOrder(ObjectLayer, Object, __FUNCTION__, currentIndex)){
+        return;
+    }
+    for(; currentIndex < ObjectLayer->objectsOrder.size(); ++currentIndex){
+        std::swap(ObjectLayer->objectsOrder[currentIndex], ObjectLayer->objectsOrder[currentIndex + 1]);
     }
 }
 void ProcessClass::executeFunctionForObjects(OperationClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects){
@@ -6037,6 +6104,15 @@ void ProcessClass::executeFunctionForObjects(OperationClass & Operation, vector 
             }
         }
         else if(Operation.Location.attribute == "move_in_drawing_order" && Variables.size() > 0){
+            moveObjectInDrawingOrder(Object, Variables[0].getIntUnsafe());
+        }
+        else if(Operation.Location.attribute == "minimize"){
+            minimizeObjectInDrawingOrder(Object);
+        }
+        else if(Operation.Location.attribute == "bring_forward"){
+            bringForwardObjectInDrawingOrder(Object);
+        }
+        else if(Operation.Location.attribute == "move_in_drawing_order"){
             moveObjectInDrawingOrder(Object, Variables[0].getIntUnsafe());
         }
         else{
@@ -10515,24 +10591,24 @@ void ProcessClass::bringCameraForward(unsigned index, Camera2D * ChosenCamera){
 
     index = camerasOrder.size() - 1;
     
-    for(unsigned j = 0; j < index;){
-        if(camerasOrder[j] >= Cameras.size()){
-            cerr << "Error: Camera index <" << camerasOrder[j] << "> in the cameras' order is out of scope of camera's Container<"
+    for(unsigned orderIndex = 0; orderIndex < index;){
+        if(camerasOrder[orderIndex] >= Cameras.size()){
+            cerr << "Error: Camera index <" << camerasOrder[orderIndex] << "> in the cameras' order is out of scope of camera's Container<"
                 << Cameras.size() << ">.\n";
-            j++;
+            orderIndex++;
             continue;
         }
-        if(Cameras[camerasOrder[j]].getIsActive() && j >= treshold
-            && isALeaf(Cameras[camerasOrder[j]].getID(), ChosenCamera->getID(), Cameras)
+        if(Cameras[camerasOrder[orderIndex]].getIsActive() && orderIndex >= treshold
+            && isALeaf(Cameras[camerasOrder[orderIndex]].getID(), ChosenCamera->getID(), Cameras)
         ){
-            Cameras[camerasOrder[j]].bringBack();
+            Cameras[camerasOrder[orderIndex]].bringBack();
             index--;
-            auto it = camerasOrder.begin() + j;
+            auto it = camerasOrder.begin() + orderIndex;
             std::rotate(it, it + 1, camerasOrder.end());
-            j = 0;
+            orderIndex = 0;
             continue;
         }
-        j++;
+        orderIndex++;
     }
 
     if(!ChosenCamera->isForcefullyPinned){

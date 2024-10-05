@@ -327,8 +327,14 @@ public:
         vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera, string & focusedProcessID
     );
     void moveLayerInDrawingOrder(LayerClass * Layer, unsigned newIndex);
+    void minimizeLayerInDrawingOrder(LayerClass * Layer);
+    void bringForwardLayerInDrawingOrder(LayerClass * Layer);
     void executeFunctionForLayers(OperationClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
+    inline bool getLayerOfTheObject(LayerClass *& ObjectLayer, AncestorObject * Objec, string functionName);
+    inline bool findCurrentIndexInObjectsDrawingOrder(LayerClass * ObjectLayer, AncestorObject * Object, string functionName, unsigned & currentIndex);
     void moveObjectInDrawingOrder(AncestorObject * Object, unsigned newIndex);
+    void minimizeObjectInDrawingOrder(AncestorObject * Object);
+    void bringForwardObjectInDrawingOrder(AncestorObject * Object);
     void executeFunctionForObjects(OperationClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
     void executeFunction(OperationClass Operation, vector<ContextClass> & EventContext, vector<EventModule>::iterator & Event, EngineClass & Engine);
     void changeEngineVariables(OperationClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine);
