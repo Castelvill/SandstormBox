@@ -122,7 +122,7 @@ bool stringToBool(string text){
     if(text == "false" || text == "0"){
         return false;
     }
-    cout << "Error: In " << __FUNCTION__ << ": Provided string of value '"
+    cerr << "Error: In " << __FUNCTION__ << ": Provided string of value '"
         << text << "' cannot be transform into a bool value.\n";
     return false;
 }
@@ -154,7 +154,7 @@ string findNewUniqueID(vector <string> uniqueIDs, string newID){
             size_t last_index = newID.find_last_not_of("0123456789");
             newID = newID.substr(0, last_index + 1) + intToStr(cstoi(newID.substr(last_index + 1), error) + 1);
             if(error.size() > 0){
-                cout << "Error: In " << __FUNCTION__ << ":\n" << error << "\n";
+                cerr << "Error: In " << __FUNCTION__ << ":\n" << error << "\n";
             }
         }
         else{

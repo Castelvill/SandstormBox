@@ -149,13 +149,13 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
     
     if(!bitmapExists){
         if(newImageID != ""){
-            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not found.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not found.\n";
         }
         else if(newFilePath != ""){
-            cout << "Error: In " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": File \'" << newFilePath << "\' not loaded into memory.\n";
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Path to the file and the alias of the bitmap were not provided.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Path to the file and the alias of the bitmap were not provided.\n";
         }
         return;
     }
@@ -168,10 +168,10 @@ void ImageModule::connectBitmap(vector <SingleBitmap> & BitmapContainer, string 
 
     if(!image){
         if(newImageID != ""){
-            cout << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not found.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Bitmap \'" << newImageID << "\' not found.\n";
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": File \'" << imageFilePath << "\' not loaded into memory.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": File \'" << imageFilePath << "\' not loaded into memory.\n";
         }
         return;
     }
@@ -191,7 +191,7 @@ void ImageModule::checkImage(ALLEGRO_DISPLAY * display, string workingDirectory)
         }
     }
 }
-void ImageModule::drawImage(vec2d base, Camera2D Camera, bool outSourcing){
+void ImageModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const{
     if((!outSourcing && !getIsActive()) || image == NULL || image == nullptr){
         return;
     }
@@ -387,7 +387,7 @@ void ImageModule::setImageColor(float newImageColor, char whichColor){
     else if(whichColor == 'a' || whichColor == 'l')
         imageColor[3] = newImageColor;
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Color channel '" << whichColor << "' does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Color channel '" << whichColor << "' does not exist.\n";
     }
 }
 void ImageModule::setLightColor(vec3d newLightColor, float newLightLevel){
@@ -405,7 +405,7 @@ void ImageModule::setLightColor(float newLightColor, char whichLight){
     if(whichLight == 'a' || whichLight == 'l')
         lightLevel = newLightColor;
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Light channel '" << whichLight << "' does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Light channel '" << whichLight << "' does not exist.\n";
     }
 }
 float ImageModule::getLightLevel() const{

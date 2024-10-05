@@ -16,7 +16,7 @@ public:
     short shape; //0-filled_circle, 1-ring, 2-square, 3-triangle
     SingleParticle();
     void moveParticle();
-    void drawOneParticle(Camera2D Camera);
+    void drawOneParticle(Camera2D Camera) const;
     bool isOnScreen(vec2i screen);
     vec2d getPos();
     double getRadius();
@@ -82,7 +82,7 @@ public:
     void clear();
     void spawnParticles(vec2d objPos); //Particles spawn in a point or a rectangle.
     void killParticles();
-    void drawParticles(vector <ImageModule> ImageContainer, vec2i screen, Camera2D Camera);
+    void draw(vector <ImageModule> ImageContainer, vec2i screen, Camera2D Camera) const;
     void updateParticles(); //Changing the color accordingly to speed.
     void moveParticles();
     void changeSpawningParameters(bool newCanParticlesSpawn, bool newBlockParticlesSpawn, bool newSpawnOnKeyRelease, int newMinParticlesPerSpawn,

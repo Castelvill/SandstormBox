@@ -30,7 +30,7 @@ VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLa
         type = 's';
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Type '" << newType << "' is not valid.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Type '" << newType << "' is not valid.\n";
     }
 }
 VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, char newType){
@@ -41,7 +41,7 @@ VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLa
         type = newType;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Type '" << newType << "' is not valid.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Type '" << newType << "' is not valid.\n";
     }
 }
 void VectorModule::clear(){
@@ -69,7 +69,7 @@ void VectorModule::deleteLater(){
 }
 void VectorModule::setID(string newID, vector<string> *listOfIDs){
     if(isStringInVector(reservedIDs, ID)){
-        cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     if(listOfIDs != nullptr){
@@ -89,11 +89,11 @@ void VectorModule::setObjectID(string newID){
 }
 bool VectorModule::setType(char newType){
     if(type != 'n' && type != newType){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": You can't change the type of already initialized vector without clearing it first.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": You can't change the type of already initialized vector without clearing it first.\n";
         return false;
     }
     if(!isCharInGroup(newType, 4, 'b', 'i', 'd', 's')){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Variable type '" << newType << "' does not exist.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Variable type '" << newType << "' does not exist.\n";
         return false;
     }
     type = newType;
@@ -117,7 +117,7 @@ bool VectorModule::pushBool(bool newValue){
         vString.push_back(intToStr(newValue));
         return true;
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'bool' type to a '" << type << "' vector.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'bool' type to a '" << type << "' vector.\n";
     return false;
 }
 void VectorModule::pushBoolUnsafe(bool newValue){
@@ -141,7 +141,7 @@ bool VectorModule::pushInt(int newValue){
         vString.push_back(intToStr(newValue));
         return true;
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'int' type to a '" << type << "' vector.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'int' type to a '" << type << "' vector.\n";
     return false;
 }
 void VectorModule::pushIntUnsafe(int newValue){
@@ -165,7 +165,7 @@ bool VectorModule::pushDouble(double newValue){
         vString.push_back(doubleToStr(newValue));
         return true;
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'double' type to a '" << type << "' vector.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'double' type to a '" << type << "' vector.\n";
     return false;
 }
 void VectorModule::pushDoubleUnsafe(double newValue){
@@ -177,7 +177,7 @@ bool VectorModule::pushString(string newValue){
         type = 's';
         return true;
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'string' type to a '" << type << "' vector.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'string' type to a '" << type << "' vector.\n";
     return false;
 }
 void VectorModule::pushStringUnsafe(string newValue){
@@ -220,7 +220,7 @@ bool VectorModule::removeIndex(size_t index){
         vString.erase(vString.begin()+index);
         return true;
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index << ") is out of scope of vector '" << ID << "'.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index << ") is out of scope of vector '" << ID << "'.\n";
     return false;
 }
 bool VectorModule::setBool(size_t index, bool newValue){
@@ -237,7 +237,7 @@ bool VectorModule::setBool(size_t index, bool newValue){
         vString[index] = newValue;
     }
     else{
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
             << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
         return false;
     }
@@ -275,12 +275,12 @@ bool VectorModule::setDouble(size_t index, double newValue){
 }
 bool VectorModule::setString(size_t index, string newValue){
     if(index >= vString.size()){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
             << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
         return false;
     }
     if(type != 's'){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot assign a string value to a vector of '" << type << "' type.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot assign a string value to a vector of '" << type << "' type.\n";
         return false;
     }
     vString[index] = newValue;
@@ -304,7 +304,7 @@ void VectorModule::reserve(unsigned newSize){
     }
 }
 void VectorModule::move(vector<VariableModule*> Variables, const InstrDescription & CurrentInstr){
-    cout << instructionError(CurrentInstr, __FUNCTION__)
+    cerr << instructionError(CurrentInstr, __FUNCTION__)
         << "': Not yet implemented!\n";
 }
 
@@ -428,7 +428,7 @@ string VectorModule::getAnyStringValue(size_t index) const{
     if(type == 's' && index < vString.size()){
         return vString[index];
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
     return "";
 }
 string VectorModule::getAnyStringValueUnsafe(long index) const{
@@ -447,7 +447,7 @@ string VectorModule::getAnyStringValueUnsafe(long index) const{
     if(type == 's'){
         return getStringUnsafe(index);
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
     return "";
 }
 vector <string> VectorModule::getAllValuesAsStringVector() const{
@@ -474,13 +474,13 @@ vector <string> VectorModule::getAllValuesAsStringVector() const{
         return vString;
     }
     else{
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
     }
     return newStringVector;
 }
 bool VectorModule::getBool(size_t index) const{
     if(index >= vBool.size()){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
             << " is out of scope of the vector '" << ID << "' of size " << vBool.size() << ".\n";
         return false;
     }
@@ -488,7 +488,7 @@ bool VectorModule::getBool(size_t index) const{
 }
 bool VectorModule::getBoolUnsafe(long index) const{
     if(vBool.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return false;
     }
     
@@ -513,7 +513,7 @@ vector<VariableModule> VectorModule::getAllBoolsAsVariables(){
 }
 int VectorModule::getInt(size_t index) const{
     if(index >= vInt.size()){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
             << " is out of scope of the vector '" << ID << "' of size " << vInt.size() << ".\n";
         return 0;
     }
@@ -521,7 +521,7 @@ int VectorModule::getInt(size_t index) const{
 }
 int VectorModule::getIntUnsafe(long index) const{
     if(vInt.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return 0;
     }
     
@@ -546,7 +546,7 @@ vector<VariableModule> VectorModule::getAllIntsAsVariables(){
 }
 double VectorModule::getDouble(size_t index) const{
     if(index >= vDouble.size()){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
             << " is out of scope of the vector '" << ID << "' of size " << vDouble.size() << ".\n";
         return 0.0;
     }
@@ -554,7 +554,7 @@ double VectorModule::getDouble(size_t index) const{
 }
 double VectorModule::getDoubleUnsafe(long index) const{
     if(vDouble.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return 0.0;
     }
     
@@ -579,7 +579,7 @@ vector<VariableModule> VectorModule::getAllDoublesAsVariables(){
 }
 string VectorModule::getString(size_t index) const{
     if(index >= vString.size()){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index " << index
             << " is out of scope of the vector '" << ID << "' of size " << vString.size() << ".\n";
         return "";
     }
@@ -587,7 +587,7 @@ string VectorModule::getString(size_t index) const{
 }
 string VectorModule::getStringUnsafe(long index) const{
     if(vString.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return "";
     }
     
@@ -616,7 +616,7 @@ string VectorModule::getLastValue() const{
     if(type == 's' && vString.size() > 0){
         return vString.back();
     }
-    cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
     return "";
 }
 vector<string> VectorModule::getAllStrings() const{
@@ -632,56 +632,56 @@ vector<VariableModule> VectorModule::getAllStringsAsVariables(){
 bool VectorModule::getLastBool() const
 {
     if(vBool.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return false;
     }
     return vBool.back().value;
 }
 int VectorModule::getLastInt() const{
     if(vInt.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return false;
     }
     return vInt.back();
 }
 double VectorModule::getLastDouble() const{
     if(vDouble.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return false;
     }
     return vDouble.back();
 }
 string VectorModule::getLastString() const{
     if(vString.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return "";
     }
     return vString.back();
 }
 bool VectorModule::getFirstBool() const{
     if(vBool.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return false;
     }
     return vBool[0].value;
 }
 int VectorModule::getFirstInt() const{
     if(vInt.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return 0;
     }
     return vInt[0];
 }
 double VectorModule::getFirstDouble() const{
     if(vDouble.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return 0.0;
     }
     return vDouble[0];
 }
 string VectorModule::getFirstString() const{
     if(vString.size() == 0){
-        cout << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
         return "";
     }
     return vString[0];
@@ -706,7 +706,7 @@ void VectorModule::getContext(string attribute, vector<BasePointersStruct> &Base
     BasePointers.push_back(BasePointersStruct());
     if(attribute == "id"){
         if(isStringInVector(reservedIDs, ID)){
-            cout << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
             BasePointers.pop_back();
             return;
         }
@@ -755,16 +755,16 @@ void VectorModule::getContext(string attribute, vector<BasePointersStruct> &Base
         }
         else{
             BasePointers.pop_back();
-            cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
         }
     }
     else{
         BasePointers.pop_back();
         if(getSize() == 0){
-            cout << "Error: In " << __FUNCTION__ << ": Vector '" << ID << "' is empty.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Vector '" << ID << "' is empty.\n";
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
         }
     }
 }

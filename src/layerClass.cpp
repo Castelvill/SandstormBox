@@ -57,7 +57,7 @@ bool LayerClass::isObjectsUniquenessViolated(){
 
 void LayerClass::setID(string newID, vector <string> & layersIDs){
     if(isStringInVector(reservedIDs, ID)){
-        cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     removeFromStringVector(layersIDs, ID);
@@ -129,16 +129,16 @@ VariableModule LayerClass::getValue(string attribute, string option) const{
         NewValue.setDouble(size.y);
         return NewValue;
     }
-    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+    cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule();
 }
 void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, const bool &changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
-        cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
     }
     if(isStringInVector(reservedIDs, ID)){
-        cout << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     string oldID = ID;
@@ -155,8 +155,17 @@ void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, co
     size.set(Original.size);
 
     for(const AncestorObject & Object : Original.Objects){
-        Objects.push_back(AncestorObject());
+        Objects.emplace_back(AncestorObject());
         Objects.back().clone(Object, objectsIDs, ID, true);
+    }
+
+    objectsOrder = Original.objectsOrder;
+
+    if(Objects.size() != objectsOrder.size()){
+        cerr << "Error: In " << __FUNCTION__ << ": Inside the layer '" << ID
+            << "' number of objects (" << Objects.size()
+            << ") is not equal to the number of objects inside their drawing order ("
+            << objectsOrder.size() << ").\n";
     }
 
     /*for(AncestorObject & Object : Objects){

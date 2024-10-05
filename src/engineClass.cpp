@@ -103,7 +103,7 @@ void EngineClass::readCommandLine(int argc, char *argv[]){
         }
         if(strcmp(argv[argument], "--samples") == 0 || strcmp(argv[argument], "-s") == 0){
             if(argument + 1 >= argc){
-                cout << "Error: In " << __FUNCTION__ << ": Parameter '" << argv[argument]
+                cerr << "Error: In " << __FUNCTION__ << ": Parameter '" << argv[argument]
                     << "' requires 1 more arguments of the integer type\n.";
                 return;
             }
@@ -111,7 +111,7 @@ void EngineClass::readCommandLine(int argc, char *argv[]){
             string error;
             samples = cstoi(argv[argument], error);
             if(error.size() > 0){
-                cout << "Error: In " << __FUNCTION__ << ": " << error << "\n";
+                cerr << "Error: In " << __FUNCTION__ << ": " << error << "\n";
                 return;
             }
             continue;
@@ -130,7 +130,7 @@ void EngineClass::readCommandLine(int argc, char *argv[]){
         }
         if(strcmp(argv[argument], "--mouse-text-skip") == 0){
             if(argument + 1 >= argc){
-                cout << "Error: In " << __FUNCTION__ << ": Parameter '" << argv[argument]
+                cerr << "Error: In " << __FUNCTION__ << ": Parameter '" << argv[argument]
                     << "' requires 1 more arguments of the integer type.\n";
                 return;
             }
@@ -138,12 +138,12 @@ void EngineClass::readCommandLine(int argc, char *argv[]){
             string error;
             mouseTextSelectionSkip = cstoi(argv[argument], error);
             if(mouseTextSelectionSkip == 0){
-                cout << "Error: In " << __FUNCTION__ << ": 'mouseTextSelectionSkip' requires one numeric argument bigger than 0.\n";
+                cerr << "Error: In " << __FUNCTION__ << ": 'mouseTextSelectionSkip' requires one numeric argument bigger than 0.\n";
                 mouseTextSelectionSkip = 1;
                 return;
             }
             if(error.size() > 0){
-                cout << "Error: In " << __FUNCTION__ << ": " << error << "\n";
+                cerr << "Error: In " << __FUNCTION__ << ": " << error << "\n";
                 return;
             }
             continue;
@@ -239,7 +239,7 @@ void EngineClass::initAllegro(){
                         samples = atoi(words[1].c_str());
                     }
                     else{
-                        cout << "Error: In " << __FUNCTION__ << ": SAMPLES command requires one numeric argument (0-4 recommended).\n";
+                        cerr << "Error: In " << __FUNCTION__ << ": SAMPLES command requires one numeric argument (0-4 recommended).\n";
                     }
                 }
                 else if(words[0] == "ENABLE_al_set_clipboard_text"){
@@ -253,23 +253,23 @@ void EngineClass::initAllegro(){
                         initFiles.push_back(words[1]);
                     }
                     else{
-                        cout << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one string argument.\n";
+                        cerr << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one string argument.\n";
                     }
                 }
                 else if(words[0] == "MOUSE_TEXT_SKIP"){
                     if(words.size() > 1){
                         mouseTextSelectionSkip = atoi(words[1].c_str());
                         if(mouseTextSelectionSkip == 0){
-                            cout << "Error: In " << __FUNCTION__ << ": 'mouseTextSelectionSkip' requires one numeric argument bigger than 0.\n";
+                            cerr << "Error: In " << __FUNCTION__ << ": 'mouseTextSelectionSkip' requires one numeric argument bigger than 0.\n";
                             mouseTextSelectionSkip = 1;
                         }
                     }
                     else{
-                        cout << "Error: In " << __FUNCTION__ << ": '" << words[0] << "' command requires one numeric argument bigger than 0.\n";
+                        cerr << "Error: In " << __FUNCTION__ << ": '" << words[0] << "' command requires one numeric argument bigger than 0.\n";
                     }
                 }
                 else{
-                    cout << "Error: In " << __FUNCTION__ << ": Configuration option '" << words[0] << "' is not valid.\n";
+                    cerr << "Error: In " << __FUNCTION__ << ": Configuration option '" << words[0] << "' is not valid.\n";
                 }
             }
         }
@@ -447,15 +447,15 @@ void EngineClass::endEvents(){
 
 void EngineClass::loadNewFont(string path, int size, string newID){
     if(size < 0 || size > 1000){
-        cout << "Error: In " << __FUNCTION__ << ": Font size equal to " << size << " is not a valid size.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Font size equal to " << size << " is not a valid size.\n";
     }
     if(path.size() < 5){
-        cout << "Error: In " << __FUNCTION__ << ": Path to the font file is too short.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Path to the font file is too short.\n";
         return;
     }
     string fileExtension = path.substr(path.size()-4, path.size());
     if(fileExtension != ".ttf"){
-        cout << "Error: In " << __FUNCTION__ << ": '" << fileExtension << "' is not a valid font extension.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": '" << fileExtension << "' is not a valid font extension.\n";
         return;
     }
     path = EXE_PATH + path;
@@ -466,7 +466,7 @@ void EngineClass::loadNewFont(string path, int size, string newID){
     
     if(!FontContainer.back().font){
         FontContainer.pop_back();
-        cout << "Error: In " << __FUNCTION__ << ": Failed to load a font from '" << path << "'.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Failed to load a font from '" << path << "'.\n";
         return;
     }
     FontContainer.back().ID = newID;

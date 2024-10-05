@@ -62,10 +62,10 @@ public:
     void setCursorPos(unsigned int newCursorPos);
     void setSecondCursorPos(unsigned int newCursorPos);
     void setCursorPos(vec2d finalPos, vec2d finalSize, const vector<SingleFont> & FontContainer, const MouseClass & Mouse, const Camera2D & Camera);
-    void drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, unsigned secondCursorPos, bool editingIsActive);
+    void draw(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, unsigned secondCursorPos, bool editingIsActive) const;
     void drawTextByLetters(ALLEGRO_FONT * font);
     void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
-    string getFontID();
+    string getFontID() const;
     string getContent(unsigned int textID) const;
     float getColor(char whichColor);
     unsigned int getCurrentTextIdx() const;
@@ -135,7 +135,7 @@ public:
     bool getIsNumerical();
     bool getHasFloatingPoint();
     bool getUpdateConnectedVariable();
-    unsigned getCursorPos();
+    unsigned getCursorPos() const;
     unsigned getMinContentSize();
     unsigned getMaxContentSize();
     string getConnectedObjectID();

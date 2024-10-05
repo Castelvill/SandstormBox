@@ -4,13 +4,13 @@ SingleFont * findFontByID(vector <SingleFont> & FontContainer, string fontID){
     for(SingleFont & font : FontContainer){
         if(fontID == font.ID){
             if(!font.font){
-                cout << "Error: In " << __FUNCTION__ << ": Font '" << fontID << "' does not exist.\n";
+                cerr << "Error: In " << __FUNCTION__ << ": Font '" << fontID << "' does not exist.\n";
                 return nullptr;
             }
             return &font;
         }
     }
-    cout << "Error: In " << __FUNCTION__ << ": Font '" << fontID << "' does not exist.\n";
+    cerr << "Error: In " << __FUNCTION__ << ": Font '" << fontID << "' does not exist.\n";
     return nullptr;
 }
 
@@ -84,7 +84,7 @@ void TextModule::fitSizeToText(vector <SingleFont> FontContainer){
         return;
     }
     if(Font->size < 0 || Font->size > 1000){
-        cout << "Error: In " << __FUNCTION__ << ": Font size equal to " << Font->size << " is not a valid size.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Font size equal to " << Font->size << " is not a valid size.\n";
     }
 
     vec2d newSize(0.0, 0.0);
@@ -113,11 +113,11 @@ void TextModule::addNewContentAndResize(string newContent, vector <SingleFont> F
 }
 bool TextModule::checkSize(unsigned int textID) const {
     if(content.size() == 0){
-        cout << "Error: In " << __FUNCTION__ << ": No text content in the text field: \"" << ID << "\".\n";
+        cerr << "Error: In " << __FUNCTION__ << ": No text content in the text field: \"" << ID << "\".\n";
         return false;
     }
     if(textID >= content.size()){
-        cout << "Error: In " << __FUNCTION__ << ": Bad index (" << textID << "/" << content.size() << ") in the text field: \"" << ID << "\".\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Bad index (" << textID << "/" << content.size() << ") in the text field: \"" << ID << "\".\n";
         return false;
     }
     return true;
@@ -314,7 +314,7 @@ void TextModule::setCursorPos(vec2d finalPos, vec2d finalSize, const vector<Sing
         cursorPos++;
     }
 }
-void TextModule::drawText(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive){
+void TextModule::draw(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive) const{
     if(!getIsActive()){
         return;
     }
@@ -722,7 +722,7 @@ void TextModule::getContext(string attribute, vector <BasePointersStruct> & Base
         getPrimaryContext(attribute, BasePointers);
     }
 }
-string TextModule::getFontID(){
+string TextModule::getFontID() const{
     return fontID;
 }
 string TextModule::getContent(unsigned int textNumber) const{
@@ -789,7 +789,7 @@ VariableModule TextModule::getAttributeValue(const string &attribute, const stri
     else if(attribute == "rotation"){
         return VariableModule::newDouble(rotation);
     }
-    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+    cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 unsigned TextModule::getCurrentTabLength(const unsigned & tabCounter){
@@ -913,8 +913,7 @@ bool EditableTextModule::getCanUseSpace(){
 bool EditableTextModule::getCanUseEnter(){
     return canUseEnter;
 }
-unsigned int EditableTextModule::getCursorPos()
-{
+unsigned int EditableTextModule::getCursorPos() const{
     return cursorPos;
 }
 unsigned int EditableTextModule::getMinContentSize(){
@@ -1731,7 +1730,7 @@ bool EditableTextModule::controlAncestor(PrimaryModule & Primary, vector <string
     string error;
     double dValue = cstod(getContent(currentTextIdx), error);
     if(error.size() > 0){
-        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+        cerr << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
     }
 
     success = true;
@@ -1802,7 +1801,7 @@ bool EditableTextModule::controlText(TextModule & Text, vector <string> & listOf
     string error;
     double dValue = cstod(cContent, error);
     if(error.size() > 0){
-        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+        cerr << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
     }
 
     if(connectedVariable == "position_x"){
@@ -1942,7 +1941,7 @@ bool EditableTextModule::controlImage(ImageModule & Image, vector <SingleBitmap>
     string error;
     double dValue = cstod(cContent, error);
     if(error.size() > 0){
-        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+        cerr << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
     }
 
     if(connectedVariable == "position_x"){
@@ -2108,7 +2107,7 @@ bool EditableTextModule::controlMovement(MovementModule & Movement, vector <stri
     string error;
     double dValue = cstod(cContent, error);
     if(error.size() > 0){
-        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+        cerr << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
     }
     short shValue = short(dValue);
 
@@ -2325,7 +2324,7 @@ bool EditableTextModule::controlParticles(ParticleEffectModule & Particles, vect
     string error;
     double dValue = cstod(cContent, error);
     if(error.size() > 0){
-        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+        cerr << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
     }
 
 
@@ -2504,7 +2503,7 @@ bool EditableTextModule::controlVariable(VariableModule & Variable, vector <stri
     string error;
     double dValue = cstod(cContent, error);
     if(error.size() > 0){
-        cout << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+        cerr << "Error: In EditableTextModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
     }
     int iValue = int(dValue);
 
@@ -2668,6 +2667,6 @@ VariableModule EditableTextModule::getAttributeValue(const string &attribute, co
         return VariableModule::newInt(protectedArea);
     }
 
-    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+    cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }

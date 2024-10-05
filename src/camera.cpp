@@ -55,11 +55,11 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
 }
 void Camera2D::clone(const Camera2D &Original, vector<string> &camerasIDs, bool changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
-        cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
     }
     if(isStringInVector(reservedIDs, ID)){
-        cout << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Camera with a reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     clear();
@@ -76,7 +76,7 @@ void Camera2D::clear(){
 }
 void Camera2D::setID(string newID, vector <string> & camerasIDs){
     if(isStringInVector(reservedIDs, ID)){
-        cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     removeFromStringVector(camerasIDs, ID);
@@ -120,7 +120,7 @@ VariableModule Camera2D::getValue(string attribute) const{
         NewValue.setBool(isFocused);
         return NewValue;
     }
-    cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+    cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule();
 }
 void Camera2D::setIsActive(bool newValue){

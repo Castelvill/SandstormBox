@@ -11,6 +11,7 @@ private:
     bool deleted;
 public:
     vector <AncestorObject> Objects;
+    vector <unsigned> objectsOrder;
     //Uniques of IDs is checked only for objects existing in the same layer - user should be able to copy entire layers
     //without worring about providing unique IDs for every object, ex. testing or branching.
     vector <string> objectsIDs;

@@ -13,6 +13,7 @@
 
 using std::vector;
 using std::cout;
+using std::cerr;
 
 template <typename type>
 class vecX{

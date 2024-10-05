@@ -194,7 +194,7 @@ bool MouseClass::isReleased() const{
 }
 bool MouseClass::doesButtonExist(short button)  const{
     if(button < 0 || button >= MOUSE_BUTTONS_NUM_MAX){
-        cout << "Error [Mouse]: Mouse button with number " << button << " does not exist.\n";
+        cerr << "Error [Mouse]: Mouse button with number " << button << " does not exist.\n";
         return false;
     }
     return true;

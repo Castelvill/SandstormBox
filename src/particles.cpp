@@ -54,13 +54,7 @@ void SingleParticle::moveParticle(){
 
     shapeRotation += shapeRotationSpeed;
 }
-void SingleParticle::drawOneParticle(Camera2D Camera){
-    if(colorIntensity > 1.0){
-        colorIntensity = 1.0;
-    }
-    else if(colorIntensity < 0.0){
-        colorIntensity = 0.0;
-    }
+void SingleParticle::drawOneParticle(Camera2D Camera) const{
     double red = particleColor[0] * colorIntensity;
     double green = particleColor[1] * colorIntensity;
     double blue = particleColor[2] * colorIntensity;
@@ -323,10 +317,10 @@ void ParticleEffectModule::killParticles(){
         i--;
     }
 }
-void ParticleEffectModule::drawParticles(vector <ImageModule> ImageContainer, vec2i screen, Camera2D Camera){
+void ParticleEffectModule::draw(vector <ImageModule> ImageContainer, vec2i screen, Camera2D Camera) const{
     ImageModule * LastImage = nullptr;
 
-    for(SingleParticle & Particle : particleEffect){
+    for(const SingleParticle & Particle : particleEffect){
         if(Particle.timeToDeath <= 0)
             continue;
         if(!useImageAsParticles){
@@ -357,7 +351,7 @@ void ParticleEffectModule::drawParticles(vector <ImageModule> ImageContainer, ve
                 Particle.colorIntensity
             ));
 
-            LastImage->drawImage(Particle.pos+Camera.pos, Camera, true);
+            LastImage->draw(Particle.pos+Camera.pos, Camera, true);
         }
     }
 }
@@ -648,7 +642,7 @@ void ParticleEffectModule::addColorIntervalInHex(string hexColorAndSpeed){
     string error;
     colorIntervals.back().minSpeed = cstod(strSpeed, error);
     if(error.size() > 0){
-        cout << "Error: In ParticleModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
+        cerr << "Error: In ParticleModule '" << ID << "': In " << __FUNCTION__ << ":\n" << error << "\n";
     }
 }
 void ParticleEffectModule::removeColorInterval(unsigned int id){

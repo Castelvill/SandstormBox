@@ -49,7 +49,7 @@ public:
 
     void connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string workingDirectory);
     void checkImage(ALLEGRO_DISPLAY * display, string workingDirectory);
-    void drawImage(vec2d base, Camera2D Camera, bool outSourcing);
+    void draw(vec2d base, Camera2D Camera, bool outSourcing) const;
     void drawFrame(vec2d base);
     void setRotPos(vec2d newRotPos);
     void setCenterX(double x); //center == rotPos

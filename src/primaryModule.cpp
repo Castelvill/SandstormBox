@@ -292,7 +292,7 @@ EngineInstr transInstr(string instruction){
     if(instruction == "console_input"){
         return EngineInstr::console_input;
     }
-    cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
+    cerr << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return EngineInstr::null;
 }
 string transInstrToStr(EngineInstr instruction){
@@ -494,7 +494,7 @@ string transInstrToStr(EngineInstr instruction){
         case console_input:
             return "console_input";
     }
-    cout << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
+    cerr << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return "null";
 }
 
@@ -528,7 +528,7 @@ void PrimaryModule::clone(const PrimaryModule & Original, vector<string> & listO
 
 void PrimaryModule::setID(string newID, vector<string> & listOfIDs){
     if(isStringInVector(reservedIDs, ID)){
-        cout << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     removeFromStringVector(listOfIDs, ID);
@@ -663,7 +663,7 @@ void PrimaryModule::control(string attribute, bool value, unsigned paramCount){
         canBeSelected = value;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << paramCount << "> does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << paramCount << "> does not exist.\n";
     }
 }
 void PrimaryModule::setIsScrollable(bool newIsScrollable){
@@ -687,20 +687,19 @@ string &PrimaryModule::getIDAddr(){
 string PrimaryModule::getObjectID() const{
     return objectID;
 }
-vec2d PrimaryModule::getPos(){
+vec2d PrimaryModule::getPos() const{
     return pos;
 }
 vec2d &PrimaryModule::getPosAddr(){
     return pos;
 }
-vec2d PrimaryModule::getSize()
-{
+vec2d PrimaryModule::getSize() const{
     return size;
 }
 vec2d& PrimaryModule::getSizeAddr(){
     return size;
 }
-vec2d PrimaryModule::getScale(){
+vec2d PrimaryModule::getScale() const{
     return scale;
 }
 vec2d PrimaryModule::getScaledSize(){
@@ -714,10 +713,10 @@ bool PrimaryModule::getIsActive() const{
 bool PrimaryModule::getIsDeleted() const{
     return deleted;
 }
-bool PrimaryModule::getIsScaledFromCenter(){
+bool PrimaryModule::getIsScaledFromCenter() const{
     return isScaledFromCenter;
 }
-bool PrimaryModule::getIsScrollable(){
+bool PrimaryModule::getIsScrollable() const{
     return isScrollable;
 }
 bool PrimaryModule::getCanBeSelected(){
@@ -731,7 +730,7 @@ void PrimaryModule::getPrimaryContext(string attribute, vector<BasePointersStruc
     BasePointers.push_back(BasePointersStruct());
     if(attribute == "id"){
         if(isStringInVector(reservedIDs, ID)){
-            cout << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
             BasePointers.pop_back();
             return;
         }
@@ -777,7 +776,7 @@ void PrimaryModule::getPrimaryContext(string attribute, vector<BasePointersStruc
     }
     else{
         BasePointers.pop_back();
-        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     }
 }
 BasePointersStruct::BasePointersStruct(){
@@ -806,11 +805,11 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
         return;
     }
     if(LeftOperand == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
         return;
     }
     if(RightOperand == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return;
     }
     if(instruction == EngineInstr::move || instruction == EngineInstr::clone_i){
@@ -830,11 +829,11 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
             *LeftOperand /= *RightOperand;
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": You cannot divide by zero.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": You cannot divide by zero.\n";
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(instruction) << "\' is not a valid instruction.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(instruction) << "\' is not a valid instruction.\n";
     }
 }
 template<typename LeftType>
@@ -864,7 +863,7 @@ void BaseVariableStruct::moveValue(LeftType * LeftOperand) const{
         *LeftOperand = vDouble;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
     }
 }
 string BaseVariableStruct::getString() const{
@@ -899,12 +898,12 @@ string BaseVariableStruct::getString() const{
         return doubleToStr(vDouble);
     }
     
-    cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
+    cerr << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
     return "[invalid type]";
 }
 void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
     if(readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
     }
     if(type == "string" || RightOperand.type == "string"){
@@ -912,7 +911,7 @@ void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
             *pString = RightOperand.getString();
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": You cannot assign string type value to a non-string type variable.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": You cannot assign string type value to a non-string type variable.\n";
         }
     }
     else if(type == "bool"){
@@ -944,7 +943,7 @@ void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
 template<typename RightType>
 void BasePointersStruct::moveFromTemp(const RightType * RightOperand, EngineInstr instruction){
     if(readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
     }
     if(type == "bool"){
@@ -974,12 +973,12 @@ void BasePointersStruct::moveFromTemp(const RightType * RightOperand, EngineInst
         executeMoveTypeInstruction(pDouble, RightOperand, instruction);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
     }
 }
 void BasePointersStruct::move(const BasePointersStruct &RightOperand, EngineInstr instruction){
     if(readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
     }
     if(type == "string" || RightOperand.type == "string"){
@@ -991,11 +990,11 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, EngineInst
                 *pString += RightOperand.getString();
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
+                cerr << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
             }
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
         }
     }
     else if(RightOperand.type == "bool"){
@@ -1027,12 +1026,12 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, EngineInst
         moveFromTemp((short*)nullptr, instruction);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
     }
 }
 void BasePointersStruct::move(const BaseVariableStruct & RightOperand, EngineInstr instruction){
     if(readOnly){
-        cout << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
     }
     if(type == "string" || RightOperand.type == "string"){
@@ -1044,11 +1043,11 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, EngineIns
                 *pString += RightOperand.getString();
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
+                cerr << "Error: In " << __FUNCTION__ << ": You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
             }
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": You cannot execute any instructions if only the right operand is of a string type.\n";
         }
     }
     else if(RightOperand.type == "bool"){
@@ -1080,17 +1079,17 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, EngineIns
         moveFromTemp((short*)nullptr, instruction);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << RightOperand.type << "\' is not a valid type.\n"; 
     }
 }
 template<typename LeftType, typename RightType>
 LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, EngineInstr instruction){
     if(LeftOperand == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
         return 0;
     }
     if(RightOperand == nullptr){
-        cout << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
         return 0;
     }
     if(instruction == EngineInstr::add){
@@ -1107,11 +1106,11 @@ LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightT
             return (*LeftOperand) / (*RightOperand);
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": You cannot divide by zero.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": You cannot divide by zero.\n";
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(instruction) << "\' is not a valid instruction.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << transInstrToStr(instruction) << "\' is not a valid instruction.\n";
     }
     return 0;
 }
@@ -1142,7 +1141,7 @@ LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOpera
     else if(RightOperand.type == "double"){
         return tryArithmetics(LeftOperand, RightOperand.pDouble, instruction);
     }
-    cout << "Error: In " << __FUNCTION__ << ": About the right operand: \'" << RightOperand.type << "\' is not a valid type.\n"; 
+    cerr << "Error: In " << __FUNCTION__ << ": About the right operand: \'" << RightOperand.type << "\' is not a valid type.\n"; 
     return 0;
 }
 BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStruct &RightOperand, EngineInstr instruction){
@@ -1155,7 +1154,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStru
         }
         else{
             type = "";
-            cout << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
         }
     }
     else if(type == "bool"){
@@ -1185,7 +1184,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStru
     }
     else{
         type = "";
-        cout << "Error: In " << __FUNCTION__ << ": About the left operand: \'" << type << "\' is not a valid type.\n"; 
+        cerr << "Error: In " << __FUNCTION__ << ": About the left operand: \'" << type << "\' is not a valid type.\n"; 
     }
     return result;
 }
@@ -1228,7 +1227,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStru
         }
         else{
             type = "";
-            cout << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": You cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
         }
     }
     else if(type == "bool"){
@@ -1257,7 +1256,7 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStru
         result.vDouble = callTryArithmetics(pDouble, RightOperand, instruction);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": left operand's \'" << type << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": left operand's \'" << type << "\' type does not exist.\n";
         result.type = "";
     }
 
@@ -1302,7 +1301,7 @@ void BasePointersStruct::setPointer(string * pointer){
 
 bool BasePointersStruct::areEqual(BasePointersStruct *OtherVariable){
     if(type != OtherVariable->type){
-        cout << "Error: In " << __FUNCTION__ << ":Pointers of built-in types have different types.\n";
+        cerr << "Error: In " << __FUNCTION__ << ":Pointers of built-in types have different types.\n";
         return false;
     }
     if(type == "bool"){
@@ -1333,13 +1332,13 @@ bool BasePointersStruct::areEqual(BasePointersStruct *OtherVariable){
         return *pString == *OtherVariable->pString;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
     }
     return false;
 }
 bool BasePointersStruct::areEqual(BaseVariableStruct *OtherVariable){
     if(type != OtherVariable->type){
-        cout << "Error: In " << __FUNCTION__ << ": Pointers of built-in types have different types.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Pointers of built-in types have different types.\n";
         return false;
     }
     if(type == "bool"){
@@ -1370,7 +1369,7 @@ bool BasePointersStruct::areEqual(BaseVariableStruct *OtherVariable){
         return *pString == OtherVariable->vString;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type.\n"; 
     }
     return false;
 }
@@ -1401,7 +1400,7 @@ bool BasePointersStruct::getBool() const{
         return *pDouble;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": You can't access bool variable.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": You can't access bool variable.\n";
         return 0;
     }
 }
@@ -1446,7 +1445,7 @@ double BasePointersStruct::getDouble() const{
         return *pFloat;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": You can't access numeric variable.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": You can't access numeric variable.\n";
         return 0.0;
     }
 }
@@ -1483,7 +1482,7 @@ int BasePointersStruct::getInt() const{
         return *pDouble;
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": You can't access numeric variable.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": You can't access numeric variable.\n";
         return 0;
     }
 }
@@ -1519,7 +1518,7 @@ string BasePointersStruct::getString() const{
         return doubleToStr(*pDouble);
     }
     
-    cout << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
+    cerr << "Error: In " << __FUNCTION__ << ": \'" << type << "\' is not a valid type for this operation.\n";
     return "[invalid type]";
 }
 

@@ -56,7 +56,7 @@ inline vector<string> builtInScriptHello = {
 };
 vector<string> readLines(const string& filename, bool allowNotAscii) {
 	if(filename.size() == 0){
-        std::cout << "Error: In " << __FUNCTION__ << ": The file name cannot be empty.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": The file name cannot be empty.\n";
         return vector<string>();
     }
     if(filename[0] == '?'){
@@ -66,7 +66,7 @@ vector<string> readLines(const string& filename, bool allowNotAscii) {
         if(filename == "?hello"){
             return builtInScriptHello;
         }
-        std::cout << "Error: In " << __FUNCTION__ << ": There is no built-in script with the name: \""
+        cerr << "Error: In " << __FUNCTION__ << ": There is no built-in script with the name: \""
             << filename << "\".\n";
         return vector<string>();
     }
@@ -149,11 +149,11 @@ void AncestorObject::deleteLater(){
 }
 void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, string newLayerID, const bool & changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
-        cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
     }
     if(isStringInVector(reservedIDs, ID)){
-        cout << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << ID << "\' cannot be changed.\n";
         return;
     }
     clearVectorsOfIDs();
@@ -505,7 +505,7 @@ VariableModule AncestorObject::getAttributeValue(const string &attribute, const 
         NewValue.setBool(canDrawSelectionBorder);
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
         NewValue.setBool(false);
     }
     return NewValue;
@@ -697,11 +697,11 @@ bool prepareNewInstruction(vector<WordStruct> words, EventModule & NewEvent, Ope
 ){
     if(words.size() < minLength){
         if(minLength == 2){
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least 1 parameter.\n";
         }
         else{
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least " << minLength-1 << " parameters.\n";
         }
         return false;
@@ -741,7 +741,7 @@ bool optionalOutput(string scriptName, unsigned lineNumber, string & error, cons
     if(words[cursor].type != 'e' && words[cursor].type != 'c'){
         error = "Parameter 'output' (" + intToStr(cursor + 1);
         error += ") must be a context.";
-        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
             << ": In the '" << words[0].value << "' instruction: " << error << "\n";
         return true;
@@ -773,21 +773,21 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModul
         if(type == 'b'){
             variable.setBool(cstoi(words[cursor].value, error));
             if(error.size() > 0){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
             }
         }
         else if(type == 'i'){
             variable.setInt(cstoi(words[cursor].value, error));
             if(error.size() > 0){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
             }
         }
         else if(type == 'd'){
             variable.setDouble(cstod(words[cursor].value, error));
             if(error.size() > 0){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
             }
         }
@@ -796,7 +796,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModul
                 variable.setString(words[cursor].value);
             }
             else{
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Parameter nr." << cursor+1 << " is not a string.\n";
             }
         }
@@ -805,7 +805,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModul
                 variable.setString(words[cursor].value);
             }
             else{
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Parameter nr." << cursor+1 << " is not a context.\n";
             }
         }
@@ -823,7 +823,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, int & variabl
         string error;
         variable = cstoi(words[cursor].value, error);
         if(error.size() > 0){
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
         }
     }
@@ -840,7 +840,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, double & vari
         string error;
         variable = cstod(words[cursor].value, error);
         if(error.size() > 0){
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
         }
     }
@@ -861,7 +861,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     string endingChar = ")";
     if(useParentheses){
         if(words[cursor].value != "("){
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Every expression must begin with parentheses.\n";
             return false;
         }
@@ -869,7 +869,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     else{
         endingChar = "]";
         if(words[cursor].value != "["){
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": This parameter must begin with square brackets.\n";
             return false;
         }
@@ -877,7 +877,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     
     cursor++;
     if(cursor >= words.size()){
-        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
@@ -886,7 +886,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     
     while(words[cursor].value != endingChar || inCondition){
         if(cursor >= words.size()){
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
@@ -901,7 +901,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
         }
         else if(!inCondition){
             if(Expression.size() == 0){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Operator cannot be added to an empty expression.\n";
                 return false;
             }
@@ -952,7 +952,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 }
                 else if(firstWord.value == "exists" || firstWord.value == "is_directory"){
                     if(words[cursor].value == "]"){
-                        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                             << errorSpacing() << "In " << __FUNCTION__ << ": Source '" << firstWord.value
                             << "' requires one string literal.\n";
                         return false;
@@ -984,7 +984,7 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                         Expression.back().Location.attribute = "back";
                     }
                     else{
-                        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                             << errorSpacing() << "In " << __FUNCTION__ << ": Invalid attribute.\n";
                         return false;
                     }
@@ -1029,13 +1029,13 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 }
             }
             else{
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Word of the '" << firstWord.type << "' type is not valid.\n";
                 return false;
             }
         }
         if(cursor >= words.size()){
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
@@ -1099,7 +1099,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
         }
         else if(words[0].value == "start"){
             if(words.size() < 2){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires one parameter.\n";
                 return;
             }
@@ -1111,13 +1111,13 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     overrideEvent = cstoi(words[3].value, error);
                 }
                 else{
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
                 }
             }
 
             if(words[1].type != 'c' && words[1].type != 'e'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
                     << "' instruction: The second parameter is not a context.\n";
                 return;
@@ -1129,7 +1129,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                     removeModuleInstanceByID(EveContainer, words[1].value);
                 }
                 else{
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__ << ": Event with id \'" << words[1].value << "\' already exists.\n";
                     return;
                 }
@@ -1141,7 +1141,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
 
             if(words[2].type != 'b' && words[2].type != 'i' && words[2].type != 'e'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": The second parameter is not an int.\n";
                 return;
             }
@@ -1159,14 +1159,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
         }
         else if(words[0].value == "triggers"){
             if(words.size() < 2){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Instruction \'" << words[0].value << "\' requires at least 2 parameters.\n";
                 return;
             }
             while(cursor < words.size()){
                 if(words[cursor].type != 'c'){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": In the '" << words[0].value << "' instruction: Parameter nr. " << cursor+1 << " is not a context.\n";
                     return;
@@ -1177,21 +1177,21 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 cursor++;
             }
             /*if(!gatherStringVector(words, cursor, NewEvent.primaryTriggerTypes, lineNumber, scriptName)){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Context gather failed.\n";
                 return;
             }*/
         }
         else if(words[0].value == "run"){
             if(words.size() < 2){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Instruction \'" << words[0].value << "\' requires 2 parameters.\n";
                 return;
             }
             while(cursor < words.size()){
                 if(words[cursor].type != 'c'){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": In the '" << words[0].value << "' instruction: Parameter nr. " << cursor+1 << " is not a context.\n";
                     return;
@@ -1204,14 +1204,14 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
         }
         else if(words[0].value == "if"){
             if(!createExpression(words, cursor, NewEvent.ConditionalChain, lineNumber, scriptName, true)){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                 return;
             }
         }
         else if(words[0].value == "else"){
             if(words.size() < 2){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Instruction \'" << words[0].value << "\' requires one parameter of a string type.\n";
                 return;
@@ -1220,7 +1220,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 NewEvent.elseChildID = words[1].value;
             }
             else if(words[1].type != 'e'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Instruction \'" << words[0].value << "\' requires one parameter of a string type.\n";
                 return;
@@ -1238,7 +1238,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
@@ -1255,7 +1255,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'c', "context", false)){ return; }
             }
             else{
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": First argument cannot be an empty context.\n";
                 return;
@@ -1266,7 +1266,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName, true)){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
@@ -1282,7 +1282,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName, true)){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
@@ -1298,7 +1298,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName, true)){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
@@ -1308,7 +1308,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 }
             }
             else{
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Source '" << words[1].value << "' does not exist.\n";
                 return;
@@ -1319,7 +1319,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
                 return;
@@ -1339,7 +1339,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "source", false)){ return; }
             }
             else{
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": First argument cannot be an empty context.\n";
                 return;
@@ -1437,7 +1437,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(error.size() > 0){ return; }
             }
             if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName, false)){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                 return;
             }
@@ -1464,7 +1464,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "values", false)){ return; }
             }
             else{
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Literal type is required.\n";
                 return;
             }
@@ -1474,7 +1474,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
@@ -1483,7 +1483,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             cursor = 2;
             if(words[1].value == "camera"){
                 if(words.size() < 4){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": \'find_by_id " << words[1].value << "\' requires at least 2 additional parameters.\n";
                     continue;
@@ -1497,7 +1497,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             else if(words[1].value == "layer"){
                 if(words.size() < 7){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": \'find_by_id " << words[1].value << "\' requires at least 5 additional parameters.\n";
                     continue;
@@ -1515,7 +1515,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             else if(words[1].value == "context" || words[1].value == "c" || words[1].type == 'e'){
                 if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'c', "scripts", false)){ return; }
                 if(words.size() < cursor + 5){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": \'find_by_id " << words[1].value << " [context_list]\' requires at least 5 additional parameters.\n";
                     continue;
@@ -1536,7 +1536,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
@@ -1560,7 +1560,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
@@ -1665,7 +1665,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
                 return;
@@ -1687,9 +1687,18 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+                return;
+            }
+            for(cursor = 2; cursor < words.size(); cursor++){
+                if(words[cursor].type != 'c'){
+                    continue;
+                }
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": In the '" << words[0].value << "' instruction: Parameter " << cursor << " must be a literal.\n";
                 return;
             }
             Operation->addLiteralParameter(VariableModule::newString(words[1].value));
@@ -1809,7 +1818,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
                 return;
@@ -1852,7 +1861,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 return;
             }
             if(words[1].type != 'c'){
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
                 return;
@@ -1875,7 +1884,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "scripts", false)){ return; }
             }
             else{
-                cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": In the instruction '" << words[0].value
                     << "': The type \'" << words[1].value << "\' does not exist.\n";
                 continue;
@@ -1890,7 +1899,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             cursor = 3;
             while(cursor < words.size()){
                 if(words[cursor].type != 'c'){
-                    cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": In the '" << words[0].value << "' instruction: Parameter '" << words[cursor].value
                         << "' (" << cursor+1 << ") must be a variable.\n";
@@ -2008,13 +2017,13 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else{
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' does not exist.\n";
         }
     }
     if(words.size() > 0){
         if(words[0].value != "end"){
-            cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Every event must end with \"end\" instruction.\n";
         }
     }

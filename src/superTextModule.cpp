@@ -102,12 +102,12 @@ void SuperTextModule::update(){
     }
 
     if(Formatting[0].Font == nullptr){
-        cout << "Error: The first font was not loaded. Text update failed.\n";
+        cerr << "Error: The first font was not loaded. Text update failed.\n";
         return;
     }
 
     if(Formatting[0].Font->font == nullptr){
-        cout << "Error: Font " << Formatting[0].Font->ID << " was not loaded. Text update failed.\n";
+        cerr << "Error: Font " << Formatting[0].Font->ID << " was not loaded. Text update failed.\n";
         return;
     }
 
@@ -458,7 +458,7 @@ VariableModule SuperTextModule::getAttributeValue(const string &attribute, const
         return VariableModule::newDouble(cursorPixelPosY);
     }
     
-    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+    cerr << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
         << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
@@ -484,7 +484,7 @@ void SuperTextModule::getContext(string attribute, vector<BasePointersStruct> &B
     }
 }
 
-void SuperTextModule::drawFormattedString(string text, vec2d finalPos, size_t lineIdx, vector<FormatClass>::iterator Format, bool drawSelection){
+void SuperTextModule::drawFormattedString(string text, vec2d finalPos, size_t lineIdx, vector<FormatClass>::iterator Format, bool drawSelection) const{
     if(Format->selected){
         if(drawSelection){
             string background;
@@ -510,7 +510,7 @@ void SuperTextModule::drawFormattedString(string text, vec2d finalPos, size_t li
         );
     }
 }
-void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection, vec2i displaySize){
+void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection, vec2i displaySize) const{
     size_t letterIdx = 0;
     size_t lineIdx = 0;
     size_t formatLimit = 0;
@@ -518,17 +518,17 @@ void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection, vec2i dis
     string currentFragment;
     vec2d linePos(finalPos);
     float previousLength;
-    vector<FormatClass>::iterator Format = Formatting.begin();
+    vector<FormatClass>::iterator Format = (const_cast<vector<FormatClass> &>(Formatting)).begin();
 
     for(lineIdx = 0; lineIdx < textLines.size(); lineIdx++){
         previousLength = 0.0;
         linePos.set(finalPos);
         if(Format->Font == nullptr){
-            cout << "Error: Font was not loaded. Text update failed.\n";
+            cerr << "Error: Font was not loaded. Text update failed.\n";
             return;
         }
         if(Format->Font->font == nullptr){
-            cout << "Error: Font " << Format->Font->ID << " was not loaded. Text update failed.\n";
+            cerr << "Error: Font " << Format->Font->ID << " was not loaded. Text update failed.\n";
             return;
         }
         linePos.y = finalPos.y + Format->offset.y + lineIdx * (Format->Font->height + paddingBetweenLines);
@@ -590,7 +590,7 @@ void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection, vec2i dis
         }   
     }
 }
-void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive, vec2i displaySize){
+void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsigned cursorPos, unsigned secondCursorPos, bool editingIsActive, vec2i displaySize) const{
     vec2d newScale(scale);
     vec2d unformatedPos(base + pos);
     if(isScrollable){
@@ -686,14 +686,14 @@ void SuperTextModule::addNewTextLine(string newLine){
 }
 void SuperTextModule::setTextLine(size_t index, string newLine){
     if(index > textLines.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of textLines vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of textLines vector.\n";
         return;
     }
     textLines[index] = newLine;
 }
 void SuperTextModule::addToTextLine(size_t index, string newLine){
     if(index > textLines.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of textLines vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of textLines vector.\n";
         return;
     }
     textLines[index] += newLine;
@@ -713,7 +713,7 @@ void SuperTextModule::modifyFormat(size_t index, ALLEGRO_COLOR newColor, ALLEGRO
     vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
 ){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].color = newColor;
@@ -727,15 +727,15 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     string fontID, vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected
 ){
     if(fragmentStart > content.size()){
-        cout << "Error: In " << __FUNCTION__ << ": Cannot inject format beyond the text content (start-index:" << fragmentStart << " >= size:" << content.size() << ").\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Cannot inject format beyond the text content (start-index:" << fragmentStart << " >= size:" << content.size() << ").\n";
         return;
     }
     if(fragmentEnd > content.size()){
-        cout << "Error: In " << __FUNCTION__ << ": Cannot inject format beyond the text content (end-index:" << fragmentEnd << " >= size:" << content.size() << ").\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Cannot inject format beyond the text content (end-index:" << fragmentEnd << " >= size:" << content.size() << ").\n";
         return;
     }
     if(fragmentEnd < fragmentStart){
-        cout << "Error: In " << __FUNCTION__ << ": Start index (" << fragmentStart << ") cannot be bigger than the end index (" << fragmentEnd << ").\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Start index (" << fragmentStart << ") cannot be bigger than the end index (" << fragmentEnd << ").\n";
         return;
     }
 
@@ -825,84 +825,84 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
 void SuperTextModule::deleteFormat(size_t index)
 {
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting.erase(Formatting.begin() + index);
 }
 void SuperTextModule::setColor(size_t index, ALLEGRO_COLOR newColor){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].color = newColor;
 }
 void SuperTextModule::setAccentColor(size_t index, ALLEGRO_COLOR newAccentColor){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].accentColor = newAccentColor;
 }
 void SuperTextModule::setFont(size_t index, string newFontID, vector <SingleFont> & FontContainer){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].Font = findFontByID(FontContainer, newFontID);
 }
 void SuperTextModule::setOffset(size_t index, float offsetX, float offsetY){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].offset.set(offsetX, offsetY);
 }
 void SuperTextModule::addOffset(size_t index, float offsetX, float offsetY){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].offset.translate(offsetX, offsetY);
 }
 void SuperTextModule::setOffsetX(size_t index, float newOffset){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].offset.x = newOffset;
 }
 void SuperTextModule::addOffsetX(size_t index, float newOffset){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].offset.x += newOffset;
 }
 void SuperTextModule::setOffsetY(size_t index, float newOffset){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].offset.y = newOffset;
 }
 void SuperTextModule::addOffsetY(size_t index, float newOffset){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].offset.y += newOffset;
 }
 void SuperTextModule::setSelected(size_t index, bool isSelected){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].selected = isSelected;
 }
 void SuperTextModule::setLimit(size_t index, size_t newLimit){
     if(index > Formatting.size()){
-        std::cout << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
         return;
     }
     Formatting[index].limit += newLimit;
@@ -1998,7 +1998,7 @@ void SuperEditableTextModule::moveCursorToTheStartOfTheCurrentTextLine(unsigned 
         }
     }
     if(letterIdx != lineStarts[lineWithCursorIdx]){
-        cout << "Error: In: " << __FUNCTION__ << ": Cursor moved passed the current line (cursorPos: "
+        cerr << "Error: In: " << __FUNCTION__ << ": Cursor moved passed the current line (cursorPos: "
             << letterIdx << "; line start: " << lineStarts[lineWithCursorIdx] << ").\n";
     }
 }

@@ -1,10 +1,14 @@
-03.09.2024
+04.10.2024
+-Created drawing orders for layers and objects.
+-Replaced std::cout with std::cerr for printing errors and warnings.
+
+03.10.2024
 -Added "MOUSE_TEXT_SKIP" config command and "--mouse-text-skip" command line argument.
 -Fixed the autocomplete events.
 -Reduced the number of text updates.
 -Reduced the frequency of mouse updates related to text selection.
 
-02.09.2024
+02.10.2024
 -Added skipping of repeated commands in the command history.
 -Converted instruction parameters to one-dimensional trees.
 

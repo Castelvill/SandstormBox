@@ -12,7 +12,7 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
     unsigned index, char type, string name, bool optional
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << ".\n";
     };
@@ -122,7 +122,7 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName,
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << "\n";
     };
@@ -198,7 +198,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional)
 {
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cout << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << "\n";
     };
@@ -631,7 +631,7 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, string attribute
     else if((attribute == "save_to_file" || attribute == "load_from_file") && Values.size() >= 1){
         string fileName = Values[0].getStringUnsafe();
         if(fileName == ""){
-            std::cout << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': File name is empty.\n";
+            std::cerr << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': File name is empty.\n";
             return;
         }
         string finalPath = "";
@@ -756,7 +756,7 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, string attribute
             SuperText->setWrapping(Values[0].getStringUnsafe()[0]);
         }
         else{
-            std::cout << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+            std::cerr << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
         }
     }
     else if(attribute == "set_horizontal_align" && Values.size() >= 1){
@@ -764,7 +764,7 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, string attribute
             SuperText->setHorizontalAlign(Values[0].getStringUnsafe()[0]);
         }
         else{
-            std::cout << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+            std::cerr << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
         }
     }
     else if(attribute == "set_vertical_align" && Values.size() >= 1){
@@ -772,7 +772,7 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, string attribute
             SuperText->setVerticalAlign(Values[0].getStringUnsafe()[0]);
         }
         else{
-            std::cout << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
+            std::cerr << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': Char variable cannot be blank.\n";
         }
     }
     else if(attribute == "set_padding_between_lines" && Values.size() >= 1){
@@ -1409,7 +1409,7 @@ void EventModule::controlVariables(VariableModule * Variable, string attribute, 
         Variable->addDouble(Values[dice].getDoubleUnsafe());
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << Values.size() << "> does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": function " << attribute << "<" << Values.size() << "> does not exist.\n";
     }
 }
 void EventModule::controlScrollbar(ScrollbarModule * Scrollbar, string attribute, const vector<VariableModule> & Values, vector <string> & IDs){
@@ -1533,7 +1533,7 @@ void EventModule::controlVector(VectorModule * Vector, string attribute, const v
                 Vector->pushString(Value.getStringUnsafe());
             }
             else{
-                cout << "Error: In " << __FUNCTION__ << ": Value of '" << Value.getType()
+                cerr << "Error: In " << __FUNCTION__ << ": Value of '" << Value.getType()
                     << "' type cannot be pushed back into the vector '" << Vector->getID()
                     << "' of '" << Vector->getType() << "' type.\n";
             }
@@ -1562,13 +1562,13 @@ void EventModule::controlVector(VectorModule * Vector, string attribute, const v
             Vector->setString(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
         }
         else{
-            cout << "Error: In " << __FUNCTION__ << ": Value of '" << Values[0].getType()
+            cerr << "Error: In " << __FUNCTION__ << ": Value of '" << Values[0].getType()
                 << "' type cannot be assign to the vector '" << Vector->getID()
                 << "' of '" << Vector->getType() << "' type.\n";
         }
     }
     else{
-        cout << "Error: In " << __FUNCTION__ << ": Function " << attribute << "<" << Values.size() << "> does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Function " << attribute << "<" << Values.size() << "> does not exist.\n";
     }
 }
 

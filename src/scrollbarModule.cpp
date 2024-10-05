@@ -41,30 +41,30 @@ void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &lis
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
 
-void ScrollbarModule::draw(vec2d basePos, vector <ImageModule> & ImageContainer, Camera2D Camera){
+void ScrollbarModule::draw(vec2d basePos, const vector <ImageModule> & ImageContainer, Camera2D Camera) const{
     vec2d newPos(basePos+pos);
     if(TrackImage != nullptr && TrackImage->getID() == trackImageID){
-        TrackImage->drawImage(newPos, Camera, true);
+        TrackImage->draw(newPos, Camera, true);
     }
     else{
-        for(ImageModule & Image : ImageContainer){
+        for(const ImageModule & Image : ImageContainer){
             if(Image.getID() == trackImageID){
-                TrackImage = &Image;
-                TrackImage->drawImage(newPos, Camera, true);
+                TrackImage = const_cast<ImageModule*>(&Image);
+                TrackImage->draw(newPos, Camera, true);
                 break;
             }
         }
     }
     if(ThumbImage != nullptr && ThumbImage->getID() == thumbImageID){
         ThumbImage->resize(thumbSize);
-        ThumbImage->drawImage(newPos+thumbPos, Camera, true);
+        ThumbImage->draw(newPos+thumbPos, Camera, true);
     }
     else{
-        for(ImageModule & Image : ImageContainer){
+        for(const ImageModule & Image : ImageContainer){
             if(Image.getID() == thumbImageID){
-                ThumbImage = &Image;
+                ThumbImage = const_cast<ImageModule*>(&Image);
                 ThumbImage->resize(thumbSize);
-                ThumbImage->drawImage(newPos+thumbPos, Camera, true);
+                ThumbImage->draw(newPos+thumbPos, Camera, true);
                 break;
             }
         }
@@ -277,7 +277,7 @@ VariableModule ScrollbarModule::getValue(const string &attribute, EventDescripti
         return VariableModule::newDouble(mouseWheelSpeed);
     }
     
-    cout << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
+    cerr << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
         << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }

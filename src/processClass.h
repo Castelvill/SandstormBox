@@ -229,6 +229,7 @@ private:
     
 public:
     vector <unsigned> camerasOrder;
+    vector <unsigned> layersOrder;
     EventDescription EventIds;
     InstrDescription CurrentInstr;
 
@@ -325,7 +326,9 @@ public:
     void executeFunctionForCameras(OperationClass & Operation, vector <VariableModule> & Variables,
         vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera, string & focusedProcessID
     );
+    void moveLayerInDrawingOrder(LayerClass * Layer, unsigned newIndex);
     void executeFunctionForLayers(OperationClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
+    void moveObjectInDrawingOrder(AncestorObject * Object, unsigned newIndex);
     void executeFunctionForObjects(OperationClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
     void executeFunction(OperationClass Operation, vector<ContextClass> & EventContext, vector<EventModule>::iterator & Event, EngineClass & Engine);
     void changeEngineVariables(OperationClass & Operation, vector<ContextClass> & EventContext, EngineClass & Engine);
@@ -401,7 +404,7 @@ public:
     void changeCursor(ALLEGRO_DISPLAY *display, const MouseClass & Mouse);
     void detectStartPosOfDraggingCamera(ALLEGRO_DISPLAY *display, const MouseClass & Mouse);
     void drawEverything(EngineClass & Engine);
-    void drawModules(AncestorObject & Object, size_t iteration, Camera2D & Cameras,
+    void drawModules(const AncestorObject & Object, Camera2D & Cameras,
         vector <SingleFont> & FontContainer, size_t & numberOfDrawnObjects, vec2i displaySize
     );
     void detectBackgroundCollisions(LayerClass & Layer, AncestorObject & Object, vec2d momentum);
