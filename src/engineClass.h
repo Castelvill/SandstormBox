@@ -14,7 +14,7 @@ void getDesktopResolution(int adapter, int *w, int *h);
 #define KEY_SEEN     1
 #define KEY_RELEASED 2
 
-inline int TERMINATION_TIME = 500;
+inline int DEFAULT_TERMINATION_TIME = 1000;
 
 class Interval{
 private:
@@ -54,6 +54,7 @@ public:
     vec2i displaySize, backbufferSize;
 
     bool canTerminateWithTimeout = true;
+    bool canExitWhenNoEventIsTriggered = false;
     bool loadConfig = true;
     unsigned short samples = 0;
     bool fullscreen = false;
@@ -68,8 +69,9 @@ public:
     string internalClipboard;
     vector<FormatClass> CopiedFormatting;
 
-    bool closeProgram, reboot, redraw, displayResized;
-    int terminationTimer = TERMINATION_TIME;
+    bool closeProgram = false, reboot = false, redraw = false, displayResized = false;
+    int timeoutTerminationTime = DEFAULT_TERMINATION_TIME;
+    int terminationTimer = timeoutTerminationTime;
     string EXE_PATH;
 
     vector <SingleFont> FontContainer;

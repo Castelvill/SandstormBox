@@ -5,15 +5,18 @@
 
 class UniversalVariable{
 public:
-    char type; //n - null, b - bool, i - int, d - double, s - string
-    bool vBool;
-    int vInt;
-	double vDouble;
-	string vString;
+    char type = 'n'; //n - null, b - bool, i - int, d - double, s - string
+    bool vBool = false;
+    int vInt = 0;
+	double vDouble = 0.0;
+	string vString = "";
 };
 
+template<typename LeftType, typename RightType>
+void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+
 class VariableModule: public UniversalVariable{
-    bool deleted;
+    bool deleted = false;
     string ID;
     string layerID; //This ID is needed in events' trigger detection.
     string objectID;
@@ -21,6 +24,14 @@ public:
     VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     VariableModule();
+    VariableModule(bool value);
+    VariableModule(int value);
+    VariableModule(double value);
+    VariableModule(string value);
+    VariableModule(const VariableModule & Original);
+    VariableModule & operator=(const VariableModule& Original);
+    void copyValue(const VariableModule& Original);
+    void copyValue(const VariableModule * Original);
     ~VariableModule();
     
     void deleteLater();
@@ -45,6 +56,7 @@ public:
     string getString() const;
     string getStringUnsafe() const;
     void setID(string, vector<string> * listOfIDs);
+    void setIdUnsafe(string);
     void setLayerID(string);
     void setObjectID(string);
     bool setType(char);
@@ -57,8 +69,10 @@ public:
     bool setString(char);
     bool addInt(int);
     bool addDouble(double);
+    bool addString(string newValue);
+    void addStringUnsafe(string newValue);
     void negate();
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
     template <typename condValueType>
     bool isConditionMet(condValueType condVal, EngineInstr operatorType, char valType);
     bool isConditionMet(string condVal, EngineInstr operatorType, char valType);
@@ -70,14 +84,12 @@ public:
     int intOperation(EngineInstr operatorType, BasePointersStruct * RightOperand);
     string stringOperation(EngineInstr operatorType, VariableModule * OtherVariable);
     string stringOperation(EngineInstr operatorType, BasePointersStruct * RightOperand);
-    template<typename LeftType, typename RightType>
-    void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, EngineInstr instruction);
     template<typename RightType>
-    void moveFromTemp(RightType * RightOperand, EngineInstr instruction);
-    void move(VariableModule * RightOperand, EngineInstr instruction);
-    void move(const BasePointersStruct *RightOperand, EngineInstr instruction);
-    BaseVariableStruct getVariableStruct() const;
-    VariableModule & operator=(const VariableModule& original);
+    void moveFromTemp(RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+    void move(VariableModule * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+    void move(const BasePointersStruct *RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+    BaseVariableStruct getBaseVariableStruct() const;
+    BasePointersStruct getBasePointersStruct();
     template <typename T>
     void tryToSetFromPointer(const T & value, char newType);
     void setValueFromPointer(const BasePointersStruct & BasePointer);
@@ -89,8 +101,8 @@ public:
     static VariableModule newInt(int val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     static VariableModule newDouble(double);
     static VariableModule newDouble(double val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
-    static VariableModule newString(string);
-    static VariableModule newString(string val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    static VariableModule newString(const string & val);
+    static VariableModule newString(const string & val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     bool isNumeric() const;
 };
 

@@ -10,7 +10,7 @@ vector<string> tokenizeString(string input, char delimeter){
             isInsideStringSector = !isInsideStringSector;
         }
         else if(!isInsideStringSector && letter == delimeter){
-            tokens.push_back("");
+            tokens.emplace_back("");
         }
         else{
             tokens.back() += letter;
@@ -94,7 +94,7 @@ vector <short> getReleasedKeys(unsigned char key[], vector <short> pressedKeys){
 void EngineClass::readCommandLine(int argc, char *argv[]){
     for(int argument = 1; argument < argc; ++argument){
         if(strcmp(argv[argument], "--interpreter") == 0 || strcmp(argv[argument], "-i") == 0){
-            inputFiles.push_back("?interpreter");
+            inputFiles.emplace_back("?interpreter");
             continue;
         }
         if(strcmp(argv[argument], "--ignore-config") == 0 || strcmp(argv[argument], "-c") == 0){
@@ -385,14 +385,14 @@ void EngineClass::updateEvents(){
             break;
         case ALLEGRO_EVENT_TIMER:
             if(display == nullptr && canTerminateWithTimeout){
-                terminationTimer--;
                 if(terminationTimer <= 0){
                     closeProgram = true;
-                    cout << "Program has been terminated due to a timeout.\n";
+                    cerr << "Program has been terminated due to a timeout.\n";
                 }
+                terminationTimer--;
             }
             else{
-                terminationTimer = TERMINATION_TIME;
+                terminationTimer = timeoutTerminationTime;
             }
             releasedKeys.clear();
             releasedKeys = getReleasedKeys(key, pressedKeys);
@@ -459,7 +459,7 @@ void EngineClass::loadNewFont(string path, int size, string newID){
         return;
     }
     path = EXE_PATH + path;
-    FontContainer.push_back(SingleFont());
+    FontContainer.emplace_back(SingleFont());
     //al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
     FontContainer.back().font = al_load_ttf_font(path.c_str(), size, 0);
     //al_set_new_bitmap_flags(ALLEGRO_VIDEO_BITMAP);

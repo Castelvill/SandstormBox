@@ -1,0 +1,38 @@
+start variablesTest
+    triggers on_init
+    env can_exit_on_idle 1
+    print "VARIABLES_TEST - START\n"
+
+    int a 5
+    assert a 5
+
+    var b 10
+    assert b 10
+    
+    run incA(a)
+    run incB()
+    run incB2(b)
+after
+    print "VARIABLES_TEST - PASSED\n"
+    delete_this_event
+end
+
+start incA(int a)
+    ++ a
+    assert a 6
+end
+
+start incB()
+    ++ b
+    assert b 11
+end
+
+start incB2(int b2)
+    dump_context_stack
+    breakpoint
+    ++ b2
+    assert b2 12
+after
+    dump_context_stack
+    assert b 11
+end

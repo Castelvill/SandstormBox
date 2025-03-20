@@ -7,6 +7,7 @@ start putRectangleOnScreen
     access display_h [[display_h]]
     = DISPLAY_W display_w
     = DISPLAY_H display_h
+    create_display DISPLAY_W DISPLAY_H DISPLAY_W DISPLAY_H
 
     var SIZE_X 120
     var SIZE_Y 100

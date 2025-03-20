@@ -246,7 +246,7 @@ void ParticleEffectModule::spawnParticles(vec2d objPos){
 
     particleEffect.reserve(initialCount + particlesPerSpawn);
     for(unsigned int i=initialCount; i < initialCount + particlesPerSpawn; i++){
-        particleEffect.push_back(SingleParticle());
+        particleEffect.emplace_back(SingleParticle());
         if(isModuleStatic){
             particleEffect.back().pos.set(randomDouble(pos.x, pos.x+size.x), randomDouble(pos.y, pos.y+size.y));
         }
@@ -455,13 +455,13 @@ void ParticleEffectModule::changeGeneralParameters(vec2d newPos, vec2d newSize, 
     isModuleStatic = newIsStatic;
 }
 void ParticleEffectModule::addColor(unsigned short red, unsigned short green, unsigned short blue){
-    basicColorsList.push_back(colorList());
+    basicColorsList.emplace_back(colorList());
     basicColorsList.back().color[0] = red;
     basicColorsList.back().color[1] = green;
     basicColorsList.back().color[2] = blue;
 }
 void ParticleEffectModule::addColorInterval(unsigned short red, unsigned short green, unsigned short blue, double newMinSpeed){
-    colorIntervals.push_back(colorAndSpeed());
+    colorIntervals.emplace_back(colorAndSpeed());
     colorIntervals.back().color[0] = red;
     colorIntervals.back().color[1] = green;
     colorIntervals.back().color[2] = blue;
@@ -483,143 +483,145 @@ void ParticleEffectModule::removeImage(unsigned int id){
 void ParticleEffectModule::allowSpawning(){
     canParticlesSpawn = true;
 }
-void ParticleEffectModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "environment_x"){
-        BasePointers.back().setPointer(&environment.x);
-    }
-    else if(attribute == "environment_y"){
-        BasePointers.back().setPointer(&environment.y);
-    }
-    else if(attribute == "environment_speed_x"){
-        BasePointers.back().setPointer(&environmentSpeed.x);
-    }
-    else if(attribute == "environment_speed_y"){
-        BasePointers.back().setPointer(&environmentSpeed.y);
-    }
-    else if(attribute == "min_speed"){
-        BasePointers.back().setPointer(&minSpeed);
-    }
-    else if(attribute == "max_speed"){
-        BasePointers.back().setPointer(&maxSpeed);
-    }
-    else if(attribute == "min_basic_speed"){
-        BasePointers.back().setPointer(&minBasicSpeed);
-    }
-    else if(attribute == "max_basic_speed"){
-        BasePointers.back().setPointer(&maxBasicSpeed);
-    }
-    else if(attribute == "min_acceleration"){
-        BasePointers.back().setPointer(&minAcceleration);
-    }
-    else if(attribute == "max_acceleration"){
-        BasePointers.back().setPointer(&maxAcceleration);
-    }
-    else if(attribute == "min_particle_mass"){
-        BasePointers.back().setPointer(&minParticleMass);
-    }
-    else if(attribute == "max_particle_mass"){
-        BasePointers.back().setPointer(&maxParticleMass);
-    }
-    else if(attribute == "min_direction_degree"){
-        BasePointers.back().setPointer(&minDirectionDegree);
-    }
-    else if(attribute == "max_direction_degree"){
-        BasePointers.back().setPointer(&maxDirectionDegree);
-    }
-    else if(attribute == "min_rotation_speed"){
-        BasePointers.back().setPointer(&minRotationSpeed);
-    }
-    else if(attribute == "max_rotation_speed"){
-        BasePointers.back().setPointer(&maxRotationSpeed);
-    }
-    else if(attribute == "min_time_to_negate_rotation"){
-        BasePointers.back().setPointer(&minTimeToNegateRotation);
-    }
-    else if(attribute == "max_time_to_negate_rotation"){
-        BasePointers.back().setPointer(&maxTimeToNegateRotation);
-    }
-    else if(attribute == "are_particles_moving"){
-        BasePointers.back().setPointer(&areParticlesMoving);
-    }
-    else if(attribute == "is_environment_synchronized"){
-        BasePointers.back().setPointer(&isEnvironmentSynchronized);
-    }
-    else if(attribute == "min_particle_radius"){
-        BasePointers.back().setPointer(&minParticleRadius);
-    }
-    else if(attribute == "max_particle_radius"){
-        BasePointers.back().setPointer(&maxParticleRadius);
-    }
-    else if(attribute == "min_time_to_death"){
-        BasePointers.back().setPointer(&minTimeToDeath);
-    }
-    else if(attribute == "max_time_to_death"){
-        BasePointers.back().setPointer(&maxTimeToDeath);
-    }
-    else if(attribute == "min_shape_rotation_speed"){
-        BasePointers.back().setPointer(&minShapeRotationSpeed);
-    }
-    else if(attribute == "max_shape_rotation_speed"){
-        BasePointers.back().setPointer(&maxShapeRotationSpeed);
-    }
-    else if(attribute == "min_color_intensity"){
-        BasePointers.back().setPointer(&minColorIntensity);
-    }
-    else if(attribute == "max_color_intensity"){
-        BasePointers.back().setPointer(&maxColorIntensity);
-    }
-    else if(attribute == "particles_shape"){
-        BasePointers.back().setPointer(&particlesShape);
-    }
-    else if(attribute == "use_image_as_particles"){
-        BasePointers.back().setPointer(&useImageAsParticles);
-    }
-    else if(attribute == "use_random_colors"){
-        BasePointers.back().setPointer(&useRandomColors);
-    }
-    else if(attribute == "is_module_static"){
-        BasePointers.back().setPointer(&isModuleStatic);
-    }
-    else if(attribute == "is_drawing_with_details"){
-        BasePointers.back().setPointer(&isDrawingWithDetails);
-    }
-    else if(attribute == "block_particles_spawn"){
-        BasePointers.back().setPointer(&blockParticlesSpawn);
-    }
-    else if(attribute == "can_particles_spawn"){
-        BasePointers.back().setPointer(&canParticlesSpawn);
-    }
-    else if(attribute == "min_particles_per_spawn"){
-        BasePointers.back().setPointer(&minParticlesPerSpawn);
-    }
-    else if(attribute == "max_particles_per_spawn"){
-        BasePointers.back().setPointer(&maxParticlesPerSpawn);
-    }
-    else if(attribute == "max_particles_count"){
-        BasePointers.back().setPointer(&maxParticlesCount);
-    }
-    else if(attribute == "time_to_spawn"){
-        BasePointers.back().setPointer(&timeToSpawn);
-    }
-    else if(attribute == "max_time_to_spawn"){
-        BasePointers.back().setPointer(&maxTimeToSpawn);
-    }
-    else if(attribute == "spawn_key_bind"){
-        BasePointers.back().setPointer(&spawnKeyBind);
-    }
-    else if(attribute == "spawn_on_key_release"){
-        BasePointers.back().setPointer(&spawnOnKeyRelease);
-    }
-    else{
-        getPrimaryContext(attribute, BasePointers);
+void ParticleEffectModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    switch(attribute){
+        case environment_x:
+            BasePointers.back().setPointer(&environment.x);
+            return;
+        case environment_y:
+            BasePointers.back().setPointer(&environment.y);
+            return;
+        case environment_speed_x:
+            BasePointers.back().setPointer(&environmentSpeed.x);
+            return;
+        case environment_speed_y:
+            BasePointers.back().setPointer(&environmentSpeed.y);
+            return;
+        case min_speed:
+            BasePointers.back().setPointer(&minSpeed);
+            return;
+        case max_speed:
+            BasePointers.back().setPointer(&maxSpeed);
+            return;
+        case min_basic_speed:
+            BasePointers.back().setPointer(&minBasicSpeed);
+            return;
+        case max_basic_speed:
+            BasePointers.back().setPointer(&maxBasicSpeed);
+            return;
+        case min_acceleration:
+            BasePointers.back().setPointer(&minAcceleration);
+            return;
+        case max_acceleration:
+            BasePointers.back().setPointer(&maxAcceleration);
+            return;
+        case min_particle_mass:
+            BasePointers.back().setPointer(&minParticleMass);
+            return;
+        case max_particle_mass:
+            BasePointers.back().setPointer(&maxParticleMass);
+            return;
+        case min_direction_degree:
+            BasePointers.back().setPointer(&minDirectionDegree);
+            return;
+        case max_direction_degree:
+            BasePointers.back().setPointer(&maxDirectionDegree);
+            return;
+        case min_rotation_speed:
+            BasePointers.back().setPointer(&minRotationSpeed);
+            return;
+        case max_rotation_speed:
+            BasePointers.back().setPointer(&maxRotationSpeed);
+            return;
+        case min_time_to_negate_rotation:
+            BasePointers.back().setPointer(&minTimeToNegateRotation);
+            return;
+        case max_time_to_negate_rotation:
+            BasePointers.back().setPointer(&maxTimeToNegateRotation);
+            return;
+        case are_particles_moving:
+            BasePointers.back().setPointer(&areParticlesMoving);
+            return;
+        case is_environment_synchronized:
+            BasePointers.back().setPointer(&isEnvironmentSynchronized);
+            return;
+        case min_particle_radius:
+            BasePointers.back().setPointer(&minParticleRadius);
+            return;
+        case max_particle_radius:
+            BasePointers.back().setPointer(&maxParticleRadius);
+            return;
+        case min_time_to_death:
+            BasePointers.back().setPointer(&minTimeToDeath);
+            return;
+        case max_time_to_death:
+            BasePointers.back().setPointer(&maxTimeToDeath);
+            return;
+        case min_shape_rotation_speed:
+            BasePointers.back().setPointer(&minShapeRotationSpeed);
+            return;
+        case max_shape_rotation_speed:
+            BasePointers.back().setPointer(&maxShapeRotationSpeed);
+            return;
+        case min_color_intensity:
+            BasePointers.back().setPointer(&minColorIntensity);
+            return;
+        case max_color_intensity:
+            BasePointers.back().setPointer(&maxColorIntensity);
+            return;
+        case particles_shape:
+            BasePointers.back().setPointer(&particlesShape);
+            return;
+        case use_image_as_particles:
+            BasePointers.back().setPointer(&useImageAsParticles);
+            return;
+        case use_random_colors:
+            BasePointers.back().setPointer(&useRandomColors);
+            return;
+        case is_module_static:
+            BasePointers.back().setPointer(&isModuleStatic);
+            return;
+        case is_drawing_with_details:
+            BasePointers.back().setPointer(&isDrawingWithDetails);
+            return;
+        case block_particles_spawn:
+            BasePointers.back().setPointer(&blockParticlesSpawn);
+            return;
+        case can_particles_spawn:
+            BasePointers.back().setPointer(&canParticlesSpawn);
+            return;
+        case min_particles_per_spawn:
+            BasePointers.back().setPointer(&minParticlesPerSpawn);
+            return;
+        case max_particles_per_spawn:
+            BasePointers.back().setPointer(&maxParticlesPerSpawn);
+            return;
+        case max_particles_count:
+            BasePointers.back().setPointer(&maxParticlesCount);
+            return;
+        case time_to_spawn:
+            BasePointers.back().setPointer(&timeToSpawn);
+            return;
+        case max_time_to_spawn:
+            BasePointers.back().setPointer(&maxTimeToSpawn);
+            return;
+        case spawn_key_bind:
+            BasePointers.back().setPointer(&spawnKeyBind);
+            return;
+        case spawn_on_key_release:
+            BasePointers.back().setPointer(&spawnOnKeyRelease);
+            return;
+        default:
+            getPrimaryContext(attribute, BasePointers);
+            return;
     }
 }
 
 void ParticleEffectModule::addColorInHex(string hexColor){
     if(hexColor.size() != 6)
         return;
-    basicColorsList.push_back(colorList());
+    basicColorsList.emplace_back(colorList());
     std::sscanf(hexColor.c_str(), "%2hx%2hx%2hx", &basicColorsList.back().color[0],
                 &basicColorsList.back().color[1], &basicColorsList.back().color[2]);
 }
@@ -632,7 +634,7 @@ void ParticleEffectModule::addColorIntervalInHex(string hexColorAndSpeed){
     if(hexColorAndSpeed.size() < 9)
         return;
 
-    colorIntervals.push_back(colorAndSpeed());
+    colorIntervals.emplace_back(colorAndSpeed());
 
     string hexColor = hexColorAndSpeed.substr(0, 6);
     string strSpeed = hexColorAndSpeed.substr(6);

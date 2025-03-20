@@ -12,7 +12,7 @@ start helloWorldEvent
 end
 
 start exitProgram
-    triggers key_pressed
+    triggers on_key_pressed
     if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
     exit
 end

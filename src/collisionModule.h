@@ -47,7 +47,7 @@ public:
     //ignoring_type = ["objects", "groups_of_objects", "hitboxes", "groups_of_hitboxes"]
     bool ignores(string ignoring_type, string entity) const;
     void removeImaginaryCollisions();
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
 
     bool getIsSolid() const;
     bool getCanPenetrateSolids() const;

@@ -1,6 +1,7 @@
 #ifndef ALLOBJECTS_H_INCLUDED
 #define ALLOBJECTS_H_INCLUDED
 #include "eventModule.h"
+#include <unordered_set>
 
 //Struct of vectors
 struct ModulesPointers{
@@ -19,6 +20,7 @@ struct ModulesPointers{
     vector <VectorModule*> Vectors;
     bool hasInstanceOfAnyModule() const;
     unsigned size() const;
+    ModulesPointers(){};
 };
 
 /**
@@ -26,6 +28,7 @@ The most important class, a container for all modules that make an object.
 */
 class AncestorObject: public PrimaryModule{
 public:
+    string objectLookupID;
     vector <TextModule> TextContainer;
     vector <EditableTextModule> EditableTextContainer;
     vector <SuperTextModule> SuperTextContainer;
@@ -34,7 +37,7 @@ public:
     vector <MovementModule> MovementContainer;
     vector <CollisionModule> CollisionContainer;
     vector <ParticleEffectModule> ParticlesContainer;
-    vector <EventModule> EveContainer;
+    vector <EventModule> EventContainer;
     vector <VariableModule> VariablesContainer;
     vector <ScrollbarModule> ScrollbarContainer;
     vector <PrimitivesModule> PrimitivesContainer;
@@ -48,7 +51,7 @@ public:
     vector <string> collisionContainerIDs;
     vector <string> particlesContainerIDs;
     vector <string> eventsContainerIDs;
-    vector <string> eveContainerIDs;
+    vector <string> EventContainerIDs;
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
     vector <string> primitivesContainerIDs;
@@ -70,16 +73,28 @@ public:
     void refreshCoordinates();
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
+    void setID(string newID, vector<string> & listOfIDs);
+    void primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     void setIsScrollable(bool newValue);
-    VariableModule getAttributeValue(const string & attribute, const string & detail);
+    VariableModule getAttributeValue(const AttributeType & attribute, const string & detail);
     /*Translate instructions into events and add them to the event container of the object.*/
-    void eventAssembler(vector<string> code, string scriptName);
+    void assembleEvents(vector<string> code, string scriptName, vector<StartingVariableStruct> & VariableLookupTable);
     void clearAllEvents();
-    void translateAllScripts(bool clearEvents, bool allowNotAscii);
-    void translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii);
-    void translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii);
-    void injectCode(bool clearEvents, vector<string> code);
-    void injectInstructions(bool clearEvents, vector<string> instructions);
+    void translateAllScripts(bool clearEvents, bool allowNotAscii,
+        vector<StartingVariableStruct> & NewVariablesForLookupTable
+    );
+    void translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii,
+        vector<StartingVariableStruct> & NewVariablesForLookupTable
+    );
+    void translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii,
+        vector<StartingVariableStruct> & NewVariablesForLookupTable
+    );
+    void injectCode(bool clearEvents, vector<string> code,
+        vector<StartingVariableStruct> & NewVariablesForLookupTable
+    );
+    void injectInstructions(bool clearEvents, vector<string> instructions,
+        vector<StartingVariableStruct> & NewVariablesForLookupTable
+    );
     void propagateLayerID();
     void propagateObjectID();
 };

@@ -73,7 +73,7 @@ start resizeObjectWhenMaxedCheck
 end
 
 start resizeObjectWhenSwitchingToBorderlessMode
-    triggers key_pressed
+    triggers on_key_pressed
     if ([key_pressed KEY_F11])
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera

@@ -4,3 +4,4 @@ SandstormBox.exe
 clipboard.txt
 history.txt
 temp/*
+callgrind.*

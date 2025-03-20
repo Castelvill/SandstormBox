@@ -10,10 +10,110 @@ VariableModule::VariableModule(unsigned newID, vector<string> *listOfIDs, string
     setAllIDs(std::to_string(newID), listOfIDs, newLayerID, newObjectID, true);
     clear();
 }
-VariableModule::VariableModule(){
-    deleted = false;
-    ID = "";
-    clear();
+
+VariableModule::VariableModule(){}
+VariableModule::VariableModule(bool value){
+    type = 'b';
+    vBool = value;
+}
+VariableModule::VariableModule(int value){
+    type = 'i';
+    vInt = value;
+}
+VariableModule::VariableModule(double value){
+    type = 'd';
+    vDouble = value;
+}
+VariableModule::VariableModule(string value){
+    type = 's';
+    vString = value;
+}
+VariableModule::VariableModule(const VariableModule &Original){
+    deleted = Original.deleted;
+    ID = Original.ID;
+    layerID = Original.layerID;
+    objectID = Original.objectID;
+    type = Original.type;
+    if(deleted){
+        return;
+    }
+    if(type == 'b'){
+        vBool = Original.vBool;
+    }
+    else if(type == 'i'){
+        vInt = Original.vInt;
+    }
+    else if(type == 'd'){
+        vDouble = Original.vDouble;
+    }
+    else if(type == 's'){
+        vString = Original.vString;
+    }
+}
+VariableModule & VariableModule::operator=(const VariableModule& Original){
+    deleted = Original.deleted;
+    ID = Original.ID;
+    layerID = Original.layerID;
+    objectID = Original.objectID;
+    type = Original.type;
+    if(deleted){
+        return *this;
+    }
+    switch(type){
+        case 'b':
+            vBool = Original.vBool;
+            break;
+        case 'i':
+            vInt = Original.vInt;
+            break;
+        case 'd':
+            vDouble = Original.vDouble;
+            break;
+        case 's':
+            vString = Original.vString;
+            break;
+        default:
+            break;
+    }
+    return *this;
+}
+void VariableModule::copyValue(const VariableModule& Original){
+    type = Original.type;
+    switch(type){
+        case 'b':
+            vBool = Original.vBool;
+            break;
+        case 'i':
+            vInt = Original.vInt;
+            break;
+        case 'd':
+            vDouble = Original.vDouble;
+            break;
+        case 's':
+            vString = Original.vString;
+            break;
+        default:
+            break;
+    }
+}
+void VariableModule::copyValue(const VariableModule * Original){
+    type = Original->type;
+    switch(type){
+        case 'b':
+            vBool = Original->vBool;
+            break;
+        case 'i':
+            vInt = Original->vInt;
+            break;
+        case 'd':
+            vDouble = Original->vDouble;
+            break;
+        case 's':
+            vString = Original->vString;
+            break;
+        default:
+            break;
+    }
 }
 VariableModule::~VariableModule(){
 
@@ -25,10 +125,23 @@ bool VariableModule::getIsDeleted() const{
     return deleted;
 }
 void VariableModule::clear(){
+    switch(type){
+        case 'b':
+            vBool = false;
+            break;
+        case 'i':
+            vInt = 0;
+            break;
+        case 'd':
+            vDouble = 0.0;
+            break;
+        case 's':
+            vString = "";
+            break;
+        default:
+            break;
+    }
     type = 'n';
-    vInt = 0;
-    vDouble = 0.0;
-    vString = "";
 }
 void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
     string oldID = ID;
@@ -129,7 +242,10 @@ bool VariableModule::getBoolUnsafe(const bool & defaultValue) const{
     return vBool;
 }
 int VariableModule::getInt() const{
-    if(type == 'd'){
+    if(type == 'b'){
+        return vBool;
+    }
+    else if(type == 'd'){
         //cout << "Warning [VariableModule]: floating point ignored.\n";
         return vDouble;
     }
@@ -140,7 +256,10 @@ int VariableModule::getInt() const{
     return vInt;
 }
 int VariableModule::getIntUnsafe() const{
-    if(type == 'd'){
+    if(type == 'b'){
+        return vBool;
+    }
+    else if(type == 'd'){
         return vDouble;
     }
     else if(type != 'i'){
@@ -229,6 +348,9 @@ void VariableModule::setID(string newID, vector<string> *listOfIDs){
         ID = newID;
     }
 }
+void VariableModule::setIdUnsafe(string newID){
+    ID = newID;
+}
 void VariableModule::setLayerID(string newID){
     layerID = newID;
 }
@@ -303,6 +425,12 @@ bool VariableModule::addInt(int newValue){
 bool VariableModule::addDouble(double newValue){
     return setDouble(getDouble()+newValue);
 }
+bool VariableModule::addString(string newValue){
+    return setString(getString()+newValue);
+}
+void VariableModule::addStringUnsafe(string newValue){
+    vString += newValue;
+}
 void VariableModule::negate(){
     if(type == 'b'){
         toggleBool();
@@ -320,35 +448,38 @@ void VariableModule::negate(){
         cerr << "Error [VariableModule]: You can't negate the value of already not-initialized variable.\n";
     }
 }
-void VariableModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "id"){
-        if(isStringInVector(reservedIDs, ID)){
-            cerr << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
-            BasePointers.pop_back();
+void VariableModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    switch(attribute){
+        case id:
+            if(isStringInVector(reservedIDs, ID)){
+                cerr << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
+                BasePointers.pop_back();
+                return;
+            }
+            BasePointers.back().setPointer(&ID);
+            BasePointers.back().readOnly = true;
             return;
-        }
-        BasePointers.back().setPointer(&ID);
-        BasePointers.back().readOnly = true;
-    }
-    else if(attribute == "type"){
-        BasePointers.back().setPointer(&type);
-    }
-    else if(attribute == "bool"){
-        BasePointers.back().setPointer(&vBool);
-    }
-    else if(attribute == "int"){
-        BasePointers.back().setPointer(&vInt);
-    }
-    else if(attribute == "double"){
-        BasePointers.back().setPointer(&vDouble);
-    }
-    else if(attribute == "string"){
-        BasePointers.back().setPointer(&vString);
-    }
-    else{
-        BasePointers.pop_back();
-        cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+        case type_a:
+            BasePointers.back().setPointer(&type);
+            return;
+        case bool_a:
+            BasePointers.back().setPointer(&vBool);
+            return;
+        case int_a:
+            BasePointers.back().setPointer(&vInt);
+            return;
+        case double_a:
+            BasePointers.back().setPointer(&vDouble);
+            return;
+        case string_a:
+            BasePointers.back().setPointer(&vString);
+            return;
+        default:
+            BasePointers.pop_back();
+            cerr << "Error: In " << __FUNCTION__ << ": Attribute '"
+                << attributeToStr(attribute) << "' is not valid.\n";
+            return;
     }
 }
 
@@ -484,7 +615,7 @@ bool VariableModule::isConditionMet(EngineInstr operatorType, VariableModule * O
     }
     
     cerr << "Error: In " << __FUNCTION__ << ": Invalid comparison: " << ID << ":" << type << ":" << getAnyValue()
-        << " " << transInstrToStr(operatorType) << " " << OtherVariable->getID() << ":" << OtherVariable->getType() << ":" << OtherVariable->getAnyValue() << "\n";
+        << " " << instrToStr(operatorType) << " " << OtherVariable->getID() << ":" << OtherVariable->getType() << ":" << OtherVariable->getAnyValue() << "\n";
     
     return false;
 }
@@ -500,7 +631,7 @@ bool VariableModule::isConditionMet(EngineInstr operatorType, const BasePointers
             return isConditionMet(OtherVariable.getDouble(), operatorType, type);
         }
     }
-    else if(type == 's' && (OtherVariable.type == "string" || OtherVariable.type == "char")){
+    else if(type == 's' && (OtherVariable.type == string_bt || OtherVariable.type == char_bt)){
         return isConditionMet(OtherVariable.getString(), operatorType, type);
     }
     
@@ -510,7 +641,7 @@ bool VariableModule::isConditionMet(EngineInstr operatorType, const BasePointers
 }
 double VariableModule::floatingOperation(EngineInstr operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){
-        cerr << "Error: " << __PRETTY_FUNCTION__ << ": You cannot use string variable in arithmetic operation.\n";
+        cerr << "Error: " << __PRETTY_FUNCTION__ << ": Cannot use string variable in arithmetic operation.\n";
         return false;
     }
     if(operatorType == EngineInstr::add){
@@ -531,12 +662,12 @@ double VariableModule::floatingOperation(EngineInstr operatorType, VariableModul
     else if(operatorType == EngineInstr::pow_i){
         return pow(getDouble(), OtherVariable->getDouble());
     }
-    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
+    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << instrToStr(operatorType) << "' is not valid.\n";
     return 0.0;
 }
 double VariableModule::floatingOperation(EngineInstr operatorType, BasePointersStruct * RightOperand){
-    if(type == 's' || RightOperand->type == "string"){
-        cerr << "Error: " << __PRETTY_FUNCTION__ << ": You cannot use string variable in the arithmetic operation.\n";
+    if(type == 's' || RightOperand->type == string_bt){
+        cerr << "Error: " << __PRETTY_FUNCTION__ << ": Cannot use string variable in the arithmetic operation.\n";
         return false;
     }
     if(operatorType == EngineInstr::add){
@@ -557,12 +688,12 @@ double VariableModule::floatingOperation(EngineInstr operatorType, BasePointersS
     else if(operatorType == EngineInstr::pow_i){
         return pow(getDouble(), RightOperand->getDouble());
     }
-    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
+    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << instrToStr(operatorType) << "' is not valid.\n";
     return 0.0;
 }
 int VariableModule::intOperation(EngineInstr operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot use string variable in arithmetic operation.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot use string variable in arithmetic operation.\n";
         return false;
     }
     if(operatorType == EngineInstr::add){
@@ -583,12 +714,12 @@ int VariableModule::intOperation(EngineInstr operatorType, VariableModule * Othe
     else if(operatorType == EngineInstr::pow_i){
         return pow(getInt(), OtherVariable->getInt());
     }
-    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
+    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << instrToStr(operatorType) << "' is not valid.\n";
     return 0;
 }
 int VariableModule::intOperation(EngineInstr operatorType, BasePointersStruct * RightOperand){
-    if(type == 's' || RightOperand->type == "string"){
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot use string variable in the arithmetic operation.\n";
+    if(type == 's' || RightOperand->type == string_bt){
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot use string variable in the arithmetic operation.\n";
         return false;
     }
     if(operatorType == EngineInstr::add){
@@ -609,7 +740,7 @@ int VariableModule::intOperation(EngineInstr operatorType, BasePointersStruct * 
     else if(operatorType == EngineInstr::pow_i){
         return pow(getInt(), RightOperand->getInt());
     }
-    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
+    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << instrToStr(operatorType) << "' is not valid.\n";
     return 0;
 }
 string VariableModule::stringOperation(EngineInstr operatorType, VariableModule * OtherVariable){
@@ -620,106 +751,144 @@ string VariableModule::stringOperation(EngineInstr operatorType, VariableModule 
     if(operatorType == EngineInstr::add){
         return getString() + OtherVariable->getString();
     }
-    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
+    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << instrToStr(operatorType) << "' is not valid.\n";
     return 0;
 }
 string VariableModule::stringOperation(EngineInstr operatorType, BasePointersStruct * RightOperand){
-    if(type != 's' || RightOperand->type != "string"){
+    if(type != 's' || RightOperand->type != string_bt){
         cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Two variables must be of string type.\n";
         return "";
     }
     if(operatorType == EngineInstr::add){
         return getString() + RightOperand->getString();
     }
-    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << transInstrToStr(operatorType) << "' is not valid.\n";
+    cerr << "Error: " << __PRETTY_FUNCTION__ << ": Operator '" << instrToStr(operatorType) << "' is not valid.\n";
     return 0;
 }
-BaseVariableStruct VariableModule::getVariableStruct() const{
+BaseVariableStruct VariableModule::getBaseVariableStruct() const{
     BaseVariableStruct Structure;
 
-    if(type == 'b'){
-        Structure.type = "bool";
-        Structure.vBool = getBool();
+    switch (type) {
+        case 'b':
+            Structure.type = bool_bt;
+            Structure.vBool = vBool;
+            break;
+        case 'i':
+            Structure.type = int_bt;
+            Structure.vInt = vInt;
+            break;
+        case 'd':
+            Structure.type = double_bt;
+            Structure.vDouble = vDouble;
+            break;
+        case 's':
+            Structure.type = string_bt;
+            Structure.vString = vString;
+            break;
+        default:
+            Structure.type = null_bt;
+            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": type \'" << type << "\' is not a valid.\n";
+            break;
     }
-    else if(type == 'i'){
-        Structure.type = "int";
-        Structure.vInt = getInt();
-    }
-    else if(type == 'd'){
-        Structure.type = "double";
-        Structure.vDouble = getDouble();
-    }
-    else if(type == 's'){
-        Structure.type = "string";
-        Structure.vString = getString();
-    }
-    else{
-        Structure.type = "";
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << type << "\' is not a valid type.\n";
+
+    return Structure;
+}
+BasePointersStruct VariableModule::getBasePointersStruct(){
+    BasePointersStruct Structure;
+
+    switch (type) {
+        case 'b':
+            Structure.type = bool_bt;
+            Structure.pBool = &vBool;
+            break;
+        case 'i':
+            Structure.type = int_bt;
+            Structure.pInt = &vInt;
+            break;
+        case 'd':
+            Structure.type = double_bt;
+            Structure.pDouble = &vDouble;
+            break;
+        case 's':
+            Structure.type = string_bt;
+            Structure.pString = &vString;
+            break;
+        default:
+            Structure.type = null_bt;
+            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Type \'" << type << "\' is not a valid.\n";
+            break;
     }
 
     return Structure;
 }
 template<typename LeftType, typename RightType>
-void VariableModule::executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, EngineInstr instruction){
-    if(instruction == EngineInstr::inc){
+void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+    if(LeftOperand == nullptr){
+        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            << "Left operand of \'" << type << "\' type is null.\n";
+        return;
+    }
+    if(instruction == inc){
         (*LeftOperand)++;
         return;
-    }
-    else if(instruction == EngineInstr::dec){
-       (*LeftOperand)--;
-        return;
-    }
-    if(LeftOperand == nullptr){
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
+    } 
+    if(instruction == dec){
+        (*LeftOperand)--;
         return;
     }
     if(RightOperand == nullptr){
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
+        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            << "Right operand of \'" << type << "\' type is null.\n";
         return;
     }
-    if(instruction == EngineInstr::move || instruction == EngineInstr::clone_i){
-        *LeftOperand = *RightOperand;
-    }
-    else if(instruction == EngineInstr::add_move){
-        *LeftOperand += *RightOperand;
-    }
-    else if(instruction == EngineInstr::sub_move){
-        *LeftOperand -= *RightOperand;
-    }
-    else if(instruction == EngineInstr::mul_move){
-        *LeftOperand *= *RightOperand;
-    }
-    else if(instruction == EngineInstr::div_move){
-        if(*RightOperand != 0){
-            *LeftOperand /= *RightOperand;
-        }
-        else{
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot divide by zero.\n";
-        }
-    }
-    else{
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": \'" << transInstrToStr(instruction) << "\' is not a valid instruction.\n";
+    switch(instruction){
+        case move:
+        case clone_i:
+            *LeftOperand = *RightOperand;
+            return;
+        case add_move:
+            *LeftOperand += *RightOperand;
+            return;
+        case sub_move:
+            *LeftOperand -= *RightOperand;
+            return;
+        case mul_move:
+            *LeftOperand *= *RightOperand;
+            return;
+        case div_move:
+            if(*RightOperand != 0) [[likely]]{
+                *LeftOperand /= *RightOperand;
+            }
+            else{
+                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    << "Cannot divide by zero.\n";
+            }
+            return;
+        default:
+            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                << "Instruction \'" << instrToStr(instruction) << "\' is not valid.\n";
+            return;
     }
 }
 template<typename RightType>
-void VariableModule::moveFromTemp(RightType * RightOperand, EngineInstr instruction){
+void VariableModule::moveFromTemp(RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
     if(type == 'b'){
         short temp = vBool;
-        executeMoveTypeInstruction(&temp, RightOperand, instruction);
+        executeMoveTypeInstruction(&temp, RightOperand, instruction, CurrentInstrInfo);
         vBool = temp > 0;
     }
     else if(type == 'i'){
-        executeMoveTypeInstruction(&vInt, RightOperand, instruction);
+        executeMoveTypeInstruction(&vInt, RightOperand, instruction, CurrentInstrInfo);
     }
     else if(type == 'd'){
-        executeMoveTypeInstruction(&vDouble, RightOperand, instruction);
+        executeMoveTypeInstruction(&vDouble, RightOperand, instruction, CurrentInstrInfo);
     }
     else{
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": About the left operand: \'" << type << "\' type is not valid.\n";
+        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            << "About the left operand: \'" << type << "\' type is not valid.\n";
     }
 }
-void VariableModule::move(VariableModule *RightOperand, EngineInstr instruction){
+void VariableModule::move(VariableModule *RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
     if(type == 's' || RightOperand->type == 's'){
         if(type == 's'){
             if(instruction == EngineInstr::move){
@@ -729,82 +898,98 @@ void VariableModule::move(VariableModule *RightOperand, EngineInstr instruction)
                 vString += RightOperand->getString();
             }
             else{
-                cerr << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
+                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    << "In variable '" << ID
+                    << "': Cannot execute \'" << instrToStr(instruction)
+                    << "\' instruction on string type values.\n";
             }
         }
         else{
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': You cannot execute any instructions if only the right operand is of a string type.\n";
+            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                << "Cannot execute any instructions if only the right operand is of a string type.\n";
         }
     }
     else if(RightOperand->type == 'b'){
         int temp = RightOperand->vBool;
-        moveFromTemp(&temp, instruction);
+        moveFromTemp(&temp, instruction, CurrentInstrInfo);
     }
     else if(RightOperand->type == 'i'){
-        moveFromTemp(&RightOperand->vInt, instruction);
+        moveFromTemp(&RightOperand->vInt, instruction, CurrentInstrInfo);
     }
     else if(RightOperand->type == 'd'){
-        moveFromTemp(&RightOperand->vDouble, instruction);
+        moveFromTemp(&RightOperand->vDouble, instruction, CurrentInstrInfo);
     }
     else if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
-        moveFromTemp((int*)nullptr, instruction);
+        moveFromTemp((int*)nullptr, instruction, CurrentInstrInfo);
     }
     else{
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
+        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            << "In variable '" << ID
+            << "': About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
     }
 }
-void VariableModule::move(const BasePointersStruct *RightOperand, EngineInstr instruction){
-    if(type == 's' || RightOperand->type == "string"){
-        if(type == 's'){
-            if(instruction == EngineInstr::move){
-                vString = RightOperand->getString();
-            }
-            else if(instruction == EngineInstr::add_move){
-                vString += RightOperand->getString();
+void VariableModule::move(const BasePointersStruct *RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+    if(type == 'n'){
+        return;
+    }
+    switch (RightOperand->type) {
+        case bool_bt:
+            char temp = *RightOperand->pBool;
+            moveFromTemp(&temp, instruction, CurrentInstrInfo);
+            break;
+        case char_bt:
+            moveFromTemp(RightOperand->pChar, instruction, CurrentInstrInfo);
+            break;
+        case short_bt:
+            moveFromTemp(RightOperand->pShort, instruction, CurrentInstrInfo);
+            break;
+        case u_short_bt:
+            moveFromTemp(RightOperand->pUShort, instruction, CurrentInstrInfo);
+            break;
+        case int_bt:
+            moveFromTemp(RightOperand->pInt, instruction, CurrentInstrInfo);
+            break;
+        case u_int_bt:
+            moveFromTemp(RightOperand->pUInt, instruction, CurrentInstrInfo);
+            break;
+        case float_bt:
+            moveFromTemp(RightOperand->pFloat, instruction, CurrentInstrInfo);
+            break;
+        case double_bt:
+            moveFromTemp(RightOperand->pDouble, instruction, CurrentInstrInfo);
+            break;
+        case string_bt:
+            if(type == 's'){
+                if(instruction == EngineInstr::move){
+                    vString = RightOperand->getString();
+                }
+                else if(instruction == EngineInstr::add_move){
+                    vString += RightOperand->getString();
+                }
+                else{
+                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                        << "In variable '" << ID
+                        << "': Cannot execute \'" << instrToStr(instruction)
+                        << "\' instruction on string type values.\n";
+                }
             }
             else{
-                cerr << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': You cannot execute \'" << transInstrToStr(instruction) << "\' instruction on string type values.\n";
+                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    << "In variable '" << ID
+                    << "': Cannot execute any instructions if only the right operand is of a string type.\n";
             }
-        }
-        else{
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': You cannot execute any instructions if only the right operand is of a string type.\n";
-        }
+            break;
+        default:
+            if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
+                moveFromTemp((int*)nullptr, instruction, CurrentInstrInfo);
+            }
+            else{
+                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                << "In variable '" << ID
+                << "': About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
+            }
+            break;
     }
-    else if(RightOperand->type == "bool"){
-        int temp = *RightOperand->pBool;
-        moveFromTemp(&temp, instruction);
-    }
-    else if(RightOperand->type == "char" || RightOperand->type == "short" || RightOperand->type == "unsigned_short" || RightOperand->type == "int" || RightOperand->type == "unsigned_int"){
-        int temp = RightOperand->getInt();
-        moveFromTemp(&temp, instruction);
-    }
-    else if(RightOperand->type == "float" || RightOperand->type == "double"){
-        double temp = RightOperand->getDouble();
-        moveFromTemp(&temp, instruction);
-    }
-    else if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
-        moveFromTemp((int*)nullptr, instruction);
-    }
-    else{
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": In variable '" << ID << "': About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
-    }
-}
-VariableModule &VariableModule::operator=(const VariableModule &original){
-    ID = original.ID;
-    type = original.type;
-    if(type == 'b'){
-        vBool = original.vBool;
-    }
-    else if(type == 'i'){
-        vInt = original.vInt;
-    }
-    else if(type == 'd'){
-        vDouble = original.vDouble;
-    }
-    else if(type == 's'){
-        vString = original.vString;
-    }
-    return *this;
 }
 
 template <typename T>
@@ -823,70 +1008,79 @@ void VariableModule::tryToSetFromPointer(const T & value, char newType){
     }
 }
 void VariableModule::setValueFromPointer(const BasePointersStruct &BasePointer){
-    if(type == 's' || BasePointer.type == "string"){
-        if(type == 's' || type == 'n'){
-            setString(BasePointer.getString());
-        }
-        else{
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": You cannot assign string type value to a non-string variable.\n";
-        }
-    }
-    else if(BasePointer.type == "bool"){
-        tryToSetFromPointer(*BasePointer.pBool, 'b');
-    }
-    else if(BasePointer.type == "char"){
-        tryToSetFromPointer(*BasePointer.pChar, 'i');
-    }
-    else if(BasePointer.type == "short"){
-        tryToSetFromPointer(*BasePointer.pShort, 'i');
-    }
-    else if(BasePointer.type == "unsigned_short"){
-        tryToSetFromPointer(*BasePointer.pUShort, 'i');
-    }
-    else if(BasePointer.type == "int"){
-        tryToSetFromPointer(*BasePointer.pInt, 'i');
-    }
-    else if(BasePointer.type == "unsigned_int"){
-        tryToSetFromPointer(*BasePointer.pUInt, 'i');
-    }
-    else if(BasePointer.type == "float"){
-        tryToSetFromPointer(*BasePointer.pFloat, 'd');
-    }
-    else if(BasePointer.type == "double"){
-        tryToSetFromPointer(*BasePointer.pDouble, 'd');
-    }
-    else{
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: \'" << BasePointer.type << "\' type does not exist.\n";
+    switch (BasePointer.type) {
+        case bool_bt:
+            tryToSetFromPointer(*BasePointer.pBool, 'b');
+            break;
+        case char_bt:
+            tryToSetFromPointer(*BasePointer.pChar, 'i');
+            break;
+        case short_bt:
+            tryToSetFromPointer(*BasePointer.pShort, 'i');
+            break;
+        case u_short_bt:
+            tryToSetFromPointer(*BasePointer.pUShort, 'i');
+            break;
+        case int_bt:
+            tryToSetFromPointer(*BasePointer.pInt, 'i');
+            break;
+        case u_int_bt:
+            tryToSetFromPointer(*BasePointer.pUInt, 'i');
+            break;
+        case float_bt:
+            tryToSetFromPointer(*BasePointer.pFloat, 'd');
+            break;
+        case double_bt:
+            tryToSetFromPointer(*BasePointer.pDouble, 'd');
+            break;
+        case string_bt:
+            if(type == 's' || type == 'n'){
+                setString(BasePointer.getString());
+            }
+            else{
+                cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot assign string type value to a non-string variable.\n";
+            }
+            break;
+        default:
+            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: Type \'"
+                << baseTypeToStr(BasePointer.type) << "\' does not exist.\n";
+            break;
     }
 }
 
 void VariableModule::set(const BaseVariableStruct &BaseVariable){
-    if(BaseVariable.type == "bool"){
-        setBool(BaseVariable.vBool);
-    }
-    else if(BaseVariable.type == "char"){
-        setString(BaseVariable.vChar);
-    }
-    else if(BaseVariable.type == "short"){
-        setInt(BaseVariable.vShort);
-    }
-    else if(BaseVariable.type == "unsigned_short"){
-        setInt(BaseVariable.vUShort);
-    }
-    else if(BaseVariable.type == "int"){
-        setInt(BaseVariable.vInt);
-    }
-    else if(BaseVariable.type == "unsigned_int"){
-        setInt(BaseVariable.vUInt);
-    }
-    else if(BaseVariable.type == "float"){
-        setDouble(BaseVariable.vFloat);
-    }
-    else if(BaseVariable.type == "double"){
-        setDouble(BaseVariable.vDouble);
-    }
-    else if(BaseVariable.type == "string"){
-        setString(BaseVariable.vString);
+    switch (BaseVariable.type) {
+        case bool_bt:
+            setBool(BaseVariable.vBool);
+            break;
+        case char_bt:
+            setString(BaseVariable.vChar);
+            break;
+        case short_bt:
+            setInt(BaseVariable.vShort);
+            break;
+        case u_short_bt:
+            setInt(BaseVariable.vUShort);
+            break;
+        case int_bt:
+            setInt(BaseVariable.vInt);
+            break;
+        case u_int_bt:
+            setInt(BaseVariable.vUInt);
+            break;
+        case float_bt:
+            setDouble(BaseVariable.vFloat);
+            break;
+        case double_bt:
+            setDouble(BaseVariable.vDouble);
+            break;
+        case string_bt:
+            setString(BaseVariable.vString);
+            break;
+        default:
+            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": About the right operand: Type \'"
+                << baseTypeToStr(BaseVariable.type) << "\' does not exist.\n";
+            break;
     }
 }
 
@@ -927,13 +1121,13 @@ VariableModule VariableModule::newDouble(double val, string newID, vector<string
     newVariable.setDouble(val);
     return newVariable;
 }
-VariableModule VariableModule::newString(string val){
+VariableModule VariableModule::newString(const string & val){
     VariableModule newVariable;
     newVariable.setString(val);
     return newVariable;
 }
 
-VariableModule VariableModule::newString(string val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+VariableModule VariableModule::newString(const string & val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
     newVariable.setString(val);
     return newVariable;

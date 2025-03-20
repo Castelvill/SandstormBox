@@ -114,7 +114,8 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
             al_draw_filled_ellipse(base.x + points[0].x, base.y + points[0].y, points[1].x, points[1].y, color);
             break;
         default:
-            cerr << "Error: In " << __FUNCTION__ << ": Cannot draw primitive.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Cannot draw primitive of '"
+                << transPrimitiveTypeToString(type) << "' type.\n";
             break;
     }
 }
@@ -124,19 +125,19 @@ void PrimitivesModule::updateWithSize(){
     }
     if(type == prim_line || type == prim_rectangle || type == prim_filled_rectangle){
         if(points.size() == 1){
-            points.push_back(vec2d());
+            points.emplace_back(vec2d());
         }
         points[1].x = points[0].x + size.x;
         points[1].y = points[0].y + size.y;
     }
     else if(type == prim_rounded_rectangle || type == prim_filled_rounded_rectangle){
         if(points.size() == 1){
-            points.push_back(vec2d());
+            points.emplace_back(vec2d());
         }
         points[1].x = points[0].x + size.x;
         points[1].y = points[0].y + size.y;
         if(points.size() == 2){
-            points.push_back(vec2d());
+            points.emplace_back(vec2d());
         }
     }
     else if(type == prim_circle || type == prim_filled_circle){
@@ -144,7 +145,7 @@ void PrimitivesModule::updateWithSize(){
     }
     else if(type == prim_ellipse || type == prim_filled_ellipse){
         if(points.size() == 1){
-            points.push_back(vec2d());
+            points.emplace_back(vec2d());
         }
         points[1].x = size.x / 2;
         points[1].y = size.y / 2;
@@ -153,9 +154,9 @@ void PrimitivesModule::updateWithSize(){
         cerr << "Error: In " << __FUNCTION__ << ": Cannot calculate points of triangle primitive.\n";
     }
 }
-void PrimitivesModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "thickness"){
+void PrimitivesModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    if(attribute == AttributeType::thickness){
         BasePointers.back().setPointer(&thickness);
     }
     else{
@@ -163,7 +164,7 @@ void PrimitivesModule::getContext(string attribute, vector <BasePointersStruct> 
         getPrimaryContext(attribute, BasePointers);
     }
 }
-PrimitiveType getPrimitiveType(string type){
+PrimitiveShapeType getPrimitiveType(string type){
     if(type == "line"){
         return prim_line;
     }
@@ -202,8 +203,10 @@ PrimitiveType getPrimitiveType(string type){
     }
 }
 
-string translatePrimitiveType(PrimitiveType type){
+string transPrimitiveTypeToString(PrimitiveShapeType type){
     switch(type){
+        case prim_null:
+            return "null";
         case prim_line:
             return "line";
         case prim_triangle:
@@ -227,7 +230,9 @@ string translatePrimitiveType(PrimitiveType type){
         case prim_filled_ellipse:
             return "filled_ellipse";
         default:
-            return "null";
+            cerr << "Error: In " << __FUNCTION__
+                << ": PrimitiveType with code: '" << type << "' is undefined.\n"; 
+            return "undefined";
     }
     return "null";
 }

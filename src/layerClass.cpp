@@ -95,42 +95,38 @@ bool *LayerClass::getIsActiveAddr()
 {
     return &isActive;
 }
-VariableModule LayerClass::getValue(string attribute, string option) const{
+VariableModule LayerClass::getValue(AttributeType attribute, string option) const{
     VariableModule NewValue;
-    if(attribute == "id"){
-        NewValue.setString(getID());
-        return NewValue;
+    switch(attribute){
+        case id:
+            NewValue.setString(getID());
+            return NewValue;
+        case in_group:
+            NewValue.setBool(isInAGroup(option));
+            return NewValue;
+        case number_of_objects_a:
+            NewValue.setInt(Objects.size());
+            return NewValue;
+        case is_active:
+            NewValue.setDouble(getIsActive());
+            return NewValue;
+        case pos_x:
+            NewValue.setDouble(pos.x);
+            return NewValue;
+        case pos_y:
+            NewValue.setDouble(pos.y);
+            return NewValue;
+        case size_x:
+            NewValue.setDouble(size.x);
+            return NewValue;
+        case size_y:
+            NewValue.setDouble(size.y);
+            return NewValue;
+        default:
+            cerr << "Error: In " << __FUNCTION__ << ": Attribute '"
+                << attributeToStr(attribute) << "' is not valid.\n";
+            return VariableModule();
     }
-    if(attribute == "in_group"){
-        NewValue.setBool(isInAGroup(option));
-        return NewValue;
-    }
-    if(attribute == "objects_count"){
-        NewValue.setInt(Objects.size());
-        return NewValue;
-    }
-    if(attribute == "is_active"){
-        NewValue.setDouble(getIsActive());
-        return NewValue;
-    }
-    if(attribute == "pos_x"){
-        NewValue.setDouble(pos.x);
-        return NewValue;
-    }
-    if(attribute == "pos_y"){
-        NewValue.setDouble(pos.y);
-        return NewValue;
-    }
-    if(attribute == "size_x"){
-        NewValue.setDouble(size.x);
-        return NewValue;
-    }
-    if(attribute == "size_y"){
-        NewValue.setDouble(size.y);
-        return NewValue;
-    }
-    cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
-    return VariableModule();
 }
 void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, const bool &changeOldID){
     if(isStringInVector(reservedIDs, Original.ID)){
@@ -188,7 +184,7 @@ void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, co
         for(ParticleEffectModule & Particle : Object.ParticlesContainer){
             Particle.setLayerID(getID());
         }
-        for(EventModule & Event : Object.EveContainer){
+        for(EventModule & Event : Object.EventContainer){
             Event.setLayerID(getID());
             for(ConditionClass & Trigger : Event.ConditionalChain){
                 if(Trigger.Location.layerID == Original.getID()){

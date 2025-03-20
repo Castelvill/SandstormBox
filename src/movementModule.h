@@ -39,7 +39,7 @@ private:
     short inputType; //0-none, 1-random, 2-keyboard, 3-keyboard+random, 4-mouse (vector), 5-mouse+random (vector), 6-chain move (vector), 7-mouse+path finding algorithm (vector)
     short allowedJumps;
     short jumpsCount;
-    double jumpCooldown; //You cannot press jump button until cooldown falls to zero.
+    double jumpCooldown; //Cannot press jump button until cooldown falls to zero.
     double jumpCooldownDuration; //Constant, it's a default value of jumpCooldown.
     double moveCooldown;
     double moveCooldownDuration; //Constant, it's a default value of moveCooldown.
@@ -47,7 +47,7 @@ private:
     bool resetMomentumWhenJumping;
 
     bool isMovePlanned;
-    bool canJump; //If momentum speed reaches max level, hits something or jump button is released, canJump turns to false. You cannot jump if canJump is false except when there are more jumps available.
+    bool canJump; //If momentum speed reaches max level, hits something or jump button is released, canJump turns to false. Cannot jump if canJump is false except when there are more jumps available.
 
     double bodyMass;
     double walkingSpeed, runningSpeed; //add this to momentumX every second of move button press till maxMomentumX is reached
@@ -98,7 +98,7 @@ public:
     void resetJump();
     void bindKeys(short newUpKey, short newRightKey, short newDownKey, short newLeftKey, short newJumpKey, short newRunningKey);
     void bindMouseButton(short newMouseButton);
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
 
     short getMovementType() const;
     short getInputType() const;
@@ -120,7 +120,7 @@ public:
     double getBaseFriction() const;
     vec2d getMomentum() const;
     bool isMoving() const;
-    bool isMovingInThisDirection(string direction) const;
+    bool isMovingInThisDirection(AttributeType direction) const;
     double getMaxMomentumX() const;
     double getMinMomentumY() const;
     double getMaxMomentumY() const;

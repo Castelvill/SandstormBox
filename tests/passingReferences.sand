@@ -1,0 +1,45 @@
+start passingReferencesTest
+    triggers on_init
+    env can_exit_on_idle 1
+    edit_proc print_instructions 0
+    print "PASSING_REFERENCES_TEST - START\n"
+
+    int x 0
+    run val(x)
+    run ref(x)
+    run valToVal(x)
+    run valToRef(x)
+    run refToVal(x)
+    run refToRef(x)
+after
+    print "PASSING_REFERENCES_TEST - PASSED\n"
+    delete_this_event
+end
+
+start val(int x)
+    = x 10
+end
+
+start ref(int & x)
+    = x 10
+end
+
+start valToVal(int x)
+    = x 10
+    run val(x)
+end
+
+start valToRef(int x)
+    = x 10
+    run ref(x)
+end
+
+start refToVal(int & x)
+    = x 10
+    run val(x)
+end
+
+start refToRef(int & x)
+    = x 10
+    run ref(x)
+end

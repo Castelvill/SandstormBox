@@ -432,61 +432,63 @@ void ImageModule::chooseFrames(vec2i newCurrentFrame){
     else
         currentFrame.y = 0;
 }
-void ImageModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "rot_pos_x"){
-        BasePointers.back().setPointer(&rotPos.x);
-    }
-    else if(attribute == "rot_pos_y"){
-        BasePointers.back().setPointer(&rotPos.y);
-    }
-    else if(attribute == "start_y"){
-        BasePointers.back().setPointer(&start.y);
-    }
-    else if(attribute == "start_y"){
-        BasePointers.back().setPointer(&start.y);
-    }
-    else if(attribute == "frame_size_y"){
-        BasePointers.back().setPointer(&frameSize.y);
-    }
-    else if(attribute == "frame_size_y"){
-        BasePointers.back().setPointer(&frameSize.y);
-    }
-    else if(attribute == "rotate_angle"){
-        BasePointers.back().setPointer(&rotateAngle);
-    }
-    else if(attribute == "mirror_x"){
-        BasePointers.back().setPointer(&mirrorX);
-    }
-    else if(attribute == "mirror_y"){
-        BasePointers.back().setPointer(&mirrorY);
-    }
-    else if(attribute == "image_color_r"){
-        BasePointers.back().setPointer(&imageColor[0]);
-    }
-    else if(attribute == "image_color_g"){
-        BasePointers.back().setPointer(&imageColor[1]);
-    }
-    else if(attribute == "image_color_b"){
-        BasePointers.back().setPointer(&imageColor[2]);
-    }
-    else if(attribute == "image_color_a"){
-        BasePointers.back().setPointer(&imageColor[3]);
-    }
-    else if(attribute == "light_level"){
-        BasePointers.back().setPointer(&lightLevel);
-    }
-    else if(attribute == "light_color_r"){
-        BasePointers.back().setPointer(&lightColor[0]);
-    }
-    else if(attribute == "light_color_g"){
-        BasePointers.back().setPointer(&lightColor[1]);
-    }
-    else if(attribute == "light_color_b"){
-        BasePointers.back().setPointer(&lightColor[2]);
-    }
-    else{
-        BasePointers.pop_back();
-        getPrimaryContext(attribute, BasePointers);
+void ImageModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    switch(attribute){
+        case rot_pos_x:
+            BasePointers.back().setPointer(&rotPos.x);
+            return;
+        case rot_pos_y:
+            BasePointers.back().setPointer(&rotPos.y);
+            return;
+        case start_x:
+            BasePointers.back().setPointer(&start.x);
+            return;
+        case start_y:
+            BasePointers.back().setPointer(&start.y);
+            return;
+        case frame_size_x:
+            BasePointers.back().setPointer(&frameSize.x);
+            return;
+        case frame_size_y:
+            BasePointers.back().setPointer(&frameSize.y);
+            return;
+        case rotate_angle:
+            BasePointers.back().setPointer(&rotateAngle);
+            return;
+        case mirror_x:
+            BasePointers.back().setPointer(&mirrorX);
+            return;
+        case mirror_y:
+            BasePointers.back().setPointer(&mirrorY);
+            return;
+        case image_color_r:
+            BasePointers.back().setPointer(&imageColor[0]);
+            return;
+        case image_color_g:
+            BasePointers.back().setPointer(&imageColor[1]);
+            return;
+        case image_color_b:
+            BasePointers.back().setPointer(&imageColor[2]);
+            return;
+        case image_color_a:
+            BasePointers.back().setPointer(&imageColor[3]);
+            return;
+        case light_level:
+            BasePointers.back().setPointer(&lightLevel);
+            return;
+        case light_color_r:
+            BasePointers.back().setPointer(&lightColor[0]);
+            return;
+        case light_color_g:
+            BasePointers.back().setPointer(&lightColor[1]);
+            return;
+        case light_color_b:
+            BasePointers.back().setPointer(&lightColor[2]);
+            return;
+        default:
+            BasePointers.pop_back();
+            getPrimaryContext(attribute, BasePointers);
+            return;
     }
 }

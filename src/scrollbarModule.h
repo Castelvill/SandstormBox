@@ -37,8 +37,8 @@ public:
     bool dragThumb(vec2d basePos, const MouseClass & Mouse);
     vec2d countScrollShift();
     vec2d dragThumbWithMouseWheel(const MouseClass & Mouse);
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
-    VariableModule getValue(const string &attribute, EventDescription EventIds) const;
+    void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
+    VariableModule getValue(const AttributeType &attribute, const InstrDescription & CurrentInstr) const;
 
     void setThumbPos(vec2d newValue);
     void setThumbSize(vec2d newValue);

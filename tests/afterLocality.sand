@@ -1,0 +1,61 @@
+start afterLocalityTest
+    triggers on_init
+    env can_exit_on_idle 1
+    edit_proc print_instructions 0
+    new primitives me 1 "Rectangle" Rectangle
+    print "AFTER_LOCALITY_TEST - START\n"
+    int x 0
+    run inlineVal
+    //run val(x)
+    //run ref(x)
+    //run valToVal(x)
+    //run valToRef(x)
+    //run refToVal(x)
+    //run refToRef(x)
+after
+    print "AFTER_LOCALITY_TEST - PASSED\n"
+    delete_this_event
+end
+
+inline inlineVal
+    assert x 0
+    = x 10
+    assert x 10
+    int y 5
+after
+    assert x 10
+    = x 0
+end
+
+start val(int x)
+    assert x 0
+    = x 10
+    assert x 10
+after
+    //assert x 0
+end
+
+start ref(int & x)
+    = x 20
+after
+end
+
+start valToVal(int x)
+    = x 10
+    run val(x)
+end
+
+start valToRef(int x)
+    = x 10
+    run ref(x)
+end
+
+start refToVal(int & x)
+    = x 10
+    run val(x)
+end
+
+start refToRef(int & x)
+    = x 10
+    run ref(x)
+end

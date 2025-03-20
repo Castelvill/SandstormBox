@@ -57,7 +57,9 @@
     "iomanip": "cpp",
     "chrono": "cpp",
     "unordered_set": "cpp",
-    "map": "cpp"
+    "map": "cpp",
+    "queue": "cpp",
+    "forward_list": "cpp"
   },
   "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "gcc",
@@ -113,8 +115,9 @@
   "C_Cpp_Runner.useAddressSanitizer": false,
   "C_Cpp_Runner.useUndefinedSanitizer": false,
   "C_Cpp_Runner.useLeakSanitizer": false,
-  "C_Cpp_Runner.showCompilationTime": false,
+  "C_Cpp_Runner.showCompilationTime": true,
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "editor.suggest.insertMode": "insert"
 }

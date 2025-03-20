@@ -64,13 +64,13 @@ public:
     void setCursorPos(vec2d finalPos, vec2d finalSize, const vector<SingleFont> & FontContainer, const MouseClass & Mouse, const Camera2D & Camera);
     void draw(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2D Camera, unsigned int cursorPos, unsigned secondCursorPos, bool editingIsActive) const;
     void drawTextByLetters(ALLEGRO_FONT * font);
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
     string getFontID() const;
     string getContent(unsigned int textID) const;
     float getColor(char whichColor);
     unsigned int getCurrentTextIdx() const;
     string getCurrentContent() const;
-    VariableModule getAttributeValue(const string &attribute, const string &detail) const;
+    VariableModule getAttributeValue(const AttributeType &attribute, const string &detail) const;
     unsigned getCurrentTabLength(const unsigned & tabCounter);
 };
 
@@ -161,8 +161,8 @@ public:
     bool controlCollision(CollisionModule & Collision, vector <string> & listOfIDs);
     bool controlParticles(ParticleEffectModule & Particles, vector <string> & listOfIDs);
     bool controlVariable(VariableModule & Variable, vector <string> & listOfIDs);
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
-    VariableModule getAttributeValue(const string &attribute, const string &detail) const;
+    //void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
+    VariableModule getAttributeValue(const AttributeType &attribute, const string &detail) const;
 };
 
 void printNotNumericalWarning();

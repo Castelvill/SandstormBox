@@ -1,0 +1,28 @@
+start passingValuesTest
+    triggers on_init
+    env can_exit_on_idle 1
+    print "PASSING_VALUES_TEST - START\n"
+    var a 10
+    run passA(a)
+after
+    print "PASSING_VALUES_TEST - PASSED\n"
+    delete_this_event
+end
+
+start passA(int localA)
+    ++ localA
+    assert localA 11
+    assert a 10
+
+    type localA typeOfLocal 
+    assert typeOfLocal "literal"
+end
+
+start passA2(int & localA)
+    ++ localA
+    assert localA 11
+    assert a 10
+
+    type localA typeOfLocal 
+    assert typeOfLocal "literal"
+end

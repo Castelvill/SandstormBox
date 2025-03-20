@@ -1,3 +1,31 @@
+20.03.2025
+-Add import system without testing.
+
+03.01.2025
+-Added "type" instruction that returns the type of the input variable as a string. 
+
+01.01.2025
+-Improved "assert" instruction by comparing ContextClasses instead of VariableModules.
+-In "env" instruction: changed "afk_timout" attribute to "can_afk_timeout"; added "afk_timeout_time" and "can_exit_on_idle".
+
+30.12.2024
+-Fixed: You could use undefined variables.
+
+29.12.2024
+-Added "assert" instruction.
+-Fixed passing by references.
+
+30.10.2024
+-Added padding lines after string merging in the assembler.
+-Turned attributes into enum type.
+
+24.10.2024
+-Created "next" instruction for incrementing integers by one.
+-Used indexes to find children of the parent events in the run instruction.
+
+20.10.2024
+-Use precompiled unordered_map for variables instead of searching for the right string in the vector every iteration.
+
 05.10.2024
 -Added "minimize" and "bring_forward" functions for the drawing orders of layers and objects.
 

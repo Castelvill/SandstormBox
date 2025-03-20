@@ -1,0 +1,21 @@
+start assertTest
+    triggers on_init
+    env can_exit_on_idle 1
+    print "ASSERT_TEST - START\n"
+
+    assert NULL NULL
+    assert a NULL
+    assert NULL a
+    assert 0 0
+    assert 5 5
+    
+    int a 0
+    assert a 0
+    assert 0 a
+    = a 12
+    assert a 12
+    assert 12 a
+
+    print "ASSERT_TEST - PASSED\n"
+    delete_this_event
+end

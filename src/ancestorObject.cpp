@@ -1,5 +1,6 @@
 #include "ancestorObject.h"
 #include <regex>
+#include <queue>
 
 vector<string> removeComments(const vector<string> & lines){
     vector<string> newLines;
@@ -7,7 +8,7 @@ vector<string> removeComments(const vector<string> & lines){
     bool commentSection = false;
     unsigned lineNumber = 1;
     for(const string & line : lines){
-        newLines.push_back("");
+        newLines.emplace_back("");
         for(cursor = 0; cursor < line.size(); cursor++){
             if(line[cursor] == '/' && cursor < line.size() + 2){
                 if(line[cursor + 1] == '/'){
@@ -85,7 +86,7 @@ vector<string> readLines(const string& filename, bool allowNotAscii) {
     }
     else{
         for(string line; std::getline(File, line);){
-            lines.push_back(removeNotAscii(line));
+            lines.emplace_back(removeNotAscii(line));
         }
     }
     
@@ -131,7 +132,7 @@ void AncestorObject::deleteLater(){
     for(ParticleEffectModule & Particles : ParticlesContainer){
         Particles.deleteLater();
     }
-    for(EventModule & Event : EveContainer){
+    for(EventModule & Event : EventContainer){
         Event.deleteLater();
     }
     for(VariableModule & Variable : VariablesContainer){
@@ -160,55 +161,55 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     clear();
     PrimaryModule::clone(Original, listOfUniqueIDs, newLayerID, "", changeOldID);
     for(const TextModule & Text : Original.TextContainer){
-        TextContainer.push_back(TextModule());
+        TextContainer.emplace_back(TextModule());
         TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID(), true);
     }
     for(const EditableTextModule & Editable : Original.EditableTextContainer){
-        EditableTextContainer.push_back(EditableTextModule());
+        EditableTextContainer.emplace_back(EditableTextModule());
         EditableTextContainer.back().clone(Editable, editableTextContainerIDs, newLayerID, getID(), true);
     }
     for(const SuperTextModule & SuperText : Original.SuperTextContainer){
-        SuperTextContainer.push_back(SuperTextModule());
+        SuperTextContainer.emplace_back(SuperTextModule());
         SuperTextContainer.back().clone(SuperText, superTextContainerIDs, newLayerID, getID(), true);
     }
     for(const SuperEditableTextModule & SuperEditableText : Original.SuperEditableTextContainer){
-        SuperEditableTextContainer.push_back(SuperEditableTextModule());
+        SuperEditableTextContainer.emplace_back(SuperEditableTextModule());
         SuperEditableTextContainer.back().clone(SuperEditableText, superEditableTextContainerIDs, newLayerID, getID(), true);
     }
     for(const ImageModule & Image : Original.ImageContainer){
-        ImageContainer.push_back(ImageModule());
+        ImageContainer.emplace_back(ImageModule());
         ImageContainer.back().clone(Image, imageContainerIDs, newLayerID, getID(), true);
     }
     for(const MovementModule & Movement : Original.MovementContainer){
-        MovementContainer.push_back(MovementModule());
+        MovementContainer.emplace_back(MovementModule());
         MovementContainer.back().clone(Movement, movementContainerIDs, newLayerID, getID(), true);
     }
     for(const CollisionModule & Collision : Original.CollisionContainer){
-        CollisionContainer.push_back(CollisionModule());
+        CollisionContainer.emplace_back(CollisionModule());
         CollisionContainer.back().clone(Collision, collisionContainerIDs, newLayerID, getID(), true);
     }
     for(const ParticleEffectModule & Particle : Original.ParticlesContainer){
-        ParticlesContainer.push_back(ParticleEffectModule());
+        ParticlesContainer.emplace_back(ParticleEffectModule());
         ParticlesContainer.back().clone(Particle, particlesContainerIDs, newLayerID, getID(), true);
     }
-    for(const EventModule & Event : Original.EveContainer){
-        EveContainer.push_back(EventModule());
-        EveContainer.back().clone(Event, eveContainerIDs, newLayerID, getID(), true);
+    for(const EventModule & Event : Original.EventContainer){
+        EventContainer.emplace_back(EventModule());
+        EventContainer.back().clone(Event, EventContainerIDs, newLayerID, getID(), true);
     }
     for(const VariableModule & Variable : Original.VariablesContainer){
-        VariablesContainer.push_back(VariableModule());
+        VariablesContainer.emplace_back(VariableModule());
         VariablesContainer.back().clone(Variable, variablesContainerIDs, newLayerID, getID(), true);
     }
     for(const ScrollbarModule & Scrollbar : Original.ScrollbarContainer){
-        ScrollbarContainer.push_back(ScrollbarModule());
+        ScrollbarContainer.emplace_back(ScrollbarModule());
         ScrollbarContainer.back().clone(Scrollbar, scrollbarContainerIDs, newLayerID, getID(), true);
     }
     for(const PrimitivesModule & Primitives : Original.PrimitivesContainer){
-        PrimitivesContainer.push_back(PrimitivesModule());
+        PrimitivesContainer.emplace_back(PrimitivesModule());
         PrimitivesContainer.back().clone(Primitives, primitivesContainerIDs, newLayerID, getID(), true);
     }
     for(const VectorModule & Vector : Original.VectorContainer){
-        VectorContainer.push_back(VectorModule());
+        VectorContainer.emplace_back(VectorModule());
         VectorContainer.back().clone(Vector, vectorContainerIDs, newLayerID, getID(), true);
     }
 
@@ -225,7 +226,7 @@ void AncestorObject::clearVectorsOfIDs(){
     collisionContainerIDs.clear();
     particlesContainerIDs.clear();
     eventsContainerIDs.clear();
-    eveContainerIDs.clear();
+    EventContainerIDs.clear();
     variablesContainerIDs.clear();
     scrollbarContainerIDs.clear();
     primitivesContainerIDs.clear();
@@ -256,7 +257,7 @@ void AncestorObject::clear(){
     for(ParticleEffectModule & Particle : ParticlesContainer){
         Particle.clear();
     }
-    for(EventModule & Event : EveContainer){
+    for(EventModule & Event : EventContainer){
         Event.clear();
     }
     for(VariableModule & Variable : VariablesContainer){
@@ -351,6 +352,9 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
     }
 }
 void AncestorObject::refreshCoordinates(){
+    cerr << "Error: Method 'refreshCoordinates' is currently deprecated.\n";
+    return;
+    
     if(ImageContainer.size() == 0){
         return;
     }
@@ -384,43 +388,43 @@ void AncestorObject::refreshCoordinates(){
 void AncestorObject::createVectorsOfIds(){
     clearVectorsOfIDs();
     for(const TextModule & content : TextContainer){
-        textContainerIDs.push_back(content.getID());
+        textContainerIDs.emplace_back(content.getID());
     }
     for(const EditableTextModule & content : EditableTextContainer){
-        editableTextContainerIDs.push_back(content.getID());
+        editableTextContainerIDs.emplace_back(content.getID());
     }
     for(const SuperTextModule & content : SuperTextContainer){
-        superTextContainerIDs.push_back(content.getID());
+        superTextContainerIDs.emplace_back(content.getID());
     }
     for(const SuperEditableTextModule & content : SuperEditableTextContainer){
-        superEditableTextContainerIDs.push_back(content.getID());
+        superEditableTextContainerIDs.emplace_back(content.getID());
     }
     for(const ImageModule & content : ImageContainer){
-        imageContainerIDs.push_back(content.getID());
+        imageContainerIDs.emplace_back(content.getID());
     }
     for(const MovementModule & content : MovementContainer){
-        movementContainerIDs.push_back(content.getID());
+        movementContainerIDs.emplace_back(content.getID());
     }
     for(const CollisionModule & content : CollisionContainer){
-        collisionContainerIDs.push_back(content.getID());
+        collisionContainerIDs.emplace_back(content.getID());
     }
     for(const ParticleEffectModule & content : ParticlesContainer){
-        particlesContainerIDs.push_back(content.getID());
+        particlesContainerIDs.emplace_back(content.getID());
     }
-    for(const EventModule & content : EveContainer){
-        eveContainerIDs.push_back(content.getID());
+    for(const EventModule & content : EventContainer){
+        EventContainerIDs.emplace_back(content.getID());
     }
     for(const VariableModule & content : VariablesContainer){
-        variablesContainerIDs.push_back(content.getID());
+        variablesContainerIDs.emplace_back(content.getID());
     }
     for(const ScrollbarModule & content : ScrollbarContainer){
-        scrollbarContainerIDs.push_back(content.getID());
+        scrollbarContainerIDs.emplace_back(content.getID());
     }
     for(const PrimitivesModule & content : PrimitivesContainer){
-        primitivesContainerIDs.push_back(content.getID());
+        primitivesContainerIDs.emplace_back(content.getID());
     }
     for(const VectorModule & content : VectorContainer){
-        vectorContainerIDs.push_back(content.getID());
+        vectorContainerIDs.emplace_back(content.getID());
     }
 }
 vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
@@ -432,6 +436,16 @@ vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
         finalPos.translate(SelectedCamera->pos/SelectedCamera->zoom + SelectedCamera->visionShift);
     }
     return finalPos;
+}
+
+void AncestorObject::setID(string newID, vector<string> &listOfIDs){
+    PrimaryModule::setID(newID, listOfIDs);
+    objectLookupID = ID + layerID;
+}
+
+void AncestorObject::primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+    PrimaryModule::primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+    objectLookupID = ID + layerID;
 }
 
 void AncestorObject::setIsScrollable(bool newValue){
@@ -468,45 +482,47 @@ void AncestorObject::setIsScrollable(bool newValue){
     }
 }
 
-VariableModule AncestorObject::getAttributeValue(const string &attribute, const string & detail){
+VariableModule AncestorObject::getAttributeValue(const AttributeType &attribute, const string & detail){
     VariableModule NewValue;
-
-    if(attribute == "is_active"){
-        NewValue.setBool(getIsActive());
-    }
-    else if(attribute == "id"){
-        NewValue.setString(getID());
-    }
-    else if(attribute == "layer_id"){
-        NewValue.setString(getLayerID());
-    }
-    else if(attribute == "in_group"){
-        NewValue.setBool(isInAGroup(detail));
-    }
-    else if(attribute == "pos_x"){
-        NewValue.setDouble(getPos().x);
-    }
-    else if(attribute == "pos_y"){
-        NewValue.setDouble(getPos().y);
-    }
-    else if(attribute == "size_x"){
-        NewValue.setDouble(getSize().x);
-    }
-    else if(attribute == "size_y"){
-        NewValue.setDouble(getSize().y);
-    }
-    else if(attribute == "scale_x"){
-        NewValue.setDouble(getSize().x);
-    }
-    else if(attribute == "scale_y"){
-        NewValue.setDouble(getSize().y);
-    }
-    else if(attribute == "can_draw_selection_border"){
-        NewValue.setBool(canDrawSelectionBorder);
-    }
-    else{
-        cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
-        NewValue.setBool(false);
+    switch(attribute){
+        case is_active:
+            NewValue.setBool(getIsActive());
+            break;
+        case id:
+            NewValue.setString(getID());
+            break;
+        case layer_id:
+            NewValue.setString(getLayerID());
+            break;
+        case in_group:
+            NewValue.setBool(isInAGroup(detail));
+            break;
+        case pos_x:
+            NewValue.setDouble(getPos().x);
+            break;
+        case pos_y:
+            NewValue.setDouble(getPos().y);
+            break;
+        case size_x:
+            NewValue.setDouble(getSize().x);
+            break;
+        case size_y:
+            NewValue.setDouble(getSize().y);
+            break;
+        case scale_x:
+            NewValue.setDouble(getSize().x);
+            break;
+        case scale_y:
+            NewValue.setDouble(getSize().y);
+            break;
+        case can_draw_selection_border:
+            NewValue.setBool(canDrawSelectionBorder);
+            break;
+        default:
+            cerr << "Error: In " << __FUNCTION__ <<
+                ": Attribute '" << attributeToStr(attribute) << "' is not valid.\n";
+            NewValue.setBool(false);
+            break;
     }
     return NewValue;
 }
@@ -550,10 +566,8 @@ bool canStringBeDouble(string text){
     return hasPoint;
 }
 
-#include <signal.h>
-
 vector<WordStruct> tokenizeCode(string input){
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|/=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|@|#", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|/=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|&|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
@@ -574,7 +588,7 @@ vector<WordStruct> tokenizeCode(string input){
     for(size_t i = 0; i < input.size(); i++){
         if(input[i] == '\"' && (i == 0 || input[i - 1] != '\\')){
             if(!isInsideStringSector){
-                stringSectors.push_back("");
+                stringSectors.emplace_back("");
             }
             isInsideStringSector = !isInsideStringSector;
             continue;
@@ -593,7 +607,7 @@ vector<WordStruct> tokenizeCode(string input){
     for(unsigned i = 0; i < output.size(); i++){
         if(output[i][0] == '\"' && !isInsideStringSector){
             isInsideStringSector = true;
-            mergedOutput.push_back(WordStruct('s', stringSectors[sector], false));
+            mergedOutput.emplace_back(WordStruct('s', stringSectors[sector], false));
             sector++;
             continue;
         }
@@ -607,29 +621,29 @@ vector<WordStruct> tokenizeCode(string input){
             continue;
         }
         if(i == 0){
-            mergedOutput.push_back(WordStruct('o', output[i], false)); //operation
+            mergedOutput.emplace_back(WordStruct('o', output[i], false)); //operation
             continue;
         }
         if(output[i] == "_"){
-            mergedOutput.push_back(WordStruct('e', output[i], false)); //empty / null
+            mergedOutput.emplace_back(WordStruct('e', output[i], false)); //empty / null
             continue;
         }
         if(output[i] == "true"){
-            mergedOutput.push_back(WordStruct('b', "1", false)); //bool
+            mergedOutput.emplace_back(WordStruct('b', "1", false)); //bool
             continue;
         }
         if(output[i] == "false"){
-            mergedOutput.push_back(WordStruct('b', "0", false)); //bool
+            mergedOutput.emplace_back(WordStruct('b', "0", false)); //bool
             continue;
         }
         if(canStringBeDouble(output[i])){
             cstod(output[i], error);
             if(mergedOutput.size() > 0 && mergedOutput.back().value == "-"){
                 mergedOutput.pop_back();
-                mergedOutput.push_back(WordStruct('d', "-" + output[i], false)); //double
+                mergedOutput.emplace_back(WordStruct('d', "-" + output[i], false)); //double
             }
             else{
-                mergedOutput.push_back(WordStruct('d', output[i], false)); //double
+                mergedOutput.emplace_back(WordStruct('d', output[i], false)); //double
             }
             continue;
         }
@@ -637,20 +651,20 @@ vector<WordStruct> tokenizeCode(string input){
         if(error == ""){
             if(mergedOutput.size() > 0 && mergedOutput.back().value == "-"){
                 mergedOutput.pop_back();
-                mergedOutput.push_back(WordStruct('i', "-" + output[i], false)); //int
+                mergedOutput.emplace_back(WordStruct('i', "-" + output[i], false)); //int
             }
             else{
-                mergedOutput.push_back(WordStruct('i', output[i], false)); //int
+                mergedOutput.emplace_back(WordStruct('i', output[i], false)); //int
             }
             
             continue;
         }
         if(mergedOutput.size() > 0 && mergedOutput.back().value == "-"){
             mergedOutput.pop_back();
-            mergedOutput.push_back(WordStruct('c', output[i], true)); //context / variable
+            mergedOutput.emplace_back(WordStruct('c', output[i], true)); //context / variable
         }
         else{
-            mergedOutput.push_back(WordStruct('c', output[i], false)); //context / variable
+            mergedOutput.emplace_back(WordStruct('c', output[i], false)); //context / variable
         }
     }
 
@@ -697,25 +711,25 @@ bool prepareNewInstruction(vector<WordStruct> words, EventModule & NewEvent, Ope
 ){
     if(words.size() < minLength){
         if(minLength == 2){
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least 1 parameter.\n";
         }
         else{
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least " << minLength-1 << " parameters.\n";
         }
         return false;
     }
     if(!postOperations){
-        NewEvent.DependentOperations.push_back(OperationClass());
-        NewEvent.DependentOperations.back().instruction = transInstr(words[0].value);
+        NewEvent.DependentOperations.emplace_back(OperationClass());
+        NewEvent.DependentOperations.back().instruction = strToInstr(words[0].value);
         NewEvent.DependentOperations.back().scriptName = scriptName;
         NewEvent.DependentOperations.back().lineNumber = lineNumber;
         Operation = &NewEvent.DependentOperations.back();
     }
     else{
-        NewEvent.PostOperations.push_back(OperationClass());
-        NewEvent.PostOperations.back().instruction = transInstr(words[0].value);
+        NewEvent.PostOperations.emplace_back(OperationClass());
+        NewEvent.PostOperations.back().instruction = strToInstr(words[0].value);
         NewEvent.PostOperations.back().scriptName = scriptName;
         NewEvent.PostOperations.back().lineNumber = lineNumber;
         Operation = &NewEvent.PostOperations.back();
@@ -733,21 +747,84 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, string & vari
     cursor++;
     return false;
 }
-bool optionalOutput(string scriptName, unsigned lineNumber, string & error, const vector<WordStruct> & words, unsigned & cursor, string & variable){
+bool optional(const vector<WordStruct> & words, unsigned & cursor, AttributeType & attribute){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor].type != 'e'){
+        attribute = strToAttribute(words[cursor].value);
+    }
+    cursor++;
+    return false;
+}
+bool optional(const vector<WordStruct> & words, unsigned & cursor, ValueSource & variable){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor].type != 'e'){
+        variable = transSource(words[cursor].value);
+    }
+    cursor++;
+    return false;
+}
+inline string localContextID(const string & eventID, const string & newID){
+    return eventID + /*":" +*/ newID;
+}
+bool optionalOutput(string scriptName, unsigned lineNumber, string & error, const vector<WordStruct> & words,
+    unsigned & cursor, vector<StartingVariableStruct> & NewVariablesForLookupTable,
+    const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
+    const string & variableType, string & outputVariableID, bool & isOutputReference, bool isGlobal,
+    bool canCreateNewsVariable, bool inAfterSection
+){
     error = "";
     if(cursor + 1 > words.size()){
         return true;
     }
     if(words[cursor].type != 'e' && words[cursor].type != 'c'){
-        error = "Parameter 'output' (" + intToStr(cursor + 1);
+        error = "Parameter 'output' (" + intToStr(cursor);
         error += ") must be a context.";
-        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
             << ": In the '" << words[0].value << "' instruction: " << error << "\n";
         return true;
     }
     if(words[cursor].type == 'c'){
-        variable = words[cursor].value;
+        //Check if the output variable is global and if it exists.
+        if(words[cursor].value == "NULL" || words[cursor].value == "me" || words[cursor].value == "my_layer"){
+            isGlobal = true;
+        }
+        bool variableExists = false;
+        for(auto & Variable : NewVariablesForLookupTable){
+            if(Variable.id == words[cursor].value){
+                variableExists = true;
+                isGlobal = Variable.eventID.size() == 0;
+                break;
+            }
+        }
+
+        //Add eventID to the output variable if it is not global.
+        string usedEventID;
+        if(isGlobal){
+            outputVariableID = words[cursor].value;
+        }
+        else{
+            outputVariableID = findExistingVariableOrCreateNew(
+                NewVariablesForLookupTable, allAvailableEventIDs, words[cursor].value,
+                usedEventID, canCreateNewsVariable, scriptName, lineNumber, inAfterSection);
+        }
+        
+        //Check if the output variable is a reference.
+        isOutputReference = false;
+        for(const StartingVariableStruct & Variable : PassedVariables){
+            if(Variable.id == outputVariableID){
+                isOutputReference = Variable.isReference;
+            }
+        }
+
+        //Add this variable to the lookup table if it doesn't already exist.
+        if(!variableExists){
+            NewVariablesForLookupTable.emplace_back(variableType, outputVariableID, words[cursor].value, 0, usedEventID, isOutputReference);
+        }
     }
     cursor++;
     return false;
@@ -764,49 +841,80 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, string & vari
     }
     return false;
 }
-bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModule & variable, const char & type, string scriptName, unsigned lineNumber){
+bool nextCond(const vector<WordStruct> & words, unsigned & cursor, AttributeType & attribute, string scriptName, unsigned lineNumber){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor].type != 'e' && words[cursor].value != "]"){
+        attribute = strToAttribute(words[cursor].value);
+    }
+    if(words[cursor].value != "]"){
+        cursor++;
+    }
+    return false;
+}
+bool nextCond(const vector<WordStruct> & words, unsigned & cursor, ValueSource & Variable, string scriptName, unsigned lineNumber){
+    if(words.size() < cursor + 1){
+        return true;
+    }
+    if(words[cursor].type != 'e' && words[cursor].value != "]"){
+        Variable = transSource(words[cursor].value);
+    }
+    if(words[cursor].value != "]"){
+        cursor++;
+    }
+    return false;
+}
+bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModule & Variable,
+    const char & type, string scriptName, unsigned lineNumber, vector<string> & allAvailableEventIDs,
+    const vector<StartingVariableStruct> & NewVariablesForLookupTable,
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection
+){
     string error = "";
     if(words.size() < cursor + 1){
         return true;
     }
     if(words[cursor].type != 'e'){
         if(type == 'b'){
-            variable.setBool(cstoi(words[cursor].value, error));
+            Variable.setBool(cstoi(words[cursor].value, error));
             if(error.size() > 0){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
             }
         }
         else if(type == 'i'){
-            variable.setInt(cstoi(words[cursor].value, error));
+            Variable.setInt(cstoi(words[cursor].value, error));
             if(error.size() > 0){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
             }
         }
         else if(type == 'd'){
-            variable.setDouble(cstod(words[cursor].value, error));
+            Variable.setDouble(cstod(words[cursor].value, error));
             if(error.size() > 0){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
             }
         }
         else if(type == 's'){
             if(words[cursor].type == 's'){
-                variable.setString(words[cursor].value);
+                Variable.setString(words[cursor].value);
             }
             else{
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Parameter nr." << cursor+1 << " is not a string.\n";
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Parameter nr." << cursor << " is not a string.\n";
             }
         }
         else if(type == 'c'){
             if(words[cursor].type == 'c'){
-                variable.setString(words[cursor].value);
+                Variable.setString(createCustomOutput(
+                    NewVariablesForLookupTable, PassedVariables, allAvailableEventIDs,
+                    words[cursor].value, true, canCreateNewsVariable, scriptName, lineNumber, inAfterSection
+                ));
             }
             else{
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Parameter nr." << cursor+1 << " is not a context.\n";
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Parameter nr." << cursor << " is not a context.\n";
             }
         }
     }
@@ -823,7 +931,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, int & variabl
         string error;
         variable = cstoi(words[cursor].value, error);
         if(error.size() > 0){
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
         }
     }
@@ -840,7 +948,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, double & vari
         string error;
         variable = cstod(words[cursor].value, error);
         if(error.size() > 0){
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
         }
     }
@@ -849,7 +957,11 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, double & vari
     }
     return false;
 }
-bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression, unsigned lineNumber, string scriptName, bool useParentheses){
+bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression,
+    vector<VariableModule> & resultStack, unsigned lineNumber, string scriptName, bool isConditionalExpression,
+    vector<string> & allAvailableEventIDs, const vector<StartingVariableStruct> & NewVariablesForLookupTable,
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection
+){
     if(cursor >= words.size()){
         return true;
     }
@@ -859,9 +971,9 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     }
 
     string endingChar = ")";
-    if(useParentheses){
+    if(isConditionalExpression){
         if(words[cursor].value != "("){
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Every expression must begin with parentheses.\n";
             return false;
         }
@@ -869,15 +981,15 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     else{
         endingChar = "]";
         if(words[cursor].value != "["){
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": This parameter must begin with square brackets.\n";
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Parameter " << cursor << " must begin with square brackets.\n";
             return false;
         }
     }
     
     cursor++;
     if(cursor >= words.size()){
-        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
@@ -886,12 +998,12 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     
     while(words[cursor].value != endingChar || inCondition){
         if(cursor >= words.size()){
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
         if(words[cursor].value == "["){
-            Expression.push_back(ConditionClass(""));
+            Expression.emplace_back(ConditionClass(""));
             inCondition = true;
             cursor++;
         }
@@ -900,12 +1012,19 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
             cursor++;
         }
         else if(!inCondition){
-            if(Expression.size() == 0){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Operator cannot be added to an empty expression.\n";
+            if(!isConditionalExpression){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": Each value source must be enclosed in seperate square brackets. Correct syntax: [[source_0] [source_1] ...]\n";
                 return false;
             }
-            Expression.back().operators.push_back(transInstr(words[cursor].value));
+            if(Expression.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": Operator '" << words[cursor].value << "' cannot be added to an empty expression.\n";
+                return false;
+            }
+            Expression.back().operators.emplace_back(strToInstr(words[cursor].value));
             cursor++;
         }
         else{
@@ -917,23 +1036,31 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 cursor++;
             }*/
 
-            Expression.back().Location.source = firstWord.value;
+            Expression.back().Location.source = transSource(firstWord.value);
 
             if(firstWord.type == 'b'){
-                Expression.back().Location.source = "literal";
-                if(nextCond(words, cursor, Expression.back().Literal, 'b', scriptName, lineNumber)){ continue; };
+                Expression.back().Location.source = ValueSource::literal;
+                if(nextCond(words, cursor, Expression.back().Literal, 'b', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                )){ continue; };
             }
             else if(firstWord.type == 'i'){
-                Expression.back().Location.source = "literal";
-                if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                Expression.back().Location.source = ValueSource::literal;
+                if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                )){ continue; };
             }
             else if(firstWord.type == 'd'){
-                Expression.back().Location.source = "literal";
-                if(nextCond(words, cursor, Expression.back().Literal, 'd', scriptName, lineNumber)){ continue; };
+                Expression.back().Location.source = ValueSource::literal;
+                if(nextCond(words, cursor, Expression.back().Literal, 'd', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                )){ continue; };
             }
             else if(firstWord.type == 's'){
-                Expression.back().Location.source = "literal";
-                if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+                Expression.back().Location.source = ValueSource::literal;
+                if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                )){ continue; };
             }
             else if(firstWord.type == 'c'){
                 if(words[cursor].value != "]"){
@@ -945,19 +1072,31 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                     if(words.size() < cursor + 1){
                         continue;
                     }
-                    if(words[cursor].type == 'c'){
-                        if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
+                    if(words[cursor].value == "]"){
+                        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                            << errorSpacing() << "In " << __FUNCTION__ << ": Source '" << firstWord.value
+                            << "' requires one integer literal or a variable.\n";
+                        return false;
                     }
-                    else if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                    if(words[cursor].type == 'c'){
+                        if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
+                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                        )){ continue; };
+                    }
+                    else if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                        NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                    )){ continue; };
                 }
                 else if(firstWord.value == "exists" || firstWord.value == "is_directory"){
                     if(words[cursor].value == "]"){
-                        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                             << errorSpacing() << "In " << __FUNCTION__ << ": Source '" << firstWord.value
                             << "' requires one string literal.\n";
                         return false;
                     }
-                    if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
+                    if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
+                        NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                    )){ continue; };
                 }
                 else if(isStringInGroup(firstWord.value, 18, "booting", "second_passed", "fps", "any_key_pressed",
                     "any_key_pressing", "any_key_released", "mouse_x", "mouse_y", "mouse_moved",
@@ -969,24 +1108,30 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 else if(firstWord.value == "vector"){
                     if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
                     if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                    if(Expression.back().Location.attribute == "i" || Expression.back().Location.attribute == "index"){
-                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
-                        Expression.back().Location.attribute = "value";
-                    }
-                    else if(Expression.back().Location.attribute == "context"){
-                        if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
-                        Expression.back().Location.attribute = "value";
-                    }
-                    else if(Expression.back().Location.attribute == "size"){
-                        Expression.back().Location.attribute = "size";
-                    }
-                    else if(Expression.back().Location.attribute == "back"){
-                        Expression.back().Location.attribute = "back";
-                    }
-                    else{
-                        cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                            << errorSpacing() << "In " << __FUNCTION__ << ": Invalid attribute.\n";
-                        return false;
+                    switch(Expression.back().Location.attribute){
+                        case index_a:
+                            if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                                NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                            )){ continue; };
+                            Expression.back().Location.attribute = value;
+                            break;
+                        case context_a:
+                            if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
+                                NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                            )){ continue; };
+                            Expression.back().Location.attribute = value;
+                            break;
+                        case size_a:
+                            Expression.back().Location.attribute = size_a;
+                            break;
+                        case back_a:
+                            Expression.back().Location.attribute = back_a;
+                            break;
+                        default:
+                            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                                << errorSpacing() << "In " << __FUNCTION__ << ": Invalid attribute '"
+                                << attributeToStr(Expression.back().Location.attribute) << "'.\n";
+                            return false;
                     }
                 }
                 else if(firstWord.value == "camera"){
@@ -996,8 +1141,10 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 else if(firstWord.value == "layer"){
                     if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
                     if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                    if(Expression.back().Location.attribute == "in_group"){
-                        if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+                    if(Expression.back().Location.attribute == in_group){
+                        if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber, allAvailableEventIDs,
+                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                        )){ continue; };
                     }
                 }
                 else if(firstWord.value == "object"){
@@ -1006,14 +1153,23 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                     if(nextCond(words, cursor, Expression.back().Location.moduleType, scriptName, lineNumber)){ continue; };
                     if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
                     if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                    if(isStringInGroup(Expression.back().Location.moduleType, 3, "ancestor", "text", "editable_text")){
-                        if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
+                    if(Expression.back().Location.moduleType == ancestor
+                        || Expression.back().Location.moduleType == text
+                        || Expression.back().Location.moduleType == editable_text
+                    ){
+                        if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber, allAvailableEventIDs,
+                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                        )){ continue; };
                     }
-                    else if(Expression.back().Location.moduleType == "mouse"){
-                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                    else if(Expression.back().Location.moduleType == mouse){
+                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                        )){ continue; };
                     }
-                    else if(Expression.back().Location.moduleType == "collision"){
-                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
+                    else if(Expression.back().Location.moduleType == collision){
+                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                        )){ continue; };
                         if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
                     }
                 }
@@ -1022,39 +1178,220 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 }
                 else{
                     cursor--;
-                    Expression.back().Location.source = "context";
-                    if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber)){ continue; };
+                    Expression.back().Location.source = ValueSource::context;
+                    if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
+                        NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                    )){ continue; };
                     if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
                     if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
                 }
             }
             else{
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Word of the '" << firstWord.type << "' type is not valid.\n";
                 return false;
             }
         }
         if(cursor >= words.size()){
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
     }
     cursor++;
+    resultStack.reserve(Expression.size());
+    for(unsigned i = 0; i < Expression.size(); ++i){
+        resultStack.push_back(VariableModule());
+    }
     return true;
 }
-void AncestorObject::eventAssembler(vector<string> code, string scriptName){
+bool createEvent(const string & scriptName, const unsigned & lineNumber, const string & layerID,
+    const string & objectID, vector <EventModule> & EventContainer, vector <string> & EventContainerIDs,
+    EventModule & NewEvent, const vector<WordStruct> & words,
+    vector<StartingVariableStruct> & NewVariablesForLookupTable
+){
+    string eventType = "";
+    string eventID = "";
+    
+    if(words[0].value == "override"){
+        if(words.size() < 3){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 2 parameters.\n";
+            return true;
+        }
+        if(words[1].type != 'c' && words[1].type != 'e'){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
+                << "' instruction: The second parameter (event_type) is not a context.\n";
+            return true;
+        }
+        if(words[2].type != 'c' && words[2].type != 'e'){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
+                << "' instruction: The third parameter (id) is not a context.\n";
+            return true;
+        }
+        eventType = words[1].value;
+        eventID = words[2].value;
+    }
+    else{
+        if(words.size() < 2){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 1 parameter.\n";
+            return true;
+        }
+        if(words[1].type != 'c' && words[1].type != 'e'){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
+                << "' instruction: The second parameter (id) is not a context.\n";
+            return true;
+        }
+        eventType = words[0].value;
+        eventID = words[1].value;
+    }
+    
+    if(eventID[0] != '_' && isStringInVector(EventContainerIDs, eventID)){
+        if(words[0].value == "override"){
+            removeFromStringVector(EventContainerIDs, eventID);
+            removeModuleInstanceByID(EventContainer, eventID);
+        }
+        else{
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Event with id \'" << eventID << "\' already exists.\n";
+            return true;
+        }
+    }
+    NewEvent = EventModule(eventID, &EventContainerIDs, layerID, objectID);
+    if(eventType == "loop"){
+        NewEvent.loop = true;
+    }
+
+    unsigned cursor = 2;
+    if(NewEvent.getPassedVariables(words, cursor, lineNumber, scriptName, NewVariablesForLookupTable)){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+        return true;
+    }
+    return false;
+}
+bool findCallingEvent(const string & scriptName, const unsigned & lineNumber,
+    vector <EventModule> & EventContainer, EventModule & NewEvent,
+    vector<string> & allAvailableEventIDs, int eventIdx
+){
+    short parentOccurrences = 0;
+    EventModule * PossibleEventSource = nullptr;
+    for(int possibleParentIdx = eventIdx; possibleParentIdx >= 0; --possibleParentIdx){
+        for(const ChildStruct & Child : EventContainer[possibleParentIdx].Children){
+            if(Child.ID == allAvailableEventIDs.back()){
+                PossibleEventSource = &EventContainer[possibleParentIdx];
+                ++parentOccurrences;
+                if(parentOccurrences > 1){
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                        << errorSpacing() << "In " << __FUNCTION__
+                        << ": Inline function '" << allAvailableEventIDs.back() << "' called in '"
+                        << EventContainer[possibleParentIdx].getID()
+                        << "' event. Inline functions can only be called from one event\n";
+                }
+            }
+        }
+    }
+    if(parentOccurrences > 1){
+        return true;
+    }
+    if(parentOccurrences == 1){
+        allAvailableEventIDs.push_back(PossibleEventSource->getID());
+        NewEvent.PassedVariables = PossibleEventSource->PassedVariables;
+    }
+    return false;
+}
+bool createCallingStackOfInlineEvents(const string & scriptName, const unsigned & lineNumber,
+    vector <EventModule> & EventContainer, EventModule & NewEvent, vector<string> & allAvailableEventIDs
+){
+    allAvailableEventIDs.clear();
+    allAvailableEventIDs.push_back(NewEvent.getID());
+    for(int eventIdx = EventContainer.size(); eventIdx >= 0; --eventIdx){
+        short parentOccurrences = 0;
+        EventModule * PossibleEventSource = nullptr;
+        for(int possibleParentIdx = eventIdx - 1; possibleParentIdx >= 0; --possibleParentIdx){
+            for(const ChildStruct & Child : EventContainer[possibleParentIdx].Children){
+                if(Child.ID == allAvailableEventIDs.back()){
+                    PossibleEventSource = &EventContainer[possibleParentIdx];
+                    ++parentOccurrences;
+                    if(parentOccurrences > 1){
+                        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                            << errorSpacing() << "In " << __FUNCTION__
+                            << ": Inline function '" << allAvailableEventIDs.back() << "' called in '"
+                            << EventContainer[possibleParentIdx].getID()
+                            << "' event. Inline functions can only be called from one event\n";
+                    }
+                }
+            }
+        }
+        if(parentOccurrences > 1){
+            return true;
+        }
+        if(parentOccurrences == 1){
+            allAvailableEventIDs.push_back(PossibleEventSource->getID());
+            NewEvent.PassedVariables = PossibleEventSource->PassedVariables;
+            if(!PossibleEventSource->isInline){
+                break;
+            }
+        }
+    }
+    return false;
+}
+bool createInlineEvent(const string & scriptName, const unsigned & lineNumber, const string & layerID,
+    const string & objectID, vector <EventModule> & EventContainer, vector <string> & EventContainerIDs,
+    EventModule & NewEvent, const vector<WordStruct> & words, vector<string> & allAvailableEventIDs
+){
+    if(words.size() < 2){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 1 parameter.\n";
+        return true;
+    }
+    if(words[1].type != 'c' && words[1].type != 'e'){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
+            << "' instruction: The second parameter (id) is not a context.\n";
+        return true;
+    }
+    string eventType = words[0].value;
+    string eventID = words[1].value;
+    
+    if(isStringInVector(EventContainerIDs, eventID)){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__ << ": Event with id \'" << eventID << "\' already exists.\n";
+        return true;
+    }
+
+    NewEvent = EventModule(eventID, &EventContainerIDs, layerID, objectID);
+    if(eventType == "inline_loop"){
+        NewEvent.loop = true;
+    }
+
+    NewEvent.isInline = true;
+
+    // if(NewEvent.getID() == "checkItems"){
+    //     raise(SIGINT);
+    // }
+
+    if(createCallingStackOfInlineEvents(scriptName, lineNumber, EventContainer, NewEvent, allAvailableEventIDs)){
+        return true;
+    }
+
+    return false;
+}
+void AncestorObject::assembleEvents(vector<string> code, string scriptName, vector<StartingVariableStruct> & NewVariablesForLookupTable){
     vector<WordStruct> words;
     EventModule NewEvent = EventModule();
     unsigned cursor = 0, lineNumber = 0;
     OperationClass * Operation;
-    bool postOperations = false;
-
-    bool stringSection = false;
-
-    vector<string> code2 = {""};
+    bool inAfterSection = false;
 
     //merge string sections
+    vector<string> code2 = {""};
+    bool stringSection = false;
+    unsigned emptyLinesCount = 0;
     for(unsigned line = 0; line < code.size(); line++){
         for(unsigned ch = 0; ch < code[line].size(); ch++){
             if(code[line][ch] == '\"'){
@@ -1066,17 +1403,22 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
         }
         code2.back() += code[line];
         if(!stringSection){
-            code2.push_back("");
+            code2.emplace_back("");
+            for(; emptyLinesCount > 0; emptyLinesCount--){
+                code2.emplace_back("");
+            }
         }
         else{
             code2.back() += '\n';
+            emptyLinesCount++;
         }
     }
-
     code = code2;
 
     string error;
     bool triggerBreakpoint = false;
+
+    vector <string> allAvailableEventIDs;
     
     for(string line : code){
         lineNumber++;
@@ -1093,125 +1435,122 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             raise(SIGINT);
             triggerBreakpoint = false;
         }
-        if(words[0].value == "breakpoint"){
-            triggerBreakpoint = true;
-            cout << "Warning: The 'breakpoint' instruction can be used only in the debugger.\n";
+        if(words[0].value == "import"){
+            //Ignore
         }
-        else if(words[0].value == "start"){
-            if(words.size() < 2){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires one parameter.\n";
+        else if(words[0].value == "compiler_breakpoint"){
+            triggerBreakpoint = true;
+            cerr << "Warning: The 'compiler_breakpoint' instruction can be used only in the debugger.\n";
+        }
+        else if(words[0].value == "start" || words[0].value == "loop" ||  words[0].value == "override"){
+            if(createEvent(scriptName, lineNumber, layerID, ID, EventContainer, EventContainerIDs, NewEvent, words, NewVariablesForLookupTable)){
                 return;
             }
-
-            bool overrideEvent = false;
-
-            if(words.size() >= 4){
-                if(words[3].type == 'b' || words[3].type == 'i'){
-                    overrideEvent = cstoi(words[3].value, error);
-                }
-                else{
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                        << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
-                }
-            }
-
-            if(words[1].type != 'c' && words[1].type != 'e'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
-                    << "' instruction: The second parameter is not a context.\n";
+            allAvailableEventIDs.clear();
+            allAvailableEventIDs.push_back(NewEvent.getID());
+        }
+        else if(words[0].value == "inline" || words[0].value == "inline_loop"){
+            if(createInlineEvent(scriptName, lineNumber, layerID, ID, EventContainer, EventContainerIDs, NewEvent, words, allAvailableEventIDs)){
                 return;
-            }
-
-            if(words[1].value[0] != '_' && isStringInVector(eveContainerIDs, words[1].value)){
-                if(overrideEvent){
-                    removeFromStringVector(eveContainerIDs, words[1].value);
-                    removeModuleInstanceByID(EveContainer, words[1].value);
-                }
-                else{
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                        << errorSpacing() << "In " << __FUNCTION__ << ": Event with id \'" << words[1].value << "\' already exists.\n";
-                    return;
-                }
-            }
-            NewEvent = EventModule(words[1].value, &eveContainerIDs, getLayerID(), getID());
-
-            if(words.size() == 2 || words[2].type == '_'){
-                continue;
-            }
-
-            if(words[2].type != 'b' && words[2].type != 'i' && words[2].type != 'e'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": The second parameter is not an int.\n";
-                return;
-            }
-            if(words[2].type != 'e'){
-                NewEvent.loop = cstoi(words[2].value, error);
             }
         }
         else if(words[0].value == "end"){
-            EveContainer.push_back(NewEvent);
+            if(NewEvent.isInline){
+                NewEvent.PassedVariables.clear();
+            }
+            EventContainer.push_back(NewEvent);
             NewEvent = EventModule();
-            postOperations = false;
+            inAfterSection = false;
         }
         else if(words[0].value == "after"){
-            postOperations = true;
+            inAfterSection = true;
         }
         else if(words[0].value == "triggers"){
             if(words.size() < 2){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Instruction \'" << words[0].value << "\' requires at least 2 parameters.\n";
                 return;
             }
             while(cursor < words.size()){
                 if(words[cursor].type != 'c'){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
-                        << ": In the '" << words[0].value << "' instruction: Parameter nr. " << cursor+1 << " is not a context.\n";
+                        << ": In the '" << words[0].value << "' instruction: Parameter " << cursor << " is not a context.\n";
                     return;
                 }
                 if(words[cursor].type != 'e'){
-                    NewEvent.primaryTriggerTypes.push_back(words[cursor].value);
+                    TriggerType NewTrigger = transStringToTrigger(words[cursor].value);
+                    if(NewTrigger == null_t){
+                        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                            << errorSpacing() << "In " << __FUNCTION__
+                            << ": In the '" << words[0].value << "' instruction: Parameter '"
+                            << words[cursor].value << "' is not a valid trigger.\n";
+                        return;
+                    }
+                    NewEvent.primaryTriggerTypes.push_back(NewTrigger);
+                    NewEvent.isFunction = false;
                 }
                 cursor++;
             }
             /*if(!gatherStringVector(words, cursor, NewEvent.primaryTriggerTypes, lineNumber, scriptName)){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Context gather failed.\n";
                 return;
             }*/
         }
         else if(words[0].value == "run"){
+            if(inAfterSection){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": Cannot run another events in the after section.\n";
+                return;
+            }
             if(words.size() < 2){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Instruction \'" << words[0].value << "\' requires 2 parameters.\n";
                 return;
             }
-            while(cursor < words.size()){
-                if(words[cursor].type != 'c'){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
-                        << errorSpacing() << "In " << __FUNCTION__
-                        << ": In the '" << words[0].value << "' instruction: Parameter nr. " << cursor+1 << " is not a context.\n";
-                    return;
-                }
-                if(words[cursor].type != 'e'){
-                    NewEvent.Children.push_back(ChildStruct(words[cursor].value, false));
-                }
-                cursor++;
+            if(words[1].type != 'c'){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+                return;
+            }
+            NewEvent.Children.emplace_back(ChildStruct(words[1].value, false, vector<string>(), 0, scriptName, lineNumber));
+            cursor = 2;
+            if(NewEvent.getPassingVariables(NewEvent.Children.back().passingVariables,
+                words, cursor, lineNumber, scriptName, NewVariablesForLookupTable,
+                allAvailableEventIDs
+            )){
+                return;
             }
         }
         else if(words[0].value == "if"){
-            if(!createExpression(words, cursor, NewEvent.ConditionalChain, lineNumber, scriptName, true)){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            if(inAfterSection){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": Cannot create an if statement in the after section.\n";
+                return;
+            }
+            if(!createExpression(words, cursor, NewEvent.ConditionalChain, NewEvent.resultStack, lineNumber, scriptName, true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                 return;
             }
         }
         else if(words[0].value == "else"){
+            if(inAfterSection){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": Cannot run another event in the after section.\n";
+                return;
+            }
             if(words.size() < 2){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Instruction \'" << words[0].value << "\' requires one parameter of a string type.\n";
                 return;
@@ -1220,284 +1559,428 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 NewEvent.elseChildID = words[1].value;
             }
             else if(words[1].type != 'e'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Instruction \'" << words[0].value << "\' requires one parameter of a string type.\n";
                 return;
             }
+            NewEvent.passingVariablesForElseEvent.clear();
+            cursor = 2;
+            if(NewEvent.getPassingVariables(NewEvent.passingVariablesForElseEvent,
+                words, cursor, lineNumber, scriptName, NewVariablesForLookupTable,
+                allAvailableEventIDs
+            )){
+                return;
+            }
         }
-        else if(isStringInGroup(words[0].value, 9, "continue", "break", "return", "reboot", "exit",
-            "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag")
+        else if(isStringInGroup(words[0].value, 10, "continue", "break", "return", "reboot", "exit",
+            "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag", "breakpoint")
         ){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
                 return;
             }
         }
         else if(isStringInGroup(words[0].value, 4, "first", "last", "all", "random")){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
 
             if(words[1].value == "Layers"){
-                Operation->Location.source = "layer";
+                Operation->Location.source = ValueSource::layer;
             }
             else if(words[1].value == "Cameras"){
-                Operation->Location.source = "camera";
+                Operation->Location.source = ValueSource::camera;
             }
             else if(words[1].value != ""){
-                Operation->Location.source = "context";
-                if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'c', "context", false)){ return; }
+                Operation->Location.source = ValueSource::context;
+                if(Operation->addParameter(scriptName, lineNumber, error,
+                    words, cursor, 'c', "context", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else{
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": First argument cannot be an empty context.\n";
                 return;
             }
             
             cursor = 2;
-            if(Operation->Location.source == "camera"){
+            if(Operation->Location.source == ValueSource::camera){
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName, true)){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+                    lineNumber, scriptName, true, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                    NewEvent.PassedVariables, allAvailableEventIDs, "camera",
+                    Operation->outputVariableID, Operation->isOutputReference, false, true, inAfterSection
+                )){
                     if(error.size() == 0){ continue; }
                     return;
                 }
             }
-            else if(Operation->Location.source == "layer"){
+            else if(Operation->Location.source == ValueSource::layer){
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 if(optional(words, cursor, Operation->Location.objectID)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName, true)){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+                    lineNumber, scriptName, true, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                    NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                    Operation->isOutputReference, false, true, inAfterSection
+                )){
                     if(error.size() == 0){ continue; }
                     return;
                 }
             }
-            else if(Operation->Location.source == "context"){
+            else if(Operation->Location.source == ValueSource::context){
                 if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 if(optional(words, cursor, Operation->Location.objectID)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName, true)){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+                    lineNumber, scriptName, true, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                     return;
                 }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                    NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                    Operation->isOutputReference, false, true, inAfterSection
+                )){
                     if(error.size() == 0){ continue; }
                     return;
                 }
             }
             else{
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Source '" << words[1].value << "' does not exist.\n";
                 return;
             }
         }
         else if(words[0].value == "index"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
                 return;
             }
 
             if(words[1].value == "Processes"){
-                Operation->Location.source = "process";
+                Operation->Location.source = ValueSource::process;
             }
             else if(words[1].value == "Layers"){
-                Operation->Location.source = "layer";
+                Operation->Location.source = ValueSource::layer;
             }
             else if(words[1].value == "Cameras"){
-                Operation->Location.source = "camera";
+                Operation->Location.source = ValueSource::camera;
             }
             else if(words[1].value != ""){
-                Operation->Location.source = "context";
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "source", false)){ return; }
+                Operation->Location.source = ValueSource::context;
+                if(Operation->addParameter(scriptName, lineNumber, error,
+                    words, 1, 'c', "source", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else{
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": First argument cannot be an empty context.\n";
                 return;
             }
             
             cursor = 2;
-            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'i', "indexes", false)){ return; }
+            if(Operation->addVectorOrVariableToParameters(scriptName,
+                lineNumber, error, words, cursor, 'i', "indexes", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
-        else if(isStringInGroup(words[0].value, 6, "+", "-", "*", "/", "**", "random_int")){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+        else if(words[0].value == "index_vec"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 4, lineNumber, scriptName)){
                 return;
             }
-            if(words[0].value == "+"){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'a', "left", false)){ return; }
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'a', "right", false)){ return; }
+            if(words[1].type != 'c'){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": In the '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                return;
+            }
+
+            if(words[1].value != ""){
+                Operation->Location.source = ValueSource::context;
+                if(Operation->addParameter(scriptName, lineNumber, error,
+                    words, 1, 'c', "source", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else{
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'n', "left", false)){ return; }
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'n', "right", false)){ return; }
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": First argument cannot be an empty context.\n";
+                return;
+            }
+            
+            if(Operation->addParameter(scriptName,
+                lineNumber, error, words, 2, 'i', "index", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            cursor = 3;
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
+                if(error.size() == 0){ continue; }
+                return;
+            }
+        }
+        else if(isStringInGroup(words[0].value, 7, "+", "-", "*", "/", "**", "random_int", "assert")){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
+                return;
+            }
+            if(words[0].value == "+" || words[0].value == "assert"){
+                if(Operation->addParameter(scriptName, lineNumber, error,
+                    words, 1, 'a', "left", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection, words[0].value == "assert"
+                )){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'a', "right", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection, words[0].value == "assert"
+                )){ return; }
+            }
+            else{
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'n', "left", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'n', "right", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             cursor = 3;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(isStringInGroup(words[0].value, 5, "=", "+=", "-=", "*=", "/=")){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "left", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "left", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             if(words[0].value == "=" || words[0].value == "+="){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'a', "right", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'a', "right", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else{
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'n', "right", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'n', "right", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             cursor = 3;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "find_by_id_2"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "source", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "id", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "source", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "id", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 3;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(isStringInGroup(words[0].value, 4, "sum", "intersection", "difference", "in")){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "left", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'c', "right", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "left", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'c', "right", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 3;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "++" || words[0].value == "--" || words[0].value == "delete"
-            || words[0].value == "demolish" || words[0].value == "rbind"
+            || words[0].value == "demolish" || words[0].value == "rbind" || words[0].value == "type"
         ){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
             string parameterName = "context";
             if(words[0].value == "demolish" || words[0].value == "rbind"){
                 parameterName = "objects";
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', parameterName, false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', parameterName, false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 2;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
-        else if(words[0].value == "access"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+        else if(words[0].value == "next"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'i', "number", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+        }
+        else if(words[0].value == "access"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
+                return;
+            }
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() > 0){ return; }
             }
-            if(!createExpression(words, cursor, Operation->ConditionalChain, lineNumber, scriptName, false)){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+                lineNumber, scriptName, false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
                 return;
             }
         }
         else if(isStringInGroup(words[0].value, 4, "bool", "int", "double", "string")){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
 
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "value", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() > 0){ return; }
             }
             
             if(words[0].value == "bool"){
-                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'b', "values", false)){ return; }
+                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'b', "values", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[0].value == "int"){
-                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'i', "values", false)){ return; }
+                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'i', "values", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[0].value == "double"){
-                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'd', "values", false)){ return; }
+                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'd', "values", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[0].value == "string"){
-                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "values", false)){ return; }
+                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "values", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else{
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": Literal type is required.\n";
                 return;
             }
         }
         else if(words[0].value == "find_by_id"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
-            Operation->Location.source = words[1].value;
+            Operation->Location.source = transSource(words[1].value);
             cursor = 2;
             if(words[1].value == "camera"){
                 if(words.size() < 4){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": \'find_by_id " << words[1].value << "\' requires at least 2 additional parameters.\n";
                     continue;
                 }
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                    NewEvent.PassedVariables, allAvailableEventIDs, "camera", Operation->outputVariableID,
+                    Operation->isOutputReference, false, true, inAfterSection
+                )){
                     if(error.size() == 0){ continue; }
                     return;
                 }
             }
             else if(words[1].value == "layer"){
                 if(words.size() < 7){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": \'find_by_id " << words[1].value << "\' requires at least 5 additional parameters.\n";
                     continue;
@@ -1507,15 +1990,20 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                    NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                    Operation->isOutputReference, false, true, inAfterSection
+                )){
                     if(error.size() == 0){ continue; }
                     return;
                 }
             }
             else if(words[1].value == "context" || words[1].value == "c" || words[1].type == 'e'){
-                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'c', "scripts", false)){ return; }
+                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'c', "scripts", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
                 if(words.size() < cursor + 5){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": \'find_by_id " << words[1].value << " [context_list]\' requires at least 5 additional parameters.\n";
                     continue;
@@ -1525,47 +2013,58 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                    NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                    Operation->isOutputReference, false, true, inAfterSection
+                )){
                     if(error.size() == 0){ continue; }
                     return;
                 }
             }
         }
         else if(words[0].value == "let"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
-            Operation->newContextID = words[1].value;
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'c', "old_variable", true)){
+            Operation->outputVariableID = words[1].value;
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'c', "old_variable", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "clone"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 4, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "left", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'c', "right", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "changeOldID", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "left", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'c', "right", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "changeOldID", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
         }
         else if(words[0].value == "new"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
-            Operation->Location.source = words[1].value;
+            Operation->Location.source = transSource(words[1].value);
             
             //If the destination is provided as a variable, skip one parameter in the instruction.
             if(words[2].type == 'c'){
@@ -1577,60 +2076,83 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             
             cursor = 2;
             if(words[cursor].type == 'c'){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'c', "destination", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'c', "destination", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
                 cursor++;
             }
             else{
-                if(Operation->Location.source == "object"){
+                if(Operation->Location.source == ValueSource::object){
                     if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                 }
-                else if(Operation->Location.source != "camera" && Operation->Location.source != "layer"){
+                else if(Operation->Location.source != ValueSource::camera && Operation->Location.source != ValueSource::layer){
                     if(optional(words, cursor, Operation->Location.layerID)){ continue; }
                     if(optional(words, cursor, Operation->Location.objectID)){ continue; }
                 }
             }
             
-            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'i', "quantity", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'i', "quantity", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
             cursor++;
-            if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "new_ids", true)){
+            if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "new_ids", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "bind"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "objects", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "objects", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 2;
-            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "scripts", false)){ return; }
+            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "scripts", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
         }
         else if(words[0].value == "build"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "objects", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'b', "reset", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "objects", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'b', "reset", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "do_not_preserve", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "do_not_preserve", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
-        else if(words[0].value == "load_build" || words[0].value == "build_subset" || words[0].value == "inject_code" || words[0].value == "inject_instr"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+        else if(words[0].value == "load_build" || words[0].value == "build_subset"
+            || words[0].value == "inject_code" || words[0].value == "inject_instr"
+        ){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'c', "objects", false)){ return; }
+            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'c', "objects", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             string parameterName = "paths";
             if(words[0].value == "inject_code"){
                 parameterName = "code";
@@ -1638,56 +2160,74 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             else if(words[0].value == "inject_instr"){
                 parameterName = "instructions";
             }
-            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', parameterName, false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'b', "reset", true)){
+            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', parameterName, false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'b', "reset", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor + 1, 'b', "do_not_preserve", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor + 1, 'b', "do_not_preserve", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "fun"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "objects", false)){ return; }
-            Operation->Location.attribute = words[2].value;
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "objects", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            Operation->Location.attribute = strToAttribute(words[2].value);
             cursor = 3;
             while(words.size() > cursor){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'a', "value", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'a', "value", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
                 cursor++;
             }
         }
         else if(words[0].value == "env"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
                 return;
             }
             Operation->addLiteralParameter(VariableModule::newString(words[1].value));
             if(words[1].value == "window_title"){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "title", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "title", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[1].value == "display_size"){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "width", false)){ return; }
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "height", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "width", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "height", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else{
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "value", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "value", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
         }
         else if(words[0].value == "edit_proc"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
                 return;
@@ -1696,7 +2236,7 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
                 if(words[cursor].type != 'c'){
                     continue;
                 }
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: Parameter " << cursor << " must be a literal.\n";
                 return;
@@ -1707,202 +2247,294 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
             
             if(words[1].value == "id"){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "new_id", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "new_id", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[1].value == "reservation_multiplier"){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'd', "multiplier", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'd', "multiplier", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[1].value == "window_pos" || words[1].value == "window_size" || words[1].value == "min_window_size"){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "x", false)){ return; }
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "y", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "x", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "y", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[1].value == "window_tint"){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'd', "red", false)){ return; }
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'd', "green", false)){ return; }
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'd', "blue", false)){ return; }
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 5, 'd', "alpha", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'd', "red", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'd', "green", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'd', "blue", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 5, 'd', "alpha", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else{
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "value", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "value", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
         }
         else if(words[0].value == "load_bitmap"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "name", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "light", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "name", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "light", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'b', "ignore_warnings", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'b', "ignore_warnings", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "mkdir" || words[0].value == "rm" || words[0].value == "rmll"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
         }
         else if(words[0].value == "mv"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "new_path", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "new_path", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
         }
         else if(words[0].value == "print"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "delimeter", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "delimeter", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 2;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
             while(cursor < words.size()){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'a', "value", false)){ return; }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'a', "value", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
                 cursor++;
             }
         }
         else if(words[0].value == "load_text"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 2;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "save_text"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "text", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 's', "delimeter", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "text", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 's', "delimeter", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "ls"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
             cursor = 2;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "recursive", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'b', "recursive", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'i', "max_depth", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'i', "max_depth", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "lse"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
                 return;
             }
             Operation->addLiteralParameter(VariableModule::newString(words[1].value));
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'b', "detail", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'b', "detail", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "new_proc"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "name", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "layer", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "name", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "layer", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 's', "object", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 's', "object", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 's', "script", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 's', "script", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "var"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "variable", Operation->outputVariableID,
+                Operation->isOutputReference, true, true, inAfterSection
+            )){
                 if(error.size() > 0){ return; }
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'a', "value", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'a', "value", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
         }
         else if(words[0].value == "vec"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
             if(words[1].type != 'c'){
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
                 return;
             }
             Operation->addLiteralParameter(VariableModule::newString(words[1].value));
             cursor = 2;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "vector", Operation->outputVariableID,
+                Operation->isOutputReference, true, true, inAfterSection
+            )){
                 if(error.size() > 0){ return; }
             }
+            if(words.size() < 4){
+                continue;
+            }
             if(words[1].value == "bool"){
-                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'b', "scripts", false)){ return; }
+                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'b', "scripts", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[1].value == "int"){
-                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'i', "scripts", false)){ return; }
+                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'i', "scripts", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[1].value == "double"){
-                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'd', "scripts", false)){ return; }
+                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'd', "scripts", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else if(words[1].value == "string"){
-                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "scripts", false)){ return; }
+                if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "scripts", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                )){ return; }
             }
             else{
-                cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__ << ": In the instruction '" << words[0].value
                     << "': The type \'" << words[1].value << "\' does not exist.\n";
                 continue;
             }
         }
         else if(words[0].value == "tokenize"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "delimeter", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "text", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "delimeter", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "text", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 3;
             while(cursor < words.size()){
                 if(words[cursor].type != 'c'){
-                    cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << errorSpacing() << "In " << __FUNCTION__
                         << ": In the '" << words[0].value << "' instruction: Parameter '" << words[cursor].value
-                        << "' (" << cursor+1 << ") must be a variable.\n";
+                        << "' (" << cursor << ") must be a variable.\n";
                     return;
                 }
                 Operation->addLiteralParameter(VariableModule::newString(words[cursor].value));
@@ -1910,130 +2542,219 @@ void AncestorObject::eventAssembler(vector<string> code, string scriptName){
             }
         }
         else if(words[0].value == "tree" || words[0].value == "pwd" || words[0].value == "console_input"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
                 return;
             }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "len"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "text", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "text", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 2;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "size"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 2, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "text", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'c', "text", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 2;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "substr"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 4, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "text", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "begin", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "length", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "text", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "begin", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "length", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 4;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "load_font"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 4, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 4, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "size", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 's', "name", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'b', "ignore_warnings", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "size", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 's', "name", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'b', "ignore_warnings", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "cd"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 1, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "path", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "similar"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "pattern", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "pattern", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 2;
-            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "vector", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'b', "longest_common_part", true)){
+            if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "vector", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'b', "longest_common_part", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
             cursor++;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "count"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 3, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "pattern", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "text", false)){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "pattern", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "text", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
             cursor = 3;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, Operation->newContextID)){
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else if(words[0].value == "create_display"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, postOperations, 5, lineNumber, scriptName)){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 5, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'i', "display_width", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "display_height", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "backbuffer_width", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'i', "backbuffer_height", false)){ return; }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 5, 'b', "auto_scale_backbuffer", true)){
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 'i', "display_width", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 'i', "display_height", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 3, 'i', "backbuffer_width", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 4, 'i', "backbuffer_height", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 5, 'b', "auto_scale_backbuffer", true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
+                if(error.size() == 0){ continue; }
+                return;
+            }
+        }
+        else if(words[0].value == "start_timer"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
+                return;
+            }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "name", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+        }
+        else if(words[0].value == "stop_timer"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "name", false, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){ return; }
+            cursor = 2;
+            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                Operation->isOutputReference, false, true, inAfterSection
+            )){
                 if(error.size() == 0){ continue; }
                 return;
             }
         }
         else{
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' does not exist.\n";
         }
     }
     if(words.size() > 0){
         if(words[0].value != "end"){
-            cerr << "Error in: " << scriptName << ":" << lineNumber << ":\n"
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Every event must end with \"end\" instruction.\n";
         }
     }
+
+    // for(EventModule & InlineEvent : EventContainer){
+    //     if(!InlineEvent.isInline){
+    //         continue;
+    //     }
+    //     InlineEvent.PassedVariables.clear();
+    // }
 }
 void AncestorObject::clearAllEvents(){
-    for(auto & Event : EveContainer){
+    for(auto & Event : EventContainer){
         Event.clear();
     }
-    EveContainer.clear();
-    eveContainerIDs.clear();
+    EventContainer.clear();
+    EventContainerIDs.clear();
 }
 inline void printEmptyFileWarning(string scriptName, string functionName){
     cout << "Warning: In " << functionName
@@ -2047,71 +2768,124 @@ inline void printBasicFile(){
         << "\texit\n"
         << "end\n\n";
 }
-void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii){
-    if(clearEvents){
-        clearAllEvents();
+//Return true if a script is trying to import itself.
+bool gatherImportsFromScript(const string & scriptName, vector<string> & allImports){
+    allImports.clear();
+    vector<string> scriptLines = readLines(scriptName, false);
+    if(scriptLines.size() == 0){
+        return false;
     }
-
-    vector<string> code;
-    bool somethingWasAssembled = false;
-    
-    for(string scriptName : bindedScripts){
-        code = readLines(scriptName, allowNotAscii);
-        if(code.size() > 0){
-            somethingWasAssembled = true;
-            eventAssembler(code, scriptName);
-            code.clear();
-        }
-        else{
-            printEmptyFileWarning(scriptName, __FUNCTION__);
-        }
-    }
-
-    if(!somethingWasAssembled){
-        printBasicFile();
-    }
-}
-void AncestorObject::translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii){
-    if(clearEvents){
-        clearAllEvents();
-    }
-    vector<string> code;
-
-    bool somethingWasAssembled = false;
-    
-    for(string scriptName : scriptsPaths){
-        code = readLines(scriptName, allowNotAscii);
-        if(code.size() > 0){
-            somethingWasAssembled = true;
-            eventAssembler(code, scriptName);
-            code.clear();
-        }
-        else{
-            printEmptyFileWarning(scriptName, __FUNCTION__);
-        }
-    }
-
-    if(!somethingWasAssembled){
-        printBasicFile();
-    }
-}
-void AncestorObject::translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii){
-    if(clearEvents){
-        clearAllEvents();
-    }
-
-    vector<string> code;
-
-    bool somethingWasAssembled = false;
-    
-    for(string scriptName : bindedScripts){
-        if(!isStringInVector(scripts, scriptName)){
+    vector<WordStruct> words;
+    for(const string & line : scriptLines){
+        words = tokenizeCode(line); //TODO: Use less expensive way to extract imports from lines
+        if(words.size() == 0){
             continue;
         }
+        if(words[0].value == "import"){
+            if(words.size() == 1){
+                cerr << "Error: Import requires at least one argument.\n";
+                continue;
+            }
+            if(words[1].value.size() == 0){
+                cerr << "Error: First argument of the import statement cannot be empty.\n";
+                continue;
+            }
+            if(words[1].value == scriptName){
+                allImports.clear();
+                return true;
+            }
+            allImports.push_back(words[1].value);
+            continue;
+        }
+    }
+    return false;
+}
+void removeStringDuplicatesFromVector(vector<string> & stringVec){
+    std::unordered_set<string> encounteredStrings;
+    for(auto iter = stringVec.begin(); iter != stringVec.end();){
+        if(encounteredStrings.find(*iter) != encounteredStrings.end()){
+            iter = stringVec.erase(iter);
+        }
+        else{
+            encounteredStrings.insert(*iter);
+        }
+    }
+}
+//Return a vector of scripts and their imports in left-to-right, depth-first order.
+ReturnType addImportsToBindedScripts(const vector<string> & bindedScripts, vector<string> & allScriptsToAssemble){
+    vector<string> parentScripts;
+    vector<std::queue<string>> scriptsToAnalyze;
+    vector<string> subsequentImports;
+    string currentScript;
+
+    scriptsToAnalyze.emplace_back(std::queue<string>());
+    for(const string & script : bindedScripts){
+        scriptsToAnalyze.back().push(script);
+    }
+
+    while(!scriptsToAnalyze.empty()){
+        currentScript = scriptsToAnalyze.back().front();
+        scriptsToAnalyze.back().pop();
+        if(gatherImportsFromScript(currentScript, subsequentImports)){
+            return ReturnType::ERROR_INF;
+        }
+        if(subsequentImports.empty()){
+            allScriptsToAssemble.push_back(currentScript);
+            if(scriptsToAnalyze.back().empty()){ //All children have been added to the final vector.
+                scriptsToAnalyze.pop_back();
+                if(!parentScripts.empty()){
+                    allScriptsToAssemble.push_back(parentScripts.back());
+                    parentScripts.pop_back();
+                }
+            }
+        }
+        else{
+            //Check if imported scripts are not importing any parent scripts - if they are, return error to avoid a cycle.
+            for(const string & parent : parentScripts){
+                for(const string & importedScript : subsequentImports){
+                    if(parent == importedScript){
+                        return ReturnType::ERROR_INF;
+                    }
+                }
+            }
+            scriptsToAnalyze.emplace_back(std::queue<string>());
+            for(const string & script : subsequentImports){
+                scriptsToAnalyze.back().push(script);
+            }
+            parentScripts.push_back(currentScript);
+        }
+    }
+
+    removeStringDuplicatesFromVector(allScriptsToAssemble);
+
+    return ReturnType::OK;
+}
+void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii, vector<StartingVariableStruct> & NewVariablesForLookupTable){
+    if(clearEvents){
+        clearAllEvents();
+    }
+
+    if(bindedScripts.size() == 0){
+        printBasicFile();
+        return;
+    }
+
+    removeStringDuplicatesFromVector(bindedScripts);
+    vector<string> allScriptsToAssemble;
+    ReturnType status = addImportsToBindedScripts(bindedScripts, allScriptsToAssemble);
+    if(status == ERROR_INF){
+        cerr << "Error: Assembler preprocessor detected a cycle in the imports.\n";
+        return;
+    }
+    
+    vector<string> code;
+    bool somethingWasAssembled = false;
+    
+    for(const string & scriptName : allScriptsToAssemble){
         code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
             somethingWasAssembled = true;
-            eventAssembler(code, scriptName);
+            assembleEvents(code, scriptName, NewVariablesForLookupTable);
             code.clear();
         }
         else{
@@ -2123,7 +2897,85 @@ void AncestorObject::translateSubsetBindedScripts(bool clearEvents, vector<strin
         printBasicFile();
     }
 }
-void AncestorObject::injectCode(bool clearEvents, vector<string> code){
+void AncestorObject::translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii,
+    vector<StartingVariableStruct> & NewVariablesForLookupTable
+){
+    if(clearEvents){
+        clearAllEvents();
+    }
+
+    removeStringDuplicatesFromVector(scriptsPaths);
+    vector<string> allScriptsToAssemble;
+    ReturnType status = addImportsToBindedScripts(scriptsPaths, allScriptsToAssemble);
+    if(status == ERROR_INF){
+        cerr << "Error: Assembler preprocessor detected a cycle in the imports.\n";
+        return;
+    }
+    vector<string> code;
+    bool somethingWasAssembled = false;
+    
+    for(const string & scriptName : allScriptsToAssemble){
+        code = readLines(scriptName, allowNotAscii);
+        if(code.size() > 0){
+            somethingWasAssembled = true;
+            assembleEvents(code, scriptName, NewVariablesForLookupTable);
+            code.clear();
+        }
+        else{
+            printEmptyFileWarning(scriptName, __FUNCTION__);
+        }
+    }
+
+    if(!somethingWasAssembled){
+        printBasicFile();
+    }
+}
+void AncestorObject::translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii,
+    vector<StartingVariableStruct> & NewVariablesForLookupTable
+){
+    if(clearEvents){
+        clearAllEvents();
+    }
+
+    removeStringDuplicatesFromVector(bindedScripts);
+
+    vector<string> selectedBindedScripts;
+    //Filter out not selected scripts
+    for(const string & scriptName : bindedScripts){
+        if(isStringInVector(scripts, scriptName)){
+            selectedBindedScripts.push_back(scriptName);
+        }
+    }
+
+    vector<string> allScriptsToAssemble;
+    ReturnType status = addImportsToBindedScripts(selectedBindedScripts, allScriptsToAssemble);
+    if(status == ERROR_INF){
+        cerr << "Error: Assembler preprocessor detected a cycle in the imports.\n";
+        return;
+    }
+
+    vector<string> code;
+    bool somethingWasAssembled = false;
+    
+    for(const string & scriptName : allScriptsToAssemble){
+        code = readLines(scriptName, allowNotAscii);
+        if(code.size() > 0){
+            somethingWasAssembled = true;
+            assembleEvents(code, scriptName, NewVariablesForLookupTable);
+            code.clear();
+        }
+        else{
+            printEmptyFileWarning(scriptName, __FUNCTION__);
+        }
+    }
+
+    if(!somethingWasAssembled){
+        printBasicFile();
+    }
+}
+void AncestorObject::injectCode(bool clearEvents, vector<string> code,
+    vector<StartingVariableStruct> & NewVariablesForLookupTable
+){
     if(clearEvents){
         clearAllEvents();
     }
@@ -2131,18 +2983,20 @@ void AncestorObject::injectCode(bool clearEvents, vector<string> code){
     code = removeComments(code);
     
     if(code.size() > 0){
-        eventAssembler(code, "<injection>");
+        assembleEvents(code, "<injection>", NewVariablesForLookupTable);
     }
 }
-void AncestorObject::injectInstructions(bool clearEvents, vector<string> instructions){
+void AncestorObject::injectInstructions(bool clearEvents, vector<string> instructions,
+    vector<StartingVariableStruct> & NewVariablesForLookupTable){
     if(clearEvents){
         clearAllEvents();
     }
     
     vector<string> preprocessed;
-    for(string line : instructions){
-        string output;
-        for(size_t i = 0; i < line.size(); i++){
+    string output;
+    for(const string & line : instructions){
+        output = "";
+        for(size_t i = 0; i < line.size(); ++i){
             if(line[i] == '\\' && i + 1 != line.size() && line[i+1] == '\"'){
                 output += '\"';
                 i++;
@@ -2156,9 +3010,9 @@ void AncestorObject::injectInstructions(bool clearEvents, vector<string> instruc
     preprocessed = removeComments(preprocessed);
     preprocessed.insert(preprocessed.begin(), "triggers each_iteration");
     preprocessed.insert(preprocessed.begin(), "start _ false");
-    preprocessed.push_back("delete_this_event");
-    preprocessed.push_back("end");
-    eventAssembler(preprocessed, "<injection>");
+    preprocessed.emplace_back("delete_this_event");
+    preprocessed.emplace_back("end");
+    assembleEvents(preprocessed, "<injection>", NewVariablesForLookupTable);
 }
 
 void AncestorObject::propagateLayerID(){
@@ -2186,7 +3040,7 @@ void AncestorObject::propagateLayerID(){
     for(ParticleEffectModule & Particles : ParticlesContainer){
         Particles.setLayerID(layerID);
     }
-    for(EventModule & Event : EveContainer){
+    for(EventModule & Event : EventContainer){
         Event.setLayerID(layerID);
     }
     for(VariableModule & Variable : VariablesContainer){
@@ -2227,7 +3081,7 @@ void AncestorObject::propagateObjectID(){
     for(ParticleEffectModule & Particles : ParticlesContainer){
         Particles.setObjectID(layerID);
     }
-    for(EventModule & Event : EveContainer){
+    for(EventModule & Event : EventContainer){
         Event.setObjectID(layerID);
     }
     for(VariableModule & Variable : VariablesContainer){

@@ -320,7 +320,7 @@ void TextModule::draw(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2
     }
 
     vector <string> textLines;
-    textLines.push_back(string());
+    textLines.emplace_back(string());
     string temp, text;
     int currentLength = 0, currentHeight = 0, realHeight = 0;
     int fontHeight = al_get_font_line_height(font);
@@ -344,7 +344,7 @@ void TextModule::draw(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2
             }
             textLines.back() += '\n';
             lettersCountForTabs = -1;
-            textLines.push_back(string());
+            textLines.emplace_back(string());
             continue;
         }
         if((temp == " " || temp == "\t") && wrapped == 2){ //smart text wrapping - keeping words intact
@@ -372,7 +372,7 @@ void TextModule::draw(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2
                     currentHeight += fontHeight;
                     textLines.back() += '\n';
                     lettersCountForTabs = -1;
-                    textLines.push_back(string());
+                    textLines.emplace_back(string());
                     success = true;
                     break;
                 }
@@ -396,7 +396,7 @@ void TextModule::draw(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2
             currentLength = 0;
             currentHeight += fontHeight;
             lettersCountForTabs = -1;
-            textLines.push_back(string());
+            textLines.emplace_back(string());
             if(currentHeight + fontHeight > size.y){
                 break;
             }
@@ -511,10 +511,10 @@ void TextModule::draw(vec2d base, ALLEGRO_FONT * font, bool drawBorders, Camera2
     vector <string> selectionForegroundLines;
     unsigned tmpCursor = 0;
     for(string & line : textLines){
-        finalTextLines.push_back("");
+        finalTextLines.emplace_back("");
         if(editingIsActive && cursorStart != cursorEnd){
-            selectionBackgroundLines.push_back("");
-            selectionForegroundLines.push_back("");
+            selectionBackgroundLines.emplace_back("");
+            selectionForegroundLines.emplace_back("");
         }
         for(letter = 0, lettersCountForTabs = 0; letter < line.size(); letter++, lettersCountForTabs++, tmpCursor++){
             if(line[letter] == '\n'){
@@ -683,43 +683,45 @@ void TextModule::drawTextByLetters(ALLEGRO_FONT * font){
         currentLength += al_get_text_width(font, temp.c_str());
     }
 }
-void TextModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "content"){
-        BasePointers.back().setPointer(&content[currentTextIdx]);
-    }
-    else if(attribute == "current_text_id"){
-        BasePointers.back().setPointer(&currentTextIdx);
-    }
-    else if(attribute == "font_id"){
-        BasePointers.back().setPointer(&fontID);
-    }
-    else if(attribute == "text_color_r"){
-        BasePointers.back().setPointer(&color.r);
-    }
-    else if(attribute == "text_color_g"){
-        BasePointers.back().setPointer(&color.g);
-    }
-    else if(attribute == "text_color_b"){
-        BasePointers.back().setPointer(&color.b);
-    }
-    else if(attribute == "text_color_a"){
-        BasePointers.back().setPointer(&color.a);
-    }
-    else if(attribute == "wrapped"){
-        BasePointers.back().setPointer(&wrapped);
-    }
-    else if(attribute == "horizontal_align"){
-        BasePointers.back().setPointer(&horizontalAlign);
-    }
-    else if(attribute == "vertical_align"){
-        BasePointers.back().setPointer(&verticalAlign);
-    }
-    else if(attribute == "rotate_angle"){
-        BasePointers.back().setPointer(&rotation);
-    }
-    else{
-        getPrimaryContext(attribute, BasePointers);
+void TextModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    switch(attribute){
+        case AttributeType::content:
+            BasePointers.back().setPointer(&content[currentTextIdx]);
+            return;
+        case current_text_id:
+            BasePointers.back().setPointer(&currentTextIdx);
+            return;
+        case font_id:
+            BasePointers.back().setPointer(&fontID);
+            return;
+        case text_color_r:
+            BasePointers.back().setPointer(&color.r);
+            return;
+        case text_color_g:
+            BasePointers.back().setPointer(&color.g);
+            return;
+        case text_color_b:
+            BasePointers.back().setPointer(&color.b);
+            return;
+        case text_color_a:
+            BasePointers.back().setPointer(&color.a);
+            return;
+        case AttributeType::wrapped:
+            BasePointers.back().setPointer(&wrapped);
+            return;
+        case horizontal_align:
+            BasePointers.back().setPointer(&horizontalAlign);
+            return;
+        case vertical_align:
+            BasePointers.back().setPointer(&verticalAlign);
+            return;
+        case rotate_angle:
+            BasePointers.back().setPointer(&rotation);
+            return;
+        default:
+            getPrimaryContext(attribute, BasePointers);
+            return;
     }
 }
 string TextModule::getFontID() const{
@@ -752,44 +754,37 @@ unsigned int TextModule::getCurrentTextIdx() const{
 string TextModule::getCurrentContent() const{
     return getContent(getCurrentTextIdx());
 }
-VariableModule TextModule::getAttributeValue(const string &attribute, const string &detail) const{
-    if(attribute == "in_group"){
-        return VariableModule::newBool(isInAGroup(detail));
+VariableModule TextModule::getAttributeValue(const AttributeType &attribute, const string &detail) const{
+    switch(attribute){
+        case in_group:
+            return VariableModule::newBool(isInAGroup(detail));
+        case AttributeType::content:
+            return VariableModule::newString(getCurrentContent());
+        case current_text_id:
+            return VariableModule::newInt(currentTextIdx);
+        case font_id:
+            return VariableModule::newString(getCurrentContent());
+        case color_r:
+            return VariableModule::newDouble(color.r);
+        case color_g:
+            return VariableModule::newDouble(color.g);
+        case color_b:
+            return VariableModule::newDouble(color.b);
+        case color_a:
+            return VariableModule::newDouble(color.a);
+        case AttributeType::wrapped:
+            return VariableModule::newInt(wrapped);
+        case horizontal_align:
+            return VariableModule::newInt(horizontalAlign);
+        case vertical_align:
+            return VariableModule::newInt(verticalAlign);
+        case AttributeType::rotation:
+            return VariableModule::newDouble(rotation);
+        default:
+            cerr << "Error: In " << __FUNCTION__ << ": Attribute '"
+                << attributeToStr(attribute) << "' is not valid.\n";
+            return VariableModule::newBool(false);
     }
-    else if(attribute == "content"){
-        return VariableModule::newString(getCurrentContent());
-    }
-    else if(attribute == "current_text_id"){
-        return VariableModule::newInt(currentTextIdx);
-    }
-    else if(attribute == "font_id"){
-        return VariableModule::newString(getCurrentContent());
-    }
-    else if(attribute == "color_r"){
-        return VariableModule::newDouble(color.r);
-    }
-    else if(attribute == "color_g"){
-        return VariableModule::newDouble(color.g);
-    }
-    else if(attribute == "color_b"){
-        return VariableModule::newDouble(color.b);
-    }
-    else if(attribute == "color_a"){
-        return VariableModule::newDouble(color.a);
-    }
-    else if(attribute == "wrapped"){
-        return VariableModule::newInt(wrapped);
-    }
-    else if(attribute == "horizontal_align"){
-        return VariableModule::newInt(horizontalAlign);
-    }
-    else if(attribute == "vertical_align"){
-        return VariableModule::newInt(verticalAlign);
-    }
-    else if(attribute == "rotation"){
-        return VariableModule::newDouble(rotation);
-    }
-    cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 unsigned TextModule::getCurrentTabLength(const unsigned & tabCounter){
@@ -2521,150 +2516,50 @@ void printNotNumericalWarning(){
 void printCommandDoesNotExistWarning(){
     cout << "Warning: Command doesn't exist!\n";
 }
-void EditableTextModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "content"){
-        BasePointers.back().setPointer(&content[currentTextIdx]);
-    }
-    else if(attribute == "current_text_id"){
-        BasePointers.back().setPointer(&currentTextIdx);
-    }
-    else if(attribute == "font_id"){
-        BasePointers.back().setPointer(&fontID);
-    }
-    else if(attribute == "color_r"){
-        BasePointers.back().setPointer(&color.r);
-    }
-    else if(attribute == "color_g"){
-        BasePointers.back().setPointer(&color.g);
-    }
-    else if(attribute == "color_b"){
-        BasePointers.back().setPointer(&color.b);
-    }
-    else if(attribute == "color_a"){
-        BasePointers.back().setPointer(&color.a);
-    }
-    else if(attribute == "wrapped"){
-        BasePointers.back().setPointer(&wrapped);
-    }
-    else if(attribute == "horizontal_align"){
-        BasePointers.back().setPointer(&horizontalAlign);
-    }
-    else if(attribute == "vertical_align"){
-        BasePointers.back().setPointer(&verticalAlign);
-    }
-    else if(attribute == "rotation"){
-        BasePointers.back().setPointer(&rotation);
-    }
-    else if(attribute == "can_be_edited"){
-        BasePointers.back().setPointer(&canBeEdited);
-    }
-    else if(attribute == "editing_is_active"){
-        BasePointers.back().setPointer(&editingIsActive);
-    }
-    else if(attribute == "can_use_space"){
-        BasePointers.back().setPointer(&canUseSpace);
-    }
-    else if(attribute == "can_use_enter"){
-        BasePointers.back().setPointer(&canUseEnter);
-    }
-    else if(attribute == "is_numerical"){
-        BasePointers.back().setPointer(&isNumerical);
-    }
-    else if(attribute == "has_floating_point"){
-        BasePointers.back().setPointer(&hasFloatingPoint);
-    }
-    else if(attribute == "can_clear_content_after_success"){
-        BasePointers.back().setPointer(&canClearContentAfterSuccess);
-    }
-    else if(attribute == "min_content_size"){
-        BasePointers.back().setPointer(&minContentSize);
-    }
-    else if(attribute == "max_content_size"){
-        BasePointers.back().setPointer(&maxContentSize);
-    }
-    else if(attribute == "connected_object"){
-        BasePointers.back().setPointer(&connectedObject);
-    }
-    else if(attribute == "connected_group"){
-        BasePointers.back().setPointer(&connectedGroup);
-    }
-    else if(attribute == "affected_module"){
-        BasePointers.back().setPointer(&connectedModule);
-    }
-    else if(attribute == "connected_module_id"){
-        BasePointers.back().setPointer(&connectedModuleID);
-    }
-    else if(attribute == "affected_variable"){
-        BasePointers.back().setPointer(&connectedVariable);
-    }
-    else if(attribute == "protected_area"){
-        BasePointers.back().setPointer(&protectedArea);
-    }
-    else{
-        getPrimaryContext(attribute, BasePointers);
-    }
-}
-VariableModule EditableTextModule::getAttributeValue(const string &attribute, const string &detail) const{
-    if(attribute == "id"){
-        return VariableModule::newString(ID);
-    }
-    else if(attribute == "pos_x"){
-        return VariableModule::newDouble(pos.x);
-    }
-    else if(attribute == "pos_y"){
-        return VariableModule::newDouble(pos.y);
-    }
-    else if(attribute == "size_x"){
-        return VariableModule::newDouble(size.x);
-    }
-    else if(attribute == "size_y"){
-        return VariableModule::newDouble(size.y);
-    }
-    else if(attribute == "in_group"){
-        return VariableModule::newBool(isInAGroup(detail));
-    }
-    else if(attribute == "content"){
-        return VariableModule::newString(getCurrentContent());
-    }
-    else if(attribute == "current_text_id"){
-        return VariableModule::newInt(currentTextIdx);
-    }
-    else if(attribute == "font_id"){
-        return VariableModule::newString(getCurrentContent());
-    }
-    else if(attribute == "color_r"){
-        return VariableModule::newDouble(color.r);
-    }
-    else if(attribute == "color_g"){
-        return VariableModule::newDouble(color.g);
-    }
-    else if(attribute == "color_b"){
-        return VariableModule::newDouble(color.b);
-    }
-    else if(attribute == "color_a"){
-        return VariableModule::newDouble(color.a);
-    }
-    else if(attribute == "wrapped"){
-        return VariableModule::newInt(wrapped);
-    }
-    else if(attribute == "horizontal_align"){
-        return VariableModule::newInt(horizontalAlign);
-    }
-    else if(attribute == "vertical_align"){
-        return VariableModule::newInt(verticalAlign);
-    }
-    else if(attribute == "rotation"){
-        return VariableModule::newDouble(rotation);
-    }
-    else if(attribute == "can_be_edited"){
-        return VariableModule::newBool(getCanBeEdited());
-    }
-    else if(attribute == "editing"){
-        return VariableModule::newBool(getEditingIsActive());
-    }
-    else if(attribute == "protected_area"){
-        return VariableModule::newInt(protectedArea);
+VariableModule EditableTextModule::getAttributeValue(const AttributeType &attribute, const string &detail) const{
+    switch(attribute){
+        case id:
+            return VariableModule::newString(ID);
+        case pos_x:
+            return VariableModule::newDouble(pos.x);
+        case pos_y:
+            return VariableModule::newDouble(pos.y);
+        case size_x:
+            return VariableModule::newDouble(size.x);
+        case size_y:
+            return VariableModule::newDouble(size.y);
+        case in_group:
+            return VariableModule::newBool(isInAGroup(detail));
+        case AttributeType::content:
+            return VariableModule::newString(getCurrentContent());
+        case current_text_id:
+            return VariableModule::newInt(currentTextIdx);
+        case font_id:
+            return VariableModule::newString(getCurrentContent());
+        case color_r:
+            return VariableModule::newDouble(color.r);
+        case color_g:
+            return VariableModule::newDouble(color.g);
+        case color_b:
+            return VariableModule::newDouble(color.b);
+        case color_a:
+            return VariableModule::newDouble(color.a);
+        case AttributeType::wrapped:
+            return VariableModule::newInt(wrapped);
+        case horizontal_align:
+            return VariableModule::newInt(horizontalAlign);
+        case vertical_align:
+            return VariableModule::newInt(verticalAlign);
+        case AttributeType::rotation:
+            return VariableModule::newDouble(rotation);
+        case can_be_edited:
+            return VariableModule::newBool(getCanBeEdited());
+        case editing:
+            return VariableModule::newBool(getEditingIsActive());
+        case protected_area:
+            return VariableModule::newInt(protectedArea);
+        default:
+            break;
     }
 
     cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";

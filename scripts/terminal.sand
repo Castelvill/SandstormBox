@@ -29,7 +29,7 @@ start runAfterInit
 end
 
 start exitProgram
-    triggers key_pressed
+    triggers on_key_pressed
     if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
     exit
 end
@@ -275,7 +275,7 @@ start selectTextWithMouse
     run moveScrollbarBySelectingText
 end
 start selectTextWithKeys
-    triggers key_pressing
+    triggers on_key_pressing
     index me [0 1] super_editable_text TextField
     access cursorPosY [[TextField cursor_pos_y]]
     index me [0 1] scrollbar Scrollbar
@@ -303,7 +303,7 @@ end
 
 start spawnParticles
     //triggers each_iteration
-    //triggers key_pressing
+    //triggers on_key_pressing
     //if ([any_key_pressing])
     /*index me [0 0] particles Particles
     index me [0 1] super_editable_text TextField
@@ -546,7 +546,7 @@ end
 
 
 start interrupt
-    triggers key_pressed
+    triggers on_key_pressed
     if ([key_pressed KEY_SHIFT] [key_pressed KEY_C] &&)
     
     = program ""
@@ -555,7 +555,7 @@ start interrupt
 end
 
 start autoComplete
-    triggers key_pressed
+    triggers on_key_pressed
     if ([key_pressed KEY_TAB] [program] ["sleep"] == &&)
     index Cameras [0] camera Camera
     run autoComplete1
@@ -698,7 +698,7 @@ end
 
 
 start clearOnShortcut
-    triggers key_pressed
+    triggers on_key_pressed
     if ([program] ["sleep"] == [key_pressed KEY_LCTRL] && [key_pressed KEY_L] &&)
     index Cameras [0] camera Camera
     run clearOnShortcutIfFocused
@@ -730,7 +730,7 @@ end
 
 
 start fs_click false
-    triggers key_pressed
+    triggers on_key_pressed
     if ([key_pressed KEY_F12])
     run setFullscreen
 end
@@ -857,7 +857,7 @@ end
 
 
 start enterCommand
-    triggers key_pressed
+    triggers on_key_pressed
     if ([key_pressed KEY_ENTER] [program] ["sleep"] == &&)
     index Cameras [0] camera Camera
     run enterCommand1
@@ -937,7 +937,7 @@ start forgor
 end
 
 start moveInHistory
-    triggers key_pressed
+    triggers on_key_pressed
     if([program] ["sleep"] ==)
     index Cameras [0] camera Camera
     run upArrow downArrow
@@ -1040,7 +1040,7 @@ start informNonEmptyFileName
 end
 
 start autoUpdateScrollbarForTextEditor
-    triggers key_pressing
+    triggers on_key_pressing
     if([program] ["edit"] ==)
     index me [0 1] super_editable_text EditorTextField
     //fun TextEditor update
@@ -1106,7 +1106,7 @@ start resetTextEditorScrollbar
 end
 
 start textEditorInsert
-    triggers key_pressed
+    triggers on_key_pressed
     if([program] ["edit"] == [key_pressed KEY_LCTRL] && [key_pressed KEY_I] &&)
     first Layers KERNEL KERNEL super_editable_text TextEditor is_editing_active _ isEditing
     run checkIfInsertPressed
@@ -1136,13 +1136,13 @@ start triggerEditorExit
 end
 
 start textEditorExit
-    triggers key_pressed
+    triggers on_key_pressed
     if([program] ["edit"] == [key_pressed KEY_LCTRL] && [key_pressed KEY_Q] &&)
     run triggerEditorExit
 end
 
 start textEditorSave
-    triggers key_pressed
+    triggers on_key_pressed
     if([program] ["edit"] == [key_pressed KEY_LCTRL] && [key_pressed KEY_S] &&)
     index me [0 1] super_editable_text TextEditor
     first TextEditor _ _ _ _ content _ writtenText
@@ -1178,7 +1178,7 @@ start injectFormat
 end
 
 start format
-    triggers key_pressed
+    triggers on_key_pressed
     if([key_pressed KEY_LCTRL] && [key_pressed 5] &&)
     index me [0 0] super_editable_text Terminal
     access cursorPos [[Terminal cursor_pos]]

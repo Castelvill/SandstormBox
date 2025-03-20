@@ -175,110 +175,97 @@ vec2d ScrollbarModule::dragThumbWithMouseWheel(const MouseClass &Mouse){
     thumbPos.y = (scrollShift.y / realScrollingArea.y)*(scrollingArea.y-thumbSize.y);
     return scrollShift;
 }
-void ScrollbarModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "thumbPos_x"){
-        BasePointers.back().setPointer(&thumbPos.x);
-    }
-    else if(attribute == "thumbPos_y"){
-        BasePointers.back().setPointer(&thumbPos.y);
-    }
-    else if(attribute == "thumbSize_x"){
-        BasePointers.back().setPointer(&thumbSize.x);
-    }
-    else if(attribute == "thumbSize_y"){
-        BasePointers.back().setPointer(&thumbSize.y);
-    }
-    else if(attribute == "scrollingArea_x"){
-        BasePointers.back().setPointer(&scrollingArea.x);
-    }
-    else if(attribute == "scrollingArea_y"){
-        BasePointers.back().setPointer(&scrollingArea.y);
-    }
-    else if(attribute == "realScrollingArea_x"){
-        BasePointers.back().setPointer(&realScrollingArea.x);
-    }
-    else if(attribute == "realScrollingArea_y"){
-        BasePointers.back().setPointer(&realScrollingArea.y);
-    }
-    else if(attribute == "dragStartingPos_x"){
-        BasePointers.back().setPointer(&dragStartingPos.x);
-    }
-    else if(attribute == "dragStartingPos_y"){
-        BasePointers.back().setPointer(&dragStartingPos.y);
-    }
-    else if(attribute == "thumbImageID"){
-        BasePointers.back().setPointer(&thumbImageID);
-    }
-    else if(attribute == "trackImageID"){
-        BasePointers.back().setPointer(&trackImageID);
-    }
-    else{
-        BasePointers.pop_back();
-        getPrimaryContext(attribute, BasePointers);
+void ScrollbarModule::getContext(AttributeType attribute, vector<BasePointersStruct> &BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    switch(attribute){
+        case thumb_pos_x:
+            BasePointers.back().setPointer(&thumbPos.x);
+            return;
+        case thumb_pos_y:
+            BasePointers.back().setPointer(&thumbPos.y);
+            return;
+        case thumb_size_x:
+            BasePointers.back().setPointer(&thumbSize.x);
+            return;
+        case thumb_size_y:
+            BasePointers.back().setPointer(&thumbSize.y);
+            return;
+        case scrolling_area_x:
+            BasePointers.back().setPointer(&scrollingArea.x);
+            return;
+        case scrolling_area_y:
+            BasePointers.back().setPointer(&scrollingArea.y);
+            return;
+        case real_scrolling_area_x:
+            BasePointers.back().setPointer(&realScrollingArea.x);
+            return;
+        case real_scrolling_area_y:
+            BasePointers.back().setPointer(&realScrollingArea.y);
+            return;
+        case drag_starting_pos_x:
+            BasePointers.back().setPointer(&dragStartingPos.x);
+            return;
+        case drag_starting_pos_y:
+            BasePointers.back().setPointer(&dragStartingPos.y);
+            return;
+        case AttributeType::thumb_image_id:
+            BasePointers.back().setPointer(&thumbImageID);
+            return;
+        case AttributeType::track_image_id:
+            BasePointers.back().setPointer(&trackImageID);
+            return;
+        default:
+            BasePointers.pop_back();
+            getPrimaryContext(attribute, BasePointers);
+            return;
     }
 }
-VariableModule ScrollbarModule::getValue(const string &attribute, EventDescription EventIds) const{
-    if(attribute == "scroll_shift_x"){
-        return VariableModule::newDouble(scrollShift.x);
-    }
-    if(attribute == "scroll_shift_y"){
-        return VariableModule::newDouble(scrollShift.y);
-    }
-    if(attribute == "pos_x"){
-        return VariableModule::newDouble(pos.x);
-    }
-    if(attribute == "pos_y"){
-        return VariableModule::newDouble(pos.y);
-    }
-    if(attribute == "size_x"){
-        return VariableModule::newDouble(size.x);
-    }
-    if(attribute == "size_y"){
-        return VariableModule::newDouble(size.y);
-    }
-    if(attribute == "thumb_pos_x"){
-        return VariableModule::newDouble(thumbPos.x);
-    }
-    if(attribute == "thumb_pos_y"){
-        return VariableModule::newDouble(thumbPos.y);
-    }
-    if(attribute == "thumb_size_x"){
-        return VariableModule::newDouble(thumbSize.x);
-    }
-    if(attribute == "thumb_size_y"){
-        return VariableModule::newDouble(thumbSize.y);
-    }
-    if(attribute == "scrolling_area_x"){
-        return VariableModule::newDouble(scrollingArea.x);
-    }
-    if(attribute == "scrolling_area_y"){
-        return VariableModule::newDouble(scrollingArea.y);
-    }
-    if(attribute == "real_scrolling_area_x"){
-        return VariableModule::newDouble(realScrollingArea.x);
-    }
-    if(attribute == "real_scrolling_area_y"){
-        return VariableModule::newDouble(realScrollingArea.y);
-    }
-    if(attribute == "drag_starting_pos_x"){
-        return VariableModule::newDouble(dragStartingPos.x);
-    }
-    if(attribute == "drag_starting_pos_y"){
-        return VariableModule::newDouble(dragStartingPos.y);
-    }
-    if(attribute == "can_be_drawn"){
-        return VariableModule::newBool(canBeDrawn);
-    }
-    if(attribute == "mouse_pressed"){
-        return VariableModule::newBool(mousePressed);
-    }
-    if(attribute == "mouse_wheel_speed"){
-        return VariableModule::newDouble(mouseWheelSpeed);
+VariableModule ScrollbarModule::getValue(const AttributeType &attribute, const InstrDescription & CurrentInstr) const{
+    switch(attribute){
+        case scroll_shift_x:
+            return VariableModule::newDouble(scrollShift.x);
+        case scroll_shift_y:
+            return VariableModule::newDouble(scrollShift.y);
+        case pos_x:
+            return VariableModule::newDouble(pos.x);
+        case pos_y:
+            return VariableModule::newDouble(pos.y);
+        case size_x:
+            return VariableModule::newDouble(size.x);
+        case size_y:
+            return VariableModule::newDouble(size.y);
+        case thumb_pos_x:
+            return VariableModule::newDouble(thumbPos.x);
+        case thumb_pos_y:
+            return VariableModule::newDouble(thumbPos.y);
+        case thumb_size_x:
+            return VariableModule::newDouble(thumbSize.x);
+        case thumb_size_y:
+            return VariableModule::newDouble(thumbSize.y);
+        case scrolling_area_x:
+            return VariableModule::newDouble(scrollingArea.x);
+        case scrolling_area_y:
+            return VariableModule::newDouble(scrollingArea.y);
+        case real_scrolling_area_x:
+            return VariableModule::newDouble(realScrollingArea.x);
+        case real_scrolling_area_y:
+            return VariableModule::newDouble(realScrollingArea.y);
+        case drag_starting_pos_x:
+            return VariableModule::newDouble(dragStartingPos.x);
+        case drag_starting_pos_y:
+            return VariableModule::newDouble(dragStartingPos.y);
+        case can_be_drawn:
+            return VariableModule::newBool(canBeDrawn);
+        case mouse_pressed_a:
+            return VariableModule::newBool(mousePressed);
+        case mouse_wheel_speed:
+            return VariableModule::newDouble(mouseWheelSpeed);
+        default:
+            break;
     }
     
-    cerr << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
-        << ": Attribute '" << attribute << "' is not valid.\n";
+    cerr << instructionError(CurrentInstr, __FUNCTION__)
+        << "Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 vec2d ScrollbarModule::getThumbPos(){

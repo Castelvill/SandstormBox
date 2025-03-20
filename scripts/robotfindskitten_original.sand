@@ -1,0 +1,117 @@
+start onInit
+    triggers on_init
+    start_timer "fullProgramTimer"
+    
+    var SCREEN_W 640
+    var SCREEN_H 480
+    create_display SCREEN_W SCREEN_H SCREEN_W SCREEN_H
+
+    var GAME_MAP_W 70
+    var GAME_MAP_H 22
+    var GAME_MAP_SIZE GAME_MAP_W
+    *= GAME_MAP_SIZE GAME_MAP_H
+    print _ _ GAME_MAP_SIZE "\n"
+    var MAX_ITEMS 200
+
+    fun me set_can_be_selected false
+
+    new camera 1 "Camera" Camera
+    //fun Camera set_active true
+    fun Camera resize SCREEN_W SCREEN_H
+    fun Camera set_zoom 1.0
+    fun Camera set_speed 0
+    fun Camera add_visible_layer "KERNEL"
+    fun Camera add_accessible_layer "KERNEL"
+    fun Camera set_tint 1.0 1.0 1.0 1.0
+    fun Camera set_is_vision_affected_by_mouse false
+    fun Camera set_can_zoom_with_mouse false
+    fun Camera set_can_move_with_keyboard false
+    fun Camera set_can_zoom_with_keyboard false
+    fun Camera set_drawing_borders false
+    fun Camera focus
+
+    load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
+
+    new super_text me 1 "TextField" TextField
+    fun TextField set_size SCREEN_W SCREEN_H
+    fun TextField add_format "cascadia_code" 1
+    fun TextField set_last_color 0.8 0.8 0.8 1.0
+    fun TextField set_last_accent_color 0.5 0.5 0.5 1.0
+    fun TextField set_wrapping "w"
+    fun TextField set_content "robotfindskitten v1600005.334b\nBy the illustrious Leonard Richardson (C) 1997, 2000\nWritten originally for the Nerth Pork robotfindskitten contest\n\nIn this game, you are robot (#). Your job is to find kitten. This task\nis complicated by the existence of various things which are not kitten.\nRobot must touch items to determine if they are kitten or not. The game\nends when robotfindskitten. Alternatively, you may end the game by hitting\nthe Esc key. See the documentation for more information.\n\nPress any key to start"
+    fun TextField update
+
+    var gameState 0
+
+    var counter 0
+
+    var playerX 0
+    var playerY 0
+    vec int nonKittenPos
+end
+
+start eachIteration
+    //triggers on_key_pressed
+    triggers each_iteration
+    index me [0 0] super_text TextField
+    run startGame()
+    run drawScene(TextField)
+end
+
+start startGame 
+    if([gameState] [0] ==)
+    = gameState 1
+    int index 0
+    fun nonKittenPos clear
+    run generateItems(index)
+end
+
+loop generateItems(int & index)
+    if([index] [MAX_ITEMS] <)
+    random_int 0 GAME_MAP_SIZE randomPos
+    fun nonKittenPos push_back randomPos
+    ++ index
+end
+
+start drawScene(super_editable_text & TextField)
+    if([gameState] [1] ==)
+    fun TextField set_content "robotfindskitten v1600005.334b\n\n_______________________________________________________________________"
+    int index -1
+    run drawItems(TextField, index)
+after
+    print _ _ counter "\n"
+    fun TextField set_size SCREEN_W SCREEN_H
+    fun TextField update
+    stop_timer "fullProgramTimer" seconds
+    print _ _ "Total time of processing: " seconds "s.\n"
+    exit
+end
+
+loop drawItems(super_editable_text & TextField, int & index)
+    if([index] [GAME_MAP_SIZE] <)
+    ++ index
+    int item 0
+    bool hit false
+    run checkItems(TextField, item, index, hit)
+    run addSpace(TextField, hit)
+end
+
+loop checkItems(super_editable_text & TextField, int & item, int & index, bool & hit)
+    if([item] [MAX_ITEMS] <)
+    index_vec nonKittenPos [0 item] value pos
+    ++ counter
+    ++ item
+    run checkSingleItem(TextField, index, hit, pos)
+end
+
+start checkSingleItem(super_editable_text & TextField, int & index, bool & hit, int & pos)
+    if([pos] [index] ==)
+    fun TextField add_content "X"
+    = hit true
+    break
+end
+
+start addSpace(super_editable_text & TextField, bool & hit)
+    if([hit] !)
+    fun TextField add_content " "
+end

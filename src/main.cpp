@@ -18,12 +18,12 @@ int main(int argc, char* argv[]){
     do{
         Engine.resetState(false);
         for(string file : Engine.inputFiles){
-            Processes.push_back(ProcessClass());
+            Processes.emplace_back(ProcessClass());
             Processes.back().create(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
                 file, "Init0", "KERNEL", "Init", Engine.processIDs);
         }
         for(string initFile : Engine.initFiles){
-            Processes.push_back(ProcessClass());
+            Processes.emplace_back(ProcessClass());
             Processes.back().create(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
                 initFile, "Init0", "KERNEL", "Init", Engine.processIDs);
         }
@@ -74,6 +74,7 @@ int main(int argc, char* argv[]){
             }
         }while(Engine.isRunning());
         for(ProcessClass & Process : Processes){
+            //Process.printProfiler();
             Process.clear();
         }
         Processes.clear();

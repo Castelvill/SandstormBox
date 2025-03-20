@@ -55,8 +55,8 @@ public:
     void cropWidthToText();
     void cropHeightToText();
 
-    VariableModule getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const;
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    VariableModule getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const;
+    void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
     
     void drawFormattedString(string text, vec2d finalPos, size_t lineIdx,
         vector<FormatClass>::iterator Format, bool drawSelection
@@ -143,8 +143,8 @@ public:
     void clone(const SuperEditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
     void clear();
 
-    VariableModule getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const;
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    VariableModule getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const;
+    void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
 
     bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
     void executeOneBackspaceOrCtrlX(char pKey, string text, ALLEGRO_DISPLAY * display, unsigned & leftCursorOnFormatIdx,

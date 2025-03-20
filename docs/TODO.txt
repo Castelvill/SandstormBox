@@ -1,4 +1,45 @@
--Implement optional automatic sorting of objects' drawing order. 
+-IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.
+-Classes should have two uses: templates for objects and user-defined argument types in the function definitions. The second one means that when passing parameters to a function, aside from checking if the context is of "ObjectInst"/"ObjectVec" type, engine additionally compares a new AncestorObject variable "originID" (which can be set during a "clone" instruction) to the user-defined type. If something is incorrect, raise an error.
+-Before adding namespaces, modules and classes/structures think about AncestorObjects and the EventModule vector.
+-Maybe eventID in localContextID should be changed to a "namespace". Namespace could be a path from the main scope to the local scope of the current event. This can allow classes, modules (modules as in other files with private scopes) and functions in functions.
+-Debug (default) mode of compiling should create two memory hash maps: one with address:(namespace,name,ContextClass) pairs and one with namespace+name:address pairs. In release mode the second hash map should be removed. Events should always access variables via their numeric address - strings are BANNED for performance reasones.
+-Create "import filepath" preprocessor instruction - before the assembly of all binded scripts, gather all import statements from subsequent files and put them inside the assemblyQueue vector from the deepest to the and execute those scripts. IMPORTANT: If there are imports in the to-be-imported script execute those deeper imports first.  
+-Fix: Passing variable to a function that takes only a value copies the pointer to this variable. The same probably happens also for other types like vectors etc.
+-You already fixed "after" section ONLY for inline events, do it also for normal events/functions.
+-Improve built-in global variables - instead of hard coding "NULL", "me" and "my_layer", pass them to the event assembly or something.
+-Fix "after" section - it must use the scope of the event's parent (test: afterLocality.sand).
+-FIX: When executing "else.sand", error occurs. It is not connected to rawID. A reference is not turned into a reference.
+-Fix "inline else_0".
+-Fix else statements.
+-Fix: References will not work if several instances of the same event are called. Add a number to each instance's reference id and to children.
+-Change all variable and reference ids into unique numbers / eliminate string concatenation, but first think how would you deal with passing variables to functions.
+-Why is [event][transition][event] reference format needed? 
+-Check the validity of attributes and sources during the compilation comparing translated strings to nulls like in the "triggers" instruction. 
+-Before the event assembly the user should have an option to create a new object and layer that will be used as a destination for the new events. Minimally, in the terminal the "sand" instruction should have a parameter to choose an object and layer names (with the dot syntax) as a destination - if an object or/and layer does not exist, create a new one. OR the "sand" instruction should just use the file name as a name of the new layer and object (or object could have a default name like "main"). ORRRRR you could assemble a new program... inside a new process! WE BUILD THEM FOR A REASON.
+-Check if you can stop and start a process (without a restart meaning the state is preserved and the process is just not iterated through). Maybe you should add something like "ps stop/start/restart/kill [process_number]" to the terminal. 
+-Maybe all objects and layers that are consider to be "main" programs should be part of the "Program"/"Process" group.
+-You should add some kind of a destructor trigger like "on_destroy": when an object is to be deleted, the on_destroy event is executed and all children objects can be also deleted or some finishing code can be executed. Additionally when creating a program, all objects should join a group with a name "proc_[random_unique_number]". Alternativly each program should just be in a seperate layer. 
+-Turn "if (expression)" instruction into a "evaluate output (expression)" and move the if expression to "event<triggers>(expression)", "loop(expression)", "inline_if(expression)" and "inline_loop(expression)" instructions.  
+-Update instructions doc.
+-Copy and update the lookupTable when cloning layers (change only layerID).
+-Test removing events.
+-Fuse "triggers" instruction with event declaration. 
+-Create "fill_with_letter *letter* *red* *green* *blue*" function for the text module.
+-Create "draw_letter *letter* *pos_x* *pos_y* *red* *green* *blue*" function for the text module.
+-Recreate robotfindskitten in sand.
+
+MILESTONE: Resurrect the engine.
+
+-Optimize: For all printOutInstructions' if statements: ALWAYS add text to logs Vector; Add "pop_log(level, output)" "dump_logs(level, output)" and "clear_logs" instructions to the engine; Add printOutInstructions' if statement only in one place in the iteration or better - add priting instructions only in the compilation time if. If project flag CAN_PRINT_INSTRUCTION_INFO is true during the engine compilation, add instruction printing.
+-Create in-engine correctness and speed tests.
+-Create correctness tests in python.
+-If there is a compilation error and some bool like "rollback_on_error" is true, delete all events created during the current compilation like in a transaction. You could also abort the engine if some compilation flag is used.
+-Remove all getters from vector if they are not necessary.
+-Use Shunting Yard Algorithm to convert normal conditional expression to Reverse Polish Notation.
+-Update generateRandomVariable.
+-Implement lazy updates for SuperEditableText::update - calling update method causes only max one real update during the entire frame (so update can happen only once per few iterations). Update happens on the last iteration of the frame and the process keeps the info which text field needs to be updated.
+-Add the event stack trace to the error messages (links to the lines with the "run" instructions). 
+-Upgrade "build" instruction: if the "reset" parameter is false or omitted, do not rebuild scripts marked as "compiled". Mark newly built scripts as "compiled" and reset this flag if the "reset" parameter is true.
 -Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
 -Maybe the "start" instruction could be used inside the existing scope? If it would work, then you could easily create the "if" scope.
@@ -35,7 +76,9 @@ MILESTONE: Improve scripting language.
 
 MILESTONE: Create a new scripting language (a wrapper for the previous one).
 
+-Unit tests: Execute "test_x.sand" and if it's correct, save its output to the file "test_x.out.correct". During the routine testing, save its output to the file "test_x.out" and compare it to "test_x.out.correct". Do it for every test file.
 -Implement the triggers: objects, variables, collision, editables.
+-Implement optional automatic sorting of objects' drawing order based on "automatic_sorting_of_object_drawing_order.txt".
 -Forward errors from the "sh" instruction to the terminal.
 -Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Update documentation: Instructions that use moveOrRename should have a different definition of "output" parameter.
@@ -82,7 +125,7 @@ MILESTONE: Create a new scripting language (a wrapper for the previous one).
 -Add window: Terminal.
 -Add window: Ranger based filesystem. 
 -Add window: Options - shows the list of options/functions of the entity/window, every list item is a button, camera is immobilized, minimizes when mouse is out of focus.
--Add window: Filesystem - displays container for entities (threads, projects, layers, cameras, objects, modules, images, text, etc.). You cannot move camera freely. You can scroll up and down. Right clicking on the entity brings up the Options window. Filesystem has many display mods: list, icons, movable icons (like in old macs, very easy to implement because icons are just objects), tree (like in vs code). You can also open different threads like different partitions, but that might be problematic.
+-Add window: Filesystem - displays container for entities (threads, projects, layers, cameras, objects, modules, images, text, etc.). Cannot move camera freely. You can scroll up and down. Right clicking on the entity brings up the Options window. Filesystem has many display mods: list, icons, movable icons (like in old macs, very easy to implement because icons are just objects), tree (like in vs code). You can also open different threads like different partitions, but that might be problematic.
 -Add window: ImagePlacement - only draws images of a one object, you can move images around, you can also move camera. On technical plane, objects in this window directly correspond/point to images from the chosen object.
 -Add window: CollisionPlacement - gives access to collision borders of a one object, you can move them around, you can also move camera. Aside from borders, window also draws chosen object images. On technical plane, objects in this window directly correspond/point to collision borders and images from the chosen object, but you can only interact with collisions.
 -Add window: EditEntity - custom for every other entity, lists all editable parameters (EditableTexts) and eventual sliders, has up-down scrollbar, camera is immobilized.

@@ -105,7 +105,7 @@ public:
     void removeImage(string imageID);
     void removeImage(unsigned int id);
     void allowSpawning();
-    void getContext(string attribute, vector <BasePointersStruct> & BasePointers);
+    void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
 
     double getEnvironmentX();
     double getEnvironmentY();

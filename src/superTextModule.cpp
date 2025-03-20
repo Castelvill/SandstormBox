@@ -77,17 +77,17 @@ void SuperTextModule::update(){
     //cout.flush();
     
     textLines.clear();
-    textLines.push_back("");
+    textLines.emplace_back("");
     lineWidths.clear();
-    lineWidths.push_back(0);
+    lineWidths.emplace_back(0);
     lineHeights.clear();
-    lineHeights.push_back(0);
+    lineHeights.emplace_back(0);
     lineLengths.clear();
-    lineLengths.push_back(0);
+    lineLengths.emplace_back(0);
     lineStarts.clear();
-    lineStarts.push_back(0);
+    lineStarts.emplace_back(0);
     floatingNewLine.clear();
-    floatingNewLine.push_back(false);
+    floatingNewLine.emplace_back(false);
     realTextSize.set(0.0, 0.0);
     localCursorPos = 0;
     lineWithCursorIdx = 0;
@@ -165,21 +165,21 @@ void SuperTextModule::update(){
             }
 
             textLines.back() += ' ';
-            textLines.push_back("");
+            textLines.emplace_back("");
             
             realTextSize.x = std::max(realTextSize.x, lineWidth);
             lineWidths.back() = lineWidth;
-            lineWidths.push_back(0);
+            lineWidths.emplace_back(0);
             if(Format != Formatting.end() && Format->Font != nullptr
                 && Format->Font->height > lineHeights.back()
             ){
                 lineHeights.back() = Format->Font->height;
             }
-            lineHeights.push_back(0);
+            lineHeights.emplace_back(0);
             lineLengths.back() = lineLength;
-            lineLengths.push_back(0);
+            lineLengths.emplace_back(0);
             lineStarts.push_back(letterIdx + 1);
-            floatingNewLine.push_back(false);
+            floatingNewLine.emplace_back(false);
             lineWidth = 0;
             lineLength = 0;
             realTextSize.y += Format->Font->height;
@@ -208,20 +208,20 @@ void SuperTextModule::update(){
             letterWidth = al_get_text_width(Format->Font->font, string(" ").c_str()); //It's the only way, if you don't want undefined behaviour. 
             if(lineWidth + letterWidth > size.x && (wrapped == 'l' || wrapped == 'w')){
                 currentTabLength = tabLength;
-                textLines.push_back("");
+                textLines.emplace_back("");
                 realTextSize.x = std::max(realTextSize.x, lineWidth);
                 lineWidths.back() = lineWidth;
-                lineWidths.push_back(0);
+                lineWidths.emplace_back(0);
                 if(Format != Formatting.end() && Format->Font != nullptr
                     && Format->Font->height > lineHeights.back()
                 ){
                     lineHeights.back() = Format->Font->height;
                 }
-                lineHeights.push_back(0);
+                lineHeights.emplace_back(0);
                 lineLengths.back() = lineLength;
-                lineLengths.push_back(0);
+                lineLengths.emplace_back(0);
                 lineStarts.push_back(letterIdx);
-                floatingNewLine.push_back(false);
+                floatingNewLine.emplace_back(false);
                 lineWidth = 0;
                 lineLength = 0;
                 realTextSize.y += Format->Font->height;
@@ -246,20 +246,20 @@ void SuperTextModule::update(){
                         //     break;
                         // }
                         //currentTabLength = tabLength;
-                        textLines.push_back("");
+                        textLines.emplace_back("");
                         realTextSize.x = std::max(realTextSize.x, lineWidth);
                         lineWidths.back() = lineWidth;
-                        lineWidths.push_back(0);
+                        lineWidths.emplace_back(0);
                         if(Format != Formatting.end() && Format->Font != nullptr
                             && Format->Font->height > lineHeights.back()
                         ){
                             lineHeights.back() = Format->Font->height;
                         }
-                        lineHeights.push_back(0);
+                        lineHeights.emplace_back(0);
                         lineLengths.back() = lineLength;
-                        lineLengths.push_back(0);
+                        lineLengths.emplace_back(0);
                         lineStarts.push_back(letterIdx + 1);
-                        floatingNewLine.push_back(false);
+                        floatingNewLine.emplace_back(false);
                         lineWidth = 0;
                         lineLength = 0;
                         realTextSize.y += Format->Font->height;
@@ -323,20 +323,20 @@ void SuperTextModule::update(){
                     ignoreLine = true;
                 }
                 else if(wrapped == 'l' || wrapped == 'w'){
-                    textLines.push_back("");
+                    textLines.emplace_back("");
                     realTextSize.x = std::max(realTextSize.x, lineWidth);
                     lineWidths.back() = lineWidth;
-                    lineWidths.push_back(0);
+                    lineWidths.emplace_back(0);
                     if(Format != Formatting.end() && Format->Font != nullptr
                         && Format->Font->height > lineHeights.back()
                     ){
                         lineHeights.back() = Format->Font->height;
                     }
-                    lineHeights.push_back(0);
+                    lineHeights.emplace_back(0);
                     lineLengths.back() = lineLength;
-                    lineLengths.push_back(0);
+                    lineLengths.emplace_back(0);
                     lineStarts.push_back(letterIdx);
-                    floatingNewLine.push_back(false);
+                    floatingNewLine.emplace_back(false);
                     lineWidth = 0;
                     lineLength = 0;
                     realTextSize.y += Format->Font->height;
@@ -413,74 +413,66 @@ void SuperTextModule::cropWidthToText(){
 void SuperTextModule::cropHeightToText(){
     size.y = realTextSize.y;
 }
-VariableModule SuperTextModule::getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const{
-    if(attribute == "pos_x"){
-        return VariableModule::newDouble(pos.x);
-    }
-    if(attribute == "pos_y"){
-        return VariableModule::newDouble(pos.y);
-    }
-    if(attribute == "size_x"){
-        return VariableModule::newDouble(size.x);
-    }
-    if(attribute == "size_y"){
-        return VariableModule::newDouble(size.y);
-    }
-    if(attribute == "in_group"){
-        return VariableModule::newBool(isInAGroup(detail));
-    }
-    if(attribute == "in_group"){
-        return VariableModule::newBool(isInAGroup(detail));
-    }
-    if(attribute == "content"){
-        return VariableModule::newString(content);
-    }
-    if(attribute == "wrapped"){
-        return VariableModule::newInt(wrapped);
-    }
-    if(attribute == "horizontal_align"){
-        return VariableModule::newInt(horizontalAlign);
-    }
-    if(attribute == "vertical_align"){
-        return VariableModule::newInt(verticalAlign);
-    }
-    if(attribute == "rotation"){
-        return VariableModule::newDouble(rotation);
-    }
-    if(attribute == "cursor_pos_x"){
-        return VariableModule::newDouble(lineWidthToCursor);
-    }
-    if(attribute == "cursor_pos_y"){
-        double cursorPixelPosY = 0;
-        for(unsigned lineIdx = 0; lineIdx < lineWithCursorIdx; lineIdx++){
-            cursorPixelPosY += lineHeights[lineIdx];
+VariableModule SuperTextModule::getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const{
+    switch(attribute){
+        case pos_x:
+            return VariableModule::newDouble(pos.x);
+        case pos_y:
+            return VariableModule::newDouble(pos.y);
+        case size_x:
+            return VariableModule::newDouble(size.x);
+        case size_y:
+            return VariableModule::newDouble(size.y);
+        case in_group:
+            return VariableModule::newBool(isInAGroup(detail));
+        case AttributeType::content:
+            return VariableModule::newString(content);
+        case AttributeType::wrapped:
+            return VariableModule::newInt(wrapped);
+        case horizontal_align:
+            return VariableModule::newInt(horizontalAlign);
+        case vertical_align:
+            return VariableModule::newInt(verticalAlign);
+        case AttributeType::rotation:
+            return VariableModule::newDouble(rotation);
+        case cursor_pos_x:
+            return VariableModule::newDouble(lineWidthToCursor);
+        case cursor_pos_y:{
+            double cursorPixelPosY = 0;
+            for(unsigned lineIdx = 0; lineIdx < lineWithCursorIdx; lineIdx++){
+                cursorPixelPosY += lineHeights[lineIdx];
+            }
+            return VariableModule::newDouble(cursorPixelPosY);
         }
-        return VariableModule::newDouble(cursorPixelPosY);
+        default:
+            break;
     }
     
-    cerr << "Error: In " << EventIds.describe() << ": In " << __FUNCTION__
-        << ": Attribute '" << attribute << "' is not valid.\n";
+    cerr << instructionError(CurrentInstr, __FUNCTION__)
+        << "Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
-void SuperTextModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "content"){
-        BasePointers.back().setPointer(&content);
-    }
-    else if(attribute == "wrapped"){
-        BasePointers.back().setPointer(&wrapped);
-    }
-    else if(attribute == "horizontal_align"){
-        BasePointers.back().setPointer(&horizontalAlign);
-    }
-    else if(attribute == "vertical_align"){
-        BasePointers.back().setPointer(&verticalAlign);
-    }
-    else if(attribute == "rotate_angle"){
-        BasePointers.back().setPointer(&rotation);
-    }
-    else{
-        getPrimaryContext(attribute, BasePointers);
+void SuperTextModule::getContext(AttributeType attribute, vector<BasePointersStruct> &BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    switch(attribute){
+        case AttributeType::content:
+            BasePointers.back().setPointer(&content);
+            return;
+        case AttributeType::wrapped:
+            BasePointers.back().setPointer(&wrapped);
+            return;
+        case horizontal_align:
+            BasePointers.back().setPointer(&horizontalAlign);
+            return;
+        case vertical_align:
+            BasePointers.back().setPointer(&verticalAlign);
+            return;
+        case rotate_angle:
+            BasePointers.back().setPointer(&rotation);
+            return;
+        default:
+            getPrimaryContext(attribute, BasePointers);
+            return;
     }
 }
 
@@ -701,7 +693,7 @@ void SuperTextModule::addToTextLine(size_t index, string newLine){
 void SuperTextModule::addFormat(ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
                                 vector<SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit)
 {
-    Formatting.push_back(FormatClass());
+    Formatting.emplace_back(FormatClass());
     Formatting.back().color = newColor;
     Formatting.back().accentColor = newAccentColor;
     Formatting.back().Font = findFontByID(FontContainer, fontID);
@@ -953,7 +945,7 @@ void SuperTextModule::divideFormattingByCursor(){
                     Formatting[formatIdx].limit = cursorBegin - letterIdx;
                     Formatting[formatIdx].drawingLimit = Formatting[formatIdx].limit;
                 }
-                else if(letterIdx == cursorBegin){ ////Format with both cursors, when cursor is on the start of the format
+                else if(letterIdx == cursorBegin){ //Format with both cursors, when cursor is on the start of the format
                     Formatting[formatIdx].selected = true;
                     Formatting[formatIdx].limit = cursorEnd - cursorBegin;
                     Formatting[formatIdx].drawingLimit = Formatting[formatIdx].limit;
@@ -962,7 +954,7 @@ void SuperTextModule::divideFormattingByCursor(){
                     Formatting[formatIdx + 1].drawingLimit = Formatting[formatIdx + 1].limit;
                     break;
                 }
-                else if(letterIdx + Formatting[formatIdx].limit == cursorEnd){ ////Format with both cursors, when cursor is on the end of the format
+                else if(letterIdx + Formatting[formatIdx].limit == cursorEnd){ //Format with both cursors, when cursor is on the end of the format
                     Formatting[formatIdx + 1].selected = true;
                     Formatting[formatIdx + 1].limit = cursorEnd - cursorBegin;
                     Formatting[formatIdx + 1].drawingLimit = Formatting[formatIdx + 1].limit;
@@ -972,6 +964,7 @@ void SuperTextModule::divideFormattingByCursor(){
                     break;
                 }
                 else{ //Format with both cursors.
+                    //cout << Formatting[formatIdx + 2].drawingLimit << " | " << Formatting[formatIdx + 1].drawingLimit << " | " << Formatting[formatIdx].drawingLimit << " -> ";
                     Formatting.insert(Formatting.begin()+formatIdx+2, FormatClass());
                     Formatting[formatIdx + 2] = Formatting[formatIdx];
                     Formatting[formatIdx + 2].limit = letterIdx + Formatting[formatIdx].limit - cursorEnd;
@@ -980,6 +973,8 @@ void SuperTextModule::divideFormattingByCursor(){
                     Formatting[formatIdx + 1].drawingLimit = Formatting[formatIdx + 1].limit;
                     Formatting[formatIdx].limit = cursorBegin - letterIdx;
                     Formatting[formatIdx].drawingLimit = Formatting[formatIdx].limit;
+                    //cout << Formatting[formatIdx + 2].drawingLimit << " | " << Formatting[formatIdx + 1].drawingLimit << " | " << Formatting[formatIdx].drawingLimit << "\n";
+                    //cout.flush();
                     break;
                 }
             }
@@ -1010,10 +1005,13 @@ void SuperTextModule::divideFormattingByCursor(){
     formatIdx = 0;
     Formatting[0].drawingLimit = Formatting[0].limit;
     unsigned line = 0;
-    unsigned currentLineLength = 0, currentTabLength;
+    unsigned currentLineLength = 0, currentTabLength = 0;
     unsigned limit = 0;
     float lineWidth = 0.0;
-    for(letterIdx = 0; letterIdx < content.size(); letterIdx++, currentLineLength++){
+    unsigned contentEnd = content.size();
+
+    //This is the biggest problem
+    for(letterIdx = 0; letterIdx < contentEnd; letterIdx++, currentLineLength++){
         if(line < textLines.size() && letterIdx == lineStarts[line + 1]){
             line++;
             currentLineLength = 0;
@@ -1141,7 +1139,7 @@ void SuperTextModule::loadFormattedTextFromTheFile(string filePath, vector<Singl
         FormattingBuffer.reserve(formattingSize);
         
         for(unsigned formatIdx = 0; formatIdx < formattingSize; formatIdx++){
-            FormattingBuffer.push_back(FormatClass());
+            FormattingBuffer.emplace_back(FormatClass());
 
             FormattingBuffer.back().color.r = cstof(buffer[formatIdx * 14], error);
             if(error.size() > 0){break;};
@@ -1268,149 +1266,134 @@ void SuperEditableTextModule::clear(){
     futureFormatting.clear();
     blockedKeys.clear();
 }
-VariableModule SuperEditableTextModule::getAttributeValue(const string &attribute, const string &detail, EventDescription EventIds) const{
-    if(attribute == "original_content"){
-        if(previousContent.size() > 0){
-            return VariableModule::newString(*previousContent.begin());
-        }
-        return VariableModule::newString(content);
+VariableModule SuperEditableTextModule::getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const{
+    switch(attribute){
+        case original_content:
+            if(previousContent.size() > 0){
+                return VariableModule::newString(*previousContent.begin());
+            }
+            return VariableModule::newString(content);
+        case can_be_edited:
+            return VariableModule::newBool(canBeEdited);
+        case can_use_space:
+            return VariableModule::newBool(canUseSpace);
+        case can_use_enter:
+            return VariableModule::newBool(canUseEnter);
+        case enter_ends_editing:
+            return VariableModule::newBool(enterEndsEditing);
+        case can_use_tabs:
+            return VariableModule::newBool(canUseTabs);
+        case is_numerical:
+            return VariableModule::newBool(isNumerical);
+        case has_floating_point:
+            return VariableModule::newBool(hasFloatingPoint);
+        case ignore_vertical_arrows:
+            return VariableModule::newBool(ignoreVerticalArrows);
+        case ignore_content_restriction:
+            return VariableModule::newBool(ignoreContentRestriction);
+        case is_storing_history:
+            return VariableModule::newBool(isStoringHistory);
+        case min_content_length:
+            return VariableModule::newInt(minContentLength);
+        case max_content_length:
+            return VariableModule::newInt(maxContentLength);
+        case input_delay:
+            return VariableModule::newDouble(inputDelay);
+        case repetition_delay:
+            return VariableModule::newDouble(repetitionDelay);
+        case protected_area:
+            return VariableModule::newInt(protectedArea);
+        case is_editing_active:
+            return VariableModule::newBool(isEditingActive);
+        case cursor_pos:
+            return VariableModule::newInt(cursorPos);
+        case second_cursor_pos:
+            return VariableModule::newInt(secondCursorPos);
+        case min_cursor_pos:
+            return VariableModule::newInt(std::min(cursorPos, secondCursorPos));
+        case max_cursor_pos:
+            return VariableModule::newInt(std::max(cursorPos, secondCursorPos));
+        default:
+            break;
     }
-    if(attribute == "can_be_edited"){
-        return VariableModule::newBool(canBeEdited);
-    }
-    if(attribute == "can_use_space"){
-        return VariableModule::newBool(canUseSpace);
-    }
-    if(attribute == "can_use_enter"){
-        return VariableModule::newBool(canUseEnter);
-    }
-    if(attribute == "enter_ends_editing"){
-        return VariableModule::newBool(enterEndsEditing);
-    }
-    if(attribute == "can_use_tabs"){
-        return VariableModule::newBool(canUseTabs);
-    }
-    if(attribute == "is_numerical"){
-        return VariableModule::newBool(isNumerical);
-    }
-    if(attribute == "has_floating_point"){
-        return VariableModule::newBool(hasFloatingPoint);
-    }
-    if(attribute == "ignore_vertical_arrows"){
-        return VariableModule::newBool(ignoreVerticalArrows);
-    }
-    if(attribute == "ignore_content_restriction"){
-        return VariableModule::newBool(ignoreContentRestriction);
-    }
-    if(attribute == "is_storing_history"){
-        return VariableModule::newBool(isStoringHistory);
-    }
-    if(attribute == "min_content_length"){
-        return VariableModule::newInt(minContentLength);
-    }
-    if(attribute == "max_content_length"){
-        return VariableModule::newInt(maxContentLength);
-    }
-    if(attribute == "input_delay"){
-        return VariableModule::newDouble(inputDelay);
-    }
-    if(attribute == "repetition_delay"){
-        return VariableModule::newDouble(repetitionDelay);
-    }
-    if(attribute == "protected_area"){
-        return VariableModule::newInt(protectedArea);
-    }
-    if(attribute == "is_editing_active"){
-        return VariableModule::newBool(isEditingActive);
-    }
-    if(attribute == "cursor_pos"){
-        return VariableModule::newInt(cursorPos);
-    }
-    if(attribute == "second_cursor_pos"){
-        return VariableModule::newInt(secondCursorPos);
-    }
-    if(attribute == "min_cursor_pos"){
-        return VariableModule::newInt(std::min(cursorPos, secondCursorPos));
-    }
-    if(attribute == "max_cursor_pos"){
-        return VariableModule::newInt(std::max(cursorPos, secondCursorPos));
-    }
-    return SuperTextModule::getAttributeValue(attribute, detail, EventIds);
+    return SuperTextModule::getAttributeValue(attribute, detail, CurrentInstr);
 }
-void SuperEditableTextModule::getContext(string attribute, vector<BasePointersStruct> &BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "test"){
-        BasePointers.back().setPointer(&content);
-    }
-    if(attribute == "original_content"){
-        if(previousContent.size() > 0){
-            BasePointers.back().setPointer(&previousContent[0]);
-        }
-        else{
+void SuperEditableTextModule::getContext(AttributeType attribute, vector<BasePointersStruct> &BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    switch(attribute){
+        case AttributeType::content:
             BasePointers.back().setPointer(&content);
-        }
-        BasePointers.back().readOnly = true;
-    }
-    else if(attribute == "can_be_edited"){
-        BasePointers.back().setPointer(&canBeEdited);
-    }
-    else if(attribute == "can_use_space"){
-        BasePointers.back().setPointer(&canUseSpace);
-    }
-    else if(attribute == "can_use_enter"){
-        BasePointers.back().setPointer(&canUseEnter);
-    }
-    else if(attribute == "enter_ends_editing"){
-        BasePointers.back().setPointer(&enterEndsEditing);
-    }
-    else if(attribute == "can_use_tabs"){
-        BasePointers.back().setPointer(&canUseTabs);
-    }
-    else if(attribute == "is_numerical"){
-        BasePointers.back().setPointer(&isNumerical);
-    }
-    else if(attribute == "has_floating_point"){
-        BasePointers.back().setPointer(&hasFloatingPoint);
-    }
-    else if(attribute == "ignore_vertical_arrows"){
-        BasePointers.back().setPointer(&ignoreVerticalArrows);
-    }
-    else if(attribute == "ignore_content_restriction"){
-        BasePointers.back().setPointer(&ignoreContentRestriction);
-    }
-    else if(attribute == "is_storing_history"){
-        BasePointers.back().setPointer(&isStoringHistory);
-    }
-    else if(attribute == "min_content_length"){
-        BasePointers.back().setPointer(&minContentLength);
-    }
-    else if(attribute == "max_content_length"){
-        BasePointers.back().setPointer(&maxContentLength);
-    }
-    else if(attribute == "input_delay"){
-        BasePointers.back().setPointer(&inputDelay);
-    }
-    else if(attribute == "repetition_delay"){
-        BasePointers.back().setPointer(&repetitionDelay);
-    }
-    else if(attribute == "protected_area"){
-        BasePointers.back().setPointer(&protectedArea);
-    }
-    else if(attribute == "is_editing_active"){
-        BasePointers.back().setPointer(&isEditingActive);
-        BasePointers.back().readOnly = true;
-    }
-    else if(attribute == "cursor_pos"){
-        BasePointers.back().setPointer(&cursorPos);
-        BasePointers.back().readOnly = true;
-    }
-    else if(attribute == "second_cursor_pos"){
-        BasePointers.back().setPointer(&secondCursorPos);
-        BasePointers.back().readOnly = true;
-    }
-    else{
-        BasePointers.pop_back();
-        SuperTextModule::getContext(attribute, BasePointers);
+            return;
+        case original_content:
+            if(previousContent.size() > 0){
+                BasePointers.back().setPointer(&previousContent[0]);
+            }
+            else{
+                BasePointers.back().setPointer(&content);
+            }
+            BasePointers.back().readOnly = true;
+            return;
+        case can_be_edited:
+            BasePointers.back().setPointer(&canBeEdited);
+            return;
+        case can_use_space:
+            BasePointers.back().setPointer(&canUseSpace);
+            return;
+        case can_use_enter:
+            BasePointers.back().setPointer(&canUseEnter);
+            return;
+        case enter_ends_editing:
+            BasePointers.back().setPointer(&enterEndsEditing);
+            return;
+        case can_use_tabs:
+            BasePointers.back().setPointer(&canUseTabs);
+            return;
+        case is_numerical:
+            BasePointers.back().setPointer(&isNumerical);
+            return;
+        case has_floating_point:
+            BasePointers.back().setPointer(&hasFloatingPoint);
+            return;
+        case ignore_vertical_arrows:
+            BasePointers.back().setPointer(&ignoreVerticalArrows);
+            return;
+        case ignore_content_restriction:
+            BasePointers.back().setPointer(&ignoreContentRestriction);
+            return;
+        case is_storing_history:
+            BasePointers.back().setPointer(&isStoringHistory);
+            return;
+        case min_content_length:
+            BasePointers.back().setPointer(&minContentLength);
+            return;
+        case max_content_length:
+            BasePointers.back().setPointer(&maxContentLength);
+            return;
+        case input_delay:
+            BasePointers.back().setPointer(&inputDelay);
+            return;
+        case repetition_delay:
+            BasePointers.back().setPointer(&repetitionDelay);
+            return;
+        case protected_area:
+            BasePointers.back().setPointer(&protectedArea);
+            return;
+        case is_editing_active:
+            BasePointers.back().setPointer(&isEditingActive);
+            BasePointers.back().readOnly = true;
+            return;
+        case cursor_pos:
+            BasePointers.back().setPointer(&cursorPos);
+            BasePointers.back().readOnly = true;
+            return;
+        case second_cursor_pos:
+            BasePointers.back().setPointer(&secondCursorPos);
+            BasePointers.back().readOnly = true;
+            return;
+        default:
+            BasePointers.pop_back();
+            SuperTextModule::getContext(attribute, BasePointers);
+            return;
     }
 }
 bool SuperEditableTextModule::prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control){
@@ -2300,7 +2283,7 @@ bool SuperEditableTextModule::isCursorOnTheLastLine(bool shift, unsigned & leftC
             Formatting.back().selected = true;
         }
         else{
-            Formatting.push_back(FormatClass());
+            Formatting.emplace_back(FormatClass());
             Formatting.back() = Formatting[Formatting.size() - 2];
             Formatting.back().limit = 1;
             Formatting.back().selected = true;
@@ -2580,7 +2563,7 @@ void SuperEditableTextModule::moveCursorToLeftByOne(bool shift, unsigned & leftC
                     Formatting[rightCursorOnFormatIdx + 1].selected = false;
                 }
                 else{
-                    Formatting.push_back(FormatClass());
+                    Formatting.emplace_back(FormatClass());
                     Formatting[rightCursorOnFormatIdx + 1] = Formatting[rightCursorOnFormatIdx];
                     Formatting[rightCursorOnFormatIdx + 1].limit = 1;
                     Formatting[rightCursorOnFormatIdx + 1].selected = false;
@@ -2649,7 +2632,7 @@ void SuperEditableTextModule::moveCursorToRightByOne(bool shift, unsigned & left
         }
         else{
             if(Formatting.back().limit > 1){
-                Formatting.push_back(FormatClass());
+                Formatting.emplace_back(FormatClass());
                 Formatting.back() = Formatting[rightCursorOnFormatIdx];
                 Formatting.back().limit = 1;
                 Formatting[rightCursorOnFormatIdx].limit--;

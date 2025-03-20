@@ -92,7 +92,7 @@ short translateToAllegroKey(char key){
     return 128;
 }
 
-bool isStringInGroup(string text, int count, ...){
+bool isStringInGroup(const string & text, int count, ...){
     va_list args;
     va_start(args, count);
     for (int i = 0; i < count; i++){

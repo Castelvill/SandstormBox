@@ -58,7 +58,7 @@ void CollisionModule::clone(const CollisionModule &Original, vector<string> &lis
 void CollisionModule::detectOverlaping(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum){
     //Check if object is in other object
     if(areObjectsOverlaping(solidPos, solidSize, pos + movPos, size)){
-        Detected.push_back({solidID, collisionID, 4, momentum});
+        Detected.emplace_back(DetectedCollision{solidID, collisionID, 4, momentum});
     }
 }
 
@@ -68,7 +68,7 @@ void CollisionModule::detectCollision(string solidID, string collisionID, vec2d 
 
     //Check if object is in other object, if yes, then don't worry about it
     if(areObjectsOverlaping(solidPos, solidSize, mPos, size)){
-        Detected.push_back({solidID, collisionID, 4, momentum});
+        Detected.emplace_back(DetectedCollision{solidID, collisionID, 4, momentum});
         return;
     }
 
@@ -87,7 +87,7 @@ void CollisionModule::detectCollision(string solidID, string collisionID, vec2d 
     if(areObjectsOverlaping(solidPos, solidSize, vec2d(mPos2.x, mPos.y), size)){
         momentum.x = countMinimalDistanceBetween(solidPos, solidSize, mPos, size, 0.1).x;
         momentum.y = 0;
-        Detected.push_back({solidID, collisionID, 1, momentum});
+        Detected.emplace_back(DetectedCollision{solidID, collisionID, 1, momentum});
         return;
     }
 
@@ -95,7 +95,7 @@ void CollisionModule::detectCollision(string solidID, string collisionID, vec2d 
     if(areObjectsOverlaping(solidPos, solidSize, vec2d(mPos.x, mPos2.y), size)){
         momentum.x = 0;
         momentum.y = countMinimalDistanceBetween(solidPos, solidSize, mPos, size, 0.1).y;
-        Detected.push_back({solidID, collisionID, 2, momentum});
+        Detected.emplace_back(DetectedCollision{solidID, collisionID, 2, momentum});
         return;
     }
 
@@ -103,7 +103,7 @@ void CollisionModule::detectCollision(string solidID, string collisionID, vec2d 
     if(areObjectsOverlaping(solidPos, solidSize, mPos2, size)){
         momentum.x = countMinimalDistanceBetween(solidPos, solidSize, mPos, size, 0.1).x;
         momentum.y = countMinimalDistanceBetween(solidPos, solidSize, mPos, size, 0.1).y;
-        Detected.push_back({solidID, collisionID, 3, momentum});
+        Detected.emplace_back(DetectedCollision{solidID, collisionID, 3, momentum});
     }
 }
 vec2d CollisionModule::countMinimalDistanceBetween(vec2d sPos, vec2d sSize, vec2d mPos, vec2d mSize, double precision){
@@ -268,13 +268,13 @@ void CollisionModule::removeImaginaryCollisions(){
         }
     }
 }
-void CollisionModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    if(attribute == "is_solid"){
-        BasePointers.push_back(BasePointersStruct());
+void CollisionModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
+    if(attribute == is_solid){
+        BasePointers.emplace_back(BasePointersStruct());
         BasePointers.back().setPointer(&isSolid);
     }
-    else if(attribute == "can_penetrate_solids"){
-        BasePointers.push_back(BasePointersStruct());
+    else if(attribute == can_penetrate_solids){
+        BasePointers.emplace_back(BasePointersStruct());
         BasePointers.back().setPointer(&canPenetrateSolids);
     }
     else{

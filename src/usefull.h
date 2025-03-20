@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iterator>
 #include <filesystem>
+#include <signal.h>
 #include "vectors.h"
 
 using std::string;
@@ -24,7 +25,7 @@ int randomInt(int minValue, int maxValue);
 float randomFloat(float minValue, float maxValue);
 double randomDouble(double minValue, double maxValue);
 short translateToAllegroKey(char key);
-bool isStringInGroup(string ID, int count, ...);
+bool isStringInGroup(const string & ID, int count, ...);
 bool isCharInGroup(char ID, int count, ...);
 bool stringToBool(string text);
 

@@ -4,7 +4,7 @@
 
 **Syntax**
 
-start *id* [loop] [override] [scope]
+start *id* [loop] [override]
 
 **Description**
 
@@ -14,14 +14,27 @@ start *id* [loop] [override] [scope]
 
 - id (variable) - a name for the new event,
 - [loop] (bool) - if true, the new event will be executed in every iteration of the parent process,
-- [override] (bool) - if true, the new event will override an existing event with the same id,
-- [scope] (variable vector) - NOT-IMPLEMENTED - if equal to "_", nothing changes, otherwise this new event will become a function: its context vector will be set to [scope].
+- [override] (bool) - if true, the new event will override an existing event with the same id.
 
 ## end
 
 **Description**
 
     Close the instruction scope for the current event.
+
+## inline
+
+**Syntax**
+
+inline *id*
+
+**Description**
+
+    Start the instruction scope for the new event.
+
+**Parameters:**
+
+- id (variable) - a name for the new event.
 
 ## breakpoint
 
@@ -243,7 +256,7 @@ difference *left* *right* [output]
 
 **Syntax**
 
-access *output* [*sources*]
+access *output* [[*source*] ...]
 
 **Description**
 
@@ -252,7 +265,7 @@ access *output* [*sources*]
 **Parameters**
 
 - output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id;
-- sources (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", "booting", “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "display_resized", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
+- source (variable) - location of a value or a literal. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", "booting", “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "display_resized", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
 
 ## bool / int / double / string
 
@@ -549,7 +562,7 @@ build *objects* [reset] [do_not_preserve]
 **Parameters**
 
 - objects (variable) - id of the context with objects intended for event building;
-- [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
+- [reset] (variable / bool) - false by default. If true, before creating new events instruction removes all events from provided objects;
 - [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
 
 ## build_subset
@@ -646,7 +659,7 @@ env *attribute* *value* [value]
 
 **Parameters**
 
-- attribute (variable): window_title, display_size, fullscreen, pixel_art, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, reservation_multiplier - the name of the variable selected for modification;
+- attribute (variable): window_title, display_size, fullscreen, pixel_art, draw_text_borders, draw_hitboxes, ignore_distant, draw_only_visible, bitmap_layers_number, print_logical_evaluations, print_instructions, reservation_multiplier, can_afk_timeout, afk_timeout_time, can_exit_on_idle - the name of the variable selected for modification;
 - value (variable / any literal) - a new value for the selected attribute.
 
 ## edit_proc
@@ -886,7 +899,7 @@ var *output* *value*
 
 **Syntax**
 
-vec *type* *output* *values*
+vec *type* *output* [values]
 
 **Description**
 
@@ -896,7 +909,7 @@ vec *type* *output* *values*
 
 - type (variable): bool, int, double, string;
 - output (variable) - id of the new variable and a new context;
-- values (variable / variable vector / any literal vector).
+- [values] (variable / variable vector / any literal vector).
 
 ## tokenize
 
@@ -1042,6 +1055,7 @@ count *pattern* *text* [output]
 - text (variable / string);
 - [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
+
 ## console_input
 
 **Syntax**
@@ -1056,3 +1070,66 @@ console_input [output]
 
 - [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
 
+
+## start_timer
+
+**Syntax**
+
+start_timer *name*
+
+**Description**
+
+    Start the timer with the provided name.
+
+**Parameters**
+
+- name (variable / string) - name for the new timer.
+
+
+## stop_timer
+
+**Syntax**
+
+stop_timer *name* [output]
+
+**Description**
+
+    Stop the timer with the provided name.
+
+**Parameters**
+
+- name (variable / string) - name for the new timer,
+- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+
+
+## assert
+
+**Syntax**
+
+assert *left* *right*
+
+**Description**
+
+    If the left value is not equal to the right value return an error and exit the engine.
+
+**Parameters**
+
+- left (variable / any literal) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- right (variable / any literal) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
+- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+
+
+## type
+
+**Syntax**
+
+type *variable* *output*
+
+**Description**
+
+    Set output to the type of the input variable as a string value.
+
+**Parameters**
+
+- variable (variable) - id of the context;
+- output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.

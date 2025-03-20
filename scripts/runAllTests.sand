@@ -1,0 +1,22 @@
+start testRunnerEvent
+    triggers on_init
+    env can_exit_on_idle 1
+    edit_proc print_instructions 0
+    
+    new object my_layer 1 "TestVariables" TestVariables
+    bind TestVariables ["tests/variables.sand"]
+    build TestVariables true
+
+    new object my_layer 1 "TestAssert" TestAssert
+    bind TestAssert ["tests/assert.sand"]
+    build TestAssert true
+
+    new object my_layer 1 "TestAfterLocality" TestAfterLocality
+    bind TestAfterLocality ["tests/afterLocality.sand"]
+    build TestAfterLocality true
+
+    new object my_layer 1 "TestPassingReferences" TestPassingReferences
+    bind TestPassingReferences ["tests/passingReferences.sand"]
+    build TestPassingReferences true
+end
+

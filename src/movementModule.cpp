@@ -597,182 +597,184 @@ void MovementModule::bindKeys(short newUpKey, short newRightKey, short newDownKe
 void MovementModule::bindMouseButton(short newMouseButton){
     mouseButton = newMouseButton;
 }
-void MovementModule::getContext(string attribute, vector <BasePointersStruct> & BasePointers){
-    BasePointers.push_back(BasePointersStruct());
-    if(attribute == "movement_type"){
-        BasePointers.back().setPointer(&movementType);
-    }
-    else if(attribute == "input_type"){
-        BasePointers.back().setPointer(&inputType);
-    }
-    else if(attribute == "allowed_jumps"){
-        BasePointers.back().setPointer(&allowedJumps);
-    }
-    else if(attribute == "jumps_count"){
-        BasePointers.back().setPointer(&jumpsCount);
-    }
-    else if(attribute == "jump_cooldown"){
-        BasePointers.back().setPointer(&jumpCooldown);
-    }
-    else if(attribute == "jump_cooldown_duration"){
-        BasePointers.back().setPointer(&jumpCooldownDuration);
-    }
-    else if(attribute == "move_cooldown"){
-        BasePointers.back().setPointer(&moveCooldown);
-    }
-    else if(attribute == "move_cooldown_duration"){
-        BasePointers.back().setPointer(&moveCooldownDuration);
-    }
-    else if(attribute == "can_move_diagonally"){
-        BasePointers.back().setPointer(&canMoveDiagonally);
-    }
-    else if(attribute == "reset_momentum_when_jumping"){
-        BasePointers.back().setPointer(&resetMomentumWhenJumping);
-    }
-    else if(attribute == "is_move_planned"){
-        BasePointers.back().setPointer(&isMovePlanned);
-    }
-    else if(attribute == "can_jump"){
-        BasePointers.back().setPointer(&canJump);
-    }
-    else if(attribute == "body_mass"){
-        BasePointers.back().setPointer(&bodyMass);
-    }
-    else if(attribute == "walking_speed"){
-        BasePointers.back().setPointer(&walkingSpeed);
-    }
-    else if(attribute == "running_speed"){
-        BasePointers.back().setPointer(&runningSpeed);
-    }
-    else if(attribute == "jump_speed"){
-        BasePointers.back().setPointer(&jumpSpeed);
-    }
-    else if(attribute == "gravitation"){
-        BasePointers.back().setPointer(&gravitation);
-    }
-    else if(attribute == "base_friction"){
-        BasePointers.back().setPointer(&baseFriction);
-    }
-    else if(attribute == "momentum_x"){
-        BasePointers.back().setPointer(&momentum.x);
-    }
-    else if(attribute == "momentum_y"){
-        BasePointers.back().setPointer(&momentum.y);
-    }
-    else if(attribute == "max_momentum_x"){
-        BasePointers.back().setPointer(&maxMomentumX);
-    }
-    else if(attribute == "min_momentum_y"){
-        BasePointers.back().setPointer(&minMomentumY);
-    }
-    else if(attribute == "max_momentum_y"){
-        BasePointers.back().setPointer(&maxMomentumY);
-    }
-    else if(attribute == "destination_x"){
-        BasePointers.back().setPointer(&destination.x);
-    }
-    else if(attribute == "destination_y"){
-        BasePointers.back().setPointer(&destination.y);
-    }
-    else if(attribute == "direction_of_move_x"){
-        BasePointers.back().setPointer(&directionOfMove.x);
-    }
-    else if(attribute == "direction_of_move_y"){
-        BasePointers.back().setPointer(&directionOfMove.y);
-    }
-    else if(attribute == "mouse_button"){
-        BasePointers.back().setPointer(&mouseButton);
-    }
-    else if(attribute == "move_on_mouse_release"){
-        BasePointers.back().setPointer(&moveOnMouseRelease);
-    }
-    else if(attribute == "reset_direction_after_collision"){
-        BasePointers.back().setPointer(&resetDirectionAfterCollision);
-    }
-    else if(attribute == "is_moving_up"){
-        BasePointers.back().setPointer(&isMovingUp);
-    }
-    else if(attribute == "is_moving_right"){
-        BasePointers.back().setPointer(&isMovingRight);
-    }
-    else if(attribute == "is_moving_down"){
-        BasePointers.back().setPointer(&isMovingDown);
-    }
-    else if(attribute == "is_moving_left"){
-        BasePointers.back().setPointer(&isMovingLeft);
-    }
-    else if(attribute == "is_jumping"){
-        BasePointers.back().setPointer(&isJumping);
-    }
-    else if(attribute == "is_falling"){
-        BasePointers.back().setPointer(&isFalling);
-    }
-    else if(attribute == "is_running"){
-        BasePointers.back().setPointer(&isRunning);
-    }
-    else if(attribute == "up_key"){
-        BasePointers.back().setPointer(&upKey);
-    }
-    else if(attribute == "right_key"){
-        BasePointers.back().setPointer(&rightKey);
-    }
-    else if(attribute == "down_key"){
-        BasePointers.back().setPointer(&downKey);
-    }
-    else if(attribute == "left_key"){
-        BasePointers.back().setPointer(&leftKey);
-    }
-    else if(attribute == "jump_key"){
-        BasePointers.back().setPointer(&jumpKey);
-    }
-    else if(attribute == "running_key"){
-        BasePointers.back().setPointer(&runningKey);
-    }
-    else if(attribute == "are_random_actions_enabled"){
-        BasePointers.back().setPointer(&areRandomActionsEnabled);
-    }
-    else if(attribute == "time_when_action_persists"){
-        BasePointers.back().setPointer(&timeWhenActionPersists);
-    }
-    else if(attribute == "min_time_of_action"){
-        BasePointers.back().setPointer(&minTimeOfAction);
-    }
-    else if(attribute == "max_time_of_action"){
-        BasePointers.back().setPointer(&maxTimeOfAction);
-    }
-    else if(attribute == "min_move_distance"){
-        BasePointers.back().setPointer(&minMoveDistance);
-    }
-    else if(attribute == "max_move_distance"){
-        BasePointers.back().setPointer(&maxMoveDistance);
-    }
-    else if(attribute == "saved_action"){
-        BasePointers.back().setPointer(&savedAction);
-    }
-    else if(attribute == "saved_direction_x"){
-        BasePointers.back().setPointer(&savedDirection.x);
-    }
-    else if(attribute == "saved_direction_y"){
-        BasePointers.back().setPointer(&savedDirection.y);
-    }
-    else if(attribute == "chance_for_break"){
-        BasePointers.back().setPointer(&chanceForBreak);
-    }
-    else if(attribute == "current_direction_x"){
-        BasePointers.back().setPointer(&currentDirection.x);
-    }
-    else if(attribute == "current_direction_y"){
-        BasePointers.back().setPointer(&currentDirection.y);
-    }
-    else if(attribute == "current_pos"){
-        BasePointers.back().setPointer(&currentPos);
-    }
-    else if(attribute == "loop_movement"){
-        BasePointers.back().setPointer(&loopMovement);
-    }
-    else{
-        BasePointers.pop_back();
-        getPrimaryContext(attribute, BasePointers);
+void MovementModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
+    BasePointers.emplace_back(BasePointersStruct());
+    switch(attribute){
+        case movement_type:
+            BasePointers.back().setPointer(&movementType);
+            return;
+        case input_type:
+            BasePointers.back().setPointer(&inputType);
+            return;
+        case allowed_jumps:
+            BasePointers.back().setPointer(&allowedJumps);
+            return;
+        case jumps_count:
+            BasePointers.back().setPointer(&jumpsCount);
+            return;
+        case jump_cooldown:
+            BasePointers.back().setPointer(&jumpCooldown);
+            return;
+        case jump_cooldown_duration:
+            BasePointers.back().setPointer(&jumpCooldownDuration);
+            return;
+        case move_cooldown:
+            BasePointers.back().setPointer(&moveCooldown);
+            return;
+        case move_cooldown_duration:
+            BasePointers.back().setPointer(&moveCooldownDuration);
+            return;
+        case can_move_diagonally:
+            BasePointers.back().setPointer(&canMoveDiagonally);
+            return;
+        case reset_momentum_when_jumping:
+            BasePointers.back().setPointer(&resetMomentumWhenJumping);
+            return;
+        case is_move_planned:
+            BasePointers.back().setPointer(&isMovePlanned);
+            return;
+        case can_jump:
+            BasePointers.back().setPointer(&canJump);
+            return;
+        case body_mass:
+            BasePointers.back().setPointer(&bodyMass);
+            return;
+        case walking_speed:
+            BasePointers.back().setPointer(&walkingSpeed);
+            return;
+        case running_speed:
+            BasePointers.back().setPointer(&runningSpeed);
+            return;
+        case jump_speed:
+            BasePointers.back().setPointer(&jumpSpeed);
+            return;
+        case AttributeType::gravitation:
+            BasePointers.back().setPointer(&gravitation);
+            return;
+        case base_friction:
+            BasePointers.back().setPointer(&baseFriction);
+            return;
+        case momentum_x:
+            BasePointers.back().setPointer(&momentum.x);
+            return;
+        case momentum_y:
+            BasePointers.back().setPointer(&momentum.y);
+            return;
+        case max_momentum_x:
+            BasePointers.back().setPointer(&maxMomentumX);
+            return;
+        case min_momentum_y:
+            BasePointers.back().setPointer(&minMomentumY);
+            return;
+        case max_momentum_y:
+            BasePointers.back().setPointer(&maxMomentumY);
+            return;
+        case destination_x:
+            BasePointers.back().setPointer(&destination.x);
+            return;
+        case destination_y:
+            BasePointers.back().setPointer(&destination.y);
+            return;
+        case direction_of_move_x:
+            BasePointers.back().setPointer(&directionOfMove.x);
+            return;
+        case direction_of_move_y:
+            BasePointers.back().setPointer(&directionOfMove.y);
+            return;
+        case mouse_button:
+            BasePointers.back().setPointer(&mouseButton);
+            return;
+        case move_on_mouse_release:
+            BasePointers.back().setPointer(&moveOnMouseRelease);
+            return;
+        case reset_direction_after_collision:
+            BasePointers.back().setPointer(&resetDirectionAfterCollision);
+            return;
+        case is_moving_up:
+            BasePointers.back().setPointer(&isMovingUp);
+            return;
+        case is_moving_right:
+            BasePointers.back().setPointer(&isMovingRight);
+            return;
+        case is_moving_down:
+            BasePointers.back().setPointer(&isMovingDown);
+            return;
+        case is_moving_left:
+            BasePointers.back().setPointer(&isMovingLeft);
+            return;
+        case is_jumping:
+            BasePointers.back().setPointer(&isJumping);
+            return;
+        case is_falling:
+            BasePointers.back().setPointer(&isFalling);
+            return;
+        case is_running:
+            BasePointers.back().setPointer(&isRunning);
+            return;
+        case up_key:
+            BasePointers.back().setPointer(&upKey);
+            return;
+        case right_key:
+            BasePointers.back().setPointer(&rightKey);
+            return;
+        case down_key:
+            BasePointers.back().setPointer(&downKey);
+            return;
+        case left_key:
+            BasePointers.back().setPointer(&leftKey);
+            return;
+        case jump_key:
+            BasePointers.back().setPointer(&jumpKey);
+            return;
+        case running_key:
+            BasePointers.back().setPointer(&runningKey);
+            return;
+        case are_random_actions_enabled:
+            BasePointers.back().setPointer(&areRandomActionsEnabled);
+            return;
+        case time_when_action_persists:
+            BasePointers.back().setPointer(&timeWhenActionPersists);
+            return;
+        case min_time_of_action:
+            BasePointers.back().setPointer(&minTimeOfAction);
+            return;
+        case max_time_of_action:
+            BasePointers.back().setPointer(&maxTimeOfAction);
+            return;
+        case min_move_distance:
+            BasePointers.back().setPointer(&minMoveDistance);
+            return;
+        case max_move_distance:
+            BasePointers.back().setPointer(&maxMoveDistance);
+            return;
+        case saved_action:
+            BasePointers.back().setPointer(&savedAction);
+            return;
+        case saved_direction_x:
+            BasePointers.back().setPointer(&savedDirection.x);
+            return;
+        case saved_direction_y:
+            BasePointers.back().setPointer(&savedDirection.y);
+            return;
+        case chance_for_break:
+            BasePointers.back().setPointer(&chanceForBreak);
+            return;
+        case current_direction_x:
+            BasePointers.back().setPointer(&currentDirection.x);
+            return;
+        case current_direction_y:
+            BasePointers.back().setPointer(&currentDirection.y);
+            return;
+        case current_pos:
+            BasePointers.back().setPointer(&currentPos);
+            return;
+        case loop_movement:
+            BasePointers.back().setPointer(&loopMovement);
+            return;
+        default:
+            BasePointers.pop_back();
+            getPrimaryContext(attribute, BasePointers);
+            return;
     }
 }
 
@@ -839,18 +841,19 @@ bool MovementModule::isMoving() const{
     }
     return false;
 }
-bool MovementModule::isMovingInThisDirection(string direction) const{
-    if(direction == "is_moving_up"){
-        return isMovingUp;
-    }
-    if(direction == "is_moving_right"){
-        return isMovingRight;
-    }
-    if(direction == "is_moving_down"){
-        return isMovingDown;
-    }
-    if(direction == "is_moving_left"){
-        return isMovingLeft;
+bool MovementModule::isMovingInThisDirection(AttributeType direction) const{
+    switch (direction)
+    {
+        case is_moving_up:
+            return isMovingUp;
+        case is_moving_right:
+            return isMovingRight;
+        case is_moving_down:
+            return isMovingDown;
+        case is_moving_left:
+            return isMovingLeft;
+    default:
+        return false;
     }
     return false;
 }

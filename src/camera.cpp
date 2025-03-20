@@ -86,42 +86,38 @@ void Camera2D::setID(string newID, vector <string> & camerasIDs){
 string Camera2D::getID() const{
     return ID;
 }
-VariableModule Camera2D::getValue(string attribute) const{
+VariableModule Camera2D::getValue(AttributeType attribute) const{
     VariableModule NewValue;
-    if(attribute == "id"){
-        NewValue.setString(getID());
-        return NewValue;
+    switch(attribute){
+        case id:
+            NewValue.setString(getID());
+            return NewValue;
+        case pos_x:
+            NewValue.setDouble(pos.x);
+            return NewValue;
+        case pos_y:
+            NewValue.setDouble(pos.y);
+            return NewValue;
+        case size_x:
+            NewValue.setDouble(size.x);
+            return NewValue;
+        case size_y:
+            NewValue.setDouble(size.y);
+            return NewValue;
+        case AttributeType::zoom:
+            NewValue.setDouble(zoom);
+            return NewValue;
+        case AttributeType::grabbed:
+            NewValue.setBool(grabbed);
+            return NewValue;
+        case is_focused:
+            NewValue.setBool(isFocused);
+            return NewValue;
+        default:
+            cerr << "Error: In " << __FUNCTION__ << ": Attribute '"
+                << attributeToStr(attribute) << "' is not valid.\n";
+            return VariableModule();
     }
-    else if(attribute == "pos_x"){
-        NewValue.setDouble(pos.x);
-        return NewValue;
-    }
-    else if(attribute == "pos_y"){
-        NewValue.setDouble(pos.y);
-        return NewValue;
-    }
-    else if(attribute == "size_x"){
-        NewValue.setDouble(size.x);
-        return NewValue;
-    }
-    else if(attribute == "size_y"){
-        NewValue.setDouble(size.y);
-        return NewValue;
-    }
-    else if(attribute == "zoom"){
-        NewValue.setDouble(zoom);
-        return NewValue;
-    }
-    else if(attribute == "grabbed"){
-        NewValue.setBool(grabbed);
-        return NewValue;
-    }
-    else if(attribute == "is_focused"){
-        NewValue.setBool(isFocused);
-        return NewValue;
-    }
-    cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
-    return VariableModule();
 }
 void Camera2D::setIsActive(bool newValue){
     isActive = newValue;
