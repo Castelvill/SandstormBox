@@ -5407,7 +5407,9 @@ inline bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t lef
     return true;
 }
 template<class Entity>
-void ProcessClass::cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOperand, vector<LayerClass> & Layers, const bool & changeOldID){
+void cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOperand, vector<LayerClass> & Layers,
+    const bool & changeOldID, const InstrDescription & CurrentInstr
+){
     bool sameSize = false;
     if(!checkForVectorSize(CurrentInstr, LeftOperand.size(), RightOperand.size(), sameSize, __FUNCTION__)){
         return;
@@ -5545,6 +5547,257 @@ void ProcessClass::incrementInteger(OperationClass & Operation, ContextMapStruct
             break;
     }
 }
+inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClass * RightOperand, const InstrDescription & CurrentInstr){
+    unsigned i = 0, j = 0;
+    bool sameSize = false;
+    switch(LeftOperand->type){
+        case value_inst:
+        case value_vec:
+            switch(RightOperand->type){
+                case pointer_inst:
+                case pointer_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand->Values.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand->Values.size(); i++, j+=sameSize){
+                        LeftOperand->Values[i].setValueFromPointer(RightOperand->BasePointers[j]);
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
+                        << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
+                    break;
+            }
+            break;
+        case pointer_inst:
+        case pointer_vec:
+            switch(RightOperand->type){
+                case value_inst:
+                case value_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand->BasePointers.size(), RightOperand->Values.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    {BaseVariableStruct RightVariable;
+                    for(; i < LeftOperand->BasePointers.size(); i++){
+                        if(sameSize || i == 0){
+                            RightVariable = RightOperand->Values[i].getBaseVariableStruct();
+                            if(RightVariable.type == null_dt){
+                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
+                                if(!sameSize){
+                                    return;
+                                }
+                                continue;
+                            }
+                        }
+                        LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
+                    }}
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand->BasePointers.size(), RightOperand->Modules.Variables.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    {BaseVariableStruct RightVariable;
+                    for(; i < LeftOperand->BasePointers.size(); i++){
+                        if(sameSize || i == 0){
+                            RightVariable = RightOperand->Modules.Variables[i]->getBaseVariableStruct();
+                            if(RightVariable.type == null_dt){
+                                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                                    << "Failed to fetch a variable.\n";
+                                if(!sameSize){
+                                    return;
+                                }
+                                continue;
+                            }
+                        }
+                        LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
+                    }}
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
+                        << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
+                    break;
+            }
+            break;
+        case variable_mod:
+        case variable_mod_vec:
+            switch(RightOperand->type){
+                case value_inst:
+                case value_vec:
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand->Modules.Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
+                        LeftOperand->Modules.Variables[i]->setValueFromPointer(RightOperand->BasePointers[j]);
+                    }
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
+                        << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
+                    break;
+            }
+            break;
+        case vector_mod:
+        case vector_mod_vec:
+            switch(RightOperand->type){
+                case value_inst:
+                case value_vec:
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
+                        << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
+                    break;
+            }
+            break;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
+                << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
+            break;
+    }
+} 
+inline void cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass * RightOperand,
+    const InstrDescription & CurrentInstr, bool & wasNewExecuted, vector<string> & camerasIDs,
+    bool & changeOldID, vector<string> & layersIDs, vector<LayerClass> & Layers
+){
+    unsigned i = 0, j = 0;
+    bool sameSize = false;
+    switch(LeftOperand->type){
+        case pointer_inst:
+        case pointer_vec:
+            if(!checkForVectorSize(CurrentInstr, LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
+                LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], EngineInstr::clone_i);
+            }
+            break;
+        case value_inst:
+        case value_vec:
+            if(!checkForVectorSize(CurrentInstr, LeftOperand->Values.size(), RightOperand->Values.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Values.size(); i++, j+=sameSize){
+                LeftOperand->Values[i] = RightOperand->Values[j];
+            }
+            break;
+        case camera_inst:
+        case camera_vec:
+            if(!checkForVectorSize(CurrentInstr, LeftOperand->Cameras.size(), RightOperand->Cameras.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Cameras.size(); i++, j+=sameSize){
+                LeftOperand->Cameras[i]->clone(*RightOperand->Cameras[j], camerasIDs, changeOldID);
+            }
+            break;
+        case layer_inst:
+        case layer_vec:
+            if(!checkForVectorSize(CurrentInstr, LeftOperand->Layers.size(), RightOperand->Layers.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Layers.size(); i++, j+=sameSize){
+                LeftOperand->Layers[i]->clone(*RightOperand->Layers[j], layersIDs, changeOldID);
+            }
+            wasNewExecuted = true;
+            break;
+        case object_inst:
+        case object_vec:
+            if(!checkForVectorSize(CurrentInstr, LeftOperand->Objects.size(), RightOperand->Objects.size(), sameSize, __FUNCTION__)){
+                return;
+            }
+            for(; i < LeftOperand->Objects.size(); i++, j+=sameSize){
+                for(LayerClass & Layer : Layers){
+                    if(Layer.getID() != LeftOperand->Objects[i]->getLayerID()){
+                        continue;
+                    }
+                    LeftOperand->Objects[i]->clone(*RightOperand->Objects[j], Layer.objectsIDs, Layer.getID(), changeOldID);
+                    break;
+                }
+            }
+            wasNewExecuted = true;
+            break;
+        case text_mod:
+        case text_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Texts, RightOperand->Modules.Texts, Layers, changeOldID, CurrentInstr);
+            break;
+        case editable_text_mod:
+        case editable_text_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts, Layers, changeOldID, CurrentInstr);
+            break;
+        case super_text_mod:
+        case super_text_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.SuperTexts, RightOperand->Modules.SuperTexts, Layers, changeOldID, CurrentInstr);
+            break;
+        case super_editable_text_mod:
+        case super_editable_text_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.SuperEditableTexts, RightOperand->Modules.SuperEditableTexts, Layers, changeOldID, CurrentInstr);
+            break;
+        case image_mod:
+        case image_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Images, RightOperand->Modules.Images, Layers, changeOldID, CurrentInstr);
+            break;
+        case movement_mod:
+        case movement_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Movements, RightOperand->Modules.Movements, Layers, changeOldID, CurrentInstr);
+            break;
+        case collision_mod:
+        case collision_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Collisions, RightOperand->Modules.Collisions, Layers, changeOldID, CurrentInstr);
+            break;
+        case particles_mod:
+        case particles_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Particles, RightOperand->Modules.Particles, Layers, changeOldID, CurrentInstr);
+            break;
+        case event_mod:
+        case event_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Events, RightOperand->Modules.Events, Layers, changeOldID, CurrentInstr);
+            wasNewExecuted = true;
+            break;
+        case variable_mod:
+        case variable_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Variables, RightOperand->Modules.Variables, Layers, changeOldID, CurrentInstr);
+            break;
+        case scrollbar_mod:
+        case scrollbar_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Scrollbars, RightOperand->Modules.Scrollbars, Layers, changeOldID, CurrentInstr);
+            break;
+        case primitives_mod:
+        case primitives_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Primitives, RightOperand->Modules.Primitives, Layers, changeOldID, CurrentInstr);
+            break;
+        case vector_mod:
+        case vector_mod_vec:
+            cloneRightToLeft(LeftOperand->Modules.Vectors, RightOperand->Modules.Vectors, Layers, changeOldID, CurrentInstr);
+            break;
+        default:
+            break;
+    }
+}
 void ProcessClass::cloneEntities(OperationClass & Operation, ContextMapStruct & EventContext, vector<LayerClass> &Layers){
     if(Operation.rootParametersSize < 3){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 3 parameters.\n";
@@ -5571,9 +5824,6 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ContextMapStruct & 
         return;
     }
 
-    unsigned i = 0, j = 0;
-    bool sameSize = false;
-
     if(printOutInstructions){
         cout << "clone " << LeftOperand->ID << ":" << dataTypeToStr(LeftOperand->type) << ":" << LeftOperand->getValue(CurrentInstr, maxLengthOfValuesPrinting)
             << " " << RightOperand->ID << ":" << dataTypeToStr(RightOperand->type)
@@ -5586,161 +5836,11 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ContextMapStruct & 
         return;
     }
 
-    if(LeftOperand->type != RightOperand->type){
-        if(LeftOperand->type == pointer && RightOperand->type == literal){
-            if(!checkForVectorSize(CurrentInstr, LeftOperand->BasePointers.size(), RightOperand->Values.size(), sameSize, __FUNCTION__)){
-                return;
-            }
-            BaseVariableStruct RightVariable;
-            for(; i < LeftOperand->BasePointers.size(); i++){
-                if(sameSize || i == 0){
-                    RightVariable = RightOperand->Values[i].getBaseVariableStruct();
-                    if(RightVariable.type == null_bt){
-                        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
-                        if(!sameSize){
-                            return;
-                        }
-                        continue;
-                    }
-                }
-                LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
-            }
-        }
-        else if(LeftOperand->type == pointer && RightOperand->type == variable){
-            if(!checkForVectorSize(CurrentInstr, LeftOperand->BasePointers.size(), RightOperand->Modules.Variables.size(), sameSize, __FUNCTION__)){
-                return;
-            }
-            BaseVariableStruct RightVariable;
-            for(; i < LeftOperand->BasePointers.size(); i++){
-                if(sameSize || i == 0){
-                    RightVariable = RightOperand->Modules.Variables[i]->getBaseVariableStruct();
-                    if(RightVariable.type == null_bt){
-                        cerr << instructionError(CurrentInstr, __FUNCTION__)
-                            << "Failed to fetch a variable.\n";
-                        if(!sameSize){
-                            return;
-                        }
-                        continue;
-                    }
-                }
-                LeftOperand->BasePointers[i].tryToSetValue(RightVariable);
-            }
-        }
-        else if(LeftOperand->type == literal && RightOperand->type == pointer){
-            if(!checkForVectorSize(CurrentInstr, LeftOperand->Values.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
-                return;
-            }
-            for(; i < LeftOperand->Values.size(); i++, j+=sameSize){
-                LeftOperand->Values[i].setValueFromPointer(RightOperand->BasePointers[j]);
-            }
-        }
-        else if(LeftOperand->type == variable && RightOperand->type == pointer){
-            if(!checkForVectorSize(CurrentInstr, LeftOperand->Modules.Variables.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
-                return;
-            }
-            for(; i < LeftOperand->Modules.Variables.size(); i++, j+=sameSize){
-                LeftOperand->Modules.Variables[i]->setValueFromPointer(RightOperand->BasePointers[j]);
-            }
-        }
-        else{
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
-                << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
-        }
+    if(LeftOperand->type == RightOperand->type){
+        cloneEntitiesOfTheSameType(LeftOperand, RightOperand, CurrentInstr, wasNewExecuted, camerasIDs, changeOldID, layersIDs, Layers);
     }
     else{
-        switch(LeftOperand->type){
-            case pointer:
-                if(!checkForVectorSize(CurrentInstr, LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
-                    return;
-                }
-                for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
-                    LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], EngineInstr::clone_i);
-                }
-                break;
-            case literal:
-                if(!checkForVectorSize(CurrentInstr, LeftOperand->Values.size(), RightOperand->Values.size(), sameSize, __FUNCTION__)){
-                    return;
-                }
-                for(; i < LeftOperand->Values.size(); i++, j+=sameSize){
-                    LeftOperand->Values[i] = RightOperand->Values[j];
-                }
-                break;
-            case camera:
-                if(!checkForVectorSize(CurrentInstr, LeftOperand->Cameras.size(), RightOperand->Cameras.size(), sameSize, __FUNCTION__)){
-                    return;
-                }
-                for(; i < LeftOperand->Cameras.size(); i++, j+=sameSize){
-                    LeftOperand->Cameras[i]->clone(*RightOperand->Cameras[j], camerasIDs, changeOldID);
-                }
-                break;
-            case layer:
-                if(!checkForVectorSize(CurrentInstr, LeftOperand->Layers.size(), RightOperand->Layers.size(), sameSize, __FUNCTION__)){
-                    return;
-                }
-                for(; i < LeftOperand->Layers.size(); i++, j+=sameSize){
-                    LeftOperand->Layers[i]->clone(*RightOperand->Layers[j], layersIDs, changeOldID);
-                }
-                wasNewExecuted = true;
-                break;
-            case object:
-                if(!checkForVectorSize(CurrentInstr, LeftOperand->Objects.size(), RightOperand->Objects.size(), sameSize, __FUNCTION__)){
-                    return;
-                }
-                for(; i < LeftOperand->Objects.size(); i++, j+=sameSize){
-                    for(LayerClass & Layer : Layers){
-                        if(Layer.getID() != LeftOperand->Objects[i]->getLayerID()){
-                            continue;
-                        }
-                        LeftOperand->Objects[i]->clone(*RightOperand->Objects[j], Layer.objectsIDs, Layer.getID(), changeOldID);
-                        break;
-                    }
-                }
-                wasNewExecuted = true;
-                break;
-            case text:
-                cloneRightToLeft(LeftOperand->Modules.Texts, RightOperand->Modules.Texts, Layers, changeOldID);
-                break;
-            case editable_text:
-                cloneRightToLeft(LeftOperand->Modules.EditableTexts, RightOperand->Modules.EditableTexts, Layers, changeOldID);
-                break;
-            case super_text:
-                cloneRightToLeft(LeftOperand->Modules.SuperTexts, RightOperand->Modules.SuperTexts, Layers, changeOldID);
-                break;
-            case super_editable_text:
-                cloneRightToLeft(LeftOperand->Modules.SuperEditableTexts, RightOperand->Modules.SuperEditableTexts, Layers, changeOldID);
-                break;
-            case image:
-                cloneRightToLeft(LeftOperand->Modules.Images, RightOperand->Modules.Images, Layers, changeOldID);
-                break;
-            case movement:
-                cloneRightToLeft(LeftOperand->Modules.Movements, RightOperand->Modules.Movements, Layers, changeOldID);
-                break;
-            case collision:
-                cloneRightToLeft(LeftOperand->Modules.Collisions, RightOperand->Modules.Collisions, Layers, changeOldID);
-                break;
-            case particles:
-                cloneRightToLeft(LeftOperand->Modules.Particles, RightOperand->Modules.Particles, Layers, changeOldID);
-                break;
-            case event:
-                cloneRightToLeft(LeftOperand->Modules.Events, RightOperand->Modules.Events, Layers, changeOldID);
-                wasNewExecuted = true;
-                break;
-            case variable:
-                cloneRightToLeft(LeftOperand->Modules.Variables, RightOperand->Modules.Variables, Layers, changeOldID);
-                break;
-            case scrollbar:
-                cloneRightToLeft(LeftOperand->Modules.Scrollbars, RightOperand->Modules.Scrollbars, Layers, changeOldID);
-                break;
-            case primitives:
-                cloneRightToLeft(LeftOperand->Modules.Primitives, RightOperand->Modules.Primitives, Layers, changeOldID);
-                break;
-            case vector_s:
-                cloneRightToLeft(LeftOperand->Modules.Vectors, RightOperand->Modules.Vectors, Layers, changeOldID);
-                break;
-            default:
-                break;
-        }
+        cloneEntitiesOfDifferentType(LeftOperand, RightOperand, CurrentInstr);
     }
 }
 void ProcessClass::executeArithmetics(OperationClass & Operation, ContextMapStruct & EventContext){
@@ -5772,158 +5872,242 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ContextMapStru
             << ":" << RightOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
     }
 
-    if(LeftOperand.type == pointer && RightOperand.type == pointer){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-            result = LeftOperand.BasePointers[i].executeArithmetics(RightOperand.BasePointers[j], Operation.instruction);
-            if(result.type == null_bt){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Failed to execute arithmetic equation.\n";
-                continue;
-            }
-            NewContext.Values.emplace_back(VariableModule());
-            NewContext.Values.back().set(result);
-            result.type = null_bt;
-        }
-    }
-    else if(LeftOperand.type == literal && RightOperand.type == literal){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-            if(LeftOperand.Values[i].getType() == 'd' || RightOperand.Values[j].getType() == 'd'){
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setDouble(LeftOperand.Values[i].floatingOperation(Operation.instruction, &RightOperand.Values[j]));
-            }
-            else if(LeftOperand.Values[i].getType() != 's' || RightOperand.Values[j].getType() != 's'){
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setInt(LeftOperand.Values[i].intOperation(Operation.instruction, &RightOperand.Values[j]));
-            }
-            else{
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setString(LeftOperand.Values[i].stringOperation(Operation.instruction, &RightOperand.Values[j]));
-            }
-        }
-    }
-    else if(LeftOperand.type == variable && RightOperand.type == variable){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-            if(LeftOperand.Modules.Variables[i]->getType() == 'd' || RightOperand.Modules.Variables[j]->getType() == 'd'){
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setDouble(LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
-            }
-            else if(LeftOperand.Modules.Variables[i]->getType() != 's' || RightOperand.Modules.Variables[j]->getType() != 's'){
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setInt(LeftOperand.Modules.Variables[i]->intOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
-            }
-            else{
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setString(LeftOperand.Modules.Variables[i]->stringOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
-            }
-        }
-    }
-    else if(LeftOperand.type == pointer && RightOperand.type == literal){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-
-        BaseVariableStruct RightVariable;
-        
-        for(; i < LeftOperand.BasePointers.size(); i++){
-            if(sameSize || i == 0){
-                RightVariable = RightOperand.Values[i].getBaseVariableStruct();
-                if(RightVariable.type == null_bt){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
-                    if(!sameSize){
+    switch(LeftOperand.type){
+        case value_inst:
+        case value_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
                         return;
                     }
-                    continue;
-                }
-            }
-            
-            result = LeftOperand.BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
-
-            if(result.type == null_bt){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to execute arithmetic equation.\n";
-                continue;
-            }
-            NewContext.Values.emplace_back(VariableModule());
-            NewContext.Values.back().set(result);
-            result.type = null_bt;
-        }
-    }
-    else if(LeftOperand.type == pointer && RightOperand.type == variable){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-
-        BaseVariableStruct RightVariable;
-        
-        for(; i < LeftOperand.BasePointers.size(); i++){
-            if(sameSize || i == 0){
-                RightVariable = RightOperand.Modules.Variables[i]->getBaseVariableStruct();
-                if(RightVariable.type == null_bt){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
-                    if(!sameSize){
+                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
+                        if(LeftOperand.Values[i].getType() == 'd' || RightOperand.Values[j].getType() == 'd'){
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setDouble(LeftOperand.Values[i].floatingOperation(Operation.instruction, &RightOperand.Values[j]));
+                        }
+                        else if(LeftOperand.Values[i].getType() != 's' || RightOperand.Values[j].getType() != 's'){
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setInt(LeftOperand.Values[i].intOperation(Operation.instruction, &RightOperand.Values[j]));
+                        }
+                        else{
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setString(LeftOperand.Values[i].stringOperation(Operation.instruction, &RightOperand.Values[j]));
+                        }
+                    }
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
                         return;
                     }
-                    continue;
-                }
+                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
+                        if(LeftOperand.Values[i].getType() == 'd' || RightOperand.BasePointers[j].type == float_bt
+                            || RightOperand.BasePointers[j].type == double_bt
+                        ){
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setDouble(LeftOperand.Values[i].floatingOperation(Operation.instruction, &RightOperand.BasePointers[j]));
+                        }
+                        else{
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setInt(LeftOperand.Values[i].intOperation(Operation.instruction, &RightOperand.BasePointers[j]));
+                        }
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << ": Not implemented yet arithmetic operation between types: '"
+                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                    return;
+                case vector_mod:
+                case vector_mod_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << ": Not implemented yet arithmetic operation between types: '"
+                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                    return;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << ": Cannot execute arithmetic equation on variables of types: '"
+                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                    return;
             }
-            
-            result = LeftOperand.BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
+            break;
+        case pointer_inst:
+        case pointer_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    {BaseVariableStruct RightVariable;
+                    for(; i < LeftOperand.BasePointers.size(); i++){
+                        if(sameSize || i == 0){
+                            RightVariable = RightOperand.Values[i].getBaseVariableStruct();
+                            if(RightVariable.type == null_bt){
+                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
+                                if(!sameSize){
+                                    return;
+                                }
+                                continue;
+                            }
+                        }
+                        
+                        result = LeftOperand.BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
 
-            if(result.type == null_bt){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to execute arithmetic equation.\n";
-                continue;
+                        if(result.type == null_bt){
+                            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to execute arithmetic equation.\n";
+                            continue;
+                        }
+                        NewContext.Values.emplace_back(VariableModule());
+                        NewContext.Values.back().set(result);
+                        result.type = null_bt;
+                    }}
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
+                        result = LeftOperand.BasePointers[i].executeArithmetics(RightOperand.BasePointers[j], Operation.instruction);
+                        if(result.type == null_bt){
+                            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                                << "Failed to execute arithmetic equation.\n";
+                            continue;
+                        }
+                        NewContext.Values.emplace_back(VariableModule());
+                        NewContext.Values.back().set(result);
+                        result.type = null_bt;
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+
+                    {BaseVariableStruct RightVariable; 
+                    for(; i < LeftOperand.BasePointers.size(); i++){
+                        if(sameSize || i == 0){
+                            RightVariable = RightOperand.Modules.Variables[i]->getBaseVariableStruct();
+                            if(RightVariable.type == null_bt){
+                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
+                                if(!sameSize){
+                                    return;
+                                }
+                                continue;
+                            }
+                        }
+                        
+                        result = LeftOperand.BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
+
+                        if(result.type == null_bt){
+                            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to execute arithmetic equation.\n";
+                            continue;
+                        }
+                        NewContext.Values.emplace_back(VariableModule());
+                        NewContext.Values.back().set(result);
+                        result.type = null_bt;
+                    }}
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << ": Not implemented yet arithmetic operation between types: '"
+                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                    return;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << ": Cannot execute arithmetic equation on variables of types: '"
+                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                    return;
             }
-            NewContext.Values.emplace_back(VariableModule());
-            NewContext.Values.back().set(result);
-            result.type = null_bt;
-        }
-    }
-    else if(LeftOperand.type == literal && RightOperand.type == pointer){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+            break;
+        case variable_mod:
+        case variable_mod_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << ": Not implemented yet arithmetic operation between types: '"
+                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                    return;
+                case pointer_inst:
+                case pointer_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
+                        if(LeftOperand.Modules.Variables[i]->getType() == 'd' || RightOperand.BasePointers[j].type == float_bt
+                            || RightOperand.BasePointers[j].type == double_bt
+                        ){
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setDouble(LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, &RightOperand.BasePointers[j]));
+                        }
+                        else{
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setInt(LeftOperand.Modules.Variables[i]->intOperation(Operation.instruction, &RightOperand.BasePointers[j]));
+                        }
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
+                        if(LeftOperand.Modules.Variables[i]->getType() == 'd' || RightOperand.Modules.Variables[j]->getType() == 'd'){
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setDouble(LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
+                        }
+                        else if(LeftOperand.Modules.Variables[i]->getType() != 's' || RightOperand.Modules.Variables[j]->getType() != 's'){
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setInt(LeftOperand.Modules.Variables[i]->intOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
+                        }
+                        else{
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setString(LeftOperand.Modules.Variables[i]->stringOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
+                        }
+                    }
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << ": Not implemented yet arithmetic operation between types: '"
+                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                    return;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << ": Cannot execute arithmetic equation on variables of types: '"
+                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                    return;
+            }
+            break;
+        case vector_mod:
+        case vector_mod_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                case pointer_inst:
+                case pointer_vec:
+                case variable_mod:
+                case variable_mod_vec:
+                case vector_mod:
+                case vector_mod_vec:
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << ": Cannot execute arithmetic equation on variables of types: '"
+                    << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
+                return;
+            }
+            break;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << ": Cannot execute arithmetic equation on variables of types: '"
+                << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
             return;
-        }
-        for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-            if(LeftOperand.Values[i].getType() == 'd' || RightOperand.BasePointers[j].type == float_bt
-                || RightOperand.BasePointers[j].type == double_bt
-            ){
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setDouble(LeftOperand.Values[i].floatingOperation(Operation.instruction, &RightOperand.BasePointers[j]));
-            }
-            else{
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setInt(LeftOperand.Values[i].intOperation(Operation.instruction, &RightOperand.BasePointers[j]));
-            }
-        }
-    }
-    else if(LeftOperand.type == variable && RightOperand.type == pointer){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-            if(LeftOperand.Modules.Variables[i]->getType() == 'd' || RightOperand.BasePointers[j].type == float_bt
-                || RightOperand.BasePointers[j].type == double_bt
-            ){
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setDouble(LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, &RightOperand.BasePointers[j]));
-            }
-            else{
-                NewContext.Values.emplace_back(VariableModule());
-                NewContext.Values.back().setInt(LeftOperand.Modules.Variables[i]->intOperation(Operation.instruction, &RightOperand.BasePointers[j]));
-            }
-        }
-    }
-    else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << ": Cannot execute arithmetic equation on variables of types: \'"
-            << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\'.\n";
     }
 
     NewContext.type = value_inst;
@@ -5997,91 +6181,165 @@ void ProcessClass::generateRandomVariable(ContextMapStruct & EventContext, const
             << ":" << RightOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
     }
 
-    if(LeftOperand.type == pointer && RightOperand.type == pointer){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+    switch(LeftOperand.type){
+        case value_inst:
+        case value_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.Values[j].getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.BasePointers[j].getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.Modules.Variables[j]->getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Not implemented. Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    return;
+            }
+            break;
+        case pointer_inst:
+        case pointer_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.Values[j].getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.BasePointers[j].getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.Modules.Variables[j]->getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Not implemented. Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    return;
+            }
+            break;
+        case variable_mod:
+        case variable_mod_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.Values[j].getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.BasePointers[j].getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
+                        Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.Modules.Variables[j]->getInt()));
+                        NewContext.Values.push_back(Result);
+                    }
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Not implemented. Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    return;
+            }
+            break;
+        case vector_mod:
+        case vector_mod_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                case pointer_inst:
+                case pointer_vec:
+                case variable_mod:
+                case variable_mod_vec:
+                case vector_mod:
+                case vector_mod_vec:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Not implemented. Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    return;
+            }
+            break;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
+                << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
             return;
-        }
-        for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.BasePointers[j].getInt()));
-            NewContext.Values.push_back(Result);
-        }
     }
-    else if(LeftOperand.type == literal && RightOperand.type == literal){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.Values[j].getInt()));
-            NewContext.Values.push_back(Result);
-        }
-    }
-    else if(LeftOperand.type == variable && RightOperand.type == variable){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.Modules.Variables[j]->getInt()));
-            NewContext.Values.push_back(Result);
-        }
-    }
-    else if(LeftOperand.type == literal && RightOperand.type == variable){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.Modules.Variables[j]->getInt()));
-            NewContext.Values.push_back(Result);
-        }
-    }
-    else if(LeftOperand.type == variable && RightOperand.type == literal){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.Values[j].getInt()));
-            NewContext.Values.push_back(Result);
-        }
-    }
-    else if(LeftOperand.type == pointer && RightOperand.type == literal){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.Values[j].getInt()));
-            NewContext.Values.push_back(Result);
-        }
-    }
-    else if(LeftOperand.type == pointer && RightOperand.type == variable){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.Modules.Variables[j]->getInt()));
-            NewContext.Values.push_back(Result);
-        }
-    }
-    else if(LeftOperand.type == literal && RightOperand.type == pointer){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.BasePointers[j].getInt()));
-            NewContext.Values.push_back(Result);
-        }
-    }
-    else if(LeftOperand.type == variable && RightOperand.type == pointer){
-        if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
-            return;
-        }
-        for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-            Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.BasePointers[j].getInt()));
-            NewContext.Values.push_back(Result);
-        }
-    }
-    else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
-            << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-    }
+
     NewContext.type = value_inst;
     if(NewContext.Values.size() > 0){
         NewContext.type = value_vec;
@@ -6110,6 +6368,333 @@ bool containsTheSameModule(const vector <Module> & LeftModules, const vector <Mo
     }
     return false;
 }
+inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand, ContextClass & RightOperand, const InstrDescription & CurrentInstr){
+    bool result = false;
+    unsigned i = 0, j = 0;
+    switch(LeftOperand.type){
+        case pointer_inst:
+        case pointer_vec:
+            for(i = 0; i < LeftOperand.BasePointers.size(); i++){
+                for(j = 0; j < RightOperand.BasePointers.size(); j++){
+                    if(LeftOperand.BasePointers[i].areEqual(&RightOperand.BasePointers[j])){
+                        result = true;
+                        break;
+                    }
+                }
+            }
+            break;
+        case value_inst:
+        case value_vec:
+            for(i = 0; i < LeftOperand.Values.size(); i++){
+                for(j = 0; j < RightOperand.Values.size(); j++){
+                    if(LeftOperand.Values[i].isConditionMet(EngineInstr::equal, &RightOperand.Values[j])){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+            break;
+        case camera_inst:
+        case camera_vec:
+            for(i = 0; i < LeftOperand.Cameras.size(); i++){
+                for(j = 0; j < RightOperand.Cameras.size(); j++){
+                    if(LeftOperand.Cameras[i]->getID() == RightOperand.Cameras[j]->getID()){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+            break;
+        case layer_inst:
+        case layer_vec:
+            for(i = 0; i < LeftOperand.Layers.size(); i++){
+                for(j = 0; j < RightOperand.Layers.size(); j++){
+                    if(LeftOperand.Layers[i]->getID() == RightOperand.Layers[j]->getID()){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+            break;
+        case object_inst:
+        case object_vec:
+            for(i = 0; i < LeftOperand.Objects.size(); i++){
+                for(j = 0; j < RightOperand.Objects.size(); j++){
+                    if(LeftOperand.Objects[i]->getID() == RightOperand.Objects[j]->getID()
+                        && LeftOperand.Objects[i]->getLayerID() == RightOperand.Objects[j]->getLayerID()
+                    ){
+                        result = true;
+                        break;
+                    }
+                }
+                if(result){
+                    break;
+                }
+            }
+            break;
+        case text_mod:
+        case text_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Texts, RightOperand.Modules.Texts);
+            break;
+        case editable_text_mod:
+        case editable_text_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.EditableTexts, RightOperand.Modules.EditableTexts);
+            break;
+        case super_text_mod:
+        case super_text_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.SuperTexts, RightOperand.Modules.SuperTexts);
+            break;
+        case super_editable_text_mod:
+        case super_editable_text_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.SuperEditableTexts, RightOperand.Modules.SuperEditableTexts);
+            break;
+        case image_mod:
+        case image_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Images, RightOperand.Modules.Images);
+            break;
+        case movement_mod:
+        case movement_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Movements, RightOperand.Modules.Movements);
+            break;
+        case collision_mod:
+        case collision_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Collisions, RightOperand.Modules.Collisions);
+            break;
+        case particles_mod:
+        case particles_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Particles, RightOperand.Modules.Particles);
+            break;
+        case event_mod:
+        case event_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Events, RightOperand.Modules.Events);
+            break;
+        case variable_mod:
+        case variable_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Variables, RightOperand.Modules.Variables);
+            break;
+        case scrollbar_mod:
+        case scrollbar_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Scrollbars, RightOperand.Modules.Scrollbars);
+            break;
+        case primitives_mod:
+        case primitives_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Primitives, RightOperand.Modules.Primitives);
+            break;
+        case vector_mod:
+        case vector_mod_vec:
+            result = containsTheSameModule(LeftOperand.Modules.Vectors, RightOperand.Modules.Vectors);
+            break;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "\'"
+                << dataTypeToStr(LeftOperand.type) << "\' type does not exist.\n";
+            break;
+    }
+}
+inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperand, ContextClass & RightOperand, const InstrDescription & CurrentInstr){
+    bool result = false;
+    unsigned i = 0, j = 0;
+    switch(LeftOperand.type){
+        case value_inst:
+        case value_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    for(i = 0; i < LeftOperand.Values.size(); i++){
+                        for(j = 0; j < RightOperand.BasePointers.size(); j++){
+                            if(LeftOperand.Values[i].isConditionMet(EngineInstr::equal, RightOperand.BasePointers[j])){
+                                result = true;
+                                break;
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    for(i = 0; i < LeftOperand.Values.size(); i++){
+                        for(j = 0; j < RightOperand.Modules.Vectors.size(); j++){
+                            if(RightOperand.Modules.Vectors[j]->contains(LeftOperand.Values[i])){
+                                result = true;
+                                break;
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' type.\n";
+                    break;
+            }
+            break;
+        case pointer_inst:
+        case pointer_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:{
+                    BaseVariableStruct RightVariable;
+                    for(i = 0; i < LeftOperand.BasePointers.size(); i++){
+                        for(j = 0; j < RightOperand.Values.size(); j++){
+                            RightVariable = RightOperand.Values[j].getBaseVariableStruct();
+                            if(RightVariable.type == null_bt){
+                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
+                                continue;
+                            }
+                            if(LeftOperand.BasePointers[i].areEqual(&RightVariable)){
+                                result = true;
+                                break;
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                    }}
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    break;
+                case variable_mod:
+                case variable_mod_vec:{
+                    BaseVariableStruct RightVariable;
+                    for(i = 0; i < LeftOperand.BasePointers.size(); i++){
+                        for(j = 0; j < RightOperand.Modules.Variables.size(); j++){
+                            RightVariable = RightOperand.Modules.Variables[j]->getBaseVariableStruct();
+                            if(RightVariable.type == null_bt){
+                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
+                                continue;
+                            }
+                            if(LeftOperand.BasePointers[i].areEqual(&RightVariable)){
+                                result = true;
+                                break;
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                    }}
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    for(i = 0; i < LeftOperand.BasePointers.size(); i++){
+                        for(j = 0; j < RightOperand.Modules.Vectors.size(); j++){
+                            if(RightOperand.Modules.Vectors[j]->contains(LeftOperand.BasePointers[i])){
+                                result = true;
+                                break;
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' type.\n";
+                    break;
+            }
+            break;
+        case variable_mod:
+        case variable_mod_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    for(i = 0; i < LeftOperand.Modules.Variables.size(); i++){
+                        for(j = 0; j < RightOperand.Values.size(); j++){
+                            if(LeftOperand.Modules.Variables[i]->isConditionMet(EngineInstr::equal, &RightOperand.Values[j])){
+                                result = true;
+                                break;
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                    }
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    for(i = 0; i < LeftOperand.Modules.Variables.size(); i++){
+                        for(j = 0; j < RightOperand.BasePointers.size(); j++){
+                            if(LeftOperand.Modules.Variables[i]->isConditionMet(EngineInstr::equal, RightOperand.BasePointers[j])){
+                                result = true;
+                                break;
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                    }
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    for(i = 0; i < LeftOperand.Modules.Variables.size(); i++){
+                        for(j = 0; j < RightOperand.Modules.Vectors.size(); j++){
+                            if(RightOperand.Modules.Vectors[j]->contains(*LeftOperand.Modules.Variables[i])){
+                                result = true;
+                                break;
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' type.\n";
+                    break;
+            }
+            break;
+        case vector_mod:
+        case vector_mod_vec:
+            switch(RightOperand.type){
+                case value_inst:
+                case value_vec:
+                    break;
+                case pointer_inst:
+                case pointer_vec:
+                    break;
+                case variable_mod:
+                case variable_mod_vec:
+                    break;
+                case vector_mod:
+                case vector_mod_vec:
+                    break;
+                default:
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' type.\n";
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+}
 void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, ContextMapStruct & EventContext){
     ContextClass LeftOperand;
     ContextClass RightOperand;
@@ -6136,241 +6721,11 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, Conte
             << RightOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
     }
 
-    if(LeftOperand.type != RightOperand.type){
-        if(LeftOperand.type == pointer && RightOperand.type == literal){
-            BaseVariableStruct RightVariable;
-            for(i = 0; i < LeftOperand.BasePointers.size(); i++){
-                for(j = 0; j < RightOperand.Values.size(); j++){
-                    RightVariable = RightOperand.Values[j].getBaseVariableStruct();
-                    if(RightVariable.type == null_bt){
-                        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
-                        continue;
-                    }
-                    if(LeftOperand.BasePointers[i].areEqual(&RightVariable)){
-                        result = true;
-                        break;
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-        }
-        if(LeftOperand.type == pointer && RightOperand.type == variable){
-            BaseVariableStruct RightVariable;
-            for(i = 0; i < LeftOperand.BasePointers.size(); i++){
-                for(j = 0; j < RightOperand.Modules.Variables.size(); j++){
-                    RightVariable = RightOperand.Modules.Variables[j]->getBaseVariableStruct();
-                    if(RightVariable.type == null_bt){
-                        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
-                        continue;
-                    }
-                    if(LeftOperand.BasePointers[i].areEqual(&RightVariable)){
-                        result = true;
-                        break;
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-        }
-        else if(LeftOperand.type == literal && RightOperand.type == pointer){
-            for(i = 0; i < LeftOperand.Values.size(); i++){
-                for(j = 0; j < RightOperand.BasePointers.size(); j++){
-                    if(LeftOperand.Values[i].isConditionMet(EngineInstr::equal, RightOperand.BasePointers[j])){
-                        result = true;
-                        break;
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-        }
-        else if(LeftOperand.type == variable && RightOperand.type == pointer){
-            for(i = 0; i < LeftOperand.Modules.Variables.size(); i++){
-                for(j = 0; j < RightOperand.BasePointers.size(); j++){
-                    if(LeftOperand.Modules.Variables[i]->isConditionMet(EngineInstr::equal, RightOperand.BasePointers[j])){
-                        result = true;
-                        break;
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-        }
-        else if(LeftOperand.type == variable && RightOperand.type == literal){
-            for(i = 0; i < LeftOperand.Modules.Variables.size(); i++){
-                for(j = 0; j < RightOperand.Values.size(); j++){
-                    if(LeftOperand.Modules.Variables[i]->isConditionMet(EngineInstr::equal, &RightOperand.Values[j])){
-                        result = true;
-                        break;
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-        }
-        else if(LeftOperand.type == variable && RightOperand.type == vector_s){
-            for(i = 0; i < LeftOperand.Modules.Variables.size(); i++){
-                for(j = 0; j < RightOperand.Modules.Vectors.size(); j++){
-                    if(RightOperand.Modules.Vectors[j]->contains(*LeftOperand.Modules.Variables[i])){
-                        result = true;
-                        break;
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-        }
-        else if(LeftOperand.type == literal && RightOperand.type == vector_s){
-            for(i = 0; i < LeftOperand.Values.size(); i++){
-                for(j = 0; j < RightOperand.Modules.Vectors.size(); j++){
-                    if(RightOperand.Modules.Vectors[j]->contains(LeftOperand.Values[i])){
-                        result = true;
-                        break;
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-        }
-        else if(LeftOperand.type == pointer && RightOperand.type == vector_s){
-            for(i = 0; i < LeftOperand.BasePointers.size(); i++){
-                for(j = 0; j < RightOperand.Modules.Vectors.size(); j++){
-                    if(RightOperand.Modules.Vectors[j]->contains(LeftOperand.BasePointers[i])){
-                        result = true;
-                        break;
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-        }
-        else{
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
-                << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
-                << dataTypeToStr(LeftOperand.type) << "\' type.\n";
-        }
+    if(LeftOperand.type == RightOperand.type){
+        checkIfVectorContainsVectorOfTheSameType(LeftOperand, RightOperand, CurrentInstr);
     }
     else{
-        switch(LeftOperand.type){
-            case pointer:
-                for(i = 0; i < LeftOperand.BasePointers.size(); i++){
-                    for(j = 0; j < RightOperand.BasePointers.size(); j++){
-                        if(LeftOperand.BasePointers[i].areEqual(&RightOperand.BasePointers[j])){
-                            result = true;
-                            break;
-                        }
-                    }
-                }
-                break;
-            case literal:
-                for(i = 0; i < LeftOperand.Values.size(); i++){
-                    for(j = 0; j < RightOperand.Values.size(); j++){
-                        if(LeftOperand.Values[i].isConditionMet(EngineInstr::equal, &RightOperand.Values[j])){
-                            result = true;
-                            break;
-                        }
-                    }
-                    if(result){
-                        break;
-                    }
-                }
-                break;
-            case camera:
-                for(i = 0; i < LeftOperand.Cameras.size(); i++){
-                    for(j = 0; j < RightOperand.Cameras.size(); j++){
-                        if(LeftOperand.Cameras[i]->getID() == RightOperand.Cameras[j]->getID()){
-                            result = true;
-                            break;
-                        }
-                    }
-                    if(result){
-                        break;
-                    }
-                }
-                break;
-            case layer:
-                for(i = 0; i < LeftOperand.Layers.size(); i++){
-                    for(j = 0; j < RightOperand.Layers.size(); j++){
-                        if(LeftOperand.Layers[i]->getID() == RightOperand.Layers[j]->getID()){
-                            result = true;
-                            break;
-                        }
-                    }
-                    if(result){
-                        break;
-                    }
-                }
-                break;
-            case object:
-                for(i = 0; i < LeftOperand.Objects.size(); i++){
-                    for(j = 0; j < RightOperand.Objects.size(); j++){
-                        if(LeftOperand.Objects[i]->getID() == RightOperand.Objects[j]->getID()
-                            && LeftOperand.Objects[i]->getLayerID() == RightOperand.Objects[j]->getLayerID()
-                        ){
-                            result = true;
-                            break;
-                        }
-                    }
-                    if(result){
-                        break;
-                    }
-                }
-                break;
-            case text:
-                result = containsTheSameModule(LeftOperand.Modules.Texts, RightOperand.Modules.Texts);
-                break;
-            case editable_text:
-                result = containsTheSameModule(LeftOperand.Modules.EditableTexts, RightOperand.Modules.EditableTexts);
-                break;
-            case super_text:
-                result = containsTheSameModule(LeftOperand.Modules.SuperTexts, RightOperand.Modules.SuperTexts);
-                break;
-            case super_editable_text:
-                result = containsTheSameModule(LeftOperand.Modules.SuperEditableTexts, RightOperand.Modules.SuperEditableTexts);
-                break;
-            case image:
-                result = containsTheSameModule(LeftOperand.Modules.Images, RightOperand.Modules.Images);
-                break;
-            case movement:
-                result = containsTheSameModule(LeftOperand.Modules.Movements, RightOperand.Modules.Movements);
-                break;
-            case collision:
-                result = containsTheSameModule(LeftOperand.Modules.Collisions, RightOperand.Modules.Collisions);
-                break;
-            case particles:
-                result = containsTheSameModule(LeftOperand.Modules.Particles, RightOperand.Modules.Particles);
-                break;
-            case event:
-                result = containsTheSameModule(LeftOperand.Modules.Events, RightOperand.Modules.Events);
-                break;
-            case variable:
-                result = containsTheSameModule(LeftOperand.Modules.Variables, RightOperand.Modules.Variables);
-                break;
-            case scrollbar:
-                result = containsTheSameModule(LeftOperand.Modules.Scrollbars, RightOperand.Modules.Scrollbars);
-                break;
-            case primitives:
-                result = containsTheSameModule(LeftOperand.Modules.Primitives, RightOperand.Modules.Primitives);
-                break;
-            case vector_s:
-                result = containsTheSameModule(LeftOperand.Modules.Vectors, RightOperand.Modules.Vectors);
-                break;
-            case null_s:
-                break;
-            default:
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "\'"
-                    << dataTypeToStr(LeftOperand.type) << "\' type does not exist.\n";
-                break;
-        }
+        checkIfVectorContainsVectorOfDifferentType(LeftOperand, RightOperand, CurrentInstr);
     }
 
     NewContext.clear();

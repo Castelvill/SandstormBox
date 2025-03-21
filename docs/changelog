@@ -1,4 +1,5 @@
 20.03.2025
+-Refactor types of variables to enum.
 -Add import system without testing.
 
 03.01.2025

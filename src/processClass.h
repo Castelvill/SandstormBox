@@ -338,8 +338,6 @@ public:
         AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes);
     void aggregateOnlyById(ContextMapStruct & EventContext, OperationClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner);
     //void nameVariable(ContextMapStruct & EventContext, OperationClass & Operation);
-    template<class Entity>
-    void cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOperand, vector<LayerClass> & Layers, const bool & changeOldID);
     void moveValues(OperationClass & Operation, ContextMapStruct & EventContext);
     void incrementInteger(OperationClass & Operation, ContextMapStruct & EventContext);
     void cloneEntities(OperationClass & Operation, ContextMapStruct & EventContext, vector<LayerClass> &Layers);
