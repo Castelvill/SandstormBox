@@ -1057,7 +1057,7 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
             }
         }
         
-        string variableType = words[cursor].value;
+        DataType variableType = strToDataType(words[cursor].value);
         string variableID = words[cursor + 1 + isReference].value;
         cursor += 2 + isReference;
 

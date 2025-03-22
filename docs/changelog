@@ -1,6 +1,6 @@
 20.03.2025
--Refactor types of variables to enum.
--Add import system without testing.
+-Refactored types of variables to enum.
+-Added import system without testing.
 
 03.01.2025
 -Added "type" instruction that returns the type of the input variable as a string. 

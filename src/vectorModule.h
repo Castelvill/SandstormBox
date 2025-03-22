@@ -9,7 +9,7 @@ struct stupidBool{
 
 bool operator== (stupidBool, const bool);
 
-inline bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t leftSize,
+bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t leftSize,
     size_t rightSize, bool & incLeftIdx, bool & incRightIdx, unsigned & maxIndex, const string & functionName
 );
 
@@ -53,9 +53,9 @@ public:
     template<typename RightType>
     void moveValueToEachInstance(RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
     void move(VariableModule* Variables, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+    // requires (std::same_as<RightOperandType, VariableModule> || std::same_as<RightOperandType, BasePointersStruct>
+    //     || std::same_as<RightOperandType, VariableModule*>)
     template<class RightOperandType>
-    requires (std::same_as<RightOperandType, VariableModule> || std::same_as<RightOperandType, BasePointersStruct>
-        || std::same_as<RightOperandType, VariableModule*>)
     void move(vector<RightOperandType> * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
     void move(BasePointersStruct* RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
     void move(VectorModule* RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
@@ -115,5 +115,9 @@ public:
     bool contains(const VariableModule & Variable);
     bool contains(const BasePointersStruct & Pointer);
 };
+
+extern template void VectorModule::move<VariableModule>(vector<VariableModule> * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+extern template void VectorModule::move<VariableModule*>(vector<VariableModule*> * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+extern template void VectorModule::move<BasePointersStruct>(vector<BasePointersStruct> * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
 
 #endif // VECTORMODULE_H_INCLUDED

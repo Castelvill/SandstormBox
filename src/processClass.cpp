@@ -1281,7 +1281,8 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
 bool ContextClass::getUnsignedOrAbort(unsigned &number, const InstrDescription & CurrentInstr){
     int temp = 0;
     switch(type){
-        case literal:
+        case value_inst:
+        case value_vec:
             if(Values.size() == 0){
                 cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context is empty.\n";
                 return false;
@@ -1292,7 +1293,8 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, const InstrDescription &
             }
             temp = Values.back().getInt();
             break;
-        case pointer:
+        case pointer_inst:
+        case pointer_vec:
             if(BasePointers.size() == 0){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
@@ -1304,7 +1306,8 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, const InstrDescription &
             }
             temp = BasePointers.back().getInt();
             break;
-        case variable:
+        case variable_mod:
+        case variable_mod_vec:
             if(Modules.Variables.size() == 0){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
@@ -2796,6 +2799,43 @@ bool ProcessClass::chooseRandomModuleInstance(ContextClass & NewContext){
     return true;
 }
 
+template <class Entity>
+Entity *firstNotDeletedInVector(vector<Entity> &Vector){
+    for(typename vector<Entity>::iterator Instance = Vector.begin(); Instance != Vector.end(); ++Instance){
+        if(!Instance->getIsDeleted()){
+            return &(*Instance);
+        }
+    }
+    return nullptr;
+}
+template<class Entity>
+Entity * firstNotDeletedInVector(vector<Entity*> &Vector){
+    for(typename vector<Entity*>::iterator Instance = Vector.begin(); Instance != Vector.end(); ++Instance){
+        if(!(*Instance)->getIsDeleted()){
+            return *Instance;
+        }
+    }
+    return nullptr;
+}
+template <class Entity>
+Entity *lastNotDeletedInVector(vector<Entity> &Vector){
+    for(typename vector<Entity>::reverse_iterator Instance = Vector.rbegin(); Instance != Vector.rend(); ++Instance){
+        if(!Instance->getIsDeleted()){
+            return &(*Instance);
+        }
+    }
+    return nullptr;
+}
+template<class Entity>
+Entity * lastNotDeletedInVector(vector<Entity*> &Vector){
+    for(typename vector<Entity*>::reverse_iterator Instance = Vector.rbegin(); Instance != Vector.rend(); ++Instance){
+        if(!(*Instance)->getIsDeleted()){
+            return *Instance;
+        }
+    }
+    return nullptr;
+}
+
 void ProcessClass::aggregateCameras(OperationClass &Operation, ContextClass &NewContext, vector<Camera2D*> AggregatedCameras,
     const EngineClass & Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
 ){
@@ -3685,6 +3725,126 @@ void ProcessClass::findContextInLayer(ValueLocation Location, ContextClass & New
             return;
     }
 }
+inline DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSource & source){
+    switch(source){
+        case camera:
+            return camera_inst;
+        case layer:
+            return layer_inst;
+        case object:
+            return object_inst;
+        case text:
+            return text_mod;
+        case editable_text:
+            return editable_text_mod;
+        case super_text:
+            return super_text_mod;
+        case super_editable_text:
+            return super_editable_text_mod;
+        case image:
+            return image_mod;
+        case movement:
+            return movement_mod;
+        case collision:
+            return collision_mod;
+        case particles:
+            return particles_mod;
+        case event:
+            return event_mod;
+        case variable:
+            return variable_mod;
+        case scrollbar:
+            return scrollbar_mod;
+        case primitives:
+            return primitives_mod;
+        case vector_s:
+            return vector_mod;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+                << sourceToStr(source) << "\' is not valid for this operation.\n";
+            return null_dt;
+    }
+}
+inline DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType){
+    switch(oldType){
+        case camera_inst:
+            return camera_vec;
+        case layer_inst:
+            return layer_vec;
+        case object_inst:
+            return object_vec;
+        case text_mod:
+            return text_mod_vec;
+        case editable_text_mod:
+            return editable_text_mod_vec;
+        case super_text_mod:
+            return super_text_mod_vec;
+        case super_editable_text_mod:
+            return super_editable_text_mod_vec;
+        case image_mod:
+            return image_mod_vec;
+        case movement_mod:
+            return movement_mod_vec;
+        case collision_mod:
+            return collision_mod_vec;
+        case particles_mod:
+            return particles_mod_vec;
+        case event_mod:
+            return event_mod_vec;
+        case variable_mod:
+            return variable_mod_vec;
+        case scrollbar_mod:
+            return scrollbar_mod_vec;
+        case primitives_mod:
+            return primitives_mod_vec;
+        case vector_mod:
+            return vector_mod_vec;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+                << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
+            return null_dt;
+    }
+}
+inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType){
+    switch(oldType){
+        case camera_vec:
+            return camera_inst;
+        case layer_vec:
+            return layer_inst;
+        case object_vec:
+            return object_inst;
+        case text_mod_vec:
+            return text_mod;
+        case editable_text_mod_vec:
+            return editable_text_mod;
+        case super_text_mod_vec:
+            return super_text_mod;
+        case super_editable_text_mod_vec:
+            return super_editable_text_mod;
+        case image_mod_vec:
+            return image_mod;
+        case movement_mod_vec:
+            return movement_mod;
+        case collision_mod_vec:
+            return collision_mod;
+        case particles_mod_vec:
+            return particles_mod;
+        case event_mod_vec:
+            return event_mod;
+        case variable_mod_vec:
+            return variable_mod;
+        case scrollbar_mod_vec:
+            return scrollbar_mod;
+        case primitives_mod_vec:
+            return primitives_mod;
+        case vector_mod_vec:
+            return vector_mod;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+                << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
+            return null_dt;
+    }
+}
 template <class Module>
 void ProcessClass::findContextInModuleVector(const ValueLocation & Location, ContextClass & NewContext, vector<Module> & Source){
     for(Module & Instance : Source){
@@ -3692,7 +3852,7 @@ void ProcessClass::findContextInModuleVector(const ValueLocation & Location, Con
             continue;
         }
         if(!Instance.getIsDeleted()){
-            findContextInModule(Location.moduleType, Location.attribute, NewContext, &Instance);
+            findContextInModule(sourceToEntityType(CurrentInstr, Location.moduleType), Location.attribute, NewContext, &Instance);
         }
         if(Location.moduleID != ""){
             break;
@@ -3809,42 +3969,6 @@ bool ProcessClass::findLayerAndObject(ValueLocation & Location, AncestorObject *
     }
 
     return true;
-}
-template <class Entity>
-Entity *firstNotDeletedInVector(vector<Entity> &Vector){
-    for(typename vector<Entity>::iterator Instance = Vector.begin(); Instance != Vector.end(); ++Instance){
-        if(!Instance->getIsDeleted()){
-            return &(*Instance);
-        }
-    }
-    return nullptr;
-}
-template<class Entity>
-Entity * firstNotDeletedInVector(vector<Entity*> &Vector){
-    for(typename vector<Entity*>::iterator Instance = Vector.begin(); Instance != Vector.end(); ++Instance){
-        if(!(*Instance)->getIsDeleted()){
-            return *Instance;
-        }
-    }
-    return nullptr;
-}
-template <class Entity>
-Entity *lastNotDeletedInVector(vector<Entity> &Vector){
-    for(typename vector<Entity>::reverse_iterator Instance = Vector.rbegin(); Instance != Vector.rend(); ++Instance){
-        if(!Instance->getIsDeleted()){
-            return &(*Instance);
-        }
-    }
-    return nullptr;
-}
-template<class Entity>
-Entity * lastNotDeletedInVector(vector<Entity*> &Vector){
-    for(typename vector<Entity*>::reverse_iterator Instance = Vector.rbegin(); Instance != Vector.rend(); ++Instance){
-        if(!(*Instance)->getIsDeleted()){
-            return *Instance;
-        }
-    }
-    return nullptr;
 }
 void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, ContextClass & NewContext, AncestorObject * Owner,
     LayerClass * OwnerLayer
@@ -4046,7 +4170,6 @@ void ProcessClass::aggregateModulesById(DataType moduleType, string moduleID, At
     }
 }
 void ProcessClass::findLowerContextById(ValueLocation & Location, ContextClass & NewContext, ContextClass * OldContext){
-    bool onlyFirstRequired = false;
     switch(OldContext->type){
         case object_inst:
             for(AncestorObject * Object : OldContext->Objects){
@@ -4613,7 +4736,7 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
             }
             return;
         case pointer_inst:
-            LeftOperand->BasePointers.emplace_back(BaseVariableStruct());
+            LeftOperand->BasePointers.emplace_back(BasePointersStruct());
             switch(RightOperand.type){
                 case value_inst:
                     LeftOperand->BasePointers[0].setPointer(RightOperand.Values[0].getBasePointersStruct(), CurrentInstr);
@@ -5246,7 +5369,7 @@ void ProcessClass::assignVariableFromPointer(ContextMapStruct & EventContext, Co
     );
     if(OutputVariable != nullptr){
         OutputVariable->clearState();
-        if(OutputVariable->type == null_s){
+        if(OutputVariable->type == null_dt){
             OutputVariable->type = InputVariable->type;   
         }
         moveRightToLeft(CurrentInstr, EngineInstr::assign, OutputVariable, *InputVariable);        
@@ -5263,7 +5386,7 @@ void ProcessClass::assignVariable(ContextMapStruct & EventContext, string variab
         return;
     }
     Variable->clearState();
-    if(Variable->type == null_s){
+    if(Variable->type == null_dt){
         Variable->type = NewContext.type;   
     }
     moveRightToLeft(CurrentInstr, EngineInstr::assign, Variable, NewContext);        
@@ -5330,7 +5453,7 @@ void ProcessClass::aggregateOnlyById(ContextMapStruct & EventContext, OperationC
         }
     }
 
-    if(NewContext.type != null_s){
+    if(NewContext.type != null_dt){
         if(printOutInstructions){
             cout << ">found: " << NewContext.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
         }
@@ -5455,10 +5578,21 @@ void ProcessClass::moveValues(OperationClass & Operation, ContextMapStruct & Eve
             << "Left operand is read-only.\n";
         return;
     }
-    if(LeftOperand->type != pointer && LeftOperand->type != literal && LeftOperand->type != variable && LeftOperand->type != vector_s){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Left operand has an invalid type: \'" << dataTypeToStr(LeftOperand->type) << "\'.\n";
-        return;
+
+    switch(LeftOperand->type){
+        case value_inst:
+        case value_vec:
+        case pointer_inst:
+        case pointer_vec:
+        case variable_mod:
+        case variable_mod_vec:
+        case vector_mod:
+        case vector_mod_vec:
+            break;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Left operand has an invalid type: \'" << dataTypeToStr(LeftOperand->type) << "\'.\n";
+            return;
     }
 
     if(Operation.instruction == EngineInstr::inc || Operation.instruction == EngineInstr::dec){
@@ -5588,7 +5722,7 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                     for(; i < LeftOperand->BasePointers.size(); i++){
                         if(sameSize || i == 0){
                             RightVariable = RightOperand->Values[i].getBaseVariableStruct();
-                            if(RightVariable.type == null_dt){
+                            if(RightVariable.type == null_bt){
                                 cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
                                 if(!sameSize){
                                     return;
@@ -5608,7 +5742,7 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                     for(; i < LeftOperand->BasePointers.size(); i++){
                         if(sameSize || i == 0){
                             RightVariable = RightOperand->Modules.Variables[i]->getBaseVariableStruct();
-                            if(RightVariable.type == null_dt){
+                            if(RightVariable.type == null_bt){
                                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                                     << "Failed to fetch a variable.\n";
                                 if(!sameSize){
@@ -6368,8 +6502,7 @@ bool containsTheSameModule(const vector <Module> & LeftModules, const vector <Mo
     }
     return false;
 }
-inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand, ContextClass & RightOperand, const InstrDescription & CurrentInstr){
-    bool result = false;
+inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand, ContextClass & RightOperand, bool & result, const InstrDescription & CurrentInstr){
     unsigned i = 0, j = 0;
     switch(LeftOperand.type){
         case pointer_inst:
@@ -6499,8 +6632,7 @@ inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand,
             break;
     }
 }
-inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperand, ContextClass & RightOperand, const InstrDescription & CurrentInstr){
-    bool result = false;
+inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperand, ContextClass & RightOperand, bool & result, const InstrDescription & CurrentInstr){
     unsigned i = 0, j = 0;
     switch(LeftOperand.type){
         case value_inst:
@@ -6711,8 +6843,6 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, Conte
         return;
     }
 
-    bool result = false;
-    unsigned i = 0, j = 0;
 
     if(printOutInstructions){
         cout << "in " << LeftOperand.ID << ":" << dataTypeToStr(LeftOperand.type) << ":"
@@ -6721,11 +6851,13 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, Conte
             << RightOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
     }
 
+    bool result = false;
+
     if(LeftOperand.type == RightOperand.type){
-        checkIfVectorContainsVectorOfTheSameType(LeftOperand, RightOperand, CurrentInstr);
+        checkIfVectorContainsVectorOfTheSameType(LeftOperand, RightOperand, result, CurrentInstr);
     }
     else{
-        checkIfVectorContainsVectorOfDifferentType(LeftOperand, RightOperand, CurrentInstr);
+        checkIfVectorContainsVectorOfDifferentType(LeftOperand, RightOperand, result, CurrentInstr);
     }
 
     NewContext.clear();
@@ -6974,126 +7106,6 @@ void ProcessClass::assignEntities(ContextMapStruct & EventContext, ContextClass 
             break;
     }
 }
-inline DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSource & source){
-    switch(source){
-        case camera:
-            return camera_inst;
-        case layer:
-            return layer_inst;
-        case object:
-            object_inst;
-        case text:
-            return text_mod;
-        case editable_text:
-            return editable_text_mod;
-        case super_text:
-            return super_text_mod;
-        case super_editable_text:
-            return super_editable_text_mod;
-        case image:
-            return image_mod;
-        case movement:
-            return movement_mod;
-        case collision:
-            return collision_mod;
-        case particles:
-            return particles_mod;
-        case event:
-            return event_mod;
-        case variable:
-            return variable_mod;
-        case scrollbar:
-            return scrollbar_mod;
-        case primitives:
-            return primitives_mod;
-        case vector_s:
-            return vector_mod;
-        default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
-                << sourceToStr(source) << "\' is not valid for this operation.\n";
-            return null_dt;
-    }
-}
-inline DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType){
-    switch(oldType){
-        case camera_inst:
-            return camera_vec;
-        case layer_inst:
-            return layer_vec;
-        case object_inst:
-            return object_vec;
-        case text_mod:
-            return text_mod_vec;
-        case editable_text_mod:
-            return editable_text_mod_vec;
-        case super_text_mod:
-            return super_text_mod_vec;
-        case super_editable_text_mod:
-            return super_editable_text_mod_vec;
-        case image_mod:
-            return image_mod_vec;
-        case movement_mod:
-            return movement_mod_vec;
-        case collision_mod:
-            return collision_mod_vec;
-        case particles_mod:
-            return particles_mod_vec;
-        case event_mod:
-            return event_mod_vec;
-        case variable_mod:
-            return variable_mod_vec;
-        case scrollbar_mod:
-            return scrollbar_mod_vec;
-        case primitives_mod:
-            return primitives_mod_vec;
-        case vector_mod:
-            return vector_mod_vec;
-        default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
-                << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
-            return null_dt;
-    }
-}
-inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType){
-    switch(oldType){
-        case camera_vec:
-            return camera_inst;
-        case layer_vec:
-            return layer_inst;
-        case object_vec:
-            return object_inst;
-        case text_mod_vec:
-            return text_mod;
-        case editable_text_mod_vec:
-            return editable_text_mod;
-        case super_text_mod_vec:
-            return super_text_mod;
-        case super_editable_text_mod_vec:
-            return super_editable_text_mod;
-        case image_mod_vec:
-            return image_mod;
-        case movement_mod_vec:
-            return movement_mod;
-        case collision_mod_vec:
-            return collision_mod;
-        case particles_mod_vec:
-            return particles_mod;
-        case event_mod_vec:
-            return event_mod;
-        case variable_mod_vec:
-            return variable_mod;
-        case scrollbar_mod_vec:
-            return scrollbar_mod;
-        case primitives_mod_vec:
-            return primitives_mod;
-        case vector_mod_vec:
-            return vector_mod;
-        default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
-                << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
-            return null_dt;
-    }
-}
 void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruct & EventContext, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & StartingEvent,
     vector<EventModule>::iterator & Event, vector<EventStackStruct> & MemoryStack, string & focusedProcessID
@@ -7318,7 +7330,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
     }
 
-    if(NewContext.type != null_s){
+    if(NewContext.type != null_dt){
         assignEntities(EventContext, NewContext, Operation.outputVariableID, Operation.isOutputReference, sourceToEntityType(CurrentInstr, Operation.Location.source));
         wasNewExecuted = true;
     }
@@ -7678,7 +7690,7 @@ void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggr
                 NewVector.push_back(&Aggregated[index]);
                 newType = type;
                 if(indexes.size() > 1){
-                    newType = vectorizeEntityDataType(newType);
+                    newType = vectorizeEntityDataType(CurrentInstr, newType);
                 }
                 break;
             }
@@ -7693,7 +7705,7 @@ template <class Entity>
 void findInstanceInVectorByIndex(const EngineInstr & instruction, vector<unsigned> indexes, vector<Entity> & Aggregated, DataType type,
     vector<Entity> & NewVector, DataType & newType, const InstrDescription & CurrentInstr
 ){
-    if(type != pointer && type != literal){
+    if(type != pointer_inst && type != pointer_vec && type != value_inst && type != value_vec){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "This function allows only entities of \'pointer\' and \'value\' types.\n";
         return;
@@ -7703,7 +7715,7 @@ void findInstanceInVectorByIndex(const EngineInstr & instruction, vector<unsigne
             NewVector.push_back(Aggregated[index]);
             newType = type;
             if(indexes.size() > 1){
-                newType = vectorizeEntityDataType(newType);
+                newType = vectorizeEntityDataType(CurrentInstr, newType);
             }
         }
         else{
@@ -7732,7 +7744,7 @@ void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity*> & Agg
                 NewVector.push_back(Aggregated[indexes[i]]);
                 newType = type;
                 if(indexes.size() > 1){
-                    newType = vectorizeEntityDataType(newType);
+                    newType = vectorizeEntityDataType(CurrentInstr, newType);
                 }
                 break;
             }
@@ -7808,7 +7820,7 @@ inline DataType attributeToVecDataType(const InstrDescription & CurrentInstr, co
         case layer_a:
             return layer_vec;
         case object_a:
-            object_vec;
+            return object_vec;
         case text_a:
             return text_mod_vec;
         case editable_text_a:
@@ -11926,8 +11938,8 @@ bool ProcessClass::assertValues(OperationClass & Operation, ContextMapStruct & E
     }
     
     if(LeftVariable.ID == "NULL" || RightVariable.ID == "NULL"){
-        if((LeftVariable.type == null_s && RightVariable.ID == "NULL")
-            || (LeftVariable.ID == "NULL" && RightVariable.type == null_s)
+        if((LeftVariable.type == null_dt && RightVariable.ID == "NULL")
+            || (LeftVariable.ID == "NULL" && RightVariable.type == null_dt)
         ){
             return true;
         }

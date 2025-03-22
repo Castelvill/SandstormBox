@@ -823,7 +823,7 @@ bool optionalOutput(string scriptName, unsigned lineNumber, string & error, cons
 
         //Add this variable to the lookup table if it doesn't already exist.
         if(!variableExists){
-            NewVariablesForLookupTable.emplace_back(variableType, outputVariableID, words[cursor].value, 0, usedEventID, isOutputReference);
+            NewVariablesForLookupTable.emplace_back(strToDataType(variableType), outputVariableID, words[cursor].value, 0, usedEventID, isOutputReference);
         }
     }
     cursor++;
@@ -2808,11 +2808,16 @@ void removeStringDuplicatesFromVector(vector<string> & stringVec){
         }
         else{
             encounteredStrings.insert(*iter);
+            ++iter;
         }
     }
 }
 //Return a vector of scripts and their imports in left-to-right, depth-first order.
 ReturnType addImportsToBindedScripts(const vector<string> & bindedScripts, vector<string> & allScriptsToAssemble){
+    if(bindedScripts.size() == 0){
+        return OK;
+    }
+    
     vector<string> parentScripts;
     vector<std::queue<string>> scriptsToAnalyze;
     vector<string> subsequentImports;

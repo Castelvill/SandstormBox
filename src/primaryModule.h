@@ -258,6 +258,15 @@ public:
     string getString() const;
 };
 
+struct InstrDescription{
+    string layerID;
+    string objectID;
+    string eventID;
+    EngineInstr instruction;
+    string scriptName = "";
+    unsigned lineNumber = 0;
+};
+
 class BasePointersStruct{
 public:
     BaseType type = null_bt;
@@ -310,15 +319,6 @@ public:
     string getString() const;
     bool isInteger() const;
     bool isNumeric() const;
-};
-
-struct InstrDescription{
-    string layerID;
-    string objectID;
-    string eventID;
-    EngineInstr instruction;
-    string scriptName = "";
-    unsigned lineNumber = 0;
 };
 
 string errorSpacing();

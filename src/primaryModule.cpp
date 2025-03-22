@@ -985,7 +985,7 @@ BasePointersStruct &BasePointersStruct::operator=(const BasePointersStruct &Orig
         case null_bt:
             cerr << "Error: In " << __PRETTY_FUNCTION__
                 << ": Cannot move value to a pointer of the 'null' type.\n";
-            return;
+            break;
         default:
             cerr << "Error: In " << __PRETTY_FUNCTION__ << ": BaseType with code: "
                 << type << " is not valid.\n";
@@ -1163,7 +1163,7 @@ BaseVariableStruct &BaseVariableStruct::operator=(const BaseVariableStruct &Orig
         case null_bt:
             cerr << "Error: In " << __PRETTY_FUNCTION__
                 << ": Cannot move value to a variable of the 'null' type.\n";
-            return;
+            break;
         default:
             cerr << "Error: In " << __PRETTY_FUNCTION__ << ": BaseType with code: "
                 << type << " is not valid.\n";
@@ -1260,10 +1260,10 @@ void BasePointersStruct::moveFromTemp(const RightType * RightOperand, const Engi
         return;
     }
     switch (type) {
-        case bool_bt:
+        case bool_bt:{
             short temp = *pBool;
             executeMoveTypeInstruction(&temp, RightOperand, instruction);
-            *pBool = temp > 0;
+            *pBool = temp > 0;}
             return;
         case char_bt:
             executeMoveTypeInstruction(pChar, RightOperand, instruction);
@@ -1308,9 +1308,9 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, const Engi
         return;
     }
     switch (RightOperand.type) {
-        case bool_bt:
+        case bool_bt:{
             short temp = *RightOperand.pBool;
-            moveFromTemp(&temp, instruction);
+            moveFromTemp(&temp, instruction);}
             return;
         case char_bt:
             moveFromTemp(RightOperand.pChar, instruction);
@@ -1373,9 +1373,9 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, const Eng
         return;
     }
     switch (RightOperand.type) {
-        case bool_bt:
+        case bool_bt:{
             short temp = RightOperand.vBool;
-            moveFromTemp(&temp, instruction);
+            moveFromTemp(&temp, instruction);}
             return;
         case char_bt:
             moveFromTemp(&RightOperand.vChar, instruction);
@@ -1460,9 +1460,9 @@ LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightT
 template<typename LeftType>
 LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, const EngineInstr & instruction){
     switch (RightOperand.type) {
-        case bool_bt:
+        case bool_bt:{
             short right = *RightOperand.pBool;
-            return tryArithmetics(LeftOperand, &right, instruction) > 0;
+            return tryArithmetics(LeftOperand, &right, instruction) > 0;}
         case char_bt:
             return tryArithmetics(LeftOperand, RightOperand.pChar, instruction);
         case short_bt:
@@ -1496,9 +1496,9 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStru
     result.type = type;
 
     switch (type) {
-        case bool_bt:
+        case bool_bt:{
             short left = *pBool;
-            result.vBool = callTryArithmeticsForEveryType(&left, RightOperand, instruction);
+            result.vBool = callTryArithmeticsForEveryType(&left, RightOperand, instruction);}
             break;
         case char_bt:
             result.vChar = callTryArithmeticsForEveryType(pChar, RightOperand, instruction);
@@ -1548,9 +1548,9 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStru
 template<typename LeftType>
 LeftType BasePointersStruct::callTryArithmetics(LeftType * LeftOperand, const BaseVariableStruct & RightOperand, const EngineInstr & instruction){
     switch (RightOperand.type) {
-        case bool_bt:
+        case bool_bt:{
             short right = RightOperand.vBool;
-            return tryArithmetics(LeftOperand, &right, instruction) > 0;
+            return tryArithmetics(LeftOperand, &right, instruction) > 0;}
         case char_bt:
             return tryArithmetics(LeftOperand, &RightOperand.vChar, instruction);
         case short_bt:
@@ -1584,9 +1584,9 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStru
     result.type = type;
     
     switch (type) {
-        case bool_bt:
+        case bool_bt:{
             short left = *pBool;
-            result.vBool = callTryArithmetics(&left, RightOperand, instruction) > 0;
+            result.vBool = callTryArithmetics(&left, RightOperand, instruction) > 0;}
             break;
         case char_bt:
             result.vChar = callTryArithmetics(pChar, RightOperand, instruction);

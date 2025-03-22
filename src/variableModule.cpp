@@ -825,7 +825,7 @@ template<typename LeftType, typename RightType>
 void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
     if(LeftOperand == nullptr){
         cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-            << "Left operand of \'" << type << "\' type is null.\n";
+            << "Left operand is null.\n";
         return;
     }
     if(instruction == inc){
@@ -838,7 +838,7 @@ void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand
     }
     if(RightOperand == nullptr){
         cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-            << "Right operand of \'" << type << "\' type is null.\n";
+            << "Right operand is null.\n";
         return;
     }
     switch(instruction){
@@ -933,9 +933,9 @@ void VariableModule::move(const BasePointersStruct *RightOperand, const EngineIn
         return;
     }
     switch (RightOperand->type) {
-        case bool_bt:
+        case bool_bt:{
             char temp = *RightOperand->pBool;
-            moveFromTemp(&temp, instruction, CurrentInstrInfo);
+            moveFromTemp(&temp, instruction, CurrentInstrInfo);}
             break;
         case char_bt:
             moveFromTemp(RightOperand->pChar, instruction, CurrentInstrInfo);
