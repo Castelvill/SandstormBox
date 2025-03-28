@@ -3,6 +3,8 @@
 #include "eventModule.h"
 #include <unordered_set>
 
+DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType);
+
 //Struct of vectors
 struct ModulesPointers{
     vector <TextModule*> Texts;

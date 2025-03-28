@@ -28,7 +28,9 @@ enum DataType: char{
     super_editable_text_mod, super_editable_text_mod_vec, image_mod, image_mod_vec,
     movement_mod, movement_mod_vec, collision_mod, collision_mod_vec, particles_mod,
     particles_mod_vec, event_mod, event_mod_vec, scrollbar_mod, scrollbar_mod_vec,
-    primitives_mod, primitives_mod_vec
+    primitives_mod, primitives_mod_vec,
+    //Compile-time inference not implemented yet 
+    any_dt
 };
 DataType strToDataType(string dataType);
 string dataTypeToStr(DataType dataType);

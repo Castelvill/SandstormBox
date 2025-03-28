@@ -294,7 +294,7 @@ DataType strToDataType(string dataType){
     else if(dataType == "String"){
         return string_inst;
     }
-    else if(dataType == "String"){
+    else if(dataType == "StringVec"){
         return string_vec;
     }
     else if(dataType == "Value"){
@@ -405,6 +405,9 @@ DataType strToDataType(string dataType){
     else if(dataType == "PrimitiveModVec"){
         return primitives_mod_vec;
     }
+    else if(dataType == "Any"){
+        return any_dt;
+    }
     cerr << "Error: In " << __FUNCTION__ << ": DataType '" << dataType << "' is undefined.\n";
     return null_dt;
 }
@@ -501,6 +504,8 @@ string dataTypeToStr(DataType dataType){
             return "PrimitiveMod";
         case primitives_mod_vec:
             return "PrimitiveModVec";
+        case any_dt:
+            return "Any";
         default:
             break;
     }

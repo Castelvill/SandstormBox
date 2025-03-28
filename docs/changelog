@@ -1,3 +1,9 @@
+28.03.2025
+-Started working on the type inference.
+
+26.03.2025
+-Fixed imports - incorrect import paths were not handled.
+
 20.03.2025
 -Refactored types of variables to enum.
 -Added import system without testing.

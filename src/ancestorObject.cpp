@@ -773,7 +773,7 @@ inline string localContextID(const string & eventID, const string & newID){
 bool optionalOutput(string scriptName, unsigned lineNumber, string & error, const vector<WordStruct> & words,
     unsigned & cursor, vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
-    const string & variableType, string & outputVariableID, bool & isOutputReference, bool isGlobal,
+    const DataType & variableType, string & outputVariableID, bool & isOutputReference, bool isGlobal,
     bool canCreateNewsVariable, bool inAfterSection
 ){
     error = "";
@@ -823,7 +823,7 @@ bool optionalOutput(string scriptName, unsigned lineNumber, string & error, cons
 
         //Add this variable to the lookup table if it doesn't already exist.
         if(!variableExists){
-            NewVariablesForLookupTable.emplace_back(strToDataType(variableType), outputVariableID, words[cursor].value, 0, usedEventID, isOutputReference);
+            NewVariablesForLookupTable.emplace_back(variableType, outputVariableID, words[cursor].value, 0, usedEventID, isOutputReference);
         }
     }
     cursor++;
@@ -1381,6 +1381,280 @@ bool createInlineEvent(const string & scriptName, const unsigned & lineNumber, c
 
     return false;
 }
+inline DataType attributeToInstDataType(const InstrDescription & CurrentInstr, const AttributeType &attribute){
+    switch(attribute){
+        case camera_a:
+            return camera_inst;
+        case layer_a:
+            return layer_inst;
+        case object_a:
+            return object_inst;
+        case text_a:
+            return text_mod;
+        case editable_text_a:
+            return editable_text_mod;
+        case super_text_a:
+            return super_text_mod;
+        case super_editable_text_a:
+            return super_editable_text_mod;
+        case image_a:
+            return image_mod;
+        case movement_a:
+            return movement_mod;
+        case collision_a:
+            return collision_mod;
+        case particles_a:
+            return particles_mod;
+        case event_a:
+            return event_mod;
+        case variable_a:
+            return variable_mod;
+        case scrollbar_a:
+            return scrollbar_mod;
+        case primitives_a:
+            return primitives_mod;
+        case vector_a:
+            return vector_mod;
+        default:
+            return null_dt;
+    }
+}
+bool setupFirstLastAllRandomInstr(const vector<WordStruct> & words, EventModule & NewEvent, OperationClass * Operation,
+    bool inAfterSection, unsigned lineNumber, string scriptName, string & error, unsigned & cursor,
+    vector <string> & allAvailableEventIDs, vector<StartingVariableStruct> & NewVariablesForLookupTable
+){
+    if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
+        return true;
+    }
+    if(words[1].type != 'c'){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+        return true;
+    }
+
+    if(words[1].value == "Layers"){
+        Operation->Location.source = ValueSource::layer;
+    }
+    else if(words[1].value == "Cameras"){
+        Operation->Location.source = ValueSource::camera;
+    }
+    else if(words[1].value != ""){
+        Operation->Location.source = ValueSource::context;
+        if(Operation->addParameter(scriptName, lineNumber, error,
+            words, cursor, 'c', "context", false, allAvailableEventIDs,
+            NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+        )){ return true; }
+    }
+    else{
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": First argument cannot be an empty context.\n";
+        return true;
+    }
+
+    DataType outputType = null_dt;
+    
+    cursor = 2;
+    if(Operation->Location.source == ValueSource::camera){
+        if(optional(words, cursor, Operation->Location.cameraID)){ return false; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return false; }
+        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+            lineNumber, scriptName, true, allAvailableEventIDs,
+            NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+        )){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+            return true;
+        }
+        outputType = camera_inst;
+        if(Operation->Location.attribute != null_a && Operation->Location.attribute != camera_a){
+            outputType = pointer_inst;
+        }
+        if(words[0].value == "all"){
+            outputType = vectorizeEntityDataType(InstrDescription(), outputType);
+        }
+        if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+            NewEvent.PassedVariables, allAvailableEventIDs, outputType,
+            Operation->outputVariableID, Operation->isOutputReference, false, true, inAfterSection
+        )){
+            if(error.size() == 0){ return false; }
+            return true;
+        }
+    }
+    else if(Operation->Location.source == ValueSource::layer){
+        if(optional(words, cursor, Operation->Location.layerID)){ return false; }
+        if(optional(words, cursor, Operation->Location.objectID)){ return false; }
+        if(optional(words, cursor, Operation->Location.moduleType)){ return false; }
+        if(optional(words, cursor, Operation->Location.moduleID)){ return false; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return false; }
+        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+            lineNumber, scriptName, true, allAvailableEventIDs,
+            NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+        )){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+            return true;
+        }
+        outputType = layer_inst;
+        if(Operation->Location.attribute != object_a && Operation->Location.objectID == ""
+            && Operation->Location.moduleType == null_s && Operation->Location.moduleID == ""
+        ){
+            outputType = pointer_inst;
+        }
+        else{
+            if(Operation->Location.moduleType != null_s){
+                switch(Operation->Location.moduleType){
+                    case text:
+                        outputType = text_mod;
+                        break;
+                    case editable_text:
+                        outputType = editable_text_mod;
+                        break;
+                    case super_text:
+                        outputType = super_text_mod;
+                        break;
+                    case super_editable_text:
+                        outputType = super_editable_text_mod;
+                        break;
+                    case image:
+                        outputType = image_mod;
+                        break;
+                    case movement:
+                        outputType = image_mod;
+                        break;
+                    case collision:
+                        outputType = collision_mod;
+                        break;
+                    case particles:
+                        outputType = particles_mod;
+                        break;
+                    case event:
+                        outputType = event_mod;
+                        break;
+                    case variable:
+                        outputType = variable_mod;
+                        break;
+                    case scrollbar:
+                        outputType = scrollbar_mod;
+                        break;
+                    case primitives:
+                        outputType = primitives_mod;
+                        break;
+                    case vector_s:
+                        outputType = vector_mod;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if(Operation->Location.attribute == object_a || Operation->Location.attribute == null_a){
+                outputType = object_inst;
+            }
+            else{
+                outputType = pointer_inst;
+            }
+        }
+        if(words[0].value == "all"){
+            outputType = vectorizeEntityDataType(InstrDescription(), outputType);
+        }
+        if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+            NewEvent.PassedVariables, allAvailableEventIDs, outputType, Operation->outputVariableID,
+            Operation->isOutputReference, false, true, inAfterSection
+        )){
+            if(error.size() == 0){ return false; }
+            return true;
+        }
+    }
+    else if(Operation->Location.source == ValueSource::context){
+        if(optional(words, cursor, Operation->Location.layerID)){ return false; }
+        if(optional(words, cursor, Operation->Location.objectID)){ return false; }
+        if(optional(words, cursor, Operation->Location.moduleType)){ return false; }
+        if(optional(words, cursor, Operation->Location.moduleID)){ return false; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return false; }
+        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+            lineNumber, scriptName, true, allAvailableEventIDs,
+            NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+        )){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+            return true;
+        }
+        outputType = attributeToInstDataType(InstrDescription(), Operation->Location.attribute);
+        if(outputType == null_dt){
+            outputType = any_dt;
+        }
+        if(words[0].value == "all"){
+            outputType = vectorizeEntityDataType(InstrDescription(), outputType);
+        }
+        if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+            NewEvent.PassedVariables, allAvailableEventIDs, outputType, Operation->outputVariableID,
+            Operation->isOutputReference, false, true, inAfterSection
+        )){
+            if(error.size() == 0){ return false; }
+            return true;
+        }
+    }
+    else{
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": Source '" << words[1].value << "' does not exist.\n";
+        return true;
+    }
+    return false;
+}
+bool setupIndexInstr(const vector<WordStruct> & words, EventModule & NewEvent, OperationClass * Operation,
+    bool inAfterSection, unsigned lineNumber, string scriptName, string & error, unsigned & cursor,
+    vector <string> & allAvailableEventIDs, vector<StartingVariableStruct> & NewVariablesForLookupTable
+){
+    if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
+        return true;
+    }
+    if(words[1].type != 'c'){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+        return true;
+    }
+
+    if(words[1].value == "Processes"){
+        Operation->Location.source = ValueSource::process;
+    }
+    else if(words[1].value == "Layers"){
+        Operation->Location.source = ValueSource::layer;
+    }
+    else if(words[1].value == "Cameras"){
+        Operation->Location.source = ValueSource::camera;
+    }
+    else if(words[1].value != ""){
+        Operation->Location.source = ValueSource::context;
+        if(Operation->addParameter(scriptName, lineNumber, error,
+            words, 1, 'c', "source", false, allAvailableEventIDs,
+            NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+        )){ return true; }
+    }
+    else{
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": First argument cannot be an empty context.\n";
+        return true;
+    }
+    
+    cursor = 2;
+    if(Operation->addVectorOrVariableToParameters(scriptName,
+        lineNumber, error, words, cursor, 'i', "indexes", false, allAvailableEventIDs,
+        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+    )){ return true; }
+    if(optional(words, cursor, Operation->Location.attribute)){ return false; }
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+        NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
+        Operation->isOutputReference, false, true, inAfterSection
+    )){
+        if(error.size() == 0){ return false; }
+        return true;
+    }
+    return false;
+}
 void AncestorObject::assembleEvents(vector<string> code, string scriptName, vector<StartingVariableStruct> & NewVariablesForLookupTable){
     vector<WordStruct> words;
     EventModule NewEvent = EventModule();
@@ -1417,6 +1691,8 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
 
     string error;
     bool triggerBreakpoint = false;
+
+    DataType outputType = null_dt;
 
     vector <string> allAvailableEventIDs;
     
@@ -1581,152 +1857,16 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             }
         }
         else if(isStringInGroup(words[0].value, 4, "first", "last", "all", "random")){
-            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
-                return;
-            }
-            if(words[1].type != 'c'){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__
-                    << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
-                return;
-            }
-
-            if(words[1].value == "Layers"){
-                Operation->Location.source = ValueSource::layer;
-            }
-            else if(words[1].value == "Cameras"){
-                Operation->Location.source = ValueSource::camera;
-            }
-            else if(words[1].value != ""){
-                Operation->Location.source = ValueSource::context;
-                if(Operation->addParameter(scriptName, lineNumber, error,
-                    words, cursor, 'c', "context", false, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){ return; }
-            }
-            else{
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__
-                    << ": First argument cannot be an empty context.\n";
-                return;
-            }
-            
-            cursor = 2;
-            if(Operation->Location.source == ValueSource::camera){
-                if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
-                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-                    lineNumber, scriptName, true, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){
-                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-                    return;
-                }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                    NewEvent.PassedVariables, allAvailableEventIDs, "camera",
-                    Operation->outputVariableID, Operation->isOutputReference, false, true, inAfterSection
-                )){
-                    if(error.size() == 0){ continue; }
-                    return;
-                }
-            }
-            else if(Operation->Location.source == ValueSource::layer){
-                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
-                if(optional(words, cursor, Operation->Location.objectID)){ continue; }
-                if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
-                if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
-                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-                    lineNumber, scriptName, true, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){
-                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-                    return;
-                }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                    NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
-                    Operation->isOutputReference, false, true, inAfterSection
-                )){
-                    if(error.size() == 0){ continue; }
-                    return;
-                }
-            }
-            else if(Operation->Location.source == ValueSource::context){
-                if(optional(words, cursor, Operation->Location.layerID)){ continue; }
-                if(optional(words, cursor, Operation->Location.objectID)){ continue; }
-                if(optional(words, cursor, Operation->Location.moduleType)){ continue; }
-                if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
-                if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-                if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-                    lineNumber, scriptName, true, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){
-                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-                    return;
-                }
-                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                    NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
-                    Operation->isOutputReference, false, true, inAfterSection
-                )){
-                    if(error.size() == 0){ continue; }
-                    return;
-                }
-            }
-            else{
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__
-                    << ": Source '" << words[1].value << "' does not exist.\n";
+            if(setupFirstLastAllRandomInstr(words, NewEvent, Operation, inAfterSection, lineNumber, scriptName, error,
+                cursor, allAvailableEventIDs, NewVariablesForLookupTable
+            )){
                 return;
             }
         }
         else if(words[0].value == "index"){
-            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
-                return;
-            }
-            if(words[1].type != 'c'){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__
-                    << ": In the '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
-                return;
-            }
-
-            if(words[1].value == "Processes"){
-                Operation->Location.source = ValueSource::process;
-            }
-            else if(words[1].value == "Layers"){
-                Operation->Location.source = ValueSource::layer;
-            }
-            else if(words[1].value == "Cameras"){
-                Operation->Location.source = ValueSource::camera;
-            }
-            else if(words[1].value != ""){
-                Operation->Location.source = ValueSource::context;
-                if(Operation->addParameter(scriptName, lineNumber, error,
-                    words, 1, 'c', "source", false, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){ return; }
-            }
-            else{
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__
-                    << ": First argument cannot be an empty context.\n";
-                return;
-            }
-            
-            cursor = 2;
-            if(Operation->addVectorOrVariableToParameters(scriptName,
-                lineNumber, error, words, cursor, 'i', "indexes", false, allAvailableEventIDs,
-                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-            )){ return; }
-            if(optional(words, cursor, Operation->Location.attribute)){ continue; }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
-                Operation->isOutputReference, false, true, inAfterSection
+            if(setupIndexInstr(words, NewEvent, Operation, inAfterSection, lineNumber, scriptName, error,
+                cursor, allAvailableEventIDs, NewVariablesForLookupTable
             )){
-                if(error.size() == 0){ continue; }
                 return;
             }
         }
@@ -1761,7 +1901,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 3;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -1791,7 +1931,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             }
             cursor = 3;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -1817,7 +1957,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             }
             cursor = 3;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -1836,7 +1976,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 3;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -1855,7 +1995,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 3;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -1877,7 +2017,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -1897,7 +2037,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 return;
             }
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() > 0){ return; }
@@ -1917,7 +2057,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             }
 
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "value", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() > 0){ return; }
@@ -1971,7 +2111,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 if(optional(words, cursor, Operation->Location.cameraID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                    NewEvent.PassedVariables, allAvailableEventIDs, "camera", Operation->outputVariableID,
+                    NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                     Operation->isOutputReference, false, true, inAfterSection
                 )){
                     if(error.size() == 0){ continue; }
@@ -1991,7 +2131,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                    NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                    NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                     Operation->isOutputReference, false, true, inAfterSection
                 )){
                     if(error.size() == 0){ continue; }
@@ -2014,7 +2154,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 if(optional(words, cursor, Operation->Location.moduleID)){ continue; }
                 if(optional(words, cursor, Operation->Location.attribute)){ continue; }
                 if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                    NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                    NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                     Operation->isOutputReference, false, true, inAfterSection
                 )){
                     if(error.size() == 0){ continue; }
@@ -2105,7 +2245,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 return;
             }
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2335,7 +2475,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2357,7 +2497,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2393,7 +2533,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             }
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2461,7 +2601,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 return;
             }
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "variable", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, variable_mod, Operation->outputVariableID,
                 Operation->isOutputReference, true, true, inAfterSection
             )){
                 if(error.size() > 0){ return; }
@@ -2483,7 +2623,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             Operation->addLiteralParameter(VariableModule::newString(words[1].value));
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "vector", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, vector_mod, Operation->outputVariableID,
                 Operation->isOutputReference, true, true, inAfterSection
             )){
                 if(error.size() > 0){ return; }
@@ -2546,7 +2686,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 return;
             }
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2562,7 +2702,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2578,7 +2718,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2600,7 +2740,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 4;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2657,7 +2797,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             }
             cursor++;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2676,7 +2816,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 3;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2723,7 +2863,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){ return; }
             cursor = 2;
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, "any", Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }
@@ -2769,11 +2909,11 @@ inline void printBasicFile(){
         << "end\n\n";
 }
 //Return true if a script is trying to import itself.
-bool gatherImportsFromScript(const string & scriptName, vector<string> & allImports){
+ReturnType gatherImportsFromScript(const string & scriptName, vector<string> & allImports){
     allImports.clear();
     vector<string> scriptLines = readLines(scriptName, false);
     if(scriptLines.size() == 0){
-        return false;
+        return ReturnType::EMPTY;
     }
     vector<WordStruct> words;
     for(const string & line : scriptLines){
@@ -2792,13 +2932,13 @@ bool gatherImportsFromScript(const string & scriptName, vector<string> & allImpo
             }
             if(words[1].value == scriptName){
                 allImports.clear();
-                return true;
+                return ReturnType::ERROR_INF;
             }
             allImports.push_back(words[1].value);
             continue;
         }
     }
-    return false;
+    return ReturnType::OK;
 }
 void removeStringDuplicatesFromVector(vector<string> & stringVec){
     std::unordered_set<string> encounteredStrings;
@@ -2822,6 +2962,7 @@ ReturnType addImportsToBindedScripts(const vector<string> & bindedScripts, vecto
     vector<std::queue<string>> scriptsToAnalyze;
     vector<string> subsequentImports;
     string currentScript;
+    ReturnType importResult;
 
     scriptsToAnalyze.emplace_back(std::queue<string>());
     for(const string & script : bindedScripts){
@@ -2831,11 +2972,14 @@ ReturnType addImportsToBindedScripts(const vector<string> & bindedScripts, vecto
     while(!scriptsToAnalyze.empty()){
         currentScript = scriptsToAnalyze.back().front();
         scriptsToAnalyze.back().pop();
-        if(gatherImportsFromScript(currentScript, subsequentImports)){
+        importResult = gatherImportsFromScript(currentScript, subsequentImports);
+        if(importResult == ERROR_INF){
             return ReturnType::ERROR_INF;
         }
         if(subsequentImports.empty()){
-            allScriptsToAssemble.push_back(currentScript);
+            if(importResult != EMPTY){
+                allScriptsToAssemble.push_back(currentScript);
+            }
             if(scriptsToAnalyze.back().empty()){ //All children have been added to the final vector.
                 scriptsToAnalyze.pop_back();
                 if(!parentScripts.empty()){
@@ -2845,6 +2989,9 @@ ReturnType addImportsToBindedScripts(const vector<string> & bindedScripts, vecto
             }
         }
         else{
+            if(scriptsToAnalyze.back().empty()){
+                scriptsToAnalyze.pop_back();
+            }
             //Check if imported scripts are not importing any parent scripts - if they are, return error to avoid a cycle.
             for(const string & parent : parentScripts){
                 for(const string & importedScript : subsequentImports){
@@ -3116,4 +3263,48 @@ unsigned ModulesPointers::size() const{
         Movements.size() + Collisions.size() + Particles.size() +
         Events.size() + Variables.size() + Scrollbars.size()
         + Primitives.size() + Vectors.size();
+}
+
+
+DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType){
+    switch(oldType){
+        case camera_inst:
+            return camera_vec;
+        case layer_inst:
+            return layer_vec;
+        case object_inst:
+            return object_vec;
+        case text_mod:
+            return text_mod_vec;
+        case editable_text_mod:
+            return editable_text_mod_vec;
+        case super_text_mod:
+            return super_text_mod_vec;
+        case super_editable_text_mod:
+            return super_editable_text_mod_vec;
+        case image_mod:
+            return image_mod_vec;
+        case movement_mod:
+            return movement_mod_vec;
+        case collision_mod:
+            return collision_mod_vec;
+        case particles_mod:
+            return particles_mod_vec;
+        case event_mod:
+            return event_mod_vec;
+        case variable_mod:
+            return variable_mod_vec;
+        case scrollbar_mod:
+            return scrollbar_mod_vec;
+        case primitives_mod:
+            return primitives_mod_vec;
+        case vector_mod:
+            return vector_mod_vec;
+        case any_dt:
+            return any_dt;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+                << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
+            return null_dt;
+    }
 }

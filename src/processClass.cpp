@@ -1058,6 +1058,9 @@ void ContextClass::clearState(){
         case primitives_mod_vec:
             Modules.Primitives.clear();;
             return;
+        case any_dt:
+            cerr << "Error: Cannot clear a state of a variable with type '" << dataTypeToStr(type) << "'.\n";
+            return;
         case null_dt:
             return;
         default:
@@ -1806,6 +1809,10 @@ ContextClass::ContextClass(const ContextClass &Original){
             Modules.Primitives = Original.Modules.Primitives;
             break;
         case null_dt:
+            break;
+        case any_dt:
+            cerr << "Error: In " << __FUNCTION__ << ": Cannot use variables of type '"
+                << dataTypeToStr(Original.type) << "'. Something went wrong.\n";
             break;
         default:
             cerr << "Error: In " << __FUNCTION__ << ": DataType code '" << type << "' is undefined.\n";
@@ -2793,14 +2800,14 @@ bool ProcessClass::chooseRandomModuleInstance(ContextClass & NewContext){
             return true;
         default:
             cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Type \'" << dataTypeToStr(NewContext.type) << "\' is not valid in this function.\n";
+                << "Type \'" << dataTypeToStr(NewContext.type) << "\' is not valid for this function.\n";
             return false;
     }
     return true;
 }
 
 template <class Entity>
-Entity *firstNotDeletedInVector(vector<Entity> &Vector){
+Entity *getFirstNotDeletedInVector(vector<Entity> &Vector){
     for(typename vector<Entity>::iterator Instance = Vector.begin(); Instance != Vector.end(); ++Instance){
         if(!Instance->getIsDeleted()){
             return &(*Instance);
@@ -2809,7 +2816,7 @@ Entity *firstNotDeletedInVector(vector<Entity> &Vector){
     return nullptr;
 }
 template<class Entity>
-Entity * firstNotDeletedInVector(vector<Entity*> &Vector){
+Entity * getFirstNotDeletedInVector(vector<Entity*> &Vector){
     for(typename vector<Entity*>::iterator Instance = Vector.begin(); Instance != Vector.end(); ++Instance){
         if(!(*Instance)->getIsDeleted()){
             return *Instance;
@@ -2842,10 +2849,10 @@ void ProcessClass::aggregateCameras(OperationClass &Operation, ContextClass &New
     Camera2D * Camera = nullptr;
     if(Operation.ConditionalChain.size() == 0 && onlyFirstRequired){
         if(AggregatedCameras.size() > 0){
-            Camera = firstNotDeletedInVector(AggregatedCameras);
+            Camera = getFirstNotDeletedInVector(AggregatedCameras);
         }
         else if(Cameras.size() > 0){
-            Camera = firstNotDeletedInVector(Cameras);
+            Camera = getFirstNotDeletedInVector(Cameras);
         }
         if(Camera != nullptr && (Operation.Location.cameraID == "" || Operation.Location.cameraID == Camera->getID())){
             findContextInCamera(Operation.Location.attribute, NewContext, Camera);
@@ -2941,10 +2948,10 @@ void ProcessClass::aggregateLayers(OperationClass & Operation, ContextClass & Ne
     LayerClass * Layer = nullptr;
     if(Operation.ConditionalChain.size() == 0 && onlyFirstRequired){
         if(AggregatedLayers.size() > 0){
-            Layer = firstNotDeletedInVector(AggregatedLayers);
+            Layer = getFirstNotDeletedInVector(AggregatedLayers);
         }
         else if(Cameras.size() > 0){
-            Layer = firstNotDeletedInVector(Layers);
+            Layer = getFirstNotDeletedInVector(Layers);
         }
         if(Layer != nullptr && (Operation.Location.layerID == "" || Operation.Location.layerID == Layer->getID())){
             findContextInLayer(Operation.Location, NewContext, Layer);
@@ -3046,7 +3053,7 @@ void ProcessClass::aggregateObjects(OperationClass &Operation, ContextClass &New
         return;
     }
     if(Operation.ConditionalChain.size() == 0 && onlyFirstRequired){
-        AncestorObject * Object = firstNotDeletedInVector(AggregatedObjects);
+        AncestorObject * Object = getFirstNotDeletedInVector(AggregatedObjects);
         if(Object != nullptr && (Operation.Location.objectID == "" || Operation.Location.objectID == Object->getID())){
             findContextInObject(Operation.Location, NewContext, Object);
         }
@@ -3762,46 +3769,6 @@ inline DataType sourceToEntityType(const InstrDescription & CurrentInstr, const 
         default:
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
                 << sourceToStr(source) << "\' is not valid for this operation.\n";
-            return null_dt;
-    }
-}
-inline DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType){
-    switch(oldType){
-        case camera_inst:
-            return camera_vec;
-        case layer_inst:
-            return layer_vec;
-        case object_inst:
-            return object_vec;
-        case text_mod:
-            return text_mod_vec;
-        case editable_text_mod:
-            return editable_text_mod_vec;
-        case super_text_mod:
-            return super_text_mod_vec;
-        case super_editable_text_mod:
-            return super_editable_text_mod_vec;
-        case image_mod:
-            return image_mod_vec;
-        case movement_mod:
-            return movement_mod_vec;
-        case collision_mod:
-            return collision_mod_vec;
-        case particles_mod:
-            return particles_mod_vec;
-        case event_mod:
-            return event_mod_vec;
-        case variable_mod:
-            return variable_mod_vec;
-        case scrollbar_mod:
-            return scrollbar_mod_vec;
-        case primitives_mod:
-            return primitives_mod_vec;
-        case vector_mod:
-            return vector_mod_vec;
-        default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
-                << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
             return null_dt;
     }
 }
