@@ -58,7 +58,8 @@ struct ReferenceStruct{
     bool isNotDirect = false;
 };
 
-struct ContextClass{
+class ContextClass{
+public:
     string ID;
     string eventID;
     //value, pointer, variable, vector, camera, layer, object, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, variable, scrollbar, primitives, vector

@@ -942,8 +942,8 @@ BasePointersStruct::BasePointersStruct(const BasePointersStruct &Original){
             pString = Original.pString;
             return;
         case null_bt:
-            cerr << "Error: In " << __PRETTY_FUNCTION__
-                << ": Cannot move value to a pointer of the 'null' type.\n";
+            // cerr << "Error: In " << __PRETTY_FUNCTION__
+            //     << ": Cannot move value to a pointer of the 'null' type.\n";
             return;
         default:
             cerr << "Error: In " << __PRETTY_FUNCTION__ << ": BaseType with code: "

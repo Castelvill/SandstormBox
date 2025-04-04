@@ -1,7 +1,7 @@
 #include "collisionModule.h"
 
 bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2){
-    //Function has two "unnecessary" arguments, because each hitbox can be placed in different position in relation to object's real position.
+    //Function has two "unnecessary" parameters, because each hitbox can be placed in different position in relation to object's real position.
     vec2d pos1s(pos1+size1);
     vec2d pos2s(pos2+size2);
     bool canOverlap = false;

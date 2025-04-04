@@ -327,82 +327,82 @@ DataType strToDataType(string dataType){
     else if(dataType == "ObjectVec"){
         return object_vec;
     }
-    else if(dataType == "VarMod"){
+    else if(dataType == "Var"){
         return variable_mod;
     }
-    else if(dataType == "VarModVec"){
+    else if(dataType == "VarVec"){
         return variable_mod_vec;
     }
-    else if(dataType == "VecMod"){
+    else if(dataType == "Vec"){
         return vector_mod;
     }
-    else if(dataType == "VecModVec"){
+    else if(dataType == "VecVec"){
         return vector_mod_vec;
     }
-    else if(dataType == "TextMod"){
+    else if(dataType == "Text"){
         return text_mod;
     }
-    else if(dataType == "TextModVec"){
+    else if(dataType == "TextVec"){
         return text_mod_vec;
     }
-    else if(dataType == "EditTextMod"){
+    else if(dataType == "EditText"){
         return editable_text_mod;
     }
-    else if(dataType == "EditTextModVec"){
+    else if(dataType == "EditTextVec"){
         return editable_text_mod_vec;
     }
-    else if(dataType == "STextMod"){
+    else if(dataType == "SText"){
         return super_text_mod;
     }
-    else if(dataType == "STextModVec"){
+    else if(dataType == "STextVec"){
         return super_text_mod_vec;
     }
-    else if(dataType == "SEditTextMod"){
+    else if(dataType == "SEditText"){
         return super_editable_text_mod;
     }
-    else if(dataType == "SEditTextModVec"){
+    else if(dataType == "SEditTextVec"){
         return super_editable_text_mod_vec;
     }
-    else if(dataType == "ImageMod"){
+    else if(dataType == "Image"){
         return image_mod;
     }
-    else if(dataType == "ImageModVec"){
+    else if(dataType == "ImageVec"){
         return image_mod_vec;
     }
-    else if(dataType == "MovementMod"){
+    else if(dataType == "Movement"){
         return movement_mod;
     }
-    else if(dataType == "MovementModVec"){
+    else if(dataType == "MovementVec"){
         return movement_mod_vec;
     }
-    else if(dataType == "CollisionMod"){
+    else if(dataType == "Collision"){
         return collision_mod;
     }
-    else if(dataType == "CollisionModVec"){
+    else if(dataType == "CollisionVec"){
         return collision_mod_vec;
     }
-    else if(dataType == "ParticlesMod"){
+    else if(dataType == "Particles"){
         return particles_mod;
     }
-    else if(dataType == "ParticlesModVec"){
+    else if(dataType == "ParticlesVec"){
         return particles_mod_vec;
     }
-    else if(dataType == "EventMod"){
+    else if(dataType == "Event"){
         return event_mod;
     }
-    else if(dataType == "EventModVec"){
+    else if(dataType == "EventVec"){
         return event_mod_vec;
     }
-    else if(dataType == "ScrollbarMod"){
+    else if(dataType == "Scrollbar"){
         return scrollbar_mod;
     }
-    else if(dataType == "ScrollbarModVec"){
+    else if(dataType == "ScrollbarVec"){
         return scrollbar_mod_vec;
     }
-    else if(dataType == "PrimitiveMod"){
+    else if(dataType == "Primitive"){
         return primitives_mod;
     }
-    else if(dataType == "PrimitiveModVec"){
+    else if(dataType == "PrimitiveVec"){
         return primitives_mod_vec;
     }
     else if(dataType == "Any"){
@@ -453,57 +453,57 @@ string dataTypeToStr(DataType dataType){
         case object_vec:
             return "ObjectVec";
         case variable_mod:
-            return "VarMod";
+            return "Var";
         case variable_mod_vec:
-            return "VarModVec";
+            return "VarVec";
         case vector_mod:
-            return "VecMod";
+            return "Vec";
         case vector_mod_vec:
-            return "VecModVec";
+            return "VecVec";
         case text_mod:
-            return "TextMod";
+            return "Text";
         case text_mod_vec:
-            return "TextModVec";
+            return "TextVec";
         case editable_text_mod:
-            return "EditTextMod";
+            return "EditText";
         case editable_text_mod_vec:
-            return "EditTextModVec";
+            return "EditTextVec";
         case super_text_mod:
-            return "STextMod";
+            return "SText";
         case super_text_mod_vec:
-            return "STextModVec";
+            return "STextVec";
         case super_editable_text_mod:
-            return "SEditTextMod";
+            return "SEditText";
         case super_editable_text_mod_vec:
-            return "SEditTextModVec";
+            return "SEditTextVec";
         case image_mod:
-            return "ImageMod";
+            return "Image";
         case image_mod_vec:
-            return "ImageModVec";
+            return "ImageVec";
         case movement_mod:
-            return "MovementMod";
+            return "Movement";
         case movement_mod_vec:
-            return "MovementModVec";
+            return "MovementVec";
         case collision_mod:
-            return "CollisionMod";
+            return "Collision";
         case collision_mod_vec:
-            return "CollisionModVec";
+            return "CollisionVec";
         case particles_mod:
-            return "ParticlesMod";
+            return "Particles";
         case particles_mod_vec:
-            return "ParticlesModVec";
+            return "ParticlesVec";
         case event_mod:
-            return "EventMod";
+            return "Event";
         case event_mod_vec:
-            return "EventModVec";
+            return "EventVec";
         case scrollbar_mod:
-            return "ScrollbarMod";
+            return "Scrollbar";
         case scrollbar_mod_vec:
-            return "ScrollbarModVec";
+            return "ScrollbarVec";
         case primitives_mod:
-            return "PrimitiveMod";
+            return "Primitive";
         case primitives_mod_vec:
-            return "PrimitiveModVec";
+            return "PrimitiveVec";
         case any_dt:
             return "Any";
         default:

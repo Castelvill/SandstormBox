@@ -1,12 +1,6 @@
--IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.
--Classes should have two uses: templates for objects and user-defined argument types in the function definitions. The second one means that when passing parameters to a function, aside from checking if the context is of "ObjectInst"/"ObjectVec" type, engine additionally compares a new AncestorObject variable "originID" (which can be set during a "clone" instruction) to the user-defined type. If something is incorrect, raise an error.
--Before adding namespaces, modules and classes/structures think about AncestorObjects and the EventModule vector.
--Maybe eventID in localContextID should be changed to a "namespace". Namespace could be a path from the main scope to the local scope of the current event. This can allow classes, modules (modules as in other files with private scopes) and functions in functions.
--Debug (default) mode of compiling should create two memory hash maps: one with address:(namespace,name,ContextClass) pairs and one with namespace+name:address pairs. In release mode the second hash map should be removed. Events should always access variables via their numeric address - strings are BANNED for performance reasones.
--Create "import filepath" preprocessor instruction - before the assembly of all binded scripts, gather all import statements from subsequent files and put them inside the assemblyQueue vector from the deepest to the and execute those scripts. IMPORTANT: If there are imports in the to-be-imported script execute those deeper imports first.  
+-Add basic data types if you want.
 -Fix: Passing variable to a function that takes only a value copies the pointer to this variable. The same probably happens also for other types like vectors etc.
 -You already fixed "after" section ONLY for inline events, do it also for normal events/functions.
--Improve built-in global variables - instead of hard coding "NULL", "me" and "my_layer", pass them to the event assembly or something.
 -Fix "after" section - it must use the scope of the event's parent (test: afterLocality.sand).
 -FIX: When executing "else.sand", error occurs. It is not connected to rawID. A reference is not turned into a reference.
 -Fix "inline else_0".
@@ -14,6 +8,13 @@
 -Fix: References will not work if several instances of the same event are called. Add a number to each instance's reference id and to children.
 -Change all variable and reference ids into unique numbers / eliminate string concatenation, but first think how would you deal with passing variables to functions.
 -Why is [event][transition][event] reference format needed? 
+
+-IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.
+-Classes should have two uses: templates for objects and user-defined argument types in the function definitions. The second one means that when passing parameters to a function, aside from checking if the context is of "ObjectInst"/"ObjectVec" type, engine additionally compares a new AncestorObject variable "originID" (which can be set during a "clone" instruction) to the user-defined type. If something is incorrect, raise an error.
+-Before adding namespaces, modules and classes/structures think about AncestorObjects and the EventModule vector.
+-Maybe eventID in localContextID should be changed to a "namespace". Namespace could be a path from the main scope to the local scope of the current event. This can allow classes, modules (modules as in other files with private scopes) and functions in functions.
+-Debug (default) mode of compiling should create two memory hash maps: one with address:(namespace,name,ContextClass) pairs and one with namespace+name:address pairs. In release mode the second hash map should be removed. Events should always access variables via their numeric address - strings are BANNED for performance reasones.
+-Improve built-in global variables - instead of hard coding "NULL", "me" and "my_layer", pass them to the event assembly or something.
 -Check the validity of attributes and sources during the compilation comparing translated strings to nulls like in the "triggers" instruction. 
 -Before the event assembly the user should have an option to create a new object and layer that will be used as a destination for the new events. Minimally, in the terminal the "sand" instruction should have a parameter to choose an object and layer names (with the dot syntax) as a destination - if an object or/and layer does not exist, create a new one. OR the "sand" instruction should just use the file name as a name of the new layer and object (or object could have a default name like "main"). ORRRRR you could assemble a new program... inside a new process! WE BUILD THEM FOR A REASON.
 -Check if you can stop and start a process (without a restart meaning the state is preserved and the process is just not iterated through). Maybe you should add something like "ps stop/start/restart/kill [process_number]" to the terminal. 

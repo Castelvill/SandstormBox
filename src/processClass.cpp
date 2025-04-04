@@ -49,6 +49,20 @@ struct NotAssembledReferenceStruct{
 void buildVariableLookupTable(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     ContextMapStruct & CurrentMap, const vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr)
 {
+    //Add global variables
+    CurrentMap.Contexts["NULL"] = ContextClass();
+    CurrentMap.Contexts["NULL"].ID = "NULL";
+    //CurrentMap.Contexts["NULL"].type = ValueSource::null_s;
+    CurrentMap.Contexts["NULL"].readOnly = true;
+    //CurrentMap.Contexts["NULL"].Values.push_back(VariableModule::newInt(0));
+    CurrentMap.Contexts["me"] = ContextClass();
+    CurrentMap.Contexts["me"].ID = "me";
+    CurrentMap.Contexts["me"].type = object_inst;
+    CurrentMap.Contexts["my_layer"] = ContextClass();
+    CurrentMap.Contexts["my_layer"].ID = "my_layer";
+    CurrentMap.Contexts["my_layer"].type = layer_inst;
+    
+    
     vector<NotAssembledReferenceStruct> IntermediateReferences;
     //Add all local variables.
     for(const auto & Variable : NewVariablesForLookupTable){
@@ -56,6 +70,7 @@ void buildVariableLookupTable(const vector<StartingVariableStruct> & NewVariable
             CurrentMap.Contexts[Variable.id] = ContextClass();
             CurrentMap.Contexts[Variable.id].ID = Variable.rawID;//variable.id;
             CurrentMap.Contexts[Variable.id].eventID = Variable.eventID;
+            CurrentMap.Contexts[Variable.id].type = Variable.type;
         }
     }
     //Add all references only after gathering all local variables - otherwise some direct references will be ignored.
@@ -151,17 +166,7 @@ void buildVariableLookupTable(const vector<StartingVariableStruct> & NewVariable
         }
     }
 
-    CurrentMap.Contexts["NULL"] = ContextClass();
-    CurrentMap.Contexts["NULL"].ID = "NULL";
-    //CurrentMap.Contexts["NULL"].type = ValueSource::null_s;
-    CurrentMap.Contexts["NULL"].readOnly = true;
-    //CurrentMap.Contexts["NULL"].Values.push_back(VariableModule::newInt(0));
-    CurrentMap.Contexts["me"] = ContextClass();
-    CurrentMap.Contexts["me"].ID = "me";
-    CurrentMap.Contexts["me"].type = object_inst;
-    CurrentMap.Contexts["my_layer"] = ContextClass();
-    CurrentMap.Contexts["my_layer"].ID = "my_layer";
-    CurrentMap.Contexts["my_layer"].type = layer_inst;
+    
 
     // cerr << "Variables: \n";
     // for(const auto & ContextPair : CurrentMap.Contexts){
@@ -690,7 +695,7 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
                             BaseOfTriggerableObjects.ResizeTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
                             continue;
                         default:
-                            cerr << "Error: In: " << __FUNCTION__ << ": Trigger type '" << transTriggerToString(type) << "' is not valid.\n";
+                            cerr << "Error: In " << __FUNCTION__ << ": Trigger type '" << transTriggerToString(type) << "' is not valid.\n";
                             continue;
                     }
                 }
@@ -708,7 +713,7 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
         cout << "\n\n=====All triggered objects=====\n";
     }
     AncestorObject * TempObject = nullptr;
-    std::unordered_map<string, std::unordered_set<string>> consecutiveTriggers;
+    std::unordered_map<string, std::unordered_set<string>> consecutiveTriggers; //Used only for debugging.
     TriggeredObjects.clear();
     CurrentTriggers.clear();
     if(firstIteration){
@@ -1059,12 +1064,29 @@ void ContextClass::clearState(){
             Modules.Primitives.clear();;
             return;
         case any_dt:
-            cerr << "Error: Cannot clear a state of a variable with type '" << dataTypeToStr(type) << "'.\n";
+            Values.clear();
+            BasePointers.clear();
+            Cameras.clear();
+            Layers.clear();
+            Objects.clear();
+            Modules.Variables.clear();
+            Modules.Vectors.clear();
+            Modules.Texts.clear();
+            Modules.EditableTexts.clear();
+            Modules.SuperTexts.clear();
+            Modules.SuperEditableTexts.clear();
+            Modules.Images.clear();
+            Modules.Movements.clear();
+            Modules.Collisions.clear();
+            Modules.Particles.clear();
+            Modules.Events.clear();
+            Modules.Scrollbars.clear();
+            Modules.Primitives.clear();;
             return;
         case null_dt:
             return;
         default:
-            cerr << "Error: Type '" << dataTypeToStr(type) << "' is not valid.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Type '" << dataTypeToStr(type) << "' is not valid.\n";
             type = null_dt;
             return;
     }
@@ -1125,8 +1147,16 @@ size_t ContextClass::getVectorSize() const{
         case vector_mod:
         case vector_mod_vec:
             return Modules.Vectors.size();
+        case any_dt:
+            return Values.size() + BasePointers.size() + Modules.Variables.size()
+            + Cameras.size() + Layers.size() + Objects.size() + Modules.Texts.size()
+            + Modules.EditableTexts.size() + Modules.SuperTexts.size()
+            + Modules.SuperEditableTexts.size() + Modules.Images.size()
+            + Modules.Movements.size() + Modules.Collisions.size()
+            + Modules.Particles.size() + Modules.Events.size()
+            + Modules.Scrollbars.size() + Modules.Primitives.size() + Modules.Vectors.size();
         default:
-            cerr << "Error: Type '" << dataTypeToStr(type) << "' is not valid.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Type '" << dataTypeToStr(type) << "' is not valid.\n";
             return 0;
     }
     return 0;
@@ -1267,6 +1297,9 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
             buffer += "]<";
             buffer += uIntToStr(Modules.Variables.size());
             buffer += ">";
+            break;
+        case null_dt:
+            buffer += "null";
             break;
         default:
             buffer += "<";
@@ -1540,9 +1573,6 @@ ContextClass::ContextClass(const ContextClass &Original){
     switch(Original.type){
         case value_inst:
             if(Original.Values.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Values.size() == 0){
@@ -1555,9 +1585,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case pointer_inst:
             if(Original.BasePointers.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(BasePointers.size() == 0){
@@ -1570,9 +1597,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case camera_inst:
             if(Original.Cameras.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Cameras.size() == 0){
@@ -1585,9 +1609,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case layer_inst:
             if(Original.Layers.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Layers.size() == 0){
@@ -1600,9 +1621,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case object_inst:
             if(Original.Objects.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Objects.size() == 0){
@@ -1615,9 +1633,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case variable_mod:
             if(Original.Modules.Variables.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Variables.size() == 0){
@@ -1630,9 +1645,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case vector_mod:
             if(Original.Modules.Vectors.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Vectors.size() == 0){
@@ -1645,9 +1657,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case text_mod:
             if(Original.Modules.Texts.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Texts.size() == 0){
@@ -1660,9 +1669,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case editable_text_mod:
             if(Original.Modules.EditableTexts.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.EditableTexts.size() == 0){
@@ -1675,9 +1681,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case super_text_mod:
             if(Original.Modules.SuperTexts.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.SuperTexts.size() == 0){
@@ -1690,9 +1693,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case super_editable_text_mod:
             if(Original.Modules.SuperEditableTexts.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.SuperEditableTexts.size() == 0){
@@ -1705,9 +1705,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case image_mod:
             if(Original.Modules.Images.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Images.size() == 0){
@@ -1720,9 +1717,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case movement_mod:
             if(Original.Modules.Movements.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Movements.size() == 0){
@@ -1735,9 +1729,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case collision_mod:
             if(Original.Modules.Collisions.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Collisions.size() == 0){
@@ -1750,9 +1741,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case particles_mod:
             if(Original.Modules.Particles.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Particles.size() == 0){
@@ -1765,9 +1753,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case event_mod:
             if(Original.Modules.Events.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Events.size() == 0){
@@ -1780,9 +1765,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case scrollbar_mod:
             if(Original.Modules.Scrollbars.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Scrollbars.size() == 0){
@@ -1795,9 +1777,6 @@ ContextClass::ContextClass(const ContextClass &Original){
             break;
         case primitives_mod:
             if(Original.Modules.Primitives.size() == 0){
-                cerr << "Error: In " << __FUNCTION__ << ": For the context '"
-                    << Original.ID << "' of the type '" << dataTypeToStr(Original.type)
-                    << "': Container is empty.";
                 return;
             }
             if(Modules.Primitives.size() == 0){
@@ -1811,8 +1790,6 @@ ContextClass::ContextClass(const ContextClass &Original){
         case null_dt:
             break;
         case any_dt:
-            cerr << "Error: In " << __FUNCTION__ << ": Cannot use variables of type '"
-                << dataTypeToStr(Original.type) << "'. Something went wrong.\n";
             break;
         default:
             cerr << "Error: In " << __FUNCTION__ << ": DataType code '" << type << "' is undefined.\n";
@@ -1900,7 +1877,7 @@ ContextClass &ContextClass::operator=(const ContextClass &Original){
         case null_dt:
             break;
         default:
-            cerr << "Error: Type '" << dataTypeToStr(Original.type) << "' is not valid.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Type '" << dataTypeToStr(Original.type) << "' is not valid.\n";
             type = null_dt;
             break;
     }
@@ -2205,6 +2182,62 @@ void ContextClass::copyOnlyCurrentType(const ContextClass *Original){
             break;
         case vector_mod_vec:
             Modules.Vectors = Original->Modules.Vectors;
+        case camera_inst:
+        case camera_vec:
+            Cameras = Original->Cameras;
+            break;
+        case layer_inst:
+        case layer_vec:
+            Layers = Original->Layers;
+            break;
+        case object_inst:
+        case object_vec:
+            Objects = Original->Objects;
+            break;
+        case text_mod:
+        case text_mod_vec:
+            Modules.Texts = Original->Modules.Texts;
+            break;
+        case editable_text_mod:
+        case editable_text_mod_vec:
+            Modules.EditableTexts = Original->Modules.EditableTexts;
+            break;
+        case super_text_mod:
+        case super_text_mod_vec:
+            Modules.SuperTexts = Original->Modules.SuperTexts;
+            break;
+        case super_editable_text_mod:
+        case super_editable_text_mod_vec:
+            Modules.SuperEditableTexts = Original->Modules.SuperEditableTexts;
+            break;
+        case image_mod:
+        case image_mod_vec:
+            Modules.Images = Original->Modules.Images;
+            break;
+        case movement_mod:
+        case movement_mod_vec:
+            Modules.Movements = Original->Modules.Movements;
+            break;
+        case collision_mod:
+        case collision_mod_vec:
+            Modules.Collisions = Original->Modules.Collisions;
+            break;
+        case particles_mod:
+        case particles_mod_vec:
+            Modules.Particles = Original->Modules.Particles;
+            break;
+        case event_mod:
+        case event_mod_vec:
+            Modules.Events = Original->Modules.Events;
+            break;
+        case scrollbar_mod:
+        case scrollbar_mod_vec:
+            Modules.Scrollbars = Original->Modules.Scrollbars;
+            break;
+        case primitives_mod:
+        case primitives_mod_vec:
+            Modules.Primitives = Original->Modules.Primitives;
+            break;
         default:
             type = null_dt;
     }
@@ -2255,7 +2288,7 @@ void ContextClass::printOutObjects(){
     }
 }
 unsigned ContextClass::size() const{
-    return Cameras.size() + Layers.size() + Objects.size() + Modules.size();
+    return Cameras.size() + Layers.size() + Objects.size() + Modules.size() + Values.size() + BasePointers.size();
 }
 ReturnType ContextClass::getAllValues(vector<VariableModule> & NewValues){
     NewValues.clear();
@@ -4583,8 +4616,11 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
         << "Cannot assign '" << dataTypeToStr(rightType)
         << "' to a variable of '" << dataTypeToStr(leftType) << "' type.\n";
     };
-    LeftOperand->clear();
+    LeftOperand->clearState();
 
+    if(LeftOperand->type == any_dt){
+        LeftOperand->type = RightOperand.type;
+    }
     if(RightOperand.size() == 0){
         return;
     }
@@ -4894,6 +4930,39 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
                     printAssignRightToLeftError(CurrentInstr, LeftOperand->type, RightOperand.type);
                     return;
             }
+            return;
+        case camera_inst:
+        case camera_vec:
+        case layer_inst:
+        case layer_vec:
+        case object_inst:
+        case object_vec:
+        case text_mod:
+        case text_mod_vec:
+        case editable_text_mod:
+        case editable_text_mod_vec:
+        case super_text_mod:
+        case super_text_mod_vec:
+        case super_editable_text_mod:
+        case super_editable_text_mod_vec:
+        case image_mod:
+        case image_mod_vec:
+        case movement_mod:
+        case movement_mod_vec:
+        case collision_mod:
+        case collision_mod_vec:
+        case particles_mod:
+        case particles_mod_vec:
+        case event_mod:
+        case event_mod_vec:
+        case scrollbar_mod:
+        case scrollbar_mod_vec:
+        case primitives_mod:
+        case primitives_mod_vec:
+            if(LeftOperand->type != RightOperand.type){
+                printAssignRightToLeftError(CurrentInstr, LeftOperand->type, RightOperand.type);
+            }
+            LeftOperand->copyOnlyCurrentType(&RightOperand);
             return;
         default:
             return;
@@ -5352,7 +5421,7 @@ void ProcessClass::assignVariable(ContextMapStruct & EventContext, string variab
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << variableID << "' does not exist.\n";
         return;
     }
-    Variable->clearState();
+    //Variable->clearState();
     if(Variable->type == null_dt){
         Variable->type = NewContext.type;   
     }
@@ -5376,7 +5445,7 @@ void ProcessClass::aggregateValues(ContextMapStruct & EventContext, OperationCla
         NewContext.Values.emplace_back(NewValue);
     }
     NewContext.type = value_inst;
-    if(NewContext.Values.size() > 0){
+    if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
 
@@ -6212,7 +6281,7 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ContextMapStru
     }
 
     NewContext.type = value_inst;
-    if(NewContext.Values.size() > 0){
+    if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
     assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
@@ -6248,7 +6317,7 @@ void ProcessClass::createLiteral(ContextMapStruct & EventContext, const Operatio
     }
 
     NewContext.type = value_inst;
-    if(NewContext.Values.size() > 0){
+    if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
     assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
@@ -6442,7 +6511,7 @@ void ProcessClass::generateRandomVariable(ContextMapStruct & EventContext, const
     }
 
     NewContext.type = value_inst;
-    if(NewContext.Values.size() > 0){
+    if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
 
@@ -6830,7 +6899,7 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, Conte
     NewContext.clear();
     NewContext.Values.emplace_back(VariableModule::newBool(result));
     NewContext.type = value_inst;
-    if(NewContext.Values.size() > 0){
+    if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
     assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
@@ -13868,6 +13937,112 @@ bool isEventTriggered(const Triggers & CurrentTriggers, const std::vector<EventM
 inline string localContextID(const string & eventID, const string & newID){
     return eventID + /*":" +*/ newID;
 }
+inline bool areTypesCompatible(const DataType & leftOperand, const DataType & rightOperand){
+    switch (leftOperand){
+        case bool_inst:
+        case int_inst:
+        case double_inst:
+            switch(rightOperand){
+                case bool_inst:
+                case int_inst:
+                case double_inst:
+                case value_inst:
+                case pointer_inst:
+                case variable_mod:
+                    return true;
+                default:
+                    return false;
+            }
+            return false;
+        case value_inst:
+        case pointer_inst:
+        case string_inst:
+            switch(rightOperand){
+                case bool_inst:
+                case int_inst:
+                case double_inst:
+                case string_inst:
+                case value_inst:
+                case pointer_inst:
+                case variable_mod:
+                    return true;
+                default:
+                    return false;
+            }
+            return false;
+        case int_vec:
+        case bool_vec:
+        case double_vec:
+            switch(rightOperand){
+                case bool_vec:
+                case int_vec:
+                case double_vec:
+                case value_vec:
+                case pointer_vec:
+                case variable_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+            return false;
+        case string_vec:
+        case value_vec:
+        case pointer_vec:
+            switch(rightOperand){
+                case bool_vec:
+                case int_vec:
+                case double_vec:
+                case string_vec:
+                case value_vec:
+                case pointer_vec:
+                case variable_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+            return false;
+        case camera_inst:
+        case layer_inst:
+        case object_inst:
+        case variable_mod:
+        case vector_mod:
+        case text_mod:
+        case editable_text_mod:
+        case super_text_mod:
+        case super_editable_text_mod:
+        case image_mod:
+        case movement_mod:
+        case collision_mod:
+        case particles_mod:
+        case event_mod:
+        case scrollbar_mod:
+        case primitives_mod:
+        case camera_vec:
+        case layer_vec:
+        case object_vec:
+        case variable_mod_vec:
+        case vector_mod_vec:
+        case text_mod_vec:
+        case editable_text_mod_vec:
+        case super_text_mod_vec:
+        case super_editable_text_mod_vec:
+        case image_mod_vec:
+        case movement_mod_vec:
+        case collision_mod_vec:
+        case particles_mod_vec:
+        case event_mod_vec:
+        case scrollbar_mod_vec:
+        case primitives_mod_vec:
+            if(leftOperand == rightOperand){
+                return true;
+            }
+            return false;
+        case any_dt:
+            return true;
+        default:
+            return false;
+    }
+}
 bool ProcessClass::passVariablesToTheChild(const vector<string> & ParentEventVariables,
     const vector<StartingVariableStruct> & CurrentEventVariables, ContextMapStruct & VariablesLoookupTable
 ){
@@ -13878,9 +14053,10 @@ bool ProcessClass::passVariablesToTheChild(const vector<string> & ParentEventVar
         return true;
     }
     for(unsigned variableIdx = 0; variableIdx < CurrentEventVariables.size(); variableIdx++){
-        if(CurrentEventVariables[variableIdx].isReference){
-            continue;
-        }
+        //TODO: Test if adding this back inside an if "ignoreTypes==true" will not hurt the performance.
+        // if(CurrentEventVariables[variableIdx].isReference){
+        //     continue;
+        // }
         string sourceVariableID = ParentEventVariables[variableIdx];
         bool isSourceReference = false; //TODO: this must be true if the source is a reference PROBABLY
         if(extractReferenceFromCustomVariable(sourceVariableID, isSourceReference, CurrentInstr, __FUNCTION__)){
@@ -13893,6 +14069,16 @@ bool ProcessClass::passVariablesToTheChild(const vector<string> & ParentEventVar
         if(ContextToBeCopied == nullptr){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Context '" << ParentEventVariables[variableIdx] << "' does not exist.\n";
+            continue;
+        }
+
+        if(!areTypesCompatible(CurrentEventVariables[variableIdx].type, ContextToBeCopied->type)){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Cannot pass a parameter of '" << dataTypeToStr(ContextToBeCopied->type)
+                << "' type to an argument of '" << dataTypeToStr(CurrentEventVariables[variableIdx].type) << "' type.\n";
+            return true;
+        }
+        if(CurrentEventVariables[variableIdx].isReference){
             continue;
         }
 
@@ -13911,38 +14097,6 @@ bool ProcessClass::passVariablesToTheChild(const vector<string> & ParentEventVar
         if(OutputVariable == nullptr){
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << childVariableID << "' does not exist.\n"; 
             return true;
-        }
-        if(!isChildVariableReference){
-            OutputVariable->clearState();
-
-            OutputVariable->type = value_vec;
-            OutputVariable->Values.emplace_back(VariableModule());
-
-            switch(CurrentEventVariables[variableIdx].type){
-                case bool_inst:
-                    OutputVariable->Values.back().setBool(0);
-                    break;
-                case int_inst:
-                    OutputVariable->Values.back().setInt(0);
-                    break;
-                case double_inst:
-                    OutputVariable->Values.back().setDouble(0);
-                    break;
-                case string_inst:
-                    OutputVariable->Values.back().setString(0);
-                    break;
-                default:
-                    OutputVariable->type = null_dt;
-                    break;
-            }
-
-            if(OutputVariable->type != null_dt){
-                moveRightToLeft(CurrentInstr, EngineInstr::move, OutputVariable, *ContextToBeCopied);
-            }
-            else{
-                OutputVariable->type = ContextToBeCopied->type;
-                OutputVariable->Values.clear();
-            }
         }
         moveRightToLeft(CurrentInstr, EngineInstr::assign, OutputVariable, *ContextToBeCopied);   
 
@@ -15998,80 +16152,54 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, Con
         ContextClass & Context = ContextMap.second;
         switch(Context.type){
             case text_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Texts[0], Layers, CurrentInstr));
-                break;
             case text_mod_vec:
                 findIndexesInModule(Context.Modules.Texts, Layers, CurrentInstr, ContextMap.first);
                 break;
             case editable_text_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.EditableTexts[0], Layers, CurrentInstr));
-                break;
             case editable_text_mod_vec:
                 findIndexesInModule(Context.Modules.EditableTexts, Layers, CurrentInstr, ContextMap.first);
                 break;
             case super_text_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.SuperTexts[0], Layers, CurrentInstr));
-                break;
             case super_text_mod_vec:
                 findIndexesInModule(Context.Modules.SuperTexts, Layers, CurrentInstr, ContextMap.first);
                 break;
             case super_editable_text_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.SuperEditableTexts[0], Layers, CurrentInstr));
-                break;
             case super_editable_text_mod_vec:
                 findIndexesInModule(Context.Modules.SuperEditableTexts, Layers, CurrentInstr, ContextMap.first);
                 break;
             case image_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Images[0], Layers, CurrentInstr));
-                break;
             case image_mod_vec:
                 findIndexesInModule(Context.Modules.Images, Layers, CurrentInstr, ContextMap.first);
                 break;
             case movement_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Movements[0], Layers, CurrentInstr));
-                break;
             case movement_mod_vec:
                 findIndexesInModule(Context.Modules.Movements, Layers, CurrentInstr, ContextMap.first);
                 break;
             case collision_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Collisions[0], Layers, CurrentInstr));
-                break;
             case collision_mod_vec:
                 findIndexesInModule(Context.Modules.Collisions, Layers, CurrentInstr, ContextMap.first);
                 break;
             case particles_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Particles[0], Layers, CurrentInstr));
-                break;
             case particles_mod_vec:
                 findIndexesInModule(Context.Modules.Particles, Layers, CurrentInstr, ContextMap.first);
                 break;
             case event_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Events[0], Layers, CurrentInstr));
-                break;
             case event_mod_vec:
                 findIndexesInModule(Context.Modules.Events, Layers, CurrentInstr, ContextMap.first);
                 break;
             case variable_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Variables[0], Layers, CurrentInstr));
-                break;
             case variable_mod_vec:
                 findIndexesInModule(Context.Modules.Variables, Layers, CurrentInstr, ContextMap.first);
                 break;
             case scrollbar_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Scrollbars[0], Layers, CurrentInstr));
-                break;
             case scrollbar_mod_vec:
                 findIndexesInModule(Context.Modules.Scrollbars, Layers, CurrentInstr, ContextMap.first);
                 break;
             case primitives_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Primitives[0], Layers, CurrentInstr));
-                break;
             case primitives_mod_vec:
                 findIndexesInModule(Context.Modules.Primitives, Layers, CurrentInstr, ContextMap.first);
                 break;
             case vector_mod:
-                ModuleIndexes[ContextMap.first].push_back(getIndex(Context.Modules.Vectors[0], Layers, CurrentInstr));
-                break;
             case vector_mod_vec:
                 findIndexesInModule(Context.Modules.Vectors, Layers, CurrentInstr, ContextMap.first);
                 break;

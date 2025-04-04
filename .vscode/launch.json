@@ -21,7 +21,7 @@
         //"args": ["-c", "./tests/assert.sand"],
         //"args": ["-c", "./scripts/runAllTests.sand"],
         //"args": ["-c", "./examples/rectangle.sand"],
-        //"args": [""],
+        "args": ["-c", "./temp/debugging.sand"],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",
         "environment": [],

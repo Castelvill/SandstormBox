@@ -1449,7 +1449,7 @@ bool setupFirstLastAllRandomInstr(const vector<WordStruct> & words, EventModule 
     else{
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
-            << ": First argument cannot be an empty context.\n";
+            << ": First parameter cannot be an empty context.\n";
         return true;
     }
 
@@ -1636,7 +1636,7 @@ bool setupIndexInstr(const vector<WordStruct> & words, EventModule & NewEvent, O
     else{
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__
-            << ": First argument cannot be an empty context.\n";
+            << ": First parameter cannot be an empty context.\n";
         return true;
     }
     
@@ -1691,8 +1691,6 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
 
     string error;
     bool triggerBreakpoint = false;
-
-    DataType outputType = null_dt;
 
     vector <string> allAvailableEventIDs;
     
@@ -1891,7 +1889,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             else{
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
-                    << ": First argument cannot be an empty context.\n";
+                    << ": First parameter cannot be an empty context.\n";
                 return;
             }
             
@@ -2923,11 +2921,11 @@ ReturnType gatherImportsFromScript(const string & scriptName, vector<string> & a
         }
         if(words[0].value == "import"){
             if(words.size() == 1){
-                cerr << "Error: Import requires at least one argument.\n";
+                cerr << "Error: Import requires at least one parameter.\n";
                 continue;
             }
             if(words[1].value.size() == 0){
-                cerr << "Error: First argument of the import statement cannot be empty.\n";
+                cerr << "Error: First parameter of the import statement cannot be empty.\n";
                 continue;
             }
             if(words[1].value == scriptName){

@@ -1,3 +1,7 @@
+4.04.2025
+-Added runtime type checking for arguments passed to functions.
+-Fixed "any" variable type.
+
 28.03.2025
 -Started working on the type inference.
 
