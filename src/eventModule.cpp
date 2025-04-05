@@ -1,6 +1,7 @@
 #include "eventModule.h"
 
-ValueSource transSource(string source){
+ValueSource transSource(const string & source, string & error){
+    error = "";
     if(source == "fullscreen"){
         return ValueSource::fullscreen;
     }
@@ -154,7 +155,7 @@ ValueSource transSource(string source){
     if(source == "exists"){
         return ValueSource::exists;
     }
-    cerr << "Error: In " << __FUNCTION__ << ": ValueSource '" << source << "' is undefined.\n";
+    error = "ValueSource '" + source + "' is undefined.";
     return ValueSource::null_s;
 }
 
@@ -273,34 +274,34 @@ DataType strToDataType(string dataType){
     if(dataType == "Null"){
         return null_dt;
     }
-    else if(dataType == "Bool"){
+    else if(dataType == "bool"){
         return bool_inst;
     }
-    else if(dataType == "BoolVec"){
+    else if(dataType == "boolVec"){
         return bool_vec;
     }
-    else if(dataType == "Int"){
+    else if(dataType == "int"){
         return int_inst;
     }
-    else if(dataType == "IntVec"){
+    else if(dataType == "intVec"){
         return int_vec;
     }
-    else if(dataType == "Double"){
+    else if(dataType == "double"){
         return double_inst;
     }
-    else if(dataType == "DoubleVec"){
+    else if(dataType == "doubleVec"){
         return double_vec;
     }
-    else if(dataType == "String"){
+    else if(dataType == "string"){
         return string_inst;
     }
-    else if(dataType == "StringVec"){
+    else if(dataType == "stringVec"){
         return string_vec;
     }
-    else if(dataType == "Value"){
+    else if(dataType == "Val"){
         return value_inst;
     }
-    else if(dataType == "ValueVec"){
+    else if(dataType == "ValVec"){
         return value_vec;
     }
     else if(dataType == "Pointer"){
@@ -417,25 +418,25 @@ string dataTypeToStr(DataType dataType){
         case null_dt:
             return "Null";
         case bool_inst:
-            return "Bool";
+            return "bool";
         case bool_vec:
-            return "BoolVec";
+            return "boolVec";
         case int_inst:
-            return "Int";
+            return "int";
         case int_vec:
-            return "IntVec";
+            return "intVec";
         case double_inst:
-            return "Double";
+            return "double";
         case double_vec:
-            return "DoubleVec";
+            return "doubleVec";
         case string_inst:
-            return "String";
+            return "string";
         case string_vec:
-            return "StringVec";
+            return "stringVec";
         case value_inst:
-            return "Value";
+            return "Val";
         case value_vec:
-            return "ValueVec";
+            return "ValVec";
         case pointer_inst:
             return "Pointer";
         case pointer_vec:
@@ -950,7 +951,7 @@ void EventModule::clone(const EventModule &Original, vector<string> &listOfIDs, 
 void EventModule::setUpNewInstance(){
     conditionalStatus = 'n';
     elseChildID = "";
-    areDependentOperationsDone = false;
+    programCounter = 0;
     elseChildFinished = false;
     loop = false;
     willBeDeleted = false;
@@ -987,6 +988,15 @@ bool EventModule::checkIfAllChildrenFinished(){
         }
     }
     return true;
+}
+DataType strToDataTypeWithoutPrimaryTypes(string dataType){
+    if(dataType == "bool" || dataType == "int" || dataType == "double" || dataType == "string"){
+        return value_inst;
+    }
+    if(dataType == "boolVec" || dataType == "intVec" || dataType == "doubleVec" || dataType == "stringVec"){
+        return value_vec;
+    }
+    return strToDataType(dataType);
 }
 bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned & cursor,
     const unsigned & lineNumber, const string & scriptName, vector<StartingVariableStruct> & NewVariablesForLookupTable
@@ -1062,7 +1072,7 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
             }
         }
         
-        DataType variableType = strToDataType(words[cursor].value);
+        DataType variableType = strToDataTypeWithoutPrimaryTypes(words[cursor].value);
         string variableID = words[cursor + 1 + isReference].value;
         cursor += 2 + isReference;
 
@@ -1095,7 +1105,7 @@ string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & Ne
     if(!canCreateNewsVariable){
         !ignoreUndefinedVariable && cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__ << ": Variable '" << variableID << "' is undefined.\n";
-        return "";
+        return variableID;
     }
     usedEventID = allAvailableEventIDs[0];
     return localContextID(allAvailableEventIDs[0], variableID);

@@ -28,11 +28,9 @@ start incB()
 end
 
 start incB2(int b2)
-    dump_context_stack
-    breakpoint
     ++ b2
     assert b2 12
+    assert b 11
 after
-    dump_context_stack
     assert b 11
 end

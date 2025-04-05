@@ -762,7 +762,12 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, ValueSource &
         return true;
     }
     if(words[cursor].type != 'e'){
-        variable = transSource(words[cursor].value);
+        string error;
+        variable = transSource(words[cursor].value, error);
+        if(error.size() > 0){
+            cerr << "Error: In " << __FUNCTION__ << ": " << error << "\n";
+            return true;
+        }
     }
     cursor++;
     return false;
@@ -858,7 +863,12 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, ValueSource &
         return true;
     }
     if(words[cursor].type != 'e' && words[cursor].value != "]"){
-        Variable = transSource(words[cursor].value);
+        string error;
+        Variable = transSource(words[cursor].value, error);
+        if(error.size() > 0){
+            cerr << "Error: In " << __FUNCTION__ << ": " << error << "\n";
+            return true;
+        }
     }
     if(words[cursor].value != "]"){
         cursor++;
@@ -1036,7 +1046,8 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
                 cursor++;
             }*/
 
-            Expression.back().Location.source = transSource(firstWord.value);
+            string error;
+            Expression.back().Location.source = transSource(firstWord.value, error);
 
             if(firstWord.type == 'b'){
                 Expression.back().Location.source = ValueSource::literal;
@@ -1774,16 +1785,13 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             }*/
         }
         else if(words[0].value == "run"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 2, lineNumber, scriptName)){
+                return;
+            }
             if(inAfterSection){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
                     << ": Cannot run another events in the after section.\n";
-                return;
-            }
-            if(words.size() < 2){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__
-                    << ": Instruction \'" << words[0].value << "\' requires 2 parameters.\n";
                 return;
             }
             if(words[1].type != 'c'){
@@ -1848,7 +1856,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             }
         }
         else if(isStringInGroup(words[0].value, 10, "continue", "break", "return", "reboot", "exit",
-            "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag", "breakpoint")
+            "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag", "breakpoint", "end_loop")
         ){
             if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
                 return;
@@ -2097,7 +2105,13 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
-            Operation->Location.source = transSource(words[1].value);
+            Operation->Location.source = transSource(words[1].value, error);
+            if(error.size() > 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": In the '" << words[0].value << "' instruction: " << error << "\n";
+                return;
+            }
             cursor = 2;
             if(words[1].value == "camera"){
                 if(words.size() < 4){
@@ -2202,7 +2216,13 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
-            Operation->Location.source = transSource(words[1].value);
+            Operation->Location.source = transSource(words[1].value, error);
+            if(error.size() > 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__
+                    << ": In the '" << words[0].value << "' instruction: " << error << "\n";
+                return;
+            }
             
             //If the destination is provided as a variable, skip one parameter in the instruction.
             if(words[2].type == 'c'){

@@ -1,4 +1,5 @@
--Add basic data types if you want.
+-Turn "if" instruction into event sections like "after" or into a jump-type instruction.
+-Turn "triggers" instruction into event sections like "after".
 -Fix: Passing variable to a function that takes only a value copies the pointer to this variable. The same probably happens also for other types like vectors etc.
 -You already fixed "after" section ONLY for inline events, do it also for normal events/functions.
 -Fix "after" section - it must use the scope of the event's parent (test: afterLocality.sand).

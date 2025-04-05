@@ -37,6 +37,9 @@ EngineInstr strToInstr(string instruction){
     if(instruction == "exit"){
         return EngineInstr::exit_i;
     }
+    if(instruction == "end_loop"){
+        return EngineInstr::end_loop;
+    }
     if(instruction == "delete_this_event"){
         return EngineInstr::delete_this_event;
     }
@@ -347,6 +350,8 @@ string instrToStr(const EngineInstr & instruction){
             return "reboot";
         case exit_i:
             return "exit";
+        case end_loop:
+            return "end_loop";
         case delete_this_event:
             return "delete_this_event";
         case reset_keyboard:
@@ -539,6 +544,9 @@ string instrToStr(const EngineInstr & instruction){
 }
 string instructionError(InstrDescription Description, string functionName){
     if(Description.scriptName == ""){
+        if(Description.layerID == ""){
+            return "Error: In " + functionName + ": "; 
+        }
         return "Error: In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
             + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
     }
@@ -548,6 +556,9 @@ string instructionError(InstrDescription Description, string functionName){
 }
 string instructionWarning(InstrDescription Description, string functionName){
     if(Description.scriptName == ""){
+        if(Description.layerID == ""){
+            return "Warning: In " + functionName + ": "; 
+        }
         return "Error: In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
             + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
     }

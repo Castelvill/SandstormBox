@@ -11,7 +11,7 @@ enum ReturnType : char{
 
 enum EngineInstr : char{
     null, start, end_i, after, triggers, run, if_i, else_i, continue_i,
-    break_i, return_i, reboot, exit_i, delete_this_event,
+    break_i, return_i, reboot, exit_i, end_loop, delete_this_event,
     reset_keyboard, dump_context_stack, first, last, all,
     random_i, index_i, index_vec, sum, intersection, diff, add, sub, mul,
     div_i, mod, pow_i, assign, move, add_move, sub_move, mul_move, div_move,

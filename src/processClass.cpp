@@ -10299,7 +10299,9 @@ void ProcessClass::executePrint(OperationClass & Operation, ContextMapStruct & E
     vector <ContextClass> ValueContexts;
     for(unsigned index = 1; index < Operation.rootParametersSize; index++){
         ValueContexts.emplace_back(ContextClass());
-        if(ValueContexts.back().copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, index, true)){
+        if(ValueContexts.back().copyFromTheParameter(EventContext.Contexts,
+            EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, index, true
+        )){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Failed to get the context from the parameter " << index+2 << ".\n";
             return;
@@ -12104,13 +12106,19 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
     if(Operations.size() > 0){
         CurrentInstr.scriptName = Operations[0].scriptName;
     }
-    for(OperationClass & Operation : Operations){
+    for(; Event->programCounter < Operations.size(); ++Event->programCounter){
+        OperationClass & Operation = Operations[Event->programCounter];
         CurrentInstr.instruction = Operation.instruction;
         CurrentInstr.lineNumber = Operation.lineNumber;
 
         std::chrono::steady_clock::time_point timeBegin = std::chrono::steady_clock::now();
 
         switch(Operation.instruction){
+            case end_loop:
+                if(printOutInstructions){
+                    cout << instrToStr(Operation.instruction) << "\n";
+                }
+                break;
             case continue_i:
             case break_i:
             case return_i:
@@ -12119,6 +12127,9 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 if(printOutInstructions){
                     cout << instrToStr(Operation.instruction) << "\n";
                 }
+                return Operation.instruction;
+            case run:
+                ++Event->programCounter;
                 return Operation.instruction;
             case first: //Aggregate entities and push them on the Variables Stack.
             case last: //Aggregate entities and push them on the Variables Stack.
@@ -13677,7 +13688,8 @@ vector<EventModule>::iterator ProcessClass::findUnfinishedEvent(
 
         if(ChildEvent->getID() != Child.ID){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Event '" << ChildEvent->getID() << "' was found in place of event '" << Child.ID << "'.\n";
+                << "Event '" << ChildEvent->getID() << "' was found in place of event '" << Child.ID
+                << "'. Index " << Child.containerIndex << " is incorrect. Check if the event '" << Child.ID << "' was defined.\n";
             return Event;
         }
 
@@ -13856,7 +13868,7 @@ void ProcessClass::resetChildren(vector<EventModule>::iterator & Event, Ancestor
             for(EventModule & ChildEvent: Triggered->EventContainer){
                 if(ChildEvent.getID() == Child.ID){
                     ChildEvent.conditionalStatus = 'n';
-                    ChildEvent.areDependentOperationsDone = false;
+                    ChildEvent.programCounter = 0;
                     ChildEvent.elseChildFinished = false;
                     StackOfEvents.push_back(&ChildEvent);
                     break;
@@ -13868,7 +13880,7 @@ void ProcessClass::resetChildren(vector<EventModule>::iterator & Event, Ancestor
             for(EventModule & ChildEvent: Triggered->EventContainer){
                 if(ChildEvent.getID() == CurrentEvent->elseChildID){
                     ChildEvent.conditionalStatus = 'n';
-                    ChildEvent.areDependentOperationsDone = false;
+                    ChildEvent.programCounter = 0;
                     ChildEvent.elseChildFinished = false;
                     StackOfEvents.push_back(&ChildEvent);
                     break;
@@ -14043,6 +14055,105 @@ inline bool areTypesCompatible(const DataType & leftOperand, const DataType & ri
             return false;
     }
 }
+inline bool areTypesCompatibleWithReference(const DataType & leftOperand, const DataType & rightOperand){
+    //Reference skips moveRightToLeft function - it uses the same context under other name.
+    switch(leftOperand){
+        case bool_inst:
+        case int_inst:
+        case double_inst:
+            switch(rightOperand){
+                case bool_inst:
+                case int_inst:
+                case double_inst:
+                case value_inst:
+                    return true;
+                default:
+                    return false;
+            }
+            return false;
+        case string_inst:
+        case value_inst:
+            switch(rightOperand){
+                case bool_inst:
+                case int_inst:
+                case double_inst:
+                case string_inst:
+                case value_inst:
+                    return true;
+                default:
+                    return false;
+            }
+            return false;
+        case int_vec:
+        case bool_vec:
+        case double_vec:
+            switch(rightOperand){
+                case bool_vec:
+                case int_vec:
+                case double_vec:
+                case value_vec:
+                    return true;
+                default:
+                    return false;
+            }
+            return false;
+        case string_vec:
+        case value_vec:
+            switch(rightOperand){
+                case bool_vec:
+                case int_vec:
+                case double_vec:
+                case string_vec:
+                case value_vec:
+                    return true;
+                default:
+                    return false;
+            }
+            return false;
+        case pointer_inst:
+        case pointer_vec:
+        case camera_inst:
+        case layer_inst:
+        case object_inst:
+        case variable_mod:
+        case vector_mod:
+        case text_mod:
+        case editable_text_mod:
+        case super_text_mod:
+        case super_editable_text_mod:
+        case image_mod:
+        case movement_mod:
+        case collision_mod:
+        case particles_mod:
+        case event_mod:
+        case scrollbar_mod:
+        case primitives_mod:
+        case camera_vec:
+        case layer_vec:
+        case object_vec:
+        case variable_mod_vec:
+        case vector_mod_vec:
+        case text_mod_vec:
+        case editable_text_mod_vec:
+        case super_text_mod_vec:
+        case super_editable_text_mod_vec:
+        case image_mod_vec:
+        case movement_mod_vec:
+        case collision_mod_vec:
+        case particles_mod_vec:
+        case event_mod_vec:
+        case scrollbar_mod_vec:
+        case primitives_mod_vec:
+            if(leftOperand == rightOperand){
+                return true;
+            }
+            return false;
+        case any_dt:
+            return true;
+        default:
+            return false;
+    }
+}
 bool ProcessClass::passVariablesToTheChild(const vector<string> & ParentEventVariables,
     const vector<StartingVariableStruct> & CurrentEventVariables, ContextMapStruct & VariablesLoookupTable
 ){
@@ -14072,14 +14183,20 @@ bool ProcessClass::passVariablesToTheChild(const vector<string> & ParentEventVar
             continue;
         }
 
+        if(CurrentEventVariables[variableIdx].isReference){
+            if(!areTypesCompatibleWithReference(CurrentEventVariables[variableIdx].type, ContextToBeCopied->type)){
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Cannot pass a parameter of '" << dataTypeToStr(ContextToBeCopied->type)
+                    << "' type to an argument of '" << dataTypeToStr(CurrentEventVariables[variableIdx].type) << "' type.\n";
+                return true;
+            }
+            continue;
+        }
         if(!areTypesCompatible(CurrentEventVariables[variableIdx].type, ContextToBeCopied->type)){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Cannot pass a parameter of '" << dataTypeToStr(ContextToBeCopied->type)
                 << "' type to an argument of '" << dataTypeToStr(CurrentEventVariables[variableIdx].type) << "' type.\n";
             return true;
-        }
-        if(CurrentEventVariables[variableIdx].isReference){
-            continue;
         }
 
         string childVariableID = localContextID(
@@ -14164,7 +14281,7 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
         }
         for(EventModule & Eve : Triggered->EventContainer){
             Eve.conditionalStatus = 'n';
-            Eve.areDependentOperationsDone = false;
+            Eve.programCounter = 0;
             Eve.elseChildFinished = false;
             for(ChildStruct & Unfinished : Eve.Children){
                 Unfinished.finished = false;
@@ -14271,7 +14388,7 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                 }
             }
             if(Event->conditionalStatus == 't' && interruptInstruction != EngineInstr::break_i){ //if true
-                if(!Event->areDependentOperationsDone){
+                if(Event->programCounter < Event->DependentOperations.size()){
                     interruptInstruction = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, VariablesLoookupTable, TriggeredObjects,
                         Processes, StartingEvent, Event, EventStack, Engine
                     );
@@ -14292,9 +14409,8 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                         //cout << "Aborting! The owner of the event has been deleted.\n";
                         break;
                     }
-                    Event->areDependentOperationsDone = true;
                 }
-                if(!Event->checkIfAllChildrenFinished() && interruptInstruction != EngineInstr::break_i){
+                if(interruptInstruction == EngineInstr::run && !Event->checkIfAllChildrenFinished()){
                     EventStack.emplace_back(Event);
                     
                     std::chrono::steady_clock::time_point timeBegin = std::chrono::steady_clock::now();
@@ -14365,12 +14481,12 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                     addGlobalVectors(VariablesLoookupTable, Triggered->VectorContainer, printOutInstructions);
                 }
 
-                if(passVariablesToTheChild(EventStack.back().passingVariables, Event->PassedVariables, VariablesLoookupTable)){
-                    return;
-                }
+                // if(passVariablesToTheChild(EventStack.back().passingVariables, Event->PassedVariables, VariablesLoookupTable)){
+                //     return;
+                // }
                 
                 Event->conditionalStatus = 'n';
-                Event->areDependentOperationsDone = false;
+                Event->programCounter = 0;
                 Event->elseChildFinished = false;
                 resetChildren(Event, Triggered);
                 continue;
@@ -14414,7 +14530,7 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
             }
             if(StartingEvent != Event){ //jump back in event stack
                 Event->conditionalStatus = 'n';
-                Event->areDependentOperationsDone = false;
+                Event->programCounter = 0;
                 Event->elseChildFinished = false;
                 resetChildren(Event, Triggered);
                 

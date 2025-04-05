@@ -4,6 +4,7 @@ start passingValuesTest
     print "PASSING_VALUES_TEST - START\n"
     var a 10
     run passA(a)
+    run passA2(a)
 after
     print "PASSING_VALUES_TEST - PASSED\n"
     delete_this_event
@@ -15,14 +16,20 @@ start passA(int localA)
     assert a 10
 
     type localA typeOfLocal 
-    assert typeOfLocal "literal"
+    assert typeOfLocal "Val"
+
+    type a typeOfGlobal
+    assert typeOfGlobal "Var"
 end
 
-start passA2(int & localA)
+start passA2(Var & localA)
     ++ localA
     assert localA 11
-    assert a 10
+    assert a 11
 
     type localA typeOfLocal 
-    assert typeOfLocal "literal"
+    assert typeOfLocal "Var"
+
+    type a typeOfGlobal
+    assert typeOfGlobal "Var"
 end
