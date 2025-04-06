@@ -1,3 +1,6 @@
+06.04.2025
+-Implemented better if statements with nesting support. It can be used with these symbols: if, else_if, else and end_if. Old version of if statement is currently available under "if_old" and "else_old" symbols, but will be removed.
+
 05.04.2025
 -Upgraded "run" instruction - events can now be called between normal instructions.
 

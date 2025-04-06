@@ -10441,6 +10441,7 @@ void ProcessClass::executePrint(OperationClass & Operation, ContextMapStruct & E
 
     if(Operation.outputVariableID == ""){
         cout << buffer;
+        cout.flush();
     }
     else{
         NewContext.clear();
@@ -12106,12 +12107,16 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
     if(Operations.size() > 0){
         CurrentInstr.scriptName = Operations[0].scriptName;
     }
+    vector<char> goToEndOfIfStatement;
+    char conditionalStatus = 'n';
     for(; Event->programCounter < Operations.size(); ++Event->programCounter){
         OperationClass & Operation = Operations[Event->programCounter];
         CurrentInstr.instruction = Operation.instruction;
         CurrentInstr.lineNumber = Operation.lineNumber;
 
         std::chrono::steady_clock::time_point timeBegin = std::chrono::steady_clock::now();
+
+
 
         switch(Operation.instruction){
             case end_loop:
@@ -12131,6 +12136,44 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
             case run:
                 ++Event->programCounter;
                 return Operation.instruction;
+            case if_i:
+                goToEndOfIfStatement.push_back(0);
+                conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Owner, OwnerLayer, Engine, EventContext);
+                if(conditionalStatus == 't'){
+                    goToEndOfIfStatement.back() = 1;
+                }
+                else if(conditionalStatus == 'f'){
+                    Event->programCounter = Operation.jumpToLineSecond; //Jump to next else_if, else or end_if.
+                }
+                else{
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Conditional status is equal to '" << conditionalStatus << "'.\n";
+                }
+                break;
+            case else_if:
+                if(goToEndOfIfStatement.back() == 1){
+                    Event->programCounter = Operation.jumpToLine;
+                }
+                conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Owner, OwnerLayer, Engine, EventContext);
+                if(conditionalStatus == 't'){
+                    goToEndOfIfStatement.back() = 1;
+                }
+                else if(conditionalStatus == 'f'){
+                    Event->programCounter = Operation.jumpToLineSecond; //Jump to next else_if, else or end_if.
+                }
+                else{
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Conditional status is equal to '" << conditionalStatus << "'.\n";
+                }
+                break;
+            case else_i:
+                if(goToEndOfIfStatement.back() == 1){
+                    Event->programCounter = Operation.jumpToLine;
+                }
+                break;
+            case end_if:
+                goToEndOfIfStatement.pop_back();
+                break;
             case first: //Aggregate entities and push them on the Variables Stack.
             case last: //Aggregate entities and push them on the Variables Stack.
             case all: //Aggregate entities and push them on the Variables Stack.
@@ -14349,18 +14392,18 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
             if(printOutInstructions){
                 printInColor("\n---Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
             }
-            if(Event->conditionalStatus == 'n' && interruptInstruction != EngineInstr::break_i){
+            if(Event->conditionalStatus == 'n' && interruptInstruction != EngineInstr::break_i && interruptInstruction != EngineInstr::return_i){
                 std::chrono::steady_clock::time_point timeBegin = std::chrono::steady_clock::now();
-                CurrentInstr.instruction = EngineInstr::if_i;
+                CurrentInstr.instruction = EngineInstr::if_old;
                 CurrentInstr.scriptName = "";
                 Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Event->resultStack, Triggered, TriggeredLayer, Engine, VariablesLoookupTable);
                 std::chrono::steady_clock::time_point timeEnd = std::chrono::steady_clock::now();
                 auto temp = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeBegin).count();
-                if(TimeSpentOnInstructions.contains(EngineInstr::if_i)){
-                    TimeSpentOnInstructions[EngineInstr::if_i] += temp;
+                if(TimeSpentOnInstructions.contains(EngineInstr::if_old)){
+                    TimeSpentOnInstructions[EngineInstr::if_old] += temp;
                 }
                 else{
-                    TimeSpentOnInstructions[EngineInstr::if_i] = temp;
+                    TimeSpentOnInstructions[EngineInstr::if_old] = temp;
                 }
                 
                 if(printOutInstructions){
@@ -14383,11 +14426,14 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                 if(interruptInstruction == EngineInstr::break_i){
                     printInColor("---break\n", 14);
                 }
+                else if(interruptInstruction == EngineInstr::return_i){
+                    printInColor("---return\n", 14);
+                }
                 else{
                     printInColor("---go_back\n", 14);
                 }
             }
-            if(Event->conditionalStatus == 't' && interruptInstruction != EngineInstr::break_i){ //if true
+            if(Event->conditionalStatus == 't' && interruptInstruction != EngineInstr::break_i && interruptInstruction != EngineInstr::return_i){ //if true
                 if(Event->programCounter < Event->DependentOperations.size()){
                     interruptInstruction = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, VariablesLoookupTable, TriggeredObjects,
                         Processes, StartingEvent, Event, EventStack, Engine
@@ -14401,10 +14447,10 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                         Engine.reboot = true;
                         return;
                     }
-                    else if(interruptInstruction == EngineInstr::return_i){
-                        interruptInstruction = EngineInstr::null;
-                        break;
-                    }
+                    // else if(interruptInstruction == EngineInstr::return_i){
+                    //     interruptInstruction = EngineInstr::null;
+                    //     break;
+                    // }
                     if(TriggeredLayer == nullptr || Triggered == nullptr){
                         //cout << "Aborting! The owner of the event has been deleted.\n";
                         break;
@@ -14450,14 +14496,14 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                 }
             }
             else if(Event->conditionalStatus == 'f' && interruptInstruction != EngineInstr::break_i
-                && Event->elseChildID != "" && !Event->elseChildFinished)
-            { //else
+                && interruptInstruction != EngineInstr::return_i && Event->elseChildID != "" && !Event->elseChildFinished
+            ){ //else
                 EventStack.emplace_back(EventStackStruct(Event));
                 Event = FindElseEvent(Triggered, Event);
                 findCallingEventAndType(EventStack, Event, "else");
                 
                 CurrentInstr.eventID = Event->getID();
-                CurrentInstr.instruction = EngineInstr::else_i;
+                CurrentInstr.instruction = EngineInstr::else_old;
                 if(EventStack.back().Event->elseChildFinished){ //True if else event has been found.
                     if(Event != EventStack.back().Event){
                         if(passVariablesToTheChild(EventStack.back().Event->passingVariablesForElseEvent, Event->PassedVariables, VariablesLoookupTable)){
@@ -14471,7 +14517,9 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                 EventStack.pop_back();
             }
 
-            if(Event->loop && Event->conditionalStatus != 'f' && interruptInstruction != EngineInstr::break_i){ //loop back
+            if(Event->loop && Event->conditionalStatus != 'f' && interruptInstruction != EngineInstr::break_i
+                && interruptInstruction != EngineInstr::return_i
+            ){ //loop back
                 if(wereGlobalVariablesCreated){
                     if(printOutInstructions){
                         cout << "---Update global variables:\n";
@@ -14491,10 +14539,13 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                 resetChildren(Event, Triggered);
                 continue;
             }
-            if(Event->loop){
+            if(Event->loop && interruptInstruction != EngineInstr::return_i){
                 interruptInstruction = EngineInstr::null;
             }
-            if(Event->conditionalStatus == 't' && interruptInstruction != EngineInstr::break_i){ //operations after loop/if
+            if(Event->conditionalStatus == 't' && interruptInstruction != EngineInstr::break_i
+                && interruptInstruction != EngineInstr::return_i
+            ){ //operations after loop/if
+                
                 //In the "after" scope child events execute instructions from the perspective of their parents.
                 //This behavior is required to execute parent's instructions between its children's scopes.
                 //If the current event is a root of an event tree, it will execute instructions from its own perspective. 
@@ -14519,10 +14570,10 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                     Engine.reboot = true;
                     return;
                 }
-                else if(interruptInstruction == EngineInstr::return_i){
-                    interruptInstruction = EngineInstr::null;
-                    break;
-                }
+                // else if(interruptInstruction == EngineInstr::return_i){
+                //     interruptInstruction = EngineInstr::null;
+                //     break;
+                // }
                 if(TriggeredLayer == nullptr || Triggered == nullptr){
                     //cout << "Aborting! The owner of the event has been deleted.\n";
                     break;
@@ -14533,6 +14584,10 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                 Event->programCounter = 0;
                 Event->elseChildFinished = false;
                 resetChildren(Event, Triggered);
+
+                if(!Event->isInline){
+                    interruptInstruction = EngineInstr::null;
+                }
                 
                 Event = EventStack.back().Event;
                 EventStack.pop_back();

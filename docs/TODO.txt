@@ -9,6 +9,7 @@
 -Fix: References will not work if several instances of the same event are called. Add a number to each instance's reference id and to children.
 -Change all variable and reference ids into unique numbers / eliminate string concatenation, but first think how would you deal with passing variables to functions.
 -Why is [event][transition][event] reference format needed? 
+-Move every instruction definition to a seperate function.
 
 -IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.
 -Classes should have two uses: templates for objects and user-defined argument types in the function definitions. The second one means that when passing parameters to a function, aside from checking if the context is of "ObjectInst"/"ObjectVec" type, engine additionally compares a new AncestorObject variable "originID" (which can be set during a "clone" instruction) to the user-defined type. If something is incorrect, raise an error.

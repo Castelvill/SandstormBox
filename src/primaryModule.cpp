@@ -16,11 +16,23 @@ EngineInstr strToInstr(string instruction){
     if(instruction == "run"){
         return EngineInstr::run;
     }
+    if(instruction == "if_old"){
+        return EngineInstr::if_old;
+    }
+    if(instruction == "else_old"){
+        return EngineInstr::else_old;
+    }
     if(instruction == "if"){
         return EngineInstr::if_i;
     }
+    if(instruction == "else_if"){
+        return EngineInstr::else_if;
+    }
     if(instruction == "else"){
         return EngineInstr::else_i;
+    }
+    if(instruction == "end_if"){
+        return EngineInstr::end_if;
     }
     if(instruction == "continue"){
         return EngineInstr::continue_i;
@@ -336,10 +348,18 @@ string instrToStr(const EngineInstr & instruction){
             return "triggers";
         case run:
             return "run";
+        case if_old:
+            return "if";
+        case else_old:
+            return "else";
         case if_i:
             return "if";
+        case else_if:
+            return "else_if";
         case else_i:
             return "else";
+        case end_if:
+            return "end_if";
         case continue_i:
             return "continue";
         case break_i:

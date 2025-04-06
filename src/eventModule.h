@@ -114,6 +114,8 @@ public:
     unsigned lineNumber = 0;
     string outputVariableID;
     bool isOutputReference = false;
+    unsigned jumpToLine = 0; //Line number of end_if label in if statements.
+    unsigned jumpToLineSecond = 0; //Line number of a next else or else_if statement.
     OperationClass();
     
     //Add literal or context. The type will be checked only if the provided word is a literal.

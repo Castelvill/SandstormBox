@@ -12,11 +12,11 @@ start testRunnerEvent
     build TestAssert true
 
     new object my_layer 1 "TestAfterLocality" TestAfterLocality
-    bind TestAfterLocality ["tests/afterLocality.sand"]
+    bind TestAfterLocality ["tests/after_locality.sand"]
     build TestAfterLocality true
 
     new object my_layer 1 "TestPassingReferences" TestPassingReferences
-    bind TestPassingReferences ["tests/passingReferences.sand"]
+    bind TestPassingReferences ["tests/passing_references.sand"]
     build TestPassingReferences true
 end
 

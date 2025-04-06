@@ -10,7 +10,8 @@ enum ReturnType : char{
 };
 
 enum EngineInstr : char{
-    null, start, end_i, after, triggers, run, if_i, else_i, continue_i,
+    null, start, end_i, after, triggers, run, if_old, else_old, if_i,
+    else_if, else_i, end_if, continue_i,
     break_i, return_i, reboot, exit_i, end_loop, delete_this_event,
     reset_keyboard, dump_context_stack, first, last, all,
     random_i, index_i, index_vec, sum, intersection, diff, add, sub, mul,

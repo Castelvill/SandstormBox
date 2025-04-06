@@ -1673,6 +1673,10 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
     OperationClass * Operation;
     bool inAfterSection = false;
 
+    vector<unsigned> ifElseJumpStack; //Index of variables that will store line numbers for jumping to else_ifs and elses from ifs and else_ifs.
+    vector<vector<unsigned>> ifEndJumpStack; //Pointers to variables that store line numbers for jumping to end_if labels from ifs, else_ifs and elses.
+    vector<char> usedElseStatements; //If an else statement was used in an if statement store 1, otherwise store 0. This vector is required for clearing pointers in if statements without elses.  
+
     //merge string sections
     vector<string> code2 = {""};
     bool stringSection = false;
@@ -1809,7 +1813,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 return;
             }
         }
-        else if(words[0].value == "if"){
+        else if(words[0].value == "if_old"){
             if(inAfterSection){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
@@ -1824,7 +1828,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 return;
             }
         }
-        else if(words[0].value == "else"){
+        else if(words[0].value == "else_old"){
             if(inAfterSection){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
@@ -1854,6 +1858,113 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             )){
                 return;
             }
+        }
+        else if(words[0].value == "if"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack, lineNumber, scriptName, true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+                return;
+            }
+            ifElseJumpStack.push_back(NewEvent.DependentOperations.size()-1);
+            usedElseStatements.push_back(0);
+            ifEndJumpStack.push_back(vector<unsigned>());
+            ifEndJumpStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        }
+        else if(words[0].value == "else_if"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack, lineNumber, scriptName, true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+                return;
+            }
+            if(ifElseJumpStack.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside the if statement scope.\n";
+                return;
+            }
+            NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-2;
+            ifElseJumpStack.pop_back();
+            ifElseJumpStack.push_back(NewEvent.DependentOperations.size()-1);
+            if(ifEndJumpStack.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside the if statement scope.\n";
+                return;
+            }
+            ifEndJumpStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        }
+        else if(words[0].value == "else"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(ifElseJumpStack.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside the if statement scope.\n";
+                return;
+            }
+            NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-2;
+            ifElseJumpStack.pop_back();
+            if(usedElseStatements.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside the if statement scope.\n";
+                return;
+            }
+            usedElseStatements.back() = 1;
+            if(ifEndJumpStack.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside the if statement scope.\n";
+                return;
+            }
+            ifEndJumpStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        }
+        else if(words[0].value == "end_if"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(ifEndJumpStack.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside the if statement scope.\n";
+                return;
+            }
+            if(usedElseStatements.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside the if statement scope.\n";
+                return;
+            }
+            if(usedElseStatements.back() == 0){
+                if(ifElseJumpStack.size() == 0){
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                        << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                        << words[0].value << "' outside the if statement scope.\n";
+                    return;
+                }
+                NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-2;
+                ifElseJumpStack.pop_back();
+            }
+            usedElseStatements.pop_back();
+            if(ifEndJumpStack.size() > 0){
+                for(unsigned lineNumberIdx : ifEndJumpStack.back()){
+                    NewEvent.DependentOperations[lineNumberIdx].jumpToLine = NewEvent.DependentOperations.size()-2;
+                }
+                ifEndJumpStack.back().clear();
+                ifEndJumpStack.pop_back();
+            }
+
         }
         else if(isStringInGroup(words[0].value, 10, "continue", "break", "return", "reboot", "exit",
             "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag", "breakpoint", "end_loop")
@@ -2896,8 +3007,15 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
     if(words.size() > 0){
         if(words[0].value != "end"){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": Every event must end with \"end\" instruction.\n";
+                << errorSpacing() << "In " << __FUNCTION__ << ": Every event must end with 'end' instruction.\n";
         }
+    }
+
+    if(ifElseJumpStack.size() > 0 || ifEndJumpStack.size() > 0 || usedElseStatements.size() > 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": Every if statement must end with '"
+            << instrToStr(end_if) << "' label.\n";
     }
 
     // for(EventModule & InlineEvent : EventContainer){
