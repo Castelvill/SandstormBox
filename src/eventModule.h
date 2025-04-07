@@ -141,7 +141,6 @@ public:
 
 struct ChildStruct{
 	string ID;
-    bool finished; //If true, ignore the child.
     vector<string> passingVariables;
     unsigned containerIndex = 0;
     string callingScript;
@@ -161,7 +160,6 @@ public:
 	vector <ConditionClass> ConditionalChain;
     vector<VariableModule> resultStack;
     vector <OperationClass> DependentOperations;
-    unsigned int programCounter = 0;
 	vector <OperationClass> PostOperations; //Post operations can be executed ONLY if ConditionalChain returns true - otherwise only the else scope will be called and executed.
 	vector <ChildStruct> Children;
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events with the use of "run" and "else" commands.
@@ -171,13 +169,19 @@ public:
     bool isInline = false;
     string callingEventID = "";
     string callingType = "";
-    char conditionalStatus = 'n'; //n-null, t-true, f-false
     string elseChildID; //Ignore if empty. "Else if" statements can be created by adding conditions to the "else child" Event. Each Event can only have one else statement ("else child") - it's a normal thing in branching. It's the optimal way. Do not argue, stupid.
     vector<string> passingVariablesForElseEvent;
     bool elseChildFinished = false;
     bool loop = false;
     bool willBeDeleted = false; //Event will be deleted as soon as possible, but it still can be executed.
     bool isFunction = true; //True, if the event has not been connected to any trigger. It will stay false even if on_init trigger is removed.
+
+    unsigned programCounter = 0;
+    char conditionalStatus = 'n'; //n-null, t-true, f-false
+    bool breakFromCurrentLoop = false;
+    bool decrementProgramCounter = false;
+    vector<char> goToEndOfIfStatement;
+
     EventModule();
     EventModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     EventModule(string textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
@@ -186,8 +190,7 @@ public:
 
     void setUpNewInstance();
     void clear();
-	void resetStatus();
-	bool checkIfAllChildrenFinished();
+    void resetStateVariables();
 
     bool getPassedVariables(const vector<WordStruct> & words, unsigned & cursor,
         const unsigned & lineNumber, const string & scriptName,

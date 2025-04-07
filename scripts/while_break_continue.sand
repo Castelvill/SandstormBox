@@ -1,0 +1,28 @@
+start main()
+    triggers on_init
+    int i 0
+    int j 0
+    while([i] [10] <)
+        print _ _ i " -> "
+        if([i] [3] ==)
+            ++ i
+            print "\n"
+            continue
+        end_if
+        = j 0
+        while([j] [10] <)
+            if([i] [5] == [j] [3] < &&)
+                ++ j
+                continue
+            end_if
+            print _ _ j " "
+            if([j] [8] ==)
+                break
+            end_if
+            ++ j
+        end_while
+        print "\n"
+        ++ i
+    end_while
+    exit
+end

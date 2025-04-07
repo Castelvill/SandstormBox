@@ -1673,9 +1673,6 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
     OperationClass * Operation;
     bool inAfterSection = false;
 
-    vector<unsigned> ifElseJumpStack; //Index of variables that will store line numbers for jumping to else_ifs and elses from ifs and else_ifs.
-    vector<vector<unsigned>> ifEndJumpStack; //Pointers to variables that store line numbers for jumping to end_if labels from ifs, else_ifs and elses.
-    vector<char> usedElseStatements; //If an else statement was used in an if statement store 1, otherwise store 0. This vector is required for clearing pointers in if statements without elses.  
 
     //merge string sections
     vector<string> code2 = {""};
@@ -1708,7 +1705,14 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
     bool triggerBreakpoint = false;
 
     vector <string> allAvailableEventIDs;
+
+    vector<unsigned> ifElseJumpStack; //Indexes of operations that will store line numbers for jumping to else_ifs and elses from ifs and else_ifs.
+    vector<vector<unsigned>> ifEndJumpStack; //Indexes of operations that store line numbers for jumping to end_if labels from ifs, else_ifs and elses.
+    vector<char> usedElseStatements; //If an else statement was used in an if statement store 1, otherwise store 0. This vector is required for clearing pointers in if statements without elses.  
     
+    vector<unsigned> whileStartStack; //Indexes of operations that will store line number for jumping from "end_while" and "continue" labels to the "while" instruction.
+    vector<vector<unsigned>> whileEndStack; //Indexes of operations that will store line number for jumping from "break" and "while" instructions to the "end_while" label.
+
     for(string line : code){
         lineNumber++;
         words.clear();
@@ -1804,7 +1808,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
                 return;
             }
-            NewEvent.Children.emplace_back(ChildStruct(words[1].value, false, vector<string>(), 0, scriptName, lineNumber));
+            NewEvent.Children.emplace_back(ChildStruct(words[1].value, vector<string>(), 0, scriptName, lineNumber));
             cursor = 2;
             if(NewEvent.getPassingVariables(NewEvent.Children.back().passingVariables,
                 words, cursor, lineNumber, scriptName, NewVariablesForLookupTable,
@@ -1892,7 +1896,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     << words[0].value << "' outside the if statement scope.\n";
                 return;
             }
-            NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-2;
+            NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-1;
             ifElseJumpStack.pop_back();
             ifElseJumpStack.push_back(NewEvent.DependentOperations.size()-1);
             if(ifEndJumpStack.size() == 0){
@@ -1913,7 +1917,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     << words[0].value << "' outside the if statement scope.\n";
                 return;
             }
-            NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-2;
+            NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-1;
             ifElseJumpStack.pop_back();
             if(usedElseStatements.size() == 0){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -1953,21 +1957,78 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                         << words[0].value << "' outside the if statement scope.\n";
                     return;
                 }
-                NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-2;
+                NewEvent.DependentOperations[ifElseJumpStack.back()].jumpToLineSecond = NewEvent.DependentOperations.size()-1;
                 ifElseJumpStack.pop_back();
             }
             usedElseStatements.pop_back();
             if(ifEndJumpStack.size() > 0){
                 for(unsigned lineNumberIdx : ifEndJumpStack.back()){
-                    NewEvent.DependentOperations[lineNumberIdx].jumpToLine = NewEvent.DependentOperations.size()-2;
+                    NewEvent.DependentOperations[lineNumberIdx].jumpToLine = NewEvent.DependentOperations.size()-1;
                 }
                 ifEndJumpStack.back().clear();
                 ifEndJumpStack.pop_back();
             }
 
         }
-        else if(isStringInGroup(words[0].value, 10, "continue", "break", "return", "reboot", "exit",
-            "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag", "breakpoint", "end_loop")
+        else if(words[0].value == "while"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
+                return;
+            }
+            if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack, lineNumber, scriptName, true, allAvailableEventIDs,
+                NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+            )){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+                return;
+            }
+            whileStartStack.push_back(NewEvent.DependentOperations.size()-1);
+	        whileEndStack.push_back(vector<unsigned>());
+	        whileEndStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        }
+        else if(words[0].value == "end_while"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(whileStartStack.size() == 0 || whileEndStack.size() == 0 || whileEndStack.back().size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' before any loop.\n";
+                return;
+            }
+            NewEvent.DependentOperations.back().jumpToLine = whileStartStack.back();
+            whileStartStack.pop_back();
+            for(unsigned & index : whileEndStack.back()){
+                NewEvent.DependentOperations[index].jumpToLine = NewEvent.DependentOperations.size()-1;
+            }
+            whileEndStack.back().clear();
+            whileEndStack.pop_back();
+        }
+        else if(words[0].value == "continue"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(whileStartStack.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside a loop.\n";
+                return;
+            }
+            NewEvent.DependentOperations.back().jumpToLine = whileStartStack.back();
+        }
+        else if(words[0].value == "break"){
+            if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
+                return;
+            }
+            if(whileEndStack.size() == 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Cannot use '"
+                    << words[0].value << "' outside a loop.\n";
+                return;
+            }
+            whileEndStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        }
+        else if(isStringInGroup(words[0].value, 10, "return", "reboot", "exit",
+            "delete_this_event", "reset_keyboard", "dump_context_stack", "restart_drag", "breakpoint")
         ){
             if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 1, lineNumber, scriptName)){
                 return;
@@ -3016,6 +3077,13 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             << errorSpacing() << "In " << __FUNCTION__
             << ": Every if statement must end with '"
             << instrToStr(end_if) << "' label.\n";
+    }
+
+    if(whileStartStack.size() > 0 || whileEndStack.size() > 0 ){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__
+            << ": Every while loop must end with '"
+            << instrToStr(end_while) << "' label.\n";
     }
 
     // for(EventModule & InlineEvent : EventContainer){

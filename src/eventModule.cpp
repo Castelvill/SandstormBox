@@ -955,6 +955,11 @@ void EventModule::setUpNewInstance(){
     elseChildFinished = false;
     loop = false;
     willBeDeleted = false;
+
+    goToEndOfIfStatement.clear();
+    conditionalStatus = 'n';
+    breakFromCurrentLoop = false;
+    decrementProgramCounter = false;
 }
 EventModule::EventModule(){
     primaryConstructor("", nullptr, "", "");
@@ -976,18 +981,12 @@ void EventModule::clear(){
     PostOperations.clear();
     Children.clear();
 }
-void EventModule::resetStatus(){
-	for(ChildStruct & Child : Children){
-		Child.finished = false;
-	}
-}
-bool EventModule::checkIfAllChildrenFinished(){
-    for(ChildStruct Child : Children){
-        if(!Child.finished){
-            return false;
-        }
-    }
-    return true;
+void EventModule::resetStateVariables(){
+    programCounter = 0;
+    goToEndOfIfStatement.clear();
+    conditionalStatus = 'n';
+    breakFromCurrentLoop = false;
+    decrementProgramCounter = false;
 }
 DataType strToDataTypeWithoutPrimaryTypes(string dataType){
     if(dataType == "bool" || dataType == "int" || dataType == "double" || dataType == "string"){

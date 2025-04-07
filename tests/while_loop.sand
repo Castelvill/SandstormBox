@@ -1,0 +1,43 @@
+start main()
+    triggers on_init
+    print "WHILE_LOOP_TEST - START\n"
+
+    int sum 0
+    int x 23
+    int y 7
+    int i 0
+    int j 0
+    while([i] [x] <)
+        = j 0
+        while([j] [y] <)
+            ++ sum
+            ++ j
+        end_while
+        ++ i
+    end_while
+    assert sum 161
+
+    = i 0
+    = j 0
+    = x 68
+    = y 25
+    = sum 0
+
+    while([i] [x] <)
+        = j 0
+        run test_loop(sum, j, y)
+        ++ i
+    end_while
+
+    assert sum 1700
+
+    print "WHILE_LOOP_TEST - PASSED\n"
+    exit
+end
+
+start test_loop(int & sum, int & j, int & y)
+    while([j] [y] <)
+        ++ sum
+        ++ j
+    end_while
+end

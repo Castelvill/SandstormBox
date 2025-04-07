@@ -34,6 +34,12 @@ EngineInstr strToInstr(string instruction){
     if(instruction == "end_if"){
         return EngineInstr::end_if;
     }
+    if(instruction == "while"){
+        return EngineInstr::while_i;
+    }
+    if(instruction == "end_while"){
+        return EngineInstr::end_while;
+    }
     if(instruction == "continue"){
         return EngineInstr::continue_i;
     }
@@ -48,9 +54,6 @@ EngineInstr strToInstr(string instruction){
     }
     if(instruction == "exit"){
         return EngineInstr::exit_i;
-    }
-    if(instruction == "end_loop"){
-        return EngineInstr::end_loop;
     }
     if(instruction == "delete_this_event"){
         return EngineInstr::delete_this_event;
@@ -360,6 +363,10 @@ string instrToStr(const EngineInstr & instruction){
             return "else";
         case end_if:
             return "end_if";
+        case while_i:
+            return "while";
+        case end_while:
+            return "end_while";
         case continue_i:
             return "continue";
         case break_i:
@@ -370,8 +377,6 @@ string instrToStr(const EngineInstr & instruction){
             return "reboot";
         case exit_i:
             return "exit";
-        case end_loop:
-            return "end_loop";
         case delete_this_event:
             return "delete_this_event";
         case reset_keyboard:

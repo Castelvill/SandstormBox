@@ -1,0 +1,14 @@
+start main()
+    triggers on_init
+    int i 0
+    while([i] [10] <)
+        int j i
+        while([j] [10] <)
+            print _ _ "*"
+            ++ j
+        end_while
+        print "\n"
+        ++ i
+    end_while
+    exit
+end

@@ -432,7 +432,8 @@ public:
     EngineInstr executeInstructions(vector<OperationClass> & Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, ContextMapStruct & EventContext, vector<AncestorObject*> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EventModule>::iterator & StartingEvent,
-        vector<EventModule>::iterator & Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine
+        vector<EventModule>::iterator & Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,
+        unsigned & runChildEventWithIndex
     );
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
     VariableModule getValueFromObjectInCamera(AncestorObject * CurrentObject,
@@ -456,9 +457,10 @@ public:
         const EngineClass & Engine, vector<ProcessClass> * Processes, ContextMapStruct & EventContext, VariableModule & NewValue);
     char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, vector<VariableModule> & resultStack,
     AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, ContextMapStruct & EventContext);
-    vector<EventModule>::iterator findUnfinishedEvent(
+    vector<EventModule>::iterator findChildEventToRun(
         vector<EventModule> & EventContainer, vector<EventModule>::iterator & Event,
-        vector<string> & passingVariables, string & callingScript, unsigned & lineNumber 
+        vector<string> & passingVariables, string & callingScript, unsigned & lineNumber,
+        const unsigned & runChildEventWithIndex
     );
     vector<EventModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EventModule>::iterator & Event);
     bool deleteEntities();
