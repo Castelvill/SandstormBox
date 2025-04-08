@@ -448,8 +448,8 @@ VariableModule SuperTextModule::getAttributeValue(const AttributeType &attribute
             break;
     }
     
-    cerr << instructionError(CurrentInstr, __FUNCTION__)
-        << "Attribute '" << attribute << "' is not valid.\n";
+    cerr << instructionError(CurrentInstr, __PRETTY_FUNCTION__)
+        << "\n" << errorSpacing() << "Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 void SuperTextModule::getContext(AttributeType attribute, vector<BasePointersStruct> &BasePointers){
@@ -634,6 +634,10 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
 }
 
 void SuperTextModule::fitFormattingToContent(){
+    if(Formatting.size() == 0){
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Formatting vector is empty.\n";
+        return;
+    }
     unsigned contentSize = content.size();
     if(contentSize == 0){
         Formatting.erase(Formatting.begin() + 1, Formatting.end());

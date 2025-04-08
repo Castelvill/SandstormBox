@@ -14,7 +14,8 @@ enum ValueSource: char{
     text, editable_text, super_text, super_editable_text, image, movement,
     collision, particles, event, scrollbar, primitives, variable, exists
 };
-ValueSource transSource(const string & source, string & error);
+ValueSource strToSource(const string & source, string & error);
+ValueSource strToSource(const string & source);
 string sourceToStr(ValueSource instruction);
 enum DataType: char{
     //Basic data type
@@ -34,6 +35,7 @@ enum DataType: char{
 };
 DataType strToDataType(string dataType);
 string dataTypeToStr(DataType dataType);
+DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSource & source);
 
 struct ValueLocation{
     string process;
@@ -76,7 +78,7 @@ struct ParameterStruct{
 };
 
 struct WordStruct{
-    char type; //o - operation, b - bool, i - int, d - double, s - string, e - empty, c - context
+    char type = 'e'; //o - operation, b - bool, i - int, d - double, s - string, e - empty, c - context
     string value;
     bool negateVariable;
 };
@@ -93,12 +95,12 @@ bool isVariableGlobal(const vector<StartingVariableStruct> & NewVariablesForLook
 bool checkIfVariableIsReference(const vector<StartingVariableStruct> & PassedVariables, const string & variableID);
 string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<string> & allAvailableEventIDs, const string & variableID, string & usedEventID,
-    bool canCreateNewsVariable, const string & scriptName, const unsigned &lineNumber, bool inAfterSection,
+    bool canCreateNewVariable, const string & scriptName, const unsigned &lineNumber, bool inAfterSection,
     bool ignoreUndefinedVariable = false 
 );
 string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
-    const string & variableID, bool isReferenceNeeded, bool canCreateNewsVariable,
+    const string & variableID, bool isReferenceNeeded, bool canCreateNewVariable,
     const string & scriptName, const unsigned &lineNumber, bool inAfterSection
 );
 
@@ -123,18 +125,19 @@ public:
     bool addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words,
         unsigned index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection,
+        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection,
         bool ignoreUndefinedVariable = false
     );
     bool addLiteralOrVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error,
         vector<WordStruct> words, unsigned & index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection
+        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection, const bool & forbidVectors = false
     );
     bool addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error,
         vector<WordStruct> words, unsigned & index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection
+        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection,
+        const bool & forbidVectors = false
     );
     void addLiteralParameter(const VariableModule & Variable);
 };

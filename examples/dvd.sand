@@ -1,4 +1,4 @@
-start putRectangleOnScreen
+start putRectangleOnScreen()
     triggers on_init
 
     var DISPLAY_W 640
@@ -29,30 +29,25 @@ start putRectangleOnScreen
     fun Rectangle update_with_size
 end
 
-start moveRectangle
+start moveRectangle()
 	triggers each_iteration
     + x SIZE_X xs
     + y SIZE_Y ys
-    run bounceY bounceX
-after
+    if(x 0 <= xs DISPLAY_W >= ||)
+        *= velX -1.0
+    end_if
+    if(y 0 <= ys DISPLAY_H >= ||)
+        *= velY -1.0
+    end_if
 	+= x velX
 	+= y velY
     index me [0 0] primitives Rectangle
 	fun Rectangle set_pos x y
 end
 
-start bounceX
-    if([x] [0] <= [xs] [DISPLAY_W] >= ||)
-    *= velX -1.0
-end
-
-start bounceY
-    if([y] [0] <= [ys] [DISPLAY_H] >= ||)
-    *= velY -1.0
-end
-
-start exitProgram
-    triggers on_key_pressed
-    if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
-    exit
+start exitProgram()
+    triggers on_key_press
+    if(key_pressed(KEY_LCTRL) key_pressed(KEY_ESC) &&)
+        exit
+    end_if
 end

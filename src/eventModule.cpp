@@ -1,6 +1,6 @@
 #include "eventModule.h"
 
-ValueSource transSource(const string & source, string & error){
+ValueSource strToSource(const string & source, string & error){
     error = "";
     if(source == "fullscreen"){
         return ValueSource::fullscreen;
@@ -157,6 +157,10 @@ ValueSource transSource(const string & source, string & error){
     }
     error = "ValueSource '" + source + "' is undefined.";
     return ValueSource::null_s;
+}
+ValueSource strToSource(const string & source){
+    string dummyError;
+    return strToSource(source, dummyError);
 }
 
 string sourceToStr(ValueSource source){
@@ -514,6 +518,47 @@ string dataTypeToStr(DataType dataType){
     return "undefined";
 }
 
+DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSource & source){
+    switch(source){
+        case camera:
+            return camera_inst;
+        case layer:
+            return layer_inst;
+        case object:
+            return object_inst;
+        case text:
+            return text_mod;
+        case editable_text:
+            return editable_text_mod;
+        case super_text:
+            return super_text_mod;
+        case super_editable_text:
+            return super_editable_text_mod;
+        case image:
+            return image_mod;
+        case movement:
+            return movement_mod;
+        case collision:
+            return collision_mod;
+        case particles:
+            return particles_mod;
+        case event:
+            return event_mod;
+        case variable:
+            return variable_mod;
+        case scrollbar:
+            return scrollbar_mod;
+        case primitives:
+            return primitives_mod;
+        case vector_s:
+            return vector_mod;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+                << sourceToStr(source) << "\' is not valid for this operation.\n";
+            return null_dt;
+    }
+}
+
 ConditionClass::ConditionClass(unsigned int newID) : Literal(newID, nullptr, "", ""){}
 ConditionClass::ConditionClass(string newID) : Literal(newID, nullptr, "", ""){}
 ConditionClass::ConditionClass() : Literal(){}
@@ -562,7 +607,7 @@ string ParameterStruct::getVariableIdOrValue(){
 bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words,
     unsigned index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection,
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection,
     bool ignoreUndefinedVariable
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
@@ -600,7 +645,7 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
             string temp;
             Parameters.back().variableID = findExistingVariableOrCreateNew(
                 NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                canCreateNewsVariable, scriptName, lineNumber, inAfterSection, ignoreUndefinedVariable
+                canCreateNewVariable, scriptName, lineNumber, inAfterSection, ignoreUndefinedVariable
             );
         }
         Parameters.back().negateVariable = words[index].negateVariable;
@@ -685,7 +730,7 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
 bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string &error,
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection, const bool & forbidVectors
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -760,14 +805,15 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName,
     }
     return addVectorOrVariableToParameters(scriptName, lineNumber, error, words, index,
         type, name, optional, allAvailableEventIDs, NewVariablesForLookupTable, PassedVariables,
-        canCreateNewsVariable, inAfterSection
+        canCreateNewVariable, inAfterSection, forbidVectors
     );
 }
 bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string &error,
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional,
     const vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection,
+    const bool & forbidVectors
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -811,7 +857,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
             string temp;
             Parameters.back().variableID = findExistingVariableOrCreateNew(
                 NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                canCreateNewsVariable, scriptName, lineNumber, inAfterSection
+                canCreateNewVariable, scriptName, lineNumber, inAfterSection
             );
         }
         Parameters.back().negateVariable = words[index].negateVariable;
@@ -819,6 +865,13 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
         ++rootParametersSize;
         index++;
         return false;
+    }
+
+    if(forbidVectors){
+        error = "Cannot pass a vector to the parameter '" + name + "' (";
+        error += intToStr(index) + ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
     }
 
     //Gather a vector
@@ -846,7 +899,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
                 string temp;
                 Parameters.back().variableID = findExistingVariableOrCreateNew(
                     NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                    canCreateNewsVariable, scriptName, lineNumber, inAfterSection
+                    canCreateNewVariable, scriptName, lineNumber, inAfterSection
                 );
             }
             Parameters.back().negateVariable = words[index].negateVariable;
@@ -1088,7 +1141,7 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
 }
 string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<string> & allAvailableEventIDs, const string & variableID, string & usedEventID,
-    bool canCreateNewsVariable, const string & scriptName, const unsigned &lineNumber, bool inAfterSection,
+    bool canCreateNewVariable, const string & scriptName, const unsigned &lineNumber, bool inAfterSection,
     bool ignoreUndefinedVariable
 ){
     unsigned eventIdx = inAfterSection && allAvailableEventIDs.size() > 1;
@@ -1101,7 +1154,7 @@ string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & Ne
             }
         }
     }
-    if(!canCreateNewsVariable){
+    if(!canCreateNewVariable){
         !ignoreUndefinedVariable && cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__ << ": Variable '" << variableID << "' is undefined.\n";
         return variableID;
@@ -1112,7 +1165,7 @@ string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & Ne
 //Passing variables to the event and creating expressions require a non-standard variable syntax (adding "&" to the beginning of referenced variables).
 string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
-    const string & variableID, bool canBeReferenced, bool canCreateNewsVariable,
+    const string & variableID, bool canBeReferenced, bool canCreateNewVariable,
     const string & scriptName, const unsigned &lineNumber, bool inAfterSection
 ){
     string customID = "";
@@ -1123,7 +1176,7 @@ string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesFor
         string temp;
         customID = findExistingVariableOrCreateNew(
             NewVariablesForLookupTable, allAvailableEventIDs, variableID, temp,
-            canCreateNewsVariable, scriptName, lineNumber, inAfterSection
+            canCreateNewVariable, scriptName, lineNumber, inAfterSection
         );
     }
     if(canBeReferenced && checkIfVariableIsReference(PassedVariables, customID)){

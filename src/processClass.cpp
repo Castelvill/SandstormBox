@@ -2291,7 +2291,6 @@ unsigned ContextClass::size() const{
     return Cameras.size() + Layers.size() + Objects.size() + Modules.size() + Values.size() + BasePointers.size();
 }
 ReturnType ContextClass::getAllValues(vector<VariableModule> & NewValues){
-    NewValues.clear();
     switch(type){
         case value_inst:
             if(Values.size() > 0){
@@ -3765,46 +3764,6 @@ void ProcessClass::findContextInLayer(ValueLocation Location, ContextClass & New
             return;
     }
 }
-inline DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSource & source){
-    switch(source){
-        case camera:
-            return camera_inst;
-        case layer:
-            return layer_inst;
-        case object:
-            return object_inst;
-        case text:
-            return text_mod;
-        case editable_text:
-            return editable_text_mod;
-        case super_text:
-            return super_text_mod;
-        case super_editable_text:
-            return super_editable_text_mod;
-        case image:
-            return image_mod;
-        case movement:
-            return movement_mod;
-        case collision:
-            return collision_mod;
-        case particles:
-            return particles_mod;
-        case event:
-            return event_mod;
-        case variable:
-            return variable_mod;
-        case scrollbar:
-            return scrollbar_mod;
-        case primitives:
-            return primitives_mod;
-        case vector_s:
-            return vector_mod;
-        default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
-                << sourceToStr(source) << "\' is not valid for this operation.\n";
-            return null_dt;
-    }
-}
 inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType){
     switch(oldType){
         case camera_vec:
@@ -3839,6 +3798,23 @@ inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr,
             return primitives_mod;
         case vector_mod_vec:
             return vector_mod;
+        case camera_inst:
+        case layer_inst:
+        case object_inst:
+        case text_mod:
+        case editable_text_mod:
+        case super_text_mod:
+        case super_editable_text_mod:
+        case image_mod:
+        case movement_mod:
+        case collision_mod:
+        case particles_mod:
+        case event_mod:
+        case variable_mod:
+        case scrollbar_mod:
+        case primitives_mod:
+        case vector_mod:
+            return oldType;
         default:
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
                 << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
@@ -4584,7 +4560,7 @@ inline bool doesOperandContainSingleElement(const InstrDescription & CurrentInst
 ){
     if(rightOperandSize != 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Cannot move '" << dataTypeToStr(rightOperandType)
+            << "\n" << errorSpacing() << "Cannot move '" << dataTypeToStr(rightOperandType)
             << "'<" << rightOperandSize << "> to a variable of '"
             << dataTypeToStr(leftOperandType) << "' type.\n";
         return true;
@@ -4983,8 +4959,14 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
 
     auto printMoveRightToLeftError = [](const DataType & leftType, const DataType & rightType, const InstrDescription & CurrentInstr) { 
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Cannot move a value of '" << dataTypeToStr(rightType)
+            << "\n" << errorSpacing() << "Cannot move a value of '" << dataTypeToStr(rightType)
             << "'type to a variable of '" << dataTypeToStr(leftType) << "' type.\n";
+    };
+    auto printLeftNotInitialized = [](const string & id, const DataType & type, const InstrDescription & CurrentInstr) { 
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "\n" << errorSpacing() << "Left operand '" << id
+            << "' of '" << dataTypeToStr(type)
+            << "' type was not initialized.\n";
     };
 
     bool incLeftIdx = false, incRightIdx = false;
@@ -4992,6 +4974,10 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
 
     switch(LeftOperand->type){
         case value_inst:
+            if(LeftOperand->Values.size() == 0){
+                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr);
+                return;
+            }
             switch(RightOperand.type){
                 case value_inst:
                     LeftOperand->Values[0].move(&RightOperand.Values[0], customInstruction, CurrentInstr);
@@ -5098,6 +5084,10 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
             }
             return;
         case pointer_inst:
+            if(LeftOperand->BasePointers.size() == 0){
+                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr);
+                return;
+            }
             switch(RightOperand.type){
                 case value_inst:
                     LeftOperand->BasePointers[0].move(RightOperand.Values[0].getBasePointersStruct(), customInstruction);
@@ -5204,6 +5194,10 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
             }
             return;
         case variable_mod:
+            if(LeftOperand->Modules.Variables.size() == 0){
+                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr);
+                return;
+            }
             switch(RightOperand.type){
                 case value_inst:
                     LeftOperand->Modules.Variables[0]->move(&RightOperand.Values[0], customInstruction, CurrentInstr);
@@ -5310,6 +5304,10 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
             }
             return;
         case vector_mod:
+            if(LeftOperand->Modules.Vectors.size() == 0){
+                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr);
+                return;
+            }
             switch(RightOperand.type){
                 case value_inst:
                     LeftOperand->Modules.Vectors[0]->move(&RightOperand.Values[0], customInstruction, CurrentInstr);
@@ -7045,7 +7043,7 @@ void ProcessClass::assignEntities(ContextMapStruct & EventContext, ContextClass 
     }
 
     Variable->clearState();
-    if(Variable->type == null_dt){
+    if(Variable->type == null_dt || Variable->type == any_dt){
         Variable->type = NewValue.type;
     }
     else if(Variable->type != NewValue.type){
@@ -7056,81 +7054,97 @@ void ProcessClass::assignEntities(ContextMapStruct & EventContext, ContextClass 
     }
 
     switch (type){
+        case camera_inst:
         case camera_vec:
             for(Camera2D * Camera : NewValue.Cameras){
                 Variable->Cameras.push_back(Camera);
             }
             break;
+        case layer_inst:
         case layer_vec:
             for(LayerClass * Layer : NewValue.Layers){
                 Variable->Layers.push_back(Layer);
             }
             break;
+        case object_inst:
         case object_vec:
             for(AncestorObject * Object : NewValue.Objects){
                 Variable->Objects.push_back(Object);
             }
             break;
+        case text_mod:
         case text_mod_vec:
             for(TextModule * Text : NewValue.Modules.Texts){
                 Variable->Modules.Texts.push_back(Text);
             }
             break;
+        case editable_text_mod:
         case editable_text_mod_vec:
             for(EditableTextModule * EditableText : NewValue.Modules.EditableTexts){
                 Variable->Modules.EditableTexts.push_back(EditableText);
             }
             break;
+        case super_text_mod:
         case super_text_mod_vec:
             for(SuperTextModule * SuperText : NewValue.Modules.SuperTexts){
                 Variable->Modules.SuperTexts.push_back(SuperText);
             }
             break;
+        case super_editable_text_mod:
         case super_editable_text_mod_vec:
             for(SuperEditableTextModule * SuperEditableText : NewValue.Modules.SuperEditableTexts){
                 Variable->Modules.SuperEditableTexts.push_back(SuperEditableText);
             }
             break;
+        case image_mod:
         case image_mod_vec:
             for(ImageModule * Image : NewValue.Modules.Images){
                 Variable->Modules.Images.push_back(Image);
             }
             break;
+        case movement_mod:
         case movement_mod_vec:
             for(MovementModule * Movement : NewValue.Modules.Movements){
                 Variable->Modules.Movements.push_back(Movement);
             }
             break;
+        case collision_mod:
         case collision_mod_vec:
             for(CollisionModule * Collision : NewValue.Modules.Collisions){
                 Variable->Modules.Collisions.push_back(Collision);
             }
             break;
+        case particles_mod:
         case particles_mod_vec:
             for(ParticleEffectModule * Particles : NewValue.Modules.Particles){
                 Variable->Modules.Particles.push_back(Particles);
             }
             break;
+        case event_mod:
         case event_mod_vec:
             for(EventModule * Event : NewValue.Modules.Events){
                 Variable->Modules.Events.push_back(Event);
             }
             break;
+        case variable_mod:
         case variable_mod_vec:
             for(VariableModule * VariablePointer : NewValue.Modules.Variables){
                 Variable->Modules.Variables.push_back(VariablePointer);
             }
             break;
+        case scrollbar_mod:
         case scrollbar_mod_vec:
             for(ScrollbarModule * Scrollbar : NewValue.Modules.Scrollbars){
                 Variable->Modules.Scrollbars.push_back(Scrollbar);
             }
             break;
+        case primitives_mod:
         case primitives_mod_vec:
             for(PrimitivesModule * Primitive : NewValue.Modules.Primitives){
                 Variable->Modules.Primitives.push_back(Primitive);
             }
             break;
+        case vector_mod:
         case vector_mod_vec:
             for(VectorModule * Vector : NewValue.Modules.Vectors){
                 Variable->Modules.Vectors.push_back(Vector);
@@ -8032,51 +8046,67 @@ void ProcessClass::getReferenceFromObject(const OperationClass & Operation, Cont
 void ProcessClass::getReferenceFromContextByIndex(OperationClass & Operation, ContextClass & SourceContext, vector<unsigned> & indexes, ContextClass & NewContext){
     DataType instType = instantiateEntityDataType(CurrentInstr, SourceContext.type);
     switch(SourceContext.type){
+        case camera_inst:
         case camera_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Cameras, camera_inst, NewContext.Cameras, NewContext.type, CurrentInstr);
             break;
+        case layer_inst:
         case layer_vec:
             getReferenceFromLayer(Operation, SourceContext, indexes, NewContext);
             break;
+        case object_inst:
         case object_vec:
             getReferenceFromObject(Operation, SourceContext, indexes, NewContext);
             break;
+        case text_mod:
         case text_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Texts, instType, NewContext.Modules.Texts, NewContext.type, CurrentInstr);
             break;
+        case editable_text_mod:
         case editable_text_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.EditableTexts, instType, NewContext.Modules.EditableTexts, NewContext.type, CurrentInstr);
             break;
+        case super_text_mod:
         case super_text_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.SuperTexts, instType, NewContext.Modules.SuperTexts, NewContext.type, CurrentInstr);
             break;
+        case super_editable_text_mod:
         case super_editable_text_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.SuperEditableTexts, instType, NewContext.Modules.SuperEditableTexts, NewContext.type, CurrentInstr);
             break;
+        case image_mod:
         case image_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Images, instType, NewContext.Modules.Images, NewContext.type, CurrentInstr);
             break;
+        case movement_mod:
         case movement_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Movements, instType, NewContext.Modules.Movements, NewContext.type, CurrentInstr);
             break;
+        case collision_mod:
         case collision_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Collisions, instType, NewContext.Modules.Collisions, NewContext.type, CurrentInstr);
             break;
+        case particles_mod:
         case particles_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Particles, instType, NewContext.Modules.Particles, NewContext.type, CurrentInstr);
             break;
+        case event_mod:
         case event_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Events, instType, NewContext.Modules.Events, NewContext.type, CurrentInstr);
             break;
+        case variable_mod:
         case variable_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Variables, instType, NewContext.Modules.Variables, NewContext.type, CurrentInstr);
             break;
+        case scrollbar_mod:
         case scrollbar_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Scrollbars, instType, NewContext.Modules.Scrollbars, NewContext.type, CurrentInstr);
             break;
+        case primitives_mod:
         case primitives_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.Primitives, instType, NewContext.Modules.Primitives, NewContext.type, CurrentInstr);
             break;
+        case vector_mod:
         case vector_mod_vec: //Scary hacks for allowing the access to vector indexes
             if(indexes.size() == 1){
                 findInstanceInVectorByIndex(indexes, SourceContext.Modules.Vectors, instType, NewContext.Modules.Vectors, NewContext.type, CurrentInstr);
@@ -8107,9 +8137,11 @@ void ProcessClass::getReferenceFromContextByIndex(OperationClass & Operation, Co
                 }
             }
             break;
+        case pointer_inst:
         case pointer_vec:
             findInstanceInVectorByIndex(Operation.instruction, indexes, SourceContext.BasePointers, instType, NewContext.BasePointers, NewContext.type, CurrentInstr);
             break;
+        case value_inst:
         case value_vec:
             findInstanceInVectorByIndex(Operation.instruction, indexes, SourceContext.Values, instType, NewContext.Values, NewContext.type, CurrentInstr);
             break;
@@ -9467,7 +9499,7 @@ void ProcessClass::executeFunction(OperationClass Operation, ContextMapStruct & 
 
     vector <VariableModule> Variables;
 
-    // if(Operation.Parameters.size() == 2 && Operation.Parameters[1].variableID == "generateItems:randomPos"){
+    // if(Operation.Parameters.size() == 3 && Operation.Parameters[1].variableID == "x" && Operation.Parameters[2].variableID == "y"){
     //     raise(SIGINT);
     // }
 
@@ -12234,11 +12266,15 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
             case access_i: //Get only values from the environment.
                 aggregateValues(EventContext, Operation, OwnerLayer, Owner, Engine, &Processes);
                 break;
-            case bool_i: //Get literals prepared in the event.
-            case int_i: //Get literals prepared in the event.
-            case double_i: //Get literals prepared in the event.
-            case string_i: //Get literals prepared in the event.
-                createLiteral(EventContext, Operation);
+            case bool_i: 
+            case int_i: 
+            case double_i: 
+            case string_i:
+            case bool_vec_i: 
+            case int_vec_i: 
+            case double_vec_i: 
+            case string_vec_i:
+                createLiteral(EventContext, Operation); //Get literals prepared in the event.
                 break;
             case rand_int: //Generate random int value between
                 generateRandomVariable(EventContext, Operation);

@@ -196,6 +196,18 @@ EngineInstr strToInstr(string instruction){
     if(instruction == "string"){
         return EngineInstr::string_i;
     }
+    if(instruction == "bool_vec"){
+        return EngineInstr::bool_vec_i;
+    }
+    if(instruction == "int_vec"){
+        return EngineInstr::int_vec_i;
+    }
+    if(instruction == "double_vec"){
+        return EngineInstr::double_vec_i;
+    }
+    if(instruction == "string_vec"){
+        return EngineInstr::string_vec_i;
+    }
     if(instruction == "random_int"){
         return EngineInstr::rand_int;
     }
@@ -471,6 +483,14 @@ string instrToStr(const EngineInstr & instruction){
             return "double";
         case string_i:
             return "string";
+        case bool_vec_i:
+            return "bool_vec";
+        case int_vec_i:
+            return "int_vec";
+        case double_vec_i:
+            return "double_vec";
+        case string_vec_i:
+            return "string_vec";
         case rand_int:
             return "random_int";
         case find_by_id:
@@ -2561,6 +2581,7 @@ string attributeToStr(const AttributeType &attribute){
     return "null";
 }
 AttributeType strToAttribute(const string &attribute){
+    //TODO: Use a hash map to map strings to enum values.
     if(attribute == "null") return null_a;
     else if(attribute == "set_id") return set_id;
     else if(attribute == "set_pos") return set_pos;

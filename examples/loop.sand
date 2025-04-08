@@ -3,14 +3,10 @@
 start main
     triggers on_init
     int iterator 0
-    run loop
-after
-    //"After" sub-scope will be executed after all events passed to the "run" instruction are finished.
+    while (iterator 10 <)
+        ++ iterator
+        print _ _ iterator ", "
+    end_while
+    print "\n"
     exit
-end
-
-start loop true
-    if ([iterator] [10] <)
-    ++ iterator
-    print _ _ iterator "\n"
 end

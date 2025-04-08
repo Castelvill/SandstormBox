@@ -1,3 +1,8 @@
+08.04.2025
+-Updated examples to the current version of the Sand language.
+-Added "bool_vec", "int_vec", "double_vec" and "string_vec" instructions. 
+-Simplified expressions inside if statements, while loops and "access" instruction.
+
 07.04.2025
 -Implemented while loop.
 

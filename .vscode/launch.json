@@ -10,7 +10,7 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}${pathSeparator}SandstormBox",
-        "args": ["-c", "./tests/while_loop.sand"],
+        "args": ["-c", "./examples/rectangleAndText.sand"],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",
         "environment": [],

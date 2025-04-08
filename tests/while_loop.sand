@@ -7,9 +7,9 @@ start main()
     int y 7
     int i 0
     int j 0
-    while([i] [x] <)
+    while(i x <)
         = j 0
-        while([j] [y] <)
+        while(j y <)
             ++ sum
             ++ j
         end_while
@@ -23,7 +23,7 @@ start main()
     = y 25
     = sum 0
 
-    while([i] [x] <)
+    while(i x <)
         = j 0
         run test_loop(sum, j, y)
         ++ i
@@ -36,7 +36,7 @@ start main()
 end
 
 start test_loop(int & sum, int & j, int & y)
-    while([j] [y] <)
+    while(j y <)
         ++ sum
         ++ j
     end_while

@@ -212,7 +212,7 @@ bool VariableModule::getBool() const{
         return vDouble > 0;
     }
     else if(type != 'b'){
-        cerr << "Error [VariableModule]: You can't access boolean variable.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t You can't access boolean variable.\n";
         return false;
     }
     return vBool;
@@ -250,7 +250,7 @@ int VariableModule::getInt() const{
         return vDouble;
     }
     else if(type != 'i'){
-        cerr << "Error [VariableModule]: You can't access int variable.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t You can't access int variable.\n";
         return 0;
     }
     return vInt;
@@ -273,7 +273,7 @@ double VariableModule::getDouble() const{
         return vInt;
     }
     else if(type != 'd'){
-        cerr << "Error [VariableModule]: You can't access double variable.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t You can't access double variable.\n";
         return 0.0;
     }
     return vDouble;
@@ -442,10 +442,10 @@ void VariableModule::negate(){
         vDouble = -vDouble;
     }
     else if(type == 's'){
-        cerr << "Error [VariableModule]: You can't negate a string.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t You can't negate a string.\n";
     }
     else{
-        cerr << "Error [VariableModule]: You can't negate the value of already not-initialized variable.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t You can't negate the value of already not-initialized variable.\n";
     }
 }
 void VariableModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){

@@ -18,7 +18,8 @@ enum EngineInstr : char{
     div_i, mod, pow_i, assign, move, add_move, sub_move, mul_move, div_move,
     equal, not_equal, more, less, more_equal, less_equal, not_i,
     and_i, or_i, igT, igF, in, find_by_id_2, inc, next, dec, del, demolish,
-    access_i, bool_i, int_i, double_i, string_i, rand_int, find_by_id,
+    access_i, bool_i, int_i, double_i, string_i, bool_vec_i, int_vec_i,
+    double_vec_i, string_vec_i, rand_int, find_by_id,
     let, clone_i, new_i, bind_i, rbind_i, build, load_build, build_subset,
     inject_code, inject_instr, fun, env, edit_proc, load_bitmap,
     mkdir_i, rm, rmll, mv_i, print, load_text, save_text, ls,
@@ -229,6 +230,7 @@ enum AttributeType: short{
     can_particles_spawn, min_particles_per_spawn, max_particles_per_spawn,
     max_particles_count, time_to_spawn, max_time_to_spawn, spawn_key_bind
 };
+
 AttributeType strToAttribute(const string & attribute);
 string attributeToStr(const AttributeType & attribute);
 

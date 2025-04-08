@@ -519,8 +519,8 @@ VariableModule AncestorObject::getAttributeValue(const AttributeType &attribute,
             NewValue.setBool(canDrawSelectionBorder);
             break;
         default:
-            cerr << "Error: In " << __FUNCTION__ <<
-                ": Attribute '" << attributeToStr(attribute) << "' is not valid.\n";
+            cerr << "Error: In " << __PRETTY_FUNCTION__ <<
+                ":\n" << errorSpacing() << "Attribute '" << attributeToStr(attribute) << "' is not valid.\n";
             NewValue.setBool(false);
             break;
     }
@@ -763,7 +763,7 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, ValueSource &
     }
     if(words[cursor].type != 'e'){
         string error;
-        variable = transSource(words[cursor].value, error);
+        variable = strToSource(words[cursor].value, error);
         if(error.size() > 0){
             cerr << "Error: In " << __FUNCTION__ << ": " << error << "\n";
             return true;
@@ -779,7 +779,7 @@ bool optionalOutput(string scriptName, unsigned lineNumber, string & error, cons
     unsigned & cursor, vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
     const DataType & variableType, string & outputVariableID, bool & isOutputReference, bool isGlobal,
-    bool canCreateNewsVariable, bool inAfterSection
+    bool canCreateNewVariable, bool inAfterSection
 ){
     error = "";
     if(cursor + 1 > words.size()){
@@ -795,15 +795,18 @@ bool optionalOutput(string scriptName, unsigned lineNumber, string & error, cons
     }
     if(words[cursor].type == 'c'){
         //Check if the output variable is global and if it exists.
+        bool variableExists = false;
         if(words[cursor].value == "NULL" || words[cursor].value == "me" || words[cursor].value == "my_layer"){
             isGlobal = true;
+            variableExists = true;
         }
-        bool variableExists = false;
-        for(auto & Variable : NewVariablesForLookupTable){
-            if(Variable.id == words[cursor].value){
-                variableExists = true;
-                isGlobal = Variable.eventID.size() == 0;
-                break;
+        else{
+            for(auto & Variable : NewVariablesForLookupTable){
+                if(Variable.id == words[cursor].value){
+                    variableExists = true;
+                    isGlobal = Variable.eventID.size() == 0;
+                    break;
+                }
             }
         }
 
@@ -815,7 +818,7 @@ bool optionalOutput(string scriptName, unsigned lineNumber, string & error, cons
         else{
             outputVariableID = findExistingVariableOrCreateNew(
                 NewVariablesForLookupTable, allAvailableEventIDs, words[cursor].value,
-                usedEventID, canCreateNewsVariable, scriptName, lineNumber, inAfterSection);
+                usedEventID, canCreateNewVariable, scriptName, lineNumber, inAfterSection);
         }
         
         //Check if the output variable is a reference.
@@ -864,7 +867,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, ValueSource &
     }
     if(words[cursor].type != 'e' && words[cursor].value != "]"){
         string error;
-        Variable = transSource(words[cursor].value, error);
+        Variable = strToSource(words[cursor].value, error);
         if(error.size() > 0){
             cerr << "Error: In " << __FUNCTION__ << ": " << error << "\n";
             return true;
@@ -878,7 +881,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, ValueSource &
 bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModule & Variable,
     const char & type, string scriptName, unsigned lineNumber, vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection
 ){
     string error = "";
     if(words.size() < cursor + 1){
@@ -919,7 +922,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModul
             if(words[cursor].type == 'c'){
                 Variable.setString(createCustomOutput(
                     NewVariablesForLookupTable, PassedVariables, allAvailableEventIDs,
-                    words[cursor].value, true, canCreateNewsVariable, scriptName, lineNumber, inAfterSection
+                    words[cursor].value, true, canCreateNewVariable, scriptName, lineNumber, inAfterSection
                 ));
             }
             else{
@@ -932,6 +935,62 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModul
         cursor++;
     }
     return false;
+}
+inline void setOptionalAttributeValueInCond(const vector<WordStruct> & words, const size_t & index, VariableModule & Variable,
+    const char & type, string scriptName, unsigned lineNumber, vector<string> & allAvailableEventIDs,
+    const vector<StartingVariableStruct> & NewVariablesForLookupTable,
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection
+){
+    if(index >= words.size() || words[index].type == 'e'){
+        return;
+    }
+    string error = "";
+    switch(type){
+        case 'b':
+            Variable.setBool(cstoi(words[index].value, error));
+            if(error.size() > 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
+            }
+            return;
+        case 'i':
+            Variable.setInt(cstoi(words[index].value, error));
+            if(error.size() > 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
+            }
+            return;
+        case 'd':
+            Variable.setDouble(cstod(words[index].value, error));
+            if(error.size() > 0){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": " << error << "\n";
+            }
+            return;
+        case 's':
+            if(words[index].type == 's'){
+                Variable.setString(words[index].value);
+            }
+            else{
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Parameter '" << words[index].value << "' is not a string.\n";
+            }
+            return;
+        case 'c':
+            if(words[index].type == 'c'){
+                Variable.setString(createCustomOutput(
+                    NewVariablesForLookupTable, PassedVariables, allAvailableEventIDs,
+                    words[index].value, true, canCreateNewVariable, scriptName, lineNumber, inAfterSection
+                ));
+            }
+            else{
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Parameter '" << words[index].value << "' is not a context.\n";
+            }
+            return;
+        default:
+            return;
+    }
 }
 bool nextCond(const vector<WordStruct> & words, unsigned & cursor, int & variable, string scriptName, unsigned lineNumber){
     if(words.size() < cursor + 1){
@@ -967,10 +1026,139 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, double & vari
     }
     return false;
 }
+inline string getStringByIndex(const vector<string> & strVec, const size_t & index) noexcept {
+    if(index >= strVec.size()){
+        return "";
+    }
+    return strVec[index];
+}
+//Return true on failure.
+bool setComplexDataAccessors(const vector<string> & attributes, const vector<WordStruct> & attributeArgs, unsigned lineNumber,
+    string scriptName, vector<ConditionClass> & Expression, vector<string> & allAvailableEventIDs,
+    const vector<StartingVariableStruct> & NewVariablesForLookupTable, const vector<StartingVariableStruct> & PassedVariables,
+    const bool & canCreateNewVariable, const bool & inAfterSection
+){
+    string valueSource = attributes[0];
+    if(isStringInGroup(valueSource, 8, "key_pressed", "key_pressing",
+        "key_released", "mouse_pressed", "mouse_pressing", "mouse_released", "screen_w", "screen_h")
+    ){
+        if(attributeArgs.size() > 0 && attributeArgs[0].type == 'c'){
+            setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
+                NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+            );
+        }
+        else{
+            setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+            );
+        }
+    }
+    else if(valueSource == "exists" || valueSource == "is_directory"){
+        setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
+            NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+        );
+    }
+    else if(isStringInGroup(valueSource, 18, "booting", "second_passed", "fps", "any_key_pressed",
+        "any_key_pressing", "any_key_released", "mouse_x", "mouse_y", "mouse_moved",
+        "display_w", "display_h", "fullscreen", "display_resized", "used_os",
+        "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects")
+    ){
+        return false;
+    }
+    else if(valueSource == "vector"){
+        Expression.back().Location.moduleID = getStringByIndex(attributes, 1);
+        Expression.back().Location.attribute = strToAttribute(getStringByIndex(attributes, 2));
+        switch(Expression.back().Location.attribute){
+            case index_a:
+                setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+                );
+                Expression.back().Location.attribute = value;
+                break;
+            case context_a:
+                setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+                );
+                Expression.back().Location.attribute = value;
+                break;
+            case size_a:
+                Expression.back().Location.attribute = size_a;
+                break;
+            case back_a:
+                Expression.back().Location.attribute = back_a;
+                break;
+            case null_a:
+                break;
+            default:
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << errorSpacing() << "In " << __FUNCTION__ << ": Invalid attribute '"
+                    << attributeToStr(Expression.back().Location.attribute) << "'.\n";
+                return true;
+        }
+    }
+    else if(valueSource == "camera"){
+        Expression.back().Location.cameraID = getStringByIndex(attributes, 1);
+        Expression.back().Location.attribute = strToAttribute(getStringByIndex(attributes, 2));
+    }
+    else if(valueSource == "layer"){
+        Expression.back().Location.layerID = getStringByIndex(attributes, 1);
+        Expression.back().Location.attribute = strToAttribute(getStringByIndex(attributes, 2));
+        if(Expression.back().Location.attribute == in_group){
+            setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 's', scriptName, lineNumber, allAvailableEventIDs,
+                NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+            );
+        }
+    }
+    else if(valueSource == "object"){
+        Expression.back().Location.layerID = getStringByIndex(attributes, 1);
+        Expression.back().Location.objectID = getStringByIndex(attributes, 2);
+        Expression.back().Location.moduleType = strToSource(getStringByIndex(attributes, 3));
+        Expression.back().Location.moduleID = getStringByIndex(attributes, 4);
+        Expression.back().Location.attribute = strToAttribute(getStringByIndex(attributes, 5));
+
+        switch(Expression.back().Location.moduleType){
+            case ancestor:
+            case text:
+            case editable_text:
+                setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 's', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+                );
+                break;
+            case mouse:
+                setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+                );
+                break;
+            case collision:
+                setOptionalAttributeValueInCond(attributeArgs, 0, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
+                );
+                if(attributeArgs.size() > 1){
+                    Expression.back().Location.spareID = attributeArgs[1].value;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    else if(valueSource == "variable"){
+        Expression.back().Location.moduleID = getStringByIndex(attributes, 1);
+    }
+    else{
+        Expression.back().Location.source = ValueSource::context;
+        Expression.back().Literal.setString(createCustomOutput(
+            NewVariablesForLookupTable, PassedVariables, allAvailableEventIDs,
+            getStringByIndex(attributes, 0), true, canCreateNewVariable, scriptName, lineNumber, inAfterSection
+        ));
+        Expression.back().Location.attribute = strToAttribute(getStringByIndex(attributes, 1));
+        Expression.back().Location.spareID = getStringByIndex(attributes, 2);
+    }
+    return false;
+}
 bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression,
     vector<VariableModule> & resultStack, unsigned lineNumber, string scriptName, bool isConditionalExpression,
     vector<string> & allAvailableEventIDs, const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewsVariable, bool inAfterSection
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection
 ){
     if(cursor >= words.size()){
         return true;
@@ -1003,29 +1191,19 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
             << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
         return false;
     }
-    bool inCondition = false;
     WordStruct firstWord;
     
-    while(words[cursor].value != endingChar || inCondition){
+    while(words[cursor].value != endingChar){
         if(cursor >= words.size()){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << errorSpacing() << "In " << __FUNCTION__ << ": Command is too short.\n";
             return false;
         }
-        if(words[cursor].value == "["){
-            Expression.emplace_back(ConditionClass(""));
-            inCondition = true;
-            cursor++;
-        }
-        else if(words[cursor].value == "]"){
-            inCondition = false;
-            cursor++;
-        }
-        else if(!inCondition){
+        if(isStringInGroup(words[cursor].value, 9, "!", "==", "!=", "<", "<=", ">", ">=", "||", "&&")){
             if(!isConditionalExpression){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
-                    << ": Each value source must be enclosed in seperate square brackets. Correct syntax: [[source_0] [source_1] ...]\n";
+                    << ": Cannot use operators inside not conditional expression. Correct syntax: [[source_0] [source_1] ...]\n";
                 return false;
             }
             if(Expression.size() == 0){
@@ -1042,159 +1220,85 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
             if(words[cursor].type != 'e' && words[cursor].value != "]"){
                 firstWord = words[cursor];
             }
-            /*if(words[cursor].value != "]"){
-                cursor++;
-            }*/
+
+            Expression.push_back(ConditionClass(""));
 
             string error;
-            Expression.back().Location.source = transSource(firstWord.value, error);
+            Expression.back().Location.source = strToSource(firstWord.value, error);
 
             if(firstWord.type == 'b'){
                 Expression.back().Location.source = ValueSource::literal;
                 if(nextCond(words, cursor, Expression.back().Literal, 'b', scriptName, lineNumber, allAvailableEventIDs,
-                    NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
                 )){ continue; };
             }
             else if(firstWord.type == 'i'){
                 Expression.back().Location.source = ValueSource::literal;
                 if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
-                    NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
                 )){ continue; };
             }
             else if(firstWord.type == 'd'){
                 Expression.back().Location.source = ValueSource::literal;
                 if(nextCond(words, cursor, Expression.back().Literal, 'd', scriptName, lineNumber, allAvailableEventIDs,
-                    NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
                 )){ continue; };
             }
             else if(firstWord.type == 's'){
                 Expression.back().Location.source = ValueSource::literal;
                 if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber, allAvailableEventIDs,
-                    NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
+                    NewVariablesForLookupTable, PassedVariables, canCreateNewVariable, inAfterSection
                 )){ continue; };
             }
             else if(firstWord.type == 'c'){
                 if(words[cursor].value != "]"){
                     cursor++;
                 }
-                if(isStringInGroup(firstWord.value, 8, "key_pressed", "key_pressing",
-                    "key_released", "mouse_pressed", "mouse_pressing", "mouse_released", "screen_w", "screen_h")
-                ){
-                    if(words.size() < cursor + 1){
+
+                vector<string> valueLocationAttributes;
+                string currentAttribute = "";
+                for(const char & letter : firstWord.value){
+                    if(letter != '.'){
+                        currentAttribute += letter;
+                    }
+                    else{
+                        valueLocationAttributes.push_back(currentAttribute);
+                        currentAttribute = "";
+                    }
+                }
+                valueLocationAttributes.push_back(currentAttribute);
+
+                vector<WordStruct> locationAttributesArgs; //Value in optional parenthesis
+                if(words[cursor].value == "("){
+                    if(cursor == words.size() - 1){
                         continue;
                     }
-                    if(words[cursor].value == "]"){
-                        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                            << errorSpacing() << "In " << __FUNCTION__ << ": Source '" << firstWord.value
-                            << "' requires one integer literal or a variable.\n";
-                        return false;
-                    }
-                    if(words[cursor].type == 'c'){
-                        if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
-                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                        )){ continue; };
-                    }
-                    else if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
-                        NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                    )){ continue; };
-                }
-                else if(firstWord.value == "exists" || firstWord.value == "is_directory"){
-                    if(words[cursor].value == "]"){
-                        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                            << errorSpacing() << "In " << __FUNCTION__ << ": Source '" << firstWord.value
-                            << "' requires one string literal.\n";
-                        return false;
-                    }
-                    if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
-                        NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                    )){ continue; };
-                }
-                else if(isStringInGroup(firstWord.value, 18, "booting", "second_passed", "fps", "any_key_pressed",
-                    "any_key_pressing", "any_key_released", "mouse_x", "mouse_y", "mouse_moved",
-                    "display_w", "display_h", "fullscreen", "display_resized", "used_os",
-                    "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects")
-                ){
-                    continue;
-                }
-                else if(firstWord.value == "vector"){
-                    if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                    switch(Expression.back().Location.attribute){
-                        case index_a:
-                            if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
-                                NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                            )){ continue; };
-                            Expression.back().Location.attribute = value;
-                            break;
-                        case context_a:
-                            if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
-                                NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                            )){ continue; };
-                            Expression.back().Location.attribute = value;
-                            break;
-                        case size_a:
-                            Expression.back().Location.attribute = size_a;
-                            break;
-                        case back_a:
-                            Expression.back().Location.attribute = back_a;
-                            break;
-                        default:
+                    ++cursor;
+                    while(cursor < words.size() - 1 && words[cursor].value != ")"){
+                        if(words[cursor].value == "]"){
                             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                                << errorSpacing() << "In " << __FUNCTION__ << ": Invalid attribute '"
-                                << attributeToStr(Expression.back().Location.attribute) << "'.\n";
+                                << errorSpacing() << "In " << __FUNCTION__ << ": Parenthesis were not closed.\n";
                             return false;
+                        }
+                        locationAttributesArgs.push_back(words[cursor]);
+                        ++cursor;
                     }
-                }
-                else if(firstWord.value == "camera"){
-                    if(nextCond(words, cursor, Expression.back().Location.cameraID, scriptName, lineNumber)){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                }
-                else if(firstWord.value == "layer"){
-                    if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                    if(Expression.back().Location.attribute == in_group){
-                        if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber, allAvailableEventIDs,
-                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                        )){ continue; };
+                    if(words[cursor].value != ")"){
+                        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                            << errorSpacing() << "In " << __FUNCTION__ << ": Parenthesis were not closed.\n";
+                        return false;
                     }
-                }
-                else if(firstWord.value == "object"){
-                    if(nextCond(words, cursor, Expression.back().Location.layerID, scriptName, lineNumber)){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.objectID, scriptName, lineNumber)){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.moduleType, scriptName, lineNumber)){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                    if(Expression.back().Location.moduleType == ancestor
-                        || Expression.back().Location.moduleType == text
-                        || Expression.back().Location.moduleType == editable_text
-                    ){
-                        if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber, allAvailableEventIDs,
-                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                        )){ continue; };
+                    if(cursor == words.size() - 1){
+                        continue;
                     }
-                    else if(Expression.back().Location.moduleType == mouse){
-                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
-                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                        )){ continue; };
-                    }
-                    else if(Expression.back().Location.moduleType == collision){
-                        if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber, allAvailableEventIDs,
-                            NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                        )){ continue; };
-                        if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
-                    }
+                    ++cursor;
                 }
-                else if(firstWord.value == "variable"){
-                    if(nextCond(words, cursor, Expression.back().Location.moduleID, scriptName, lineNumber)){ continue; };
-                }
-                else{
-                    cursor--;
-                    Expression.back().Location.source = ValueSource::context;
-                    if(nextCond(words, cursor, Expression.back().Literal, 'c', scriptName, lineNumber, allAvailableEventIDs,
-                        NewVariablesForLookupTable, PassedVariables, canCreateNewsVariable, inAfterSection
-                    )){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.attribute, scriptName, lineNumber)){ continue; };
-                    if(nextCond(words, cursor, Expression.back().Location.spareID, scriptName, lineNumber)){ continue; };
+
+                if(setComplexDataAccessors(valueLocationAttributes, locationAttributesArgs, lineNumber,
+                    scriptName, Expression, allAvailableEventIDs, NewVariablesForLookupTable, PassedVariables,
+                    canCreateNewVariable, inAfterSection
+                )){
+                    return false;
                 }
             }
             else{
@@ -2229,42 +2333,74 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 return;
             }
         }
-        else if(isStringInGroup(words[0].value, 4, "bool", "int", "double", "string")){
+        else if(isStringInGroup(words[0].value, 8, "bool", "int", "double", "string", "bool_vec", "int_vec", "double_vec", "string_vec")){
             if(!prepareNewInstruction(words, NewEvent, Operation, inAfterSection, 3, lineNumber, scriptName)){
                 return;
             }
-
+            
+            DataType newVariableType = value_inst;
+            switch(Operation->instruction){
+                case bool_vec_i:
+                case int_vec_i:
+                case double_vec_i:
+                case string_vec_i:
+                    newVariableType = value_vec;
+                    break;
+                default:
+                    break;
+            }
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, newVariableType, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() > 0){ return; }
             }
             
-            if(words[0].value == "bool"){
-                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'b', "values", false, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){ return; }
-            }
-            else if(words[0].value == "int"){
-                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'i', "values", false, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){ return; }
-            }
-            else if(words[0].value == "double"){
-                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'd', "values", false, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){ return; }
-            }
-            else if(words[0].value == "string"){
-                if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "values", false, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
-                )){ return; }
-            }
-            else{
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Literal type is required.\n";
-                return;
+            switch(Operation->instruction){
+                case bool_i:
+                    if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'b', "value", false, allAvailableEventIDs,
+                        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection, true
+                    )){ return; }
+                    break;
+                case bool_vec_i:
+                    if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'b', "values", false, allAvailableEventIDs,
+                        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                    )){ return; }
+                    break;
+                case int_i:
+                    if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'i', "value", false, allAvailableEventIDs,
+                        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection, true
+                    )){ return; }
+                    break;
+                case int_vec_i:
+                    if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'i', "values", false, allAvailableEventIDs,
+                        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                    )){ return; }
+                    break;
+                case double_i:
+                    if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'd', "value", false, allAvailableEventIDs,
+                        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection, true
+                    )){ return; }
+                    break;
+                case double_vec_i:
+                    if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 'd', "values", false, allAvailableEventIDs,
+                        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                    )){ return; }
+                    break;
+                case string_i:
+                    if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "value", false, allAvailableEventIDs,
+                        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection, true
+                    )){ return; }
+                    break;
+                case string_vec_i:
+                    if(Operation->addLiteralOrVectorOrVariableToParameters(scriptName, lineNumber, error, words, cursor, 's', "values", false, allAvailableEventIDs,
+                        NewVariablesForLookupTable, NewEvent.PassedVariables, false, inAfterSection
+                    )){ return; }
+                    break;
+                default:
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                        << errorSpacing() << "In " << __FUNCTION__ << ": Literal type is required.\n";
+                    return;
             }
         }
         else if(words[0].value == "find_by_id"){
@@ -2277,7 +2413,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
-            Operation->Location.source = transSource(words[1].value, error);
+            Operation->Location.source = strToSource(words[1].value, error);
             if(error.size() > 0){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
@@ -2388,7 +2524,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
                 return;
             }
-            Operation->Location.source = transSource(words[1].value, error);
+            Operation->Location.source = strToSource(words[1].value, error);
             if(error.size() > 0){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << errorSpacing() << "In " << __FUNCTION__
@@ -2434,8 +2570,9 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 if(error.size() == 0){ continue; }
                 return;
             }
+            DataType typeForNewEntity = sourceToEntityType(InstrDescription(), Operation->Location.source);
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, any_dt, Operation->outputVariableID,
+                NewEvent.PassedVariables, allAvailableEventIDs, typeForNewEntity, Operation->outputVariableID,
                 Operation->isOutputReference, false, true, inAfterSection
             )){
                 if(error.size() == 0){ continue; }

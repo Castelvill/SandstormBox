@@ -1,0 +1,8 @@
+start main
+    triggers on_init
+    fun my_layer set_id "HELL_YEAH"
+    access my_layer_id [me.layer_id]
+    access display [display_w display_h]
+    print " " _ my_layer_id display "\n"
+    exit
+end

@@ -3,8 +3,8 @@ start putRectangleOnScreen
 
     var DISPLAY_W 640
     var DISPLAY_H 480
-    access display_w [[display_w]]
-    access display_h [[display_h]]
+    access display_w [display_w]
+    access display_h [display_h]
     = DISPLAY_W display_w
     = DISPLAY_H display_h
     create_display DISPLAY_W DISPLAY_H DISPLAY_W DISPLAY_H
@@ -41,8 +41,8 @@ end
 
 start updateFiledWithResize
     triggers on_display_resize
-    access display_w [[display_w]]
-    access display_h [[display_h]]
+    access display_w [display_w]
+    access display_h [display_h]
     = DISPLAY_W display_w
     = DISPLAY_H display_h
 
@@ -55,7 +55,7 @@ start printFPS
 
     all me _ _ super_text _ _ _ Texts
     find_by_id_2 Texts "Fps" FpsText
-    access fpsValue [[fps]]
+    access fpsValue [fps]
     string fpsString "FPS: "
     += fpsString fpsValue
     fun FpsText set_content fpsString
@@ -66,24 +66,18 @@ start moveRectangle
 	triggers each_iteration
     + x SIZE_X xs
     + y SIZE_Y ys
-    run bounceY bounceX
-after
+    if(x 0 <= xs DISPLAY_W >= ||)
+        *= velX -1.0
+    end_if
+    if(y 0 <= ys DISPLAY_H >= ||)
+        *= velY -1.0
+    end_if
 	+= x velX
 	+= y velY
-    //index me [0 0] primitives Rectangle
+    //index me 0 0 primitives Rectangle
     all me _ _ primitives _ _ _ Primitives
 	find_by_id_2 Primitives "Rectangle" Rectangle
     fun Rectangle set_pos x y
-end
-
-start bounceX
-    if([x] [0] <= [xs] [DISPLAY_W] >= ||)
-    *= velX -1.0
-end
-
-start bounceY
-    if([y] [0] <= [ys] [DISPLAY_H] >= ||)
-    *= velY -1.0
 end
 
 

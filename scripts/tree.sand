@@ -1,0 +1,43 @@
+start main()
+    triggers on_init
+    int height 5
+    int i 0
+    while(i height <)
+        int space height
+        -= space i
+        -- space
+        int j 0
+        while(j space <)
+            print _ _ " "
+            ++ j
+        end_while
+        int stars 2
+        *= stars i
+        += stars 1
+        int k 0
+        while(k stars <)
+            print _ _ "*"
+            ++ k
+        end_while
+
+        print "\n"
+        ++ i
+    end_while
+
+    // Tree trunk
+    int t 0
+    while(t 2 <)
+        int s 0
+        int heigh_minus height
+        -- heigh_minus
+        while(s heigh_minus <)
+            print _ _ " "
+            ++ s
+        end_while
+        print _ _ "*"
+        print "\n"
+        ++ t
+    end_while
+
+    exit
+end

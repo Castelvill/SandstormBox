@@ -30,10 +30,12 @@ start putRectangleOnScreen
     fun Text set_color 0 0.0 1.0 0.0 1.0
     fun Text set_wrapping "n"
     fun Text set_content "To exit the program use the CTRL+ESC shortcut or just click\nthe exit button."
+    fun Text update
 end
 
 start exitProgram
-    triggers on_key_pressed
-    if([key_pressed KEY_LCTRL] [key_pressed KEY_ESC] &&)
-    exit
+    triggers on_key_press
+    if(key_pressed(KEY_LCTRL) key_pressed(KEY_ESC) &&)
+        exit
+    end_if
 end
