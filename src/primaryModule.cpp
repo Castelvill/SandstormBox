@@ -16,12 +16,6 @@ EngineInstr strToInstr(string instruction){
     if(instruction == "run"){
         return EngineInstr::run;
     }
-    if(instruction == "if_old"){
-        return EngineInstr::if_old;
-    }
-    if(instruction == "else_old"){
-        return EngineInstr::else_old;
-    }
     if(instruction == "if"){
         return EngineInstr::if_i;
     }
@@ -363,10 +357,6 @@ string instrToStr(const EngineInstr & instruction){
             return "triggers";
         case run:
             return "run";
-        case if_old:
-            return "if";
-        case else_old:
-            return "else";
         case if_i:
             return "if";
         case else_if:
@@ -2580,7 +2570,7 @@ string attributeToStr(const AttributeType &attribute){
     }
     return "null";
 }
-AttributeType strToAttribute(const string &attribute){
+AttributeType strToAttribute(const string &attribute, string & error){
     //TODO: Use a hash map to map strings to enum values.
     if(attribute == "null") return null_a;
     else if(attribute == "set_id") return set_id;
@@ -3173,5 +3163,10 @@ AttributeType strToAttribute(const string &attribute){
     else if(attribute == "time_to_spawn") return time_to_spawn;
     else if(attribute == "max_time_to_spawn") return max_time_to_spawn;
     else if(attribute == "spawn_key_bind") return spawn_key_bind;
+    error = "Invalid attribute: '"  + attribute + "'.\n";
     return null_a;
+}
+AttributeType strToAttribute(const string &attribute){
+    string dummyString;
+    return strToAttribute(attribute, dummyString);
 }

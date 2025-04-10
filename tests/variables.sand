@@ -1,4 +1,4 @@
-start variablesTest
+start main()
     triggers on_init
     env can_exit_on_idle 1
     print "VARIABLES_TEST - START\n"
@@ -10,11 +10,13 @@ start variablesTest
     assert b 10
     
     run incA(a)
+    assert a 5
     run incB()
+    assert b 11
     run incB2(b)
-after
+    assert b 11
+
     print "VARIABLES_TEST - PASSED\n"
-    delete_this_event
 end
 
 start incA(int a)
@@ -28,9 +30,8 @@ start incB()
 end
 
 start incB2(int b2)
+    assert b2 11
     ++ b2
     assert b2 12
-    assert b 11
-after
     assert b 11
 end

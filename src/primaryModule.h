@@ -10,7 +10,7 @@ enum ReturnType : char{
 };
 
 enum EngineInstr : char{
-    null, start, end_i, after, triggers, run, if_old, else_old, if_i,
+    null, start, end_i, after, triggers, run, if_i,
     else_if, else_i, end_if, while_i, end_while, continue_i,
     break_i, return_i, reboot, exit_i, delete_this_event,
     reset_keyboard, dump_context_stack, first, last, all,
@@ -231,6 +231,7 @@ enum AttributeType: short{
     max_particles_count, time_to_spawn, max_time_to_spawn, spawn_key_bind
 };
 
+AttributeType strToAttribute(const string & attribute, string & error);
 AttributeType strToAttribute(const string & attribute);
 string attributeToStr(const AttributeType & attribute);
 

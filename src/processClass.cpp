@@ -103,23 +103,6 @@ void buildVariableLookupTable(const vector<StartingVariableStruct> & NewVariable
                     referencedVariableID, isDirectReferenceToVariable
                 );
             }
-            if(Event.elseChildID == Reference.eventID){
-                if(Reference.index >= (short)Event.passingVariablesForElseEvent.size()){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Event '" << Reference.eventID << "' was called from the event '"
-                        << Event.getID() << "' with not sufficient number of variables ("
-                        << Event.passingVariablesForElseEvent.size() << ")."
-                        << " Reference '" << Reference.id << "' from index " << Reference.index
-                        << " cannot be resolved.\n";
-                    return;
-                }
-                
-                string referencedVariableID = Event.passingVariablesForElseEvent[Reference.index];
-                bool isDirectReferenceToVariable = CurrentMap.Contexts.contains(referencedVariableID);
-                IntermediateReferences.emplace_back(Event.getID(), "else", Reference.eventID, Reference.id,
-                    referencedVariableID, isDirectReferenceToVariable
-                );
-            }
         }
     }
 
@@ -8516,7 +8499,7 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ContextMapSt
 
     PointerRecalculator Recalculator;
     Recalculator.findIndexesForModules(Layers, EventContext, StartingEvent, Event, MemoryStack, ActiveEditableText, CurrentInstr);
-    
+
     bool myEventsAreDeleted = false;
     for(AncestorObject * Object : ObjectContext.Objects){
         if(canResetEvents && Object == Owner){
@@ -11113,10 +11096,6 @@ void ProcessClass::printTree(OperationClass & Operation, ContextMapStruct & Even
                         buffor += "\t\t\t\tEvent::Child " + Child.ID;
                         buffor += "\n";
                     }
-                    if(Event.elseChildID != ""){
-                        buffor += "\t\t\t\tEvent::Else " + Event.elseChildID;
-                        buffor += "\n";
-                    }
                 }
                 for(const VariableModule & Variable : Object.VariablesContainer){
                     buffor += "\t\t\tVariable::";
@@ -12170,6 +12149,7 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 return Operation.instruction;
             case run:
                 ++Event->programCounter;
+                runChildEventWithIndex = Operation.specialValue;
                 return Operation.instruction;
             case if_i:
                 Event->goToEndOfIfStatement.push_back(0);
@@ -12179,7 +12159,7 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 }
                 else if(Event->conditionalStatus == 'f'){
                     //Jump to next else_if, else or end_if.
-                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLineSecond);
+                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.specialValue);
                 }
                 else{
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -12197,7 +12177,7 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 }
                 else if(Event->conditionalStatus == 'f'){
                     //Jump to next else_if, else or end_if.
-                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLineSecond);
+                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.specialValue);
                 }
                 else{
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -12430,6 +12410,9 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
             case dump_context_stack:{
                 string buffor = "\nStack: ";
                 for(auto Context : EventContext.Contexts){
+                    if(Context.first.size() - Context.second.ID.size() > 0){
+                        buffor += Context.first.substr(0, Context.first.size() - Context.second.ID.size()) + ":";
+                    }
                     buffor += Context.second.ID + ":" + dataTypeToStr(Context.second.type)
                         + ":" + Context.second.getValue(CurrentInstr, maxLengthOfValuesPrinting) + ", ";
                 }
@@ -13827,16 +13810,6 @@ vector<EventModule>::iterator ProcessClass::findChildEventToRun(
     lineNumber = SelectedChild.lineNumber;
     return ChildEvent;
 }
-vector<EventModule>::iterator ProcessClass::FindElseEvent(AncestorObject * Triggered, vector<EventModule>::iterator & Event){
-    vector<EventModule>::iterator ElseEvent;
-    for(ElseEvent = Triggered->EventContainer.begin(); ElseEvent != Triggered->EventContainer.end(); ElseEvent++){
-        if(!ElseEvent->getIsDeleted() && ElseEvent->getIsActive() && ElseEvent->getID() == Event->elseChildID){
-            Event->elseChildFinished = true;
-            return ElseEvent;
-        }
-    }
-    return Event;
-}
 template <class Module>
 void deleteModuleInstance(vector<Module> & Container, vector<string> & IDs, bool & layersWereModified){
     for(auto Instance = Container.begin(); Instance != Container.end();){
@@ -13988,18 +13961,6 @@ void ProcessClass::resetChildren(vector<EventModule>::iterator & Event, Ancestor
             for(EventModule & ChildEvent: Triggered->EventContainer){
                 if(ChildEvent.getID() == Child.ID){
                     ChildEvent.resetStateVariables();
-                    ChildEvent.elseChildFinished = false;
-                    StackOfEvents.push_back(&ChildEvent);
-                    break;
-                }
-            }
-        }
-
-        if(CurrentEvent->elseChildID != ""){
-            for(EventModule & ChildEvent: Triggered->EventContainer){
-                if(ChildEvent.getID() == CurrentEvent->elseChildID){
-                    ChildEvent.resetStateVariables();
-                    ChildEvent.elseChildFinished = false;
                     StackOfEvents.push_back(&ChildEvent);
                     break;
                 }
@@ -14399,7 +14360,6 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
         }
         for(EventModule & Eve : Triggered->EventContainer){
             Eve.resetStateVariables();
-            Eve.elseChildFinished = false;
         }
 
         //Find the first triggerable event.
@@ -14462,49 +14422,14 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
             }
             if(printOutInstructions){
                 printInColor("\n---Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + Event->getID() + "\n", 14);
-            }
-            if(Event->conditionalStatus == 'n' && interruptInstruction != EngineInstr::break_i && interruptInstruction != EngineInstr::return_i){
-                std::chrono::steady_clock::time_point timeBegin = std::chrono::steady_clock::now();
-                CurrentInstr.instruction = EngineInstr::if_old;
-                CurrentInstr.scriptName = "";
-                Event->conditionalStatus = evaluateConditionalChain(Event->ConditionalChain, Event->resultStack, Triggered, TriggeredLayer, Engine, VariablesLoookupTable);
-                std::chrono::steady_clock::time_point timeEnd = std::chrono::steady_clock::now();
-                auto temp = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeBegin).count();
-                if(TimeSpentOnInstructions.contains(EngineInstr::if_old)){
-                    TimeSpentOnInstructions[EngineInstr::if_old] += temp;
-                }
-                else{
-                    TimeSpentOnInstructions[EngineInstr::if_old] = temp;
-                }
-                
-                if(printOutInstructions){
-                    if(Event->conditionalStatus == 'n'){
-                        printInColor("---null\n", 14);
-                    }
-                    else if(Event->conditionalStatus == 't'){
-                        printInColor("---true\n", 14);
-                    }
-                    else if(Event->conditionalStatus == 'f'){
-                        printInColor("---false\n", 14);
-                    }
-                    else{
-                        printInColor("---" + Event->conditionalStatus, 14);
-                        printInColor("\n", 14);
-                    }
-                }
-            }
-            else if(printOutInstructions){
                 if(interruptInstruction == EngineInstr::break_i){
                     printInColor("---break\n", 14);
                 }
                 else if(interruptInstruction == EngineInstr::return_i){
                     printInColor("---return\n", 14);
                 }
-                else{
-                    printInColor("---go_back\n", 14);
-                }
             }
-            if(Event->conditionalStatus == 't' && interruptInstruction != EngineInstr::break_i && interruptInstruction != EngineInstr::return_i){ //if true
+            if(interruptInstruction != EngineInstr::break_i && interruptInstruction != EngineInstr::return_i){ //Execute all instructions bound to an event.
                 unsigned runChildEventWithIndex = 0;
                 if(Event->programCounter < Event->DependentOperations.size()){
                     interruptInstruction = executeInstructions(Event->DependentOperations, TriggeredLayer, Triggered, VariablesLoookupTable, TriggeredObjects,
@@ -14567,94 +14492,12 @@ void ProcessClass::executeEvents(EngineClass & Engine, vector<ProcessClass> & Pr
                     EventStack.pop_back();
                 }
             }
-            else if(Event->conditionalStatus == 'f' && interruptInstruction != EngineInstr::break_i
-                && interruptInstruction != EngineInstr::return_i && Event->elseChildID != "" && !Event->elseChildFinished
-            ){ //else
-                EventStack.emplace_back(EventStackStruct(Event));
-                Event = FindElseEvent(Triggered, Event);
-                findCallingEventAndType(EventStack, Event, "else");
-                
-                CurrentInstr.eventID = Event->getID();
-                CurrentInstr.instruction = EngineInstr::else_old;
-                if(EventStack.back().Event->elseChildFinished){ //True if else event has been found.
-                    if(Event != EventStack.back().Event){
-                        if(passVariablesToTheChild(EventStack.back().Event->passingVariablesForElseEvent, Event->PassedVariables, VariablesLoookupTable)){
-                            return;
-                        }
-                        VariablesLoookupTable.callingSource = Event->callingEventID + Event->callingType;
-                        continue;
-                    }
-                    continue;
-                }
-                EventStack.pop_back();
-            }
 
-            if(Event->loop && Event->conditionalStatus != 'f' && interruptInstruction != EngineInstr::break_i
-                && interruptInstruction != EngineInstr::return_i
-            ){ //loop back
-                if(wereGlobalVariablesCreated){
-                    if(printOutInstructions){
-                        cout << "---Update global variables:\n";
-                    }
-                    wereGlobalVariablesCreated = false;
-                    addGlobalVariables(VariablesLoookupTable, Triggered->VariablesContainer, printOutInstructions);
-                    addGlobalVectors(VariablesLoookupTable, Triggered->VectorContainer, printOutInstructions);
-                }
-
-                // if(passVariablesToTheChild(EventStack.back().passingVariables, Event->PassedVariables, VariablesLoookupTable)){
-                //     return;
-                // }
-                
-                Event->resetStateVariables();
-                Event->elseChildFinished = false;
-                resetChildren(Event, Triggered);
-                continue;
-            }
-            if(Event->loop && interruptInstruction != EngineInstr::return_i){
-                interruptInstruction = EngineInstr::null;
-            }
-            if(Event->conditionalStatus == 't' && interruptInstruction != EngineInstr::break_i
-                && interruptInstruction != EngineInstr::return_i
-            ){ //operations after loop/if
-                
-                //In the "after" scope child events execute instructions from the perspective of their parents.
-                //This behavior is required to execute parent's instructions between its children's scopes.
-                //If the current event is a root of an event tree, it will execute instructions from its own perspective. 
-                if(EventStack.size() > 0){
-                    unsigned removeMe = 0;
-                    CurrentInstr.eventID = EventStack.back().Event->getID();
-                    interruptInstruction = executeInstructions(Event->PostOperations, TriggeredLayer, Triggered, VariablesLoookupTable, TriggeredObjects,
-                        Processes, StartingEvent, EventStack.back().Event, EventStack, Engine, removeMe
-                    );
-                }
-                else{
-                    unsigned removeMe = 0;
-                    interruptInstruction = executeInstructions(Event->PostOperations, TriggeredLayer, Triggered, VariablesLoookupTable, TriggeredObjects,
-                        Processes, StartingEvent, Event, EventStack, Engine, removeMe
-                    );
-                }
-
-                CurrentInstr.eventID = Event->getID();
-                if(interruptInstruction == EngineInstr::exit_i || interruptInstruction == EngineInstr::assert){
-                    Engine.closeProgram = true;
-                    return;
-                }
-                else if(interruptInstruction == EngineInstr::reboot){
-                    Engine.reboot = true;
-                    return;
-                }
-                // else if(interruptInstruction == EngineInstr::return_i){
-                //     interruptInstruction = EngineInstr::null;
-                //     break;
-                // }
-                if(TriggeredLayer == nullptr || Triggered == nullptr){
-                    //cout << "Aborting! The owner of the event has been deleted.\n";
-                    break;
-                }
-            }
             if(StartingEvent != Event){ //jump back in event stack
+                if(printOutInstructions){
+                    printInColor("---go_back\n", 14);
+                }
                 Event->resetStateVariables();
-                Event->elseChildFinished = false;
                 resetChildren(Event, Triggered);
 
                 if(!Event->isInline){
@@ -16223,7 +16066,7 @@ void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, Conte
 void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, ContextMapStruct & EventContext, LayerClass *& OwnerLayer){
     for(auto & Context : EventContext.Contexts){
         for(LayerClass * Layer : Context.second.Layers){
-            LayerIndexes[Context.second.ID].push_back(Layer - &Layers[0]);
+            LayerIndexes[Context.first].push_back(Layer - &Layers[0]);
         }
     }
     if(OwnerLayer != nullptr){
@@ -16243,7 +16086,7 @@ void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, Cont
         for(AncestorObject * Object : Context.second.Objects){
             for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
                 if(Layers[layerIndex].getID() == Object->getLayerID()){
-                    ObjectIndexes[Context.second.ID].push_back(AncestorIndex(layerIndex, Object - &Layers[layerIndex].Objects[0]));
+                    ObjectIndexes[Context.first].push_back(AncestorIndex(layerIndex, Object - &Layers[layerIndex].Objects[0]));
                     break;
                 }
             }

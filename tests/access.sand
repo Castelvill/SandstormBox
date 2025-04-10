@@ -1,0 +1,36 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "ACCESS_TEST - START\n"
+
+    fun my_layer set_id "TestLayer"
+    access my_layer_id [me.layer_id]
+    assert my_layer_id "TestLayer"
+
+    access display [display_w display_h]
+    type display variableType
+    assert variableType "ValVec"
+
+    int_vec size [640 480]
+    assert display size
+
+    int_vec vec [10 20 30 40]
+    access vectorBack [vec.back]
+    assert vectorBack 40
+
+    access objectsN [my_layer.number_of_objects]
+
+    new Objects my_layer 1 "TestObj" TestObj
+
+    access objectsN_2 [my_layer.number_of_objects]
+    ++ objectsN
+    assert objectsN objectsN_2
+
+    access layersN [Processes.number_of_layers]
+    assert layersN 1
+
+    access objectsN [Processes.number_of_objects]
+    assert objectsN objectsN_2
+
+    print "ACCESS_TEST - END\n"
+end

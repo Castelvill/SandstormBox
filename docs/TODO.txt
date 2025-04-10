@@ -1,36 +1,35 @@
+-Remove old loops - looping functions, "loop" and "inline_loop" event definitions.
 -Reimplement variables handling - use addresses.
--Change "continue" and "break" instructions to: "continue [jump_to_line]" and "break [jump_to_line]". New argument will be removed during the compilation of normal functions. However during the runtime, if "jump_to_line" argument is present inside the inline functions, it will set the "jumpToLineFromInlineFeedback" engine variable to its value. Engine will jump to this line inside the first non-inline function In local loops "continue" and "break" jump accordingly to last "while" or first "end_while".
--Implement "start_scope [name]" and "end_scope" compilation-time instructions. These instructions can be nested inside events. Inside these scopes only "break" and "continue" instructions will be updated with "jump_to_line" argument, otherwise the whole code will be buffered inside "vector<vector<WordStruct>> bufferedInlineFunctions" variable. Right after the "end" instruction is called, assembler will switch to compiling bufferedInlineFunctions instead of next script lines.
--Remove "after" section, PostOperations, old ifs - checking conditional status of a current function, old loops - looping functions.
--Add "throw_error [message]" and "throw_warning [message]" instructions - they will just write an error or warning message on the standard output.
--Turn "triggers" instruction into event sections like "after".
--Fix: Passing variable to a function that takes only a value copies the pointer to this variable. The same probably happens also for other types like vectors etc.
--You already fixed "after" section ONLY for inline events, do it also for normal events/functions.
--Fix "after" section - it must use the scope of the event's parent (test: afterLocality.sand).
--FIX: When executing "else.sand", error occurs. It is not connected to rawID. A reference is not turned into a reference.
+-Index variables with addresses. -> Implement local scopes inside ifs and loops.
+-Remove RPN from expressions.
+-Use curly brackets instead of "end", "end_if" and "end_while"
+-Create a traslation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
+-Fuse "triggers" instruction with event declaration with the syntax "event<triggers>(args)".
+-Fix the error present when executing "else.sand". It is not connected to rawID. A reference is not turned into a reference.
 -Fix "inline else_0".
--Fix else statements.
 -Fix: References will not work if several instances of the same event are called. Add a number to each instance's reference id and to children.
 -Change all variable and reference ids into unique numbers / eliminate string concatenation, but first think how would you deal with passing variables to functions.
 -Why is [event][transition][event] reference format needed? 
 -Move every instruction definition to a seperate function.
 
+-Rewrite the terminal.
+-Update documentation.
+-Optimize EditableSuperText.
+
+-Add "throw_error [message]" and "throw_warning [message]" instructions - they will just write an error or warning message on the standard output.
 -IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.
 -Classes should have two uses: templates for objects and user-defined argument types in the function definitions. The second one means that when passing parameters to a function, aside from checking if the context is of "ObjectInst"/"ObjectVec" type, engine additionally compares a new AncestorObject variable "originID" (which can be set during a "clone" instruction) to the user-defined type. If something is incorrect, raise an error.
 -Before adding namespaces, modules and classes/structures think about AncestorObjects and the EventModule vector.
 -Maybe eventID in localContextID should be changed to a "namespace". Namespace could be a path from the main scope to the local scope of the current event. This can allow classes, modules (modules as in other files with private scopes) and functions in functions.
 -Debug (default) mode of compiling should create two memory hash maps: one with address:(namespace,name,ContextClass) pairs and one with namespace+name:address pairs. In release mode the second hash map should be removed. Events should always access variables via their numeric address - strings are BANNED for performance reasones.
 -Improve built-in global variables - instead of hard coding "NULL", "me" and "my_layer", pass them to the event assembly or something.
--Check the validity of attributes and sources during the compilation comparing translated strings to nulls like in the "triggers" instruction. 
 -Before the event assembly the user should have an option to create a new object and layer that will be used as a destination for the new events. Minimally, in the terminal the "sand" instruction should have a parameter to choose an object and layer names (with the dot syntax) as a destination - if an object or/and layer does not exist, create a new one. OR the "sand" instruction should just use the file name as a name of the new layer and object (or object could have a default name like "main"). ORRRRR you could assemble a new program... inside a new process! WE BUILD THEM FOR A REASON.
 -Check if you can stop and start a process (without a restart meaning the state is preserved and the process is just not iterated through). Maybe you should add something like "ps stop/start/restart/kill [process_number]" to the terminal. 
 -Maybe all objects and layers that are consider to be "main" programs should be part of the "Program"/"Process" group.
 -You should add some kind of a destructor trigger like "on_destroy": when an object is to be deleted, the on_destroy event is executed and all children objects can be also deleted or some finishing code can be executed. Additionally when creating a program, all objects should join a group with a name "proc_[random_unique_number]". Alternativly each program should just be in a seperate layer. 
--Turn "if (expression)" instruction into a "evaluate output (expression)" and move the if expression to "event<triggers>(expression)", "loop(expression)", "inline_if(expression)" and "inline_loop(expression)" instructions.  
--Update instructions doc.
+-Update instructions docs.
 -Copy and update the lookupTable when cloning layers (change only layerID).
 -Test removing events.
--Fuse "triggers" instruction with event declaration. 
 -Create "fill_with_letter *letter* *red* *green* *blue*" function for the text module.
 -Create "draw_letter *letter* *pos_x* *pos_y* *red* *green* *blue*" function for the text module.
 -Recreate robotfindskitten in sand.

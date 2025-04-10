@@ -5,9 +5,8 @@ start passingValuesTest
     var a 10
     run passA(a)
     run passA2(a)
-after
+
     print "PASSING_VALUES_TEST - PASSED\n"
-    delete_this_event
 end
 
 start passA(int localA)

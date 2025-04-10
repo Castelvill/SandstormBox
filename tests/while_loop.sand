@@ -1,5 +1,6 @@
 start main()
     triggers on_init
+    env can_exit_on_idle 1
     print "WHILE_LOOP_TEST - START\n"
 
     int sum 0
@@ -32,7 +33,6 @@ start main()
     assert sum 1700
 
     print "WHILE_LOOP_TEST - PASSED\n"
-    exit
 end
 
 start test_loop(int & sum, int & j, int & y)

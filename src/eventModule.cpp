@@ -41,7 +41,7 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "any_key_released"){
         return ValueSource::any_key_released;
     }
-    if(source == "mouse"){
+    if(source == "Mouse"){
         return ValueSource::mouse;
     }
     if(source == "mouse_moved"){
@@ -56,34 +56,28 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "mouse_released"){
         return ValueSource::mouse_released;
     }
-    if(source == "literal"){
+    if(source == "Literal"){
         return ValueSource::literal;
     }
-    if(source == "variable"){
+    if(source == "Variable"){
         return ValueSource::variable;
     }
-    if(source == "camera"){
+    if(source == "Cameras"){
         return ValueSource::camera;
     }
-    if(source == "layer"){
+    if(source == "Layers"){
         return ValueSource::layer;
     }
-    if(source == "owner"){
-        return ValueSource::owner;
-    }
-    if(source == "ancestor"){
+    if(source == "Ancestor"){
         return ValueSource::ancestor;
     }
-    if(source == "object"){
+    if(source == "Objects"){
         return ValueSource::object;
-    }
-    if(source == "pointer"){
-        return ValueSource::pointer;
     }
     if(source == "display_resized"){
         return ValueSource::display_resized;
     }
-    if(source == "vector_s"){
+    if(source == "Vectors"){
         return ValueSource::vector_s;
     }
     if(source == "mouse_x"){
@@ -113,7 +107,7 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "booting"){
         return ValueSource::booting;
     }
-    if(source == "process"){
+    if(source == "Processes"){
         return ValueSource::process;
     }
     if(source == "context"){
@@ -194,7 +188,7 @@ string sourceToStr(ValueSource source){
         case any_key_released:
             return "any_key_released";
         case mouse:
-            return "mouse";
+            return "Mouse";
         case mouse_moved:
             return "mouse_moved";
         case mouse_pressed:
@@ -204,25 +198,21 @@ string sourceToStr(ValueSource source){
         case mouse_released:
             return "mouse_released";
         case literal:
-            return "literal";
+            return "Literal";
         case variable:
-            return "variable";
+            return "Variable";
         case camera:
-            return "camera";
+            return "Cameras";
         case layer:
-            return "layer";
-        case owner:
-            return "owner";
+            return "Layers";
         case ancestor:
-            return "ancestor";
+            return "Ancestor";
         case object:
-            return "object";
-        case pointer:
-            return "pointer";
+            return "Objects";
         case display_resized:
             return "display_resized";
         case vector_s:
-            return "vector_s";
+            return "Vectors";
         case mouse_x:
             return "mouse_x";
         case mouse_y:
@@ -242,7 +232,7 @@ string sourceToStr(ValueSource source){
         case booting:
             return "booting";
         case process:
-            return "process";
+            return "Processes";
         case context:
             return "context";
         case text:
@@ -607,7 +597,7 @@ string ParameterStruct::getVariableIdOrValue(){
 bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words,
     unsigned index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection,
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
     bool ignoreUndefinedVariable
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
@@ -645,7 +635,7 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
             string temp;
             Parameters.back().variableID = findExistingVariableOrCreateNew(
                 NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                canCreateNewVariable, scriptName, lineNumber, inAfterSection, ignoreUndefinedVariable
+                canCreateNewVariable, scriptName, lineNumber, ignoreUndefinedVariable
             );
         }
         Parameters.back().negateVariable = words[index].negateVariable;
@@ -730,7 +720,7 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
 bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string &error,
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection, const bool & forbidVectors
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, const bool & forbidVectors
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -805,14 +795,14 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName,
     }
     return addVectorOrVariableToParameters(scriptName, lineNumber, error, words, index,
         type, name, optional, allAvailableEventIDs, NewVariablesForLookupTable, PassedVariables,
-        canCreateNewVariable, inAfterSection, forbidVectors
+        canCreateNewVariable, forbidVectors
     );
 }
 bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string &error,
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional,
     const vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection,
+    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
     const bool & forbidVectors
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
@@ -857,7 +847,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
             string temp;
             Parameters.back().variableID = findExistingVariableOrCreateNew(
                 NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                canCreateNewVariable, scriptName, lineNumber, inAfterSection
+                canCreateNewVariable, scriptName, lineNumber
             );
         }
         Parameters.back().negateVariable = words[index].negateVariable;
@@ -899,7 +889,7 @@ bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned
                 string temp;
                 Parameters.back().variableID = findExistingVariableOrCreateNew(
                     NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                    canCreateNewVariable, scriptName, lineNumber, inAfterSection
+                    canCreateNewVariable, scriptName, lineNumber
                 );
             }
             Parameters.back().negateVariable = words[index].negateVariable;
@@ -1003,10 +993,7 @@ void EventModule::clone(const EventModule &Original, vector<string> &listOfIDs, 
 
 void EventModule::setUpNewInstance(){
     conditionalStatus = 'n';
-    elseChildID = "";
     programCounter = 0;
-    elseChildFinished = false;
-    loop = false;
     willBeDeleted = false;
 
     goToEndOfIfStatement.clear();
@@ -1030,8 +1017,6 @@ EventModule::~EventModule(){
 
 }
 void EventModule::clear(){
-    ConditionalChain.clear();
-    PostOperations.clear();
     Children.clear();
 }
 void EventModule::resetStateVariables(){
@@ -1141,11 +1126,10 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
 }
 string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<string> & allAvailableEventIDs, const string & variableID, string & usedEventID,
-    bool canCreateNewVariable, const string & scriptName, const unsigned &lineNumber, bool inAfterSection,
+    bool canCreateNewVariable, const string & scriptName, const unsigned &lineNumber,
     bool ignoreUndefinedVariable
 ){
-    unsigned eventIdx = inAfterSection && allAvailableEventIDs.size() > 1;
-    for(; eventIdx < allAvailableEventIDs.size(); ++eventIdx){
+    for(unsigned eventIdx = 0; eventIdx < allAvailableEventIDs.size(); ++eventIdx){
         string localName = localContextID(allAvailableEventIDs[eventIdx], variableID);
         for(const StartingVariableStruct & ExistingVariable : NewVariablesForLookupTable){
             if(localName == ExistingVariable.id/*localContextID(ExistingVariable.eventID, variableID)*/){
@@ -1166,7 +1150,7 @@ string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & Ne
 string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
     const string & variableID, bool canBeReferenced, bool canCreateNewVariable,
-    const string & scriptName, const unsigned &lineNumber, bool inAfterSection
+    const string & scriptName, const unsigned &lineNumber
 ){
     string customID = "";
     if(isVariableGlobal(NewVariablesForLookupTable, variableID)){ //If the current variable is global, use it.
@@ -1176,7 +1160,7 @@ string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesFor
         string temp;
         customID = findExistingVariableOrCreateNew(
             NewVariablesForLookupTable, allAvailableEventIDs, variableID, temp,
-            canCreateNewVariable, scriptName, lineNumber, inAfterSection
+            canCreateNewVariable, scriptName, lineNumber
         );
     }
     if(canBeReferenced && checkIfVariableIsReference(PassedVariables, customID)){
@@ -1288,7 +1272,7 @@ bool EventModule::getPassingVariables(vector<string> &passingVariables,
         }
         passingVariables.push_back(createCustomOutput(
             NewVariablesForLookupTable, PassedVariables, allAvailableEventIDs,
-            words[cursor].value, true, false, scriptName, lineNumber, false
+            words[cursor].value, true, false, scriptName, lineNumber
         ));
         if(words[cursor + 1].value == ","){
             cursor += 2;
@@ -3293,13 +3277,7 @@ void EventModule::controlVector(VectorModule * Vector, AttributeType attribute, 
 }
 
 void EventModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
-    if(attribute == else_child_id){
-        BasePointers.emplace_back(BasePointersStruct());
-        BasePointers.back().setPointer(&elseChildID);
-    }
-    else{
-        getPrimaryContext(attribute, BasePointers);
-    }
+    getPrimaryContext(attribute, BasePointers);
 }
 
 

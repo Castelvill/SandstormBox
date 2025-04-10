@@ -17,5 +17,4 @@ start assertTest
     assert 12 a
 
     print "ASSERT_TEST - PASSED\n"
-    delete_this_event
 end

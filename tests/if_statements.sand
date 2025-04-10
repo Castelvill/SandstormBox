@@ -42,5 +42,4 @@ start main()
     assert x 1500
 
     print "IF_STATEMENT_TEST - PASSED\n"
-    exit
 end

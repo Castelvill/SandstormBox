@@ -32,7 +32,7 @@ struct ModuleIndex : AncestorIndex{
 struct EventsLookupTable{
     vector <AncestorIndex> BootTriggered; //Triggered only in the first iteration or in the first iteration after a reboot.
     vector <AncestorIndex> InitTriggered; //Triggered only when the object is created.
-    vector <AncestorIndex> IterationTriggered; //If a trigger is negated or has else statement, in most cases interpreter puts its event into IterationTriggered events. 
+    vector <AncestorIndex> IterationTriggered; //If a trigger is negated, in most cases interpreter puts its event into IterationTriggered events. 
     vector <AncestorIndex> TimeTriggered;
     vector <AncestorIndex> KeyPressedTriggered;
     vector <AncestorIndex> KeyPressingTriggered;
@@ -462,7 +462,6 @@ public:
         vector<string> & passingVariables, string & callingScript, unsigned & lineNumber,
         const unsigned & runChildEventWithIndex
     );
-    vector<EventModule>::iterator FindElseEvent(AncestorObject * Triggered, vector<EventModule>::iterator & Event);
     bool deleteEntities();
     void resetChildren(vector<EventModule>::iterator & Event, AncestorObject * Triggered);
     bool passVariablesToTheChild(const vector<string> & ParentEventVariables,

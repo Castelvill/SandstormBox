@@ -8,9 +8,9 @@ enum ValueSource: char{
     screen_h, key_pressed, key_pressing, key_released, any_key_pressed,
     any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed,
     mouse_pressing, mouse_released, literal, camera, layer,
-    owner, ancestor, object, display_resized, vector_s, mouse_x, mouse_y,
+    ancestor, object, display_resized, vector_s, mouse_x, mouse_y,
     display_w, display_h, number_of_processes, number_of_cameras,
-    number_of_layers, number_of_objects, booting, process, context, pointer,
+    number_of_layers, number_of_objects, booting, process, context,
     text, editable_text, super_text, super_editable_text, image, movement,
     collision, particles, event, scrollbar, primitives, variable, exists
 };
@@ -95,13 +95,13 @@ bool isVariableGlobal(const vector<StartingVariableStruct> & NewVariablesForLook
 bool checkIfVariableIsReference(const vector<StartingVariableStruct> & PassedVariables, const string & variableID);
 string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<string> & allAvailableEventIDs, const string & variableID, string & usedEventID,
-    bool canCreateNewVariable, const string & scriptName, const unsigned &lineNumber, bool inAfterSection,
+    bool canCreateNewVariable, const string & scriptName, const unsigned &lineNumber,
     bool ignoreUndefinedVariable = false 
 );
 string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
     const string & variableID, bool isReferenceNeeded, bool canCreateNewVariable,
-    const string & scriptName, const unsigned &lineNumber, bool inAfterSection
+    const string & scriptName, const unsigned &lineNumber
 );
 
 class OperationClass{
@@ -117,7 +117,7 @@ public:
     string outputVariableID;
     bool isOutputReference = false;
     unsigned jumpToLine = 0; //Line number of end_if label in if statements.
-    unsigned jumpToLineSecond = 0; //Line number of a next else or else_if statement.
+    unsigned specialValue = 0; //Line number of a next else or else_if statement.
     OperationClass();
     
     //Add literal or context. The type will be checked only if the provided word is a literal.
@@ -125,18 +125,18 @@ public:
     bool addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words,
         unsigned index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection,
+        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
         bool ignoreUndefinedVariable = false
     );
     bool addLiteralOrVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error,
         vector<WordStruct> words, unsigned & index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection, const bool & forbidVectors = false
+        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, const bool & forbidVectors = false
     );
     bool addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error,
         vector<WordStruct> words, unsigned & index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, bool inAfterSection,
+        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
         const bool & forbidVectors = false
     );
     void addLiteralParameter(const VariableModule & Variable);
@@ -160,24 +160,17 @@ string transTriggerToString(const TriggerType & trigger);
 
 class EventModule: public PrimaryModule{
 public:
-	vector <ConditionClass> ConditionalChain;
     vector<VariableModule> resultStack;
-    vector <OperationClass> DependentOperations;
-	vector <OperationClass> PostOperations; //Post operations can be executed ONLY if ConditionalChain returns true - otherwise only the else scope will be called and executed.
-	vector <ChildStruct> Children;
+    vector<OperationClass> DependentOperations;
+	vector<ChildStruct> Children;
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events with the use of "run" and "else" commands.
-    //Types: on_boot, on_init, each_iteration, each_second, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
     vector <TriggerType> primaryTriggerTypes;
     vector <StartingVariableStruct> PassedVariables;
     bool isInline = false;
     string callingEventID = "";
     string callingType = "";
-    string elseChildID; //Ignore if empty. "Else if" statements can be created by adding conditions to the "else child" Event. Each Event can only have one else statement ("else child") - it's a normal thing in branching. It's the optimal way. Do not argue, stupid.
-    vector<string> passingVariablesForElseEvent;
-    bool elseChildFinished = false;
-    bool loop = false;
     bool willBeDeleted = false; //Event will be deleted as soon as possible, but it still can be executed.
-    bool isFunction = true; //True, if the event has not been connected to any trigger. It will stay false even if on_init trigger is removed.
+    bool isFunction = true; //True if the event has not been connected to any trigger. It will stay false even if on_init trigger is removed. Currently it's only used in the "tree" instruction.
 
     unsigned programCounter = 0;
     char conditionalStatus = 'n'; //n-null, t-true, f-false
