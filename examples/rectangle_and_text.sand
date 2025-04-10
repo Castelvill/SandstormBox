@@ -8,7 +8,7 @@ start putRectangleOnScreen
     int windowHeight 480
     create_display windowWidth windowHeight windowWidth windowHeight
 
-    new camera 1 "Camera" Camera
+    new Cameras 1 "Camera" Camera
     fun Camera resize windowWidth windowHeight
     fun Camera add_visible_layer "KERNEL"
 

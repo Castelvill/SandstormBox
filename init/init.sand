@@ -8,6 +8,6 @@ start init
     fun First enable_selection_border
     //fun First disable_scrolling
     rbind First
-    bind First ["scripts/terminal.sand" "scripts/terminalHelp.sand" "scripts/tests.sand"]
+    bind First ["scripts/terminal.sand" "scripts/terminal_help.sand" "scripts/terminal_tests.sand"]
     build First true
 end

@@ -3481,7 +3481,7 @@ void AncestorObject::injectInstructions(bool clearEvents, vector<string> instruc
     
     preprocessed = removeComments(preprocessed);
     preprocessed.insert(preprocessed.begin(), "triggers each_iteration");
-    preprocessed.insert(preprocessed.begin(), "start _ false");
+    preprocessed.insert(preprocessed.begin(), "start _");
     preprocessed.emplace_back("delete_this_event");
     preprocessed.emplace_back("end");
     assembleEvents(preprocessed, "<injection>", NewVariablesForLookupTable);

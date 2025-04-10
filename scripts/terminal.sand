@@ -349,7 +349,7 @@ start createWindowTemplate
     //fun NewWindowObject set_can_be_selected true
     fun NewWindowObject disable_scrolling
     fun NewWindowObject set_can_be_moved_with_mouse false
-    bind NewWindowObject ["scripts/windowTemplate.sand"]
+    bind NewWindowObject ["scripts/window_template.sand"]
     build NewWindowObject true
 
     new variable NewWindowObject 1 "cameraID" objectsCameraID
