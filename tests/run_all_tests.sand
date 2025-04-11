@@ -1,7 +1,11 @@
-start testRunnerEvent
+start testRunnerEvent()
     triggers on_init
     env can_exit_on_idle 1
     edit_proc print_instructions 0
+
+    print "============================================\n"
+    print "RUNNING ALL TESTS - START\n"
+    print "============================================\n"
     
     new Objects my_layer 1 "TestAssert" TestAssert
     bind TestAssert ["tests/assert.sand"]
@@ -34,5 +38,14 @@ start testRunnerEvent
     new Objects my_layer 1 "TestWhileLoop" TestWhileLoop
     bind TestWhileLoop ["tests/while_loop.sand"]
     build TestWhileLoop true
+
+    new Objects my_layer 1 "TestDisplay" TestDisplay
+    bind TestDisplay ["tests/display.sand"]
+    build TestDisplay true
+
+    //Implement "on_idle" trigger
+    //print "============================================\n"
+    //print "RUNNING ALL TESTS - PASSED\n"
+    //print "============================================\n"
 end
 

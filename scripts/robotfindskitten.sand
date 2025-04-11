@@ -19,7 +19,7 @@ start onInit
 
     fun me set_can_be_selected false
 
-    new camera 1 "Camera" Camera
+    new Cameras 1 "Camera" Camera
     //fun Camera set_active true
     fun Camera resize SCREEN_W SCREEN_H
     fun Camera set_zoom 1.0
@@ -58,31 +58,38 @@ start eachIteration
     //triggers on_key_press
     triggers each_iteration
     index me [0 0] super_text TextField
-    run startGame
-    run drawScene
+    
+    run startGame()
+    //dump_context_stack
+    run drawScene(TextField)
 end
 
-inline startGame 
-    if([gameState] [0] ==)
+start startGame 
+    if(gameState 0 !=)
+        return
+    end_if
     = gameState 1
     int index 0
     fun nonKittenPos clear
-    run generateItems
+    
+    while(index MAX_ITEMS <)
+        random_int 0 GAME_MAP_SIZE randomPos
+        fun nonKittenPos push_back randomPos
+        next index
+    end_while
 end
 
-inline_loop generateItems
-    if([index] [MAX_ITEMS] <)
-    random_int 0 GAME_MAP_SIZE randomPos
-    fun nonKittenPos push_back randomPos
-    next index
-end
-
-inline drawScene
-    if([gameState] [1] ==)
+inline drawScene(SText TextField)
+    if(gameState 1 !=)
+        return
+    end_if
+    //dump_context_stack
+    print "aaa"
+    exit
     fun TextField set_content "robotfindskitten v1600005.334b\n\n_______________________________________________________________________"
-    int index -1
-    run drawItems
-after
+    
+    run drawItems(TextField)
+
     print _ _ counter "\n"
     fun TextField set_size SCREEN_W SCREEN_H
     fun TextField update
@@ -92,31 +99,28 @@ after
     exit
 end
 
-inline_loop drawItems
-    if([index] [GAME_MAP_SIZE] <)
-    next index
-    int item 0
-    bool hit false
-    run checkItems
-    run addSpace
-end
-
-inline_loop checkItems
-    if([item] [MAX_ITEMS] <)
-    index_vec nonKittenPos item pos
-    next counter
-    next item
-    run checkSingleItem
-end
-
-inline checkSingleItem
-    if([pos] [index] ==)
-    fun TextField add_content "X"
-    = hit true
-    break
+start drawItems(SText TextField)
+    int index -1
+    while(index GAME_MAP_SIZE <)
+        int item 0
+        bool hit false
+        while(item MAX_ITEMS <)
+            index_vec nonKittenPos item pos
+            next counter
+            if(pos index ==)
+                fun TextField add_content "X"
+                = hit true
+                break
+            end_if
+            next item
+        end_while
+        run addSpace()
+        next index
+    end_while
 end
 
 inline addSpace
-    if([hit] !)
-    fun TextField add_content " "
+    if(hit !)
+        fun TextField add_content " "
+    end_if
 end

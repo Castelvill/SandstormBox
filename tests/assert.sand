@@ -1,4 +1,4 @@
-start assertTest
+start main()
     triggers on_init
     env can_exit_on_idle 1
     print "ASSERT_TEST - START\n"

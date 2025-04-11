@@ -1,4 +1,5 @@
 -Remove old loops - looping functions, "loop" and "inline_loop" event definitions.
+-Add on_idle trigger and use it to print a message after all tests are run.
 -Fix creating variables in interpreter.sand.
 -Reimplement variables handling - use addresses.
 -Index variables with addresses. -> Implement local scopes inside ifs and loops.

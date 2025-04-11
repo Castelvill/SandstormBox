@@ -1,24 +1,3 @@
-start test_if(int & x)
-    //print _ _ "for x=" x ": "
-    if (x 10 <)
-        = x 10
-    else_if (x 50 <)
-        if (x 40 ==)
-            = x 400
-        else
-            = x 50
-        end_if
-    else
-        if(x 150 ==)
-            = x 1500
-            //print _ _ x "\n"
-            return
-        end_if
-        = x 100
-    end_if
-    //print _ _ x "\n"
-end
-
 start main()
     triggers on_init
     env can_exit_on_idle 1
@@ -42,4 +21,25 @@ start main()
     assert x 1500
 
     print "IF_STATEMENT_TEST - PASSED\n"
+end
+
+start test_if(int & x)
+    //print _ _ "for x=" x ": "
+    if (x 10 <)
+        = x 10
+    else_if (x 50 <)
+        if (x 40 ==)
+            = x 400
+        else
+            = x 50
+        end_if
+    else
+        if(x 150 ==)
+            = x 1500
+            //print _ _ x "\n"
+            return
+        end_if
+        = x 100
+    end_if
+    //print _ _ x "\n"
 end

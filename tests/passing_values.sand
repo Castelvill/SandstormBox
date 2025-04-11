@@ -1,4 +1,4 @@
-start passingValuesTest
+start main()
     triggers on_init
     env can_exit_on_idle 1
     print "PASSING_VALUES_TEST - START\n"

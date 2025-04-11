@@ -17,9 +17,13 @@ OUTPUT := SandstormBox
 # Default target
 all: $(OUTPUT)
 
-# Link all object files to create the executable
+# Link all object files to create the executable and run tests
 $(OUTPUT): $(SRC)
 	$(CXX) $(CXXFLAGS) -o $(OUTPUT) $(SRC) $(LIBS)
+	./$(OUTPUT) -c ./tests/run_all_tests.sand
+
+test:
+	./$(OUTPUT) -c ./tests/run_all_tests.sand
 
 # Clean target to remove the executable
 clean:
