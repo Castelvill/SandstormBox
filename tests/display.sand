@@ -4,5 +4,4 @@ start main()
     print "DISPLAY_TEST - START\n"
     create_display 640 480 640 480
     print "DISPLAY_TEST - PASSED\n"
-    exit
 end

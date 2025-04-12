@@ -990,16 +990,16 @@ void EventModule::clone(const EventModule &Original, vector<string> &listOfIDs, 
     ID = oldID;
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
-
-void EventModule::setUpNewInstance(){
-    conditionalStatus = 'n';
+void EventModule::resetStateVariables(){
     programCounter = 0;
-    willBeDeleted = false;
-
     goToEndOfIfStatement.clear();
     conditionalStatus = 'n';
     breakFromCurrentLoop = false;
     decrementProgramCounter = false;
+}
+void EventModule::setUpNewInstance(){
+    willBeDeleted = false;
+    resetStateVariables();
 }
 EventModule::EventModule(){
     primaryConstructor("", nullptr, "", "");
@@ -1018,13 +1018,6 @@ EventModule::~EventModule(){
 }
 void EventModule::clear(){
     Children.clear();
-}
-void EventModule::resetStateVariables(){
-    programCounter = 0;
-    goToEndOfIfStatement.clear();
-    conditionalStatus = 'n';
-    breakFromCurrentLoop = false;
-    decrementProgramCounter = false;
 }
 DataType strToDataTypeWithoutPrimaryTypes(string dataType){
     if(dataType == "bool" || dataType == "int" || dataType == "double" || dataType == "string"){
@@ -1168,10 +1161,11 @@ string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesFor
     }
     return customID;
 }
-TriggerType transStringToTrigger(const string &trigger){
+TriggerType strToTrigger(const string &trigger){
     if(trigger == "on_boot") return on_boot;
     else if(trigger == "on_init") return on_init;
     else if(trigger == "each_iteration") return each_iteration;
+    else if(trigger == "on_idle") return on_idle;
     else if(trigger == "each_second") return each_second;
     else if(trigger == "on_key_press") return on_key_press;
     else if(trigger == "on_key_pressing") return on_key_pressing;
@@ -1190,12 +1184,13 @@ TriggerType transStringToTrigger(const string &trigger){
     else if(trigger == "on_display_resize") return on_display_resize;
     return null_t;
 }
-string transTriggerToString(const TriggerType &trigger){
+string triggerToStr(const TriggerType &trigger){
     switch(trigger){
         case null_t: return "null";
         case on_boot: return "on_boot";
         case on_init: return "on_init";
         case each_iteration: return "each_iteration";
+        case on_idle: return "on_idle";
         case each_second: return "each_second";
         case on_key_press: return "on_key_press";
         case on_key_pressing: return "on_key_pressing";

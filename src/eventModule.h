@@ -151,12 +151,12 @@ struct ChildStruct{
 };
 
 enum TriggerType: char{
-    null_t, on_boot, on_init, each_iteration, each_second, on_key_press, on_key_pressing, on_key_release,
+    null_t, on_boot, on_init, each_iteration, on_idle, each_second, on_key_press, on_key_pressing, on_key_release,
     on_mouse_move, when_mouse_still, on_mouse_press, on_mouse_pressing, on_mouse_release,
     by_objects, by_variables, by_collision, by_editables, by_movement, by_stillness, on_display_resize
 };
-TriggerType transStringToTrigger(const string & trigger);
-string transTriggerToString(const TriggerType & trigger);
+TriggerType strToTrigger(const string & trigger);
+string triggerToStr(const TriggerType & trigger);
 
 class EventModule: public PrimaryModule{
 public:

@@ -4,12 +4,13 @@ void EventsLookupTable::clear(){
     BootTriggered.clear();
     InitTriggered.clear();
     IterationTriggered.clear();
+    IdleTriggered.clear();
     TimeTriggered.clear();
     KeyPressedTriggered.clear();
     KeyPressingTriggered.clear();
     KeyReleasedTriggered.clear();
     MouseMovedTriggered.clear();
-    MouseNotMovedTriggered.clear();
+    MouseStillnessTriggered.clear();
     MousePressedTriggered.clear();
     MousePressingTriggered.clear();
     MouseReleasedTriggered.clear();
@@ -629,6 +630,9 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
                         case each_iteration:
                             BaseOfTriggerableObjects.IterationTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
                             continue;
+                        case on_idle:
+                            BaseOfTriggerableObjects.IdleTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
+                            continue;
                         case each_second:
                             BaseOfTriggerableObjects.TimeTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
                             continue;
@@ -645,7 +649,7 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
                             BaseOfTriggerableObjects.MouseMovedTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
                             continue;
                         case when_mouse_still:
-                            BaseOfTriggerableObjects.MouseNotMovedTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
+                            BaseOfTriggerableObjects.MouseStillnessTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
                             continue;
                         case on_mouse_press:
                             BaseOfTriggerableObjects.MousePressedTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
@@ -678,7 +682,7 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
                             BaseOfTriggerableObjects.ResizeTriggered.emplace_back(AncestorIndex(layerIndex, objectIndex));
                             continue;
                         default:
-                            cerr << "Error: In " << __FUNCTION__ << ": Trigger type '" << transTriggerToString(type) << "' is not valid.\n";
+                            cerr << "Error: In " << __FUNCTION__ << ": Trigger type '" << triggerToStr(type) << "' is not valid.\n";
                             continue;
                     }
                 }
@@ -686,191 +690,63 @@ void ProcessClass::updateBaseOfTriggerableObjects(){
         }
     }
 }
-#include <unordered_map>
 inline bool canObjectBeTriggered(AncestorObject * Object, LayerClass * Layer){
     return Object != nullptr && Layer->getIsActive() && !Layer->getIsDeleted()
         && Object->getIsActive() && !Object->getIsDeleted();
-} 
-void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers){
-    if(printOutInstructions){
-        cout << "\n\n=====All triggered objects=====\n";
-    }
-    AncestorObject * TempObject = nullptr;
-    std::unordered_map<string, std::unordered_set<string>> consecutiveTriggers; //Used only for debugging.
-    TriggeredObjects.clear();
-    CurrentTriggers.clear();
-    if(firstIteration){
-        CurrentTriggers.active.insert(on_boot);
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.BootTriggered){
-            TempObject = Index.object(Layers);
-            if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                if(printOutInstructions){
-                    cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_boot), ";
-                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_boot");
-                }
-                TriggeredObjects.push_back(&(*TempObject));
-            }
+}
+inline void addTriggeredObjectById(const string & strTrigger, AncestorObject * TempObject,
+    LayerClass * Layer, vector<AncestorObject*> & TriggeredObjects,
+    std::unordered_map<string, std::unordered_set<string>> & consecutiveTriggers,
+    const bool & printOutInstructions
+){
+    if(canObjectBeTriggered(TempObject, Layer)){
+        if(printOutInstructions){
+            cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (" << strTrigger << "), ";
+            consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace(strTrigger);
         }
+        TriggeredObjects.push_back(&(*TempObject));
     }
-    for(AncestorIndex & Index : BaseOfTriggerableObjects.InitTriggered){
-        TempObject = Index.object(Layers);
-        if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
+}
+inline void addAllObjectsByCurrentTrigger(const TriggerType & e_trigger,
+    vector<AncestorIndex> & ObjectIndexes, Triggers & CurrentTriggers,
+    vector<LayerClass> & Layers, vector<AncestorObject*> & TriggeredObjects,
+    std::unordered_map<string, std::unordered_set<string>> & consecutiveTriggers,
+    const bool & printOutInstructions
+){
+    CurrentTriggers.active.insert(e_trigger);
+    for(const AncestorIndex & Index : ObjectIndexes){
+        addTriggeredObjectById(triggerToStr(e_trigger), Index.object(Layers), &Layers[Index.layerIndex],
+            TriggeredObjects, consecutiveTriggers, printOutInstructions
+        );
+    }
+}
+inline void addAllObjectsByInitTrigger(vector<AncestorIndex> & ObjectIndexes,
+    Triggers & CurrentTriggers, vector<LayerClass> & Layers,
+    vector<AncestorObject*> & TriggeredObjects,
+    std::unordered_map<string, std::unordered_set<string>> & consecutiveTriggers,
+    const bool & printOutInstructions
+){
+    for(const AncestorIndex & Index : ObjectIndexes){
+        AncestorObject * Object = Index.object(Layers);
+        if(canObjectBeTriggered(Object, &Layers[Index.layerIndex])){
             if(printOutInstructions){
-                cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_init), ";
-                consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_init");
+                cout << Object->getLayerID() << "::" << Object->getID() << " (on_init), ";
+                consecutiveTriggers[Object->getID()+Object->getLayerID()].emplace("on_init");
             }
             CurrentTriggers.active.insert(on_init);
-            TriggeredObjects.push_back(&(*TempObject));
+            TriggeredObjects.push_back(&(*Object));
         }
     }
-    BaseOfTriggerableObjects.InitTriggered.clear();
-    CurrentTriggers.active.insert(each_iteration);
-    for(AncestorIndex & Index : BaseOfTriggerableObjects.IterationTriggered){
-        TempObject = Index.object(Layers);
-        if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-            if(printOutInstructions){
-                cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (each_iteration), ";
-                consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("each_iteration");
-            }
-            TriggeredObjects.push_back(&(*TempObject));
-        }
-    }
-    if(Engine.secondHasPassed()){
-        CurrentTriggers.active.insert(each_second);
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.TimeTriggered){
-            TempObject = Index.object(Layers);
-            if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                if(printOutInstructions){
-                    cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (each_second), ";
-                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("each_second");
-                }
-                TriggeredObjects.push_back(&(*TempObject));
-            }
-        }
-    }
-    if(canUserInteract){
-        if(Engine.firstPressedKeys.size() > 0){
-            CurrentTriggers.active.insert(on_key_press);
-            for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressedTriggered){
-                TempObject = Index.object(Layers);
-                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                    if(printOutInstructions){
-                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_key_press), ";
-                        consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_key_press");
-                    }
-                    TriggeredObjects.push_back(&(*TempObject));
-                }
-            }
-        }
-        if(Engine.pressedKeys.size() > 0){
-            CurrentTriggers.active.insert(on_key_pressing);
-            for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyPressingTriggered){
-                TempObject = Index.object(Layers);
-                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                    if(printOutInstructions){
-                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_key_pressing), ";
-                        consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_key_pressing");
-                    }
-                    TriggeredObjects.push_back(&(*TempObject));
-                }
-            }
-        }
-        if(Engine.releasedKeys.size() > 0){
-            CurrentTriggers.active.insert(on_key_release);
-            for(AncestorIndex & Index : BaseOfTriggerableObjects.KeyReleasedTriggered){
-                TempObject = Index.object(Layers);
-                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                    if(printOutInstructions){
-                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_key_release), ";
-                        consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_key_release");
-                    }
-                    TriggeredObjects.push_back(&(*TempObject));
-                }
-            }
-        }
-        if(Engine.Mouse.didMouseMove){
-            CurrentTriggers.active.insert(on_mouse_move);
-            for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseMovedTriggered){
-                TempObject = Index.object(Layers);
-                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                    if(printOutInstructions){
-                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_mouse_move), ";
-                        consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_mouse_move");
-                    }
-                    TriggeredObjects.push_back(&(*TempObject));
-                }
-            }
-        }
-        if(!Engine.Mouse.didMouseMove){
-            CurrentTriggers.active.insert(when_mouse_still);
-            for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseNotMovedTriggered){
-                TempObject = Index.object(Layers);
-                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                    if(printOutInstructions){
-                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (when_mouse_still), ";
-                        consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("when_mouse_still");
-                    }
-                    TriggeredObjects.push_back(&(*TempObject));
-                }
-            }
-        }
-        if(Engine.Mouse.isFirstPressed()){
-            CurrentTriggers.active.insert(on_mouse_press);
-            for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressedTriggered){
-                TempObject = Index.object(Layers);
-                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                    if(printOutInstructions){
-                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_mouse_press), ";
-                        consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_mouse_press");
-                    }
-                    TriggeredObjects.push_back(&(*TempObject));
-                }
-            }
-        }
-        if(Engine.Mouse.isPressed()){
-            CurrentTriggers.active.insert(on_mouse_pressing);
-            for(AncestorIndex & Index : BaseOfTriggerableObjects.MousePressingTriggered){
-                TempObject = Index.object(Layers);
-                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                    if(printOutInstructions){
-                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_mouse_pressing), ";
-                        consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_mouse_pressing");
-                    }
-                    TriggeredObjects.push_back(&(*TempObject));
-                }
-            }
-        }
-        if(Engine.Mouse.isReleased()){
-            CurrentTriggers.active.insert(on_mouse_release);
-            for(AncestorIndex & Index : BaseOfTriggerableObjects.MouseReleasedTriggered){
-                TempObject = Index.object(Layers);
-                if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                    if(printOutInstructions){
-                        cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_mouse_release), ";
-                        consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_mouse_release");
-                    }
-                    TriggeredObjects.push_back(&(*TempObject));
-                }
-            }
-        }
-    }
-    
-    if(Engine.displayResized){
-        CurrentTriggers.active.insert(on_display_resize);
-        for(AncestorIndex & Index : BaseOfTriggerableObjects.ResizeTriggered){
-            TempObject = Index.object(Layers);
-            if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-                if(printOutInstructions){
-                    cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_display_resize), ";
-                    consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_display_resize");
-                }
-                TriggeredObjects.push_back(&(*TempObject));
-            }
-        }
-    }
-    
-    for(AncestorIndex & Index : BaseOfTriggerableObjects.MovementTriggered){
-        TempObject = Index.object(Layers);
+    ObjectIndexes.clear();
+}
+inline void addAllObjectsByMovementTrigger(vector<AncestorIndex> & ObjectIndexes,
+    Triggers & CurrentTriggers, vector<LayerClass> & Layers,
+    vector<AncestorObject*> & TriggeredObjects,
+    std::unordered_map<string, std::unordered_set<string>> & consecutiveTriggers,
+    const bool & printOutInstructions
+){
+    for(const AncestorIndex & Index : ObjectIndexes){
+        AncestorObject * TempObject = Index.object(Layers);
         if(!canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
             continue;
         }
@@ -890,35 +766,36 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             }
         }
     }
-    bool triggered = true;
-    for(AncestorIndex & Index : BaseOfTriggerableObjects.StillnessTriggered){
-        TempObject = Index.object(Layers);
-        if(!canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
-            continue;
-        }
-        triggered = true;
-        for(const MovementModule & Movement : TempObject->MovementContainer){
-            if(Movement.getIsActive() && Movement.isMoving()){
-                triggered = false;
-                break;
-            }
-        }
-        if(triggered){
-            if(printOutInstructions){
-                cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (by_stillness), ";
-                consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("by_stillness");
-            }
-            CurrentTriggers.active.insert(by_stillness);
-            CurrentTriggers.stillObjects.insert(TempObject->getID());
-            TriggeredObjects.push_back(&(*TempObject));
+}
+inline bool isObjectMoving(const vector<MovementModule> & MovementContainer){
+    for(const MovementModule & it_Movement : MovementContainer){
+        if(it_Movement.getIsActive() && it_Movement.isMoving()){
+            return true;
         }
     }
-
-    if(printOutInstructions){
-        cout << "\n---Filtered triggered objects---\n";
+    return false;
+}
+inline void addAllObjectsByStillnessTrigger(vector<AncestorIndex> & ObjectIndexes,
+    Triggers & CurrentTriggers, vector<LayerClass> & Layers,
+    vector<AncestorObject*> & TriggeredObjects,
+    std::unordered_map<string, std::unordered_set<string>> & consecutiveTriggers,
+    const bool & printOutInstructions
+){
+    for(const AncestorIndex & Index : ObjectIndexes){
+        AncestorObject * TempObject = Index.object(Layers);
+        if(!canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])
+            || isObjectMoving(TempObject->MovementContainer)
+        ){ continue; }
+        if(printOutInstructions){
+            cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (by_stillness), ";
+            consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("by_stillness");
+        }
+        CurrentTriggers.active.insert(by_stillness);
+        CurrentTriggers.stillObjects.insert(TempObject->getID());
+        TriggeredObjects.push_back(&(*TempObject));
     }
-
-    //Remove duplicates
+}
+inline void removeObjectDuplicates(vector<AncestorObject*> & TriggeredObjects){
     for(unsigned int i=0; i < TriggeredObjects.size(); i++){
         for(unsigned int j=i+1; j < TriggeredObjects.size(); j++){
             if(TriggeredObjects[i] != TriggeredObjects[j]){
@@ -928,36 +805,155 @@ void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector <Anc
             j--;
         }
     }
-
-    //Remove objects with no active events and with disabled layers. 
-    bool noEventsActive;
-    for(auto Object = TriggeredObjects.begin(); Object != TriggeredObjects.end();){
-        noEventsActive = true;
-        for(const EventModule & Event : (*Object)->EventContainer){
-            if(Event.getIsActive() && !Event.getIsDeleted()){
-                noEventsActive = false;
-                break;
-            }
-        }
-        if(noEventsActive){
-            Object = TriggeredObjects.erase(Object);
-        }
-        else{
-            if(printOutInstructions){
-                cout << (*Object)->getLayerID() << "::" << (*Object)->getID() << "<";
-                // if((*Object)->getLayerID() == "0" && (*Object)->getID() == "WindowObject" && 
-                //     consecutiveTriggers[(*Object)->getID()+(*Object)->getLayerID()].size() == 3)
-                // {
-                //     //raise(SIGINT);
-                // }
-                for(string triggers : consecutiveTriggers[(*Object)->getID()+(*Object)->getLayerID()]){
-                    cout << triggers << ", ";
-                }
-                cout << ">, ";
-            }
-            ++Object;
+}
+inline bool areAllEventsDisabled(const vector<AncestorObject*>::iterator & it_Object){
+    for(const EventModule & Event : (*it_Object)->EventContainer){
+        if(Event.getIsActive() && !Event.getIsDeleted()){
+            return false;
         }
     }
+    return true;
+}
+inline void removeObjectsWithDisabledEvents(vector<AncestorObject*> & TriggeredObjects,
+    std::unordered_map<string, std::unordered_set<string>> & consecutiveTriggers,
+    const bool & printOutInstructions
+){
+    for(auto it_Object = TriggeredObjects.begin(); it_Object != TriggeredObjects.end();){
+        if(areAllEventsDisabled(it_Object)){
+            it_Object = TriggeredObjects.erase(it_Object);
+            continue;
+        }
+        if(printOutInstructions){
+            cout << (*it_Object)->getLayerID() << "::" << (*it_Object)->getID() << "<";
+            for(const string & triggers : consecutiveTriggers[(*it_Object)->getID()+(*it_Object)->getLayerID()]){
+                cout << triggers << ", ";
+            }
+            cout << ">, ";
+        }
+        ++it_Object;
+    }
+}
+void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector<AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers){
+    if(printOutInstructions){
+        cout << "\n\n=====All triggered objects=====\n";
+    }
+    std::unordered_map<string, std::unordered_set<string>> consecutiveTriggers; //Used only for debugging.
+    TriggeredObjects.clear();
+    CurrentTriggers.clear();
+    addAllObjectsByInitTrigger(BaseOfTriggerableObjects.InitTriggered,
+        CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+    );
+    addAllObjectsByCurrentTrigger(each_iteration, BaseOfTriggerableObjects.IterationTriggered,
+        CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+    );
+    if(firstIteration){
+        addAllObjectsByCurrentTrigger(on_boot, BaseOfTriggerableObjects.BootTriggered,
+            CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+        );
+    }
+    if(Engine.secondHasPassed()){
+        addAllObjectsByCurrentTrigger(each_second, BaseOfTriggerableObjects.TimeTriggered,
+            CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+        );
+    }
+    if(canUserInteract){
+        if(Engine.firstPressedKeys.size() > 0){
+            addAllObjectsByCurrentTrigger(on_key_press, BaseOfTriggerableObjects.KeyPressedTriggered,
+                CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+            );
+        }
+        if(Engine.pressedKeys.size() > 0){
+            addAllObjectsByCurrentTrigger(on_key_pressing, BaseOfTriggerableObjects.KeyPressingTriggered,
+                CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+            );
+        }
+        if(Engine.releasedKeys.size() > 0){
+            addAllObjectsByCurrentTrigger(on_key_release, BaseOfTriggerableObjects.KeyReleasedTriggered,
+                CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+            );
+        }
+        if(Engine.Mouse.didMouseMove){
+            addAllObjectsByCurrentTrigger(on_mouse_move, BaseOfTriggerableObjects.MouseMovedTriggered,
+                CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+            );
+        }
+        if(!Engine.Mouse.didMouseMove){
+            addAllObjectsByCurrentTrigger(when_mouse_still, BaseOfTriggerableObjects.MouseStillnessTriggered,
+                CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+            );
+        }
+        if(Engine.Mouse.isFirstPressed()){
+            addAllObjectsByCurrentTrigger(on_mouse_press, BaseOfTriggerableObjects.MousePressedTriggered,
+                CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+            );
+        }
+        if(Engine.Mouse.isPressed()){
+            addAllObjectsByCurrentTrigger(on_mouse_pressing, BaseOfTriggerableObjects.MousePressingTriggered,
+                CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+            );
+        }
+        if(Engine.Mouse.isReleased()){
+            addAllObjectsByCurrentTrigger(on_mouse_release, BaseOfTriggerableObjects.MouseReleasedTriggered,
+                CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+            );
+        }
+    }
+    
+    if(Engine.displayResized){
+        addAllObjectsByCurrentTrigger(on_display_resize, BaseOfTriggerableObjects.ResizeTriggered,
+            CurrentTriggers, Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+        );
+    }
+
+    addAllObjectsByMovementTrigger(BaseOfTriggerableObjects.MovementTriggered, CurrentTriggers,
+        Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+    );
+
+    addAllObjectsByStillnessTrigger(BaseOfTriggerableObjects.StillnessTriggered, CurrentTriggers,
+        Layers, TriggeredObjects, consecutiveTriggers, printOutInstructions
+    );
+
+    if(printOutInstructions){
+        cout << "\n---Filtered triggered objects---\n";
+    }
+
+    removeObjectDuplicates(TriggeredObjects);
+
+    removeObjectsWithDisabledEvents(TriggeredObjects, consecutiveTriggers, printOutInstructions);
+
+    if(printOutInstructions){
+        cout << "\n";
+    }
+}
+void ProcessClass::detectTriggeredByIdleEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers){
+    if(printOutInstructions){
+        cout << "\n\n=====All triggered objects=====\n";
+    }
+
+    std::unordered_map<string, std::unordered_set<string>> consecutiveTriggers; //Used only for debugging.
+    TriggeredObjects.clear();
+    CurrentTriggers.clear();
+
+    for(const AncestorIndex & Index : BaseOfTriggerableObjects.IdleTriggered){
+        AncestorObject * TempObject = Index.object(Layers);
+        if(canObjectBeTriggered(TempObject, &Layers[Index.layerIndex])){
+            if(printOutInstructions){
+                cout << TempObject->getLayerID() << "::" << TempObject->getID() << " (on_idle), ";
+                consecutiveTriggers[TempObject->getID()+TempObject->getLayerID()].emplace("on_idle");
+            }
+            CurrentTriggers.active.insert(on_idle);
+            TriggeredObjects.push_back(&(*TempObject));
+        }
+    }
+
+    if(printOutInstructions){
+        cout << "\n---Filtered triggered objects---\n";
+    }
+
+    removeObjectDuplicates(TriggeredObjects);
+
+    removeObjectsWithDisabledEvents(TriggeredObjects, consecutiveTriggers, printOutInstructions);
+
     if(printOutInstructions){
         cout << "\n";
     }
@@ -6181,10 +6177,30 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ContextMapStru
             switch(RightOperand.type){
                 case value_inst:
                 case value_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << ": Not implemented yet arithmetic operation between types: '"
-                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                    return;
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
+                        return;
+                    }
+                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
+                        if(LeftOperand.Modules.Variables[i]->getType() == 'd' || RightOperand.Values[j].getType() == 'd'){
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setDouble(
+                                LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, &RightOperand.Values[j])
+                            );
+                        }
+                        else if(LeftOperand.Modules.Variables[i]->getType() != 's' || RightOperand.Values[j].getType() != 's'){
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setInt(
+                                LeftOperand.Modules.Variables[i]->intOperation(Operation.instruction, &RightOperand.Values[j])
+                            );
+                        }
+                        else{
+                            NewContext.Values.emplace_back(VariableModule());
+                            NewContext.Values.back().setString(LeftOperand.Modules.Variables[i]->stringOperation(
+                                Operation.instruction, &RightOperand.Values[j]
+                            ));
+                        }
+                    }
+                    break;
                 case pointer_inst:
                 case pointer_vec:
                     if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
@@ -9778,16 +9794,17 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ContextMapS
         return;
     }
 
-    string attribute = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, attribute, true)){
+    string strAttribute = "";
+    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, strAttribute, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 1.\n";
         return;
     }
 
     if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " " << attribute << " ";
+        cout << instrToStr(Operation.instruction) << " " << strAttribute << " ";
     }
+    
 
     VariableModule FirstValue;
     if(getValueFromParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, FirstValue, true)){
@@ -9815,93 +9832,98 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ContextMapS
         }
     }
 
-    if(attribute == "window_title"){
-        if(Engine.display == nullptr){
-            cout << instructionWarning(CurrentInstr, __FUNCTION__)
-                << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
+    AttributeType e_attribute = strToAttribute(strAttribute);
+
+    switch(e_attribute){
+        case window_title_a:
+            if(Engine.display == nullptr){
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
+                return;
+            }
+            if(Engine.windowTitle == FirstValue.getStringUnsafe()){
+                return;
+            }
+            Engine.windowTitle = FirstValue.getStringUnsafe();
+            al_set_window_title(Engine.display, Engine.windowTitle.c_str());
             return;
-        }
-        if(Engine.windowTitle == FirstValue.getStringUnsafe()){
-            return;
-        }
-        Engine.windowTitle = FirstValue.getStringUnsafe();
-        al_set_window_title(Engine.display, Engine.windowTitle.c_str());
-    }
-    else if(attribute == "display_size"){
-        if(Engine.display == nullptr){
-            cout << instructionWarning(CurrentInstr, __FUNCTION__)
-                << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
-            return;
-        }
-        if(SecondValue.getType() == 'n'){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Changing the attribute '" << attribute << "' requires 2 values.\n";
-            return;
-        }
-        if(!FirstValue.isNumeric() || !SecondValue.isNumeric()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Changing the attribute '" << attribute << "' requires 2 last parameters to be of a numeric type.\n";
-            return;
-        }
-        if(Engine.displaySize.isEqual(FirstValue.getInt(), SecondValue.getInt())){
-            return;
-        }
-        Engine.displaySize.set(FirstValue.getInt(), SecondValue.getInt());
-        if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
-            /*#if __WIN32__
+        case display_size_a:
+            if(Engine.display == nullptr){
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
+                return;
+            }
+            if(SecondValue.getType() == 'n'){
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Changing the attribute '" << strAttribute << "' requires 2 values.\n";
+                return;
+            }
+            if(!FirstValue.isNumeric() || !SecondValue.isNumeric()){
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Changing the attribute '" << strAttribute << "' requires 2 last parameters to be of a numeric type.\n";
+                return;
+            }
+            if(Engine.displaySize.isEqual(FirstValue.getInt(), SecondValue.getInt())){
+                return;
+            }
+            Engine.displaySize.set(FirstValue.getInt(), SecondValue.getInt());
+            if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
                 cerr << instructionError(CurrentInstr, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
-            #else
-                cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": al_resize_display() stops to work on Linux systems if the display resolution is set too high.\n";
-            #endif*/
-        }
-    }
-    else if(attribute == "fullscreen"){
-        if(Engine.display == nullptr){
-            cout << instructionWarning(CurrentInstr, __FUNCTION__)
-                << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
+                /*#if __WIN32__
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
+                #else
+                    cout << "Warning: In " << EventIds.describe() << ": In " << __FUNCTION__ << ": al_resize_display() stops to work on Linux systems if the display resolution is set too high.\n";
+                #endif*/
+            }
             return;
-        }
-        if(FirstValue.getBool() == Engine.fullscreen){
+        case fullscreen_a:
+            if(Engine.display == nullptr){
+                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                    << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
+                return;
+            }
+            if(FirstValue.getBool() == Engine.fullscreen){
+                return;
+            }
+            Engine.fullscreen = FirstValue.getBool();
+            al_set_display_flag(Engine.display, ALLEGRO_FULLSCREEN_WINDOW, !(al_get_display_flags(Engine.display) & ALLEGRO_FULLSCREEN_WINDOW));
+            #if __WIN32__
+            al_set_display_flag(Engine.display, ALLEGRO_MAXIMIZED, !(al_get_display_flags(Engine.display) & ALLEGRO_MAXIMIZED));
+            #endif
+            //al_set_display_flag(window, ALLEGRO_NOFRAME, !(al_get_display_flags(window) & ALLEGRO_NOFRAME));
             return;
-        }
-        Engine.fullscreen = FirstValue.getBool();
-        al_set_display_flag(Engine.display, ALLEGRO_FULLSCREEN_WINDOW, !(al_get_display_flags(Engine.display) & ALLEGRO_FULLSCREEN_WINDOW));
-        #if __WIN32__
-        al_set_display_flag(Engine.display, ALLEGRO_MAXIMIZED, !(al_get_display_flags(Engine.display) & ALLEGRO_MAXIMIZED));
-        #endif
-        //al_set_display_flag(window, ALLEGRO_NOFRAME, !(al_get_display_flags(window) & ALLEGRO_NOFRAME));   
-    }
-    else if(attribute == "pixel_art"){
-        if(FirstValue.getBool() == Engine.isPixelArt){
+        case pixel_art_a:
+            if(FirstValue.getBool() == Engine.isPixelArt){
+                return;
+            }
+            Engine.isPixelArt = FirstValue.getBool();
+            if(!Engine.isPixelArt){
+                al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+            }
+            else{
+                al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR);
+            }
             return;
-        }
-        Engine.isPixelArt = FirstValue.getBool();
-        if(!Engine.isPixelArt){
-            al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
-        }
-        else{
-            al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR);
-        }   
-    }
-    else if(attribute == "can_afk_timeout"){
-        Engine.canTerminateWithTimeout = FirstValue.getBool();
-    }
-    else if(attribute == "afk_timeout_time"){
-        if(!FirstValue.isNumeric()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Changing the attribute '" << attribute
-                << "' requires the 'time' parameter to be of a numeric type.\n";
+        case can_afk_timeout_a:
+            Engine.canTerminateWithTimeout = FirstValue.getBool();
             return;
-        }
-        Engine.timeoutTerminationTime = FirstValue.getInt();
-        Engine.terminationTimer = Engine.timeoutTerminationTime;
-    }
-    else if(attribute == "can_exit_on_idle"){
-        Engine.canExitWhenNoEventIsTriggered = FirstValue.getBool();
-    }
-    else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '" << attribute << "' is not valid.\n";
+        case afk_timeout_time_a:
+            if(!FirstValue.isNumeric()){
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Changing the attribute '" << strAttribute
+                    << "' requires the 'time' parameter to be of a numeric type.\n";
+                return;
+            }
+            Engine.timeoutTerminationTime = FirstValue.getInt();
+            Engine.terminationTimer = Engine.timeoutTerminationTime;
+            return;
+        case can_exit_on_idle_a:
+            Engine.canExitWhenNoEventIsTriggered = FirstValue.getBool();
+            return;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '"
+                << strAttribute << "' is not valid for this instruction.\n";
+            return;
     }
 }
 void ProcessClass::changeProcessVariables(OperationClass & Operation, ContextMapStruct & EventContext, vector <string> & processIDs){
@@ -12153,7 +12175,9 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 return Operation.instruction;
             case if_i:
                 Event->goToEndOfIfStatement.push_back(0);
-                Event->conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Owner, OwnerLayer, Engine, EventContext);
+                Event->conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain,
+                    Operation.resultStack, Owner, OwnerLayer, Engine, EventContext
+                );
                 if(Event->conditionalStatus == 't'){
                     Event->goToEndOfIfStatement.back() = 1;
                 }
@@ -12171,7 +12195,9 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                     //Jump to next end_if.
                     setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLine);
                 }
-                Event->conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Owner, OwnerLayer, Engine, EventContext);
+                Event->conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain,
+                    Operation.resultStack, Owner, OwnerLayer, Engine, EventContext
+                );
                 if(Event->conditionalStatus == 't'){
                     Event->goToEndOfIfStatement.back() = 1;
                 }
@@ -14460,7 +14486,6 @@ bool ProcessClass::executeEventLoop(EngineClass & Engine, vector<ProcessClass> &
 
         switch(e_eventControl){
             case flow_next_event:
-                //Search for next triggered event.
                 findNextEvent(CurrentTriggers, it_Event, it_StartingEvent, TriggeredObject);
                 break;
             case flow_self_deletion:
@@ -14577,9 +14602,16 @@ void ProcessClass::detectAndExecuteTriggeredEvents(EngineClass & Engine, vector<
     Triggers CurrentTriggers;
     detectTriggeredEvents(Engine, TriggeredObjects, CurrentTriggers);
 
-    if(TriggeredObjects.size() == 0){
-        Engine.closeProgram = Engine.canExitWhenNoEventIsTriggered;
-        return;
+    if(TriggeredObjects.empty()){
+        Engine.isIdle = true;
+        detectTriggeredByIdleEvents(Engine, TriggeredObjects, CurrentTriggers);
+        if(TriggeredObjects.empty()){
+            Engine.closeProgram = Engine.canExitWhenNoEventIsTriggered;
+            return;
+        }
+    }
+    else{
+        Engine.isIdle = false;
     }
 
     //Remember to delete pointers to destroyed objects during the iteration

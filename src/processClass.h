@@ -31,14 +31,15 @@ struct ModuleIndex : AncestorIndex{
 //This struct consists of pointers to every object that has at least one event triggerable by the right source  
 struct EventsLookupTable{
     vector <AncestorIndex> BootTriggered; //Triggered only in the first iteration or in the first iteration after a reboot.
-    vector <AncestorIndex> InitTriggered; //Triggered only when the object is created.
-    vector <AncestorIndex> IterationTriggered; //If a trigger is negated, in most cases interpreter puts its event into IterationTriggered events. 
+    vector <AncestorIndex> InitTriggered; //Triggered only once right after the object is created.
+    vector <AncestorIndex> IterationTriggered; //If a trigger is negated (huh?), in most cases interpreter puts its event into IterationTriggered events.
+    vector <AncestorIndex> IdleTriggered; //Triggered when no events were triggered in the current iteration.
     vector <AncestorIndex> TimeTriggered;
     vector <AncestorIndex> KeyPressedTriggered;
     vector <AncestorIndex> KeyPressingTriggered;
     vector <AncestorIndex> KeyReleasedTriggered;
     vector <AncestorIndex> MouseMovedTriggered;
-    vector <AncestorIndex> MouseNotMovedTriggered;
+    vector <AncestorIndex> MouseStillnessTriggered;
     vector <AncestorIndex> MousePressedTriggered;
     vector <AncestorIndex> MousePressingTriggered;
     vector <AncestorIndex> MouseReleasedTriggered;
@@ -526,6 +527,7 @@ public:
     void dragScrollbars(const MouseClass & Mouse);
     void updateBaseOfTriggerableObjects();
     void detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers);
+    void detectTriggeredByIdleEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers);
     size_t countLayers() const;
     size_t countCameras() const;
     

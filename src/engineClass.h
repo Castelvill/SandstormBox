@@ -69,7 +69,8 @@ public:
     string internalClipboard;
     vector<FormatClass> CopiedFormatting;
 
-    bool closeProgram = false, reboot = false, redraw = false, displayResized = false;
+    bool closeProgram = false, reboot = false;
+    bool redraw = false, displayResized = false, isIdle = false;
     int timeoutTerminationTime = DEFAULT_TERMINATION_TIME;
     int terminationTimer = timeoutTerminationTime;
     string EXE_PATH;

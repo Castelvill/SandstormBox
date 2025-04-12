@@ -228,7 +228,10 @@ enum AttributeType: short{
     max_color_intensity, particles_shape, use_image_as_particles, use_random_colors,
     is_module_static, is_drawing_with_details, block_particles_spawn,
     can_particles_spawn, min_particles_per_spawn, max_particles_per_spawn,
-    max_particles_count, time_to_spawn, max_time_to_spawn, spawn_key_bind
+    max_particles_count, time_to_spawn, max_time_to_spawn, spawn_key_bind,
+    //engine
+    window_title_a, display_size_a, fullscreen_a, pixel_art_a, can_afk_timeout_a,
+    afk_timeout_time_a, can_exit_on_idle_a
 };
 
 AttributeType strToAttribute(const string & attribute, string & error);

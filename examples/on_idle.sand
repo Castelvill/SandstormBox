@@ -1,0 +1,27 @@
+start on_init()
+    triggers on_init
+    var counter 0
+    var idleCounter 1
+    print "Init...\n"
+end
+
+start each_second()
+    triggers each_second
+    = idleCounter 1
+    ++ counter
+    print _ _ "\nSecond has passed..." counter "\n"
+    if(counter 3 ==)
+        exit
+    end_if
+end
+
+start on_idle()
+    triggers on_idle
+    print _ _ "(idle " idleCounter ") " 
+    ++ idleCounter
+    int modulo 0
+    % idleCounter 11 modulo
+    if(modulo 0 ==)
+        print "\n"
+    end_if
+end

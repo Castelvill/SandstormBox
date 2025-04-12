@@ -42,10 +42,12 @@ start testRunnerEvent()
     new Objects my_layer 1 "TestDisplay" TestDisplay
     bind TestDisplay ["tests/display.sand"]
     build TestDisplay true
-
-    //Implement "on_idle" trigger
-    //print "============================================\n"
-    //print "RUNNING ALL TESTS - PASSED\n"
-    //print "============================================\n"
 end
 
+start on_idle()
+    triggers on_idle
+    print "============================================\n"
+    print "RUNNING ALL TESTS - PASSED\n"
+    print "============================================\n"
+    exit //delete_this_event works the same in this instance
+end

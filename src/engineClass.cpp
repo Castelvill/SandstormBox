@@ -166,6 +166,7 @@ void EngineClass::resetState(bool resetScreen){
     reboot = false;
     redraw = false;
     displayResized = false;
+    isIdle = false;
 }
 EngineClass::EngineClass(){
     memset(key, 0, sizeof(key));

@@ -3163,6 +3163,13 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "time_to_spawn") return time_to_spawn;
     else if(attribute == "max_time_to_spawn") return max_time_to_spawn;
     else if(attribute == "spawn_key_bind") return spawn_key_bind;
+    else if(attribute == "window_title") return window_title_a;
+    else if(attribute == "display_size") return display_size_a;
+    else if(attribute == "fullscreen") return fullscreen_a;
+    else if(attribute == "pixel_art") return pixel_art_a;
+    else if(attribute == "can_afk_timeout") return can_afk_timeout_a;
+    else if(attribute == "afk_timeout_time") return afk_timeout_time_a;
+    else if(attribute == "can_exit_on_idle") return can_exit_on_idle_a;
     error = "Invalid attribute: '"  + attribute + "'.\n";
     return null_a;
 }

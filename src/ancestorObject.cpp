@@ -567,7 +567,7 @@ bool canStringBeDouble(string text){
 }
 
 vector<WordStruct> tokenizeCode(string input){
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|/=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|&|@|#", std::regex_constants::icase);
+    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|&|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
 
@@ -1873,14 +1873,14 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             triggerBreakpoint = true;
             cerr << "Warning: The 'compiler_breakpoint' instruction can be used only in the debugger.\n";
         }
-        else if(words[0].value == "start" || words[0].value == "loop" ||  words[0].value == "override"){
+        else if(words[0].value == "start" ||  words[0].value == "override"){
             if(createEvent(scriptName, lineNumber, layerID, ID, EventContainer, EventContainerIDs, NewEvent, words, NewVariablesForLookupTable)){
                 return;
             }
             allAvailableEventIDs.clear();
             allAvailableEventIDs.push_back(NewEvent.getID());
         }
-        else if(words[0].value == "inline" || words[0].value == "inline_loop"){
+        else if(words[0].value == "inline"){
             if(createInlineEvent(scriptName, lineNumber, layerID, ID, EventContainer, EventContainerIDs, NewEvent, words, allAvailableEventIDs)){
                 return;
             }
@@ -1907,7 +1907,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     return;
                 }
                 if(words[cursor].type != 'e'){
-                    TriggerType NewTrigger = transStringToTrigger(words[cursor].value);
+                    TriggerType NewTrigger = strToTrigger(words[cursor].value);
                     if(NewTrigger == null_t){
                         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                             << errorSpacing() << "In " << __FUNCTION__
@@ -2169,7 +2169,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 return;
             }
         }
-        else if(isStringInGroup(words[0].value, 7, "+", "-", "*", "/", "**", "random_int", "assert")){
+        else if(isStringInGroup(words[0].value, 8, "+", "-", "*", "/", "%", "**", "random_int", "assert")){
             if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){
                 return;
             }
