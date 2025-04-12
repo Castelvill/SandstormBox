@@ -594,8 +594,9 @@ string ParameterStruct::getVariableIdOrValue(){
             return "(bad type)";
     }
 }
-bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words,
-    unsigned index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
+bool OperationClass::addParameter(const string & scriptName, const unsigned & lineNumber,
+    string & error, vector<WordStruct> words, unsigned index, char type, string name,
+    bool optional, const vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
     bool ignoreUndefinedVariable
@@ -717,10 +718,17 @@ bool OperationClass::addParameter(string scriptName, unsigned lineNumber, string
     printError(scriptName, lineNumber, words[0].value, error);
     return true;
 }
-bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string &error,
-    vector<WordStruct> words, unsigned &index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
-    const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, const bool & forbidVectors
+void OperationClass::addEmptyParameter(){
+    Parameters.emplace_back(ParameterStruct());
+    Parameters.back().treeLevel = 0;
+    Parameters.back().type = 'e';
+    ++rootParametersSize;
+}
+bool OperationClass::addLiteralOrVectorOrVariableToParameters(
+    const string &scriptName, const unsigned &lineNumber, string &error, vector<WordStruct> words,
+    unsigned &index, char type, string name, bool optional, const vector<string> &allAvailableEventIDs,
+    const vector<StartingVariableStruct> &NewVariablesForLookupTable,
+    const vector<StartingVariableStruct> &PassedVariables, bool canCreateNewVariable, const bool &forbidVectors
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -798,7 +806,8 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(string scriptName,
         canCreateNewVariable, forbidVectors
     );
 }
-bool OperationClass::addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string &error,
+bool OperationClass::addVectorOrVariableToParameters(
+    const string & scriptName, const unsigned & lineNumber, string &error,
     vector<WordStruct> words, unsigned &index, char type, string name, bool optional,
     const vector<string> & allAvailableEventIDs,
     const vector<StartingVariableStruct> & NewVariablesForLookupTable,

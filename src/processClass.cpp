@@ -12382,6 +12382,8 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
             case mv_i:
                 renameFileOrDirectory(Operation, EventContext);
                 break;
+            case print_v:
+            case print_d:
             case print:
                 executePrint(Operation, EventContext);
                 break;

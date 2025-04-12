@@ -638,7 +638,7 @@ vector<WordStruct> tokenizeCode(string input){
         }
         if(canStringBeDouble(output[i])){
             cstod(output[i], error);
-            if(mergedOutput.size() > 0 && mergedOutput.back().value == "-"){
+            if(mergedOutput.size() > 0 && mergedOutput.back().type == 'c' && mergedOutput.back().value == "-"){
                 mergedOutput.pop_back();
                 mergedOutput.emplace_back(WordStruct('d', "-" + output[i], false)); //double
             }
@@ -649,7 +649,7 @@ vector<WordStruct> tokenizeCode(string input){
         }
         cstoi(output[i], error);
         if(error == ""){
-            if(mergedOutput.size() > 0 && mergedOutput.back().value == "-"){
+            if(mergedOutput.size() > 0 && mergedOutput.back().type == 'c' && mergedOutput.back().value == "-"){
                 mergedOutput.pop_back();
                 mergedOutput.emplace_back(WordStruct('i', "-" + output[i], false)); //int
             }
@@ -659,7 +659,7 @@ vector<WordStruct> tokenizeCode(string input){
             
             continue;
         }
-        if(mergedOutput.size() > 0 && mergedOutput.back().value == "-"){
+        if(mergedOutput.size() > 0 && mergedOutput.back().type == 'c' && mergedOutput.back().value == "-"){
             mergedOutput.pop_back();
             mergedOutput.emplace_back(WordStruct('c', output[i], true)); //context / variable
         }
@@ -2772,20 +2772,27 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                 NewVariablesForLookupTable, NewEvent.PassedVariables, false
             )){ return; }
         }
-        else if(words[0].value == "print"){
+        else if(words[0].value == "print_v" || words[0].value == "print_d" || words[0].value == "print"){
             if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){
                 return;
             }
-            if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "delimeter", false, allAvailableEventIDs,
-                NewVariablesForLookupTable, NewEvent.PassedVariables, false
-            )){ return; }
-            cursor = 2;
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
-                NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
-                Operation->isOutputReference, false, true
-            )){
-                if(error.size() == 0){ continue; }
-                return;
+            if(words[0].value == "print_v" || words[0].value == "print_d"){
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "delimeter", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false
+                )){ return; }
+                cursor = 2;
+            }
+            else{
+                Operation->addEmptyParameter();
+            }
+            if(words[0].value == "print_v"){
+                if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
+                    NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
+                    Operation->isOutputReference, false, true
+                )){
+                    if(error.size() == 0){ continue; }
+                    return;
+                }
             }
             while(cursor < words.size()){
                 if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'a', "value", false, allAvailableEventIDs,

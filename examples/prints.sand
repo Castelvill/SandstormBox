@@ -1,0 +1,25 @@
+start main()
+    triggers on_init
+
+    print "Normal print\n"
+
+    bool a true
+    int b 10
+    double c 20.20
+    string d "hello"
+    print "Normal print with few values: " a " " b " " c " " d "\n"
+
+    int_vec arrInt [0 1 2 3 4 5 6]
+    print_d _ "Print with delimeter: ["
+    print_d ", " arrInt
+    print_d _ "]\n"
+
+    double_vec arrDouble [0.1 0.2 0.3 0.4]
+    print_v _ strStart "Print with output to variable: ["
+    print_v ", " strMiddle arrDouble
+    print_v _ strEnd "]\n"
+    print_v _ strConnected strStart strMiddle strEnd
+    print_v _ _ strConnected
+
+    exit
+end

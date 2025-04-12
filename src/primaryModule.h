@@ -22,7 +22,7 @@ enum EngineInstr : char{
     double_vec_i, string_vec_i, rand_int, find_by_id,
     let, clone_i, new_i, bind_i, rbind_i, build, load_build, build_subset,
     inject_code, inject_instr, fun, env, edit_proc, load_bitmap,
-    mkdir_i, rm, rmll, mv_i, print, load_text, save_text, ls,
+    mkdir_i, rm, rmll, mv_i, print_v, print_d, print, load_text, save_text, ls,
     lse, new_proc, var, vec, tokenize, tree, len, size, substr, load_font,
     restart_drag, cd, pwd, similar, count, create_display, console_input,
     start_timer, stop_timer, breakpoint, assert, type

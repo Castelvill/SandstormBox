@@ -122,18 +122,19 @@ public:
     
     //Add literal or context. The type will be checked only if the provided word is a literal.
     //Available types: a - anything, v - variable, n - number, b - bool, i - int, d - double, s - string.
-    bool addParameter(string scriptName, unsigned lineNumber, string & error, vector<WordStruct> words,
+    bool addParameter(const string & scriptName, const unsigned & lineNumber, string & error, vector<WordStruct> words,
         unsigned index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
         const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
         bool ignoreUndefinedVariable = false
     );
-    bool addLiteralOrVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error,
+    void addEmptyParameter();
+    bool addLiteralOrVectorOrVariableToParameters(const string & scriptName, const unsigned & lineNumber, string & error,
         vector<WordStruct> words, unsigned & index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
         const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, const bool & forbidVectors = false
     );
-    bool addVectorOrVariableToParameters(string scriptName, unsigned lineNumber, string & error,
+    bool addVectorOrVariableToParameters(const string & scriptName, const unsigned & lineNumber, string & error,
         vector<WordStruct> words, unsigned & index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
         const vector<StartingVariableStruct> & NewVariablesForLookupTable,
         const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,

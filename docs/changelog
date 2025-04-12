@@ -1,4 +1,6 @@
 12.04.2025
+-Divided "print" instruction to: "print [values...]", "print_d delimeter [values...]" and "print_v delimeter output [values...]".
+-Fixed "-" string - tokenizer considered it as a minus/negate operator.
 -Added "on_idle" trigger - activated only when no other event has been triggered in the current engine iteration.
 -Refactored detectTriggeredEvents function.
 

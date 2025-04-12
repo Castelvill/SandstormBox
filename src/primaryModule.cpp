@@ -262,6 +262,12 @@ EngineInstr strToInstr(string instruction){
     if(instruction == "mv"){
         return EngineInstr::mv_i;
     }
+    if(instruction == "print_v"){
+        return EngineInstr::print_v;
+    }
+    if(instruction == "print_d"){
+        return EngineInstr::print_d;
+    }
     if(instruction == "print"){
         return EngineInstr::print;
     }
@@ -521,6 +527,10 @@ string instrToStr(const EngineInstr & instruction){
             return "rmll";
         case mv_i:
             return "mv";
+        case print_v:
+            return "print_v";
+        case print_d:
+            return "print_d";
         case print:
             return "print";
         case load_text:
