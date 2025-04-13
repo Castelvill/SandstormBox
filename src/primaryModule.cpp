@@ -7,9 +7,6 @@ EngineInstr strToInstr(string instruction){
     if(instruction == "end"){
         return EngineInstr::end_i;
     }
-    if(instruction == "after"){
-        return EngineInstr::after;
-    }
     if(instruction == "triggers"){
         return EngineInstr::triggers;
     }
@@ -208,9 +205,6 @@ EngineInstr strToInstr(string instruction){
     if(instruction == "find_by_id"){
         return EngineInstr::find_by_id;
     }
-    if(instruction == "let"){
-        return EngineInstr::let;
-    }
     if(instruction == "clone"){
         return EngineInstr::clone_i;
     }
@@ -357,8 +351,6 @@ string instrToStr(const EngineInstr & instruction){
             return "start";
         case end_i:
             return "end";
-        case after:
-            return "after";
         case triggers:
             return "triggers";
         case run:
@@ -491,8 +483,6 @@ string instrToStr(const EngineInstr & instruction){
             return "random_int";
         case find_by_id:
             return "find_by_id";
-        case let:
-            return "let";
         case clone_i:
             return "clone";
         case new_i:

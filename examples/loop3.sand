@@ -2,12 +2,12 @@ start main()
     triggers on_init
     int i 0
     while(i 10 <)
-        print _ _ "i = " i 
+        print "i = " i 
         if(i 5 == i 8 == ||)
             int j 0
             print " -> "
             while(j 5 <)
-                print _ _ j " "
+                print j " "
                 ++ j
             end_while
         end_if

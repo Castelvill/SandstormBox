@@ -1,0 +1,23 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "OVERRIDE_TEST - START\n"
+    assert 0 1
+    exit
+end
+
+override main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "OVERRIDE_TEST - START\n"
+    run func()
+    print "OVERRIDE_TEST - PASSED\n"
+end
+
+start func()
+    assert 0 1
+end
+
+override func()
+    return
+end

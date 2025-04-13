@@ -1,0 +1,11 @@
+start main()
+    triggers on_init
+    print "Apple\n"
+    exit
+end
+
+override main()
+    triggers on_init
+    print "Banana\n"
+    exit
+end

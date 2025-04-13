@@ -10,7 +10,7 @@ enum ReturnType : char{
 };
 
 enum EngineInstr : char{
-    null, start, end_i, after, triggers, run, if_i,
+    null, start, end_i, triggers, run, if_i,
     else_if, else_i, end_if, while_i, end_while, continue_i,
     break_i, return_i, reboot, exit_i, delete_this_event,
     reset_keyboard, dump_context_stack, first, last, all,
@@ -20,7 +20,7 @@ enum EngineInstr : char{
     and_i, or_i, igT, igF, in, find_by_id_2, inc, next, dec, del, demolish,
     access_i, bool_i, int_i, double_i, string_i, bool_vec_i, int_vec_i,
     double_vec_i, string_vec_i, rand_int, find_by_id,
-    let, clone_i, new_i, bind_i, rbind_i, build, load_build, build_subset,
+    clone_i, new_i, bind_i, rbind_i, build, load_build, build_subset,
     inject_code, inject_instr, fun, env, edit_proc, load_bitmap,
     mkdir_i, rm, rmll, mv_i, print_v, print_d, print, load_text, save_text, ls,
     lse, new_proc, var, vec, tokenize, tree, len, size, substr, load_font,

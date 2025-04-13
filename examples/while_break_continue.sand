@@ -3,7 +3,7 @@ start main()
     int i 0
     int j 0
     while(i 10 <)
-        print _ _ i " -> "
+        print i " -> "
         if(i 3 ==)
             ++ i
             print "\n"
@@ -15,7 +15,7 @@ start main()
                 ++ j
                 continue
             end_if
-            print _ _ j " "
+            print j " "
             if(j 8 ==)
                 break
             end_if

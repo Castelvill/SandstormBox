@@ -4,17 +4,31 @@
 
 **Syntax**
 
-start *id* [loop] [override]
+start *name*( [[parameter]...] )
 
 **Description**
 
-    Start the instruction scope for the new event.
+    Start the instruction scope for the new event. Each event scope must be closed with an "end" instruction.
 
 **Parameters:**
 
-- id (variable) - a name for the new event,
-- [loop] (bool) - if true, the new event will be executed in every iteration of the parent process,
-- [override] (bool) - if true, the new event will override an existing event with the same id.
+- name - a name for a new event;
+- [parameter] (variable) - input variable for a new event.
+
+## override
+
+**Syntax**
+
+override *name*( [[parameter]...] )
+
+**Description**
+
+    Redefine the scope of an event with the same name.
+
+**Parameters:**
+
+- name - a name for an event;
+- [parameter] (variable) - input variable for a new event.
 
 ## end
 
@@ -26,21 +40,27 @@ start *id* [loop] [override]
 
 **Syntax**
 
-inline *id*
+inline *name*
 
 **Description**
 
-    Start the instruction scope for the new event.
+    Start the instruction scope for a new inline event. Each inline scope must be closed with an "end" instruction.
 
 **Parameters:**
 
-- id (variable) - a name for the new event.
+- name - a name for a new inline event.
+
+## compiler_breakpoint
+
+**Description**
+
+    Set a debugger breakpoint right before the next instruction. It will be triggered during the compilation of a script. If the engine is executed outside the debugger, this instruction will trigger a crash.
 
 ## breakpoint
 
 **Description**
 
-    Trigger a debugger breakpoint right before the next instruction during the compilation. If the engine is executed outside the debugger, this instruction will trigger a crash instead.
+    Set a debugger breakpoint right before the next instruction. It will be triggered at runtime. If the engine is executed outside the debugger, this instruction will trigger a crash.
 
 ## triggers
 
@@ -54,7 +74,7 @@ triggers *trigger* [[trigger]...]
 
 **Parameters:**
 
-- trigger (variable) - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, each_second, key_pressed, key_pressing, key_released, mouse_moved, mouse_not_moved, mouse_pressed, mouse_pressing, mouse_released, objects, variables, collision, editables, movement, stillness, on_display_resize.
+- trigger - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, on_idle, each_second, on_key_press, on_key_pressing, on_key_release, on_mouse_move, when_mouse_still, on_mouse_press, on_mouse_pressing, on_mouse_release, by_objects, by_variables, by_collision, by_editables, by_movement, by_stillness, on_display_resize.
 
 ## create_display
 
@@ -64,7 +84,7 @@ create_display *display_width* *display_height* *backbuffer_width* *backbuffer_h
 
 **Description**
 
-    Create an Allegro5 display.
+    Create a display.
 
 **Parameters:**
 
@@ -82,45 +102,84 @@ if ( *expression* )
 
 **Description**
 
-    Limit the execution of the current event with if conditions provided in this instruction. If the whole expression returns true, event will be executed, otherwise execute instructions in the else statement scope. This instruction can be used only once in any given event.
+    Start a new scope that will be executed if the provided expression returns true. Each if statement scope must be closed with an "end_if", "else_if" or "else" instruction.
 
 **Parameters**
 
-- expression (ConditionClass vector) - the list of locations of values and literals. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", "booting", “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "display_resized", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
+- expression - a list of values, variables and logical operators arranged in Reverse Polish Notation. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists.
+
+## else_if
+
+**Syntax**
+
+else_if ( *expression* )
+
+**Description**
+
+    Start a new scope that will be executed only if the previous if or else-if conditions returned false and the current expression returns true. Else-if scope can be started only after an if or else-if statement. Each else-if statement scope must be closed with an "end_if", "else_if" or "else" instruction.
+
+**Parameters**
+
+- expression - a list of values, variables and logical operators arranged in Reverse Polish Notation. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists.
 
 ## else
 
 **Syntax**
 
-else *event*
+else
 
 **Description**
 
-    Execute provided event only when the if statement returns false. This instruction can be used only once in any given event.
+    Start a new scope that will be executed only if the previous if and else-if conditions returned false. Each else statement scope must be closed with an "end_if" instruction.
 
-**Parameters:**
+## end_if
 
-- event (variable) - a name of an event to be executed.
+**Syntax**
 
-## after
+end_if
 
 **Description**
 
-    Start a new instruction scope for the current event. Instructions in this scope will be executed only when the if statement returns true and only after the main scope finishes its execution. If the current event is a loop, "after" instructions will be ignored. This instruction can be used only once in any given event.
+    Close the instruction scope for an if, else-if or else statement.
+
+## while
+
+**Syntax**
+
+while ( *expression* )
+
+**Description**
+
+    Start a new looping scope that will be executed as long as the provided expression returns true. Each while loop scope must be closed with an "end_while" label.
+
+**Parameters**
+
+- expression - a list of values, variables and logical operators arranged in Reverse Polish Notation. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists.
+
+## end_while
+
+**Syntax**
+
+end_while
+
+**Description**
+
+    Close the while loop scope.
 
 ## run
 
 **Syntax**
 
-run *event* [event] ...
+run *event* ( [[argument]...] )
 
 **Description**
 
-    Execute all events with names provided in this instruction. This instruction can be used only once in any given scope.
+    Stop the execution of the current event and call a new one. After the execution of the called event returned to its parent.  
 
 **Parameters:**
 
-- event (variable) - a name of an event to be executed.
+- event - a name of an event to be executed between other instructions;
+- [argument] (variable / literal) - a value that will be passed to the called event.
 
 ## exit
 
@@ -138,25 +197,25 @@ run *event* [event] ...
 
 **Description**   
 
-    Interrupt the execution of all events from the object.
+    Exit the current event and return to the calling event.
 
 ## break
    
 **Description**
 
-    Interrupt the execution of the current scope.
+    Exit the current while loop and resume the execution one line after the "end_while" label.
+
+## continue
+   
+**Description**
+
+    Stop the execution of the while loop scope and move to the beginning of the loop.
 
 ## delete_this_event
    
 **Description**
 
     Delete current event and interrupt the execution of the current scope.
-
-## continue
-   
-**Description**
-
-    Interrupt the execution of the current scope.
 
 ## dump_context_stack
    
@@ -168,41 +227,41 @@ run *event* [event] ...
 
 **Syntax**
 
-*aggregation_type* *context* [camera_id] [layer_id] [object_id] [module_type] [module_id] [attribute] [expression] [output]
+*aggregation_type* *entities* [camera_id] [layer_id] [object_id] [module_type] [module_id] [attribute] [expression] [output]
 
 **Description**
 
-    Return a context that fulfils the boolean expression and optional parameters.
+    Return entities that fulfils the boolean expression and optional parameters.
 
 **Parameters:**
 
-- aggregation_type (instruction): “all” - returns whole context, “first” - returns the first context, “last” - returns the last context, “random” - returns one random context;
-- context (variable) - id of the context. Each context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”. Type of the context affects other parameters;
-- [camera_id] (string) - if the provided context is of a camera type, only the camera with this id can be aggregated;
-- [layer_id] (string) - if the provided context is of a layer type, only the layer with this id can be aggregated;
-- [object_id] (string) - if the provided context is of a layer or object type, only the object with this id can be aggregated;
-- [module_type] (string) - if the provided context contains layers, objects or modules; only the module of this type can be aggregated;
-- [module_id] (string) - if the provided context contains layers, objects or modules; only the module with this id can be aggregated;
-- attribute (string) - if provided, aggregate this attribute from selected entities;
-- [expression] (ConditionClass vector) - the list of locations of values and the list of operators that create a relationship between those values, which in turn results in a single boolean value. This whole expression is calculated for each entity separately and if it returns truth, entity is aggregated into the new context. But if expression is empty, this boolean is equal to true by default;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- aggregation_type (instruction): “all” - return every entity that fullfils all conditions, “first” - return only the first entity that fullfils all conditions, “last” - return only the last entity that fullfils all conditions, “random” - return one random entity that fullfils all conditions;
+- entities (variable) - a variable of one of these types: Camera, Layer, Object, Text, EditText, SText, SEditText, "Image", "Movement", "Collision", "Particles", "Event", "Var", "Vec", "Scrollbar", “Pointer”, “Val”. Type of the entity affects other parameters;
+- [camera_id] (string) - if the provided variable is of a Camera type, only the camera with this id can be aggregated;
+- [layer_id] (string) - if the provided variable is of a Layer type, only the layer with this id can be aggregated;
+- [object_id] (string) - if the provided variable is of a Layer or object type, only the object with this id can be aggregated;
+- [module_type] (string) - if the provided variable contains layers, objects or modules; only the module of this type can be aggregated;
+- [module_id] (string) - if the provided variable contains layers, objects or modules; only the module with this id can be aggregated;
+- [attribute] (string) - if provided, aggregate this attribute from the provided entities;
+- [expression] - a list of values, variables and logical operators arranged in Reverse Polish Notation. This whole expression is calculated for each entity separately and if it returns truth, entity is aggregated into the output variable. But if expression is empty, this boolean is equal to true by default. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists;
+- [output] (variable) for all entities that fullfill all conditions.
 
 ## index
 
 **Syntax**
 
-index *source* [indexes] [attribute] [output]
+index *entities* [indexes] [attribute] [output]
 
 **Description**
 
-    Take a list of indexes and return the context with entities found by indexes.
+    Take a list of indexes and return the entities or values located at those indexes.
 
 **Parameters:**
 
-- source (variable) - id of the context; 
-- [indexes] (variable / variable vector / int vector) - the list of indexes used to find an entity in the provided vector;
-- [attribute] (variable) - if provided, aggregate this attribute from selected entities;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- entities (variable) - a variable that stores entities; 
+- [indexes] (variable / variable vector / int vector) - a list of indexes used to find entities or values;
+- [attribute] (variable) - if provided, aggregate this attribute from all selected entities;
+- [output] (variable) for entities and values.
 
 ## sum
 
@@ -212,13 +271,13 @@ sum *left* *right* [output]
 
 **Description**
 
-    Take a pair of contexts and return the sum of these sets.
+    Take a pair of variables and return the sum of contained entities.
 
 **Parameters**
 
-- left (variable) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (variable) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- [output] (variable).
 
 ## intersection
 
@@ -228,13 +287,13 @@ intersection *left* *right* [output]
 
 **Description**
 
-    Take a pair of contexts and return the intersection of these sets.
+    Take a pair of variables and return the intersection of contained entities.
 
 **Parameters**
 
-- left (variable) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (variable) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- [output] (variable).
 
 ## difference
 
@@ -244,13 +303,13 @@ difference *left* *right* [output]
 
 **Description**
 
-    Take a pair of contexts and return the difference of these sets.
+    Take a pair of variables and return the difference of contained entities.
 
 **Parameters**
 
-- left (variable) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (variable) - id of the selected context. This instruction accepts all types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- [output] (variable).
 
 ## access
 
@@ -260,12 +319,12 @@ access *output* [[*source*] ...]
 
 **Description**
 
-    Access the values from the provided sources and put them inside the variable.
+    Access the values from the provided sources and put them inside a variable.
 
 **Parameters**
 
-- output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id;
-- source (variable) - location of a value or a literal. Each value has one of these sources: "bool", "int", "double", "string", “context”, "process", “camera”, “layer”, “object”, “variable”, "vector", "booting", “second_passed”, “key_pressed”, “key_pressing”, “key_released”, “any_key_pressed”, “any_key_pressing”, “any_key_released”, "mouse_x", "mouse_y", “mouse_moved”, “mouse_pressed”, “mouse_pressing”, “mouse_released”, "screen_w", "screen_h", “display_w”, “display_h”, "exists", "is_directory", "fullscreen", "display_resized", "used_os", "number_of_processes", "number_of_cameras", "number_of_layers", "number_of_objects".
+- output (variable);
+- [source] - a value or variable. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists.
 
 ## bool / int / double / string
 
@@ -275,13 +334,13 @@ access *output* [[*source*] ...]
 
 **Description**
 
-    Return a context filled with provided values.
+    Declare a variable with provided values.
 
 **Parameters**
 
 - literal_type (instruction): bool, int, double, string;
-- output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id;
-- values (variable / (bool/int/double/string) vector / (bool/int/double/string)).
+- output (variable);
+- values - a variable, vector of variables, literal or vector of literals.
 
 ## random_int
 
@@ -291,29 +350,13 @@ random_int *min* *max* [output]
 
 **Description**
 
-    Return a random integer from the range provided in the pair of literals.
+    Return a random integer from the range provided in the pair of variables or literals.
 
 **Parameters**
 
-- min (VariableModule): bool, int, double, string - literal, minimal value of the output;
-- max (VariableModule): bool, int, double, string - literal, maximal value of the output;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
-
-## random_int
-
-**Syntax**
-
-random_int *min* *max* [output]
-
-**Description**
-
-    Return a list of random integers from the ranges provided in the pair of contexts.
-
-**Parameters**
-
-- min (variable) - id of the choosen context. Context types allowed by this instruction are: “value” and “pointer”;
-- max (variable) - id of the choosen context. Context types allowed by this instruction are: “value” and “pointer”;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- min (variable / int) - minimal value of the output;
+- max (variable / int) - maximal value of the output;
+- [output] (variable).
 
 ## find_by_id
 
@@ -335,7 +378,7 @@ find_by_id *source* [context_list] [camera_id] [layer_id] [object_id] [module_ty
 - [module_type] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
 - [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
 - [attribute] (variable) - if provided, aggregate this this attribute from selected entities;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (variable).
 
 ## find_by_id layer
 
@@ -345,17 +388,17 @@ find_by_id layer *layer_id* *object_id* *module_type* *module_id* *attribute* [o
 
 **Description**
 
-    Return a context filled with entities which ids are equal to ones provided in parameters. If no ids are provided, aggregate all possible entities.
+    Return a variable filled with entities which ids are equal to ones provided in the parameters. If no ids are provided, aggregate all possible entities.
 
 **Parameters**
 
-- [camera_id] (string) - if source is equal to “camera” or provided context is of a camera type, only the camera with this id can be aggregated;
-- [layer_id] (string) - if source is equal to “layer” or provided context is of a layer type, only the layer with this id can be aggregated;
-- [object_id] (string) - if source is equal to “layer” or provided context is of a layer or object type, only the object with this id can be aggregated;
-- [module_type] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
-- [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
+- [camera_id] (string) - if source is equal to “camera” or provided variable is of a camera type, only the camera with this id can be aggregated;
+- [layer_id] (string) - if source is equal to “layer” or provided variable is of a layer type, only the layer with this id can be aggregated;
+- [object_id] (string) - if source is equal to “layer” or provided variable is of a layer or object type, only the object with this id can be aggregated;
+- [module_type] (string) - if source is equal to “layer”, or provided variable contains layers, objects or modules; only the module of this type can be aggregated;
+- [module_id] (string) - if source is equal to “layer”, or provided variable contains layers, objects or modules; only the module with this id can be aggregated;
 - [attribute] (string) - if provided, aggregate this this attribute from selected entities;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (variable).
 
 ## find_by_id_2
 
@@ -365,29 +408,13 @@ find_by_id_2 *source* *id* [output]
 
 **Description**
 
-    Return the entity from the "source" context with an id equal to the second parameter. Only an entity of the same type as the "source" context can be accessed.
+    Return the entity from the "source" variable with an id equal to the second parameter. Only an entity of the same type as the "source" variable can be accessed.
 
 **Parameters**
 
-- source (variable) - id of the context with a vector of entities,
+- source (variable) - vector of entities,
 - id (variable / string) - instruction will return the entity with this id,
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
-
-## let
-
-**Syntax**
-
-let *new_variable* [old_variable]
-
-**Description**
-
-    Change the id of the selected context or change the id of the last context from the local stack. If any other context has the same id, renamed context will take it place and old context will be erased from the stack. 
-
-**Parameters**
-
-- new_variable (variable) - id for the selected or last context.
-- [old_variable] (variable) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”.
-
+- [output] (variable).
 
 ## clone
 
@@ -401,9 +428,9 @@ clone *left* *right* *changeOldID*
 
 **Parameters**
 
-- left (variable) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (variable) - id of the context. Context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- changeOldID (bool) - if true, the left context will inherit the id of the right context (with the last number incrementation).
+- left (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- right (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- changeOldID (bool) - if true, the left variable will inherit the id of the right variable (with the last number incrementation).
 
 ## +, -, *, /
 
@@ -418,9 +445,9 @@ clone *left* *right* *changeOldID*
 **Parameters**
 
 - operator (instruction): "+", "-", "*", "/";
-- left (variable / any literal) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right (variable / any literal) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (variable / any literal) - this instruction accepts these two variable types: “pointer” and “value”;
+- right (variable / any literal) - this instruction accepts these two variable types: “pointer” and “value”;
+- [output] (variable).
 
 ## ++, --
 
@@ -435,7 +462,7 @@ clone *left* *right* *changeOldID*
 **Parameters**
 
 - operator (variable): "++" - increment by 1, "--" - decrement by 1;
-- context (variable) - id of the context. This instruction accepts these two context types: “pointer” and “value”.
+- context (variable) - this instruction accepts these two types: “pointer” and “value”.
 
 ## =, +=, -=, *=, /=
 
@@ -450,8 +477,8 @@ clone *left* *right* *changeOldID*
 **Parameters**
 
 - operator (variable): "=", "+=", "-=", "*=", "/=" - these work exactly like in c++;
-- left (variable) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right (variable / any literal) - id of the context. This instruction accepts these two context types: “pointer” and “value”.
+- left (variable) - variable. This instruction accepts these two context types: “pointer” and “value”;
+- right (variable / any literal) - variable. This instruction accepts these two context types: “pointer” and “value”.
 
 ## in
 
@@ -465,9 +492,9 @@ in *left* *right* [output]
 
 **Parameters**
 
-- left (variable) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right (variable) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (variable) - variable. This instruction accepts these two context types: “pointer” and “value”;
+- right (variable) - variable. This instruction accepts these two context types: “pointer” and “value”;
+- [output] (variable).
 
 ## new
 
@@ -484,9 +511,9 @@ new *type* [layer_id] [object_id] [quantity] [new_ids] [output]
 - type/source (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - the type of the new entities;
 - layer_id/[layer_id] (string) - the id of the layer with the role of a container for new objects. Required only if the new entities are objects;
 - object_id/[object_id] (string) - the id of the object with the role of a container for new modules. Required only if the new entities are modules;
-- [quantity] (variable / int) - the number of new entities that will be created. A literal or an id of the context of the “pointer” or “value” type.
+- [quantity] (variable / int) - the number of new entities that will be created. A literal or an variable of the “pointer” or “value” type.
 - [new_ids] (variable / vector variable / string / string vector) - the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (variable).
 
 ## new
 
@@ -501,10 +528,10 @@ new *type* [destination] [quantity] [new_ids] [output]
 **Parameters**
 
 - type/source (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - the type of the new entities;
-- destination/[destination] (variable) - id of the context with a container for new entities;
-- [quantity] (variable / int) - the number of new entities that will be created. A literal or an id of the context of the “pointer” or “value” type.
-- [new_ids] (variable) - the id of the context with the type “pointer” or “value”. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- destination/[destination] (variable) - variable with a container for new entities;
+- [quantity] (variable / int) - the number of new entities that will be created. A literal or an variable of the “pointer” or “value” type.
+- [new_ids] (variable) - the variable with the type “pointer” or “value”. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
+- [output] (variable).
 
 ## delete
 
@@ -518,7 +545,7 @@ delete *context*
 
 **Parameters**
 
-- context (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - id of the context with entities selected for deletion.
+- context (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - variable with entities selected for deletion.
 
 ## bind
 
@@ -532,8 +559,8 @@ bind *objects* *scripts*
 
 **Parameters**
 
-- objects (variable) - id of the context with objects;
-- scripts (variable / string vector) - paths to the scripts, their purpose depends from “source” parameter.
+- objects (variable) - objects that will be binded with provided scripts;
+- scripts (variable / string vector) - paths to the scripts.
 
 ## rbind
 
@@ -547,7 +574,7 @@ rbind *objects*
 
 **Parameters**
 
-- objects (variable) - id of the context with objects.
+- objects (variable).
 
 ## build
 
@@ -561,8 +588,8 @@ build *objects* [reset] [do_not_preserve]
 
 **Parameters**
 
-- objects (variable) - id of the context with objects intended for event building;
-- [reset] (variable / bool) - false by default. If true, before creating new events instruction removes all events from provided objects;
+- objects (variable) - variable with objects intended for event building;
+- [reset] (variable / bool) - false by default. If true, before creating new events this instruction removes all events from the provided objects;
 - [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
 
 ## build_subset
@@ -577,9 +604,9 @@ build_subset *objects* *paths* [reset] [do_not_preserve]
 
 **Parameters**
 
-- objects (variable) - id of the context with objects intended for event building,
+- objects (variable) - variable with objects intended for event building,
 - paths (variable / variable vector / string vector) - vector of paths to the scripts;
-- [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
+- [reset] (variable / bool) - false by default. If true, before creating new events, instruction removes all events from provided objects;
 - [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
 
 ## load_build
@@ -594,7 +621,7 @@ load_build *objects* *paths* [reset] [do_not_preserve]
 
 **Parameters**
 
-- objects (variable) - id of the context with objects intended for event building;
+- objects (variable) - variable with objects intended for event building;
 - paths (variable / variable vector / string vector) - vector of paths to the scripts;
 - [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
 - [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
@@ -611,7 +638,7 @@ inject_code *objects* *code* [reset] [do_not_preserve]
 
 **Parameters**
 
-- objects (variable) - id of the context with objects intended for event building,
+- objects (variable) - variable with objects intended for event building,
 - code (variable / variable vector / string vector) - vector of code lines;
 - [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
 - [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
@@ -628,7 +655,7 @@ inject_instr *objects* *instructions* [reset] [do_not_preserve]
 
 **Parameters**
 
-- objects (variable) - id of the context with objects intended for event building,
+- objects (variable) - variable with objects intended for event building,
 - instructions (variable / variable vector / string vector) - vector with instructions;
 - [reset] (variable / bool) - if true, before creating new events, instruction removes all events from provided objects;
 - [do_not_preserve] (variable / bool) - if true, instruction can remove events of its owner.
@@ -645,7 +672,7 @@ demolish *objects*
 
 **Parameters**
 
-- objects (variable) - id of the context with objects intended for event building.
+- objects (variable) - variable with objects intended for event building.
 
 ## env
 
@@ -706,9 +733,9 @@ fun *objects* *attribute* [[value]...]
 
 **Parameters**
 
-- objects (variable) - id of the context with objects;
+- objects (variable) - variable with objects;
 - attribute (variable) - name of the function intended for execution;
-- value (variable / any literal) - id of the context with values or a list of values.
+- value (variable / any literal) - variable name or a list of values.
 
 ## load_bitmap
 
@@ -735,13 +762,13 @@ load_font *path* *size* *name* [ignore_warnings]
 
 **Description**
 
-    Load a font from a file path to the engine's RAM.
+    Load a font from a file path to the engine's memory.
 
 **Parameters**
 
-- path (variable / string) - path to a font file;
-- size (variable / int) - size of the new font;
-- name (variable / string) - name for the new font;
+- path (variable / string) - a path to a font file;
+- size (variable / int) - a size of the new font;
+- name (variable / string) - a name for the new font;
 - [ignore_warnings] (variable / bool) - if true, warnings about loading the same font will not be printed.
 
 ## mkdir
@@ -805,17 +832,46 @@ mv *path* *new_path*
 
 **Syntax**
 
-print *delimeter* [output] [value] ... 
+print [value] ...
 
 **Description**
 
-    Print the list of values to the standard output or put it inside the string variable.
+    Print the list of values to the standard output.
 
 **Parameters**
 
-- delimeter (variable / string) - text printed after each printed value. If it's the only parameter, delimeter will be printed once;
-- [output] (variable) - if equals to "_", print values to the stdout, otherwise create a new context in the current scope and overwrite the context of an existing variable with the same id;
-- [value] (variable / any literal) - id of the context with values or a literal that will be printed.
+- [value] (variable / any literal) - variable name or a literal that will be printed.
+
+## print_d
+
+**Syntax**
+
+print_d [delimeter] [value] ... 
+
+**Description**
+
+    Print the list of values separated by a delimeter to the standard output.
+
+**Parameters**
+
+- [delimeter] (variable / string) - text printed after each printed value. If it's the only passed argument, delimeter will be printed once;
+- [value] (variable / any literal) - variable name or a literal that will be printed.
+
+## print_v
+
+**Syntax**
+
+print [output] [delimeter] [value] ... 
+
+**Description**
+
+    Print the list of values to the standard output or put them inside a string variable.
+
+**Parameters**
+
+- [output] (variable) - if equal to "_", print values to the stdout, otherwise print values to a variable;
+- [delimeter] (variable / string) - text printed after each printed value. If it's the only passed argument, delimeter will be printed once;
+- [value] (variable / any literal) - variable or a literal that will be printed.
 
 ## load_text
 
@@ -829,8 +885,8 @@ load_text *path* [output]
 
 **Parameters**
 
-- path (variable / string) - id of the context with the path to a text file;
-- [output] (variable) - id of the context for the loaded text.
+- path (variable / string) - variable or a string literal with the path to a file;
+- [output] (variable) - output for the loaded text.
 
 ## save_text
 
@@ -844,8 +900,8 @@ save_text *path* *text* [delimeter]
 
 **Parameters**
 
-- path (variable / string) - id of the context with a path to a text file;
-- text (variable / string / vector string) - id of the context with a text to save;
+- path (variable / string) - a path to a text file;
+- text (variable / string / vector string) - a text that will be saved to a file;
 - [delimeter] (variable / string) - it will be added to the end of each string from the text parameter.
 
 ## ls
@@ -860,9 +916,9 @@ ls [path] [output] [recursive] [max_depth]
 
 **Parameters**
 
-- [path] (variable / string) - id of the context with the directory path;
-- [output] (variable) - id of the output context;
-- [recursive] (variable / bool) - if true, list out files recursively;
+- [path] (variable / string) - a path to a directory;
+- [output] (variable);
+- [recursive] (variable / bool) - if true, list the files recursively;
 - [max_depth] (variable / int) - max depth of recursive file search.
 
 ## lse
@@ -873,7 +929,7 @@ lse *source* [detail]
 
 **Description**
 
-    Print out the list of entities from the source on the standard output.
+    Print the list of entities from the source to standard output.
 
 **Parameters**
 
@@ -888,11 +944,11 @@ var *output* *value*
 
 **Description**
 
-    Create a new variable for the current event's owner and add it to the context stack.
+    Create a new variable for the current event's owner.
 
 **Parameters**
 
-- output (variable) - id of the new variable and a new context;
+- output (variable);
 - value (variable / any literal).
 
 ## vec
@@ -903,12 +959,12 @@ vec *type* *output* [values]
 
 **Description**
 
-    Create a vector of variables for the current event's owner and add it to the context stack.
+    Create a vector of variables for the current event's owner.
 
 **Parameters**
 
 - type (variable): bool, int, double, string;
-- output (variable) - id of the new variable and a new context;
+- output (variable);
 - [values] (variable / variable vector / any literal vector).
 
 ## tokenize
@@ -919,13 +975,13 @@ tokenize *delimeter* *text* [[output]...]
 
 **Description**
 
-    Create a new variable for the current event's owner and add it to the context stack.
+    Create a new variable for the current event's owner.
 
 **Parameters**
 
 - delimeter (variable / char) - character that will divide the provided string to seperate tokens;
 - text (variable / text) - string to be tokenize;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (variable).
 
 ## tree
 
@@ -939,7 +995,7 @@ tree [output]
 
 **Parameters**
 
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- [output] (variable).
 
 ## len
 
@@ -954,22 +1010,22 @@ len *text* [output]
 **Parameters**
 
 - text (variable / string) - text to be measured;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- [output] (variable).
 
 ## size
 
 **Syntax**
 
-size *context* [output]
+size *vector* [output]
 
 **Description**
 
-    Return the size of the vector from the provided context.
+    Return the size of the vector from the provided variable.
 
 **Parameters**
 
-- context (variable) - id of the context;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- vector (variable);
+- [output] (variable).
 
 ## substr
 
@@ -983,16 +1039,16 @@ substr *text* *begin* *length* [output]
 
 **Parameters**
 
-- text (variable / string) - id of the context with a string value;
-- begin (variable / int) - start of the sub-string in the text;
-- length (variable / int) - length of the sub-string;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- text (variable / string);
+- begin (variable / int) - the index at which the substring begins in the text;
+- length (variable / int) - the length of the sub-string;
+- [output] (variable).
 
 ## restart_drag
 
 **Description**
 
-    Recalculate the starting position of selected camera dragging.
+    Recalculate the starting position of the selected camera dragging.
 
 ## cd
 
@@ -1002,7 +1058,7 @@ cd [path]
 
 **Description**
 
-    Change working directory.
+    Change the current working directory.
 
 **Parameters**
 
@@ -1020,7 +1076,7 @@ pwd [output]
 
 **Parameters**
 
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- [output] (variable).
 
 ## similar
 
@@ -1037,7 +1093,7 @@ similar *pattern* *vector* [longest_common_part] [output]
 - pattern (variable / string) - pattern that will be compared to every string in the vector;
 - vector (variable / vector variable / vector string) - vector of strings to be compared;
 - [longest_common_part] (variable / bool) - if true, the output will return the longest common part within the similar strings;
-- [output] (variable) - if of the output variable; if the "longest_common_part" parameter is false or empty, return strings that start with the same pattern.
+- [output] (variable) - if the "longest_common_part" parameter is false or empty, return strings that start with the same pattern.
 
 ## count
 
@@ -1053,7 +1109,7 @@ count *pattern* *text* [output]
 
 - pattern (variable / string);
 - text (variable / string);
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- [output] (variable).
 
 
 ## console_input
@@ -1064,11 +1120,11 @@ console_input [output]
 
 **Description**
 
-    Halt the program and wait for the user input from the standard input stream (console).
+    Halt the engine execution and wait for the user input from the standard input stream (console).
 
 **Parameters**
 
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- [output] (variable) - output for the user input.
 
 
 ## start_timer
@@ -1083,7 +1139,7 @@ start_timer *name*
 
 **Parameters**
 
-- name (variable / string) - name for the new timer.
+- name (variable / string) - name for a new timer.
 
 
 ## stop_timer
@@ -1099,7 +1155,7 @@ stop_timer *name* [output]
 **Parameters**
 
 - name (variable / string) - name for the new timer,
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the value of the existing variable with the same id.
+- [output] (variable).
 
 
 ## assert
@@ -1114,9 +1170,9 @@ assert *left* *right*
 
 **Parameters**
 
-- left (variable / any literal) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- right (variable / any literal) - id of the context. This instruction accepts these two context types: “pointer” and “value”;
-- [output] (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- left (variable / any literal) - this instruction accepts these two variable types: “pointer” and “value”;
+- right (variable / any literal) - this instruction accepts these two variable types: “pointer” and “value”;
+- [output] (variable).
 
 
 ## type
@@ -1131,5 +1187,5 @@ type *variable* *output*
 
 **Parameters**
 
-- variable (variable) - id of the context;
-- output (variable) - giving an id to a new context creates a variable in the current scope or overwrites the context of an existing variable with the same id.
+- variable (variable);
+- output (variable).

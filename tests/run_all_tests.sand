@@ -42,6 +42,10 @@ start testRunnerEvent()
     new Objects my_layer 1 "TestDisplay" TestDisplay
     bind TestDisplay ["tests/display.sand"]
     build TestDisplay true
+
+    new Objects my_layer 1 "TestOverride" TestOverride
+    bind TestOverride ["tests/override.sand"]
+    build TestOverride true
 end
 
 start on_idle()

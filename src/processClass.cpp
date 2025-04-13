@@ -10462,6 +10462,8 @@ void ProcessClass::executePrint(OperationClass & Operation, ContextMapStruct & E
             case primitives_mod_vec:
                 buffer += getStringOfIDs(Value.Modules.Primitives, delimeter);
                 break;
+            case null_dt:
+                break;
             default:
                 cerr << instructionWarning(CurrentInstr, __FUNCTION__)
                     << "DataType \'" << dataTypeToStr(Value.type) << "\' is not valid for this operation.\n";
@@ -12287,9 +12289,6 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 break;
             case find_by_id: //Aggregate context only by id.
                 aggregateOnlyById(EventContext, Operation, OwnerLayer, Owner);
-                break;
-            case let: //Assign a name to the previously aggregated entities.
-                //nameVariable(EventContext, Operation);
                 break;
             case clone_i:
                 cloneEntities(Operation, EventContext, Layers);

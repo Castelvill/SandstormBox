@@ -11,7 +11,7 @@
         "request": "launch",
         "program": "${workspaceFolder}${pathSeparator}SandstormBox",
         //"args": ["-c", "./tests/run_all_tests.sand"],
-        "args": ["-c", "./examples/print.sand"],
+        "args": ["-c", "./examples/prints.sand"],
         //"args": ["-c", "./tests/while_loop.sand"],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",

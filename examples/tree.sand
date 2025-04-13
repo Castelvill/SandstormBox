@@ -8,7 +8,7 @@ start main()
         -- space
         int j 0
         while(j space <)
-            print _ _ " "
+            print " "
             ++ j
         end_while
         int stars 2
@@ -16,7 +16,7 @@ start main()
         += stars 1
         int k 0
         while(k stars <)
-            print _ _ "*"
+            print "*"
             ++ k
         end_while
 
@@ -31,10 +31,10 @@ start main()
         int heigh_minus height
         -- heigh_minus
         while(s heigh_minus <)
-            print _ _ " "
+            print " "
             ++ s
         end_while
-        print _ _ "*"
+        print "*"
         print "\n"
         ++ t
     end_while

@@ -15,10 +15,10 @@ start main()
     print_d _ "]\n"
 
     double_vec arrDouble [0.1 0.2 0.3 0.4]
-    print_v _ strStart "Print with output to variable: ["
-    print_v ", " strMiddle arrDouble
-    print_v _ strEnd "]\n"
-    print_v _ strConnected strStart strMiddle strEnd
+    print_v strStart _ "Print with output to variable: ["
+    print_v strMiddle ", " arrDouble
+    print_v strEnd _ "]\n"
+    print_v strConnected _ strStart strMiddle strEnd
     print_v _ _ strConnected
 
     exit

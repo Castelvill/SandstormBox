@@ -4,7 +4,7 @@ start main()
     while(i 10 <)
         int j i
         while(j 10 <)
-            print _ _ "*"
+            print "*"
             ++ j
         end_while
         print "\n"

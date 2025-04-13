@@ -10,7 +10,7 @@ start onInit
     var GAME_MAP_H 22
     var GAME_MAP_SIZE GAME_MAP_W
     *= GAME_MAP_SIZE GAME_MAP_H
-    print _ _ GAME_MAP_SIZE "\n"
+    print GAME_MAP_SIZE "\n"
     var MAX_ITEMS 200
 
     fun me set_can_be_selected false
@@ -79,11 +79,11 @@ start drawScene(super_editable_text & TextField)
     int index -1
     run drawItems(TextField, index)
 after
-    print _ _ counter "\n"
+    print counter "\n"
     fun TextField set_size SCREEN_W SCREEN_H
     fun TextField update
     stop_timer "fullProgramTimer" seconds
-    print _ _ "Total time of processing: " seconds "s.\n"
+    print "Total time of processing: " seconds "s.\n"
     exit
 end
 

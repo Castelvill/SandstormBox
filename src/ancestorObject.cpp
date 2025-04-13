@@ -43,7 +43,7 @@ inline vector<string> builtInScriptInterpreter = {
     "start interpreter",
     "triggers each_iteration",
     "pwd path",
-    "print _ _ path \">> \"",
+    "print path \">> \"",
     "console_input input",
     "inject_instr me input",
     "end"
@@ -767,7 +767,7 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, ValueSource &
 inline string localContextID(const string & eventID, const string & newID){
     return eventID + /*":" +*/ newID;
 }
-bool optionalOutput(string scriptName, unsigned lineNumber, string & error, const vector<WordStruct> & words,
+bool optionalOutput(const string & scriptName, const unsigned & lineNumber, string & error, const vector<WordStruct> & words,
     unsigned & cursor, vector<StartingVariableStruct> & NewVariablesForLookupTable,
     const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
     const DataType & variableType, string & outputVariableID, bool & isOutputReference, bool isGlobal,
@@ -1367,45 +1367,21 @@ bool createEvent(const string & scriptName, const unsigned & lineNumber, const s
     EventModule & NewEvent, const vector<WordStruct> & words,
     vector<StartingVariableStruct> & NewVariablesForLookupTable
 ){
-    string eventType = "";
     string eventID = "";
     
-    if(words[0].value == "override"){
-        if(words.size() < 3){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 2 parameters.\n";
-            return true;
-        }
-        if(words[1].type != 'c' && words[1].type != 'e'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
-                << "' instruction: The second parameter (event_type) is not a context.\n";
-            return true;
-        }
-        if(words[2].type != 'c' && words[2].type != 'e'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
-                << "' instruction: The third parameter (id) is not a context.\n";
-            return true;
-        }
-        eventType = words[1].value;
-        eventID = words[2].value;
+    if(words.size() < 2){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 1 parameter.\n";
+        return true;
     }
-    else{
-        if(words.size() < 2){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 1 parameter.\n";
-            return true;
-        }
-        if(words[1].type != 'c' && words[1].type != 'e'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
-                << "' instruction: The second parameter (id) is not a context.\n";
-            return true;
-        }
-        eventType = words[0].value;
-        eventID = words[1].value;
+    if(words[1].type != 'c' && words[1].type != 'e'){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
+            << "' instruction: The first parameter (id) is not a context.\n";
+        return true;
     }
+
+    eventID = words[1].value;
     
     if(eventID[0] != '_' && isStringInVector(EventContainerIDs, eventID)){
         if(words[0].value == "override"){
@@ -1506,10 +1482,9 @@ bool createInlineEvent(const string & scriptName, const unsigned & lineNumber, c
     if(words[1].type != 'c' && words[1].type != 'e'){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << errorSpacing() << "In " << __FUNCTION__ << ": In the '" << words[0].value
-            << "' instruction: The second parameter (id) is not a context.\n";
+            << "' instruction: The first parameter (id) is not a context.\n";
         return true;
     }
-    string eventType = words[0].value;
     string eventID = words[1].value;
     
     if(isStringInVector(EventContainerIDs, eventID)){
@@ -1521,10 +1496,6 @@ bool createInlineEvent(const string & scriptName, const unsigned & lineNumber, c
     NewEvent = EventModule(eventID, &EventContainerIDs, layerID, objectID);
 
     NewEvent.isInline = true;
-
-    // if(NewEvent.getID() == "checkItems"){
-    //     raise(SIGINT);
-    // }
 
     if(createCallingStackOfInlineEvents(scriptName, lineNumber, EventContainer, NewEvent, allAvailableEventIDs)){
         return true;
@@ -2776,16 +2747,7 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
             if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){
                 return;
             }
-            if(words[0].value == "print_v" || words[0].value == "print_d"){
-                if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "delimeter", false, allAvailableEventIDs,
-                    NewVariablesForLookupTable, NewEvent.PassedVariables, false
-                )){ return; }
-                cursor = 2;
-            }
-            else{
-                Operation->addEmptyParameter();
-            }
-            if(words[0].value == "print_v"){
+            if(words[0].value == "print_v"){ //output
                 if(optionalOutput(scriptName, lineNumber, error, words, cursor, NewVariablesForLookupTable,
                     NewEvent.PassedVariables, allAvailableEventIDs, value_inst, Operation->outputVariableID,
                     Operation->isOutputReference, false, true
@@ -2793,6 +2755,19 @@ void AncestorObject::assembleEvents(vector<string> code, string scriptName, vect
                     if(error.size() == 0){ continue; }
                     return;
                 }
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 2, 's', "delimeter", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false
+                )){ return; }
+                cursor = 3;
+            }
+            else if(words[0].value == "print_d"){ //delimeter
+                if(Operation->addParameter(scriptName, lineNumber, error, words, 1, 's', "delimeter", false, allAvailableEventIDs,
+                    NewVariablesForLookupTable, NewEvent.PassedVariables, false
+                )){ return; }
+                cursor = 2;
+            }
+            else{
+                Operation->addEmptyParameter();
             }
             while(cursor < words.size()){
                 if(Operation->addParameter(scriptName, lineNumber, error, words, cursor, 'a', "value", false, allAvailableEventIDs,
