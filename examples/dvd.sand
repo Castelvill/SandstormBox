@@ -48,7 +48,6 @@ end
 start exitProgram()
     triggers on_key_press
     if(key_pressed(KEY_LCTRL) key_pressed(KEY_ESC) &&)
-        dump_memory
         exit
     end_if
 end

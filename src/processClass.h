@@ -111,7 +111,7 @@ public:
     void addModule(VectorModule * Module);
 
     bool copyFromTheParameter(
-        std::unordered_map<unsigned, ContextClass> & MemoryMap, const vector<DynamicVariableInfo> & EventLocalVariables,
+        std::vector<ContextClass> & MemoryMap, const vector<DynamicVariableInfo> & EventLocalVariables,
         const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
         const unsigned & index, const bool & printErrors
     );
@@ -122,9 +122,10 @@ public:
     void printOutObjects();
 
     unsigned size() const;
+    bool empty() const;
 };
 
-using MemoryMapType = std::unordered_map<unsigned, ContextClass>;
+using MemoryMapType = std::vector<ContextClass>;
 
 template<class EntityType>
 void copyFirstInstance(vector<EntityType> & NewContainer, vector<EntityType> & OriginalContainer,
@@ -148,7 +149,7 @@ struct DynamicMemoryStruct{
 };
 
 struct ObjectMemoryStruct{
-	std::unordered_map<unsigned, ContextClass> MemoryMap;
+	vector<ContextClass> MemoryMap;
     vector<DynamicMemoryStruct> DynamicMemory;
     vector<VariableLocationStruct> GlobalScope; //Required for runtime compilation.
     unsigned topAddress = 0;
@@ -297,12 +298,6 @@ public:
     std::unordered_map<string, ObjectMemoryStruct> ContextLookupTable; //Keys are made of ids of the layer and object.
 
     std::unordered_map<string, TimePoint> userDefinedTimers;
-
-    std::unordered_map<EngineInstr, int64_t> TimeSpentOnInstructions;
-
-    int64_t INDEX_TESTS[5] = {0, 0, 0, 0, 0};
-
-    int64_t IF_TESTS[5] = {0, 0, 0, 0, 0};
 
     void printProfiler();
 
@@ -475,8 +470,9 @@ public:
     void stopTimer(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     bool assertValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void getContextType(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
-    void dumpVariables(const std::unordered_map<unsigned int, ContextClass> & MemoryMap);
-    void dumpMemory(std::unordered_map<unsigned int, ContextClass> & MemoryMap);
+    void loadVariableFromMemoryAddress(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void dumpVariables(const MemoryMapType & MemoryMap);
+    void dumpMemory(MemoryMapType & MemoryMap);
     EngineInstr executeInstructions(vector<OperationClass> & Operations, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject *> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EventModule>::iterator & it_StartingEvent,
@@ -525,7 +521,7 @@ public:
         ObjectMemoryStruct & ObjectMemory
     );
     EventControlFlow prepareChildEvent(ObjectMemoryStruct & ObjectMemory, vector<EventStackStruct> & EventStack,
-        vector<EventModule>::iterator & it_Event, ChildStruct * SelectedChild, TimePoint timeBegin
+        vector<EventModule>::iterator & it_Event, ChildStruct * SelectedChild
     );
     EventControlFlow executeSingleEvent(EngineClass & Engine, vector<ProcessClass> & Processes,
         vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,

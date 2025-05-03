@@ -1,4 +1,9 @@
 3.05.2025
+-Added "load *output* *address*" instruction - loads variable directly from the memory address.
+-Optimized engine: replaced unordered_map with vectors in the role of variable container; simplified "index_vec"; enforced "Val" type's constant size.
+-Removed old timers of the profiler (it is currently unused).
+-Added "global.sand" and "recursion.sand" test.
+-Allowed automatic deletion of newly created events when the compilation is aborted due to errors (deletion after assembleEvents(...)).
 -Reimplemented variables - now every variable has a local and global address.
 -Introduced recursion.
 -Added compile-time scopes - instructions: start, if, else_if, else, while create a new scope.

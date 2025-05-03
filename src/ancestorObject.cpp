@@ -720,11 +720,11 @@ bool prepareNewInstruction(vector<WordStruct> words, EventModule & NewEvent, Ope
         return false;
     }
 
-    NewEvent.DependentOperations.emplace_back(OperationClass());
-    NewEvent.DependentOperations.back().instruction = strToInstr(words[0].value);
-    NewEvent.DependentOperations.back().scriptName = scriptName;
-    NewEvent.DependentOperations.back().lineNumber = lineNumber;
-    Operation = &NewEvent.DependentOperations.back();
+    NewEvent.Operations.emplace_back(OperationClass());
+    NewEvent.Operations.back().instruction = strToInstr(words[0].value);
+    NewEvent.Operations.back().scriptName = scriptName;
+    NewEvent.Operations.back().lineNumber = lineNumber;
+    Operation = &NewEvent.Operations.back();
     
     return true;
 }
@@ -1712,22 +1712,23 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
     if(words[0].value == "import"){
         //Ignore
     }
-    else if(words[0].value == "compiler_breakpoint"){
-        triggerBreakpoint = true;
-        cerr << "Warning: The 'compiler_breakpoint' instruction can be used only in the debugger.\n";
-    }
-    else if(words[0].value == "start" ||  words[0].value == "override"){
+    if(words[0].value == "start" ||  words[0].value == "override"){
         if(createEvent(scriptName, lineNumber, layerID, ID, EventContainer,
             EventContainerIDs, NewEvent, words, Scopes, topAddress
         )){ return ReturnType::ERROR; }
         allAvailableEventIDs.clear();
         allAvailableEventIDs.push_back(NewEvent.getID());
     }
-    // else if(words[0].value == "inline"){ It's no longer needed in its current state.
-    //     if(createInlineEvent(scriptName, lineNumber, layerID, ID, EventContainer, EventContainerIDs,
-    //         NewEvent, words, allAvailableEventIDs, Scopes
-    //     )){ return ReturnType::ERROR; }
-    // }
+    else if(Scopes.size() < 2){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ":\n"
+            << NEW_LINE_PADDING << "Instruction \'" << words[0].value << "\' cannot be used outside of an event scope.\n";
+        return ReturnType::ERROR;
+    }
+    else if(words[0].value == "compiler_breakpoint"){
+        triggerBreakpoint = true;
+        cerr << "Warning: The 'compiler_breakpoint' instruction can be used only in the debugger.\n";
+    }
     else if(words[0].value == "end"){
         if(NewEvent.isInline){
             NewEvent.Parameters.clear();
@@ -1796,10 +1797,10 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
             return ReturnType::ERROR;
         }
-        BranchingStack.ifElseJumpStack.push_back(NewEvent.DependentOperations.size()-1);
+        BranchingStack.ifElseJumpStack.push_back(NewEvent.Operations.size()-1);
         BranchingStack.usedElseStatements.push_back(0);
         BranchingStack.ifEndJumpStack.push_back(vector<unsigned>());
-        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
     }
     else if(words[0].value == "else_if"){
         if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
@@ -1818,16 +1819,16 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 << words[0].value << "' outside the if statement scope.\n";
             return ReturnType::ERROR;
         }
-        NewEvent.DependentOperations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.DependentOperations.size()-1;
+        NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
         BranchingStack.ifElseJumpStack.pop_back();
-        BranchingStack.ifElseJumpStack.push_back(NewEvent.DependentOperations.size()-1);
+        BranchingStack.ifElseJumpStack.push_back(NewEvent.Operations.size()-1);
         if(BranchingStack.ifEndJumpStack.size() == 0){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
                 << words[0].value << "' outside the if statement scope.\n";
             return ReturnType::ERROR;
         }
-        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
     }
     else if(words[0].value == "else"){
         if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
@@ -1839,7 +1840,7 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 << words[0].value << "' outside the if statement scope.\n";
             return ReturnType::ERROR;
         }
-        NewEvent.DependentOperations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.DependentOperations.size()-1;
+        NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
         BranchingStack.ifElseJumpStack.pop_back();
         if(BranchingStack.usedElseStatements.size() == 0){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -1854,7 +1855,7 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 << words[0].value << "' outside the if statement scope.\n";
             return ReturnType::ERROR;
         }
-        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
     }
     else if(words[0].value == "end_if"){
         if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
@@ -1878,13 +1879,13 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                     << words[0].value << "' outside the if statement scope.\n";
                 return ReturnType::ERROR;
             }
-            NewEvent.DependentOperations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.DependentOperations.size()-1;
+            NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
             BranchingStack.ifElseJumpStack.pop_back();
         }
         BranchingStack.usedElseStatements.pop_back();
         if(BranchingStack.ifEndJumpStack.size() > 0){
             for(unsigned lineNumberIdx : BranchingStack.ifEndJumpStack.back()){
-                NewEvent.DependentOperations[lineNumberIdx].jumpToLine = NewEvent.DependentOperations.size()-1;
+                NewEvent.Operations[lineNumberIdx].jumpToLine = NewEvent.Operations.size()-1;
             }
             BranchingStack.ifEndJumpStack.back().clear();
             BranchingStack.ifEndJumpStack.pop_back();
@@ -1901,9 +1902,9 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
             return ReturnType::ERROR;
         }
-        BranchingStack.whileStartStack.push_back(NewEvent.DependentOperations.size()-1);
+        BranchingStack.whileStartStack.push_back(NewEvent.Operations.size()-1);
         BranchingStack.whileEndStack.push_back(vector<unsigned>());
-        BranchingStack.whileEndStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        BranchingStack.whileEndStack.back().push_back(NewEvent.Operations.size()-1);
     }
     else if(words[0].value == "end_while"){
         if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
@@ -1914,10 +1915,10 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 << words[0].value << "' before any loop.\n";
             return ReturnType::ERROR;
         }
-        NewEvent.DependentOperations.back().jumpToLine = BranchingStack.whileStartStack.back();
+        NewEvent.Operations.back().jumpToLine = BranchingStack.whileStartStack.back();
         BranchingStack.whileStartStack.pop_back();
         for(unsigned & index : BranchingStack.whileEndStack.back()){
-            NewEvent.DependentOperations[index].jumpToLine = NewEvent.DependentOperations.size()-1;
+            NewEvent.Operations[index].jumpToLine = NewEvent.Operations.size()-1;
         }
         BranchingStack.whileEndStack.back().clear();
         BranchingStack.whileEndStack.pop_back();
@@ -1930,7 +1931,7 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 << words[0].value << "' outside a loop.\n";
             return ReturnType::ERROR;
         }
-        NewEvent.DependentOperations.back().jumpToLine = BranchingStack.whileStartStack.back();
+        NewEvent.Operations.back().jumpToLine = BranchingStack.whileStartStack.back();
     }
     else if(words[0].value == "break"){
         if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
@@ -1940,7 +1941,7 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 << words[0].value << "' outside a loop.\n";
             return ReturnType::ERROR;
         }
-        BranchingStack.whileEndStack.back().push_back(NewEvent.DependentOperations.size()-1);
+        BranchingStack.whileEndStack.back().push_back(NewEvent.Operations.size()-1);
     }
     else if(isStringInGroup(words[0].value, 9, "return", "reboot", "exit", "delete_this_event",
         "reset_keyboard", "dump_context_stack", "dump_memory", "restart_drag", "breakpoint"
@@ -1971,7 +1972,7 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
             Operation->Location.source = ValueSource::context;
             if(Operation->addParameter(
                 scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                1, 'c', "source", false, false, false
+                1, 'c', "vector", false, false, false
             )){ return ReturnType::ERROR; }
         }
         else{
@@ -2022,6 +2023,19 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
             if(error.empty()){ return ReturnType::OK; }
             return ReturnType::ERROR;
         }
+    }
+    else if(words[0].value == "load"){
+        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
+        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+        )){
+            if(error.empty()){ return ReturnType::OK; }
+            return ReturnType::ERROR;
+        }
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'a', "address", false, true, true
+        )){ return ReturnType::ERROR; }
     }
     else if(isStringInGroup(words[0].value, 5, "=", "+=", "-=", "*=", "/=")){
         if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
@@ -2750,7 +2764,7 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
         Operation->addLiteralParameter(VariableModule::newString(words[1].value));
         cursor = 2;
         if(optionalOutput(scriptName, lineNumber, error, words, cursor, vector_mod,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output, true
         )){
             if(error.size() > 0){ return ReturnType::ERROR; }
         }
@@ -3000,7 +3014,7 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
     }
     return ReturnType::OK;
 }
-void AncestorObject::assembleEvents(vector<string> & code, const string & scriptName,
+ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & scriptName,
     vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
 ){
     //merge string sections
@@ -3067,7 +3081,7 @@ void AncestorObject::assembleEvents(vector<string> & code, const string & script
         if(result == ReturnType::ERROR){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Compilation aborted due to previous errors.\n";
-            return;
+            return ReturnType::ERROR;
         }
     }
     if(words.size() > 0){
@@ -3095,19 +3109,21 @@ void AncestorObject::assembleEvents(vector<string> & code, const string & script
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": Global scope has been destroyed.\n";
-        return;
+        return ReturnType::ERROR;
     }
     if(Scopes[0].size() < GlobalScope.size()){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": Global variables has been deleted.\n";
-        return;
+        return ReturnType::ERROR;
     }
 
     //If new global variables were defined, add them to the global scope.
     if(Scopes[0].size() > GlobalScope.size()){
         GlobalScope = Scopes[0];
     }
+
+    return ReturnType::OK;
 
     // for(EventModule & InlineEvent : EventContainer){
     //     if(!InlineEvent.isInline){
@@ -3264,7 +3280,12 @@ void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii, v
         code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
             somethingWasAssembled = true;
-            assembleEvents(code, scriptName, GlobalScope, topMemoryAddress);
+            size_t preAssemblyEventCount = EventContainer.size();
+            ReturnType assemblyStatus = assembleEvents(code, scriptName, GlobalScope, topMemoryAddress);
+            if(assemblyStatus == ReturnType::ERROR){
+                EventContainer.resize(preAssemblyEventCount);
+                return;
+            }
             code.clear();
         }
         else{
@@ -3297,7 +3318,14 @@ void AncestorObject::translateScriptsFromPaths(bool clearEvents, vector<string> 
         code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
             somethingWasAssembled = true;
-            assembleEvents(code, scriptName, GlobalScope, topMemoryAddress);
+
+            size_t preAssemblyEventCount = EventContainer.size();
+            ReturnType assemblyStatus = assembleEvents(code, scriptName, GlobalScope, topMemoryAddress);
+            if(assemblyStatus == ReturnType::ERROR){
+                EventContainer.resize(preAssemblyEventCount);
+                return;
+            }
+
             code.clear();
         }
         else{
@@ -3340,7 +3368,14 @@ void AncestorObject::translateSubsetBindedScripts(bool clearEvents, vector<strin
         code = readLines(scriptName, allowNotAscii);
         if(code.size() > 0){
             somethingWasAssembled = true;
-            assembleEvents(code, scriptName, GlobalScope, topMemoryAddress);
+
+            size_t preAssemblyEventCount = EventContainer.size();
+            ReturnType assemblyStatus = assembleEvents(code, scriptName, GlobalScope, topMemoryAddress);
+            if(assemblyStatus == ReturnType::ERROR){
+                EventContainer.resize(preAssemblyEventCount);
+                return;
+            }
+
             code.clear();
         }
         else{
@@ -3360,7 +3395,12 @@ void AncestorObject::injectCode(bool clearEvents, vector<string> code, vector<Va
     code = removeComments(code);
     
     if(code.size() > 0){
-        assembleEvents(code, "<injection>", GlobalScope, topMemoryAddress);
+        size_t preAssemblyEventCount = EventContainer.size();
+        ReturnType assemblyStatus = assembleEvents(code, "<injection>", GlobalScope, topMemoryAddress);
+        if(assemblyStatus == ReturnType::ERROR){
+            EventContainer.resize(preAssemblyEventCount);
+            return;
+        }
     }
 }
 void AncestorObject::injectInstructions(bool clearEvents, vector<string> instructions, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress){
@@ -3388,7 +3428,12 @@ void AncestorObject::injectInstructions(bool clearEvents, vector<string> instruc
     preprocessed.insert(preprocessed.begin(), "start _");
     preprocessed.emplace_back("delete_this_event");
     preprocessed.emplace_back("end");
-    assembleEvents(preprocessed, "<injection>", GlobalScope, topMemoryAddress);
+    size_t preAssemblyEventCount = EventContainer.size();
+    ReturnType assemblyStatus = assembleEvents(preprocessed, "<injection>", GlobalScope, topMemoryAddress);
+    if(assemblyStatus == ReturnType::ERROR){
+        EventContainer.resize(preAssemblyEventCount);
+        return;
+    }
 }
 
 void AncestorObject::propagateLayerID(){
@@ -3489,6 +3534,13 @@ unsigned ModulesPointers::size() const{
         + Primitives.size() + Vectors.size();
 }
 
+bool ModulesPointers::empty() const{
+    return Texts.empty() && EditableTexts.empty() && SuperTexts.empty()
+        && SuperEditableTexts.empty()  && Images.empty() &&
+        Movements.empty() && Collisions.empty() && Particles.empty() &&
+        Events.empty() && Variables.empty() && Scrollbars.empty()
+        && Primitives.empty() && Vectors.empty();
+}
 
 DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType){
     switch(oldType){

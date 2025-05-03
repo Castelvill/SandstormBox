@@ -1,0 +1,31 @@
+start printNumbers(int n)
+    if(n 0 <=)
+        return
+    end_if
+    -- n
+    run printNumbers(n)
+end
+
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "RECURSION_TEST - START\n"
+    int n 5
+    run printNumbers(n)
+    assert n 5
+    load n3 3
+    load n4 4
+    load n5 12
+    load n6 13
+    load n7 14
+    load n8 15
+    load n9 16
+    assert n3 4
+    assert n4 5
+    assert n5 3
+    assert n6 2
+    assert n7 1
+    assert n8 0
+    assert n9 0
+    print "RECURSION_TEST - PASSED\n"
+end

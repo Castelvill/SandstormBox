@@ -75,7 +75,7 @@ public:
     void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
     template <typename condValueType>
     bool isConditionMet(condValueType condVal, EngineInstr operatorType, char valType);
-    bool isConditionMet(string condVal, EngineInstr operatorType, char valType);
+    bool isConditionMet(const string & condVal, EngineInstr operatorType, char valType);
     bool isConditionMet(EngineInstr operatorType, VariableModule * OtherVariable);
     bool isConditionMet(EngineInstr operatorType, const BasePointersStruct & OtherVariable);
     double floatingOperation(EngineInstr operatorType, VariableModule * OtherVariable);

@@ -1,0 +1,27 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    var a 10
+    assert a 10
+    run subFun()
+    assert a 15
+end
+
+start subFun()
+    assert a 10
+    = a 15
+    assert a 15
+end
+
+start main1()
+    triggers on_init
+    assert a 15
+    run subFun2()
+    assert a 20
+end
+
+start subFun2()
+    assert a 15
+    = a 20
+    assert a 20
+end

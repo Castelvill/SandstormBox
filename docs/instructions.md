@@ -263,6 +263,22 @@ index *entities* [indexes] [attribute] [output]
 - [attribute] (variable) - if provided, aggregate this attribute from all selected entities;
 - [output] (variable) for entities and values.
 
+## index_vec
+
+**Syntax**
+
+index_vec *vector* *index* [output]
+
+**Description**
+
+    Return an element of the vector based on the index. (It's much faster than "index" instruction, but now well-tested.)
+
+**Parameters:**
+
+- vector (variable) - a variable that stores a vector; 
+- index (variable / int vector) - an element to return;
+- [output] (variable).
+
 ## sum
 
 **Syntax**
@@ -1189,3 +1205,18 @@ type *variable* *output*
 
 - variable (variable);
 - output (variable).
+
+## load
+
+**Syntax**
+
+load *output* *address*
+
+**Description**
+
+    Assign the value from the specified address to the output variable.
+
+**Parameters**
+
+- output (variable);
+- address (variable / any literal) - address of the input variable.

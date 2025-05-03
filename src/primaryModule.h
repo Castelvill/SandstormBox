@@ -25,7 +25,7 @@ enum EngineInstr : char{
     mkdir_i, rm, rmll, mv_i, print_v, print_d, print, load_text, save_text, ls,
     lse, new_proc, var, vec, tokenize, tree, len, size, substr, load_font,
     restart_drag, cd, pwd, similar, count, create_display, console_input,
-    start_timer, stop_timer, breakpoint, assert, type
+    start_timer, stop_timer, breakpoint, assert, type, load_i
 };
 EngineInstr strToInstr(const string & instruction);
 string instrToStr(const EngineInstr & instruction);
@@ -270,7 +270,7 @@ struct InstrDescription{
     string objectID;
     string eventID;
     EngineInstr instruction;
-    string scriptName = "";
+    string scriptName;
     unsigned lineNumber = 0;
 };
 
@@ -329,6 +329,11 @@ public:
 };
 
 constexpr const char* NEW_LINE_PADDING = "\t";
+inline void printLogMessage(const string & messageType, const string & fileName, const size_t lineNumber, const string & functionName, const string & message){
+    cerr << messageType << ":"
+        << NEW_LINE_PADDING << "In " << fileName << ":" << uIntToStr(lineNumber) << ":" << functionName << ":\n"
+        << NEW_LINE_PADDING << message;
+}
 string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType = "Error");
 string instructionWarning(const InstrDescription & Description, const string & functionName);
 

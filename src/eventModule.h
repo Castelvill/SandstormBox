@@ -191,7 +191,7 @@ string triggerToStr(const TriggerType & trigger);
 class EventModule: public PrimaryModule{
 public:
     vector<VariableModule> resultStack;
-    vector<OperationClass> DependentOperations;
+    vector<OperationClass> Operations;
 	vector<ChildStruct> Children;
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events with the use of "run" and "else" commands.
     vector<TriggerType> primaryTriggerTypes;

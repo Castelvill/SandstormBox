@@ -575,7 +575,7 @@ bool VariableModule::isConditionMet(condValueType condVal, EngineInstr operatorT
     }
     return false;
 }
-bool VariableModule::isConditionMet(string condVal, EngineInstr operatorType, char valType){
+bool VariableModule::isConditionMet(const string & condVal, EngineInstr operatorType, char valType){
     if(type != valType || valType != 's'){
         cerr << "Error: In " << __FUNCTION__ << ": Comparison of two different variable types.\n";
         return false;

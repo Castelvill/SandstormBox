@@ -74,7 +74,6 @@ int main(int argc, char* argv[]){
             }
         }while(Engine.isRunning());
         for(ProcessClass & Process : Processes){
-            //Process.printProfiler();
             Process.clear();
         }
         Processes.clear();

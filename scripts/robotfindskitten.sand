@@ -94,6 +94,7 @@ start drawScene(SText TextField)
     int seconds 0
     stop_timer "fullProgramTimer" seconds
     print "Total time of processing: " seconds "s.\n"
+    //dump_memory
     exit
 end
 

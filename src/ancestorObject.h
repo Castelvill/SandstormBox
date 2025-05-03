@@ -22,6 +22,7 @@ struct ModulesPointers{
     vector <VectorModule*> Vectors;
     bool hasInstanceOfAnyModule() const;
     unsigned size() const;
+    bool empty() const;
     ModulesPointers(){};
 };
 
@@ -95,7 +96,7 @@ public:
         OperationClass *& Operation, BranchingStackStruct & BranchingStack
     );
     /*Translate instructions into events and add them to the event container of the object.*/
-    void assembleEvents(vector<string> & code, const string & scriptName,
+    ReturnType assembleEvents(vector<string> & code, const string & scriptName,
         vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
     );
     void clearAllEvents();

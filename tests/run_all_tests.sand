@@ -46,6 +46,14 @@ start testRunnerEvent()
     new Objects my_layer 1 "TestOverride" TestOverride
     bind TestOverride ["tests/override.sand"]
     build TestOverride true
+
+    new Objects my_layer 1 "TestGlobal" TestGlobal
+    bind TestGlobal ["tests/override.sand"]
+    build TestGlobal true
+    
+    new Objects my_layer 1 "TestRecursion" TestRecursion
+    bind TestRecursion ["tests/recursion.sand"]
+    build TestRecursion true
 end
 
 start on_idle()

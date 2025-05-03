@@ -343,6 +343,9 @@ EngineInstr strToInstr(const string & instruction){
     if(instruction == "type"){
         return EngineInstr::type;
     }
+    if(instruction == "load"){
+        return EngineInstr::load_i;
+    }
     cerr << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return EngineInstr::null;
 }
@@ -578,6 +581,8 @@ string instrToStr(const EngineInstr & instruction){
             return "assert";
         case type:
             return "type";
+        case load_i:
+            return "load";
     }
     cerr << "Error: In " << __FUNCTION__ << ": EngineInstr with code: '" << instruction << "' is undefined.\n"; 
     return "undefined";
@@ -585,14 +590,14 @@ string instrToStr(const EngineInstr & instruction){
 string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType){
     if(Description.scriptName == ""){
         if(Description.layerID == ""){
-            return messageType + ": In " + functionName + ":\n"
+            return messageType + ":" + NEW_LINE_PADDING + "In " + functionName + ":\n"
                 + NEW_LINE_PADDING;
         }
-        return messageType + ": In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
+        return messageType + ":" + NEW_LINE_PADDING + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
             + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ":\n"
             + NEW_LINE_PADDING;
     }
-    return messageType + ": In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
+    return messageType + ":" + NEW_LINE_PADDING + "In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
         + NEW_LINE_PADDING + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
         + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ":\n"
         + NEW_LINE_PADDING;
