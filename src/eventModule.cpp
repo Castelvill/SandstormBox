@@ -400,7 +400,7 @@ DataType strToDataType(string dataType){
     else if(dataType == "PrimitiveVec"){
         return primitives_mod_vec;
     }
-    else if(dataType == "Any"){
+    else if(dataType == "any"){
         return any_dt;
     }
     cerr << "Error: In " << __FUNCTION__ << ": DataType '" << dataType << "' is undefined.\n";
@@ -500,7 +500,7 @@ string dataTypeToStr(DataType dataType){
         case primitives_mod_vec:
             return "PrimitiveVec";
         case any_dt:
-            return "Any";
+            return "any";
         default:
             break;
     }
@@ -554,29 +554,6 @@ ConditionClass::ConditionClass(string newID) : Literal(newID, nullptr, "", ""){}
 ConditionClass::ConditionClass() : Literal(){}
 
 OperationClass::OperationClass(){}
-inline string errorSpacing(){return "\t";}; 
-inline string localContextID(const string & eventID, const string & newID){
-    return eventID + /*":" +*/ newID;
-}
-bool checkIfVariableIsReference(const vector<StartingVariableStruct> & PassedVariables, const string & variableID){
-    for(const StartingVariableStruct & Variable : PassedVariables){
-        if(localContextID(Variable.eventID, Variable.id) == variableID){
-            return Variable.isReference;
-        }
-    }
-    return false;
-}
-bool isVariableGlobal(const vector<StartingVariableStruct> & NewVariablesForLookupTable, const string & variableID){
-    if(variableID == "NULL" || variableID == "me" || variableID == "my_layer"){
-        return true;
-    }
-    for(auto & Variable : NewVariablesForLookupTable){
-        if(Variable.id == variableID){
-            return Variable.eventID.size() == 0;
-        }
-    }
-    return false;
-}
 string ParameterStruct::getVariableIdOrValue(){
     if(variableID != ""){
         return variableID;
@@ -595,15 +572,13 @@ string ParameterStruct::getVariableIdOrValue(){
     }
 }
 bool OperationClass::addParameter(const string & scriptName, const unsigned & lineNumber,
-    string & error, vector<WordStruct> words, unsigned index, char type, string name,
-    bool optional, const vector<string> & allAvailableEventIDs,
-    const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
-    bool ignoreUndefinedVariable
+    string & error, vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
+    vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, unsigned index, char type,
+    const string & parameterName, bool optional, bool canCreateNewVariable, bool ignoreUndefinedVariable
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << ".\n";
     };
     error = "";
@@ -611,7 +586,7 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
         if(optional){
             return true;
         }
-        error = "For parameter '" + name + "': ";
+        error = "For parameter '" + parameterName + "': ";
         error += "Index " + intToStr(index+0);
         error += " is out of scope (" + intToStr(words.size());
         error += ").";
@@ -629,30 +604,31 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
         Parameters.emplace_back(ParameterStruct());
         Parameters.back().treeLevel = 0;
         Parameters.back().type = 'c';
-        if(isVariableGlobal(NewVariablesForLookupTable, words[index].value)){
-            Parameters.back().variableID = words[index].value;
-        }
-        else{
-            string temp;
-            Parameters.back().variableID = findExistingVariableOrCreateNew(
-                NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                canCreateNewVariable, scriptName, lineNumber, ignoreUndefinedVariable
-            );
-        }
+        Parameters.back().variableID = words[index].value;
         Parameters.back().negateVariable = words[index].negateVariable;
-        Parameters.back().isReference = checkIfVariableIsReference(PassedVariables, Parameters.back().variableID);
+
+        bool subError = false;
+        Parameters.back().localAddress = findExistingVariableOrCreateNew(
+            scriptName, lineNumber, subError, words[index].value, any_dt, Scopes,
+            NewLocalVariables, topAddress, canCreateNewVariable,
+            ignoreUndefinedVariable
+        );
+        if(subError){
+            return true;
+        }
+
         ++rootParametersSize;
         return false;
     }
     if(type == 'c'){
-        error = "Parameter '" + name + "' (";
+        error = "Parameter '" + parameterName + "' (";
         error += intToStr(index+0) + ") must be a variable.";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
     if(words[index].type == 's'){
         if(type != 'a' && type != 's'){
-            error = "Parameter '" + name + "' (";
+            error = "Parameter '" + parameterName + "' (";
             error += intToStr(index+0) + ") cannot be a string.";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
@@ -665,14 +641,14 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
         return false;
     }
     if(type == 's'){
-        error = "Parameter '" + name + "' (";
+        error = "Parameter '" + parameterName + "' (";
         error += intToStr(index+0) + ") must be a string.";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
     if(words[index].type == 'd'){
         if(type == 'i' || type == 'b'){
-            error = "Parameter '" + name + "' (";
+            error = "Parameter '" + parameterName + "' (";
             error += intToStr(index+0) + ") cannot have a floating point.";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
@@ -712,7 +688,7 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
         }
         return false;
     }
-    error = "Parameter '" + name + "' (";
+    error = "Parameter '" + parameterName + "' (";
     error += intToStr(index+0) + ") cannot be of the type '";
     error += words[index].type + "'.";
     printError(scriptName, lineNumber, words[0].value, error);
@@ -726,13 +702,12 @@ void OperationClass::addEmptyParameter(){
 }
 bool OperationClass::addLiteralOrVectorOrVariableToParameters(
     const string &scriptName, const unsigned &lineNumber, string &error, vector<WordStruct> words,
-    unsigned &index, char type, string name, bool optional, const vector<string> &allAvailableEventIDs,
-    const vector<StartingVariableStruct> &NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> &PassedVariables, bool canCreateNewVariable, const bool &forbidVectors
+    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
+    unsigned &index, char type, string name, bool optional, bool canCreateNewVariable, const bool &forbidVectors
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << "\n";
     };
     error = "";
@@ -801,22 +776,21 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(
         index++;
         return false;
     }
-    return addVectorOrVariableToParameters(scriptName, lineNumber, error, words, index,
-        type, name, optional, allAvailableEventIDs, NewVariablesForLookupTable, PassedVariables,
-        canCreateNewVariable, forbidVectors
+    return addVectorOrVariableToParameters(
+        scriptName, lineNumber, error, words, Scopes, NewLocalVariables, topAddress,
+        index, type, name, optional, canCreateNewVariable, forbidVectors
     );
 }
 bool OperationClass::addVectorOrVariableToParameters(
     const string & scriptName, const unsigned & lineNumber, string &error,
-    vector<WordStruct> words, unsigned &index, char type, string name, bool optional,
-    const vector<string> & allAvailableEventIDs,
-    const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
+    vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
+    vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
+    unsigned &index, char type, string name, bool optional, bool canCreateNewVariable,
     const bool & forbidVectors
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << "\n";
     };
     error = "";
@@ -849,18 +823,18 @@ bool OperationClass::addVectorOrVariableToParameters(
         Parameters.emplace_back(ParameterStruct());
         Parameters.back().treeLevel = 0;
         Parameters.back().type = 'c';
-        if(isVariableGlobal(NewVariablesForLookupTable, words[index].value)){
-            Parameters.back().variableID = words[index].value;
-        }
-        else{
-            string temp;
-            Parameters.back().variableID = findExistingVariableOrCreateNew(
-                NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                canCreateNewVariable, scriptName, lineNumber
-            );
-        }
+        Parameters.back().variableID = words[index].value;
         Parameters.back().negateVariable = words[index].negateVariable;
-        Parameters.back().isReference = checkIfVariableIsReference(PassedVariables, Parameters.back().variableID);
+
+        bool subError = false;
+        Parameters.back().localAddress = findExistingVariableOrCreateNew(
+            scriptName, lineNumber, subError, words[index].value, any_dt, Scopes,
+            NewLocalVariables, topAddress, canCreateNewVariable, false
+        );
+        if(subError){
+            return true;
+        }
+
         ++rootParametersSize;
         index++;
         return false;
@@ -891,18 +865,18 @@ bool OperationClass::addVectorOrVariableToParameters(
             Parameters.emplace_back(ParameterStruct());
             Parameters.back().treeLevel = 1;
             Parameters.back().type = 'c';
-            if(isVariableGlobal(NewVariablesForLookupTable, words[index].value)){
-                Parameters.back().variableID = words[index].value;
-            }
-            else{
-                string temp;
-                Parameters.back().variableID = findExistingVariableOrCreateNew(
-                    NewVariablesForLookupTable, allAvailableEventIDs, words[index].value, temp,
-                    canCreateNewVariable, scriptName, lineNumber
-                );
-            }
+            Parameters.back().variableID = words[index].value;
             Parameters.back().negateVariable = words[index].negateVariable;
-            Parameters.back().isReference = checkIfVariableIsReference(PassedVariables, Parameters.back().variableID);
+
+            bool subError = false;
+            Parameters.back().localAddress = findExistingVariableOrCreateNew(
+                scriptName, lineNumber, subError, words[index].value, any_dt, Scopes,
+                NewLocalVariables, topAddress, canCreateNewVariable, false
+            );
+            if(subError){
+                return true;
+            }
+
             index++;
             continue;
         }
@@ -999,16 +973,8 @@ void EventModule::clone(const EventModule &Original, vector<string> &listOfIDs, 
     ID = oldID;
     setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
 }
-void EventModule::resetStateVariables(){
-    programCounter = 0;
-    goToEndOfIfStatement.clear();
-    conditionalStatus = 'n';
-    breakFromCurrentLoop = false;
-    decrementProgramCounter = false;
-}
 void EventModule::setUpNewInstance(){
     willBeDeleted = false;
-    resetStateVariables();
 }
 EventModule::EventModule(){
     primaryConstructor("", nullptr, "", "");
@@ -1037,8 +1003,8 @@ DataType strToDataTypeWithoutPrimaryTypes(string dataType){
     }
     return strToDataType(dataType);
 }
-bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned & cursor,
-    const unsigned & lineNumber, const string & scriptName, vector<StartingVariableStruct> & NewVariablesForLookupTable
+bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned & cursor, const unsigned & lineNumber,
+    const string & scriptName, vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
 ){
     if(cursor >= words.size()){
         return false;
@@ -1050,14 +1016,14 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
 
     if(words[cursor].value != "("){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__ << ": Passed parameters must be enclosed in parentheses.\n";
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Passed parameters must be enclosed in parentheses.\n";
         return true;
     }
     
     cursor++;
     if(cursor >= words.size()){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
         return true;
     }
     
@@ -1067,26 +1033,26 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
         // [')'], [type, name, ')'], [type, '&', name, ')'], [type, name, ','], [type, '&', name, ',']
         if(cursor >= words.size()){ //[')'], [type]
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
             return true;
         }
         if(cursor + 1 >= words.size()){ //[name], ['&']
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": Passed variable requires a name.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Passed variable requires a name.\n";
             return true;
         }
         if(cursor + 2 >= words.size()){ //[')'], [name], [',']
             if(words[cursor + 1].type == 'c'){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
             }
             else if(words[cursor + 1].value == "&"){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Passed by reference variable requires a name.\n";
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Passed by reference variable requires a name.\n";
             }
             else{
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Token '"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Token '"
                     << words[cursor + 1].value << "' of the type '" << words[cursor + 1].type
                     << "' is not valid.\n";
             }
@@ -1101,12 +1067,12 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
         if(words[cursor + 2 + isReference].value != ")"){ //[')'], [',']
             if(words[cursor + 2 + isReference].value != ","){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Variables must be divided by commas.\n";
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variables must be divided by commas.\n";
                 return true;
             }
             if(cursor + 3 + isReference >= words.size()){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
                 return true;
             }
         }
@@ -1119,56 +1085,132 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
             cursor++;
         }
 
-        PassedVariables.emplace_back(variableType, variableID, variableID, variableIndex, ID, isReference);
-        NewVariablesForLookupTable.emplace_back(variableType, localContextID(ID, variableID), variableID, variableIndex, ID, isReference);
+        const auto[localAddress, e_Result] = getLocalAddress(
+            variableID, variableType, Scopes, LocalVariables, topAddress, true, false, isReference
+        );
+        if(e_Result == ReturnType::OUT_OF_SCOPE){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": "
+                << "Index (" << localAddress
+                << ") of a variable '" << variableID
+                << "' is out of scope (" << LocalVariables.size() << ").";
+            return true;
+        }
+
+        Parameters.emplace_back(isReference, variableType, localAddress, variableID);
+        
         ++variableIndex;
     }
     cursor++;
     return false;
 }
-string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<string> & allAvailableEventIDs, const string & variableID, string & usedEventID,
-    bool canCreateNewVariable, const string & scriptName, const unsigned &lineNumber,
-    bool ignoreUndefinedVariable
+inline const VariableLocationStruct * findVariableInTheScopes(
+    const vector<vector<VariableLocationStruct>> & Scopes, const string & variableName, bool onlySearchCurrentScope = false
 ){
-    for(unsigned eventIdx = 0; eventIdx < allAvailableEventIDs.size(); ++eventIdx){
-        string localName = localContextID(allAvailableEventIDs[eventIdx], variableID);
-        for(const StartingVariableStruct & ExistingVariable : NewVariablesForLookupTable){
-            if(localName == ExistingVariable.id/*localContextID(ExistingVariable.eventID, variableID)*/){
-                usedEventID = ExistingVariable.eventID;
-                return localName/*localContextID(ExistingVariable.eventID, variableID)*/;
+    if(onlySearchCurrentScope){
+        const auto & CurrentScope = Scopes.back();
+        for(const VariableLocationStruct & it_Variable : CurrentScope){
+            if(variableName == it_Variable.name){
+                return &it_Variable;
+            }
+        }
+        return nullptr;
+    }
+    for(auto it_Scope = Scopes.rbegin(); it_Scope != Scopes.rend(); ++it_Scope){
+        for(const VariableLocationStruct & it_Variable : *it_Scope){
+            if(variableName == it_Variable.name){
+                return &it_Variable;
             }
         }
     }
-    if(!canCreateNewVariable){
-        !ignoreUndefinedVariable && cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__ << ": Variable '" << variableID << "' is undefined.\n";
-        return variableID;
-    }
-    usedEventID = allAvailableEventIDs[0];
-    return localContextID(allAvailableEventIDs[0], variableID);
+    return nullptr;
 }
-//Passing variables to the event and creating expressions require a non-standard variable syntax (adding "&" to the beginning of referenced variables).
-string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
-    const string & variableID, bool canBeReferenced, bool canCreateNewVariable,
-    const string & scriptName, const unsigned &lineNumber
+std::pair<unsigned, ReturnType> getLocalAddress(const string & variableId, const DataType & variableType,
+    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables,
+    unsigned & topAddress, bool canAllocateNewVariable, bool makeVariableGlobal, bool makeVariableReference,
+    bool forceNewDeclaration
 ){
-    string customID = "";
-    if(isVariableGlobal(NewVariablesForLookupTable, variableID)){ //If the current variable is global, use it.
-        customID = variableID;
+    const VariableLocationStruct * FoundLocation = findVariableInTheScopes(Scopes, variableId, forceNewDeclaration);
+    
+    if(FoundLocation != nullptr){ //If the variable already exists
+        if(FoundLocation->isLocal){
+            if(FoundLocation->index >= NewLocalVariables.size()){
+                return {0, ReturnType::OUT_OF_SCOPE};
+            }
+            return {FoundLocation->index, ReturnType::OK};
+        }
+        else{
+            const unsigned newLocalIndex = NewLocalVariables.size();
+            NewLocalVariables.emplace_back(
+                VariableInfo(FoundLocation->name, FoundLocation->type, FoundLocation->isReference, FoundLocation->defaultAddress)
+            );
+            Scopes.back().push_back(*FoundLocation);
+            Scopes.back().back().index = newLocalIndex;
+            Scopes.back().back().isLocal = true;
+            return {newLocalIndex, ReturnType::OK};
+        }
     }
-    else{ //If the variable is local, first check if it exists in the available scopes. If not, create a new one for the current scope.
-        string temp;
-        customID = findExistingVariableOrCreateNew(
-            NewVariablesForLookupTable, allAvailableEventIDs, variableID, temp,
-            canCreateNewVariable, scriptName, lineNumber
+
+    if(!canAllocateNewVariable){
+        return {0, ReturnType::UNDEFINED};
+    }
+
+    const unsigned newLocalIndex = NewLocalVariables.size();
+    
+    if(!makeVariableGlobal){
+        if(makeVariableReference){
+            NewLocalVariables.emplace_back(VariableInfo(variableId, variableType, makeVariableReference, 0)); //References don't need a real address.
+        }
+        else{
+            NewLocalVariables.emplace_back(VariableInfo(variableId, variableType, makeVariableReference, topAddress++));
+        }
+        Scopes.back().emplace_back(
+            VariableLocationStruct(variableId, variableType, true, makeVariableReference, newLocalIndex, NewLocalVariables.back().defaultAddress)
+        );    
+    }
+    else{
+        NewLocalVariables.emplace_back(VariableInfo(variableId, variableType, false, topAddress++));
+        Scopes[0].emplace_back( //Add this variable to the global scope. Other events will be able to reference it.
+            VariableLocationStruct(variableId, variableType, false, true, newLocalIndex, NewLocalVariables.back().defaultAddress)
         );
+        Scopes.back().emplace_back( //Add this variable to the local scope so there's no further need o copying it in this scope.
+            VariableLocationStruct(variableId, variableType, true, false, newLocalIndex, NewLocalVariables.back().defaultAddress)
+        );  
     }
-    if(canBeReferenced && checkIfVariableIsReference(PassedVariables, customID)){
-        customID = "&" + customID;
+    
+    return {newLocalIndex, ReturnType::OK};
+}
+unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned &lineNumber, bool & error,
+    const string & variableID, const DataType & variableType, vector<vector<VariableLocationStruct>> & Scopes,
+    vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
+    bool canCreateNewVariable, bool ignoreUndefinedVariable
+){
+    error = false;
+    const auto [localAddress, e_Result] = getLocalAddress(variableID, variableType, Scopes,
+        NewLocalVariables, topAddress, canCreateNewVariable
+    );
+
+    if(e_Result == ReturnType::OUT_OF_SCOPE){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Address ("
+            << localAddress << ") is out of scope (" << NewLocalVariables.size() << ").\n";
+        error = true;
     }
-    return customID;
+    else if(e_Result == ReturnType::UNDEFINED){
+        if(ignoreUndefinedVariable){
+            const auto [localAddress, _] = getLocalAddress("NULL", null_dt, Scopes,
+                NewLocalVariables, topAddress, canCreateNewVariable
+            );
+            return localAddress;
+        }
+        else{
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableID << "' is undefined.\n";
+            error = true;
+        }
+    }
+
+    return localAddress;
 }
 TriggerType strToTrigger(const string &trigger){
     if(trigger == "on_boot") return on_boot;
@@ -1222,11 +1264,9 @@ string triggerToStr(const TriggerType &trigger){
             return "undefined";
     }
 }
-bool EventModule::getPassingVariables(vector<string> &passingVariables,
-    const vector<WordStruct> &words, unsigned &cursor,
-    const unsigned &lineNumber, const string &scriptName,
-    const vector<StartingVariableStruct> &NewVariablesForLookupTable,
-    const vector<string> &allAvailableEventIDs
+bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, const vector<WordStruct> &words,
+    unsigned &cursor, const unsigned &lineNumber, const string &scriptName,
+    vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
 ){
     if(cursor >= words.size()){
         return false;
@@ -1238,14 +1278,14 @@ bool EventModule::getPassingVariables(vector<string> &passingVariables,
 
     if(words[cursor].value != "("){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__ << ": Passing parameters must be enclosed in parentheses.\n";
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Passing parameters must be enclosed in parentheses.\n";
         return true;
     }
     
     cursor++;
     if(cursor >= words.size()){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << errorSpacing() << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
         return true;
     }
     
@@ -1254,30 +1294,48 @@ bool EventModule::getPassingVariables(vector<string> &passingVariables,
         // [')'], [name]
         if(words[cursor].type != 'c'){ //[name]
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": Parameter " << cursor+1 << " must be a context.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 << " must be a context.\n";
             return true;
         }
         if(cursor + 1 >= words.size()){ //[')'], [',']
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << errorSpacing() << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
             return true;
         }
         if(words[cursor + 1].value != ")"){
             if(words[cursor + 1].value != ","){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Variables must be divided by commas.\n";
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variables must be divided by commas.\n";
                 return true;
             }
             if(cursor + 2 >= words.size()){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << errorSpacing() << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
                 return true;
             }
         }
-        passingVariables.push_back(createCustomOutput(
-            NewVariablesForLookupTable, PassedVariables, allAvailableEventIDs,
-            words[cursor].value, true, false, scriptName, lineNumber
-        ));
+
+        const string & variableId = words[cursor].value;
+
+        const auto [localAddress, e_Result] = getLocalAddress(variableId, any_dt, Scopes,
+            LocalVariables, topAddress, false
+        );
+
+        if(e_Result == ReturnType::OUT_OF_SCOPE){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Address ("
+                << localAddress << ") is out of scope (" << LocalVariables.size() << ").\n";
+            return true;
+        }
+        else if(e_Result == ReturnType::UNDEFINED){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableId << "' is undefined.\n";
+            return true;
+        }
+
+        const VariableInfo & Variable = LocalVariables[localAddress];
+        Arguments.emplace_back(Variable.isReference, Variable.type, localAddress, variableId);
+
         if(words[cursor + 1].value == ","){
             cursor += 2;
         }

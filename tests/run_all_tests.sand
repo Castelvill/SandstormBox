@@ -19,9 +19,9 @@ start testRunnerEvent()
     bind TestIfStatements ["tests/if_statements.sand"]
     build TestIfStatements true
 
-    new Objects my_layer 1 "TestInline" TestInline
-    bind TestInline ["tests/inline.sand"]
-    build TestInline true
+    new Objects my_layer 1 "TestScopes" TestScopes
+    bind TestScopes ["tests/scopes.sand"]
+    build TestScopes true
 
     new Objects my_layer 1 "TestPassingReferences" TestPassingReferences
     bind TestPassingReferences ["tests/passing_references.sand"]

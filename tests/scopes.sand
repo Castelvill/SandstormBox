@@ -1,0 +1,26 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "SCOPES_TEST - START\n"
+    int a 2
+    assert a 2
+    if()
+        int a 5
+        assert a 5
+    end_if
+    assert a 2
+    assert b NULL
+    run changeA(a)
+    assert a 10
+    assert b NULL
+    print "SCOPES_TEST - PASSED\n"
+end
+
+start changeA(int & a)
+    assert a 2
+    int b 20
+    = a 5
+    assert a 5
+    = a 10
+    assert b 20
+end

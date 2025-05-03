@@ -449,7 +449,7 @@ VariableModule SuperTextModule::getAttributeValue(const AttributeType &attribute
     }
     
     cerr << instructionError(CurrentInstr, __PRETTY_FUNCTION__)
-        << "\n" << errorSpacing() << "Attribute '" << attribute << "' is not valid.\n";
+        << "\n" << NEW_LINE_PADDING << "Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 void SuperTextModule::getContext(AttributeType attribute, vector<BasePointersStruct> &BasePointers){

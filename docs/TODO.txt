@@ -1,8 +1,14 @@
+-Remove it_StartingEvent.
+-Remove createCallingStackOfInlineEvents???
+-Remove inline events - now we can easily create new scopes so it's current version is not needed anymore.
+-Make it possible to pass literals to functions - for example add VariableModule to PassingVariableInfo.
+-Create printCompilationError function that returns a string beginning with "Compilation Error" or "Compilation Warning".
+-Make LocalToGlobalTranslation vector persistent for not recurrent functions.
 -Reimplement variables handling - use addresses.
--Index variables with addresses. -> Implement local scopes inside ifs and loops.
+-Either add to objects a vector with indexes of all triggerable (you will still have to run isEventTriggered because it filters out false positives) events or divide EventContainer to EventContainer and FunctionContainer - it would save a lot of time by ignoring functions in findNextEvent.
 -Remove RPN from expressions.
 -Use curly brackets instead of "end", "end_if" and "end_while"
--Create a traslation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
+-Create a translation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
 -Fuse "triggers" instruction with event declaration with the syntax "event<triggers>(args)".
 -Fix the error present when executing "else.sand". It is not connected to rawID. A reference is not turned into a reference.
 -Fix "inline else_0".

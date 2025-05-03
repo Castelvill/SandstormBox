@@ -1,6 +1,6 @@
 #include "usefull.h"
 
-int cstoi(string text, string & error){
+int cstoi(const string & text, string & error){
     error = "";
     if(text == "true"){
         return 1;
@@ -16,7 +16,7 @@ int cstoi(string text, string & error){
         return 0;
     }
 }
-double cstod(string text, string & error){
+double cstod(const string & text, string & error){
     error = "";
     try{
         return stod(text);
@@ -26,7 +26,7 @@ double cstod(string text, string & error){
         return 0;
     }
 }
-float cstof(string text, string & error){
+float cstof(const string & text, string & error){
     error = "";
     try{
         return stof(text);

@@ -1,6 +1,6 @@
 #include "primaryModule.h"
 
-EngineInstr strToInstr(string instruction){
+EngineInstr strToInstr(const string & instruction){
     if(instruction == "start"){
         return EngineInstr::start;
     }
@@ -54,6 +54,9 @@ EngineInstr strToInstr(string instruction){
     }
     if(instruction == "dump_context_stack"){
         return EngineInstr::dump_context_stack;
+    }
+    if(instruction == "dump_memory"){
+        return EngineInstr::dump_memory;
     }
     if(instruction == "first"){
         return EngineInstr::first;
@@ -383,6 +386,8 @@ string instrToStr(const EngineInstr & instruction){
             return "reset_keyboard";
         case dump_context_stack:
             return "dump_context_stack";
+        case dump_memory:
+            return "dump_memory";
         case first:
             return "first";
         case last:
@@ -577,29 +582,23 @@ string instrToStr(const EngineInstr & instruction){
     cerr << "Error: In " << __FUNCTION__ << ": EngineInstr with code: '" << instruction << "' is undefined.\n"; 
     return "undefined";
 }
-string instructionError(InstrDescription Description, string functionName){
+string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType){
     if(Description.scriptName == ""){
         if(Description.layerID == ""){
-            return "Error: In " + functionName + ": "; 
+            return messageType + ": In " + functionName + ":\n"
+                + NEW_LINE_PADDING;
         }
-        return "Error: In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
-            + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
+        return messageType + ": In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
+            + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ":\n"
+            + NEW_LINE_PADDING;
     }
-    return "Error: In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
-        + errorSpacing() + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
-        + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ": ";
+    return messageType + ": In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
+        + NEW_LINE_PADDING + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
+        + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ":\n"
+        + NEW_LINE_PADDING;
 }
-string instructionWarning(InstrDescription Description, string functionName){
-    if(Description.scriptName == ""){
-        if(Description.layerID == ""){
-            return "Warning: In " + functionName + ": "; 
-        }
-        return "Error: In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
-            + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
-    }
-    return "Error: In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
-        + errorSpacing() + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
-        + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ": "; 
+string instructionWarning(const InstrDescription & Description, const string & functionName){
+    return instructionError(Description, functionName, "Warning");
 }
 
 void PrimaryModule::primaryConstructor(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
@@ -1988,7 +1987,6 @@ string BasePointersStruct::getString() const{
     }
 }
 
-string errorSpacing(){return "\t";};
 string attributeToStr(const AttributeType &attribute){
     switch (attribute){
         case null_a: return "null";
@@ -2359,6 +2357,8 @@ string attributeToStr(const AttributeType &attribute){
         case primitives_a: return "primitives";
         case vector_a: return "vector";
         case context_a: return "context";
+        case memory_address_a: return "memory_address";
+        case literal_a: return "literal";
         case set_is_active: return "set_is_active";
         case add_group: return "add_group";
         case remove_group: return "remove_group";
@@ -2945,6 +2945,8 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "primitives") return primitives_a;
     else if(attribute == "vector") return vector_a;
     else if(attribute == "context") return context_a;
+    else if(attribute == "memory_address") return memory_address_a;
+    else if(attribute == "literal") return literal_a;
     else if(attribute == "set_is_active") return set_is_active;
     else if(attribute == "add_group") return add_group;
     else if(attribute == "remove_group") return remove_group;

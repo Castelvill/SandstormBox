@@ -13,9 +13,9 @@ using std::string;
 const double FPS = 60.0;
 const vector<string> reservedIDs = {};
 
-int cstoi(string text, string & error);
-double cstod(string text, string & error);
-float cstof(string text, string & error);
+int cstoi(const string & text, string & error);
+double cstod(const string & text, string & error);
+float cstof(const string & text, string & error);
 string shortToStr(short integer);
 string intToStr(int integer);
 string uIntToStr(unsigned int integer);

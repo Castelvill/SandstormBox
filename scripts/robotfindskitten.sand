@@ -14,7 +14,7 @@ start onInit
     var GAME_MAP_H 22
     var GAME_MAP_SIZE GAME_MAP_W
     *= GAME_MAP_SIZE GAME_MAP_H
-    print GAME_MAP_SIZE "\n"
+    print "Game map size: " GAME_MAP_SIZE "\n"
     var MAX_ITEMS 200
 
     fun me set_can_be_selected false
@@ -51,7 +51,7 @@ start onInit
 
     var playerX 0
     var playerY 0
-    vec int nonKittenPos
+    int_vec nonKittenPos []
 end
 
 start eachIteration
@@ -79,18 +79,16 @@ start startGame
     end_while
 end
 
-inline drawScene(SText TextField)
+start drawScene(SText TextField)
     if(gameState 1 !=)
         return
     end_if
-    //dump_context_stack
-    print "aaa"
-    exit
+
     fun TextField set_content "robotfindskitten v1600005.334b\n\n_______________________________________________________________________"
     
     run drawItems(TextField)
 
-    print counter "\n"
+    print "Iteration number: " counter "\n"
     fun TextField set_size SCREEN_W SCREEN_H
     fun TextField update
     int seconds 0
@@ -114,13 +112,9 @@ start drawItems(SText TextField)
             end_if
             next item
         end_while
-        run addSpace()
+        if(hit !)
+            fun TextField add_content " "
+        end_if
         next index
     end_while
-end
-
-inline addSpace
-    if(hit !)
-        fun TextField add_content " "
-    end_if
 end

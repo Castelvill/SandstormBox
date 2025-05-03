@@ -54,7 +54,8 @@ struct EventsLookupTable{
 };
 
 struct ReferenceStruct{
-    string id;
+    unsigned realAddress;
+    string name;
     string eventID;
     bool isNotDirect = false;
 };
@@ -78,12 +79,12 @@ public:
     void clear();
     void clearState();
     // void setID(const InstrDescription & CurrentInstr,
-    //     std::unordered_map<string, ContextClass> & EventContext,
+    //     std::unordered_map<string, ContextClass> & ObjectMemory,
     //     std::unordered_map<string, ReferenceStruct> & References, string newID,
     //     const bool & printOutInstructions, int maxLengthOfValuesPrinting
     // );
     size_t getVectorSize() const;
-    string getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting);
+    string getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting) const;
     ReturnType getAllValues(vector<VariableModule> & NewValues);
     ReturnType getValue(VariableModule & NewValue);
     bool getUnsignedOrAbort(unsigned & number, const InstrDescription & CurrentInstr);
@@ -109,10 +110,10 @@ public:
     void addModule(PrimitivesModule * Module);
     void addModule(VectorModule * Module);
 
-    bool copyFromTheParameter(std::unordered_map<string, ContextClass> & EventContext,
-        std::unordered_map<string, ReferenceStruct> & References,
-        const string & callingSource, const InstrDescription & CurrentInstr,
-        const vector<ParameterStruct> & Parameters, unsigned index, bool printErrors
+    bool copyFromTheParameter(
+        std::unordered_map<unsigned, ContextClass> & MemoryMap, const vector<DynamicVariableInfo> & EventLocalVariables,
+        const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+        const unsigned & index, const bool & printErrors
     );
     void copyOnlyCurrentType(const ContextClass *Original);
 
@@ -122,6 +123,8 @@ public:
 
     unsigned size() const;
 };
+
+using MemoryMapType = std::unordered_map<unsigned, ContextClass>;
 
 template<class EntityType>
 void copyFirstInstance(vector<EntityType> & NewContainer, vector<EntityType> & OriginalContainer,
@@ -139,24 +142,41 @@ void copyFirstInstance(vector<EntityType> & NewContainer, vector<EntityType> & O
     NewContainer[0] = OriginalContainer[0];
 }
 
-struct ContextMapStruct{
-public:
-	std::unordered_map<string, ContextClass> Contexts;
-    std::unordered_map<string, ReferenceStruct> References;
-    string callingSource;
+struct DynamicMemoryStruct{
+    unsigned address;
+    bool inUse = false;
+};
+
+struct ObjectMemoryStruct{
+	std::unordered_map<unsigned, ContextClass> MemoryMap;
+    vector<DynamicMemoryStruct> DynamicMemory;
+    vector<VariableLocationStruct> GlobalScope; //Required for runtime compilation.
+    unsigned topAddress = 0;
+    unsigned topFreeDynamicAddress = 0; //It's a quick and dirty? way to track where the unused dynamic memory starts.
+    void clear();
+};
+
+struct EventCallStateStruct{
+    bool isCurrentCallRecursive = false;
+    unsigned programCounter = 0;
+    bool decrementProgramCounter = false;
+    char conditionalStatus = 'n'; //n-null, t-true, f-false
+    bool breakFromCurrentLoop = false;
+    vector<char> goToEndOfIfStatement;
     void clear();
 };
 
 struct EventStackStruct{
     vector<EventModule>::iterator Event;
-    vector<string> passingVariables;
+    vector<DynamicVariableInfo> LocalVariables;
+    EventCallStateStruct EventCallState;
 };
 
 struct PointerRecalculator{
-    std::unordered_map<string, vector<unsigned>> CameraIndexes;
-    std::unordered_map<string, vector<unsigned>> LayerIndexes;
-    std::unordered_map<string, vector<AncestorIndex>> ObjectIndexes;
-    std::unordered_map<string, vector<ModuleIndex>> ModuleIndexes;
+    std::unordered_map<unsigned, vector<unsigned>> CameraIndexes;
+    std::unordered_map<unsigned, vector<unsigned>> LayerIndexes;
+    std::unordered_map<unsigned, vector<AncestorIndex>> ObjectIndexes;
+    std::unordered_map<unsigned, vector<ModuleIndex>> ModuleIndexes;
     vector<AncestorIndex> TriggeredObjectIndexes;
     vector<ModuleIndex> PastEvents;
 
@@ -172,23 +192,23 @@ struct PointerRecalculator{
     ModuleIndex ActiveEditableTextIndex = {0, 0, 0};
 
     void clear();
-    void findIndexesForCameras(vector<Camera2D> &Cameras, ContextMapStruct & EventContext, Camera2D *& SelectedCamera);
-    void findIndexesForLayers(vector<LayerClass> &Layers, ContextMapStruct & EventContext, LayerClass *& OwnerLayer);
-    void findIndexesForObjects(vector<LayerClass> &Layers, ContextMapStruct & EventContext, AncestorObject *& Owner,
+    void findIndexesForCameras(vector<Camera2D> &Cameras, ObjectMemoryStruct & ObjectMemory, Camera2D *& SelectedCamera);
+    void findIndexesForLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer);
+    void findIndexesForObjects(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
     template <class Module>
     ModuleIndex getIndex(Module *& Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
     ModuleIndex getIndex(vector<EventModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
     template <class Module>
-    void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr, string contextID);
-    void findIndexesForModules(vector<LayerClass> &Layers, ContextMapStruct & EventContext, vector<EventModule>::iterator & it_StartingEvent,
+    void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr, const unsigned & address);
+    void findIndexesForModules(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
         vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
-    void updatePointersToCameras(vector<Camera2D> &Cameras, ContextMapStruct & EventContext,
+    void updatePointersToCameras(vector<Camera2D> &Cameras, ObjectMemoryStruct & ObjectMemory,
         Camera2D *& SelectedCamera, string processID, string & focusedProcessID, const InstrDescription & CurrentInstr);
-    void updatePointersToLayers(vector<LayerClass> &Layers, ContextMapStruct & EventContext, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr);
-    void updatePointersToObjects(vector<LayerClass> &Layers, ContextMapStruct & EventContext, AncestorObject *& Owner,
+    void updatePointersToLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr);
+    void updatePointersToObjects(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, const InstrDescription & CurrentInstr);
-    void updatePointersToModules(vector<LayerClass> &Layers, ContextMapStruct & EventContext, vector<EventModule>::iterator & it_StartingEvent,
+    void updatePointersToModules(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
         vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
     LayerClass * getOwnerLayer(vector <LayerClass> & Layers);
 };
@@ -208,6 +228,12 @@ struct Triggers{
 enum EventControlFlow: char{
     flow_next_event, flow_run_function, flow_jump_back, flow_abort, flow_self_deletion
 };
+
+enum builtInVarAddr : unsigned{
+    NULL_bv = 0, me_bv = 1, my_layer_bv = 2
+};
+
+using TimePoint = std::chrono::steady_clock::time_point;
 
 class ProcessClass{
 private:
@@ -237,7 +263,7 @@ private:
     vec2d dragCameraStaringPos, dragLimit;
     EventsLookupTable BaseOfTriggerableObjects;
     bool firstIteration;
-    bool wasDeleteExecuted, wasNewExecuted, wasAnyEventUpdated, wereGlobalVariablesCreated;
+    bool wasDeleteExecuted, wasNewExecuted, wasAnyEventUpdated;
 
     bool wasMousePressedInSelectedObject;
     CameraMoveType activeCameraMoveType;
@@ -252,7 +278,7 @@ private:
     bool printOutInstructions;
     int maxLengthOfValuesPrinting = 100; //Used in printing values of variables while debugging.
     bool printOutStackAutomatically;
-    float reservationMultiplier;
+    float reservationMultiplier = 1.5;
 
     long timeToInterruptMovement;
     long timeToInterruptParticles;
@@ -262,14 +288,15 @@ private:
     VariableModule LeftOperandProc, RightOperandProc;
     ContextClass NewContext, HelpContext;
     EngineInstr interruptInstruction;
-    
+    vector<DynamicVariableInfo> LocalToGlobalTranslation;
+    EventCallStateStruct EventCallState;
 public:
     vector <unsigned> camerasOrder;
     vector <unsigned> layersOrder;
     InstrDescription CurrentInstr;
-    std::unordered_map<string, ContextMapStruct> ContextLookupTable; //Keys are made of ids of the layer and object.
+    std::unordered_map<string, ObjectMemoryStruct> ContextLookupTable; //Keys are made of ids of the layer and object.
 
-    std::unordered_map<string, std::chrono::steady_clock::time_point> userDefinedTimers;
+    std::unordered_map<string, TimePoint> userDefinedTimers;
 
     std::unordered_map<EngineInstr, int64_t> TimeSpentOnInstructions;
 
@@ -281,6 +308,17 @@ public:
 
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
+    void setupBuiltInVariables(ObjectMemoryStruct &CurrentMap);
+    //Return true if the provided address was already used.
+    bool allocateRealMemory(const std::string &variableId, const DataType &variableType,
+        const bool &readOnly, const bool &isLocal, const bool &isReference,
+        const unsigned int &newRealAddress, const unsigned int &localIndex,
+        ObjectMemoryStruct &CurrentMap
+    );
+    void allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap, const vector<EventModule> & EventContainer);
+    // void buildVariableLookupTable(ObjectMemoryStruct & ObjectMemory, vector<VariableInfo> & NewLocalVariables,
+    //     const vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr
+    // );
     void create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
     void clear();
     void resizeWindow(vec2d newSize);
@@ -292,19 +330,19 @@ public:
     void checkMouseCollisions(EngineClass & Engine);
     void renderOnDisplay(EngineClass & Engine);
     void aggregateCameras(OperationClass & Operation, ContextClass & NewContext, vector <Camera2D*> AggregatedCameras,
-        const EngineClass & Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
+        const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory, bool onlyFirstRequired
     );
     void aggregateLayers(OperationClass & Operation, ContextClass & NewVariable, vector <LayerClass*> AggregatedLayers,
-        const EngineClass & Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
+        const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory, bool onlyFirstRequired
     );
     void aggregateObjects(OperationClass & Operation, ContextClass & NewVariable, vector <AncestorObject*> AggregatedObjects,
-        const EngineClass & Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
+        const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory, bool onlyFirstRequired
     );
     //Returns true if the context is of a module type.
     bool chooseRandomModuleInstance(ContextClass & NewContext);
     template<class ModuleClass>
     void aggregateModuleContextFromVectors(vector<ModuleClass*> AggregatedModules, const DataType & aggregatedType, OperationClass & Operation, ContextClass & NewContext,
-        AncestorObject * Object, const EngineClass & Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
+        AncestorObject * Object, const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory, bool onlyFirstRequired
     );
     template<class ModuleClass>
     void findContextInModule(DataType type, AttributeType attribute, ContextClass & NewContext, ModuleClass * Module);
@@ -313,7 +351,7 @@ public:
         ContextClass & NewContext, vector <ModuleClass*> AggregatedModules, bool onlyFirstRequired
     );
     void aggregateModules(OperationClass & Operation, ContextClass & NewVariable, ContextClass * OldContext,
-        ContextMapStruct & EventContext, const EngineClass & Engine);
+        ObjectMemoryStruct & ObjectMemory, const EngineClass & Engine);
     void aggregatePointers(ContextClass & NewContext, vector <BasePointersStruct> & AggregatedPointers, bool onlyFirstRequired);
     void aggregateVariables(ContextClass & NewContext, vector <VariableModule> & AggregatedVariables, bool onlyFirstRequired);
     void findContextInCamera(AttributeType attribute, ContextClass & NewContext, Camera2D * Camera);
@@ -334,52 +372,52 @@ public:
     void executeOperationsOnSets(vector<Entity*> & NewContext, vector<Entity*> & LeftOperand, vector<Entity*> & RightOperand);
     template<class Entity>
     void executeOperationsOnSets(vector<Entity> & NewContext, vector<Entity> & LeftOperand, vector<Entity> & RightOperand);
-    void aggregateTwoSets(OperationClass & Operation, ContextMapStruct & EventContext);
-    // void addNewContext(ContextMapStruct & EventContext, 
+    void aggregateTwoSets(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    // void addNewContext(ContextMapStruct & ObjectMemory, 
     //     const ContextClass & NewContext, string type, string newID, bool global
     // );
-    void aggregateEntities(OperationClass & Operation, ContextMapStruct & EventContext, const EngineClass & Engine);
-    void assignVariableFromPointer(ContextMapStruct & EventContext, ContextClass * Context, string variableID, bool isReference);
-    void assignVariable(ContextMapStruct & EventContext, string variableID, bool isReference);
-    void aggregateValues(ContextMapStruct & EventContext, OperationClass & Operation, LayerClass *OwnerLayer,
-        AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes);
-    void aggregateOnlyById(ContextMapStruct & EventContext, OperationClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner);
-    //void nameVariable(ContextMapStruct & EventContext, OperationClass & Operation);
-    void moveValues(OperationClass & Operation, ContextMapStruct & EventContext);
-    void incrementInteger(OperationClass & Operation, ContextMapStruct & EventContext);
-    void cloneEntities(OperationClass & Operation, ContextMapStruct & EventContext, vector<LayerClass> &Layers);
-    void executeArithmetics(OperationClass & Operation, ContextMapStruct & EventContext);
-    void generateRandomVariable(ContextMapStruct & EventContext, const OperationClass & Operation);
-    void createLiteral(ContextMapStruct & EventContext, const OperationClass & Operation);
-    void checkIfVectorContainsVector(OperationClass & Operation, ContextMapStruct & EventContext);
-    bool prepareVectorSizeAndIDsForNew(OperationClass & Operation, ContextMapStruct & EventContext, unsigned & newVectorSize, vector <string> & newIDs);
-    bool prepareDestinationForNew(OperationClass & Operation, ContextMapStruct & EventContext, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
-    void assignEntities(ContextMapStruct & EventContext, ContextClass & NewValue,
-        string variableID, bool isReference, const DataType & source
+    void aggregateEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, const EngineClass & Engine);
+    void assignVariable(ObjectMemoryStruct & ObjectMemory, const OutputParameterStruct & Output);
+    void aggregateValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
+        LayerClass *OwnerLayer, AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes
     );
-    void createNewEntities(OperationClass & Operation, ContextMapStruct & EventContext, LayerClass *& OwnerLayer,
+    void aggregateOnlyById(ObjectMemoryStruct & ObjectMemory, OperationClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner);
+    //void nameVariable(ContextMapStruct & ObjectMemory, OperationClass & Operation);
+    void moveValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void incrementInteger(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers);
+    void executeArithmetics(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void generateRandomVariable(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void createLiteral(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void checkIfVectorContainsVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    bool prepareVectorSizeAndIDsForNew(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, unsigned & newVectorSize, vector <string> & newIDs);
+    bool prepareDestinationForNew(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
+    void assignEntities(ObjectMemoryStruct & ObjectMemory,
+        ContextClass & NewValue, OutputParameterStruct & Output
+    );
+    void createNewEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
         vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, string & focusedProcessID
     );
-    void markEntitiesForDeletion(OperationClass & Operation, ContextMapStruct & EventContext, LayerClass *& OwnerLayer,
+    void markEntitiesForDeletion(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, string & focusedProcess
     );
-    void getIndexes(ContextMapStruct & EventContext, const vector<ParameterStruct> & Parameters, vector<unsigned> & indexes, bool skipContext);
+    void getIndexes(ObjectMemoryStruct & ObjectMemory, const vector<ParameterStruct> & Parameters, vector<unsigned> & indexes, bool skipContext);
     void getReferenceFromLayer(const OperationClass & Operation, ContextClass & SourceContext, vector<unsigned> & indexes, ContextClass & NewContext);
     void getReferenceFromObject(const OperationClass & Operation, ContextClass & SourceContext, vector<unsigned> & indexes, ContextClass & NewContext);
     void getReferenceFromContextByIndex(OperationClass & Operation, ContextClass & SourceContext, vector<unsigned> & indexes, ContextClass & NewContext);
-    void getReferenceByIndex(OperationClass & Operation, ContextMapStruct & EventContext);
-    void getInstanceFromVector(OperationClass & Operation, ContextMapStruct & EventContext);
-    void bindFilesToObjects(OperationClass & Operation, ContextMapStruct & EventContext);
-    void removeBindedFilesFromObjects(OperationClass & Operation, ContextMapStruct & EventContext);
-    bool buildEventsInObjects(OperationClass & Operation, ContextMapStruct & EventContext, AncestorObject * Owner,
+    void getReferenceByIndex(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void getInstanceFromVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void bindFilesToObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void removeBindedFilesFromObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    bool buildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
         vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool allowNotAscii
     );
-    bool customBuildEventsInObjects(OperationClass & Operation, ContextMapStruct & EventContext,
+    bool customBuildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
         AncestorObject * Owner, vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
         vector<EventStackStruct> & MemoryStack, const EngineInstr & mode, bool allowNotAscii
     );
-    void clearEventsInObjects(OperationClass & Operation, ContextMapStruct & EventContext, AncestorObject * Owner);
+    void clearEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner);
     void executeFunctionForCameras(OperationClass & Operation, vector <VariableModule> & Variables,
         vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera, string & focusedProcessID
     );
@@ -393,52 +431,56 @@ public:
     void minimizeObjectInDrawingOrder(AncestorObject * Object);
     void bringForwardObjectInDrawingOrder(AncestorObject * Object);
     void executeFunctionForObjects(OperationClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
-    void executeFunction(OperationClass Operation, ContextMapStruct & EventContext, vector<EventModule>::iterator & it_Event, EngineClass & Engine);
-    void changeEngineVariables(OperationClass & Operation, ContextMapStruct & EventContext, EngineClass & Engine);
-    void changeProcessVariables(OperationClass & Operation, ContextMapStruct & EventContext, vector <string> & processIDs);
-    void loadBitmap(OperationClass & Operation, ContextMapStruct & EventContext, vector<SingleBitmap> & BitmapContainer);
-    void createDirectory(OperationClass & Operation, ContextMapStruct & EventContext);
-    void removeFileOrDirectory(OperationClass & Operation, ContextMapStruct & EventContext);
-    void removeRecursivelyFileOrDirectory(OperationClass & Operation, ContextMapStruct & EventContext);
-    void renameFileOrDirectory(OperationClass & Operation, ContextMapStruct & EventContext);
-    void executePrint(OperationClass & Operation, ContextMapStruct & EventContext);
-    void saveStringAsFile(OperationClass & Operation, ContextMapStruct & EventContext);
-    void loadFileAsString(OperationClass & Operation, ContextMapStruct & EventContext);
-    void listOutEntities(OperationClass & Operation, ContextMapStruct & EventContext, const vector<ProcessClass> & Processes, const EngineClass & Engine);
-    void createNewProcess(OperationClass & Operation, vector<ProcessClass> & Processes, ContextMapStruct & EventContext,
+    void executeFunction(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
+        vector<EventModule>::iterator & Event, EngineClass & Engine
+    );
+    void changeEngineVariables(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, EngineClass & Engine);
+    void changeProcessVariables(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector <string> & processIDs);
+    void loadBitmap(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<SingleBitmap> & BitmapContainer);
+    void createDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void removeFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void removeRecursivelyFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void renameFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void executePrint(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void saveStringAsFile(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void loadFileAsString(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void listOutEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, const vector<ProcessClass> & Processes, const EngineClass & Engine);
+    void createNewProcess(OperationClass & Operation, vector<ProcessClass> & Processes, ObjectMemoryStruct & ObjectMemory,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
         vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine
     );
-    void createNewOwnerVariable(OperationClass & Operation, ContextMapStruct & EventContext, AncestorObject * Owner,
+    void createNewOwnerVariable(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
         vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
     );
-    void createNewOwnerVector(OperationClass & Operation, ContextMapStruct & EventContext, AncestorObject * Owner,
+    void createNewOwnerVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
         vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
     );
-    void tokenizeStringFromContext(OperationClass & Operation, ContextMapStruct & EventContext);
-    void printTree(OperationClass & Operation, ContextMapStruct & EventContext, vector<ProcessClass> & Processes);
-    void getStringSizeFromContext(OperationClass & Operation, ContextMapStruct & EventContext);
-    void getSizeOfContext(OperationClass & Operation, ContextMapStruct & EventContext);
-    void getSubStringFromContext(OperationClass & Operation, ContextMapStruct & EventContext);
-    void loadFontFromContext(OperationClass & Operation, ContextMapStruct & EventContext, EngineClass & Engine);
-    void findByIDInEventContext(OperationClass & Operation, ContextMapStruct & EventContext);
-    void listOutFiles(OperationClass & Operation, ContextMapStruct & EventContext);
-    void changeWorkingDirectory(OperationClass & Operation, ContextMapStruct & EventContext);
-    void printWorkingDirectory(OperationClass & Operation, ContextMapStruct & EventContext);
-    void findSimilarStrings(OperationClass & Operation, ContextMapStruct & EventContext);
-    void countPatternOccurrences(OperationClass &Operation, ContextMapStruct & EventContext);
-    void getConsoleInput(OperationClass & Operation, ContextMapStruct & EventContext,
+    void tokenizeStringFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void printTree(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<ProcessClass> & Processes);
+    void getStringSizeFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void getSizeOfContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void getSubStringFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void loadFontFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, EngineClass & Engine);
+    void findByIDInObjectMemory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void listOutFiles(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void changeWorkingDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void printWorkingDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void findSimilarStrings(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void countPatternOccurrences(OperationClass &Operation, ObjectMemoryStruct &ObjectMemory);
+    void getConsoleInput(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
         int & terminationTimer, const int & timeoutTerminationTime, ALLEGRO_EVENT_QUEUE * eventQueue
     );
-    void createDisplay(OperationClass & Operation, ContextMapStruct & EventContext, EngineClass & Engine);
-    void startTimer(OperationClass & Operation, ContextMapStruct & EventContext);
-    void stopTimer(OperationClass & Operation, ContextMapStruct & EventContext);
-    bool assertValues(OperationClass & Operation, ContextMapStruct & EventContext);
-    void getContextType(OperationClass & Operation, ContextMapStruct & EventContext);
+    void createDisplay(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, EngineClass & Engine);
+    void startTimer(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void stopTimer(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    bool assertValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void getContextType(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void dumpVariables(const std::unordered_map<unsigned int, ContextClass> & MemoryMap);
+    void dumpMemory(std::unordered_map<unsigned int, ContextClass> & MemoryMap);
     EngineInstr executeInstructions(vector<OperationClass> & Operations, LayerClass *& OwnerLayer,
-        AncestorObject *& Owner, ContextMapStruct & EventContext, vector<AncestorObject*> & TriggeredObjects,
+        AncestorObject *& Owner, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject *> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,
+        vector<EventModule>::iterator & Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,
         unsigned & runChildEventWithIndex
     );
     VariableModule findNextValueInMovementModule(ConditionClass & Condition, AncestorObject * CurrentObject);
@@ -452,39 +494,51 @@ public:
     VariableModule findNextValueAmongObjects(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
         const MouseClass & Mouse
     );
-    void getExistsOrIsDirectory(ContextMapStruct & EventContext, VariableModule & NewValue, const string & variableID, const ValueSource & source);
-    void getScreenWidthOrHeigth(ContextMapStruct & EventContext, VariableModule & NewValue, const VariableModule & Literal, const ValueSource & source);
+    void getExistsOrIsDirectory(ObjectMemoryStruct & ObjectMemory, VariableModule & NewValue, const unsigned localVariableAddress,
+        const string & variableID, const ValueSource & source
+    );
+    void getScreenWidthOrHeigth(ObjectMemoryStruct & ObjectMemory, VariableModule & NewValue,
+        const ConditionClass &Condition, const ValueSource & source
+    );
     bool getProcess(VariableModule & NewValue, vector<ProcessClass> * Processes, ProcessClass *& Process, const string & processID);
-    VariableModule getValueFromVector(ConditionClass & Condition, ContextMapStruct & EventContext);
-    void getValueFromContext(ConditionClass & Condition, ContextMapStruct & EventContext,
+    VariableModule getValueFromVector(ConditionClass & Condition, ObjectMemoryStruct & ObjectMemory);
+    void getValueFromContext(ConditionClass & Condition, ObjectMemoryStruct & ObjectMemory,
         AncestorObject * Owner, LayerClass * OwnerLayer, const MouseClass & Mouse, VariableModule & NewValue
     );
     void findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
-        const EngineClass & Engine, vector<ProcessClass> * Processes, ContextMapStruct & EventContext, VariableModule & NewValue);
+        const EngineClass & Engine, vector<ProcessClass> * Processes, ObjectMemoryStruct & ObjectMemory, VariableModule & NewValue);
     char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, vector<VariableModule> & resultStack,
-    AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, ContextMapStruct & EventContext);
-    vector<EventModule>::iterator findChildEventToRun(
-        vector<EventModule> & EventContainer, vector<EventModule>::iterator & it_Event,
-        vector<string> & passingVariables, string & callingScript, unsigned & lineNumber,
+    AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory);
+    std::pair<vector<EventModule>::iterator, ChildStruct*> findChildEventToRun(
+        vector<EventModule> & EventContainer, vector<EventModule>::iterator & Event,
         const unsigned & runChildEventWithIndex
     );
     bool deleteEntities();
-    void resetChildren(vector<EventModule>::iterator & it_Event, AncestorObject * Triggered);
-    bool passVariablesToTheChild(const vector<string> & ParentEventVariables,
-        const vector<StartingVariableStruct> & CurrentEventVariables, ContextMapStruct & VariablesLoookupTable
+    void allocateNewDynamicMemory(ObjectMemoryStruct & ObjectMemory, const VariableInfo & NewLocalVar);
+    void allocateMemoryForDynamicVariables(const vector<EventModule>::iterator & it_NewEvent, ObjectMemoryStruct & ObjectMemory);
+    void deallocateDynamicallyAllocatedMemory(vector<DynamicMemoryStruct> & DynamicMemory, unsigned & topDynamicAddress);
+    bool passVariablesToTheChild(const vector<PassingVariableInfo> & ParentEventArguments,
+        const vector<PassingVariableInfo> & CurrentEventParameters,
+        vector<EventModule>::iterator & ParentEvent, vector<EventModule>::iterator & CurrentEvent,
+        vector<DynamicVariableInfo> & CurrentEventLocalVariables,
+        vector<DynamicVariableInfo> & ParentEventLocalVariables,
+        ObjectMemoryStruct & ObjectMemory
+    );
+    EventControlFlow prepareChildEvent(ObjectMemoryStruct & ObjectMemory, vector<EventStackStruct> & EventStack,
+        vector<EventModule>::iterator & it_Event, ChildStruct * SelectedChild, TimePoint timeBegin
     );
     EventControlFlow executeSingleEvent(EngineClass & Engine, vector<ProcessClass> & Processes,
         vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
-        vector<EventStackStruct> & EventStack, ContextMapStruct & VariablesLoookupTable,
-        vector <AncestorObject*> & TriggeredObjects, LayerClass *& TriggeredLayer,
+        vector<EventStackStruct> & EventStack, ObjectMemoryStruct & VariablesLoookupTable,
+        vector<AncestorObject*> & TriggeredObjects, LayerClass *& TriggeredLayer,
         AncestorObject *& Triggered
     );
     //Return true if engine should be rebooted or terminated.
     bool executeEventLoop(EngineClass & Engine, vector<ProcessClass> & Processes,
         const Triggers & CurrentTriggers, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & EventStack,
-        ContextMapStruct & VariablesLoookupTable, vector <AncestorObject*> & TriggeredObjects,
-        LayerClass *& TriggeredLayer, AncestorObject *& TriggeredObject
+        vector<EventModule>::iterator & it_Event, ObjectMemoryStruct & VariablesLoookupTable,
+        vector <AncestorObject*> & TriggeredObjects, LayerClass *& TriggeredLayer,
+        AncestorObject *& TriggeredObject
     );
     bool executeTriggeredEvents(EngineClass & Engine, vector<ProcessClass> & Processes,
         vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers

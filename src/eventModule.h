@@ -61,6 +61,7 @@ class ConditionClass{
 public:
     VariableModule Literal;
     ValueLocation Location;
+    unsigned localAddresses[2] = {0, 0};
     vector <EngineInstr> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
     ConditionClass(unsigned int newID);
     ConditionClass(string newID);
@@ -71,10 +72,16 @@ struct ParameterStruct{
     unsigned treeLevel = 0;
     char type = 'e'; //e - empty, l - literal, c - variable, v - vector
     VariableModule Literal;
+    unsigned localAddress = 0;
     string variableID = "";
     bool negateVariable = false;
-    bool isReference = false;
     string getVariableIdOrValue();
+};
+
+struct OutputParameterStruct{
+    unsigned localAddress = 0;
+    string variableID = "";
+    DataType type = null_dt;
 };
 
 struct WordStruct{
@@ -83,25 +90,45 @@ struct WordStruct{
     bool negateVariable;
 };
 
-struct StartingVariableStruct{
+struct VariableInfo{
+    string name; //Only for debugging.
     DataType type = null_dt;
-    string id = "";
-    string rawID = ""; //ID without the eventID
-    short index = 0;
-    string eventID = ""; //If empty, variable is global
+    bool isReference = false; //If true, when passing arguments to an event, copy the address of the variable instead of copying its value.  
+    unsigned defaultAddress = 0;
+};
+
+struct VariableLocationStruct{
+    string name;
+    DataType type = null_dt;
+    bool isLocal = true; //False if the variable is global AND not yet referenced locally.
+    bool isReference = false; //True if it's global or a reference
+    unsigned index = 0; //Index of local or global variable.
+    unsigned defaultAddress = 0; //Required for the global variables - if isLocal is false.
+};
+
+struct DynamicVariableInfo{
+    unsigned dynamicAddress = 0; //It's set to defaultAddress if the function was called for the first time in the stack, otherwise you have to use spare addresses or allocate new variables. If you do that, set Context type of new variables to "Any".
+    unsigned dynamicMemoryAddress = 0; //If the variable is dynamically allocated, use this address to "deallocate its memory" after exiting from the current event.
     bool isReference = false;
 };
-bool isVariableGlobal(const vector<StartingVariableStruct> & NewVariablesForLookupTable, const string & variableID);
-bool checkIfVariableIsReference(const vector<StartingVariableStruct> & PassedVariables, const string & variableID);
-string findExistingVariableOrCreateNew(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<string> & allAvailableEventIDs, const string & variableID, string & usedEventID,
-    bool canCreateNewVariable, const string & scriptName, const unsigned &lineNumber,
-    bool ignoreUndefinedVariable = false 
+
+struct PassingVariableInfo{
+    bool isReference = false;
+    DataType type = null_dt;
+    unsigned localAddress = 0;
+    string name = ""; //Only for debugging
+};
+
+
+std::pair<unsigned, ReturnType> getLocalAddress(const string & variableId, const DataType & variableType,
+    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables,
+    unsigned & topAddress, bool canAllocateNewVariable = true, bool makeVariableGlobal = false,
+    bool makeVariableReference = false, bool forceNewDeclaration = false
 );
-string createCustomOutput(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    const vector<StartingVariableStruct> & PassedVariables, const vector<string> & allAvailableEventIDs,
-    const string & variableID, bool isReferenceNeeded, bool canCreateNewVariable,
-    const string & scriptName, const unsigned &lineNumber
+unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned &lineNumber, bool & error,
+    const string & variableID, const DataType & variableType, vector<vector<VariableLocationStruct>> & Scopes,
+    vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
+    bool canCreateNewVariable, bool ignoreUndefinedVariable
 );
 
 class OperationClass{
@@ -114,41 +141,43 @@ public:
     EngineInstr instruction = null; //first, last, all, random, let, assigment, class method, run(), break, return
     string scriptName;
     unsigned lineNumber = 0;
-    string outputVariableID;
-    bool isOutputReference = false;
+
+    OutputParameterStruct Output;
+
     unsigned jumpToLine = 0; //Line number of end_if label in if statements.
     unsigned specialValue = 0; //Line number of a next else or else_if statement.
     OperationClass();
     
     //Add literal or context. The type will be checked only if the provided word is a literal.
     //Available types: a - anything, v - variable, n - number, b - bool, i - int, d - double, s - string.
-    bool addParameter(const string & scriptName, const unsigned & lineNumber, string & error, vector<WordStruct> words,
-        unsigned index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
-        const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
-        bool ignoreUndefinedVariable = false
+    bool addParameter(const string & scriptName, const unsigned & lineNumber,
+        string & error, vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
+        vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, unsigned index, char type,
+        const string & parameterName, bool optional, bool canCreateNewVariable, bool ignoreUndefinedVariable
     );
     void addEmptyParameter();
-    bool addLiteralOrVectorOrVariableToParameters(const string & scriptName, const unsigned & lineNumber, string & error,
-        vector<WordStruct> words, unsigned & index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
-        const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable, const bool & forbidVectors = false
+    bool addLiteralOrVectorOrVariableToParameters(
+        const string &scriptName, const unsigned &lineNumber, string &error, vector<WordStruct> words,
+        vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
+        unsigned &index, char type, string name, bool optional, bool canCreateNewVariable, const bool &forbidVectors
     );
-    bool addVectorOrVariableToParameters(const string & scriptName, const unsigned & lineNumber, string & error,
-        vector<WordStruct> words, unsigned & index, char type, string name, bool optional, const vector<string> & allAvailableEventIDs,
-        const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<StartingVariableStruct> & PassedVariables, bool canCreateNewVariable,
+    bool addVectorOrVariableToParameters(
+        const string & scriptName, const unsigned & lineNumber, string &error,
+        vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
+        vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
+        unsigned &index, char type, string name, bool optional, bool canCreateNewVariable,
         const bool & forbidVectors = false
     );
     void addLiteralParameter(const VariableModule & Variable);
 };
 
 struct ChildStruct{
-	string ID;
-    vector<string> passingVariables;
+    string ID;
+    vector<PassingVariableInfo> Arguments;
     unsigned containerIndex = 0;
     string callingScript;
     unsigned lineNumber = 0;
+    bool isRecursiveCall = false; 
 };
 
 enum TriggerType: char{
@@ -165,19 +194,15 @@ public:
     vector<OperationClass> DependentOperations;
 	vector<ChildStruct> Children;
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events with the use of "run" and "else" commands.
-    vector <TriggerType> primaryTriggerTypes;
-    vector <StartingVariableStruct> PassedVariables;
+    vector<TriggerType> primaryTriggerTypes;
+    vector<VariableInfo> LocalVariables;
+    vector<PassingVariableInfo> Parameters;
+
     bool isInline = false;
     string callingEventID = "";
     string callingType = "";
     bool willBeDeleted = false; //Event will be deleted as soon as possible, but it still can be executed.
     bool isFunction = true; //True if the event has not been connected to any trigger. It will stay false even if on_init trigger is removed. Currently it's only used in the "tree" instruction.
-
-    unsigned programCounter = 0;
-    char conditionalStatus = 'n'; //n-null, t-true, f-false
-    bool breakFromCurrentLoop = false;
-    bool decrementProgramCounter = false;
-    vector<char> goToEndOfIfStatement;
 
     EventModule();
     EventModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
@@ -187,17 +212,13 @@ public:
 
     void setUpNewInstance();
     void clear();
-    void resetStateVariables();
 
-    bool getPassedVariables(const vector<WordStruct> & words, unsigned & cursor,
-        const unsigned & lineNumber, const string & scriptName,
-        vector<StartingVariableStruct> & NewVariablesForLookupTable
+    bool getPassedVariables(const vector<WordStruct> & words, unsigned & cursor, const unsigned & lineNumber,
+        const string & scriptName, vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
     );
-    bool getPassingVariables(vector<string> & passingVariables,
-        const vector<WordStruct> & words, unsigned & cursor,
-        const unsigned & lineNumber, const string & scriptName,
-        const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-        const vector<string> & allAvailableEventIDs
+    bool getPassingVariables(vector<PassingVariableInfo> &Arguments, const vector<WordStruct> &words,
+        unsigned &cursor, const unsigned &lineNumber, const string &scriptName,
+        vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
     );
     void controlText(TextModule * Text, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer);
     void controlEditableText(EditableTextModule * Text, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer);

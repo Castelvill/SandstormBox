@@ -47,31 +47,17 @@ struct NotAssembledReferenceStruct{
         return callingEventID + /*":" +*/ callingType + /*":" +*/ variableID;
     }
 };
-void buildVariableLookupTable(const vector<StartingVariableStruct> & NewVariablesForLookupTable,
-    ContextMapStruct & CurrentMap, const vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr)
+/*void ProcessClass::buildVariableLookupTable(ObjectMemoryStruct & ObjectMemory, vector<VariableInfo> & NewLocalVariables,
+    const vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr)
 {
-    //Add global variables
-    CurrentMap.Contexts["NULL"] = ContextClass();
-    CurrentMap.Contexts["NULL"].ID = "NULL";
-    //CurrentMap.Contexts["NULL"].type = ValueSource::null_s;
-    CurrentMap.Contexts["NULL"].readOnly = true;
-    //CurrentMap.Contexts["NULL"].Values.push_back(VariableModule::newInt(0));
-    CurrentMap.Contexts["me"] = ContextClass();
-    CurrentMap.Contexts["me"].ID = "me";
-    CurrentMap.Contexts["me"].type = object_inst;
-    CurrentMap.Contexts["my_layer"] = ContextClass();
-    CurrentMap.Contexts["my_layer"].ID = "my_layer";
-    CurrentMap.Contexts["my_layer"].type = layer_inst;
-    
-    
     vector<NotAssembledReferenceStruct> IntermediateReferences;
     //Add all local variables.
     for(const auto & Variable : NewVariablesForLookupTable){
         if(!Variable.isReference){
-            CurrentMap.Contexts[Variable.id] = ContextClass();
-            CurrentMap.Contexts[Variable.id].ID = Variable.rawID;//variable.id;
-            CurrentMap.Contexts[Variable.id].eventID = Variable.eventID;
-            CurrentMap.Contexts[Variable.id].type = Variable.type;
+            ObjectMemory.MemoryMap[Variable.id] = ContextClass();
+            ObjectMemory.MemoryMap[Variable.id].ID = Variable.rawID;//variable.id;
+            ObjectMemory.MemoryMap[Variable.id].eventID = Variable.eventID;
+            ObjectMemory.MemoryMap[Variable.id].type = Variable.type;
         }
     }
     //Add all references only after gathering all local variables - otherwise some direct references will be ignored.
@@ -99,7 +85,7 @@ void buildVariableLookupTable(const vector<StartingVariableStruct> & NewVariable
                 if(referencedVariableID.size() > 0 && referencedVariableID[0] == '&'){
                     referencedVariableID.erase(0, 1);
                 }
-                bool isDirectReferenceToVariable = CurrentMap.Contexts.contains(referencedVariableID); 
+                bool isDirectReferenceToVariable = ObjectMemory.MemoryMap.contains(referencedVariableID); 
                 IntermediateReferences.emplace_back(Event.getID(), "run", Reference.eventID, Reference.id,
                     referencedVariableID, isDirectReferenceToVariable
                 );
@@ -146,7 +132,7 @@ void buildVariableLookupTable(const vector<StartingVariableStruct> & NewVariable
     //Add references to the lookup table
     for(const NotAssembledReferenceStruct & Reference : IntermediateReferences){
         if(Reference.isDirect){
-            CurrentMap.References[Reference.assemble()] = ReferenceStruct(Reference.referencedVariableID, Reference.calledEventID, !Reference.isDirect);
+            ObjectMemory.ReferencesMap[Reference.assemble()] = ReferenceStruct(Reference.referencedVariableID, Reference.calledEventID, !Reference.isDirect);
         }
     }
 
@@ -172,7 +158,7 @@ void buildVariableLookupTable(const vector<StartingVariableStruct> & NewVariable
     // }
     // cerr << "\n";
     //abort();
-}
+}*/
 void findIndexesOfEventChildren(vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr){
     for(EventModule & ParentEvent : EventContainer){
         for(ChildStruct & Child : ParentEvent.Children){
@@ -191,6 +177,113 @@ void findIndexesOfEventChildren(vector<EventModule> & EventContainer, const Inst
         }
     }
 }
+void detectRecursionWithRecursion(vector<EventModule> & EventContainer, vector<string> & calledEvents, EventModule & Event){
+    calledEvents.push_back(Event.getID());
+    for(ChildStruct & Child : Event.Children){
+        EventModule & ChildEvent = EventContainer[Child.containerIndex];
+        if(isStringInVector(calledEvents, ChildEvent.getID())){
+            Child.isRecursiveCall = true;
+            continue;
+        }
+        detectRecursionWithRecursion(EventContainer, calledEvents, ChildEvent);
+    }
+    calledEvents.pop_back();
+}
+void detectRecursionInEvents(vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr){
+    //If a child is called by recursion, don't check its children, because you are either doing it now or you've already done it. 
+    
+    vector<string> calledEvents;
+
+    // for(EventModule & Event : EventContainer){
+    //     detectRecursionWithRecursion(EventContainer, calledEvents, Event);
+    // }
+
+    vector<std::pair<EventModule*, size_t>> nodeStack;
+
+    for(EventModule & Event : EventContainer){
+
+        //Reset the previous recursion check
+        for(ChildStruct & Child : Event.Children){
+            Child.isRecursiveCall = false;
+        }
+
+        calledEvents.clear();
+        nodeStack.clear();
+
+        calledEvents.push_back(Event.getID());
+        nodeStack.emplace_back(&Event, 0);
+
+        while(!nodeStack.empty()){
+            auto &[currentEvent, childIndex] = nodeStack.back();
+
+            //Backtrack if all children are processed
+            if(childIndex >= currentEvent->Children.size()){
+                nodeStack.pop_back();
+                calledEvents.pop_back();
+                continue;
+            }
+
+            ChildStruct &Child = currentEvent->Children[childIndex++];
+            EventModule &ChildEvent = EventContainer[Child.containerIndex];
+
+            //If the current event was already called on the current stack, don't check its children.
+            //Why? Because you are either doing it right now (an event directly called itself) or you've already done it.
+            if(isStringInVector(calledEvents, ChildEvent.getID())){
+                Child.isRecursiveCall = true;
+                continue;
+            }
+
+            //Go deeper and check the children of the current event
+            if(!ChildEvent.Children.empty()){
+                calledEvents.push_back(ChildEvent.getID());
+                nodeStack.emplace_back(&ChildEvent, 0);
+            }
+        }
+    }
+}
+void ProcessClass::setupBuiltInVariables(ObjectMemoryStruct & CurrentMap){
+    if(CurrentMap.topAddress > 0){
+        return; //User-defined global variables will be added to the global scope during the compilation.
+    }
+    const bool & isReadOnly = true;
+    const bool & writable = false;
+    const bool & isNotLocal = false;
+    const bool & isReference = true;
+
+    allocateRealMemory("NULL", null_dt, isReadOnly, isNotLocal, isReference, builtInVarAddr::NULL_bv, 0, CurrentMap);
+    allocateRealMemory("me", object_inst, writable, isNotLocal, isReference, builtInVarAddr::me_bv, 0, CurrentMap);
+    allocateRealMemory("my_layer", layer_inst, writable, isNotLocal, isReference, builtInVarAddr::my_layer_bv, 0, CurrentMap);
+    CurrentMap.topAddress = 3;
+}
+bool ProcessClass::allocateRealMemory(const std::string &variableId, const DataType &variableType,
+    const bool &readOnly, const bool &isLocal, const bool &isReference, const unsigned int &newRealAddress,
+    const unsigned int &localIndex, ObjectMemoryStruct &CurrentMap
+){
+    if(CurrentMap.MemoryMap.contains(newRealAddress)){
+        return true;
+    }
+    CurrentMap.MemoryMap[newRealAddress] = ContextClass();
+    CurrentMap.MemoryMap[newRealAddress].ID = variableId;
+    CurrentMap.MemoryMap[newRealAddress].type = variableType;
+    CurrentMap.MemoryMap[newRealAddress].readOnly = readOnly;
+    CurrentMap.GlobalScope.emplace_back(variableId, variableType, isLocal, isReference, localIndex, newRealAddress);
+    return false;
+}
+void ProcessClass::allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap, const vector<EventModule> & EventContainer){
+    const bool & writable = false;
+    const bool & isLocal = true;
+    for(const EventModule & it_Event : EventContainer){
+        for(unsigned localVarIdx = 0; localVarIdx < it_Event.LocalVariables.size(); ++localVarIdx){
+            const VariableInfo & it_Variable = it_Event.LocalVariables[localVarIdx];
+            if(it_Variable.isReference){
+                continue; //There's no need to allocate memory for the reference since its real address will not be used.
+            }
+            allocateRealMemory(it_Variable.name, it_Variable.type, writable, isLocal,
+                it_Variable.isReference, it_Variable.defaultAddress, localVarIdx, CurrentMap
+            );
+        }
+    }
+}
 void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID,
     string newLayerID, string newObjectID, vector<string> &listOfIDs
 ){
@@ -204,7 +297,6 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
     wasDeleteExecuted = false;
     wasNewExecuted = false;
     wasAnyEventUpdated = false;
-    wereGlobalVariablesCreated = false;
     drawCameraBorders = true;
     drawTextFieldBorders = false;
     drawHitboxes = false;
@@ -246,7 +338,8 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
     Layers.back().objectsOrder.emplace_back(Layers.back().Objects.size() - 1);
     AncestorObject & InitObject = Layers.back().Objects.back();
     InitObject.primaryConstructor(newObjectID, &Layers.back().objectsIDs, Layers.back().getID(), "");
-    ContextMapStruct & CurrentMap = ContextLookupTable[InitObject.objectLookupID];
+    ObjectMemoryStruct & CurrentMap = ContextLookupTable[InitObject.objectLookupID];
+    setupBuiltInVariables(CurrentMap);
     if(initFilePath != ""){
         if(initFilePath[0] == '?'){ // Script paths that start with a question mark are built-in scripts.
             InitObject.bindedScripts.push_back(initFilePath);
@@ -254,10 +347,11 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
         else{
             InitObject.bindedScripts.push_back(EXE_PATH + initFilePath);
         }
-        vector<StartingVariableStruct> NewVariablesForLookupTable;
-        InitObject.translateAllScripts(true, allowNotAscii, NewVariablesForLookupTable);
-        buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, InitObject.EventContainer, CurrentInstr);
+        InitObject.translateAllScripts(true, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
+        allocateAllLocalVariables(CurrentMap, InitObject.EventContainer);
+        //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, InitObject.EventContainer, CurrentInstr);
         findIndexesOfEventChildren(InitObject.EventContainer, CurrentInstr);
+        detectRecursionInEvents(InitObject.EventContainer, CurrentInstr);
     }
     
     if(isLayersUniquenessViolated()){
@@ -1161,7 +1255,7 @@ inline string shortenText(const string & text, const int & textLimit){
     }
     return squeezedText;
 }
-string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting){
+string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting) const{
     string buffer = "";
     switch(type){
         case value_inst:
@@ -1961,40 +2055,49 @@ bool translateIndexToTreeRoots(const vector<ParameterStruct> & Parameters, const
     }
     return true;
 }
-inline string assembleCurrentReference(const string & callingSource, const string & variableID){
-    return callingSource + /*":" +*/ variableID;
-}
-ContextClass * getContextByID(const InstrDescription & CurrentInstr,
-    std::unordered_map<string, ContextClass> & EventContext,
-    std::unordered_map<string, ReferenceStruct> & References,
-    const string & callingSource, const string & contextID,
-    const bool & isReference, const bool & printError
+ContextClass * getVariableByAddress(const InstrDescription & CurrentInstr,
+    MemoryMapType & MemoryMap, const DynamicVariableInfo & Variable,
+    const string & variableName, const bool & printError
 ){
-    if(isReference){
-        string referenceID = assembleCurrentReference(callingSource, contextID);
-        if(!References.contains(referenceID)){
-            printError && cerr << instructionError(CurrentInstr, __FUNCTION__) << "Reference '" << referenceID << "' does not exist.\n";
-            return nullptr;
+    if(!MemoryMap.contains(Variable.dynamicAddress)){
+        if(printError){
+            if(!variableName.empty()){
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Address " << Variable.dynamicAddress <<" is not allocated.\n";
+            }
+            else{
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Variable '" << variableName << "' does not exist at the address: "
+                    << Variable.dynamicAddress <<".\n";
+            }
         }
-        if(!EventContext.contains(References[referenceID].id)){
-            printError && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Variable '" << References[referenceID].id
-                << "' from reference '" << referenceID << "' does not exist.\n";
-            return nullptr;
-        }
-        return &EventContext[References[referenceID].id];
-        //return &EventContext[References[assembleCurrentReference(callingSource, contextID)].id];
-    }
-    if(!EventContext.contains(contextID)){
-        printError && cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << contextID << "' does not exist.\n";
         return nullptr;
     }
-    return &EventContext[contextID];
+    return &MemoryMap[Variable.dynamicAddress];
+    
+    // if(Variable.isReference){
+    //     if(!ObjectMemory.ReferencesMap.contains(Variable.dynamicAddress)){
+    //         printError && cerr << instructionError(CurrentInstr, __FUNCTION__) << "Reference '" << variableName << "' does not exist.\n";
+    //         return nullptr;
+    //     }
+    //     if(!ObjectMemory.MemoryMap.contains(ObjectMemory.ReferencesMap[Variable.dynamicAddress].realAddress)){
+    //         printError && cerr << instructionError(CurrentInstr, __FUNCTION__)
+    //             << "Variable '" << ObjectMemory.ReferencesMap[Variable.dynamicAddress].name
+    //             << "' from reference '" << variableName << "' does not exist.\n";
+    //         return nullptr;
+    //     }
+    //     return &ObjectMemory.MemoryMap[ObjectMemory.ReferencesMap[Variable.dynamicAddress].realAddress];
+    // }
+    // if(!ObjectMemory.MemoryMap.contains(Variable.dynamicAddress)){
+    //     printError && cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << variableName << "' does not exist.\n";
+    //     return nullptr;
+    // }
+    // return &ObjectMemory.MemoryMap[Variable.dynamicAddress];
 }
-bool ContextClass::copyFromTheParameter(std::unordered_map<string, ContextClass> & EventContext,
-    std::unordered_map<string, ReferenceStruct> & References,
-    const string & callingSource, const InstrDescription & CurrentInstr,
-    const vector<ParameterStruct> & Parameters, unsigned index, bool printErrors
+bool ContextClass::copyFromTheParameter(
+    std::unordered_map<unsigned, ContextClass> & MemoryMap, const vector<DynamicVariableInfo> & EventLocalVariables,
+    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+    const unsigned & index, const bool & printErrors
 ){
     clear();
     unsigned realIndex = 0;
@@ -2003,48 +2106,50 @@ bool ContextClass::copyFromTheParameter(std::unordered_map<string, ContextClass>
             << "Parameter " << index+2 << " does not exist.\n";
         return true;
     }
-    if(Parameters[realIndex].type == 'e'){
+    const ParameterStruct & CurrentParameter = Parameters[realIndex];
+    if(CurrentParameter.type == 'e'){
         return false;
     }
-    if(Parameters[realIndex].type == 'c'){
-        ContextClass * TempContext = getContextByID(CurrentInstr, EventContext, References,
-            callingSource, Parameters[realIndex].variableID,
-            Parameters[realIndex].isReference, printErrors
+    if(CurrentParameter.type == 'c'){
+        ContextClass * TempContext = getVariableByAddress(CurrentInstr, MemoryMap,
+            EventLocalVariables[CurrentParameter.localAddress],
+            CurrentParameter.variableID, printErrors
         );
-        if(TempContext == nullptr){
+        if(TempContext == nullptr){ 
             printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Variable '" << Parameters[realIndex].variableID << "' from the parameter " << index+2 << " does not exist.\n";
+                << "Variable '" << CurrentParameter.variableID << "' from the parameter " << index+2 << " does not exist.\n";
             return true;
         }
         *this = *TempContext;
     }
-    else if(Parameters[realIndex].type == 'l'){
+    else if(CurrentParameter.type == 'l'){
         type = value_inst;
-        Values.push_back(Parameters[realIndex].Literal);
+        Values.push_back(CurrentParameter.Literal);
     }
-    else if(Parameters[realIndex].type == 'v'){
+    else if(CurrentParameter.type == 'v'){
         type = value_vec;
         for(++realIndex; realIndex < Parameters.size(); ++realIndex){
-            if(Parameters[realIndex].treeLevel != 1){
+            const ParameterStruct & it_Parameter = Parameters[realIndex];
+            if(it_Parameter.treeLevel != 1){
                 return false;
             }
-            if(Parameters[realIndex].type == 'l'){
-                Values.push_back(Parameters[realIndex].Literal);
+            if(it_Parameter.type == 'l'){
+                Values.push_back(it_Parameter.Literal);
                 continue;
             }
-            if(Parameters[realIndex].type != 'c'){
+            if(it_Parameter.type != 'c'){
                 printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << Parameters[realIndex].type << "' type.\n";
+                    << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << it_Parameter.type << "' type.\n";
                 return true;
             }
 
-            ContextClass * TempContext = getContextByID(CurrentInstr, EventContext, References,
-                callingSource, Parameters[realIndex].variableID,
-                Parameters[realIndex].isReference, printErrors
+            ContextClass * TempContext = getVariableByAddress(CurrentInstr, MemoryMap,
+                EventLocalVariables[it_Parameter.localAddress],
+                it_Parameter.variableID, printErrors
             );
             if(TempContext == nullptr){
                 printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Variable '" << Parameters[realIndex].variableID
+                    << "Variable '" << it_Parameter.variableID
                     << "' from the parameter " << index+2 << " does not exist.\n";
                 return true;
             }
@@ -2088,7 +2193,7 @@ bool ContextClass::copyFromTheParameter(std::unordered_map<string, ContextClass>
                     break;
                 default:
                     printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Context with ID '" << Parameters[realIndex].variableID << "' found in the parameter "
+                        << "Context with ID '" << it_Parameter.variableID << "' found in the parameter "
                         << index << " is of the invalid type: '" << dataTypeToStr(TempContext->type)
                         << "'. Function expects only numeric and string values.\n";
                     return true;
@@ -2097,7 +2202,7 @@ bool ContextClass::copyFromTheParameter(std::unordered_map<string, ContextClass>
     }
     else{
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Parameter " << index+2 << " has invalid type: '" << Parameters[realIndex].type << "'.\n";
+            << "Parameter " << index+2 << " has invalid type: '" << CurrentParameter.type << "'.\n";
         return true;
     }
     return false;
@@ -2221,8 +2326,9 @@ void ContextClass::copyOnlyCurrentType(const ContextClass *Original){
             type = null_dt;
     }
 }
-bool getContextPointerFromTheParameter(ContextClass *&NewContext, ContextMapStruct & EventContext,
-    const InstrDescription &CurrentInstr, const vector<ParameterStruct> &Parameters, unsigned index, bool printErrors
+bool getContextPointerFromTheParameter(ContextClass *&NewContext, ObjectMemoryStruct & ObjectMemory,
+    vector<DynamicVariableInfo> & EventLocalVariables, const InstrDescription &CurrentInstr,
+    const vector<ParameterStruct> &Parameters, const unsigned & index, const bool & printErrors
 ){
     NewContext = nullptr;
     unsigned realIndex = 0;
@@ -2231,17 +2337,21 @@ bool getContextPointerFromTheParameter(ContextClass *&NewContext, ContextMapStru
             << "Parameter " << index+1 << " does not exist.\n";
         return true;
     }
-    if(Parameters[realIndex].type != 'c'){
+    const ParameterStruct & CurrentParameter = Parameters[realIndex];
+    if(CurrentParameter.type != 'c'){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Parameter " << index+1 << " is of '" << Parameters[realIndex].type << "' type. Provide a variable instead.\n";
+            << "Parameter " << index+1 << " is of '"
+            << CurrentParameter.type << "' type. Provide a variable instead.\n";
         return true;
     }
-    NewContext = getContextByID(CurrentInstr, EventContext.Contexts, EventContext.References,
-        EventContext.callingSource, Parameters[realIndex].variableID, Parameters[realIndex].isReference, printErrors
+    NewContext = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+        EventLocalVariables[CurrentParameter.localAddress],
+        CurrentParameter.variableID, printErrors
     );
     if(NewContext == nullptr){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Variable '" << Parameters[realIndex].variableID << "' from the parameter " << index+1 << " does not exist.\n";
+            << "Variable '" << CurrentParameter.variableID
+            << "' from the parameter " << index+1 << " does not exist.\n";
         return true;
     }
     return false;
@@ -2360,8 +2470,9 @@ ReturnType ContextClass::getValue(VariableModule & NewValue){
     }
     return ReturnType::OK;
 }
-bool getValuesFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext, const InstrDescription & CurrentInstr,
-    const vector<ParameterStruct> & Parameters, unsigned index, vector<VariableModule> & NewValues, bool printErrors
+bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & EventLocalVariables,
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+    unsigned index, vector<VariableModule> & NewValues, bool printErrors
 ){
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
@@ -2370,25 +2481,27 @@ bool getValuesFromTheParameter(ContextMapStruct & EventContext, ContextClass & H
         return true;
     }
 
-    if(Parameters[realIndex].type == 'e'){
+    const ParameterStruct & CurrentParameter = Parameters[realIndex];
+    
+    if(CurrentParameter.type == 'e'){
         return false;
     }
-    if(Parameters[realIndex].type == 'l'){
-        NewValues.push_back(Parameters[realIndex].Literal);
+    if(CurrentParameter.type == 'l'){
+        NewValues.push_back(CurrentParameter.Literal);
         return false;
     }
-    else if(Parameters[realIndex].type != 'c' && Parameters[realIndex].type != 'v'){
+    else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
         if(printErrors){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Parameter " << index+1 << " has an invalid type: " << Parameters[realIndex].type << ".\n";
+                << "Parameter " << index+1 << " has an invalid type: " << CurrentParameter.type << ".\n";
         }
         return true;
     }
 
     //Parameter is a variable or a vector
     HelpContext.clear();
-    if(HelpContext.copyFromTheParameter(EventContext.Contexts, EventContext.References,
-        EventContext.callingSource, CurrentInstr, Parameters, index, printErrors
+    if(HelpContext.copyFromTheParameter(ObjectMemory.MemoryMap,
+        EventLocalVariables, CurrentInstr, Parameters, index, printErrors
     )){
         if(printErrors){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -2405,8 +2518,9 @@ bool getValuesFromTheParameter(ContextMapStruct & EventContext, ContextClass & H
     }
     return false;
 }
-bool getSingleValueFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext, const InstrDescription & CurrentInstr,
-    const vector<ParameterStruct> & Parameters, unsigned index, VariableModule & NewValue, bool printErrors
+bool getSingleValueFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & EventLocalVariables, 
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+    unsigned index, VariableModule & NewValue, bool printErrors
 ){
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
@@ -2415,25 +2529,27 @@ bool getSingleValueFromTheParameter(ContextMapStruct & EventContext, ContextClas
         return true;
     }
 
-    if(Parameters[realIndex].type == 'e'){
+    const ParameterStruct & CurrentParameter = Parameters[realIndex];
+
+    if(CurrentParameter.type == 'e'){
         return false;
     }
-    if(Parameters[realIndex].type == 'l'){
-        NewValue.copyValue(Parameters[realIndex].Literal);
+    if(CurrentParameter.type == 'l'){
+        NewValue.copyValue(CurrentParameter.Literal);
         return false;
     }
-    else if(Parameters[realIndex].type != 'c' && Parameters[realIndex].type != 'v'){
+    else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
         if(printErrors){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Parameter " << index+1 << " has an invalid type: " << Parameters[realIndex].type << ".\n";
+                << "Parameter " << index+1 << " has an invalid type: " << CurrentParameter.type << ".\n";
         }
         return true;
     }
 
     //Parameter is a variable or a vector
     HelpContext.clear();
-    if(HelpContext.copyFromTheParameter(EventContext.Contexts, EventContext.References,
-        EventContext.callingSource, CurrentInstr, Parameters, index, true
+    if(HelpContext.copyFromTheParameter(ObjectMemory.MemoryMap, EventLocalVariables,
+        CurrentInstr, Parameters, index, true
     )){
         if(printErrors){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -2455,12 +2571,11 @@ bool getSingleValueFromTheParameter(ContextMapStruct & EventContext, ContextClas
     }
     return false;
 }
-bool getValueFromParameter(ContextMapStruct & EventContext, ContextClass & HelpContext,
-    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
-    unsigned index, VariableModule & NewValue, bool printErrors
+bool getValueFromParameter(ObjectMemoryStruct & ObjectMemory, vector<DynamicVariableInfo> & DynamicLocalVariables, ContextClass & HelpContext,
+    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters, unsigned index, VariableModule & NewValue, bool printErrors
 ){
     vector<VariableModule> Literals;
-    if(getValuesFromTheParameter(EventContext, HelpContext, CurrentInstr, Parameters, index, Literals, printErrors)){
+    if(getValuesFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literals, printErrors)){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
@@ -2474,12 +2589,12 @@ bool getValueFromParameter(ContextMapStruct & EventContext, ContextClass & HelpC
     
     return false;
 }
-bool getUnsignedVectorFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext,
-    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+bool getUnsignedVectorFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & DynamicLocalVariables,
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
     unsigned index, vector<unsigned> & NewUnsignedIntegers
 ){
     vector<VariableModule> Literals;
-    if(getValuesFromTheParameter(EventContext, HelpContext, CurrentInstr, Parameters, index, Literals, true)){
+    if(getValuesFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literals, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter " << index+1 << ".\n";
         return true;
@@ -2494,12 +2609,12 @@ bool getUnsignedVectorFromTheParameter(ContextMapStruct & EventContext, ContextC
     }
     return false;
 }
-bool getStringFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext,
-    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
-    unsigned index, string & newString, bool printErrors
+bool getStringFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & DynamicLocalVariables,
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters, unsigned index,
+    string & newString, bool printErrors
 ){
     VariableModule Literal;
-    if(getSingleValueFromTheParameter(EventContext, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
+    if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
@@ -2512,12 +2627,12 @@ bool getStringFromTheParameter(ContextMapStruct & EventContext, ContextClass & H
     newString = Literal.vString;
     return false;
 }
-bool getStringVectorFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext,
-    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+bool getStringVectorFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & DynamicLocalVariables, 
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
     unsigned index, vector<string> & NewStrings, bool printErrors
 ){
     vector<VariableModule> Literals;
-    if(getValuesFromTheParameter(EventContext, HelpContext, CurrentInstr, Parameters, index, Literals, printErrors)){
+    if(getValuesFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literals, printErrors)){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
@@ -2532,12 +2647,11 @@ bool getStringVectorFromTheParameter(ContextMapStruct & EventContext, ContextCla
     }
     return false;
 }
-bool getBoolFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext,
-    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
-    unsigned index, bool & newBool, bool printErrors
+bool getBoolFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & DynamicLocalVariables, ContextClass & HelpContext,
+    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters, unsigned index, bool & newBool, bool printErrors
 ){
     VariableModule Literal;
-    if(getSingleValueFromTheParameter(EventContext, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
+    if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
@@ -2550,12 +2664,12 @@ bool getBoolFromTheParameter(ContextMapStruct & EventContext, ContextClass & Hel
     newBool = Literal.getBoolUnsafe();
     return false;
 }
-bool getUnsignedFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext,
-    VariableModule & Literal, const InstrDescription & CurrentInstr,
+bool getUnsignedFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & DynamicLocalVariables,
+    ContextClass & HelpContext, VariableModule & Literal, const InstrDescription & CurrentInstr,
     const vector<ParameterStruct> & Parameters, unsigned index, unsigned & newUnsigned, bool printErrors
 ){
     Literal.clear();
-    if(getSingleValueFromTheParameter(EventContext, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
+    if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
@@ -2574,8 +2688,9 @@ bool getUnsignedFromTheParameter(ContextMapStruct & EventContext, ContextClass &
     newUnsigned = newInt;
     return false;
 }
-bool getTurboUnsignedFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext, const InstrDescription & CurrentInstr,
-    const vector<ParameterStruct> & Parameters, unsigned index, unsigned & newUnsigned, bool printErrors
+bool getTurboUnsignedFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & EventLocalVariables,
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+    unsigned index, unsigned & newUnsigned, bool printErrors
 ){
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
@@ -2584,18 +2699,20 @@ bool getTurboUnsignedFromTheParameter(ContextMapStruct & EventContext, ContextCl
         return true;
     }
 
-    if(Parameters[realIndex].type == 'e'){
+    const ParameterStruct & CurrentParameter = Parameters[realIndex];
+
+    if(CurrentParameter.type == 'e'){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " is empty.\n";
         return true;
     }
-    if(Parameters[realIndex].type == 'l'){
-        if(Parameters[realIndex].Literal.type != 'b' && Parameters[realIndex].Literal.type != 'i'){
+    if(CurrentParameter.type == 'l'){
+        if(CurrentParameter.Literal.type != 'b' && CurrentParameter.Literal.type != 'i'){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " is not an integer.\n";
             return true;
         }
-        int newInt = Parameters[realIndex].Literal.getIntUnsafe();
+        int newInt = CurrentParameter.Literal.getIntUnsafe();
         if(newInt < 0){
             printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Integer " << newInt << " is not usigned in the parameter " << index+1 << ".\n";
@@ -2604,19 +2721,17 @@ bool getTurboUnsignedFromTheParameter(ContextMapStruct & EventContext, ContextCl
         newUnsigned = newInt;
         return false;
     }
-    else if(Parameters[realIndex].type != 'c' && Parameters[realIndex].type != 'v'){
+    else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
         if(printErrors){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Parameter " << index+1 << " has an invalid type: " << Parameters[realIndex].type << ".\n";
+                << "Parameter " << index+1 << " has an invalid type: " << CurrentParameter.type << ".\n";
         }
         return true;
     }
 
     //Parameter is a variable or a vector
     HelpContext.clear();
-    if(HelpContext.copyFromTheParameter(EventContext.Contexts, EventContext.References,
-        EventContext.callingSource, CurrentInstr, Parameters, index, true
-    )){
+    if(HelpContext.copyFromTheParameter(ObjectMemory.MemoryMap, EventLocalVariables, CurrentInstr, Parameters, index, true)){
         if(printErrors){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Failed to find context in the parameter " << index+1 << ".\n";
@@ -2706,12 +2821,12 @@ bool getTurboUnsignedFromTheParameter(ContextMapStruct & EventContext, ContextCl
     }
     return false;
 }
-bool getIntFromTheParameter(ContextMapStruct & EventContext, ContextClass & HelpContext,
-    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+bool getIntFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & DynamicLocalVariables,
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
     unsigned index, int & newInteger, bool printErrors
 ){
     VariableModule Literal;
-    if(getSingleValueFromTheParameter(EventContext, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
+    if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
@@ -2855,7 +2970,7 @@ Entity * lastNotDeletedInVector(vector<Entity*> &Vector){
 }
 
 void ProcessClass::aggregateCameras(OperationClass &Operation, ContextClass &NewContext, vector<Camera2D*> AggregatedCameras,
-    const EngineClass & Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
+    const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory, bool onlyFirstRequired
 ){
     Camera2D * Camera = nullptr;
     if(Operation.ConditionalChain.size() == 0 && onlyFirstRequired){
@@ -2919,7 +3034,7 @@ void ProcessClass::aggregateCameras(OperationClass &Operation, ContextClass &New
         for(ConditionClass & Condition : Operation.ConditionalChain){
             Condition.Location.cameraID = Camera->getID();
         }
-        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, TempObject, TempLayer, Engine, EventContext) == 't'){
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, TempObject, TempLayer, Engine, ObjectMemory) == 't'){
             if(Operation.instruction != EngineInstr::last){
                 findContextInCamera(Operation.Location.attribute, NewContext, Camera);
             }
@@ -2954,7 +3069,7 @@ void ProcessClass::aggregateCameras(OperationClass &Operation, ContextClass &New
     }
 }
 void ProcessClass::aggregateLayers(OperationClass & Operation, ContextClass & NewContext, vector <LayerClass*> AggregatedLayers,
-    const EngineClass & Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
+    const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory, bool onlyFirstRequired
 ){
     LayerClass * Layer = nullptr;
     if(Operation.ConditionalChain.size() == 0 && onlyFirstRequired){
@@ -3016,7 +3131,7 @@ void ProcessClass::aggregateLayers(OperationClass & Operation, ContextClass & Ne
         for(ConditionClass & Condition : Operation.ConditionalChain){
             Condition.Location.layerID = Layer->getID();
         }
-        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, TempObject, Layer, Engine, EventContext) == 't'){
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, TempObject, Layer, Engine, ObjectMemory) == 't'){
             if(Operation.instruction != EngineInstr::last){
                 findContextInLayer(Operation.Location, NewContext, Layer);
             }
@@ -3058,7 +3173,7 @@ void ProcessClass::aggregateLayers(OperationClass & Operation, ContextClass & Ne
     }
 }
 void ProcessClass::aggregateObjects(OperationClass &Operation, ContextClass &NewContext, vector<AncestorObject *> AggregatedObjects,
-    const EngineClass &Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
+    const EngineClass &Engine, ObjectMemoryStruct & ObjectMemory, bool onlyFirstRequired
 ){
     if(AggregatedObjects.size() == 0){
         return;
@@ -3096,7 +3211,7 @@ void ProcessClass::aggregateObjects(OperationClass &Operation, ContextClass &New
             Condition.Location.objectID = Object->getID();
         }
         if(Operation.ConditionalChain.size() == 0
-            || evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Object, EmptyLayer, Engine, EventContext) == 't'
+            || evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Object, EmptyLayer, Engine, ObjectMemory) == 't'
         ){
             if(Operation.instruction != EngineInstr::last){
                 findContextInObject(Operation.Location, NewContext, Object);
@@ -3129,7 +3244,7 @@ void ProcessClass::aggregateObjects(OperationClass &Operation, ContextClass &New
 }
 template<class ModuleClass>
 void ProcessClass::aggregateModuleContextFromVectors(vector<ModuleClass*> AggregatedModules, const DataType & aggregatedType, OperationClass & Operation,
-    ContextClass & NewContext, AncestorObject * Object, const EngineClass & Engine, ContextMapStruct & EventContext, bool onlyFirstRequired
+    ContextClass & NewContext, AncestorObject * Object, const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory, bool onlyFirstRequired
 ){
     ContextClass TempContext;
     LayerClass * EmptyLayer = nullptr;
@@ -3143,7 +3258,7 @@ void ProcessClass::aggregateModuleContextFromVectors(vector<ModuleClass*> Aggreg
             Condition.Location.objectID = Instance->getObjectID();
             Condition.Location.moduleID = Instance->getID();
         }
-        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Object, EmptyLayer, Engine, EventContext) == 't'){
+        if(Operation.ConditionalChain.size() == 0 || evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Object, EmptyLayer, Engine, ObjectMemory) == 't'){
             if(Operation.instruction != EngineInstr::last){
                 findContextInModule(aggregatedType, Operation.Location.attribute, NewContext, Instance);
             }
@@ -3250,7 +3365,7 @@ ModuleClass * findLastModule(vector <ModuleClass*> & Vector, const string & modu
     return nullptr;
 }
 void ProcessClass::aggregateModules(OperationClass & Operation, ContextClass & NewContext, ContextClass * OldContext,
-    ContextMapStruct & EventContext, const EngineClass & Engine
+    ObjectMemoryStruct & ObjectMemory, const EngineClass & Engine
 ){
     ModulesPointers * AggregatedModules = &OldContext->Modules;
     if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
@@ -3420,82 +3535,82 @@ void ProcessClass::aggregateModules(OperationClass & Operation, ContextClass & N
     AncestorObject * EmptyObject = new AncestorObject();
     switch(OldContext->type){
         case text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case editable_text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case editable_text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case super_text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case super_text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case super_editable_text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->SuperEditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->SuperEditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case super_editable_text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->SuperEditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->SuperEditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case image_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case image_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case movement_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Movements, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Movements, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case movement_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Movements, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Movements, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case collision_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Collisions, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Collisions, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case collision_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Collisions, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Collisions, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case particles_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Particles, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Particles, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case particles_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Particles, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Particles, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case event_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Events, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Events, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case event_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Events, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Events, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case variable_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Variables, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Variables, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case variable_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Variables, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Variables, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case scrollbar_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Scrollbars, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Scrollbars, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case scrollbar_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Scrollbars, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Scrollbars, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case primitives_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Primitives, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Primitives, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case primitives_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Primitives, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Primitives, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         case vector_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
             break;
         case vector_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type, Operation, NewContext, EmptyObject, Engine, EventContext, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
             break;
         default:
             cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -4293,51 +4408,51 @@ void ProcessClass::executeOperationsOnSets(vector<Entity> & NewContext, vector<E
         }
     }
 }
-// void ProcessClass::addNewContext(ContextMapStruct & EventContext,
+// void ProcessClass::addNewContext(ContextMapStruct & ObjectMemory,
 //     const ContextClass & NewContext, string type, string newID, bool global
 // ){
 //     if(global){
-//         if(EventContext.Contexts.contains(newID)){
+//         if(ObjectMemory.Contexts.contains(newID)){
 //             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context '" << newID << "' already exists.\n";
 //             return;
 //         }
-//         EventContext.Contexts[newID] = NewContext;
-//         EventContext.Contexts[newID].type = type;
-//         EventContext.Contexts[newID].setID(
-//             CurrentInstr, EventContext.Contexts, EventContext.References, newID, printOutInstructions, maxLengthOfValuesPrinting
+//         ObjectMemory.Contexts[newID] = NewContext;
+//         ObjectMemory.Contexts[newID].type = type;
+//         ObjectMemory.Contexts[newID].setID(
+//             CurrentInstr, ObjectMemory.Contexts, ObjectMemory.References, newID, printOutInstructions, maxLengthOfValuesPrinting
 //         );
 //         return;
 //     }
-//     if(EventContext.Contexts.contains(localContextID(CurrentInstr.eventID, newID))){
+//     if(ObjectMemory.Contexts.contains(localContextID(CurrentInstr.eventID, newID))){
 //         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context '" << newID << "' already exists.\n";
 //         return;
 //     }
-//     EventContext.Contexts[localContextID(CurrentInstr.eventID, newID)] = NewContext;
-//     EventContext.Contexts[localContextID(CurrentInstr.eventID, newID)].type = type;
-//     EventContext.Contexts[localContextID(CurrentInstr.eventID, newID)].setID(
-//         CurrentInstr, EventContext.Contexts, EventContext.References, newID, printOutInstructions, maxLengthOfValuesPrinting
+//     ObjectMemory.Contexts[localContextID(CurrentInstr.eventID, newID)] = NewContext;
+//     ObjectMemory.Contexts[localContextID(CurrentInstr.eventID, newID)].type = type;
+//     ObjectMemory.Contexts[localContextID(CurrentInstr.eventID, newID)].setID(
+//         CurrentInstr, ObjectMemory.Contexts, ObjectMemory.References, newID, printOutInstructions, maxLengthOfValuesPrinting
 //     );
 //     localContextOfCurrentEvent.push_back(localContextID(CurrentInstr.eventID, newID));
 // }
-void ProcessClass::aggregateTwoSets(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     NewContext.clear();
     ContextClass LeftOperand;
     ContextClass RightOperand;
 
-    if(LeftOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References,
-        EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true
-    )){
+    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         return;
     }
 
-    if(RightOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 1, true)){
+    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
         return;
     }
 
     if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " " << LeftOperand.ID << ":" << dataTypeToStr(LeftOperand.type) << ":"
+        cout << instrToStr(Operation.instruction) << " " << LeftOperand.ID
+            << ":" << dataTypeToStr(LeftOperand.type) << ":"
             << LeftOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting)
-            << " " << RightOperand.ID << ":" << dataTypeToStr(RightOperand.type) << ":" << RightOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
+            << " " << RightOperand.ID << ":" << dataTypeToStr(RightOperand.type)
+            << ":" << RightOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
     }
 
     if(LeftOperand.type != RightOperand.type){
@@ -4444,9 +4559,9 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, ContextMapStruct
             return;
     }
 
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::aggregateEntities(OperationClass & Operation, ContextMapStruct & EventContext, const EngineClass & Engine){
+void ProcessClass::aggregateEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, const EngineClass & Engine){
     NewContext.clear();
 
     if(Operation.Location.source == ValueSource::layer || Operation.Location.source == ValueSource::camera){
@@ -4456,20 +4571,23 @@ void ProcessClass::aggregateEntities(OperationClass & Operation, ContextMapStruc
             cout << "\n";
         }
         if(Operation.Location.source == ValueSource::camera){
-            aggregateCameras(Operation, NewContext, vector<Camera2D*>(), Engine, EventContext, false);
+            aggregateCameras(Operation, NewContext, vector<Camera2D*>(), Engine, ObjectMemory, false);
         }
         else if(Operation.Location.source == ValueSource::layer){
-            aggregateLayers(Operation, NewContext, vector<LayerClass*>(), Engine, EventContext, false);
+            aggregateLayers(Operation, NewContext, vector<LayerClass*>(), Engine, ObjectMemory, false);
         }
         else{
             cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Source type \'" << sourceToStr(Operation.Location.source) << "\' does not exist in this context.\n";
+                << "Source type \'" << sourceToStr(Operation.Location.source)
+                << "\' does not exist in this context.\n";
         }
     }
     else if(Operation.rootParametersSize > 0){
         ContextClass * SourceContext;
         for(unsigned index = 0; index < Operation.rootParametersSize; index++){
-            if(getContextPointerFromTheParameter(SourceContext, EventContext, CurrentInstr, Operation.Parameters, index, true)){
+            if(getContextPointerFromTheParameter(SourceContext, ObjectMemory, LocalToGlobalTranslation,
+                CurrentInstr, Operation.Parameters, index, true
+            )){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Failed to get context from the parameter " << index+1 << ".\n";
                 return;
@@ -4482,29 +4600,29 @@ void ProcessClass::aggregateEntities(OperationClass & Operation, ContextMapStruc
             switch(SourceContext->type){
                 case camera_inst:
                     if(SourceContext->Cameras.size() > 0){
-                        aggregateCameras(Operation, NewContext, SourceContext->Cameras, Engine, EventContext, true);
+                        aggregateCameras(Operation, NewContext, SourceContext->Cameras, Engine, ObjectMemory, true);
                     }
                     break;
                 case camera_vec:
                     if(SourceContext->Cameras.size() > 0){
-                        aggregateCameras(Operation, NewContext, SourceContext->Cameras, Engine, EventContext, false);
+                        aggregateCameras(Operation, NewContext, SourceContext->Cameras, Engine, ObjectMemory, false);
                     }
                     break;
                 case layer_inst:
                     if(SourceContext->Layers.size() > 0){
-                        aggregateLayers(Operation, NewContext, SourceContext->Layers, Engine, EventContext, true);
+                        aggregateLayers(Operation, NewContext, SourceContext->Layers, Engine, ObjectMemory, true);
                     }
                     break;
                 case layer_vec:
                     if(SourceContext->Layers.size() > 0){
-                        aggregateLayers(Operation, NewContext, SourceContext->Layers, Engine, EventContext, false);
+                        aggregateLayers(Operation, NewContext, SourceContext->Layers, Engine, ObjectMemory, false);
                     }
                     break;
                 case object_inst:
-                    aggregateObjects(Operation, NewContext, SourceContext->Objects, Engine, EventContext, true);
+                    aggregateObjects(Operation, NewContext, SourceContext->Objects, Engine, ObjectMemory, true);
                     break;
                 case object_vec:
-                    aggregateObjects(Operation, NewContext, SourceContext->Objects, Engine, EventContext, false);
+                    aggregateObjects(Operation, NewContext, SourceContext->Objects, Engine, ObjectMemory, false);
                     break;
                 case pointer_inst:
                     aggregatePointers(NewContext, SourceContext->BasePointers, true);
@@ -4520,7 +4638,7 @@ void ProcessClass::aggregateEntities(OperationClass & Operation, ContextMapStruc
                     break;
                 default:
                     if(SourceContext->Modules.hasInstanceOfAnyModule()){
-                        aggregateModules(Operation, NewContext, SourceContext, EventContext, Engine);
+                        aggregateModules(Operation, NewContext, SourceContext, ObjectMemory, Engine);
                     }
                     break;
             }
@@ -4528,7 +4646,7 @@ void ProcessClass::aggregateEntities(OperationClass & Operation, ContextMapStruc
     }
 
     if(NewContext.type != null_dt){
-        assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+        assignVariable(ObjectMemory, Operation.Output);
     }
     else{
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "New context does not have a type.\n";
@@ -4539,7 +4657,7 @@ inline bool doesOperandContainSingleElement(const InstrDescription & CurrentInst
 ){
     if(rightOperandSize != 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "\n" << errorSpacing() << "Cannot move '" << dataTypeToStr(rightOperandType)
+            << "\n" << NEW_LINE_PADDING << "Cannot move '" << dataTypeToStr(rightOperandType)
             << "'<" << rightOperandSize << "> to a variable of '"
             << dataTypeToStr(leftOperandType) << "' type.\n";
         return true;
@@ -4938,12 +5056,12 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
 
     auto printMoveRightToLeftError = [](const DataType & leftType, const DataType & rightType, const InstrDescription & CurrentInstr) { 
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "\n" << errorSpacing() << "Cannot move a value of '" << dataTypeToStr(rightType)
+            << "\n" << NEW_LINE_PADDING << "Cannot move a value of '" << dataTypeToStr(rightType)
             << "'type to a variable of '" << dataTypeToStr(leftType) << "' type.\n";
     };
     auto printLeftNotInitialized = [](const string & id, const DataType & type, const InstrDescription & CurrentInstr) { 
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "\n" << errorSpacing() << "Left operand '" << id
+            << "\n" << NEW_LINE_PADDING << "Left operand '" << id
             << "' of '" << dataTypeToStr(type)
             << "' type was not initialized.\n";
     };
@@ -5376,26 +5494,12 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
             return;
     }
 }
-void ProcessClass::assignVariableFromPointer(ContextMapStruct & EventContext, ContextClass * InputVariable, string variableID, bool isReference){
-    ContextClass * OutputVariable = getContextByID(CurrentInstr, EventContext.Contexts,
-        EventContext.References, EventContext.callingSource, variableID, isReference, false
-    );
-    if(OutputVariable != nullptr){
-        OutputVariable->clearState();
-        if(OutputVariable->type == null_dt){
-            OutputVariable->type = InputVariable->type;   
-        }
-        moveRightToLeft(CurrentInstr, EngineInstr::assign, OutputVariable, *InputVariable);        
-        return;
-    }
-    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << variableID << "' does not exist.\n";
-}
-void ProcessClass::assignVariable(ContextMapStruct & EventContext, string variableID, bool isReference){
-    ContextClass * Variable = getContextByID(CurrentInstr, EventContext.Contexts,
-        EventContext.References, EventContext.callingSource, variableID, isReference, false
+void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, const OutputParameterStruct & Output){
+    ContextClass * Variable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+        LocalToGlobalTranslation[Output.localAddress], Output.variableID, false
     );
     if(Variable == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << variableID << "' does not exist.\n";
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID << "' does not exist.\n";
         return;
     }
     //Variable->clearState();
@@ -5405,9 +5509,9 @@ void ProcessClass::assignVariable(ContextMapStruct & EventContext, string variab
     moveRightToLeft(CurrentInstr, EngineInstr::assign, Variable, NewContext);        
     
     // NewContext.type = literal;
-    // addNewContext(EventContext, NewContext, "value", newContextID, global);
+    // addNewContext(ObjectMemory, NewContext, "value", newContextID, global);
 }
-void ProcessClass::aggregateValues(ContextMapStruct & EventContext, OperationClass & Operation, LayerClass *OwnerLayer,
+void ProcessClass::aggregateValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *OwnerLayer,
     AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes
 ){
     NewContext.clear();
@@ -5418,7 +5522,7 @@ void ProcessClass::aggregateValues(ContextMapStruct & EventContext, OperationCla
             ValueLocation.Location.print("");
             cout << "\n";
         }
-        findNextValue(ValueLocation, Owner, OwnerLayer, Engine, Processes, EventContext, NewValue);
+        findNextValue(ValueLocation, Owner, OwnerLayer, Engine, Processes, ObjectMemory, NewValue);
         NewContext.Values.emplace_back(NewValue);
     }
     NewContext.type = value_inst;
@@ -5427,14 +5531,14 @@ void ProcessClass::aggregateValues(ContextMapStruct & EventContext, OperationCla
     }
 
     if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " " << NewContext.getValue(CurrentInstr, maxLengthOfValuesPrinting) << " " << Operation.outputVariableID << "\n";
+        cout << instrToStr(Operation.instruction) << " "
+            << NewContext.getValue(CurrentInstr, maxLengthOfValuesPrinting)
+            << " " << Operation.Output.variableID << "\n";
     }
 
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::aggregateOnlyById(ContextMapStruct & EventContext, OperationClass & Operation,
-    LayerClass *OwnerLayer, AncestorObject *Owner
-){
+void ProcessClass::aggregateOnlyById(ObjectMemoryStruct & ObjectMemory, OperationClass & Operation, LayerClass *OwnerLayer, AncestorObject *Owner){
     NewContext.clear();
     ContextClass * Context = nullptr;
 
@@ -5452,7 +5556,9 @@ void ProcessClass::aggregateOnlyById(ContextMapStruct & EventContext, OperationC
             cout << "find_by_id (context)<" << Operation.rootParametersSize << ">\n";
         }
         for(unsigned index = 0; index < Operation.rootParametersSize; index++){
-            if(getContextPointerFromTheParameter(Context, EventContext, CurrentInstr, Operation.Parameters, index, true)){
+            if(getContextPointerFromTheParameter(Context, ObjectMemory, LocalToGlobalTranslation,
+                 CurrentInstr, Operation.Parameters, index, true
+            )){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Failed to get context from the parameter " << index+1 << ".\n";
                 return;
@@ -5470,64 +5576,12 @@ void ProcessClass::aggregateOnlyById(ContextMapStruct & EventContext, OperationC
         if(printOutInstructions){
             cout << ">found: " << NewContext.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
         }
-        assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+        assignVariable(ObjectMemory, Operation.Output);
     }
     else{
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed.\n";
     }
 }
-// void ContextClass::setID(const InstrDescription & CurrentInstr,
-//     std::unordered_map<string, ContextClass> & EventContext,
-//     std::unordered_map<string, ReferenceStruct> & References, string newID,
-//     const bool & printOutInstructions, int maxLengthOfValuesPrinting
-// ){
-//     if(newID == ""){
-//         return;
-//     }
-    
-//     ContextClass * OldVariable = getContextByID(CurrentInstr, EventContext, References, newID, false);
-
-//     if(OldVariable != nullptr){
-//         if(printOutInstructions){
-//             cout << ">delete "<< OldVariable->ID << ":" << OldVariable->type << ":" << OldVariable->getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
-//             cout << ">let " << newID << " " << ID << ":" << type << ":" << getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
-//         }
-//         *OldVariable = *this;
-//         OldVariable->ID = newID;
-//         //EventContext.pop_back();
-//         //clear();
-//         //cerr << instructionError(CurrentInstr, __FUNCTION__)
-//         //    << "Cannot rename existing variables.\n";
-//     }
-//     else{
-//         if(printOutInstructions){
-//             cout << ">let " << newID << " " << ID << ":" << type << ":" << getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
-//         }
-//         ID = newID;
-//     }
-// }
-// void ProcessClass::nameVariable(ContextMapStruct & EventContext, OperationClass &Operation){
-//     cerr << instructionError(CurrentInstr, __FUNCTION__)
-//             << "Cannot rename existing variables.\n";
-//     return;
-    
-//     ContextClass * Context = nullptr;
-
-//     getContextPointerFromTheParameter(Context, EventContext, CurrentInstr, Operation.Parameters, 0, false);
-
-//     if(Context != nullptr){
-//         Context->setID(CurrentInstr, EventContext.Contexts, EventContext.References, Operation.outputVariableID, printOutInstructions, maxLengthOfValuesPrinting);
-//     }
-//     else if(EventContext.Contexts.size() > 0){
-//         EventContext.Contexts[localContextID(CurrentInstr.eventID, lastContextID)].setID(
-//             CurrentInstr, EventContext.Contexts, EventContext.References, Operation.outputVariableID, printOutInstructions, maxLengthOfValuesPrinting
-//         );
-//     }
-//     else{
-//         cerr << instructionError(CurrentInstr, __FUNCTION__)
-//             << "This event does not have any context.\n";
-//     }
-// }
 
 inline bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t leftSize,
     size_t rightSize, bool & sameSize, const string & functionName
@@ -5577,11 +5631,11 @@ void cloneRightToLeft(vector <Entity*> & LeftOperand, vector <Entity*> & RightOp
         }
     }
 }
-void ProcessClass::moveValues(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::moveValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass * LeftOperand = nullptr;
     ContextClass RightOperand;
 
-    if(getContextPointerFromTheParameter(LeftOperand, EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    if(getContextPointerFromTheParameter(LeftOperand, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
@@ -5609,13 +5663,13 @@ void ProcessClass::moveValues(OperationClass & Operation, ContextMapStruct & Eve
     }
 
     if(Operation.instruction == EngineInstr::inc || Operation.instruction == EngineInstr::dec){
-        std::chrono::steady_clock::time_point timerStart0 = std::chrono::steady_clock::now();
+        TimePoint timerStart0 = std::chrono::steady_clock::now();
         //TODO: In the last episode we optimized this bad boy
         RightOperand.copyOnlyCurrentType(LeftOperand); //Cloning the left operand allows to reuse this function for incrementing and decrementing.
-        std::chrono::steady_clock::time_point timerStop0 = std::chrono::steady_clock::now();
+        TimePoint timerStop0 = std::chrono::steady_clock::now();
         INDEX_TESTS[4] += std::chrono::duration_cast<std::chrono::microseconds>(timerStop0 - timerStart0).count();
     }
-    else if(RightOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 1, true)){
+    else if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__) <<
             "Parameter 2 does not exist.\n";
         return;
@@ -5629,10 +5683,10 @@ void ProcessClass::moveValues(OperationClass & Operation, ContextMapStruct & Eve
     
     moveRightToLeft(CurrentInstr, CurrentInstr.instruction, LeftOperand, RightOperand);
 }
-void ProcessClass::incrementInteger(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::incrementInteger(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass * LeftOperand = nullptr;
 
-    if(getContextPointerFromTheParameter(LeftOperand, EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    if(getContextPointerFromTheParameter(LeftOperand, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
@@ -5945,27 +5999,27 @@ inline void cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass 
             break;
     }
 }
-void ProcessClass::cloneEntities(OperationClass & Operation, ContextMapStruct & EventContext, vector<LayerClass> &Layers){
+void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers){
     if(Operation.rootParametersSize < 3){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 3 parameters.\n";
         return;
     }
     
     ContextClass * LeftOperand = nullptr;
-    if(getContextPointerFromTheParameter(LeftOperand, EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    if(getContextPointerFromTheParameter(LeftOperand, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
     }
     ContextClass * RightOperand = nullptr;
-    if(getContextPointerFromTheParameter(RightOperand, EventContext, CurrentInstr, Operation.Parameters, 1, true)){
+    if(getContextPointerFromTheParameter(RightOperand, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 2.\n";
         return;
     }
 
     bool changeOldID = false;
-    if(getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, changeOldID, true)){
+    if(getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, changeOldID, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a bool value from the parameter 3.\n";
         return;
@@ -5990,17 +6044,17 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ContextMapStruct & 
         cloneEntitiesOfDifferentType(LeftOperand, RightOperand, CurrentInstr);
     }
 }
-void ProcessClass::executeArithmetics(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass LeftOperand;
     ContextClass RightOperand;
 
-    if(LeftOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
     }
 
-    if(RightOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 1, true)){
+    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 2.\n";
         return;
@@ -6211,7 +6265,9 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ContextMapStru
                             || RightOperand.BasePointers[j].type == double_bt
                         ){
                             NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setDouble(LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, &RightOperand.BasePointers[j]));
+                            NewContext.Values.back().setDouble(
+                                LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, &RightOperand.BasePointers[j])
+                            );
                         }
                         else{
                             NewContext.Values.emplace_back(VariableModule());
@@ -6281,22 +6337,22 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ContextMapStru
     if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::createLiteral(ContextMapStruct & EventContext, const OperationClass & Operation){
+void ProcessClass::createLiteral(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     NewContext.clear();
     vector<VariableModule> NewVariables;
 
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " ";
-        if(Operation.outputVariableID != ""){
-            cout << Operation.outputVariableID << " ";
+        if(Operation.Output.variableID != ""){
+            cout << Operation.Output.variableID << " ";
         }
         cout << "{";
     }   
 
     for(unsigned index = 0; index < Operation.rootParametersSize; index++){
-        if(getValuesFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, index, NewVariables, true)){
+        if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, index, NewVariables, true)){
             return;
         }
         if(printOutInstructions){
@@ -6317,19 +6373,19 @@ void ProcessClass::createLiteral(ContextMapStruct & EventContext, const Operatio
     if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::generateRandomVariable(ContextMapStruct & EventContext, const OperationClass & Operation){
+void ProcessClass::generateRandomVariable(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass LeftOperand;
     ContextClass RightOperand;
     
-    if(LeftOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 1.\n";
         return;
     }
 
-    if(RightOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 1, true)){
+    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 2.\n";
         return;
@@ -6515,10 +6571,10 @@ void ProcessClass::generateRandomVariable(ContextMapStruct & EventContext, const
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " "
             << NewContext.getValue(CurrentInstr, maxLengthOfValuesPrinting)
-            << " " << Operation.outputVariableID << "\n";
+            << " " << Operation.Output.variableID << "\n";
     }
 
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
 template <class Module>
 bool containsTheSameModule(const vector <Module> & LeftModules, const vector <Module> & RightModules){
@@ -6860,17 +6916,17 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
             break;
     }
 }
-void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass LeftOperand;
     ContextClass RightOperand;
 
-    if(LeftOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 1.\n";
         return;
     }
 
-    if(RightOperand.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 1, true)){
+    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 2.\n";
         return;
@@ -6899,19 +6955,19 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, Conte
     if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
 template <class Module>
 void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const unsigned & newVectorSize,
-    const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, ContextMapStruct & EventContext,
+    const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory,
     vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack,
     double reservationMultiplier, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
     if(Container.size() + newVectorSize > Container.capacity()){
         PointerRecalculator Recalculator;
-        Recalculator.findIndexesForModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+        Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
         Container.reserve((Container.size() + newVectorSize) * reservationMultiplier);
-        Recalculator.updatePointersToModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+        Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
     }
     string ID = "";
     for(unsigned i = 0; i < newVectorSize; i++){
@@ -6922,7 +6978,7 @@ void createNewModule(vector <Module> & Container, vector <string> & allIDs, vect
         Context.push_back(&Container.back());
     }
 }
-bool ProcessClass::prepareVectorSizeAndIDsForNew(OperationClass & Operation, ContextMapStruct & EventContext,
+bool ProcessClass::prepareVectorSizeAndIDsForNew(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
     unsigned & newVectorSize, vector <string> & newIDs
 ){
     bool skipOneParameter = false;
@@ -6931,18 +6987,18 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(OperationClass & Operation, Con
         skipOneParameter = true;
     }
 
-    if(getUnsignedFromTheParameter(EventContext, HelpContext, LeftOperandProc, CurrentInstr,
+    if(getUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, LeftOperandProc, CurrentInstr,
         Operation.Parameters, skipOneParameter + 1, newVectorSize, false)
     ){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return false;
     }
 
-    getStringVectorFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, skipOneParameter + 2, newIDs, false);
+    getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, skipOneParameter + 2, newIDs, false);
 
     return true;
 }
-bool ProcessClass::prepareDestinationForNew(OperationClass & Operation, ContextMapStruct & EventContext,
+bool ProcessClass::prepareDestinationForNew(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
     LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers
 ){
     if(Operation.Parameters[0].type != 'l'){
@@ -6984,7 +7040,7 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation, ContextM
     }
     else if(Operation.Parameters[0].Literal.getString() == "variable"){
         ContextClass Context;
-        if(Context.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 1, true)){
+        if(Context.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "No context found.\n";
             return false;
         }
@@ -7030,20 +7086,19 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation, ContextM
 
     return true;
 }
-void ProcessClass::assignEntities(ContextMapStruct & EventContext, ContextClass & NewValue,
-    string variableID, bool isReference, const DataType & type
-){
-    ContextClass * Variable = getContextByID(CurrentInstr, EventContext.Contexts,
-        EventContext.References, EventContext.callingSource, variableID, isReference, false
+void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClass & NewValue, OutputParameterStruct & Output){
+    ContextClass * Variable = getVariableByAddress(
+        CurrentInstr, ObjectMemory.MemoryMap, LocalToGlobalTranslation[Output.localAddress], Output.variableID, false
     );
     if(Variable == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << variableID << "' does not exist.\n";
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID << "' does not exist.\n";
         return;
     }
 
     Variable->clearState();
     if(Variable->type == null_dt || Variable->type == any_dt){
         Variable->type = NewValue.type;
+        Output.type = NewValue.type;
     }
     else if(Variable->type != NewValue.type){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -7052,7 +7107,7 @@ void ProcessClass::assignEntities(ContextMapStruct & EventContext, ContextClass 
         return;
     }
 
-    switch (type){
+    switch (Variable->type){
         case camera_inst:
         case camera_vec:
             for(Camera2D * Camera : NewValue.Cameras){
@@ -7151,13 +7206,14 @@ void ProcessClass::assignEntities(ContextMapStruct & EventContext, ContextClass 
             break;
         default:
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
-                << dataTypeToStr(type) << "\' does not exist.\n";
+                << dataTypeToStr(Output.type) << "\' does not exist.\n";
             break;
     }
 }
-void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruct & EventContext, LayerClass *& OwnerLayer,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, string & focusedProcessID
+void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
+    LayerClass *& OwnerLayer, AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
+    vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
+    vector<EventStackStruct> & MemoryStack, string & focusedProcessID
 ){
     LayerClass * CurrentLayer = nullptr;
     AncestorObject * CurrentObject = nullptr;
@@ -7169,14 +7225,14 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
         return;
     }
 
-    if(!prepareDestinationForNew(Operation, EventContext, CurrentLayer, CurrentObject, layerID, objectID, Layers)){
+    if(!prepareDestinationForNew(Operation, ObjectMemory, CurrentLayer, CurrentObject, layerID, objectID, Layers)){
         return;
     }
     
     unsigned newVectorSize = 0;
     vector <string> newIDs;
 
-    if(!prepareVectorSizeAndIDsForNew(Operation, EventContext, newVectorSize, newIDs)){
+    if(!prepareVectorSizeAndIDsForNew(Operation, ObjectMemory, newVectorSize, newIDs)){
         return;
     }
 
@@ -7198,7 +7254,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             }
             cout << "]<" << newIDs.size() << ">";
         }
-        cout << Operation.outputVariableID << "\n";
+        cout << Operation.Output.variableID << "\n";
     }
 
     NewContext.clear();
@@ -7215,9 +7271,9 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
                     Layer.nullifyAllPointers();
                 }
                 PointerRecalculator Recalculator;
-                Recalculator.findIndexesForCameras(Cameras, EventContext, SelectedCamera);
+                Recalculator.findIndexesForCameras(Cameras, ObjectMemory, SelectedCamera);
                 Cameras.reserve((Cameras.size() + newVectorSize) * reservationMultiplier);
-                Recalculator.updatePointersToCameras(Cameras, EventContext, SelectedCamera, getID(), focusedProcessID, CurrentInstr);
+                Recalculator.updatePointersToCameras(Cameras, ObjectMemory, SelectedCamera, getID(), focusedProcessID, CurrentInstr);
             }
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
@@ -7232,13 +7288,13 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
         case layer:
             if(Layers.size() + newVectorSize > Layers.capacity()){
                 PointerRecalculator Recalculator;
-                Recalculator.findIndexesForLayers(Layers, EventContext, OwnerLayer);
-                Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-                Recalculator.findIndexesForModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                Recalculator.findIndexesForLayers(Layers, ObjectMemory, OwnerLayer);
+                Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
+                Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
                 Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
-                Recalculator.updatePointersToLayers(Layers, EventContext, OwnerLayer, CurrentInstr);
-                Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-                Recalculator.updatePointersToModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                Recalculator.updatePointersToLayers(Layers, ObjectMemory, OwnerLayer, CurrentInstr);
+                Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
+                Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
             }
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
@@ -7252,11 +7308,11 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
         case object:
             if(CurrentLayer->Objects.size() + newVectorSize > CurrentLayer->Objects.capacity()){
                 PointerRecalculator Recalculator;
-                Recalculator.findIndexesForObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-                Recalculator.findIndexesForModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
+                Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
                 CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
-                Recalculator.updatePointersToObjects(Layers, EventContext, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-                Recalculator.updatePointersToModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
+                Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
             }
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
@@ -7270,7 +7326,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case text:
             createNewModule(CurrentObject->TextContainer, CurrentObject->textContainerIDs, NewContext.Modules.Texts,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->TextContainer.size() - 1; i >= long(CurrentObject->TextContainer.size() - newVectorSize); i--){
@@ -7279,7 +7335,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case editable_text:
             createNewModule(CurrentObject->EditableTextContainer, CurrentObject->editableTextContainerIDs, NewContext.Modules.EditableTexts,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->EditableTextContainer.size() - 1; i >= long(CurrentObject->EditableTextContainer.size() - newVectorSize); i--){
                 CurrentObject->EditableTextContainer[i].setIsScrollable(CurrentObject->getIsScrollable());
@@ -7287,7 +7343,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case super_text:
             createNewModule(CurrentObject->SuperTextContainer, CurrentObject->superTextContainerIDs, NewContext.Modules.SuperTexts,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->SuperTextContainer.size() - 1; i >= long(CurrentObject->SuperTextContainer.size() - newVectorSize); i--){
                 CurrentObject->SuperTextContainer[i].setIsScrollable(CurrentObject->getIsScrollable());
@@ -7295,7 +7351,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case super_editable_text:
             createNewModule(CurrentObject->SuperEditableTextContainer, CurrentObject->superEditableTextContainerIDs, NewContext.Modules.SuperEditableTexts,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->SuperEditableTextContainer.size() - 1; i >= long(CurrentObject->SuperEditableTextContainer.size() - newVectorSize); i--){
                 CurrentObject->SuperEditableTextContainer[i].setIsScrollable(CurrentObject->getIsScrollable());
@@ -7303,7 +7359,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case image:
             createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->ImageContainer.size() - 1; i >= long(CurrentObject->ImageContainer.size() - newVectorSize); i--){
@@ -7312,7 +7368,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case movement:
             createNewModule(CurrentObject->MovementContainer, CurrentObject->movementContainerIDs, NewContext.Modules.Movements,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->MovementContainer.size() - 1; i >= long(CurrentObject->MovementContainer.size() - newVectorSize); i--){
@@ -7321,7 +7377,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case collision:
             createNewModule(CurrentObject->CollisionContainer, CurrentObject->collisionContainerIDs, NewContext.Modules.Collisions,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->CollisionContainer.size() - 1; i >= long(CurrentObject->CollisionContainer.size() - newVectorSize); i--){
@@ -7330,7 +7386,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case particles:
             createNewModule(CurrentObject->ParticlesContainer, CurrentObject->particlesContainerIDs, NewContext.Modules.Particles,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->ParticlesContainer.size() - 1; i >= long(CurrentObject->ParticlesContainer.size() - newVectorSize); i--){
@@ -7339,19 +7395,19 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case event:
             createNewModule(CurrentObject->EventContainer, CurrentObject->EventContainerIDs, NewContext.Modules.Events,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             break;
         case variable:
             createNewModule(CurrentObject->VariablesContainer, CurrentObject->variablesContainerIDs, NewContext.Modules.Variables,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             break;
         case scrollbar:
             createNewModule(CurrentObject->ScrollbarContainer, CurrentObject->scrollbarContainerIDs, NewContext.Modules.Scrollbars,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->ScrollbarContainer.size() - 1; i >= long(CurrentObject->ScrollbarContainer.size() - newVectorSize); i--){
@@ -7360,7 +7416,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case primitives:
             createNewModule(CurrentObject->PrimitivesContainer, CurrentObject->primitivesContainerIDs, NewContext.Modules.Primitives,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->PrimitivesContainer.size() - 1; i >= long(CurrentObject->PrimitivesContainer.size() - newVectorSize); i--){
@@ -7369,7 +7425,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
             break;
         case vector_s:
             createNewModule(CurrentObject->VectorContainer, CurrentObject->vectorContainerIDs, NewContext.Modules.Vectors,
-                newVectorSize, newIDs, layerID, objectID, Layers, EventContext, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             break;
@@ -7380,7 +7436,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ContextMapStruc
     }
 
     if(NewContext.type != null_dt){
-        assignEntities(EventContext, NewContext, Operation.outputVariableID, Operation.isOutputReference, sourceToEntityType(CurrentInstr, Operation.Location.source));
+        assignEntities(ObjectMemory, NewContext, Operation.Output);
         wasNewExecuted = true;
     }
     else{
@@ -7399,12 +7455,12 @@ void clearDeletedPointersFromVector(vector<T*> & Vector){
         }
     }
 }
-void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ContextMapStruct & EventContext, LayerClass *& OwnerLayer,
+void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
     AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, string & focusedProcessID
 ){
     ContextClass * DeletedContext = nullptr;
     
-    if(getContextPointerFromTheParameter(DeletedContext, EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    if(getContextPointerFromTheParameter(DeletedContext, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get context.\n";
         return;
     }
@@ -7431,7 +7487,7 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ContextMa
             if(SelectedCamera != nullptr && SelectedCamera->getIsDeleted()){
                 unfocusCameras(Cameras, SelectedCamera, getID(), focusedProcessID);
             }
-            for(auto & Context : EventContext.Contexts){
+            for(auto & Context : ObjectMemory.MemoryMap){
                 if(Context.second.type == camera_inst || Context.second.type == camera_vec){
                     clearDeletedPointersFromVector(Context.second.Cameras);
                 }
@@ -7450,7 +7506,7 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ContextMa
             if(SelectedLayer != nullptr && SelectedLayer->getIsDeleted()){
                 SelectedLayer = nullptr;
             }
-            for(auto & Context : EventContext.Contexts){
+            for(auto & Context : ObjectMemory.MemoryMap){
                 if(Context.second.type == layer_inst || Context.second.type == layer_vec){
                     clearDeletedPointersFromVector(Context.second.Layers);
                 }
@@ -7617,7 +7673,7 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ContextMa
                 Object = nullptr;
             }
         }
-        for(auto & Context : EventContext.Contexts){
+        for(auto & Context : ObjectMemory.MemoryMap){
             if(Context.second.type == object_inst || Context.second.type == object_vec){
                 clearDeletedPointersFromVector(Context.second.Objects);
             }
@@ -7655,7 +7711,7 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ContextMa
         case primitives_mod_vec:
         case vector_mod:
         case vector_mod_vec:
-            for(auto & ContextPair : EventContext.Contexts){
+            for(auto & ContextPair : ObjectMemory.MemoryMap){
                 ContextClass & Context = ContextPair.second;
                 switch(Context.type){
                     case text_mod:
@@ -7814,10 +7870,10 @@ inline void findInstanceInVectorByIndexNoReference(const vector<unsigned> & inde
         NewVector.push_back(Aggregated[i]);
     }
 }
-void ProcessClass::getIndexes(ContextMapStruct & EventContext, const vector<ParameterStruct> & Parameters, vector<unsigned> & indexes, bool skipContext){
+void ProcessClass::getIndexes(ObjectMemoryStruct & ObjectMemory, const vector<ParameterStruct> & Parameters, vector<unsigned> & indexes, bool skipContext){
     ContextClass IndexContext;
 
-    if(getUnsignedVectorFromTheParameter(EventContext, HelpContext, CurrentInstr, Parameters, skipContext, indexes)){
+    if(getUnsignedVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Parameters, skipContext, indexes)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter " << skipContext + 1 << ".\n";
         return;
@@ -8150,13 +8206,13 @@ void ProcessClass::getReferenceFromContextByIndex(OperationClass & Operation, Co
             return;
     }
 }
-void ProcessClass::getReferenceByIndex(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     NewContext.clear();
     vector<unsigned> indexes;
     unsigned realIndex = 0, entityIndex = 0;
 
     if(Operation.Location.source != ValueSource::null_s && Operation.Location.source != ValueSource::context){
-        getIndexes(EventContext, Operation.Parameters, indexes, false);
+        getIndexes(ObjectMemory, Operation.Parameters, indexes, false);
 
         if(indexes.size() == 0){
             indexes.emplace_back(0);
@@ -8271,12 +8327,12 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ContextMapStr
     }
     else{
         ContextClass SourceContext;
-        if(SourceContext.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+        if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "No context found.\n";
             return;
         }
 
-        getIndexes(EventContext, Operation.Parameters, indexes, true);
+        getIndexes(ObjectMemory, Operation.Parameters, indexes, true);
         
         if(indexes.size() == 0){
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "No indexes provided.\n";
@@ -8313,23 +8369,23 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ContextMapStr
         case variable_mod_vec:
         case vector_mod:
         case vector_mod_vec:
-            assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+            assignVariable(ObjectMemory, Operation.Output);
             return;
         default:
-            assignEntities(EventContext, NewContext, Operation.outputVariableID, Operation.isOutputReference, NewContext.type);
+            assignEntities(ObjectMemory, NewContext, Operation.Output);
             return;
     }
 }
-void ProcessClass::getInstanceFromVector(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass * SourceContext;
-    if(getContextPointerFromTheParameter(SourceContext, EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    if(getContextPointerFromTheParameter(SourceContext, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
     }
 
     unsigned index = 0;
-    if(getTurboUnsignedFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, index, true)){
+    if(getTurboUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, index, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the parameter 2.\n";
         return;
@@ -8338,58 +8394,70 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ContextMapS
     if(printOutInstructions){
         cout << Operation.instruction << " " << dataTypeToStr(SourceContext->type) << " "
             << index << " " << attributeToStr(Operation.Location.attribute)
-            << " " << Operation.outputVariableID << "\n";
+            << " " << Operation.Output.variableID << "\n";
     }
 
     NewContext.clear();
-    if(SourceContext->type == vector_mod_vec){
-        NewContext.type = value_inst;
-        if(SourceContext->Modules.Vectors.back()->getType() == 'b'){
-            if(index >= SourceContext->Modules.Vectors.back()->vBool.size()){
+    switch(SourceContext->type){
+        case vector_mod:
+        case vector_mod_vec:
+            NewContext.type = value_inst;
+            if(SourceContext->Modules.Vectors.back()->getType() == 'b'){
+                if(index >= SourceContext->Modules.Vectors.back()->vBool.size()){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Index is equal to " << index << ", while the size of the vector is "
+                        << SourceContext->Modules.Vectors.back()->vBool.size() << ".\n";
+                    return;
+                }
+                NewContext.Values.emplace_back(SourceContext->Modules.Vectors.back()->vBool[index].value);
+            }
+            else if(SourceContext->Modules.Vectors.back()->getType() == 'i'){
+                if(index >= SourceContext->Modules.Vectors.back()->vInt.size()){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Index is equal to " << index << ", while the size of the vector is "
+                        << SourceContext->Modules.Vectors.back()->vInt.size() << ".\n";
+                    return;
+                }
+                NewContext.Values.emplace_back(SourceContext->Modules.Vectors.back()->vInt[index]);
+            }
+            else if(SourceContext->Modules.Vectors.back()->getType() == 'd'){
+                if(index >= SourceContext->Modules.Vectors.back()->vDouble.size()){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Index is equal to " << index << ", while the size of the vector is " 
+                        << SourceContext->Modules.Vectors.back()->vDouble.size() << ".\n";
+                    return;
+                }
+                NewContext.Values.emplace_back(SourceContext->Modules.Vectors.back()->vDouble[index]);
+            }
+            else if(SourceContext->Modules.Vectors.back()->getType() == 's'){
+                if(index >= SourceContext->Modules.Vectors.back()->vString.size()){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Index is equal to " << index << ", while the size of the vector is "
+                        << SourceContext->Modules.Vectors.back()->vString.size() << ".\n";
+                    return;
+                }
+                NewContext.Values.emplace_back(SourceContext->Modules.Vectors.back()->vString[index]);
+            }
+            break;
+        case value_vec:
+            NewContext.type = value_inst;
+            if(index >= SourceContext->Values.size()){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Index is equal to " << index << ", while the size of the vector is "
-                    << SourceContext->Modules.Vectors.back()->vBool.size() << ".\n";
+                    << SourceContext->Values.size() << ".\n";
                 return;
             }
-            NewContext.Values.emplace_back(SourceContext->Modules.Vectors.back()->vBool[index].value);
-        }
-        else if(SourceContext->Modules.Vectors.back()->getType() == 'i'){
-            if(index >= SourceContext->Modules.Vectors.back()->vInt.size()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Index is equal to " << index << ", while the size of the vector is "
-                    << SourceContext->Modules.Vectors.back()->vInt.size() << ".\n";
-                return;
-            }
-            NewContext.Values.emplace_back(SourceContext->Modules.Vectors.back()->vInt[index]);
-        }
-        else if(SourceContext->Modules.Vectors.back()->getType() == 'd'){
-            if(index >= SourceContext->Modules.Vectors.back()->vDouble.size()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Index is equal to " << index << ", while the size of the vector is " 
-                    << SourceContext->Modules.Vectors.back()->vDouble.size() << ".\n";
-                return;
-            }
-            NewContext.Values.emplace_back(SourceContext->Modules.Vectors.back()->vDouble[index]);
-        }
-        else if(SourceContext->Modules.Vectors.back()->getType() == 's'){
-            if(index >= SourceContext->Modules.Vectors.back()->vString.size()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Index is equal to " << index << ", while the size of the vector is "
-                    << SourceContext->Modules.Vectors.back()->vString.size() << ".\n";
-                return;
-            }
-            NewContext.Values.emplace_back(SourceContext->Modules.Vectors.back()->vString[index]);
-        }
-    }
-    else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Variable '" << SourceContext->ID << "' has invalid type: \'"
-            << dataTypeToStr(SourceContext->type) << "\'.\n";
-        return;
+            NewContext.Values.emplace_back(SourceContext->Values[index]);
+            break;
+        default:
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Variable '" << SourceContext->ID << "' has invalid type: \'"
+                << dataTypeToStr(SourceContext->type) << "\'.\n";
+            return;
     }
 
     if(NewContext.type != null_dt){
-        assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+        assignVariable(ObjectMemory, Operation.Output);
     }
     else{
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed.\n";
@@ -8407,10 +8475,10 @@ void printStringVectorForInstruction(const vector<string> & values, int maxLengt
         cout << "] ";
     }
 }
-void ProcessClass::bindFilesToObjects(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::bindFilesToObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass ObjectContext;
 
-    if(ObjectContext.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter.\n";
         return;
     }
@@ -8429,7 +8497,7 @@ void ProcessClass::bindFilesToObjects(OperationClass & Operation, ContextMapStru
 
     vector<string> scriptPaths;
 
-    if(getStringVectorFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, scriptPaths, true)){
+    if(getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, scriptPaths, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter 2.\n";
         return;
@@ -8453,9 +8521,9 @@ void ProcessClass::bindFilesToObjects(OperationClass & Operation, ContextMapStru
         }
     }
 }
-void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass ObjectContext;
-    if(ObjectContext.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter.\n";
         return;
     }
@@ -8477,11 +8545,11 @@ void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation, Cont
         Object->bindedScripts.clear();
     }
 }
-bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ContextMapStruct & EventContext, AncestorObject * Owner,
+bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
     vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool allowNotAscii
 ){
     ContextClass ObjectContext;
-    if(ObjectContext.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter.\n";
         return false;
     }
@@ -8499,10 +8567,10 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ContextMapSt
     }
     
     bool canResetEvents = false;
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, canResetEvents, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, canResetEvents, false);
 
     bool canDeleteEventsOfItsOwner = false;
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, canDeleteEventsOfItsOwner, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, canDeleteEventsOfItsOwner, false);
 
     if(printOutInstructions){
         if(canResetEvents){
@@ -8514,7 +8582,7 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ContextMapSt
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
 
     bool myEventsAreDeleted = false;
     for(AncestorObject * Object : ObjectContext.Objects){
@@ -8526,29 +8594,31 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ContextMapSt
             }
             myEventsAreDeleted = true;
         }
-        ContextMapStruct & CurrentMap = ContextLookupTable[Object->objectLookupID];
+        ObjectMemoryStruct & CurrentMap = ContextLookupTable[Object->objectLookupID];
         if(canResetEvents){
             CurrentMap.clear();
         }
-        vector<StartingVariableStruct> NewVariablesForLookupTable;
-        Object->translateAllScripts(canResetEvents, allowNotAscii, NewVariablesForLookupTable);
-        buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
+        setupBuiltInVariables(CurrentMap);
+        Object->translateAllScripts(canResetEvents, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
+        allocateAllLocalVariables(CurrentMap, Object->EventContainer);
+        //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
         findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+        detectRecursionInEvents(Object->EventContainer, CurrentInstr);
         wasAnyEventUpdated = true;
     }
 
     if(!myEventsAreDeleted){
-        Recalculator.updatePointersToModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+        Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
     }
 
     return myEventsAreDeleted;
 }
-bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, ContextMapStruct & EventContext,
+bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
     AncestorObject * Owner, vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
     vector<EventStackStruct> & MemoryStack, const EngineInstr & mode, bool allowNotAscii
 ){
     ContextClass ObjectContext;
-    if(ObjectContext.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter. Instruction requires two parameters.\n";
         return false;
     }
@@ -8566,7 +8636,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Contex
     }
 
     vector <string> stringVector;
-    if(getStringVectorFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, stringVector, true)){
+    if(getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, stringVector, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 2. A vector of strings was expected.\n";
         return false;
@@ -8580,10 +8650,10 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Contex
     }
 
     bool canResetEvents = false;
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, canResetEvents, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, canResetEvents, false);
 
     bool canDeleteEventsOfItsOwner = false;
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 3, canDeleteEventsOfItsOwner, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 3, canDeleteEventsOfItsOwner, false);
 
     if(printOutInstructions){
         printStringVectorForInstruction(stringVector, maxLengthOfValuesPrinting);
@@ -8592,14 +8662,11 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Contex
 
     //All indexes linked with events must be recalculated - after adding new events, some contexts of event type might be invalid.  
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
 
     bool myEventsAreDeleted = false;
-
-    vector<StartingVariableStruct> NewVariablesForLookupTable;
     
     for(AncestorObject * Object : ObjectContext.Objects){
-        NewVariablesForLookupTable.clear();
         if(canResetEvents && Object == Owner){
             if(!canDeleteEventsOfItsOwner){
                 std::cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -8608,75 +8675,85 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Contex
             }
             myEventsAreDeleted = true;
         }
-        ContextMapStruct & CurrentMap = ContextLookupTable[Object->objectLookupID];
+        ObjectMemoryStruct & CurrentMap = ContextLookupTable[Object->objectLookupID];
         if(canResetEvents){
             CurrentMap.clear();
         }
-        if(mode == load_build){
-            for(string & path : stringVector){
-                path = EXE_PATH + workingDirectory + path;
-            }
-            Object->translateScriptsFromPaths(canResetEvents, stringVector, allowNotAscii, NewVariablesForLookupTable);
-            buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
-            findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
-        }
-        else if(mode == build_subset){
-            for(string & path : stringVector){
-                path = EXE_PATH + workingDirectory + path;
-            }
-            Object->translateSubsetBindedScripts(canResetEvents, stringVector, allowNotAscii, NewVariablesForLookupTable);
-            buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
-            findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
-        }
-        else if(mode == inject_code){
-            Object->injectCode(canResetEvents, stringVector, NewVariablesForLookupTable);
-            buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
-            findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
-        }
-        else if(mode == inject_instr){
-            bool isInsideStringSector = false;
-            vector <string> preprocessed = {""};
-            for(size_t i = 0; i < stringVector.size(); i++){
-                for(size_t j = 0; j < stringVector[i].size(); j++){
-                    if(stringVector[i][j] == '\"' && (j == 0 || stringVector[i][j - 1] != '\\')){
-                        isInsideStringSector = !isInsideStringSector;
-                    }
-                    if(!isInsideStringSector && stringVector[i][j] == '\n'){
-                        preprocessed.emplace_back("");
-                    }
-                    else{
-                        preprocessed.back() += stringVector[i][j];
+        setupBuiltInVariables(CurrentMap);
+        switch(mode){
+            case load_build:
+                for(string & path : stringVector){
+                    path = EXE_PATH + workingDirectory + path;
+                }
+                Object->translateScriptsFromPaths(canResetEvents, stringVector, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
+                allocateAllLocalVariables(CurrentMap, Object->EventContainer);
+                //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
+                findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+                detectRecursionInEvents(Object->EventContainer, CurrentInstr);
+                break;
+            case build_subset:
+                for(string & path : stringVector){
+                    path = EXE_PATH + workingDirectory + path;
+                }
+                Object->translateSubsetBindedScripts(canResetEvents, stringVector, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
+                allocateAllLocalVariables(CurrentMap, Object->EventContainer);
+                //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
+                findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+                detectRecursionInEvents(Object->EventContainer, CurrentInstr);
+                break;
+            case inject_code:
+                Object->injectCode(canResetEvents, stringVector, CurrentMap.GlobalScope, CurrentMap.topAddress);
+                allocateAllLocalVariables(CurrentMap, Object->EventContainer);
+                //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
+                findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+                detectRecursionInEvents(Object->EventContainer, CurrentInstr);
+                break;
+            case inject_instr:{
+                bool isInsideStringSector = false;
+                vector <string> preprocessed = {""};
+                for(size_t i = 0; i < stringVector.size(); i++){
+                    for(size_t j = 0; j < stringVector[i].size(); j++){
+                        if(stringVector[i][j] == '\"' && (j == 0 || stringVector[i][j - 1] != '\\')){
+                            isInsideStringSector = !isInsideStringSector;
+                        }
+                        if(!isInsideStringSector && stringVector[i][j] == '\n'){
+                            preprocessed.emplace_back("");
+                        }
+                        else{
+                            preprocessed.back() += stringVector[i][j];
+                        }
                     }
                 }
-            }
-            if(isInsideStringSector){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "String section was not closed in lines:\n";
-                for(string line : stringVector){
-                    cout << "\t" << line << "\n";
+                if(isInsideStringSector){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "String section was not closed in lines:\n";
+                    for(string line : stringVector){
+                        cout << "\t" << line << "\n";
+                    }
                 }
-            }
-            Object->injectInstructions(canResetEvents, preprocessed, NewVariablesForLookupTable);
-            buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
-            findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
-        }
-        else{
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "\'" << mode << "\' mode does not exist."
-                << "Allowed modes: p (uses translateScriptsFromPaths), s (uses translateSubsetBindedScripts),"
-                << "c (uses injectCode), i (uses injectInstructions)\n";
-            return false;
+                Object->injectInstructions(canResetEvents, preprocessed, CurrentMap.GlobalScope, CurrentMap.topAddress);
+                allocateAllLocalVariables(CurrentMap, Object->EventContainer);
+                //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
+                findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+                detectRecursionInEvents(Object->EventContainer, CurrentInstr);
+                } break;
+            default:
+                cerr << instructionError(CurrentInstr, __FUNCTION__) << "\'" << mode << "\' mode does not exist."
+                    << "Allowed modes: p (uses translateScriptsFromPaths), s (uses translateSubsetBindedScripts),"
+                    << "c (uses injectCode), i (uses injectInstructions)\n";
+                return false;
         }
         
         wasAnyEventUpdated = true;
     }
     if(!myEventsAreDeleted){
-        Recalculator.updatePointersToModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+        Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
     }
 
     return myEventsAreDeleted;
 }
-void ProcessClass::clearEventsInObjects(OperationClass & Operation, ContextMapStruct & EventContext, AncestorObject * Owner){
+void ProcessClass::clearEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner){
     ContextClass ObjectContext;
-    if(ObjectContext.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter. Instruction requires one parameter.\n";
         return;
     }
@@ -9486,12 +9563,11 @@ void ProcessClass::executeFunctionForObjects(OperationClass & Operation, vector 
         }
     }
 }
-void ProcessClass::executeFunction(OperationClass Operation, ContextMapStruct & EventContext,
-    vector<EventModule>::iterator & Event, EngineClass & Engine
+void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & Event, EngineClass & Engine
 ){
     ContextClass * Context = nullptr;
 
-    if(getContextPointerFromTheParameter(Context, EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    if(getContextPointerFromTheParameter(Context, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Function requires at least one context.\n";
         return;
     }
@@ -9504,7 +9580,7 @@ void ProcessClass::executeFunction(OperationClass Operation, ContextMapStruct & 
 
     //Get values from all parameters of this instruction
     for(unsigned index = 1; index < Operation.rootParametersSize; index++){
-        if(getValuesFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, index, Variables, true)){
+        if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, index, Variables, true)){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Failed to get value from the parameter " << index+1 << ".\n";
             return;
@@ -9776,6 +9852,9 @@ void ProcessClass::executeFunction(OperationClass Operation, ContextMapStruct & 
                     Context->Values.push_back(Value);
                 }
             }
+            else if(Operation.Location.attribute == clear_a){
+                Context->Values.clear();
+            }
             else{
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Function " << attributeToStr(Operation.Location.attribute)
@@ -9788,14 +9867,14 @@ void ProcessClass::executeFunction(OperationClass Operation, ContextMapStruct & 
             break;
     }
 }
-void ProcessClass::changeEngineVariables(OperationClass & Operation, ContextMapStruct & EventContext, EngineClass & Engine){
+void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, EngineClass & Engine){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
         return;
     }
 
     string strAttribute = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, strAttribute, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, strAttribute, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 1.\n";
         return;
@@ -9807,7 +9886,7 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ContextMapS
     
 
     VariableModule FirstValue;
-    if(getValueFromParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, FirstValue, true)){
+    if(getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, FirstValue, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 2.\n";
         return;
@@ -9822,7 +9901,7 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ContextMapS
     }
 
     VariableModule SecondValue; //sometimes optional
-    getValueFromParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, SecondValue, false);
+    getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, SecondValue, false);
     if(printOutInstructions){
         if(SecondValue.getType() != 'n'){
             cout << shortenText(SecondValue.getAnyValue(), maxLengthOfValuesPrinting) << "\n";
@@ -9926,14 +10005,14 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ContextMapS
             return;
     }
 }
-void ProcessClass::changeProcessVariables(OperationClass & Operation, ContextMapStruct & EventContext, vector <string> & processIDs){
+void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector <string> & processIDs){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 parameter.\n";
         return;
     }
 
     string attribute = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, attribute, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, attribute, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 1.\n";
         return;
@@ -9967,7 +10046,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ContextMap
     }
 
     VariableModule FirstValue;
-    if(getValueFromParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, FirstValue, true)){
+    if(getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, FirstValue, true)){
         printOutInstructions && cout << "\n";
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 2.\n";
@@ -9984,7 +10063,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ContextMap
     }
 
     VariableModule SecondValue; //sometimes optional
-    getValueFromParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, SecondValue, false);
+    getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, SecondValue, false);
     if(printOutInstructions){
         if(SecondValue.getType() != 'n'){
             cout << shortenText(SecondValue.getAnyValue(), maxLengthOfValuesPrinting) << " ";
@@ -10105,7 +10184,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ContextMap
         }
         
         VariableModule ThirdValue;
-        getValueFromParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 3, ThirdValue, false);
+        getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 3, ThirdValue, false);
         if(ThirdValue.getType() == 'n'){
             printOutInstructions && cout << "\n";
             cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -10117,7 +10196,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ContextMap
         }
 
         VariableModule FourthValue;
-        getValueFromParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 4, FourthValue, false);
+        getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 4, FourthValue, false);
         if(FourthValue.getType() == 'n'){
             printOutInstructions && cout << "\n";
             cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -10146,29 +10225,29 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ContextMap
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute \'" << attribute << "\' is not valid.\n";
     }
 }
-void ProcessClass::loadBitmap(OperationClass & Operation, ContextMapStruct & EventContext, vector<SingleBitmap> & BitmapContainer){
+void ProcessClass::loadBitmap(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<SingleBitmap> & BitmapContainer){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
         return;
     }
 
     string pathToTheBitmap = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheBitmap, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheBitmap, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
 
     string nameForTheBitmap = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, nameForTheBitmap, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, nameForTheBitmap, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
 
     bool createLightBitmap = false, ignoreWarnings = false;
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, createLightBitmap, false);
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 3, ignoreWarnings, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, createLightBitmap, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 3, ignoreWarnings, false);
     
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << pathToTheBitmap << " " << nameForTheBitmap
@@ -10178,14 +10257,14 @@ void ProcessClass::loadBitmap(OperationClass & Operation, ContextMapStruct & Eve
     BitmapContainer.emplace_back(SingleBitmap());
     BitmapContainer.back().loadBitmap(nameForTheBitmap, pathToTheBitmap, EXE_PATH + workingDirectory, createLightBitmap);
 }
-void ProcessClass::createDirectory(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::createDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
         return;
     }
 
     string pathToTheDirectory = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheDirectory, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheDirectory, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
@@ -10208,14 +10287,14 @@ void ProcessClass::createDirectory(OperationClass & Operation, ContextMapStruct 
             << "No such directory \'" << EXE_PATH + workingDirectory + pathToTheDirectory << "\'.\n";
     }
 }
-void ProcessClass::removeFileOrDirectory(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::removeFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
         return;
     }
 
     string path = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, path, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, path, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
@@ -10237,14 +10316,14 @@ void ProcessClass::removeFileOrDirectory(OperationClass & Operation, ContextMapS
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "" << ex.what() << "\n";
     }
 }
-void ProcessClass::removeRecursivelyFileOrDirectory(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::removeRecursivelyFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
         return;
     }
 
     string path = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, path, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, path, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
@@ -10266,14 +10345,14 @@ void ProcessClass::removeRecursivelyFileOrDirectory(OperationClass & Operation, 
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "" << ex.what() << "\n";
     }
 }
-void ProcessClass::renameFileOrDirectory(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::renameFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
         return;
     }
 
     string originalPath = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, originalPath, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, originalPath, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
@@ -10285,7 +10364,7 @@ void ProcessClass::renameFileOrDirectory(OperationClass & Operation, ContextMapS
     }
 
     string newPath = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, newPath, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, newPath, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
@@ -10323,21 +10402,21 @@ string catchQuotes(const string & input){
     }
     return output;
 }
-void ProcessClass::executePrint(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
 
     string delimeter = "";
-    getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, delimeter, false);
+    getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, delimeter, false);
 
     //Get contexts from all parameters of this instruction
     vector <ContextClass> ValueContexts;
     for(unsigned index = 1; index < Operation.rootParametersSize; index++){
         ValueContexts.emplace_back(ContextClass());
-        if(ValueContexts.back().copyFromTheParameter(EventContext.Contexts,
-            EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, index, true
+        if(ValueContexts.back().copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+            CurrentInstr, Operation.Parameters, index, true
         )){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Failed to get the context from the parameter " << index+2 << ".\n";
@@ -10348,8 +10427,8 @@ void ProcessClass::executePrint(OperationClass & Operation, ContextMapStruct & E
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction)
             << " \"" << shortenText(delimeter, maxLengthOfValuesPrinting) << "\" ";
-        if(Operation.outputVariableID != ""){
-            cout << Operation.outputVariableID << " ";
+        if(Operation.Output.variableID != ""){
+            cout << Operation.Output.variableID << " ";
         }
         if(ValueContexts.size() > 0){
             cout << "{";
@@ -10478,7 +10557,7 @@ void ProcessClass::executePrint(OperationClass & Operation, ContextMapStruct & E
         buffer = buffer.substr(0, buffer.size() - delimeter.size());
     }
 
-    if(Operation.outputVariableID == ""){
+    if(Operation.Output.variableID == ""){
         cout << buffer;
         cout.flush();
     }
@@ -10486,24 +10565,24 @@ void ProcessClass::executePrint(OperationClass & Operation, ContextMapStruct & E
         NewContext.clear();
         NewContext.type = value_inst;
         NewContext.Values.emplace_back(VariableModule::newString(buffer));
-        assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+        assignVariable(ObjectMemory, Operation.Output);
     }
 }
-void ProcessClass::loadFileAsString(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::loadFileAsString(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
 
     string pathToTheFile = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFile, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFile, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
 
     if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " " << pathToTheFile << " " << Operation.outputVariableID << "\n";
+        cout << instrToStr(Operation.instruction) << " " << pathToTheFile << " " << Operation.Output.variableID << "\n";
     }
     if(pathToTheFile == "" || pathToTheFile == "~/" || pathToTheFile[0] == ' '){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -10528,16 +10607,16 @@ void ProcessClass::loadFileAsString(OperationClass & Operation, ContextMapStruct
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.push_back(VariableModule::newString(loadedText));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::saveStringAsFile(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::saveStringAsFile(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 string parameters.\n";
         return;
     }
 
     string pathToTheFile = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFile, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFile, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
@@ -10549,14 +10628,14 @@ void ProcessClass::saveStringAsFile(OperationClass & Operation, ContextMapStruct
     }
 
     vector<string> textToWrite;
-    if(getStringVectorFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, textToWrite, true)){
+    if(getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, textToWrite, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
 
     string delimeter = "";
-    getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, delimeter, false);
+    getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, delimeter, false);
 
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << pathToTheFile << " ";
@@ -10577,26 +10656,26 @@ void ProcessClass::saveStringAsFile(OperationClass & Operation, ContextMapStruct
             << "Cannot open the file: '" << finalPath << "'.\n";
         return;
     }
-    for(string text : textToWrite){
+    for(const string & text : textToWrite){
         File << text << delimeter;
     }
     File.close();
 }
-void ProcessClass::listOutEntities(OperationClass & Operation, ContextMapStruct & EventContext, const vector<ProcessClass> & Processes, const EngineClass & Engine){
+void ProcessClass::listOutEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, const vector<ProcessClass> & Processes, const EngineClass & Engine){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
     
     string source = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, source, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, source, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
 
     bool printDetails = false;
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, printDetails, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, printDetails, false);
     
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << source << " " << printDetails << "\n";
@@ -10702,7 +10781,7 @@ void ProcessClass::listOutEntities(OperationClass & Operation, ContextMapStruct 
         }
     }
 }
-void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessClass> & Processes, ContextMapStruct & EventContext,
+void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessClass> & Processes, ObjectMemoryStruct & ObjectMemory,
     AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
     vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine
 ){
@@ -10712,7 +10791,7 @@ void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessCl
     }
     
     string processID = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, processID, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, processID, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
@@ -10724,9 +10803,9 @@ void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessCl
     }
     
     string layerID = "", objectID = "", pathToTheScript = "";
-    getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, layerID, false);
-    getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, objectID, false);
-    getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 3, pathToTheScript, false);
+    getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, layerID, false);
+    getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, objectID, false);
+    getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 3, pathToTheScript, false);
 
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << processID << " " << layerID << " " << objectID << " " << pathToTheScript << "\n";
@@ -10748,7 +10827,7 @@ void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessCl
         
     }
 }
-void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ContextMapStruct & EventContext, AncestorObject * Owner,
+void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
     vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
 ){
     if(Operation.rootParametersSize < 1){
@@ -10757,7 +10836,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ContextMap
     }
 
     VariableModule Value;
-    if(getValueFromParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, Value, true)){
+    if(getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, Value, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 1.\n";
         return;
@@ -10765,38 +10844,38 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ContextMap
     
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << shortenText(Value.getAnyValue(), maxLengthOfValuesPrinting)
-            << " " << Operation.outputVariableID << "\n";
+            << " " << Operation.Output.variableID << "\n";
     }
 
     for(const VariableModule & Variable : Owner->VariablesContainer){
-        if(Variable.getID() == Operation.outputVariableID){
+        if(Variable.getID() == Operation.Output.variableID){
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot create a variable with id \'"
-                << Operation.outputVariableID << "\', because a variable with the same id already exists inside '" << Owner->getID() << "' object.\n";
+                << Operation.Output.variableID << "\', because a variable with the same id already exists inside '" << Owner->getID() << "' object.\n";
             return;
         }
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
     
     if(Value.getType() == 'b'){
         Owner->VariablesContainer.emplace_back(VariableModule::newBool(
-            Value.getBool(), Operation.outputVariableID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+            Value.getBool(), Operation.Output.variableID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
         ));
     }
     else if(Value.getType() == 'i'){
         Owner->VariablesContainer.emplace_back(VariableModule::newInt(
-            Value.getInt(), Operation.outputVariableID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+            Value.getInt(), Operation.Output.variableID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
         ));
     }
     else if(Value.getType() == 'd'){
         Owner->VariablesContainer.emplace_back(VariableModule::newDouble(
-            Value.getDouble(), Operation.outputVariableID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+            Value.getDouble(), Operation.Output.variableID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
         ));
     }
     else if(Value.getType() == 's'){
         Owner->VariablesContainer.emplace_back(VariableModule::newString(
-            Value.getString(), Operation.outputVariableID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
+            Value.getString(), Operation.Output.variableID, &Owner->variablesContainerIDs, Owner->getLayerID(), Owner->getID()
         ));
     }
     else{
@@ -10805,21 +10884,20 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ContextMap
         return;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
 
     NewContext.clear();
     if(Owner->VariablesContainer.size() > 0){
         NewContext.Modules.Variables.push_back(&Owner->VariablesContainer.back());
         NewContext.type = variable_mod;
-        assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
-        wereGlobalVariablesCreated = true;
+        assignVariable(ObjectMemory, Operation.Output);
     }
     else{
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Instruction \'" << instrToStr(Operation.instruction) << "\' failed.\n";
     }
 }
-void ProcessClass::createNewOwnerVector(OperationClass & Operation, ContextMapStruct & EventContext, AncestorObject * Owner,
+void ProcessClass::createNewOwnerVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
     vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
 ){
     if(Operation.rootParametersSize < 1){
@@ -10828,35 +10906,35 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation, ContextMapSt
     }
 
     string vectorType = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, vectorType, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, vectorType, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
 
     vector<VariableModule> Values;
-    getValuesFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, Values, false);
+    getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, Values, false);
     
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << vectorType << " [";
         for(const VariableModule & Value : Values){
             cout << shortenText(Value.getAnyValue(), maxLengthOfValuesPrinting) << ", ";
         }
-        cout << "] " << Operation.outputVariableID << "\n";
+        cout << "] " << Operation.Output.variableID << "\n";
     }
 
     for(const VectorModule & Vector : Owner->VectorContainer){
-        if(Vector.getID() == Operation.outputVariableID){
+        if(Vector.getID() == Operation.Output.variableID){
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot create a vector with the id '"
-                << Operation.outputVariableID << "', because a vector with the same id already exists.\n";
+                << Operation.Output.variableID << "', because a vector with the same id already exists.\n";
             return;
         }
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
     
-    Owner->VectorContainer.emplace_back(Operation.outputVariableID, &Owner->vectorContainerIDs, Owner->getLayerID(), Owner->getID(), vectorType);
+    Owner->VectorContainer.emplace_back(Operation.Output.variableID, &Owner->vectorContainerIDs, Owner->getLayerID(), Owner->getID(), vectorType);
 
     if(Owner->VectorContainer.back().getType() == 'n' && vectorType != "null"){
         Owner->VectorContainer.pop_back();
@@ -10920,27 +10998,26 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation, ContextMapSt
         return;
     }
 
-    Recalculator.updatePointersToModules(Layers, EventContext, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
 
     NewContext.clear();
     if(Owner->VectorContainer.size() > 0){
         NewContext.Modules.Vectors.push_back(&Owner->VectorContainer.back());
         NewContext.type = vector_mod;
-        assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
-        wereGlobalVariablesCreated = true;
+        assignVariable(ObjectMemory, Operation.Output);
     }
     else{
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction \'" << instrToStr(Operation.instruction) << "\' failed.\n";
     }
 }
-void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 string parameters.\n";
         return;
     }
 
     string delimeter = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, delimeter, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, delimeter, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
@@ -10956,7 +11033,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, Context
     }
 
     string text = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, text, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, text, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
@@ -10967,7 +11044,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, Context
     vector<string> outputContextsIds;
     for(unsigned index = 2; index < Operation.rootParametersSize; index++){
         outputContextsIds.emplace_back();
-        if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, index, outputContextsIds.back(), true)){
+        if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, index, outputContextsIds.back(), true)){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Failed to get a string from the parameter " << index+1 << ".\n";
             return;
@@ -11002,7 +11079,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, Context
         if(extractReferenceFromCustomVariable(variableOutputID, isReference, CurrentInstr, __FUNCTION__)){
             return;
         }
-        assignVariable(EventContext, variableOutputID, isReference);
+        assignVariable(ObjectMemory, Operation.Output);
         return;
     }
 
@@ -11014,10 +11091,10 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, Context
         if(extractReferenceFromCustomVariable(variableOutputID, isReference, CurrentInstr, __FUNCTION__)){
             return;
         }
-        assignVariable(EventContext, variableOutputID, isReference);
+        assignVariable(ObjectMemory, Operation.Output);
     }
 }
-void ProcessClass::printTree(OperationClass & Operation, ContextMapStruct & EventContext, vector<ProcessClass> & Processes){
+void ProcessClass::printTree(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<ProcessClass> & Processes){
     string buffor;
     for(const ProcessClass & Process : Processes){
         buffor += "Process " + Process.getID() + "\n";
@@ -11151,9 +11228,9 @@ void ProcessClass::printTree(OperationClass & Operation, ContextMapStruct & Even
         }
     }
     if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " " << Operation.outputVariableID << "\n";
+        cout << instrToStr(Operation.instruction) << " " << Operation.Output.variableID << "\n";
     }
-    if(Operation.outputVariableID == ""){
+    if(Operation.Output.variableID == ""){
         cout << buffor;
         return;
     }
@@ -11161,34 +11238,34 @@ void ProcessClass::printTree(OperationClass & Operation, ContextMapStruct & Even
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newString(buffor));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::getStringSizeFromContext(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::getStringSizeFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
 
     string text = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, text, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, text, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     
     if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " \"" << shortenText(text, 100) << "\" " << Operation.outputVariableID << " " << "\n";
+        cout << instrToStr(Operation.instruction) << " \"" << shortenText(text, 100) << "\" " << Operation.Output.variableID << " " << "\n";
     }
 
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newInt(text.size()));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::getSizeOfContext(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::getSizeOfContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass * Context = nullptr;
     
-    if(getContextPointerFromTheParameter(Context, EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    if(getContextPointerFromTheParameter(Context, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
@@ -11204,28 +11281,28 @@ void ProcessClass::getSizeOfContext(OperationClass & Operation, ContextMapStruct
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newInt(size));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::getSubStringFromContext(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::getSubStringFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 3){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 3 parameters.\n";
         return;
     }
 
     string text = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, text, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, text, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     unsigned beginning = 0;
-    if(getUnsignedFromTheParameter(EventContext, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 1, beginning, true)){
+    if(getUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 1, beginning, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the parameter 2.\n";
         return;
     }
     unsigned length = 0;
-    if(getUnsignedFromTheParameter(EventContext, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 2, length, true)){
+    if(getUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 2, length, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the parameter 3.\n";
         return;
@@ -11241,40 +11318,40 @@ void ProcessClass::getSubStringFromContext(OperationClass & Operation, ContextMa
 
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " \"" << shortenText(text, maxLengthOfValuesPrinting)
-            << "\" " << beginning << " " << length << " " << Operation.outputVariableID << "\n";
+            << "\" " << beginning << " " << length << " " << Operation.Output.variableID << "\n";
     }
 
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newString(text.substr(beginning, length)));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::loadFontFromContext(OperationClass & Operation, ContextMapStruct & EventContext, EngineClass & Engine){
+void ProcessClass::loadFontFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, EngineClass & Engine){
     if(Operation.rootParametersSize < 3){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 3 parameters.\n";
         return;
     }
 
     string pathToTheFont = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFont, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFont, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     unsigned fontSize = 0;
-    if(getUnsignedFromTheParameter(EventContext, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 1, fontSize, true)){
+    if(getUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 1, fontSize, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the parameter 2.\n";
         return;
     }
     string fontID = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, fontID, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, fontID, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 3.\n";
         return;
     }
     bool ignoreWarnings = false;
-    if(getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 3, ignoreWarnings, true)){
+    if(getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 3, ignoreWarnings, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a bool value from the parameter 4.\n";
         return;
@@ -11302,21 +11379,21 @@ void ProcessClass::loadFontFromContext(OperationClass & Operation, ContextMapStr
 
     Engine.loadNewFont(pathToTheFont, fontSize, fontID);
 }
-void ProcessClass::findByIDInEventContext(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
 
     ContextClass SourceContext;
-    if(SourceContext.copyFromTheParameter(EventContext.Contexts, EventContext.References, EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, true)){
+    if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a context from the parameter 1.\n";
         return;
     }
     
     string entityID = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, entityID, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, entityID, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
@@ -11332,7 +11409,7 @@ void ProcessClass::findByIDInEventContext(OperationClass & Operation, ContextMap
     NewContext.type = SourceContext.type;
 
     if(printOutInstructions){
-        cerr << instrToStr(Operation.instruction) << " " << SourceContext.ID << " " << entityID << " " << Operation.outputVariableID << "\n";
+        cerr << instrToStr(Operation.instruction) << " " << SourceContext.ID << " " << entityID << " " << Operation.Output.variableID << "\n";
     }
     
     switch(SourceContext.type){
@@ -11552,10 +11629,10 @@ void ProcessClass::findByIDInEventContext(OperationClass & Operation, ContextMap
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "There is no entity with an id '" << entityID << "' and of the type '"
             << dataTypeToStr(SourceContext.type) << "' A new context with id '"
-            << Operation.outputVariableID << "' cannot be created.\n";
+            << Operation.Output.variableID << "' cannot be created.\n";
         return;
     }
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
 vector<string> getAllFilesNamesWithinFolder(string directory, string workingDirectory, int depth, char mode, const InstrDescription & CurrentInstr){
     vector<string> names;
@@ -11588,9 +11665,9 @@ vector<string> getAllFilesNamesWithinFolder(string directory, string workingDire
     }
     return names;
 }
-void ProcessClass::listOutFiles(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::listOutFiles(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     string directory = "";
-    getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, directory, false);
+    getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, directory, false);
 
     if(directory.size() >= 256)[[unlikely]]{
         cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -11606,14 +11683,14 @@ void ProcessClass::listOutFiles(OperationClass & Operation, ContextMapStruct & E
     }
 
     bool recursiveSearch = false;
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, recursiveSearch, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, recursiveSearch, false);
 
     int depth = -1;
-    getIntFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, depth, false);
+    getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, depth, false);
 
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << directory
-            << " " << Operation.outputVariableID << " " << recursiveSearch;
+            << " " << Operation.Output.variableID << " " << recursiveSearch;
         if(depth > -1){
             cout << " " << depth;
         }
@@ -11666,18 +11743,18 @@ void ProcessClass::listOutFiles(OperationClass & Operation, ContextMapStruct & E
         }
         buffer += file + " ";
     }
-    if(Operation.outputVariableID == ""){
+    if(Operation.Output.variableID == ""){
         cout << buffer;
     }
 
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newString(buffer));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::changeWorkingDirectory(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::changeWorkingDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     string newDirectory = "";
-    getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, newDirectory, false);
+    getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, newDirectory, false);
 
     if(newDirectory == "~/" || newDirectory[0] == ' '){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -11723,42 +11800,42 @@ void ProcessClass::changeWorkingDirectory(OperationClass & Operation, ContextMap
     }
     
 }
-void ProcessClass::printWorkingDirectory(OperationClass & Operation, ContextMapStruct & EventContext){
-    if(Operation.outputVariableID == ""){
+void ProcessClass::printWorkingDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
+    if(Operation.Output.variableID == ""){
         cout << workingDirectory;
     }
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newString(workingDirectory));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::findSimilarStrings(OperationClass &Operation, ContextMapStruct & EventContext){
+void ProcessClass::findSimilarStrings(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
 
     string pattern = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, pattern, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pattern, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
 
     vector<string> stringVector;
-    if(getStringVectorFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, stringVector, true)){
+    if(getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, stringVector, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
 
     bool returnTheLongestCommonPart = false;
-    if(getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 2, returnTheLongestCommonPart, false));
+    if(getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, returnTheLongestCommonPart, false));
 
     if(printOutInstructions){
         cout << Operation.instruction << " " << shortenText(pattern, maxLengthOfValuesPrinting) << " ";
         printStringVectorForInstruction(stringVector, maxLengthOfValuesPrinting);
-        cout << " " << returnTheLongestCommonPart << " " << Operation.outputVariableID;
+        cout << " " << returnTheLongestCommonPart << " " << Operation.Output.variableID;
     }
     
     NewContext.clear();
@@ -11783,7 +11860,7 @@ void ProcessClass::findSimilarStrings(OperationClass &Operation, ContextMapStruc
         if(pattern == "" || NewContext.Values.size() == 0){
             NewContext.Values.clear();
             NewContext.Values.emplace_back(VariableModule::newString(""));
-            assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+            assignVariable(ObjectMemory, Operation.Output);
             return;
         }
         string commonPart = NewContext.Values[0].getString();
@@ -11805,23 +11882,23 @@ void ProcessClass::findSimilarStrings(OperationClass &Operation, ContextMapStruc
         NewContext.Values.clear();
         NewContext.Values.emplace_back(VariableModule::newString(commonPart));
     }
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::countPatternOccurrences(OperationClass &Operation, ContextMapStruct & EventContext){
+void ProcessClass::countPatternOccurrences(OperationClass &Operation, ObjectMemoryStruct &ObjectMemory){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
 
     string pattern = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, pattern, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pattern, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1 (pattern).\n";
         return;
     }
 
     string text = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 1, text, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, text, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2 (text).\n";
         return;
@@ -11829,14 +11906,14 @@ void ProcessClass::countPatternOccurrences(OperationClass &Operation, ContextMap
 
     if(printOutInstructions){
         cout << Operation.instruction << " " << shortenText(pattern, maxLengthOfValuesPrinting)
-            << " " << shortenText(text, maxLengthOfValuesPrinting) << " " <<  Operation.outputVariableID;
+            << " " << shortenText(text, maxLengthOfValuesPrinting) << " " <<  Operation.Output.variableID;
     }
     
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newInt(0));
     if(pattern == ""){
-        assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+        assignVariable(ObjectMemory, Operation.Output);
         return;
     }
     unsigned j = 0;
@@ -11856,9 +11933,9 @@ void ProcessClass::countPatternOccurrences(OperationClass &Operation, ContextMap
             NewContext.Values.back().addInt(1);
         }
     }
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::getConsoleInput(OperationClass & Operation, ContextMapStruct & EventContext,
+void ProcessClass::getConsoleInput(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
     int & terminationTimer, const int & timeoutTerminationTime, ALLEGRO_EVENT_QUEUE * eventQueue
 ){
     string consoleInput = "";
@@ -11875,35 +11952,36 @@ void ProcessClass::getConsoleInput(OperationClass & Operation, ContextMapStruct 
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newString(consoleInput));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::createDisplay(OperationClass & Operation, ContextMapStruct & EventContext, EngineClass & Engine){
-    if(getIntFromTheParameter(EventContext, HelpContext, CurrentInstr,
+void ProcessClass::createDisplay(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, EngineClass & Engine){
+    if(getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 0, Engine.displaySize.x, true)
     ){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return;
     }
-    if(getIntFromTheParameter(EventContext, HelpContext, CurrentInstr,
+    if(getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 1, Engine.displaySize.y, true)
     ){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return;
     }
-    if(getIntFromTheParameter(EventContext, HelpContext, CurrentInstr,
+    if(getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 2, Engine.backbufferSize.x, true)
     ){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return;
     }
-    if(getIntFromTheParameter(EventContext, HelpContext, CurrentInstr,
-        Operation.Parameters, 3, Engine.backbufferSize.y, true)
-    ){
+    if(getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
+        Operation.Parameters, 3, Engine.backbufferSize.y, true
+    )){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return;
     }
-    getBoolFromTheParameter(EventContext, HelpContext, CurrentInstr,
-        Operation.Parameters, 4, Engine.autoScaleBackbuffer, false);
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
+        Operation.Parameters, 4, Engine.autoScaleBackbuffer, false
+    );
     
     Engine.createDisplay();
 }
@@ -11941,14 +12019,14 @@ void ProcessClass::printProfiler(){
         << " + " << IF_TESTS[2] / 1000000.0f << " + " << IF_TESTS[3] / 1000000.0f << " + " << IF_TESTS[4] / 1000000.0f
         << " = " << (IF_TESTS[1]+IF_TESTS[2]+IF_TESTS[3]+IF_TESTS[4]) / 1000000.0f << "\n";
 }
-void ProcessClass::startTimer(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::startTimer(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 parameter.\n";
         return;
     }
 
     string userDefinedTimerName = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, userDefinedTimerName, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, userDefinedTimerName, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1 (name).\n";
         return;
@@ -11956,14 +12034,14 @@ void ProcessClass::startTimer(OperationClass & Operation, ContextMapStruct & Eve
     
     userDefinedTimers[userDefinedTimerName] = std::chrono::steady_clock::now();
 }
-void ProcessClass::stopTimer(OperationClass & Operation, ContextMapStruct & EventContext){
+void ProcessClass::stopTimer(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 parameter.\n";
         return;
     }
 
     string userDefinedTimerName = "";
-    if(getStringFromTheParameter(EventContext, HelpContext, CurrentInstr, Operation.Parameters, 0, userDefinedTimerName, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, userDefinedTimerName, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1 (name).\n";
         return;
@@ -11975,15 +12053,15 @@ void ProcessClass::stopTimer(OperationClass & Operation, ContextMapStruct & Even
         return;
     }
 
-    std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
+    TimePoint currentTime = std::chrono::steady_clock::now();
     auto timeDifference = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - userDefinedTimers[userDefinedTimerName]).count();
 
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newDouble(timeDifference / 1000000.0f));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
-bool ProcessClass::assertValues(OperationClass & Operation, ContextMapStruct & EventContext){
+bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return true;
@@ -11994,18 +12072,14 @@ bool ProcessClass::assertValues(OperationClass & Operation, ContextMapStruct & E
     }
 
     ContextClass LeftVariable;
-    LeftVariable.copyFromTheParameter(EventContext.Contexts, EventContext.References,
-        EventContext.callingSource, CurrentInstr, Operation.Parameters, 0, false
-    );
+    LeftVariable.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, false);
 
     if(printOutInstructions){
         cout << Operation.Parameters[0].getVariableIdOrValue() << " ";
     }
 
     ContextClass RightVariable;
-    RightVariable.copyFromTheParameter(EventContext.Contexts, EventContext.References,
-        EventContext.callingSource, CurrentInstr, Operation.Parameters, 1, false
-    );
+    RightVariable.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, false);
 
     if(printOutInstructions){
         cout << Operation.Parameters[1].getVariableIdOrValue() << "\n";
@@ -12018,7 +12092,7 @@ bool ProcessClass::assertValues(OperationClass & Operation, ContextMapStruct & E
             return true;
         }
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << errorSpacing() << "Assertion failed: ";
+            << NEW_LINE_PADDING << "Assertion failed: ";
         if(LeftVariable.ID == "NULL"){
             cerr << "NULL != ";
             if(RightVariable.getValue(RightOperandProc) != ReturnType::INVALID_TYPE){
@@ -12042,12 +12116,12 @@ bool ProcessClass::assertValues(OperationClass & Operation, ContextMapStruct & E
     }
     else if(LeftVariable.type == null_dt && RightVariable.type == null_dt){
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << errorSpacing() << "Assertion failed: UNDEFINED != UNDEFINED.\n";
+            << NEW_LINE_PADDING << "Assertion failed: UNDEFINED != UNDEFINED.\n";
         return false;
     }
     else if(LeftVariable.type == null_dt){
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << errorSpacing() << "Assertion failed: UNDEFINED != ";
+            << NEW_LINE_PADDING << "Assertion failed: UNDEFINED != ";
         if(RightVariable.getValue(RightOperandProc) != ReturnType::INVALID_TYPE){
             cerr << RightOperandProc.getAnyValue();
         }
@@ -12059,7 +12133,7 @@ bool ProcessClass::assertValues(OperationClass & Operation, ContextMapStruct & E
     }
     else if(RightVariable.type == null_dt){
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << errorSpacing() << "Assertion failed: ";
+            << NEW_LINE_PADDING << "Assertion failed: ";
         if(LeftVariable.getValue(LeftOperandProc) != ReturnType::INVALID_TYPE){
             cerr << LeftOperandProc.getAnyValue();
         }
@@ -12076,17 +12150,17 @@ bool ProcessClass::assertValues(OperationClass & Operation, ContextMapStruct & E
     }
     else if(LeftVariable.getVectorSize() == 0 && RightVariable.getVectorSize() == 0){
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << errorSpacing() << "Assertion failed: Both operands are empty and of different type.\n";
+            << NEW_LINE_PADDING << "Assertion failed: Both operands are empty and of different type.\n";
         return false;
     }
     else if(LeftVariable.getVectorSize() == 0){
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << errorSpacing() << "Assertion failed: Only left operand is empty.\n";
+            << NEW_LINE_PADDING << "Assertion failed: Only left operand is empty.\n";
         return false;
     }
     else if(RightVariable.getVectorSize() == 0){
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << errorSpacing() << "Assertion failed: Only right operand is empty.\n";
+            << NEW_LINE_PADDING << "Assertion failed: Only right operand is empty.\n";
         return false;
     }
     else if(LeftVariable.getValue(LeftOperandProc) != ReturnType::INVALID_TYPE
@@ -12096,19 +12170,19 @@ bool ProcessClass::assertValues(OperationClass & Operation, ContextMapStruct & E
             return true;
         }
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << errorSpacing() << "Assertion failed: " << LeftOperandProc.getAnyValue()
+            << NEW_LINE_PADDING << "Assertion failed: " << LeftOperandProc.getAnyValue()
             << " != " << RightOperandProc.getAnyValue() << ".\n";
         return false;
     }
     cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-        << errorSpacing() << "Assertion failed: " << dataTypeToStr(LeftVariable.type) << ":"
+        << NEW_LINE_PADDING << "Assertion failed: " << dataTypeToStr(LeftVariable.type) << ":"
         << LeftVariable.getValue(CurrentInstr, maxLengthOfValuesPrinting)
         << " != " << dataTypeToStr(RightVariable.type) << ":"
         << RightVariable.getValue(CurrentInstr, maxLengthOfValuesPrinting) << ".\n";
     return false;
 }
-void ProcessClass::getContextType(OperationClass & Operation, ContextMapStruct & EventContext){
-    if(Operation.rootParametersSize < 1 || Operation.outputVariableID == ""){
+void ProcessClass::getContextType(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
+    if(Operation.rootParametersSize < 1 || Operation.Output.variableID == ""){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
@@ -12118,7 +12192,7 @@ void ProcessClass::getContextType(OperationClass & Operation, ContextMapStruct &
     }
 
     ContextClass * Variable = nullptr;
-    if(getContextPointerFromTheParameter(Variable, EventContext, CurrentInstr, Operation.Parameters, 0, true)){
+    if(getContextPointerFromTheParameter(Variable, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 0.\n";
         return;
@@ -12132,7 +12206,7 @@ void ProcessClass::getContextType(OperationClass & Operation, ContextMapStruct &
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(dataTypeToStr(Variable->type));
-    assignVariable(EventContext, Operation.outputVariableID, Operation.isOutputReference);
+    assignVariable(ObjectMemory, Operation.Output);
 }
 inline void setProgramCounter(unsigned & programCounter, bool & decrementProgramCounter, const unsigned & jumpToLine){
     programCounter = jumpToLine;
@@ -12143,25 +12217,74 @@ inline void setProgramCounter(unsigned & programCounter, bool & decrementProgram
         decrementProgramCounter = true;
     }
 }
-EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operations, LayerClass *&OwnerLayer,
-    AncestorObject *&Owner, ContextMapStruct & EventContext, vector<AncestorObject *> &TriggeredObjects,
-    vector<ProcessClass> &Processes, vector<EventModule>::iterator &it_StartingEvent,
-    vector<EventModule>::iterator &Event, vector<EventStackStruct> &MemoryStack, EngineClass &Engine,
+inline void ProcessClass::dumpVariables(const std::unordered_map<unsigned int, ContextClass> & MemoryMap){
+    string buffor = "\nStack: ";
+    for(auto Context : MemoryMap){
+        buffor += Context.second.ID + ":" + dataTypeToStr(Context.second.type)
+            + ":" + Context.second.getValue(CurrentInstr, maxLengthOfValuesPrinting) + ", ";
+    }
+    buffor += "\n\n";
+    printInColor(buffor, 11);
+}
+string getFieldWithPadding(const string &text, const size_t & maxTabCount){
+    const size_t & TAB_SIZE = 8; 
+    size_t textLength = text.size();
+    size_t usedTabs = (textLength / TAB_SIZE) + 1;
+    string customPadding = "\t";
+
+    for (size_t i = 1; i < maxTabCount - usedTabs + 1; ++i){
+        customPadding += "\t";
+    }
+
+    return text + customPadding;
+}
+inline void ProcessClass::dumpMemory(std::unordered_map<unsigned int, ContextClass> & MemoryMap){
+    const size_t & TAB_SIZE = 8; 
+    auto normalize = [](const size_t & valueSize, const size_t & TAB_SIZE){
+        return (valueSize / TAB_SIZE) + 1;
+    };
+    size_t maxFieldPadding[4] = {1, 1, 1, 1};
+    for(unsigned address = 0; address < MemoryMap.size(); ++address){
+        const ContextClass & Variable = MemoryMap[address];
+        maxFieldPadding[0] = std::max(maxFieldPadding[0], normalize(std::to_string(address).size(), TAB_SIZE));
+        maxFieldPadding[1] = std::max(maxFieldPadding[1], normalize(Variable.ID.size(), TAB_SIZE));
+        maxFieldPadding[2] = std::max(maxFieldPadding[2], normalize(dataTypeToStr(Variable.type).size(), TAB_SIZE));
+        maxFieldPadding[3] = std::max(maxFieldPadding[3], normalize(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting).size(), TAB_SIZE));
+    }
+    string buffor = "\n";
+    buffor += getFieldWithPadding("ADDR", maxFieldPadding[0])
+        + getFieldWithPadding("NAME", maxFieldPadding[1])
+        + getFieldWithPadding("TYPE", maxFieldPadding[2])
+        + getFieldWithPadding("VALUE", maxFieldPadding[3]) + "\n";
+    for(unsigned address = 0; address < MemoryMap.size(); ++address){
+        const ContextClass & Variable = MemoryMap[address];
+        buffor += getFieldWithPadding(std::to_string(address), maxFieldPadding[0])
+            + getFieldWithPadding(Variable.ID, maxFieldPadding[1])
+            + getFieldWithPadding(dataTypeToStr(Variable.type), maxFieldPadding[2])
+            + getFieldWithPadding(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting), maxFieldPadding[3]) + "\n";
+    }
+    buffor += "\n\n";
+    printInColor(buffor, 11);
+}
+EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operations, LayerClass *& OwnerLayer,
+    AncestorObject *& Owner, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject *> & TriggeredObjects,
+    vector<ProcessClass> & Processes, vector<EventModule>::iterator & it_StartingEvent,
+    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,
     unsigned & runChildEventWithIndex
 ){
     if(Operations.size() > 0){
         CurrentInstr.scriptName = Operations[0].scriptName;
     }
 
-    for(; Event->programCounter < Operations.size(); ++Event->programCounter){
-        Event->programCounter -= Event->decrementProgramCounter;
-        Event->decrementProgramCounter = false;
+    for(; EventCallState.programCounter < Operations.size(); ++EventCallState.programCounter){
+        EventCallState.programCounter -= EventCallState.decrementProgramCounter;
+        EventCallState.decrementProgramCounter = false;
         
-        OperationClass & Operation = Operations[Event->programCounter];
+        OperationClass & Operation = Operations[EventCallState.programCounter];
         CurrentInstr.instruction = Operation.instruction;
         CurrentInstr.lineNumber = Operation.lineNumber;
 
-        std::chrono::steady_clock::time_point timeBegin = std::chrono::steady_clock::now();
+        TimePoint timeBegin = std::chrono::steady_clock::now();
 
         switch(Operation.instruction){
             case return_i:
@@ -12172,107 +12295,107 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 }
                 return Operation.instruction;
             case run:
-                ++Event->programCounter;
+                ++EventCallState.programCounter;
                 runChildEventWithIndex = Operation.specialValue;
                 return Operation.instruction;
             case if_i:
-                Event->goToEndOfIfStatement.push_back(0);
-                Event->conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain,
-                    Operation.resultStack, Owner, OwnerLayer, Engine, EventContext
+                EventCallState.goToEndOfIfStatement.push_back(0);
+                EventCallState.conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain,
+                    Operation.resultStack, Owner, OwnerLayer, Engine, ObjectMemory
                 );
-                if(Event->conditionalStatus == 't'){
-                    Event->goToEndOfIfStatement.back() = 1;
+                if(EventCallState.conditionalStatus == 't'){
+                    EventCallState.goToEndOfIfStatement.back() = 1;
                 }
-                else if(Event->conditionalStatus == 'f'){
+                else if(EventCallState.conditionalStatus == 'f'){
                     //Jump to next else_if, else or end_if.
-                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.specialValue);
+                    setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.specialValue);
                 }
                 else{
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Conditional status is equal to '" << Event->conditionalStatus << "'.\n";
+                        << "Conditional status is equal to '" << EventCallState.conditionalStatus << "'.\n";
                 }
                 break;
             case else_if:
-                if(Event->goToEndOfIfStatement.back() == 1){
+                if(EventCallState.goToEndOfIfStatement.back() == 1){
                     //Jump to next end_if.
-                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLine);
+                    setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.jumpToLine);
                 }
-                Event->conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain,
-                    Operation.resultStack, Owner, OwnerLayer, Engine, EventContext
+                EventCallState.conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain,
+                    Operation.resultStack, Owner, OwnerLayer, Engine, ObjectMemory
                 );
-                if(Event->conditionalStatus == 't'){
-                    Event->goToEndOfIfStatement.back() = 1;
+                if(EventCallState.conditionalStatus == 't'){
+                    EventCallState.goToEndOfIfStatement.back() = 1;
                 }
-                else if(Event->conditionalStatus == 'f'){
+                else if(EventCallState.conditionalStatus == 'f'){
                     //Jump to next else_if, else or end_if.
-                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.specialValue);
+                    setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.specialValue);
                 }
                 else{
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Conditional status is equal to '" << Event->conditionalStatus << "'.\n";
+                        << "Conditional status is equal to '" << EventCallState.conditionalStatus << "'.\n";
                 }
                 break;
             case else_i:
-                if(Event->goToEndOfIfStatement.back() == 1){
+                if(EventCallState.goToEndOfIfStatement.back() == 1){
                     //Jump to next end_if.
-                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLine);
+                    setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.jumpToLine);
                 }
                 break;
             case end_if:
-                Event->goToEndOfIfStatement.pop_back();
+                EventCallState.goToEndOfIfStatement.pop_back();
                 break;
             case while_i:
-                Event->conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Owner, OwnerLayer, Engine, EventContext);
-                if(Event->conditionalStatus == 't'){
-                    Event->breakFromCurrentLoop = false;
+                EventCallState.conditionalStatus = evaluateConditionalChain(Operation.ConditionalChain, Operation.resultStack, Owner, OwnerLayer, Engine, ObjectMemory);
+                if(EventCallState.conditionalStatus == 't'){
+                    EventCallState.breakFromCurrentLoop = false;
                 }
-                else if(Event->conditionalStatus == 'f'){
-                    Event->breakFromCurrentLoop = true;
+                else if(EventCallState.conditionalStatus == 'f'){
+                    EventCallState.breakFromCurrentLoop = true;
                     //Jump to "end_while" label.
-                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLine);
+                    setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.jumpToLine);
                 }
                 else{
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Conditional status is equal to '" << Event->conditionalStatus << "'.\n";
+                        << "Conditional status is equal to '" << EventCallState.conditionalStatus << "'.\n";
                 }
                 break;
             case end_while:
-                if(Event->breakFromCurrentLoop){
-                    Event->breakFromCurrentLoop = false;
+                if(EventCallState.breakFromCurrentLoop){
+                    EventCallState.breakFromCurrentLoop = false;
                 }
                 else{
                     //Jump to "while_i" instruction.
-                    setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLine);
+                    setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.jumpToLine);
                 }
                 break;
             case break_i:
-                Event->breakFromCurrentLoop = true;
+                EventCallState.breakFromCurrentLoop = true;
                 //Jump to "end_while" label.
-                setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLine);
+                setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.jumpToLine);
                 break;
             case continue_i:
                 //Jump to "while_i" instruction.
-                setProgramCounter(Event->programCounter, Event->decrementProgramCounter, Operation.jumpToLine);
+                setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.jumpToLine);
                 break;
             case first: //Aggregate entities and push them on the Variables Stack.
             case last: //Aggregate entities and push them on the Variables Stack.
             case all: //Aggregate entities and push them on the Variables Stack.
             case random_i: //Aggregate entities and push them on the Variables Stack.
-                aggregateEntities(Operation, EventContext, Engine);
+                aggregateEntities(Operation, ObjectMemory, Engine);
                 break;
             case index_i:
-                getReferenceByIndex(Operation, EventContext);
+                getReferenceByIndex(Operation, ObjectMemory);
                 break;
             case index_vec:
-                getInstanceFromVector(Operation, EventContext);
+                getInstanceFromVector(Operation, ObjectMemory);
                 break;
             case sum: //Execute operations on sets.
             case intersection: //Execute operations on sets.
             case diff: //Execute operations on sets.
-                aggregateTwoSets(Operation, EventContext);
+                aggregateTwoSets(Operation, ObjectMemory);
                 break;
             case access_i: //Get only values from the environment.
-                aggregateValues(EventContext, Operation, OwnerLayer, Owner, Engine, &Processes);
+                aggregateValues(Operation, ObjectMemory, OwnerLayer, Owner, Engine, &Processes);
                 break;
             case bool_i: 
             case int_i: 
@@ -12282,16 +12405,16 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
             case int_vec_i: 
             case double_vec_i: 
             case string_vec_i:
-                createLiteral(EventContext, Operation); //Get literals prepared in the event.
+                createLiteral(Operation, ObjectMemory); //Get literals prepared in the event.
                 break;
             case rand_int: //Generate random int value between
-                generateRandomVariable(EventContext, Operation);
+                generateRandomVariable(Operation, ObjectMemory);
                 break;
             case find_by_id: //Aggregate context only by id.
-                aggregateOnlyById(EventContext, Operation, OwnerLayer, Owner);
+                aggregateOnlyById(ObjectMemory, Operation, OwnerLayer, Owner);
                 break;
             case clone_i:
-                cloneEntities(Operation, EventContext, Layers);
+                cloneEntities(Operation, ObjectMemory, Layers);
                 break;
             case add:
             case sub:
@@ -12299,13 +12422,13 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
             case div_i:
             case mod:
             case pow_i:
-                executeArithmetics(Operation, EventContext);
+                executeArithmetics(Operation, ObjectMemory);
                 break;
             case assign:
                 cerr << "Assign instruction is not implemented yet. It's currently used only inside other instructions.\n";
                 break;
             case next:
-                incrementInteger(Operation, EventContext);
+                incrementInteger(Operation, ObjectMemory);
                 break;
             case inc:
             case dec:
@@ -12314,17 +12437,19 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
             case sub_move:
             case mul_move:
             case div_move:
-                moveValues(Operation, EventContext);
+                moveValues(Operation, ObjectMemory);
                 break;
             case in:
-                checkIfVectorContainsVector(Operation, EventContext);
+                checkIfVectorContainsVector(Operation, ObjectMemory);
                 break;
             case new_i:
-                createNewEntities(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, it_StartingEvent, Event, MemoryStack, Engine.focusedProcessID);
+                createNewEntities(Operation, ObjectMemory, OwnerLayer, Owner,
+                    TriggeredObjects, it_StartingEvent, it_Event, MemoryStack, Engine.focusedProcessID
+                );
                 break;
             case del:
-                markEntitiesForDeletion(Operation, EventContext, OwnerLayer, Owner, TriggeredObjects, Engine.focusedProcessID);
-                if(OwnerLayer == nullptr || Owner == nullptr || Event->getIsDeleted()){
+                markEntitiesForDeletion(Operation, ObjectMemory, OwnerLayer, Owner, TriggeredObjects, Engine.focusedProcessID);
+                if(OwnerLayer == nullptr || Owner == nullptr || it_Event->getIsDeleted()){
                     return null;
                 }
                 break;
@@ -12332,17 +12457,17 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 if(printOutInstructions){
                     cout << "delete_this_event\n";
                 }
-                Event->deleteLater();
+                it_Event->deleteLater();
                 wasDeleteExecuted = true;
                 return Operation.instruction;
             case bind_i:
-                bindFilesToObjects(Operation, EventContext);
+                bindFilesToObjects(Operation, ObjectMemory);
                 break;
             case rbind_i:
-                removeBindedFilesFromObjects(Operation, EventContext);
+                removeBindedFilesFromObjects(Operation, ObjectMemory);
                 break;
             case build:
-                if(buildEventsInObjects(Operation, EventContext, Owner, it_StartingEvent, Event, MemoryStack, Engine.allowNotAscii)){
+                if(buildEventsInObjects(Operation, ObjectMemory, Owner, it_StartingEvent, it_Event, MemoryStack, Engine.allowNotAscii)){
                     return return_i;
                 }
                 break;
@@ -12350,81 +12475,81 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
             case build_subset:
             case inject_code:
             case inject_instr:
-                if(customBuildEventsInObjects(Operation, EventContext, Owner, it_StartingEvent, Event, MemoryStack, Operation.instruction, Engine.allowNotAscii)){
+                if(customBuildEventsInObjects(Operation, ObjectMemory, Owner, it_StartingEvent, it_Event, MemoryStack, Operation.instruction, Engine.allowNotAscii)){
                     return return_i;
                 }
                 break;
             case demolish:
-                clearEventsInObjects(Operation, EventContext, Owner);
+                clearEventsInObjects(Operation, ObjectMemory, Owner);
                 break;
             case fun:
-                executeFunction(Operation, EventContext, Event, Engine);
+                executeFunction(Operation, ObjectMemory, it_Event, Engine);
                 break;
             case env:
-                changeEngineVariables(Operation, EventContext, Engine);
+                changeEngineVariables(Operation, ObjectMemory, Engine);
                 break;
             case edit_proc:
-                changeProcessVariables(Operation, EventContext, Engine.processIDs);
+                changeProcessVariables(Operation, ObjectMemory, Engine.processIDs);
                 break;
             case load_bitmap:
-                loadBitmap(Operation, EventContext, Engine.BitmapContainer);
+                loadBitmap(Operation, ObjectMemory, Engine.BitmapContainer);
                 break;
             case mkdir_i:
-                createDirectory(Operation, EventContext);
+                createDirectory(Operation, ObjectMemory);
                 break;
             case rm:
-                removeFileOrDirectory(Operation, EventContext);
+                removeFileOrDirectory(Operation, ObjectMemory);
                 break;
             case rmll:
-                removeRecursivelyFileOrDirectory(Operation, EventContext);
+                removeRecursivelyFileOrDirectory(Operation, ObjectMemory);
                 break;
             case mv_i:
-                renameFileOrDirectory(Operation, EventContext);
+                renameFileOrDirectory(Operation, ObjectMemory);
                 break;
             case print_v:
             case print_d:
             case print:
-                executePrint(Operation, EventContext);
+                executePrint(Operation, ObjectMemory);
                 break;
             case load_text:
-                loadFileAsString(Operation, EventContext);
+                loadFileAsString(Operation, ObjectMemory);
                 break;
             case save_text:
-                saveStringAsFile(Operation, EventContext);
+                saveStringAsFile(Operation, ObjectMemory);
                 break;
             case ls:
-                listOutFiles(Operation, EventContext);
+                listOutFiles(Operation, ObjectMemory);
                 break;
             case lse:
-                listOutEntities(Operation, EventContext, Processes, Engine);
+                listOutEntities(Operation, ObjectMemory, Processes, Engine);
                 break;
             case new_proc:
-                createNewProcess(Operation, Processes, EventContext, Owner, TriggeredObjects,
-                    it_StartingEvent, Event, MemoryStack, Engine);
+                createNewProcess(Operation, Processes, ObjectMemory, Owner, TriggeredObjects,
+                    it_StartingEvent, it_Event, MemoryStack, Engine);
                 break;
             case var:
-                createNewOwnerVariable(Operation, EventContext, Owner, it_StartingEvent, Event, MemoryStack);
+                createNewOwnerVariable(Operation, ObjectMemory, Owner, it_StartingEvent, it_Event, MemoryStack);
                 break;
             case vec:
-               createNewOwnerVector(Operation, EventContext, Owner, it_StartingEvent, Event, MemoryStack);
+               createNewOwnerVector(Operation, ObjectMemory, Owner, it_StartingEvent, it_Event, MemoryStack);
                 break;
             case tokenize:
-                tokenizeStringFromContext(Operation, EventContext);
+                tokenizeStringFromContext(Operation, ObjectMemory);
                 break;
             case tree:
-                printTree(Operation, EventContext, Processes);
+                printTree(Operation, ObjectMemory, Processes);
                 break;
             case len:
-                getStringSizeFromContext(Operation, EventContext);
+                getStringSizeFromContext(Operation, ObjectMemory);
                 break;
             case size:
-                getSizeOfContext(Operation, EventContext);
+                getSizeOfContext(Operation, ObjectMemory);
                 break;
             case substr:
-                getSubStringFromContext(Operation, EventContext);
+                getSubStringFromContext(Operation, ObjectMemory);
                 break;
             case load_font:
-                loadFontFromContext(Operation, EventContext, Engine);
+                loadFontFromContext(Operation, ObjectMemory, Engine);
                 break;
             case reset_keyboard: //TODO: Fix and add to the documentation
                 Engine.pressedKeys.clear();
@@ -12432,69 +12557,62 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
                 Engine.firstPressedKeys.clear();
                 break;
             case find_by_id_2:
-                findByIDInEventContext(Operation, EventContext);
+                findByIDInObjectMemory(Operation, ObjectMemory);
                 break;
-            case dump_context_stack:{
-                string buffor = "\nStack: ";
-                for(auto Context : EventContext.Contexts){
-                    if(Context.first.size() - Context.second.ID.size() > 0){
-                        buffor += Context.first.substr(0, Context.first.size() - Context.second.ID.size()) + ":";
-                    }
-                    buffor += Context.second.ID + ":" + dataTypeToStr(Context.second.type)
-                        + ":" + Context.second.getValue(CurrentInstr, maxLengthOfValuesPrinting) + ", ";
-                }
-                buffor += "\n\n";
-                printInColor(buffor, 11);
+            case dump_context_stack:
+                dumpVariables(ObjectMemory.MemoryMap);
                 break;
-            }
+            case dump_memory:
+                dumpMemory(ObjectMemory.MemoryMap);
+                break;
             case restart_drag:
                 detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
                 break;
             case cd:
-                changeWorkingDirectory(Operation, EventContext);
+                changeWorkingDirectory(Operation, ObjectMemory);
                 break;
             case pwd:
-                printWorkingDirectory(Operation, EventContext);
+                printWorkingDirectory(Operation, ObjectMemory);
                 break;
             case similar:
-                findSimilarStrings(Operation, EventContext);
+                findSimilarStrings(Operation, ObjectMemory);
                 break;
             case count:
-                countPatternOccurrences(Operation, EventContext);
+                countPatternOccurrences(Operation, ObjectMemory);
                 break;
             case create_display:
-                createDisplay(Operation, EventContext, Engine);
+                createDisplay(Operation, ObjectMemory, Engine);
                 break;
             case console_input:
-                getConsoleInput(Operation, EventContext, Engine.terminationTimer,
+                getConsoleInput(Operation, ObjectMemory, Engine.terminationTimer,
                     Engine.timeoutTerminationTime, Engine.eventQueue
                 );
                 break;
             case start_timer:
-                startTimer(Operation, EventContext);
+                startTimer(Operation, ObjectMemory);
                 break;
             case stop_timer:
-                stopTimer(Operation, EventContext);
+                stopTimer(Operation, ObjectMemory);
                 break;
             case breakpoint:
                 cerr << "Warning: The 'breakpoint' instruction can be used only in the debugger.\n";
                 raise(SIGINT);
                 break;
             case assert:
-                if(!assertValues(Operation, EventContext)){
+                if(!assertValues(Operation, ObjectMemory)){
                     return Operation.instruction;
                 }
                 break;
             case type:
-                getContextType(Operation, EventContext);
+                getContextType(Operation, ObjectMemory);
                 break;
             default:
-                cerr << "Error: In " << OwnerLayer->getID() << "::" << Owner->getID() << "::" << Event->getID()
+                cerr << "Error: In " << OwnerLayer->getID() << "::" << Owner->getID() << "::" << it_Event->getID()
                     << "': In " << __FUNCTION__ << ": Instruction '" << instrToStr(Operation.instruction) << "' does not exist.\n";
                 break;
         }
 
-        std::chrono::steady_clock::time_point timeEnd = std::chrono::steady_clock::now();
+        TimePoint timeEnd = std::chrono::steady_clock::now();
         
         auto temp = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeBegin).count();
         if(TimeSpentOnInstructions.contains(Operation.instruction)){
@@ -12508,7 +12626,7 @@ EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operation
         if(printOutInstructions){
             if(printOutStackAutomatically && Operation.instruction != EngineInstr::dump_context_stack){
                 string buffor = "\nStack: ";
-                for(auto Context : EventContext.Contexts){
+                for(auto Context : ObjectMemory.MemoryMap){
                     buffor += Context.second.ID + ":" + dataTypeToStr(Context.second.type)
                         + ":" + Context.second.getValue(CurrentInstr, maxLengthOfValuesPrinting) + ", ";
                 }
@@ -12942,17 +13060,11 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
     cerr << instructionError(CurrentInstr, __FUNCTION__) << "Value not found.\n";
     return VariableModule::newBool(false, "null");
 }
-inline bool getIntFromContext(const InstrDescription & CurrentInstr, string function,
-    ContextMapStruct & EventContext, const string & variableID, int & value
+inline bool getIntFromContext(const InstrDescription & CurrentInstr, string function, ObjectMemoryStruct & ObjectMemory,
+    vector<DynamicVariableInfo> & EventLocalVariables, const unsigned & localAddress, const string & variableID, int & value
 ){
-    string extractedVariableID = variableID;
-    bool isReference = false;
-    if(extractReferenceFromCustomVariable(extractedVariableID, isReference, CurrentInstr, __FUNCTION__)){
-        return true;
-    }
-    ContextClass * Context = getContextByID(CurrentInstr, EventContext.Contexts,
-        EventContext.References, EventContext.callingSource,
-        extractedVariableID, isReference, true
+    ContextClass * Context = getVariableByAddress(
+        CurrentInstr, ObjectMemory.MemoryMap, EventLocalVariables[localAddress], variableID, false
     );
 
     if(Context == nullptr){
@@ -12967,15 +13079,11 @@ inline bool getIntFromContext(const InstrDescription & CurrentInstr, string func
     }
     return false;
 }
-void ProcessClass::getExistsOrIsDirectory(ContextMapStruct & EventContext, VariableModule & NewValue, const string & variableID, const ValueSource & source){
-    string extractedVariableID = variableID;
-    bool isReference = false;
-    if(extractReferenceFromCustomVariable(extractedVariableID, isReference, CurrentInstr, __FUNCTION__)){
-        return;
-    }
-    ContextClass * Context = getContextByID(CurrentInstr, EventContext.Contexts,
-        EventContext.References, EventContext.callingSource,
-        extractedVariableID, isReference, true
+void ProcessClass::getExistsOrIsDirectory(ObjectMemoryStruct & ObjectMemory, VariableModule & NewValue, const unsigned localVariableAddress,
+    const string & variableId, const ValueSource & source
+){
+    ContextClass * Context = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+        LocalToGlobalTranslation[localVariableAddress], variableId, true
     );
 
     if(Context == nullptr){
@@ -12998,19 +13106,20 @@ void ProcessClass::getExistsOrIsDirectory(ContextMapStruct & EventContext, Varia
         }
     }
 }
-void ProcessClass::getScreenWidthOrHeigth(ContextMapStruct & EventContext, VariableModule & NewValue,
-    const VariableModule & Literal, const ValueSource & source
+void ProcessClass::getScreenWidthOrHeigth(ObjectMemoryStruct & ObjectMemory, VariableModule & NewValue,
+    const ConditionClass &Condition, const ValueSource & source
 ){
     int SCREEN_W = 0, SCREEN_H = 0;
     int tempInt = 0;
-    if(Literal.getType() == 's'){
-        if(getIntFromContext(CurrentInstr, __FUNCTION__, EventContext, Literal.vString, tempInt)){
+
+    if(Condition.Location.attribute == memory_address_a){
+        if(getIntFromContext(CurrentInstr, __FUNCTION__, ObjectMemory, LocalToGlobalTranslation, Condition.localAddresses[0], "", tempInt)){
             NewValue.setBool(false);
             return;
         }
     }
-    else if(Literal.getType() == 'i'){
-        tempInt = Literal.vInt;
+    else if(Condition.Literal.getType() == 'i'){
+        tempInt = Condition.Literal.vInt;
     }
     else{
         cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -13052,18 +13161,11 @@ bool ProcessClass::getProcess(VariableModule & NewValue, vector<ProcessClass> * 
     }
     return false;
 }
-VariableModule ProcessClass::getValueFromVector(ConditionClass & Condition, ContextMapStruct & EventContext){
+VariableModule ProcessClass::getValueFromVector(ConditionClass & Condition, ObjectMemoryStruct & ObjectMemory){
     VariableModule NewValue;
-    
-    string extractedVariableID = Condition.Location.moduleID;
-    bool isReference = false;
-    if(extractReferenceFromCustomVariable(extractedVariableID, isReference, CurrentInstr, __FUNCTION__)){
-        NewValue.setBool(false);
-        return NewValue;
-    }
-    ContextClass * Context = getContextByID(CurrentInstr, EventContext.Contexts,
-        EventContext.References, EventContext.callingSource,
-        extractedVariableID, isReference, true
+
+    ContextClass * Context = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+        LocalToGlobalTranslation[Condition.localAddresses[0]], Condition.Location.moduleID, true
     );
     if(Context == nullptr){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "No context found.\n";
@@ -13083,15 +13185,8 @@ VariableModule ProcessClass::getValueFromVector(ConditionClass & Condition, Cont
         return Context->Modules.Vectors.back()->getValue(value, Condition.Literal.getIntUnsafe());
     }
     else if(Condition.Literal.getType() == 's'){
-        string extractedVariableID = Condition.Literal.getStringUnsafe();
-        bool isReference = false;
-        if(extractReferenceFromCustomVariable(extractedVariableID, isReference, CurrentInstr, __FUNCTION__)){
-            NewValue.setBool(false);
-            return NewValue;
-        }
-        ContextClass * IndexContext = getContextByID(CurrentInstr, EventContext.Contexts,
-            EventContext.References, EventContext.callingSource,
-            extractedVariableID, isReference, true
+        ContextClass * IndexContext = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+            LocalToGlobalTranslation[Condition.localAddresses[1]], Condition.Literal.getStringUnsafe(), true
         );
         unsigned vectorIdx = 0;
         if(IndexContext == nullptr || !IndexContext->getUnsignedOrAbort(vectorIdx, CurrentInstr)){
@@ -13110,19 +13205,14 @@ VariableModule ProcessClass::getValueFromVector(ConditionClass & Condition, Cont
     NewValue.setBool(false);
     return NewValue;
 }
-void ProcessClass::getValueFromContext(ConditionClass & Condition, ContextMapStruct & EventContext,
+void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryStruct & ObjectMemory,
     AncestorObject * Owner, LayerClass * OwnerLayer, const MouseClass & Mouse, VariableModule & NewValue
 ){
     ContextClass * Context = nullptr;
     
-    string variableID = Condition.Literal.vString;
-    bool isReference = false;
-    if(extractReferenceFromCustomVariable(variableID, isReference, CurrentInstr, __FUNCTION__)){
-        NewValue.setBool(false);
-        return;
-    }
-    Context = getContextByID(CurrentInstr, EventContext.Contexts, EventContext.References,
-        EventContext.callingSource, variableID, isReference, true
+    const string & variableID = Condition.Literal.vString;
+    Context = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+        LocalToGlobalTranslation[Condition.localAddresses[0]], variableID, true
     );
     if(Context == nullptr){
         NewValue.setBool(false);
@@ -13329,7 +13419,7 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ContextMapStr
     return;
 }
 void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
-    const EngineClass & Engine, vector<ProcessClass> * Processes, ContextMapStruct & EventContext, VariableModule & NewValue
+    const EngineClass & Engine, vector<ProcessClass> * Processes, ObjectMemoryStruct & ObjectMemory, VariableModule & NewValue
 ){
     ProcessClass * Process = this;
     NewValue.clear();
@@ -13346,10 +13436,10 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             NewValue.setInt(Engine.fps.get());
             return;}
         case is_directory:{
-            getExistsOrIsDirectory(EventContext, NewValue, Condition.Literal.getString(), ValueSource::is_directory);
+            getExistsOrIsDirectory(ObjectMemory, NewValue, Condition.localAddresses[0], Condition.Literal.getString(), ValueSource::is_directory);
             return;}
         case exists:{
-            getExistsOrIsDirectory(EventContext, NewValue, Condition.Literal.getString(), ValueSource::exists);
+            getExistsOrIsDirectory(ObjectMemory, NewValue, Condition.localAddresses[0], Condition.Literal.getString(), ValueSource::exists);
             return;}
         case used_os:{
             #if __WIN32__
@@ -13363,10 +13453,10 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             #endif
             return;}
         case screen_w:{
-            getScreenWidthOrHeigth(EventContext, NewValue, Condition.Literal, ValueSource::screen_w);
+            getScreenWidthOrHeigth(ObjectMemory, NewValue, Condition, ValueSource::screen_w);
             return;}
         case screen_h:{
-            getScreenWidthOrHeigth(EventContext, NewValue, Condition.Literal, ValueSource::screen_h);
+            getScreenWidthOrHeigth(ObjectMemory, NewValue, Condition, ValueSource::screen_h);
             return;}
         case key_pressed:{
             if(checkIfUserCanInteract(NewValue, Condition.Location.source, Condition.Location.attribute, canUserInteract)){
@@ -13374,7 +13464,9 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             }
             if(Condition.Literal.getType() == 's'){
                 int tempInt = 0;
-                if(getIntFromContext(CurrentInstr, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                if(getIntFromContext(CurrentInstr, __FUNCTION__, ObjectMemory, LocalToGlobalTranslation,
+                    Condition.localAddresses[0], Condition.Literal.getString(), tempInt
+                )){
                     NewValue.setBool(false);
                     return;
                 }
@@ -13390,7 +13482,9 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             }
             if(Condition.Literal.getType() == 's'){
                 int tempInt = 0;
-                if(getIntFromContext(CurrentInstr, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                if(getIntFromContext(CurrentInstr, __FUNCTION__, ObjectMemory, LocalToGlobalTranslation,
+                    Condition.localAddresses[0], Condition.Literal.getString(), tempInt
+                )){
                     NewValue.setBool(false);
                     return;
                 }
@@ -13406,7 +13500,9 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             }
             if(Condition.Literal.getType() == 's'){
                 int tempInt = 0;
-                if(getIntFromContext(CurrentInstr, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                if(getIntFromContext(CurrentInstr, __FUNCTION__, ObjectMemory, LocalToGlobalTranslation,
+                    Condition.localAddresses[0], Condition.Literal.getString(), tempInt
+                )){
                     NewValue.setBool(false);
                     return;
                 }
@@ -13446,7 +13542,9 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             }
             if(Condition.Literal.getType() == 's'){
                 int tempInt = 0;
-                if(getIntFromContext(CurrentInstr, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                if(getIntFromContext(CurrentInstr, __FUNCTION__, ObjectMemory, LocalToGlobalTranslation,
+                    Condition.localAddresses[0], Condition.Literal.getString(), tempInt
+                )){
                     NewValue.setBool(false);
                     return;
                 }
@@ -13462,7 +13560,9 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             }
             if(Condition.Literal.getType() == 's'){
                 int tempInt = 0;
-                if(getIntFromContext(CurrentInstr, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                if(getIntFromContext(CurrentInstr, __FUNCTION__, ObjectMemory, LocalToGlobalTranslation,
+                    Condition.localAddresses[0], Condition.Literal.getString(), tempInt
+                )){
                     NewValue.setBool(false);
                     return;
                 }
@@ -13478,7 +13578,9 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             }
             if(Condition.Literal.getType() == 's'){
                 int tempInt = 0;
-                if(getIntFromContext(CurrentInstr, __FUNCTION__, EventContext, Condition.Literal.getString(), tempInt)){
+                if(getIntFromContext(CurrentInstr, __FUNCTION__, ObjectMemory, LocalToGlobalTranslation,
+                    Condition.localAddresses[0], Condition.Literal.getString(), tempInt
+                )){
                     NewValue.setBool(false);
                     return;
                 }
@@ -13552,7 +13654,7 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             NewValue.setBool(Engine.displayResized);
             return;}
         case vector_s:
-            NewValue.copyValue(getValueFromVector(Condition, EventContext));
+            NewValue.copyValue(getValueFromVector(Condition, ObjectMemory));
             return;
         case mouse_x:{
             if(checkIfUserCanInteract(NewValue, Condition.Location.source, Condition.Location.attribute, canUserInteract)){
@@ -13623,7 +13725,7 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             NewValue.setBool(false);
             return;}
         case context:
-            getValueFromContext(Condition, EventContext, Owner, OwnerLayer, Engine.Mouse, NewValue);
+            getValueFromContext(Condition, ObjectMemory, Owner, OwnerLayer, Engine.Mouse, NewValue);
             return;
         default:
             break;
@@ -13635,9 +13737,9 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
     return;
 }
 char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, vector<VariableModule> & resultStack,
-    AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, ContextMapStruct & EventContext
+    AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory
 ){
-    //std::chrono::steady_clock::time_point timerStart0 = std::chrono::steady_clock::now();
+    //TimePoint timerStart0 = std::chrono::steady_clock::now();
 
     short ignoreFlagOr = 0, ignoreFlagAnd = 0;
     bool comparasion;
@@ -13645,11 +13747,11 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
     double resultDouble;
     int stackSize = -1;
 
-    //std::chrono::steady_clock::time_point timerStart1 = std::chrono::steady_clock::now();
+    //TimePoint timerStart1 = std::chrono::steady_clock::now();
     
     for(ConditionClass & Condition : ConditionalChain){
         if(ignoreFlagOr == 0 && ignoreFlagAnd == 0){
-            findNextValue(Condition, Owner, OwnerLayer, Engine, nullptr, EventContext, LeftOperandProc);
+            findNextValue(Condition, Owner, OwnerLayer, Engine, nullptr, ObjectMemory, LeftOperandProc);
             resultStack[++stackSize].copyValue(LeftOperandProc);
         }
         if(stackSize == -1){
@@ -13762,18 +13864,18 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
         }
     }
 
-    //std::chrono::steady_clock::time_point timerStop1 = std::chrono::steady_clock::now();
+    //TimePoint timerStop1 = std::chrono::steady_clock::now();
     //IF_TESTS[1] += std::chrono::duration_cast<std::chrono::microseconds>(timerStop1 - timerStart1).count();
 
     if(stackSize == 0){
         if(resultStack[stackSize].getType() == 's'){
             if(isStringInGroup(resultStack[stackSize].vString, 3, "true", "t", "1")){
-                //std::chrono::steady_clock::time_point timerStop0 = std::chrono::steady_clock::now();
+                //TimePoint timerStop0 = std::chrono::steady_clock::now();
                 //IF_TESTS[0] += std::chrono::duration_cast<std::chrono::microseconds>(timerStop0 - timerStart0).count();
                 return 't';
             }
             else if(isStringInGroup(resultStack[stackSize].vString, 3, "false", "f", "0")){
-                //std::chrono::steady_clock::time_point timerStop0 = std::chrono::steady_clock::now();
+                //TimePoint timerStop0 = std::chrono::steady_clock::now();
                 //IF_TESTS[0] += std::chrono::duration_cast<std::chrono::microseconds>(timerStop0 - timerStart0).count();
                 return 'f';
             }
@@ -13782,60 +13884,55 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
             }
         }
         if(resultStack[stackSize].vBool){
-            //std::chrono::steady_clock::time_point timerStop0 = std::chrono::steady_clock::now();
+            //TimePoint timerStop0 = std::chrono::steady_clock::now();
             //IF_TESTS[0] += std::chrono::duration_cast<std::chrono::microseconds>(timerStop0 - timerStart0).count();
             return 't';
         }
-        //std::chrono::steady_clock::time_point timerStop0 = std::chrono::steady_clock::now();
+        //TimePoint timerStop0 = std::chrono::steady_clock::now();
         //IF_TESTS[0] += std::chrono::duration_cast<std::chrono::microseconds>(timerStop0 - timerStart0).count();
         return 'f';
     }
 
     //al_draw_filled_circle(SCREEN_W/2, SCREEN_H/2, 10, al_map_rgb_f(1.0, 0.0, 0.0));
-    //std::chrono::steady_clock::time_point timerStop0 = std::chrono::steady_clock::now();
+    //TimePoint timerStop0 = std::chrono::steady_clock::now();
     //IF_TESTS[0] += std::chrono::duration_cast<std::chrono::microseconds>(timerStop0 - timerStart0).count();
     return 't';
 }
 
-vector<EventModule>::iterator ProcessClass::findChildEventToRun(
+std::pair<vector<EventModule>::iterator, ChildStruct*> ProcessClass::findChildEventToRun(
     vector<EventModule> & EventContainer, vector<EventModule>::iterator & Event,
-    vector<string> & passingVariables, string & callingScript, unsigned & lineNumber,
     const unsigned & runChildEventWithIndex
 ){
     if(runChildEventWithIndex >= Event->Children.size()){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Index " << runChildEventWithIndex << " is out of scope of child events container ("
                 << Event->Children.size() << ").\n";
-        return {Event};
+        return {Event, nullptr};
     }
 
-    ChildStruct & SelectedChild = Event->Children[runChildEventWithIndex];
+    ChildStruct* SelectedChild = &Event->Children[runChildEventWithIndex];
 
-    if(SelectedChild.containerIndex >= EventContainer.size()){
+    if(SelectedChild->containerIndex >= EventContainer.size()){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Index " << SelectedChild.containerIndex << " is out of scope of event container ("
+            << "Index " << SelectedChild->containerIndex << " is out of scope of event container ("
             << EventContainer.size() << ").\n";
-        return Event;
+        return {Event, nullptr};
     }
 
-    vector<EventModule>::iterator ChildEvent = EventContainer.begin() + SelectedChild.containerIndex;
+    vector<EventModule>::iterator ChildEvent = EventContainer.begin() + SelectedChild->containerIndex;
 
-    if(ChildEvent->getID() != SelectedChild.ID){
+    if(ChildEvent->getID() != SelectedChild->ID){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Event '" << ChildEvent->getID() << "' was found in place of event '" << SelectedChild.ID
-            << "'. Index " << SelectedChild.containerIndex << " is incorrect. Check if the event '" << SelectedChild.ID << "' was defined.\n";
-        return Event;
+            << "Event '" << ChildEvent->getID() << "' was found in place of event '" << SelectedChild->ID
+            << "'. Index " << SelectedChild->containerIndex << " is incorrect. Check if the event '" << SelectedChild->ID << "' was defined.\n";
+        return {Event, nullptr};
     }
 
     if(ChildEvent->getIsDeleted() || !ChildEvent->getIsActive()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Event '" << SelectedChild.ID << "' does not exist.\n";
-        return Event;
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Event '" << SelectedChild->ID << "' does not exist.\n";
+        return {Event, nullptr};
     }
-
-    passingVariables = SelectedChild.passingVariables;
-    callingScript = SelectedChild.callingScript;
-    lineNumber = SelectedChild.lineNumber;
-    return ChildEvent;
+    return {ChildEvent, SelectedChild};
 }
 template <class Module>
 void deleteModuleInstance(vector<Module> & Container, vector<string> & IDs, bool & layersWereModified){
@@ -13851,27 +13948,19 @@ void deleteModuleInstance(vector<Module> & Container, vector<string> & IDs, bool
         }
     }
 }
-void deleteEventInstance(vector<EventModule> & Container, vector<string> & IDs, bool & layersWereModified, bool & wereEventsDeleted, ContextMapStruct & ContextMap){
+void deleteEventInstance(vector<EventModule> & Container, vector<string> & IDs, bool & layersWereModified, bool & wereEventsDeleted, ObjectMemoryStruct & ContextMap){
     for(auto Instance = Container.begin(); Instance != Container.end();){
         if(Instance->getIsDeleted() || Instance->willBeDeleted){
-            vector<string> keysForDeletion;
-            for(std::pair<const string, ContextClass> & VariablePair : ContextMap.Contexts){
+            vector<unsigned> keysForDeletion;
+            for(std::pair<const unsigned, ContextClass> & VariablePair : ContextMap.MemoryMap){
                 if(VariablePair.second.eventID == Instance->getID()){
                     keysForDeletion.push_back(VariablePair.first);
                 }
             }
-            for(const string & key : keysForDeletion){
-                ContextMap.Contexts[key];
+            for(const unsigned & key : keysForDeletion){
+                ContextMap.MemoryMap[key]; //???
             }
             keysForDeletion.clear();
-            for(std::pair<const string, ReferenceStruct> & ReferencePair : ContextMap.References){
-                if(ReferencePair.second.eventID == Instance->getID()){
-                    keysForDeletion.push_back(ReferencePair.first);
-                }
-            }
-            for(const string & key : keysForDeletion){
-                ContextMap.References[key];
-            }
             
             removeFromVector(IDs, Instance->getID());
             layersWereModified = true;
@@ -13963,6 +14052,7 @@ bool ProcessClass::deleteEntities(){
                     );
                     if(wereEventsDeleted){
                         findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+                        detectRecursionInEvents(Object->EventContainer, CurrentInstr);
                     }
 
                     deleteModuleInstance(Object->VariablesContainer, Object->variablesContainerIDs, layersWereModified);
@@ -13976,50 +14066,6 @@ bool ProcessClass::deleteEntities(){
         }
     }
     return layersWereModified;
-}
-void ProcessClass::resetChildren(vector<EventModule>::iterator & Event, AncestorObject * Triggered){
-    vector<EventModule*> StackOfEvents = {&(*Event)};
-    EventModule * CurrentEvent;
-    while(StackOfEvents.size() > 0){
-        CurrentEvent = StackOfEvents.back();
-        StackOfEvents.pop_back();
-
-        for(ChildStruct & Child : CurrentEvent->Children){
-            for(EventModule & ChildEvent: Triggered->EventContainer){
-                if(ChildEvent.getID() == Child.ID){
-                    ChildEvent.resetStateVariables();
-                    StackOfEvents.push_back(&ChildEvent);
-                    break;
-                }
-            }
-        }
-    }
-}
-void addGlobalVariables(ContextMapStruct & EventContext, vector<VariableModule> & VariablesContainer, bool printOutInstructions){
-    for(VariableModule & Variable : VariablesContainer){
-        string variableID = Variable.getID();
-        EventContext.Contexts[variableID].Modules.Variables.clear();
-        EventContext.Contexts[variableID].Modules.Variables.push_back(&Variable);
-        
-        if(printOutInstructions){
-            cout << "global var " << Variable.getLayerID() << ":" << Variable.getObjectID() << ":"
-                << variableID << ": " << shortenText(Variable.getAnyValue(), 100) << "\n";
-        }
-    }
-}
-void addGlobalVectors(ContextMapStruct & EventContext, vector<VectorModule> & VectorContainer, bool printOutInstructions){
-    for(VectorModule & Vector : VectorContainer){
-        string vectorID = Vector.getID();
-        EventContext.Contexts[vectorID].Modules.Vectors.clear();
-        EventContext.Contexts[vectorID].Modules.Vectors.push_back(&Vector);
-
-        if(printOutInstructions){
-            cout << "global vec " << Vector.getLayerID() << ":" << Vector.getObjectID() << ":"
-                << vectorID << ":";
-            printStringVectorForInstruction(Vector.getAllValuesAsStringVector(), 100);
-            cout << "\n";
-        }
-    }
 }
 void removeOnInitTrigger(vector<TriggerType> & primaryTriggerTypes){
     for(auto primaryTrigger = primaryTriggerTypes.begin(); primaryTrigger != primaryTriggerTypes.end();){
@@ -14060,6 +14106,9 @@ inline string localContextID(const string & eventID, const string & newID){
     return eventID + /*":" +*/ newID;
 }
 inline bool areTypesCompatible(const DataType & leftOperand, const DataType & rightOperand){
+    if(rightOperand == any_dt){
+        return true;
+    }
     switch (leftOperand){
         case bool_inst:
         case int_inst:
@@ -14166,6 +14215,9 @@ inline bool areTypesCompatible(const DataType & leftOperand, const DataType & ri
     }
 }
 inline bool areTypesCompatibleWithReference(const DataType & leftOperand, const DataType & rightOperand){
+    if(rightOperand == any_dt){
+        return true;
+    }
     //Reference skips moveRightToLeft function - it uses the same context under other name.
     switch(leftOperand){
         case bool_inst:
@@ -14264,110 +14316,186 @@ inline bool areTypesCompatibleWithReference(const DataType & leftOperand, const 
             return false;
     }
 }
-bool ProcessClass::passVariablesToTheChild(const vector<string> & ParentEventVariables,
-    const vector<StartingVariableStruct> & CurrentEventVariables, ContextMapStruct & VariablesLoookupTable
-){
-    if(CurrentEventVariables.size() != ParentEventVariables.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Number of passed variables (" << ParentEventVariables.size() << ")"
-            <<" is not equal to the number of event parameters (" << CurrentEventVariables.size() << ").\n";
+//Return true if there's no need to allocate new memory.
+inline bool findFreeDynamicMemory(ObjectMemoryStruct & ObjectMemory, vector<DynamicVariableInfo> & NewLocalVariables, const bool & isReference){
+    for(unsigned memIdx = ObjectMemory.topFreeDynamicAddress; memIdx < ObjectMemory.DynamicMemory.size(); ++memIdx){
+        DynamicMemoryStruct &it_DynamicVar = ObjectMemory.DynamicMemory[memIdx];
+        if(it_DynamicVar.inUse){
+            continue;
+        }
+        it_DynamicVar.inUse = true;
+        ObjectMemory.topFreeDynamicAddress = memIdx+1;
+        NewLocalVariables.emplace_back(DynamicVariableInfo(it_DynamicVar.address, memIdx, isReference));
         return true;
-    }
-    for(unsigned variableIdx = 0; variableIdx < CurrentEventVariables.size(); variableIdx++){
-        //TODO: Test if adding this back inside an if "ignoreTypes==true" will not hurt the performance.
-        // if(CurrentEventVariables[variableIdx].isReference){
-        //     continue;
-        // }
-        string sourceVariableID = ParentEventVariables[variableIdx];
-        bool isSourceReference = false; //TODO: this must be true if the source is a reference PROBABLY
-        if(extractReferenceFromCustomVariable(sourceVariableID, isSourceReference, CurrentInstr, __FUNCTION__)){
-            return true;
-        }
-        ContextClass * ContextToBeCopied = getContextByID(
-            CurrentInstr, VariablesLoookupTable.Contexts, VariablesLoookupTable.References,
-            VariablesLoookupTable.callingSource, sourceVariableID, isSourceReference, true
-        );
-        if(ContextToBeCopied == nullptr){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Context '" << ParentEventVariables[variableIdx] << "' does not exist.\n";
-            continue;
-        }
-
-        if(CurrentEventVariables[variableIdx].isReference){
-            if(!areTypesCompatibleWithReference(CurrentEventVariables[variableIdx].type, ContextToBeCopied->type)){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Cannot pass a parameter of '" << dataTypeToStr(ContextToBeCopied->type)
-                    << "' type to an argument of '" << dataTypeToStr(CurrentEventVariables[variableIdx].type) << "' type.\n";
-                return true;
-            }
-            continue;
-        }
-        if(!areTypesCompatible(CurrentEventVariables[variableIdx].type, ContextToBeCopied->type)){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Cannot pass a parameter of '" << dataTypeToStr(ContextToBeCopied->type)
-                << "' type to an argument of '" << dataTypeToStr(CurrentEventVariables[variableIdx].type) << "' type.\n";
-            return true;
-        }
-
-        string childVariableID = localContextID(
-            CurrentEventVariables[variableIdx].eventID,
-            CurrentEventVariables[variableIdx].id
-        );
-        bool isChildVariableReference = false;
-        if(extractReferenceFromCustomVariable(childVariableID, isChildVariableReference, CurrentInstr, __FUNCTION__)){
-            return true;
-        }
-
-        ContextClass * OutputVariable = getContextByID(CurrentInstr, VariablesLoookupTable.Contexts,
-            VariablesLoookupTable.References, VariablesLoookupTable.callingSource, childVariableID, isChildVariableReference, false
-        );
-        if(OutputVariable == nullptr){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << childVariableID << "' does not exist.\n"; 
-            return true;
-        }
-        moveRightToLeft(CurrentInstr, EngineInstr::assign, OutputVariable, *ContextToBeCopied);   
-
-        //assignVariableFromPointer(VariablesLoookupTable, ContextToBeCopied, childVariableID, isChildVariableReference);
     }
     return false;
 }
-void findCallingEventAndType(vector<EventStackStruct> & EventStack, vector<EventModule>::iterator & Event, const string & currentCallingType){
-    Event->callingEventID = EventStack.back().Event->getID();
-    Event->callingType = currentCallingType;
-    if(Event->isInline){ //Copy the calling event from the last event.
-        Event->callingEventID = EventStack.back().Event->callingEventID;
-        Event->callingType = EventStack.back().Event->callingType;
-    }
-    else{ //Find first event that is not inline
-        for(int i = EventStack.size() - 1; i >= 0; i--){
-            if(EventStack[i].Event->isInline){
-                continue;
-            }
-            Event->callingEventID = EventStack[i].Event->getID();
-            break;
-            //Event->callingType = EventStack[i].Event->callingType;
+void ProcessClass::allocateNewDynamicMemory(ObjectMemoryStruct & ObjectMemory, const VariableInfo & NewLocalVar){
+    NewContext.clear();
+    NewContext.ID = NewLocalVar.name;
+    NewContext.type = NewLocalVar.type;
+    unsigned newDynamicAddress = ObjectMemory.topAddress++;
+    ObjectMemory.MemoryMap[newDynamicAddress] = NewContext;
+    ObjectMemory.DynamicMemory.emplace_back(DynamicMemoryStruct(newDynamicAddress, true));
+    ObjectMemory.topFreeDynamicAddress = ObjectMemory.DynamicMemory.size();
+}
+void ProcessClass::allocateMemoryForDynamicVariables(const vector<EventModule>::iterator & it_NewEvent, ObjectMemoryStruct & ObjectMemory){
+    //If the event was called for the first time in the current stack, use pre-allocated memory found under the default address. 
+    if(!EventCallState.isCurrentCallRecursive){
+		for(const VariableInfo & it_LocalVar : it_NewEvent->LocalVariables){
+            LocalToGlobalTranslation.emplace_back(DynamicVariableInfo(it_LocalVar.defaultAddress, 0, it_LocalVar.isReference));
+		}
+        return;
+	}
+	//If it's a recurrent call, find already allocated memory that is not currently in use or allocate new memory.
+    for(VariableInfo & it_LocalVar : it_NewEvent->LocalVariables){
+        if(it_LocalVar.isReference){
+            LocalToGlobalTranslation.emplace_back(DynamicVariableInfo(it_LocalVar.defaultAddress, 0, true));
+            continue;
+        }		
+        
+        if(!findFreeDynamicMemory(ObjectMemory, LocalToGlobalTranslation, it_LocalVar.isReference)){
+            allocateNewDynamicMemory(ObjectMemory, it_LocalVar);
+            LocalToGlobalTranslation.emplace_back(DynamicVariableInfo(
+                ObjectMemory.DynamicMemory.back().address, ObjectMemory.DynamicMemory.size()-1, it_LocalVar.isReference
+            ));
         }
     }
+}
+void ProcessClass::deallocateDynamicallyAllocatedMemory(vector<DynamicMemoryStruct> & DynamicMemory, unsigned & topDynamicAddress){
+    for(DynamicVariableInfo & it_LocalVar : LocalToGlobalTranslation){
+        if(it_LocalVar.isReference){
+            continue;
+        }
+        if(it_LocalVar.dynamicMemoryAddress >= DynamicMemory.size()){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Dynamic memory at address " << it_LocalVar.dynamicMemoryAddress
+                << " has already been deallocated.\n";
+            continue;
+        }
+        DynamicMemory[it_LocalVar.dynamicMemoryAddress].inUse = false;
+        topDynamicAddress = it_LocalVar.dynamicMemoryAddress;
+    }
+}
+bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & ParentEventArguments,
+    const vector<PassingVariableInfo> & CurrentEventParameters,
+    vector<EventModule>::iterator & ParentEvent, vector<EventModule>::iterator & CurrentEvent,
+    vector<DynamicVariableInfo> & ParentEventLocalVariables,
+    vector<DynamicVariableInfo> & CurrentEventLocalVariables,
+    ObjectMemoryStruct & ObjectMemory
+){
+    if(CurrentEventParameters.size() != ParentEventArguments.size()){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+			<< "Number of passed arguments (" << ParentEventArguments.size() << ")"
+			<<" is not equal to the number of event parameters (" << CurrentEventParameters.size() << ").\n";
+		return true;
+    }
+    for(size_t argIdx = 0; argIdx < CurrentEventParameters.size(); argIdx++){
+        const PassingVariableInfo & Argument = ParentEventArguments[argIdx];
+		const PassingVariableInfo & Parameter = CurrentEventParameters[argIdx];
+        
+        if(Parameter.isReference){
+			if(!areTypesCompatibleWithReference(Parameter.type, Argument.type)){
+				cerr << instructionError(CurrentInstr, __FUNCTION__)
+					<< "Cannot pass an argument of '" << dataTypeToStr(Argument.type)
+					<< "' type to a parameter of '" << dataTypeToStr(Parameter.type) << "' type.\n";
+				return true;
+			}
+            //When passing by reference you only need to copy the dynamic address of the variable instead of copying the whole its state.
+            CurrentEventLocalVariables[Parameter.localAddress].dynamicAddress = ParentEventLocalVariables[Argument.localAddress].dynamicAddress;
+
+			continue;		
+		}
+        if(!areTypesCompatible(Parameter.type, Argument.type)){
+			cerr << instructionError(CurrentInstr, __FUNCTION__)
+				<< "Cannot pass an argument of '" << dataTypeToStr(Argument.type)
+				<< "' type to a parameter of '" << dataTypeToStr(Parameter.type) << "' type.\n";
+			return true;
+		}
+
+        ContextClass * ArgumentVariable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+            ParentEventLocalVariables[Argument.localAddress], Argument.name, true
+        );
+        if(ArgumentVariable == nullptr){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Variable '" << Argument.name << "' does not exist.\n";
+            continue;
+        }
+		ContextClass * ParameterVariable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+            CurrentEventLocalVariables[Parameter.localAddress], Parameter.name, true
+        );
+        if(ParameterVariable == nullptr){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Variable '" << Parameter.name << "' does not exist.\n";
+            continue;
+        }
+
+        if(Parameter.isReference){
+			if(!areTypesCompatibleWithReference(ParameterVariable->type, ArgumentVariable->type)){
+				cerr << instructionError(CurrentInstr, __FUNCTION__)
+					<< "Cannot pass an argument of '" << dataTypeToStr(ArgumentVariable->type)
+					<< "' type to a parameter of '" << dataTypeToStr(ParameterVariable->type) << "' type.\n";
+				return true;
+			}
+			continue;		
+		}
+        if(!areTypesCompatible(ParameterVariable->type, ArgumentVariable->type)){
+			cerr << instructionError(CurrentInstr, __FUNCTION__)
+				<< "Cannot pass an argument of '" << dataTypeToStr(ArgumentVariable->type)
+				<< "' type to a parameter of '" << dataTypeToStr(ParameterVariable->type) << "' type.\n";
+			return true;
+		}
+
+        moveRightToLeft(CurrentInstr, EngineInstr::assign, ParameterVariable, *ArgumentVariable);
+    }
+    return false;
+}
+EventControlFlow ProcessClass::prepareChildEvent(ObjectMemoryStruct & ObjectMemory, vector<EventStackStruct> & EventStack,
+    vector<EventModule>::iterator & it_Event, ChildStruct * SelectedChild, TimePoint timeBegin
+){
+    CurrentInstr.lineNumber = SelectedChild->lineNumber;
+    CurrentInstr.scriptName = SelectedChild->callingScript;
     
-    //cout << Event->callingEventID << ":" << Event->callingType << " -> " << Event->getID() << "\n";
+    CurrentInstr.eventID = it_Event->getID();
+    CurrentInstr.instruction = EngineInstr::run;
+
+    if(printOutInstructions){
+        cout << "run " << it_Event->getID() << "(";
+        if(SelectedChild != nullptr){
+            for(auto variable : SelectedChild->Arguments){
+                cout << variable.name << ", ";
+            }
+        }
+        cout << ")\n";
+    }
+
+    TimePoint timeEnd = std::chrono::steady_clock::now();
+    auto temp = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeBegin).count();
+    if(TimeSpentOnInstructions.contains(EngineInstr::run)){
+        TimeSpentOnInstructions[EngineInstr::run] += temp;
+    }
+    else{
+        TimeSpentOnInstructions[EngineInstr::run] = temp;
+    }
+
+    EventCallState.clear();
+    LocalToGlobalTranslation.clear();
+    EventCallState.isCurrentCallRecursive = SelectedChild->isRecursiveCall;
+    allocateMemoryForDynamicVariables(it_Event, ObjectMemory);
+    if(passVariablesToTheChild(SelectedChild->Arguments, it_Event->Parameters, EventStack.back().Event,
+        it_Event, EventStack.back().LocalVariables, LocalToGlobalTranslation, ObjectMemory
+    )){
+        return flow_abort;
+    }
+    return flow_run_function;
 }
 EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<ProcessClass> & Processes,
     vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
-    vector<EventStackStruct> & EventStack, ContextMapStruct & VariablesLoookupTable,
-    vector <AncestorObject*> & TriggeredObjects, LayerClass *& TriggeredLayer,
-    AncestorObject *& Triggered
+    vector<EventStackStruct> & EventStack, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject*> & TriggeredObjects,
+    LayerClass *& TriggeredLayer, AncestorObject *& Triggered
 ){
-    VariablesLoookupTable.callingSource = it_Event->callingEventID + it_Event->callingType;
     CurrentInstr.eventID = it_Event->getID();
     removeOnInitTrigger(it_Event->primaryTriggerTypes);
-    if(wereGlobalVariablesCreated){
-        if(printOutInstructions){
-            cout << "---Update global variables:\n";
-        }
-        wereGlobalVariablesCreated = false;
-        addGlobalVariables(VariablesLoookupTable, Triggered->VariablesContainer, printOutInstructions);
-        addGlobalVectors(VariablesLoookupTable, Triggered->VectorContainer, printOutInstructions);
-    }
     if(printOutInstructions){
         printInColor("\n---Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + it_Event->getID() + "\n", 14);
         if(interruptInstruction == EngineInstr::break_i){
@@ -14381,8 +14509,9 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
     //Execute all instructions bound to an event.
     if(interruptInstruction != EngineInstr::break_i && interruptInstruction != EngineInstr::return_i){
         unsigned runChildEventWithIndex = 0;
-        if(it_Event->programCounter < it_Event->DependentOperations.size()){
-            interruptInstruction = executeInstructions(it_Event->DependentOperations, TriggeredLayer, Triggered, VariablesLoookupTable, TriggeredObjects,
+        if(EventCallState.programCounter < it_Event->DependentOperations.size()){
+            interruptInstruction = executeInstructions(
+                it_Event->DependentOperations, TriggeredLayer, Triggered, ObjectMemory, TriggeredObjects,
                 Processes, it_StartingEvent, it_Event, EventStack, Engine, runChildEventWithIndex
             );
 
@@ -14404,90 +14533,85 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
             }
         }
         if(interruptInstruction == EngineInstr::run){
-            EventStack.emplace_back(it_Event);
+            EventStack.emplace_back(it_Event, LocalToGlobalTranslation, EventCallState);
             
-            std::chrono::steady_clock::time_point timeBegin = std::chrono::steady_clock::now();
+            TimePoint timeBegin = std::chrono::steady_clock::now();
 
-            it_Event = findChildEventToRun(Triggered->EventContainer, it_Event, EventStack.back().passingVariables,
-                CurrentInstr.scriptName, CurrentInstr.lineNumber, runChildEventWithIndex
-            );
-            CurrentInstr.eventID = it_Event->getID();
-            CurrentInstr.instruction = EngineInstr::run;
-            findCallingEventAndType(EventStack, it_Event, "run");
+            ChildStruct * SelectedChild = nullptr;
 
-            if(printOutInstructions){
-                cout << "run " << it_Event->getID() << "(";
-                for(auto variable : it_Event->PassedVariables){
-                    cout << variable.id << ", ";
-                }
-                cout << ")\n";
+            std::tie(it_Event, SelectedChild) = findChildEventToRun(Triggered->EventContainer, it_Event, runChildEventWithIndex);
+            
+            if(SelectedChild == nullptr){
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Pointer to the child event instance is null. Aborting.\n";
+                return flow_abort;
             }
 
-            std::chrono::steady_clock::time_point timeEnd = std::chrono::steady_clock::now();
-            auto temp = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeBegin).count();
-            if(TimeSpentOnInstructions.contains(EngineInstr::run)){
-                TimeSpentOnInstructions[EngineInstr::run] += temp;
-            }
-            else{
-                TimeSpentOnInstructions[EngineInstr::run] = temp;
-            }
-
-            if(it_Event != EventStack.back().Event){
-                if(passVariablesToTheChild(EventStack.back().passingVariables, it_Event->PassedVariables, VariablesLoookupTable)){
-                    return flow_abort;
-                }
-                VariablesLoookupTable.callingSource = it_Event->callingEventID + it_Event->callingType;
-                return flow_run_function;
-            }
-            EventStack.pop_back();
+            return prepareChildEvent(ObjectMemory, EventStack, it_Event, SelectedChild, timeBegin);
         }
     }
 
     //jump back in event stack
-    if(it_StartingEvent != it_Event){ 
+    if(!EventStack.empty()){
         if(printOutInstructions){
             printInColor("---go_back\n", 14);
         }
-        it_Event->resetStateVariables();
-        resetChildren(it_Event, Triggered);
 
         if(!it_Event->isInline){
             interruptInstruction = EngineInstr::null;
         }
+
+        if(EventCallState.isCurrentCallRecursive){
+            deallocateDynamicallyAllocatedMemory(ObjectMemory.DynamicMemory, ObjectMemory.topFreeDynamicAddress);
+        }
         
         it_Event = EventStack.back().Event;
+        LocalToGlobalTranslation = EventStack.back().LocalVariables;
+        EventCallState = EventStack.back().EventCallState;
         EventStack.pop_back();
         return flow_jump_back;
     }
-    EventStack.clear();
+
     return flow_next_event;
 }
-inline void findNextEvent(const Triggers & CurrentTriggers, vector<EventModule>::iterator & it_Event,
+inline bool findNextEvent(const Triggers & CurrentTriggers, vector<EventModule>::iterator & it_Event,
     vector<EventModule>::iterator & it_StartingEvent, AncestorObject *& TriggeredObject
 ){
-    for(;it_Event != TriggeredObject->EventContainer.end();){
-        //Go to the next event and check if the next event is triggered.
-        ++it_Event;
-        ++it_StartingEvent;
+    auto end = TriggeredObject->EventContainer.end();
+
+    while(++it_Event != end && ++it_StartingEvent != end){
         if(isEventTriggered(CurrentTriggers, it_Event)){
-            return;
+            return true;
         }
     }
+
+    return false;
 } 
 bool ProcessClass::executeEventLoop(EngineClass & Engine, vector<ProcessClass> & Processes,
     const Triggers & CurrentTriggers, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & EventStack,
-    ContextMapStruct & VariablesLoookupTable, vector <AncestorObject*> & TriggeredObjects,
-    LayerClass *& TriggeredLayer, AncestorObject *& TriggeredObject
+    vector<EventModule>::iterator & it_Event, ObjectMemoryStruct & ObjectMemory,
+    vector <AncestorObject*> & TriggeredObjects, LayerClass *& TriggeredLayer,
+    AncestorObject *& TriggeredObject
 ){
+    vector<EventStackStruct> EventStack;
+
+    EventCallState.clear();
+    LocalToGlobalTranslation.clear();
+    allocateMemoryForDynamicVariables(it_Event, ObjectMemory);
+
     while(it_Event != TriggeredObject->EventContainer.end()){
-        EventControlFlow e_eventControl = executeSingleEvent(Engine, Processes, it_StartingEvent, it_Event, EventStack,
-            VariablesLoookupTable, TriggeredObjects, TriggeredLayer, TriggeredObject
+        EventControlFlow e_eventControl = executeSingleEvent(
+            Engine, Processes, it_StartingEvent, it_Event, EventStack,
+            ObjectMemory, TriggeredObjects, TriggeredLayer, TriggeredObject
         );
 
         switch(e_eventControl){
             case flow_next_event:
-                findNextEvent(CurrentTriggers, it_Event, it_StartingEvent, TriggeredObject);
+                if(findNextEvent(CurrentTriggers, it_Event, it_StartingEvent, TriggeredObject)){
+                    EventCallState.clear();
+                    LocalToGlobalTranslation.clear();
+                    allocateMemoryForDynamicVariables(it_Event, ObjectMemory);
+                }
                 break;
             case flow_self_deletion:
                 return false;
@@ -14527,56 +14651,40 @@ inline bool findFirstTriggeredEvent(AncestorObject * TriggeredObject, Triggers &
     }
     return true;
 }
-inline void setupVariablesLookupTable(ContextMapStruct & VariablesLoookupTable, AncestorObject * TriggeredObject,
+inline void setupVariablesLookupTable(ObjectMemoryStruct & VariablesLoookupTable, AncestorObject * TriggeredObject,
     LayerClass * TriggeredLayer, const bool & printOutInstructions
 ){
-    VariablesLoookupTable.callingSource = "";
+    VariablesLoookupTable.MemoryMap[builtInVarAddr::me_bv].Objects.clear();
+    VariablesLoookupTable.MemoryMap[builtInVarAddr::me_bv].Objects.push_back(TriggeredObject);
 
-    VariablesLoookupTable.Contexts["me"].Objects.clear();
-    VariablesLoookupTable.Contexts["me"].Objects.push_back(TriggeredObject);
-
-    VariablesLoookupTable.Contexts["my_layer"].Layers.clear();
-    VariablesLoookupTable.Contexts["my_layer"].Layers.push_back(TriggeredLayer);
-
-    addGlobalVariables(VariablesLoookupTable, TriggeredObject->VariablesContainer, printOutInstructions);
-    addGlobalVectors(VariablesLoookupTable, TriggeredObject->VectorContainer, printOutInstructions);
+    VariablesLoookupTable.MemoryMap[builtInVarAddr::my_layer_bv].Layers.clear();
+    VariablesLoookupTable.MemoryMap[builtInVarAddr::my_layer_bv].Layers.push_back(TriggeredLayer);
 }
 bool ProcessClass::executeTriggeredEvents(EngineClass & Engine, vector<ProcessClass> & Processes,
     vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers
 ){
-    vector<EventModule>::iterator it_it_StartingEvent, it_Event;
+    vector<EventModule>::iterator it_StartingEvent, it_Event;
     LayerClass * TriggeredLayer = nullptr;
-    vector<EventStackStruct> EventStack;
 
     for(AncestorObject * it_TriggeredObject : TriggeredObjects){
         if(isEntityInaccessible(it_TriggeredObject)
             || findFirstTriggeredEvent(it_TriggeredObject, CurrentTriggers, it_Event)
             || findTriggeredLayer(Layers, it_TriggeredObject, TriggeredLayer)
         ){ continue; }
-
-        for(EventModule & it : it_TriggeredObject->EventContainer){
-            it.resetStateVariables();
-        }
         
-        it_it_StartingEvent = it_Event;
+        it_StartingEvent = it_Event;
 
-        ContextMapStruct & VariablesLoookupTable = ContextLookupTable[it_TriggeredObject->objectLookupID];
+        ObjectMemoryStruct & ObjectMemory = ContextLookupTable[it_TriggeredObject->objectLookupID];
 
-        setupVariablesLookupTable(VariablesLoookupTable, it_TriggeredObject, TriggeredLayer, printOutInstructions);
-
-        wereGlobalVariablesCreated = false;
+        setupVariablesLookupTable(ObjectMemory, it_TriggeredObject, TriggeredLayer, printOutInstructions);
 
         CurrentInstr.layerID = TriggeredLayer->getID();
         CurrentInstr.objectID = it_TriggeredObject->getID();
 
-        EventStack.clear();
-
         if(executeEventLoop(Engine, Processes, CurrentTriggers,
-            it_it_StartingEvent, it_Event, EventStack, VariablesLoookupTable, TriggeredObjects,
+            it_StartingEvent, it_Event, ObjectMemory, TriggeredObjects,
             TriggeredLayer, it_TriggeredObject
         )){ return true; }
-
-        EventStack.clear();
 
         if(wasNewExecuted || wasAnyEventUpdated){
             updateBaseOfTriggerableObjects();
@@ -16149,18 +16257,18 @@ void PointerRecalculator::clear(){
     TriggeredObjectIndexes.clear();
     didActiveEditableTextExist = false;
 }
-void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, ContextMapStruct & EventContext, Camera2D *& SelectedCamera){ 
-    for(auto & Context : EventContext.Contexts){
+void PointerRecalculator::findIndexesForCameras(vector<Camera2D> &Cameras, ObjectMemoryStruct & ObjectMemory, Camera2D *& SelectedCamera){ 
+    for(auto & Context : ObjectMemory.MemoryMap){
         for(Camera2D * Camera : Context.second.Cameras){
-            CameraIndexes[Context.second.ID].push_back(Camera - &Cameras[0]);
+            CameraIndexes[Context.first].push_back(Camera - &Cameras[0]);
         }
     }
     if(SelectedCamera != nullptr){
         selectedCameraIndex = SelectedCamera - &Cameras[0];
     }
 }
-void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, ContextMapStruct & EventContext, LayerClass *& OwnerLayer){
-    for(auto & Context : EventContext.Contexts){
+void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer){
+    for(auto & Context : ObjectMemory.MemoryMap){
         for(LayerClass * Layer : Context.second.Layers){
             LayerIndexes[Context.first].push_back(Layer - &Layers[0]);
         }
@@ -16174,11 +16282,11 @@ void PointerRecalculator::findIndexesForLayers(vector<LayerClass> &Layers, Conte
         }
     }
 }
-void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, ContextMapStruct & EventContext, AncestorObject *& Owner,
+void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, AncestorObject *& Owner,
     vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject
 ){
     unsigned layerIndex;   
-    for(auto & Context : EventContext.Contexts){
+    for(auto & Context : ObjectMemory.MemoryMap){
         for(AncestorObject * Object : Context.second.Objects){
             for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
                 if(Layers[layerIndex].getID() == Object->getLayerID()){
@@ -16283,9 +16391,9 @@ ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass>
     return ModuleIndex(0, 0, 0);
 }
 template <class Module>
-inline void PointerRecalculator::findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr, string contextID){
+inline void PointerRecalculator::findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr, const unsigned & address){
     for(Module * Instance : Instances){
-        ModuleIndexes[contextID].push_back(getIndex(Instance, Layers, CurrentInstr));
+        ModuleIndexes[address].push_back(getIndex(Instance, Layers, CurrentInstr));
     }
 }
 ModuleIndex PointerRecalculator::getIndex(vector<EventModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr){
@@ -16312,7 +16420,7 @@ ModuleIndex PointerRecalculator::getIndex(vector<EventModule>::iterator & Instan
     }
     return ModuleIndex(0, 0, 0);
 }
-void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, ContextMapStruct & EventContext, vector<EventModule>::iterator & it_StartingEvent,
+void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
     vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
     //Invalidate all pointers that reference other modules' instances.
@@ -16330,7 +16438,7 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, Con
     for(EventStackStruct & Memory : MemoryStack){
         PastEvents.emplace_back(getIndex(Memory.Event, Layers, CurrentInstr));
     }
-    for(auto & ContextMap : EventContext.Contexts){
+    for(auto & ContextMap : ObjectMemory.MemoryMap){
         ContextClass & Context = ContextMap.second;
         switch(Context.type){
             case text_mod:
@@ -16395,11 +16503,11 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, Con
         didActiveEditableTextExist = true;
     }
 }
-void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, ContextMapStruct & EventContext,
+void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, ObjectMemoryStruct & ObjectMemory,
     Camera2D *& SelectedCamera, string processID, string & focusedProcessID, const InstrDescription & CurrentInstr
 ){
     for(const auto & IndexPair : CameraIndexes){
-        ContextClass & CurrentContext = EventContext.Contexts[IndexPair.first];
+        ContextClass & CurrentContext = ObjectMemory.MemoryMap[IndexPair.first];
         for(const unsigned & camera : IndexPair.second){
             if(camera >= Cameras.size()){
                 cerr << instructionError(CurrentInstr, __FUNCTION__) << ": CameraIndexes[context][camera] goes out of scope of Cameras.\n";
@@ -16418,9 +16526,9 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, Con
         focusCamera(Cameras, SelectedCamera, processID, focusedProcessID, &Cameras[selectedCameraIndex]);
     }
 }
-void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, ContextMapStruct & EventContext, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr){
+void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr){
     for(const auto & IndexPair : LayerIndexes){
-        ContextClass & CurrentContext = EventContext.Contexts[IndexPair.first];
+        ContextClass & CurrentContext = ObjectMemory.MemoryMap[IndexPair.first];
         for(const unsigned & layer : IndexPair.second){
             if(layer >= Layers.size()){
                 cerr << instructionError(CurrentInstr, __FUNCTION__) << ": LayerIndexes[\"" << IndexPair.first
@@ -16436,12 +16544,12 @@ void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, Con
         OwnerLayer = getOwnerLayer(Layers);
     }
 }
-void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, ContextMapStruct & EventContext, AncestorObject *&Owner,
+void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, AncestorObject *&Owner,
     vector<AncestorObject *> &TriggeredObjects, LayerClass *&SelectedLayer, AncestorObject *&SelectedObject, const InstrDescription & CurrentInstr)
 {
     unsigned i;
     for(const auto & IndexPair : ObjectIndexes){
-        ContextClass & CurrentContext = EventContext.Contexts[IndexPair.first];
+        ContextClass & CurrentContext = ObjectMemory.MemoryMap[IndexPair.first];
         CurrentContext.Objects.clear();
         for(const AncestorIndex & Index : IndexPair.second){
             CurrentContext.Objects.push_back(Index.object(Layers));
@@ -16467,7 +16575,7 @@ void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, Co
         SelectedObject = SelectedObjectIndex.object(Layers);
     }
 }
-void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, ContextMapStruct & EventContext, vector<EventModule>::iterator & it_StartingEvent,
+void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
     vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
     it_StartingEvent = startingEventIndex.module(Layers);
@@ -16487,12 +16595,12 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, C
                 continue;
             }
 
-            // if(!EventContext.Contexts.contains(IndexPair.first)){
+            // if(!ObjectMemory.Contexts.contains(IndexPair.first)){
             //     cerr << instructionError(CurrentInstr, __FUNCTION__) << ": Context '" << IndexPair.first << "' does not exist.\n";
             //     continue;
             // }
 
-            ContextClass & CurrentContext = EventContext.Contexts[IndexPair.first];
+            ContextClass & CurrentContext = ObjectMemory.MemoryMap[IndexPair.first];
 
             switch(CurrentContext.type){
                 case text_mod:
@@ -16570,10 +16678,18 @@ void Triggers::clear(){
     stillObjects.clear();
 }
 
-void ContextMapStruct::clear(){
-    for(auto & Context : Contexts){
+void ObjectMemoryStruct::clear(){
+    for(auto & Context : MemoryMap){
         Context.second.clear();
     }
-    Contexts.clear();
-    References.clear();
+    MemoryMap.clear();
+}
+
+void EventCallStateStruct::clear(){
+    isCurrentCallRecursive = false;
+    programCounter = 0;
+    decrementProgramCounter = false;
+    conditionalStatus = 'n';
+    breakFromCurrentLoop = false;
+    goToEndOfIfStatement.clear();
 }

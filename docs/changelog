@@ -1,3 +1,9 @@
+3.05.2025
+-Reimplemented variables - now every variable has a local and global address.
+-Introduced recursion.
+-Added compile-time scopes - instructions: start, if, else_if, else, while create a new scope.
+-Blocked "inline" instruction - it was replaced with compile-time scopes.
+
 12.04.2025
 -Updated a part of instructions docs.
 -Divided "print" instruction to: "print", "print_d" and "print_v".

@@ -1,0 +1,15 @@
+start printNumbers(int n)
+    if(n 0 <=)
+        return
+    end_if
+    print n "\n"
+    -- n
+    run printNumbers(n)
+end
+
+start main()
+    triggers on_init
+    int n 5
+    run printNumbers(n)
+    exit
+end

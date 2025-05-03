@@ -25,6 +25,15 @@ struct ModulesPointers{
     ModulesPointers(){};
 };
 
+struct BranchingStackStruct{
+    vector<unsigned> ifElseJumpStack; //Indexes of operations that will store line numbers for jumping to else_ifs and elses from ifs and else_ifs.
+    vector<vector<unsigned>> ifEndJumpStack; //Indexes of operations that store line numbers for jumping to end_if labels from ifs, else_ifs and elses.
+    vector<char> usedElseStatements; //If an else statement was used in an if statement store 1, otherwise store 0. This vector is required for clearing pointers in if statements without elses.  
+    
+    vector<unsigned> whileStartStack; //Indexes of operations that will store line number for jumping from "end_while" and "continue" labels to the "while" instruction.
+    vector<vector<unsigned>> whileEndStack; //Indexes of operations that will store line number for jumping from "break" and "while" instructions to the "end_while" label.
+};
+
 /**
 The most important class, a container for all modules that make an object.
 */
@@ -79,24 +88,26 @@ public:
     void primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     void setIsScrollable(bool newValue);
     VariableModule getAttributeValue(const AttributeType & attribute, const string & detail);
-    /*Translate instructions into events and add them to the event container of the object.*/
-    void assembleEvents(vector<string> code, string scriptName, vector<StartingVariableStruct> & VariableLookupTable);
-    void clearAllEvents();
-    void translateAllScripts(bool clearEvents, bool allowNotAscii,
-        vector<StartingVariableStruct> & NewVariablesForLookupTable
+    ReturnType translateTokensIntoEngineInstruction(
+        const vector<WordStruct> & words, const string & scriptName, const unsigned & lineNumber,
+        vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress,
+        bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
+        OperationClass *& Operation, BranchingStackStruct & BranchingStack
     );
+    /*Translate instructions into events and add them to the event container of the object.*/
+    void assembleEvents(vector<string> & code, const string & scriptName,
+        vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
+    );
+    void clearAllEvents();
+    void translateAllScripts(bool clearEvents, bool allowNotAscii, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress);
     void translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii,
-        vector<StartingVariableStruct> & NewVariablesForLookupTable
+        vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
     );
     void translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii,
-        vector<StartingVariableStruct> & NewVariablesForLookupTable
+        vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
     );
-    void injectCode(bool clearEvents, vector<string> code,
-        vector<StartingVariableStruct> & NewVariablesForLookupTable
-    );
-    void injectInstructions(bool clearEvents, vector<string> instructions,
-        vector<StartingVariableStruct> & NewVariablesForLookupTable
-    );
+    void injectCode(bool clearEvents, vector<string> code, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress);
+    void injectInstructions(bool clearEvents, vector<string> instructions, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress);
     void propagateLayerID();
     void propagateObjectID();
 };

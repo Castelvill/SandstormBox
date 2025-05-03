@@ -782,7 +782,7 @@ VariableModule TextModule::getAttributeValue(const AttributeType &attribute, con
             return VariableModule::newDouble(rotation);
         default:
             cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n"
-                << errorSpacing() << "Attribute '"
+                << NEW_LINE_PADDING << "Attribute '"
                 << attributeToStr(attribute) << "' is not valid.\n";
             return VariableModule::newBool(false);
     }
@@ -2564,6 +2564,6 @@ VariableModule EditableTextModule::getAttributeValue(const AttributeType &attrib
     }
 
     cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n"
-        << errorSpacing() << "Attribute '" << attribute << "' is not valid.\n";
+        << NEW_LINE_PADDING << "Attribute '" << attribute << "' is not valid.\n";
     return VariableModule::newBool(false);
 }

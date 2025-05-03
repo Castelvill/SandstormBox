@@ -6,14 +6,14 @@
 using std::string;
 
 enum ReturnType : char{
-    OK, NULL_VAL, EMPTY, INVALID_TYPE, READ_ONLY, ERROR, ERROR_INF
+    OK, NULL_VAL, EMPTY, INVALID_TYPE, READ_ONLY, ERROR, ERROR_INF, OUT_OF_SCOPE, UNDEFINED
 };
 
 enum EngineInstr : char{
     null, start, end_i, triggers, run, if_i,
     else_if, else_i, end_if, while_i, end_while, continue_i,
     break_i, return_i, reboot, exit_i, delete_this_event,
-    reset_keyboard, dump_context_stack, first, last, all,
+    reset_keyboard, dump_context_stack, dump_memory, first, last, all,
     random_i, index_i, index_vec, sum, intersection, diff, add, sub, mul,
     div_i, mod, pow_i, assign, move, add_move, sub_move, mul_move, div_move,
     equal, not_equal, more, less, more_equal, less_equal, not_i,
@@ -27,7 +27,7 @@ enum EngineInstr : char{
     restart_drag, cd, pwd, similar, count, create_display, console_input,
     start_timer, stop_timer, breakpoint, assert, type
 };
-EngineInstr strToInstr(string instruction);
+EngineInstr strToInstr(const string & instruction);
 string instrToStr(const EngineInstr & instruction);
 
 enum AttributeType: short{
@@ -147,7 +147,7 @@ enum AttributeType: short{
     //entities
     layer_a, object_a, text_a, editable_text_a, super_text_a, super_editable_text_a, image_a,
     movement_a, collision_a, particles_a, event_a, variable_a, scrollbar_a,
-    primitives_a, vector_a, context_a,
+    primitives_a, vector_a, context_a, memory_address_a, literal_a,
     //layer
     set_is_active, add_group, remove_group, move_in_drawing_order,
     //object
@@ -328,9 +328,9 @@ public:
     bool isNumeric() const;
 };
 
-string errorSpacing();
-string instructionError(InstrDescription Description, string functionName);
-string instructionWarning(InstrDescription Description, string functionName);
+constexpr const char* NEW_LINE_PADDING = "\t";
+string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType = "Error");
+string instructionWarning(const InstrDescription & Description, const string & functionName);
 
 class PrimaryModule{
     //List of inheriting classes: ImageModule, TextModule, CollisionModule, EventModule, ParticleEffectModule, MovementModule
