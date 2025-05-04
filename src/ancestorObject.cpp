@@ -705,8 +705,8 @@ vector <string> mergeStrings(vector <string> code){
     }
     return merged;
 }
-bool prepareNewInstruction(vector<WordStruct> words, EventModule & NewEvent, OperationClass *& Operation,
-    unsigned minLength, unsigned lineNumber, string scriptName
+bool prepareNewInstruction(const vector<WordStruct> &words, EventModule &NewEvent, OperationClass *&Operation,
+    unsigned minLength, unsigned lineNumber, const string &scriptName
 ){
     if(words.size() < minLength){
         if(minLength == 2){
@@ -726,6 +726,20 @@ bool prepareNewInstruction(vector<WordStruct> words, EventModule & NewEvent, Ope
     NewEvent.Operations.back().lineNumber = lineNumber;
     Operation = &NewEvent.Operations.back();
     
+    return true;
+}
+bool prepareNewVariableDeclaration(const vector<WordStruct> & words, unsigned minLength, unsigned lineNumber, const string & scriptName){
+    if(words.size() < minLength){
+        if(minLength == 2){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least 1 parameter.\n";
+        }
+        else{
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least " << minLength-1 << " parameters.\n";
+        }
+        return false;
+    }
     return true;
 }
 bool optional(const vector<WordStruct> & words, unsigned & cursor, string & variable){
@@ -1101,9 +1115,17 @@ bool setComplexDataAccessors(const vector<string> & attributes, const vector<Wor
             return false;
         case exists:
         case is_directory:
-            setOptionalAddressInCond(0, attributeArgs, Expression.localAddresses[0],
-                scriptName, lineNumber, Scopes, NewLocalVariables, topAddress, canCreateNewVariable
-            );
+            if(attributeArgs.size() > 0 && attributeArgs[0].type == 'c'){
+                Expression.Literal.setString(attributeArgs[0].value);
+                setOptionalAddressInCond(0, attributeArgs, Expression.localAddresses[0],
+                    scriptName, lineNumber, Scopes, NewLocalVariables, topAddress, canCreateNewVariable
+                );
+            }
+            else{
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ":\n"
+                    << NEW_LINE_PADDING << "Function " << valueSource << " requires one argument.\n";
+            }
             return false;
         case booting:
         case second_passed:
@@ -1700,6 +1722,13 @@ bool setupIndexInstr(const vector<WordStruct> & words, EventModule & NewEvent, O
     }
     return false;
 }
+inline bool isStringAnInstanceDeclaration(const string & instruction){
+    return isStringInGroup(instruction, 36, "Val", "ValVec", "Pointer", "PointerVec", "Camera", "CameraVec", "Layer", "LayerVec", //8
+        "Object", "ObjectVec", "Var", "VarVec", "Vec", "VecVec", "Text", "TextVec", "EditText", "EditTextVec", "SText", "STextVec", //12
+        "SEditText", "SEditTextVec", "Image", "ImageVec", "Movement", "MovementVec", "Collision", "CollisionVec", "Particles", //9
+        "Event", "EventVec", "Scrollbar", "ScrollbarVec", "Primitive", "PrimitiveVec", "any" //7
+    );
+} 
 ReturnType AncestorObject::translateTokensIntoEngineInstruction(
     const vector<WordStruct> & words, const string & scriptName, const unsigned & lineNumber,
     vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress,
@@ -2813,17 +2842,10 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
             2, 's', "text", false, false, false
         )){ return ReturnType::ERROR; }
         cursor = 3;
-        while(cursor < words.size()){
-            if(words[cursor].type != 'c'){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__
-                    << ": In the '" << words[0].value << "' instruction: Parameter '" << words[cursor].value
-                    << "' (" << cursor << ") must be a variable.\n";
-                return ReturnType::ERROR;
-            }
-            Operation->addLiteralParameter(VariableModule::newString(words[cursor].value));
-            cursor++;
-        }
+        if(Operation->addVectorOrVariableToParameters(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            cursor, 'c', "outputs", false, true
+        )){ return ReturnType::ERROR; }
     }
     else if(words[0].value == "tree" || words[0].value == "pwd" || words[0].value == "console_input"){
         if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
@@ -3005,6 +3027,18 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
             Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
         )){
             if(error.empty()){ return ReturnType::OK; }
+            return ReturnType::ERROR;
+        }
+    }
+    else if(isStringAnInstanceDeclaration(words[0].value)){
+        if(!prepareNewVariableDeclaration(words, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
+        auto[localAddress, e_Result] = getLocalAddress(
+            words[1].value, strToDataType(words[0].value), Scopes, NewEvent.LocalVariables,
+            topAddress, true, false, false, true
+        );
+        if(e_Result != ReturnType::OK){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable declaration failed.\n";
             return ReturnType::ERROR;
         }
     }
@@ -3576,6 +3610,8 @@ DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const Da
             return primitives_mod_vec;
         case vector_mod:
             return vector_mod_vec;
+        case pointer_inst:
+            return pointer_vec;
         case any_dt:
             return any_dt;
         default:

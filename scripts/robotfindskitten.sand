@@ -36,7 +36,7 @@ start onInit
 
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
 
-    new super_text me 1 "TextField" TextField
+    new STexts me 1 "TextField" TextField
     fun TextField set_size SCREEN_W SCREEN_H
     fun TextField add_format "cascadia_code" 1
     fun TextField set_last_color 0.8 0.8 0.8 1.0

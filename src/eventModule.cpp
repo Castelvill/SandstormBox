@@ -56,10 +56,10 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "mouse_released"){
         return ValueSource::mouse_released;
     }
-    if(source == "Literal"){
+    if(source == "Literals"){
         return ValueSource::literal;
     }
-    if(source == "Variable"){
+    if(source == "Variables"){
         return ValueSource::variable;
     }
     if(source == "Cameras"){
@@ -68,7 +68,7 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "Layers"){
         return ValueSource::layer;
     }
-    if(source == "Ancestor"){
+    if(source == "Ancestors"){
         return ValueSource::ancestor;
     }
     if(source == "Objects"){
@@ -113,37 +113,37 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "context"){
         return ValueSource::context;
     }
-    if(source == "text"){
+    if(source == "Texts"){
         return ValueSource::text;
     }
-    if(source == "editable_text"){
+    if(source == "EditTexts"){
         return ValueSource::editable_text;
     }
-    if(source == "super_text"){
+    if(source == "STexts"){
         return ValueSource::super_text;
     }
-    if(source == "super_editable_text"){
+    if(source == "SEditTexts"){
         return ValueSource::super_editable_text;
     }
-    if(source == "image"){
+    if(source == "Images"){
         return ValueSource::image;
     }
-    if(source == "movement"){
+    if(source == "Movements"){
         return ValueSource::movement;
     }
-    if(source == "collision"){
+    if(source == "Collisions"){
         return ValueSource::collision;
     }
-    if(source == "particles"){
+    if(source == "Particles"){
         return ValueSource::particles;
     }
-    if(source == "event"){
+    if(source == "Events"){
         return ValueSource::event;
     }
-    if(source == "scrollbar"){
+    if(source == "Scrollbars"){
         return ValueSource::scrollbar;
     }
-    if(source == "primitives"){
+    if(source == "Primitives"){
         return ValueSource::primitives;
     }
     if(source == "exists"){
@@ -198,15 +198,15 @@ string sourceToStr(ValueSource source){
         case mouse_released:
             return "mouse_released";
         case literal:
-            return "Literal";
+            return "Literals";
         case variable:
-            return "Variable";
+            return "Variables";
         case camera:
             return "Cameras";
         case layer:
             return "Layers";
         case ancestor:
-            return "Ancestor";
+            return "Ancestors";
         case object:
             return "Objects";
         case display_resized:
@@ -236,27 +236,27 @@ string sourceToStr(ValueSource source){
         case context:
             return "context";
         case text:
-            return "text";
+            return "Texts";
         case editable_text:
-            return "editable_text";
+            return "EditTexts";
         case super_text:
-            return "super_text";
+            return "STexts";
         case super_editable_text:
-            return "super_editable_text";
+            return "SEditTexts";
         case image:
-            return "image";
+            return "Images";
         case movement:
-            return "movement";
+            return "Movements";
         case collision:
-            return "collision";
+            return "Collisions";
         case particles:
-            return "particles";
+            return "Particles";
         case event:
-            return "event";
+            return "Events";
         case scrollbar:
-            return "scrollbar";
+            return "Scrollbars";
         case primitives:
-            return "primitives";
+            return "Primitives";
         case exists:
             return "exists";
     }
@@ -1105,15 +1105,15 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
     return false;
 }
 inline const VariableLocationStruct * findVariableInTheScopes(
-    const vector<vector<VariableLocationStruct>> & Scopes, const string & variableName, bool onlySearchCurrentScope = false
+    const vector<vector<VariableLocationStruct>> & Scopes, const string & variableName, bool forceNewDeclaration = false
 ){
-    if(onlySearchCurrentScope){
-        const auto & CurrentScope = Scopes.back();
-        for(const VariableLocationStruct & it_Variable : CurrentScope){
-            if(variableName == it_Variable.name){
-                return &it_Variable;
-            }
-        }
+    if(forceNewDeclaration){
+        // const auto & CurrentScope = Scopes.back();
+        // for(const VariableLocationStruct & it_Variable : CurrentScope){
+        //     if(variableName == it_Variable.name){
+        //         return &it_Variable;
+        //     }
+        // }
         return nullptr;
     }
     for(auto it_Scope = Scopes.rbegin(); it_Scope != Scopes.rend(); ++it_Scope){

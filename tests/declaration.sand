@@ -1,0 +1,34 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "DECLARATION_TEST - START\n"
+
+    string varType ""
+
+    Val val
+    type val varType
+    assert varType "Val"
+    run setVal(val)
+    run checkVal(val)
+
+    Pointer ptr
+    type ptr varType
+    assert varType "Pointer"
+
+    Object Obj
+    type Obj varType
+    assert varType "Object"
+
+    any anyVar
+    type anyVar varType
+    assert varType "any"
+    
+    print "DECLARATION_TEST - PASSED\n"
+end
+
+start setVal(Val & val)
+    fun val set_int 5
+end
+start checkVal(Val & val)
+    assert val 5
+end

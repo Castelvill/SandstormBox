@@ -1,21 +1,16 @@
+-Move "access" into "=" instruction with accessors like "Window.attribute", "Sys.attribute", etc.
+-Move "fun" instructions into "variable.function_name([params])" syntax.
 -Remove it_StartingEvent.
 -Remove createCallingStackOfInlineEvents???
 -Remove inline events - now we can easily create new scopes so it's current version is not needed anymore.
 -Make it possible to pass literals to functions - for example add VariableModule to PassingVariableInfo.
 -Create printCompilationError function that returns a string beginning with "Compilation Error" or "Compilation Warning".
 -Make LocalToGlobalTranslation vector persistent for not recurrent functions.
--Reimplement variables handling - use addresses.
 -Either add to objects a vector with indexes of all triggerable (you will still have to run isEventTriggered because it filters out false positives) events or divide EventContainer to EventContainer and FunctionContainer - it would save a lot of time by ignoring functions in findNextEvent.
--Remove RPN from expressions.
+-Use Shunting Yard Algorithm to convert normal conditional expression to Reverse Polish Notation.
 -Use curly brackets instead of "end", "end_if" and "end_while"
 -Create a translation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
--Fuse "triggers" instruction with event declaration with the syntax "event<triggers>(args)".
--Fix the error present when executing "else.sand". It is not connected to rawID. A reference is not turned into a reference.
--Fix "inline else_0".
--Fix: References will not work if several instances of the same event are called. Add a number to each instance's reference id and to children.
--Change all variable and reference ids into unique numbers / eliminate string concatenation, but first think how would you deal with passing variables to functions.
--Why is [event][transition][event] reference format needed? 
--Move every instruction definition to a seperate function.
+-Fuse "triggers" instruction with event declaration with the syntax "event<triggers>(args)" or add triggers based on pre-defined event names like "start onInit()" or "start onKeyPress()".
 -Fix creating variables in interpreter.sand.
 
 -Rewrite the terminal.
@@ -25,16 +20,12 @@
 -Add "throw_error [message]" and "throw_warning [message]" instructions - they will just write an error or warning message on the standard output.
 -IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.
 -Classes should have two uses: templates for objects and user-defined argument types in the function definitions. The second one means that when passing parameters to a function, aside from checking if the context is of "ObjectInst"/"ObjectVec" type, engine additionally compares a new AncestorObject variable "originID" (which can be set during a "clone" instruction) to the user-defined type. If something is incorrect, raise an error.
--Before adding namespaces, modules and classes/structures think about AncestorObjects and the EventModule vector.
--Maybe eventID in localContextID should be changed to a "namespace". Namespace could be a path from the main scope to the local scope of the current event. This can allow classes, modules (modules as in other files with private scopes) and functions in functions.
--Debug (default) mode of compiling should create two memory hash maps: one with address:(namespace,name,ContextClass) pairs and one with namespace+name:address pairs. In release mode the second hash map should be removed. Events should always access variables via their numeric address - strings are BANNED for performance reasones.
--Improve built-in global variables - instead of hard coding "NULL", "me" and "my_layer", pass them to the event assembly or something.
--Before the event assembly the user should have an option to create a new object and layer that will be used as a destination for the new events. Minimally, in the terminal the "sand" instruction should have a parameter to choose an object and layer names (with the dot syntax) as a destination - if an object or/and layer does not exist, create a new one. OR the "sand" instruction should just use the file name as a name of the new layer and object (or object could have a default name like "main"). ORRRRR you could assemble a new program... inside a new process! WE BUILD THEM FOR A REASON.
+-Before the event assembly the user should have an option to create a new Objects and layer that will be used as a destination for the new events. Minimally, in the terminal the "sand" instruction should have a parameter to choose an object and layer names (with the dot syntax) as a destination - if an object or/and layer does not exist, create a new one. OR the "sand" instruction should just use the file name as a name of the new layer and object (or object could have a default name like "main"). ORRRRR you could assemble a new program... inside a new process! WE BUILD THEM FOR A REASON.
 -Check if you can stop and start a process (without a restart meaning the state is preserved and the process is just not iterated through). Maybe you should add something like "ps stop/start/restart/kill [process_number]" to the terminal. 
 -Maybe all objects and layers that are consider to be "main" programs should be part of the "Program"/"Process" group.
 -You should add some kind of a destructor trigger like "on_destroy": when an object is to be deleted, the on_destroy event is executed and all children objects can be also deleted or some finishing code can be executed. Additionally when creating a program, all objects should join a group with a name "proc_[random_unique_number]". Alternativly each program should just be in a seperate layer. 
 -Update instructions docs.
--Copy and update the lookupTable when cloning layers (change only layerID).
+-Test cloning objects with events and established variables.
 -Test removing events.
 -Create "fill_with_letter *letter* *red* *green* *blue*" function for the text module.
 -Create "draw_letter *letter* *pos_x* *pos_y* *red* *green* *blue*" function for the text module.
@@ -42,12 +33,12 @@
 
 MILESTONE: Resurrect the engine.
 
+-Create "struct/class" scope.
 -Optimize: For all printOutInstructions' if statements: ALWAYS add text to logs Vector; Add "pop_log(level, output)" "dump_logs(level, output)" and "clear_logs" instructions to the engine; Add printOutInstructions' if statement only in one place in the iteration or better - add priting instructions only in the compilation time if. If project flag CAN_PRINT_INSTRUCTION_INFO is true during the engine compilation, add instruction printing.
 -Create in-engine correctness and speed tests.
 -Create correctness tests in python.
 -If there is a compilation error and some bool like "rollback_on_error" is true, delete all events created during the current compilation like in a transaction. You could also abort the engine if some compilation flag is used.
 -Remove all getters from vector if they are not necessary.
--Use Shunting Yard Algorithm to convert normal conditional expression to Reverse Polish Notation.
 -Update generateRandomVariable.
 -Implement lazy updates for SuperEditableText::update - calling update method causes only max one real update during the entire frame (so update can happen only once per few iterations). Update happens on the last iteration of the frame and the process keeps the info which text field needs to be updated.
 -Add the event stack trace to the error messages (links to the lines with the "run" instructions). 
@@ -56,13 +47,6 @@ MILESTONE: Resurrect the engine.
 -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
 -Maybe the "start" instruction could be used inside the existing scope? If it would work, then you could easily create the "if" scope.
 -Check file path checks: "", "~/" and ''.
--Change "char type" instances to enum in classes like VariableModule.
--Use emplace_back instead of push_back when dealing with adding the temporary objects to the vector. Method emplace_back only passes the object's constructor to the vector.
--Before creating CachedContext, think about the functional programming.
--Create a SavedContext / CachedContext vector for removing the need to recreate needed context stack for each event/function in each iteration. Context elements initialized from SavedContext will be immutable in type and shape.
--Add a pointer to the AncestorObject class that will point to the SavedContext vector (cached contexts).
--Add "structure/cache context" instruction that will add provided context to the SavedContext/CachedContext vector.
--Create "struct" scope for structuring the base context for objects. "Struct" will build the SavedContext vector as soon as possible like "init" events.
 -Idea: Stopping the use of indexes can help in isolating programs.
 -Add a vector of ContextClass to the MemoryStackStruct to create a history of contexts: this will isolate scopes (more freedom in naming variables and less ambiguity), simplify the event loop and it's crucial for implementing the functions.
 -Implement the "scope" parameter to the "start" instruction. If it is not empty, the new event will become a function with a Context vector equal to the "scope".

@@ -54,6 +54,14 @@ start testRunnerEvent()
     new Objects my_layer 1 "TestRecursion" TestRecursion
     bind TestRecursion ["tests/recursion.sand"]
     build TestRecursion true
+
+    new Objects my_layer 1 "TestDeclaration" TestDeclaration
+    bind TestDeclaration ["tests/declaration.sand"]
+    build TestDeclaration true
+
+    new Objects my_layer 1 "TestTokenize" TestTokenize
+    bind TestTokenize ["tests/tokenize.sand"]
+    build TestTokenize true
 end
 
 start on_idle()

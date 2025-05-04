@@ -1,3 +1,9 @@
+5.05.2025
+-Partially fixed the terminal - it now compiles, although it doesn't work beyond displaying one message on screen.
+-Created more tests: tokenize.sand and declaration.sand.
+-Updated "tokenize" instruction.
+-Added more variable declaration types like Val, ValVec, Object, ObjectVec, etc.
+
 3.05.2025
 -Added "load *output* *address*" instruction - loads variable directly from the memory address.
 -Optimized engine: replaced unordered_map with vectors in the role of variable container; simplified "index_vec"; enforced "Val" type's constant size.

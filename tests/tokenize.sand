@@ -1,0 +1,15 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "TOKENIZE_TEST - START\n"
+
+    tokenize " " "a b c d e" xd
+    print_v output0 "-" xd "\n"
+    assert output0 "a-b-c-d-e-\n"
+
+    tokenize " " "a b c d e" [varA varB varC varD varE]
+    print_v output1 "+" varA varB varC varD varE "\n"
+    assert output1 "a+b+c+d+e+\n"
+
+    print "TOKENIZE_TEST - END\n"
+end

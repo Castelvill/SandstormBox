@@ -106,7 +106,7 @@
     - Collision – collisions of objects from the same layer detected in the current main loop iteration;
     - Editable Text Fields – with content variable;
     - Movement – based on current state and is_moving variable.
-9.	To create a new object you can use clone() method after choosing an existing object or function new() to create a blank object. Remember that you can use objects from another layers as templates. Examples:
+9.	To create a new Objects you can use clone() method after choosing an existing object or function new() to create a blank object. Remember that you can use objects from another layers as templates. Examples:
         
         Objects.FirstStar.clone(“SecondStar”);
         Objects.FirstStar.var.brightness+=10;

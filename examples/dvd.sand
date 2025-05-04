@@ -19,7 +19,7 @@ start putRectangleOnScreen()
     var velX 4.0
     var velY 4.0
 
-    new primitives me 1 "Rectangle" Rectangle
+    new Primitives me 1 "Rectangle" Rectangle
     fun Rectangle set_type "filled_rectangle"
     fun Rectangle add_point 0.0 0.0
     fun Rectangle add_point 1.0 1.0

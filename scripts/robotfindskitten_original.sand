@@ -15,7 +15,7 @@ start onInit
 
     fun me set_can_be_selected false
 
-    new camera 1 "Camera" Camera
+    new Cameras 1 "Camera" Camera
     //fun Camera set_active true
     fun Camera resize SCREEN_W SCREEN_H
     fun Camera set_zoom 1.0
@@ -32,7 +32,7 @@ start onInit
 
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
 
-    new super_text me 1 "TextField" TextField
+    new STexts me 1 "TextField" TextField
     fun TextField set_size SCREEN_W SCREEN_H
     fun TextField add_format "cascadia_code" 1
     fun TextField set_last_color 0.8 0.8 0.8 1.0
@@ -51,7 +51,7 @@ start onInit
 end
 
 start eachIteration
-    //triggers on_key_pressed
+    //triggers on_key_press
     triggers each_iteration
     index me [0 0] super_text TextField
     run startGame()

@@ -1,56 +1,96 @@
 start newLine
     string result "\n"
-    run printOnTerminal
+    run printOnTerminal(result)
 end
 start nextTest
-    run printPrompt newLine
+    run printPrompt()
+    run newLine()
 end
 start testSpawn
     string param1 "elephant"
-    run spawn
+    run spawn()
 end
 start testNote
     //string param1 "history.txt"
     string param1 "examples/hello.sand"
-    run note
+    run note()
 end
 start testMover
     string param1 "KERNEL"
-    run mover
+    run mover()
 end
 start testCat
     string param1 ".config"
-    run cat
+    run cat()
 end
 start testPrint
     string param1 "TEST TEST TEST\n"
-    run print
+    run print()
 end
 start testEdit
     string param1 "docs/TODO.txt"
-    run edit
+    run edit()
 end
 start testSand
     string param1 "scripts/lorem.sand"
-    run sand
+    run sand()
 end
 start testCd
     string param1 "scripts"
-    run cd
+    run cd()
 end
 start testCd2
     string param1 ""
-    run cd
+    run cd()
 end
 start testSaveLoadTerminal
     mkdir "temp"
     string param1 "temp/test.ft"
-    run save_terminal load_terminal
+    run save_terminal()
+    run load_terminal
 end
 start dvd
     = param1 "scripts/dvd.sand"
-    run sand
+    run sand()
 end
 start test
-    run help nextTest neofetch nextTest nextTest hello nextTest ls nextTest sq nextTest cats nextTest fullscreen fs nw testNote testMover testSpawn v4 testCat nextTest testPrint nextTest testEdit triggerEditorExit testSand nextTest testCd pwd nextTest xd nextTest allegro nextTest testCd2 testSaveLoadTerminal dvd//cls
+    run help()
+    run nextTest()
+    run neofetch()
+    run nextTest()
+    run nextTest()
+    run hello()
+    run nextTest()
+    run ls()
+    run nextTest()
+    run sq()
+    run nextTest()
+    run cats()
+    run nextTest()
+    run fullscreen()
+    run fs()
+    run nw()
+    run testNote()
+    run testMover()
+    run testSpawn()
+    run v4()
+    run testCat()
+    run nextTest()
+    run testPrint()
+    run nextTest()
+    run testEdit()
+    run triggerEditorExit()
+    run testSand()
+    run nextTest()
+    run testCd()
+    run pwd()
+    run nextTest()
+    run xd()
+    run nextTest()
+    run allegro()
+    run nextTest()
+    run testCd2()
+    run testSaveLoadTerminal()
+    run dvd()
+    //run cls()
 end

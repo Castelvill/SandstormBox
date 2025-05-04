@@ -2102,6 +2102,78 @@ bool ContextClass::copyFromTheParameter(
     }
     return false;
 }
+std::pair<vector<ContextClass*>, bool> getAllVariablesPointerFromParameters(
+    std::vector<ContextClass> & MemoryMap, const vector<DynamicVariableInfo> & EventLocalVariables,
+    const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+    const unsigned & index, const bool & printErrors
+){
+    vector<ContextClass*> GatheredVariables;
+    unsigned realIndex = 0;
+    if(translateIndexToTreeRoots(Parameters, index, realIndex)){
+        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Parameter " << index+2 << " does not exist.\n";
+        return {vector<ContextClass*>(), true};
+    }
+    const ParameterStruct & CurrentParameter = Parameters[realIndex];
+    if(CurrentParameter.type == 'e'){
+        return {GatheredVariables, false};
+    }
+    if(CurrentParameter.type == 'c'){
+        ContextClass * TempContext = getVariableByAddress(CurrentInstr, MemoryMap,
+            EventLocalVariables[CurrentParameter.localAddress],
+            CurrentParameter.variableID, printErrors
+        );
+        if(TempContext == nullptr){ 
+            printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Variable '" << CurrentParameter.variableID << "' from the parameter " << index+2 << " does not exist.\n";
+            return {vector<ContextClass*>(), true};
+        }
+        GatheredVariables.push_back(TempContext);
+        return {GatheredVariables, false};
+    }
+    else if(CurrentParameter.type == 'l'){
+        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Parameter " << index+2 << " contains a literal instead of a variable.\n";
+        return {vector<ContextClass*>(), true};
+    }
+    else if(CurrentParameter.type == 'v'){
+        for(++realIndex; realIndex < Parameters.size(); ++realIndex){
+            const ParameterStruct & it_Parameter = Parameters[realIndex];
+            if(it_Parameter.treeLevel != 1){
+                return {GatheredVariables, false};
+            }
+            if(it_Parameter.type == 'l'){
+                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Parameter " << realIndex << " contains a literal instead of a variable.\n";
+                return {vector<ContextClass*>(), true};
+            }
+            if(it_Parameter.type != 'c'){
+                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << it_Parameter.type << "' type.\n";
+                return {vector<ContextClass*>(), true};
+            }
+
+            ContextClass * TempContext = getVariableByAddress(CurrentInstr, MemoryMap,
+                EventLocalVariables[it_Parameter.localAddress],
+                it_Parameter.variableID, printErrors
+            );
+            if(TempContext == nullptr){
+                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Variable '" << it_Parameter.variableID
+                    << "' from the parameter " << index+2 << " does not exist.\n";
+                return {vector<ContextClass*>(), true};
+            }
+            GatheredVariables.push_back(TempContext);
+        }
+        return {GatheredVariables, false};
+    }
+    else{
+        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Parameter " << index+2 << " has invalid type: '" << CurrentParameter.type << "'.\n";
+        return {vector<ContextClass*>(), true};
+    }
+    return {GatheredVariables, false};
+}
 void ContextClass::copyOnlyCurrentType(const ContextClass *Original){
     type = Original->type;
     switch(Original->type){
@@ -4224,19 +4296,6 @@ void ProcessClass::findLowerContextById(ValueLocation & Location, ContextClass &
             break;
     }
 }
-inline bool extractReferenceFromCustomVariable(string & variableID, bool & isReference,
-    const InstrDescription & CurrentInstr, const string & functionName
-){
-    if(variableID.size() == 0){
-        cerr << instructionError(CurrentInstr, functionName) << "Variable is empty.\n";
-        return true;
-    }
-    if(variableID[0] == '&'){
-        isReference = true;
-        variableID.erase(0, 1);
-    }
-    return false;
-}
 bool ProcessClass::checkDefaultCondition(VariableModule * Left, VariableModule * Right){
     return Left->isConditionMet(EngineInstr::equal, Right);
 }
@@ -4558,7 +4617,7 @@ inline bool doesOperandContainSingleElement(const InstrDescription & CurrentInst
 ){
     if(rightOperandSize != 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "\n" << NEW_LINE_PADDING << "Cannot move '" << dataTypeToStr(rightOperandType)
+            << "Cannot move '" << dataTypeToStr(rightOperandType)
             << "'<" << rightOperandSize << "> to a variable of '"
             << dataTypeToStr(leftOperandType) << "' type.\n";
         return true;
@@ -4952,14 +5011,14 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
         return;
     }
 
-    auto printMoveRightToLeftError = [](const DataType & leftType, const DataType & rightType, const InstrDescription & CurrentInstr) { 
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "\n" << NEW_LINE_PADDING << "Cannot move a value of '" << dataTypeToStr(rightType)
+    auto printMoveRightToLeftError = [](const DataType & leftType, const DataType & rightType, const InstrDescription & CurrentInstr, const string &functionName) { 
+        cerr << instructionError(CurrentInstr, functionName)
+            << "Cannot move a value of '" << dataTypeToStr(rightType)
             << "'type to a variable of '" << dataTypeToStr(leftType) << "' type.\n";
     };
-    auto printLeftNotInitialized = [](const string & id, const DataType & type, const InstrDescription & CurrentInstr) { 
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "\n" << NEW_LINE_PADDING << "Left operand '" << id
+    auto printLeftNotInitialized = [](const string &id, const DataType &type, const InstrDescription &CurrentInstr, const string &functionName) { 
+        cerr << instructionError(CurrentInstr, functionName)
+            << "Left operand '" << id
             << "' of '" << dataTypeToStr(type)
             << "' type was not initialized.\n";
     };
@@ -4970,7 +5029,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
     switch(LeftOperand->type){
         case value_inst:
             if(LeftOperand->Values.empty()){
-                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr);
+                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr, __FUNCTION__);
                 return;
             }
             switch(RightOperand.type){
@@ -5007,7 +5066,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
                     }
                     return;
                 default:
-                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
                     return;
             }
             return;
@@ -5074,13 +5133,13 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
                     }
                     return;
                 default:
-                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
                     return;
             }
             return;
         case pointer_inst:
             if(LeftOperand->BasePointers.empty()){
-                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr);
+                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr, __FUNCTION__);
                 return;
             }
             switch(RightOperand.type){
@@ -5117,7 +5176,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
                     }
                     return;
                 default:
-                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
                     return;
             }
             return;
@@ -5184,13 +5243,13 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
                     }
                     return;
                 default:
-                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
                     return;
             }
             return;
         case variable_mod:
             if(LeftOperand->Modules.Variables.empty()){
-                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr);
+                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr, __FUNCTION__);
                 return;
             }
             switch(RightOperand.type){
@@ -5227,7 +5286,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
                     }
                     return;
                 default:
-                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
                     return;
             }
             return;
@@ -5294,13 +5353,13 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
                     }
                     return;
                 default:
-                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
                     return;
             }
             return;
         case vector_mod:
             if(LeftOperand->Modules.Vectors.empty()){
-                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr);
+                printLeftNotInitialized(LeftOperand->ID, LeftOperand->type, CurrentInstr, __FUNCTION__);
                 return;
             }
             switch(RightOperand.type){
@@ -5331,7 +5390,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
                     }
                     return;
                 default:
-                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
                     return;
             }
             return;
@@ -5383,12 +5442,12 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
                     }
                     return;
                 default:
-                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+                    printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
                     return;
             }
             return;
         default:
-            printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr);
+            printMoveRightToLeftError(LeftOperand->type, RightOperand.type, CurrentInstr, __FUNCTION__);
             return;
     }
 }
@@ -5408,6 +5467,16 @@ void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, const Outpu
     
     // NewContext.type = literal;
     // addNewContext(ObjectMemory, NewContext, "value", newContextID, global);
+}
+void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, ContextClass * Variable){
+    if(Variable == nullptr){
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Variable->ID << "' does not exist.\n";
+        return;
+    }
+    if(Variable->type == null_dt){
+        Variable->type = NewContext.type;   
+    }
+    moveRightToLeft(CurrentInstr, EngineInstr::assign, Variable, NewContext);
 }
 void ProcessClass::aggregateValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *OwnerLayer,
     AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes
@@ -9730,7 +9799,6 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                 Event->controlVector(Vector, Operation.Location.attribute, Variables, emptyString);
             }
             break;
-        case value_inst:
         case value_vec:
             if(Operation.Location.attribute == pop_back_a){
                 if(Context->Values.size() == 0){
@@ -9748,6 +9816,43 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
             }
             else if(Operation.Location.attribute == clear_a){
                 Context->Values.clear();
+            }
+            else{
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Function " << attributeToStr(Operation.Location.attribute)
+                    << "<" << Variables.size() << "> does not exist.\n";
+            }
+            break;
+        case value_inst:
+            if(Context->Values.size() == 0){
+                Context->Values.push_back(VariableModule());
+            }
+            if(Operation.Location.attribute == set_bool && Variables.size() > 0){
+                if(!Variables[0].isNumeric()){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
+                    return;
+                }
+                Context->Values[0].setBool(Variables[0].getBoolUnsafe());
+            }
+            else if(Operation.Location.attribute == set_int && Variables.size() > 0){
+                if(!Variables[0].isNumeric()){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
+                    return;
+                }
+                Context->Values[0].setInt(Variables[0].getIntUnsafe());
+            }
+            else if(Operation.Location.attribute == set_double && Variables.size() > 0){
+                if(!Variables[0].isNumeric()){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
+                    return;
+                }
+                Context->Values[0].setDouble(Variables[0].getDoubleUnsafe());
+            }
+            else if(Operation.Location.attribute == set_string && Variables.size() > 0){
+                Context->Values[0].setString(Variables[0].getStringUnsafe());
             }
             else{
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -10935,57 +11040,52 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ObjectM
 
     vector <string> tokenizedWords = tokenizeString(text, delimeter[0]);
 
-    vector<string> outputContextsIds;
-    for(unsigned index = 2; index < Operation.rootParametersSize; index++){
-        outputContextsIds.emplace_back();
-        if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, index, outputContextsIds.back(), true)){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Failed to get a string from the parameter " << index+1 << ".\n";
-            return;
-        }
+    auto[Outputs, error] = getAllVariablesPointerFromParameters(
+        ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 2, true
+    );
+
+    if(error){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to gather output variables.\n";
+        return;
     }
 
     if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " " << delimeter << " \"" << shortenText(text, maxLengthOfValuesPrinting) << "\" ";
-        for(string output : outputContextsIds){
-            cout << output << " ";
+        cout << instrToStr(Operation.instruction) << " " << delimeter << " \"" << shortenText(text, maxLengthOfValuesPrinting) << "\" [";
+        for(const ContextClass * OutputVariable : Outputs){
+            cout << OutputVariable->ID << " ";
         }
-        cout << "\n";
+        cout << "]\n";
     }
 
     NewContext.clear();
     NewContext.type = value_vec;
-    if(outputContextsIds.size() == 0){
+    if(Outputs.empty()){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction has no output variables. Nothing to do.\n";
         return;
     }
 
-    string variableOutputID;
-    bool isReference;
-
-    if(outputContextsIds.size() == 1){
+    if(Outputs.size() == 1){
         NewContext.type = value_vec;
-        for(string word : tokenizedWords){
+        for(const string & word : tokenizedWords){
             NewContext.Values.emplace_back(VariableModule::newString(word));
         }
-        variableOutputID = outputContextsIds.back();
-        isReference = false;
-        if(extractReferenceFromCustomVariable(variableOutputID, isReference, CurrentInstr, __FUNCTION__)){
-            return;
-        }
-        assignVariable(ObjectMemory, Operation.Output);
+
+        assignVariable(ObjectMemory, Outputs[0]);
+
         return;
     }
 
+    if(tokenizedWords.size() != Outputs.size()){
+        cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+            << "Number of extracted tokens (" << tokenizedWords.size()
+            << ") is not equal to the number of provided outputs (" << Outputs.size() << ").\n";
+    }
+
     NewContext.Values.emplace_back(VariableModule::newString(""));
-    for(unsigned index = 0; index < tokenizedWords.size() && index < outputContextsIds.size(); index++){
+    for(unsigned index = 0; index < tokenizedWords.size() && index < Outputs.size(); index++){
         NewContext.Values.back().setString(tokenizedWords[index]);
-        variableOutputID = outputContextsIds[index];
-        isReference = false;
-        if(extractReferenceFromCustomVariable(variableOutputID, isReference, CurrentInstr, __FUNCTION__)){
-            return;
-        }
-        assignVariable(ObjectMemory, Operation.Output);
+        assignVariable(ObjectMemory, Outputs[index]);
     }
 }
 void ProcessClass::printTree(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<ProcessClass> & Processes){

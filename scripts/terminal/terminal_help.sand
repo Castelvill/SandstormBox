@@ -1,6 +1,6 @@
-start printOnTerminal
+start printOnTerminal(string & textToPrint)
     index me [0 0] super_editable_text EditableText
-    fun EditableText add_content result
+    fun EditableText add_content textToPrint
     fun EditableText update
     fun EditableText crop_height_to_text
 
@@ -9,17 +9,20 @@ start printOnTerminal
     fun EditableText set_protected_area historySize
     fun EditableText set_cursor_pos historySize
 
-    access w [[display_w]]
-    access h [[display_h]]
+    access w [display_w]
+    access h [display_h]
     index me [0 0] super_editable_text TerminalTextField
-    access TerminalSizeY [[TerminalTextField size_y]]
+    access TerminalSizeY [TerminalTextField.size_y]
 
-    run resizeTerminalIfSmall refreshScrollbar
+    if(TerminalSizeY h < )
+        fun TerminalTextField set_size w h
+    end_if
+    run refreshScrollbar()
 end
 
-start printOnTerminalUnprotected
+start printOnTerminalUnprotected(string & textToPrint)
     index me [0 0] super_editable_text EditableText
-    fun EditableText add_content result
+    fun EditableText add_content textToPrint
     fun EditableText update
     fun EditableText crop_height_to_text
 
@@ -28,15 +31,18 @@ start printOnTerminalUnprotected
     //fun EditableText set_protected_area historySize
     //fun EditableText set_cursor_pos historySize
 
-    access w [[display_w]]
-    access h [[display_h]]
+    access w [display_w]
+    access h [display_h]
     index me [0 0] super_editable_text TerminalTextField
-    access TerminalSizeY [[TerminalTextField size_y]]
+    access TerminalSizeY [TerminalTextField.size_y]
 
-    run resizeTerminalIfSmall refreshScrollbar
+    if(TerminalSizeY h < )
+        fun TerminalTextField set_size w h
+    end_if
+    run refreshScrollbar()
 end
 
-start cout
+start cout(string & result)
     index me [0 0] super_editable_text EditableText
     fun EditableText add_content result
     first EditableText _ _ _ _ content _ history
@@ -44,110 +50,114 @@ start cout
     fun EditableText set_cursor_pos historySize
 end
 
-start updateTerminal
+start updateTerminal()
     string result ""
-    run printOnTerminal
+    run printOnTerminal()
 end
 
 
-start help
-    print " " result allowedPrograms
+start help()
+    print_v result " " allowedPrograms
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 1.0 0.8 0.0 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
     = program "_enter"
-    run cout
+    run cout(result)
 end
 
 
-start mv
-    if ([exists param1] [param2] [""] != &&)
-    mv param1 param2
-    = program ""
-    else notMv
-end
-start notMv
-    = program "_enter"
-    string result "Instruction 'mv' failed."
-    run cout
+start mv()
+    if (exists(param1) param2 "" != &&)
+        mv param1 param2
+        = program ""
+    else
+        = program "_enter"
+        string result "Instruction 'mv' failed."
+        run cout(result)
+    end_if
 end
 
 
 start ls
-    if ([exists param1] [param1] [""] == ||)
-    else informFileDoesNotExistForCD
-    ls param1 result
-    tokenize " " result files
-    index me [0 0] super_editable_text EditableText
-    int fileIndex 0
-    string result ""
-	run lsColoringLoop
-after
-    = program "_enter"
+    if (exists(param1) param1 "" == ||)
+        ls param1 result
+        ValVec files
+        tokenize " " result files
+        index me [0 0] super_editable_text EditableText
+        int fileIndex 0
+        string result ""
+        run lsColoringLoop(EditableText, fileIndex, files)
+        = program "_enter"
+    else 
+        run informFileDoesNotExistForCD()
+    end_if
 end
-start lsColoringLoop true
-	if ([fileIndex] [files size] <)
-	index files [fileIndex] value file
-    len file fileNameLength
-    int length 5
-    -= fileNameLength length
-    
-    len file fileNameLengthFT
-    int lengthFT 3
-    -= fileNameLengthFT lengthFT
+start lsColoringLoop(SEditText & EditableText, int & fileIndex, ValVec & files)
+	while (fileIndex files.size <)
+        index files [fileIndex] value file
+        len file fileNameLength
+        int length 5
+        -= fileNameLength length
+        
+        len file fileNameLengthFT
+        int lengthFT 3
+        -= fileNameLengthFT lengthFT
 
-	++ fileIndex
-	run colorIfDirectory printFileNameOnTerminal
+        ++ fileIndex
+        run colorIfDirectory(EditableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
+        run printFileNameOnTerminal(file)
+    end_while
 end
-start colorIfDirectory
-	if([param1 size] [0] >)
-    string fullPath ""
-    = fullPath param1 
-    += fullPath "/"
-    += fullPath file
-    run colorIfDirectory2
-	else colorIfSandScript
+start colorIfDirectory(SEditText & EditableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
+	if(param1.size 0 >)
+        string fullPath ""
+        = fullPath param1 
+        += fullPath "/"
+        += fullPath file
+        if (is_directory(fullPath))
+            fun EditableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
+        else
+            run colorIfSandScript(EditableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
+        end_if
+	else
+        run colorIfSandScript(EditableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
+    end_if
 end
-start colorIfDirectory2
-	if ([is_directory fullPath])
-    fun EditableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
-	else colorIfSandScript
+start colorIfSandScript(SEditText & EditableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
+    if(fileNameLength 0 >)
+        substr file fileNameLength length extension
+        substr file fileNameLengthFT lengthFT extensionFT
+        if(extension ".sand" ==)
+            fun EditableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
+        else //Color if the file is of formatted text format
+            if(extensionFT ".ft" ==)
+                fun EditableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
+            else
+                run colorIfNormalFile(EditableText)
+            end_if
+        end_if
+    else
+        run colorIfNormalFile(EditableText)
+    end_if
 end
-start colorIfSandScript
-    if([fileNameLength] [0] >)
-    substr file fileNameLength length extension
-    substr file fileNameLengthFT lengthFT extensionFT
-    run colorIfSandScript2
-    else colorIfNormalFile
-end
-start colorIfSandScript2
-    if([extension] [".sand"] ==)
-    fun EditableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
-    else colorIfFormattedText
-end
-start colorIfFormattedText
-    if([extensionFT] [".ft"] ==)
-    fun EditableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
-    else colorIfNormalFile
-end
-start colorIfNormalFile
+start colorIfNormalFile(SEditText & EditableText)
 	fun EditableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
 end
-start printFileNameOnTerminal
+start printFileNameOnTerminal(string & file)
 	+ file "  " result
-	run cout
+	run cout(result)
 end
 
 
 
-start cls
+start cls()
     index me [0 0] super_editable_text History
     fun History set_content ""
     = program ""
 end
 
 
-start neofetch
-    print _ result "
+start neofetch()
+    print_v result _ "
  ┌────────────────────┐   Anon                        
  │@*,*'*:*'**'*:**'**@│   -----------------------        
  │'$$##+  ' ,'- ,*,:$*│   OS: SandstormBox              
@@ -168,11 +178,11 @@ start neofetch
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     = program ""
-    run cout
+    run cout(result)
 end
 
-start xd
-    print _ result "@       @  @@@@@@   
+start xd()
+    print_v result _ "@       @  @@@@@@   
  @     @   @     @@ 
   @   @    @       @
    @ @     @       @
@@ -185,10 +195,10 @@ start xd
     index me [0 0] super_editable_text EditableText
     fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     = program ""
-    run cout 
+    run cout(result)
 end
 
-start sel_col
+start sel_col()
     = terminalColorR param1
     = terminalColorG param2
     = terminalColorB param3
@@ -196,25 +206,25 @@ start sel_col
     = program ""
 end
 
-start v4
-    int x [1 2 3 4]
-    int y [2 2 1 1]
+start v4()
+    int_vec x [1 2 3 4]
+    int_vec y [2 2 1 1]
     += x x
-    print " " result x
+    print_v result " " x
     += result "\n"
     = program ""
-    run cout
+    run cout(result)
 end
 
-start hello
-    print _ result "Hello, world!\n"
+start hello()
+    print_v result _ "Hello, world!\n"
     = program ""
-    run cout
+    run cout(result)
 end
 
 
-start cats
-    print _ result "                      /^--^\     /^--^\     /^--^\
+start cats()
+    print_v result _ "                      /^--^\     /^--^\     /^--^\
                       \____/     \____/     \____/
                      /      \   /      \   /      \
                     |        | |        | |        |
@@ -228,12 +238,12 @@ start cats
 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 "
     = program ""
-    run cout
+    run cout(result)
 end
 
 
-start sq
-    print _ result "        .--'''''''''--.
+start sq()
+    print_v result _ "        .--'''''''''--.
      .'      .---.      '.
     /    .-----------.    \
    /        .-----.        \
@@ -251,23 +261,23 @@ start sq
               | |
 "
     = program ""
-    run cout
+    run cout(result)
 end
 
 
-start print
-    print _ result param1 param2 param3
+start print()
+    print_v result _ param1 param2 param3
     = program "_enter"
-    run cout
+    run cout(result)
 end
 
 
-start spawn
-    new layer 1 "SpawnLayer" SpawnLayer
+start spawn()
+    new Layers 1 "SpawnLayer" SpawnLayer
     fun SpawnLayer activate
-    access newLayerID [[SpawnLayer id]]
+    access newLayerID [SpawnLayer.id]
 
-    new camera 1 "SpawnWindow0" NewWindow
+    new Cameras 1 "SpawnWindow0" NewWindow
     fun NewWindow set_pos 0 0
     fun NewWindow set_active true
     fun NewWindow resize 640 480
@@ -286,12 +296,12 @@ start spawn
     fun NewWindow set_grabbing_area_size 640 50
     fun NewWindow pin_to_camera "Desktop"
     fun NewWindow activate_pin
-    access newWindowID [[NewWindow id]]
+    access newWindowID [NewWindow.id]
 
-    new object SpawnLayer 1 "Window" NewWindowObject
+    new Objects SpawnLayer 1 "Window" NewWindowObject
     fun NewWindowObject set_can_be_selected false
 
-    new primitives NewWindowObject 1 "background" border1
+    new Primitives NewWindowObject 1 "background" border1
     fun border1 set_type "filled_rounded_rectangle"
     fun border1 add_point 0.0 0.0
     fun border1 add_point 880 980
@@ -301,13 +311,13 @@ start spawn
     fun border1 set_size 640 480
     fun border1 update_with_size
 
-    new primitives NewWindowObject 1 "toolbar" border2
+    new Primitives NewWindowObject 1 "toolbar" border2
     clone border2 border1 false
     fun border2 set_color 0.0 0.0 0.0 0.8
     fun border2 set_size 640 50
     fun border2 update_with_size
 
-    new super_text NewWindowObject 1 "title" title
+    new STexts NewWindowObject 1 "title" title
     fun title set_pos 10 10
     fun title set_size 400 50
     fun title add_format "cascadia_code_bold" 8
@@ -315,16 +325,16 @@ start spawn
     fun title set_wrapping "n"
     fun title set_content param1
 
-    new object SpawnLayer 1 "Amongus" NewAmo
+    new Objects SpawnLayer 1 "Amongus" NewAmo
     fun NewAmo set_pos 0 80
-    new image NewAmo 1 "amongus" redAstronaut
+    new Images NewAmo 1 "amongus" redAstronaut
     fun redAstronaut connect_bitmap_via_alias param1
     fun redAstronaut set_scale 0.6 0.6
     = program ""
 end
 
 
-start sh
+start sh()
     string instruction ""
     += instruction param1
     += instruction " "
@@ -345,128 +355,121 @@ start sh
 end
 
 
-start cat
-    if ([exists param1])
-    load_text param1 result
-    = program ""
-    index me [0 0] super_editable_text EditableText
-    fun EditableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
-    run cout
-    else printNoSuchFile
+start cat()
+    if (exists(param1))
+        load_text param1 result
+        = program ""
+        index me [0 0] super_editable_text EditableText
+        fun EditableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
+        run cout(result)
+    else
+        run printNoSuchFile()
+    end_if
 end
 
 
-start printNoSuchFile
+start printNoSuchFile()
     = program "_enter"
     string result "File '"
     += result param1
     += result "' does not exist."
-    run cout
+    run cout(result)
 end
 
 
-start exit
+start exit()
     exit
 end
 
 
-start pwd
+start pwd()
     string result "/"
     pwd workingDir
     += result workingDir
     = program "_enter"
-    run cout
+    run cout(result)
 end
 
 
 start cd
-    if ([exists param1] [param1] [""] == ||)
-    = program ""
-    cd param1
-    else informFileDoesNotExistForCD
+    if (exists(param1) param1 "" == ||)
+        = program ""
+        cd param1
+    else
+        run informFileDoesNotExistForCD()
+    end_if
 end
-start informFileDoesNotExistForCD
+start informFileDoesNotExistForCD()
     = program ""
     string result "Error: Directory '"
     += result param1
     += result "' does not exist!\n"
-    run cout
+    run cout(result)
 end
 
-start history
-    int i 0
-    access commandHistorySize [[vector commandHistory size]]
+start history()
+    access commandHistorySize [Vectors.commandHistory.size]
     -- commandHistorySize
     = program ""
+    run printHistory(commandHistorySize)
+end
+
+start printHistory(int & commandHistorySize)
+    int i 0
     index me [0 0] super_editable_text EditableText
-    run printHistory
-end
-
-start printHistory true
-    if ([i] [commandHistorySize] <)
-    string result ""
-    int j 0
-    = j i
-    ++ j
-    += result j
-    += result "\t"
-    access nextCommand [[vector commandHistory context i]]
-    += result nextCommand
-    += result "\n"
-    ++ i
-    fun EditableText add_content result
+    while (i commandHistorySize <)
+        string result ""
+        int j 0
+        = j i
+        ++ j
+        += result j
+        += result "\t"
+        access nextCommand [Vectors.commandHistory.context.i]
+        += result nextCommand
+        += result "\n"
+        ++ i
+        fun EditableText add_content result
+    end_while
 end
 
 
-start wait
+start wait()
     = program "wait"
     int waitingTime 0
 end
-start executeWaiting
+start executeWaiting()
     triggers each_second
-    if ([program] ["wait"] == [second_passed] &&)
-    index me [0 0] super_editable_text Terminal
-    fun Terminal cut_unprotected_area
-    run waitFor0 waitFor1 waitFor2
-end
-start waitFor0
-    if([waitingTime] [0] ==)
-    string result "||||||||||||||||||||"
-    ++ waitingTime
-    run printOnTerminalUnprotected
-after
-    break
-end
-start waitFor1
-    if([waitingTime] [1] ==)
-    string result "********************"
-    ++ waitingTime
-    run printOnTerminalUnprotected
-after
-    break
-end
-start waitFor2
-    if([waitingTime] [2] ==)
-    string result "--------------------"
-    int waitingTime 0
-    run printOnTerminalUnprotected
-after
-    break
+    if (program "wait" == second_passed &&)
+        index me [0 0] super_editable_text Terminal
+        fun Terminal cut_unprotected_area
+        if(waitingTime 0 ==)
+            string result "||||||||||||||||||||"
+            ++ waitingTime
+            run printOnTerminalUnprotected(result)
+        else_if(waitingTime 1 ==)
+            string result "********************"
+            ++ waitingTime
+            run printOnTerminalUnprotected(result)
+        else_if(waitingTime 2 ==)
+            string result "--------------------"
+            int waitingTime 0
+            run printOnTerminalUnprotected(result)
+        end_if
+    end_if
 end
 
-start sudo
-    if ([param1] ["rm"] == [param2] ["-rf"] == [param3] ["--no-preserve-root"] == [param4] ["/"] == && && &&)
-    string result "Haha. No."
-    = program "_enter"
-    run cout
-    else resetProgram
-end
-start resetProgram
-    = program ""
+start sudo()
+    if (param1 "rm" == param2 "-rf" == param3 "--no-preserve-root" == param4 "/" == && && &&)
+        string result "Haha. No."
+        = program "_enter"
+        run cout(result)
+    else
+        = program ""
+    end_if
 end
 
-start allegro
+start allegro()
 	string result "I'd just like to interject for a moment. What you're referring to as SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, Allegro plus SandstormBox."
     = program "_enter"
-	run cout
+	run cout(result)
 end

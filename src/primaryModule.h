@@ -25,7 +25,8 @@ enum EngineInstr : char{
     mkdir_i, rm, rmll, mv_i, print_v, print_d, print, load_text, save_text, ls,
     lse, new_proc, var, vec, tokenize, tree, len, size, substr, load_font,
     restart_drag, cd, pwd, similar, count, create_display, console_input,
-    start_timer, stop_timer, breakpoint, assert, type, load_i
+    start_timer, stop_timer, breakpoint, assert, type, load_i,
+    
 };
 EngineInstr strToInstr(const string & instruction);
 string instrToStr(const EngineInstr & instruction);
