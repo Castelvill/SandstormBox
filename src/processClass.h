@@ -63,7 +63,7 @@ struct ReferenceStruct{
 class ContextClass{
 public:
     string ID;
-    string eventID;
+    //string definitionEventId;
     //value, pointer, variable, vector, camera, layer, object, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, variable, scrollbar, primitives, vector
     DataType type = null_dt;
     bool readOnly = false;
@@ -295,7 +295,7 @@ public:
     vector <unsigned> camerasOrder;
     vector <unsigned> layersOrder;
     InstrDescription CurrentInstr;
-    std::unordered_map<string, ObjectMemoryStruct> ContextLookupTable; //Keys are made of ids of the layer and object.
+    std::unordered_map<string, ObjectMemoryStruct> ProcessMemory; //Keys are made of ids of the layer and object.
 
     std::unordered_map<string, TimePoint> userDefinedTimers;
 
@@ -303,8 +303,9 @@ public:
 
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
-    void setupBuiltInVariables(ObjectMemoryStruct &CurrentMap);
-    //Return true if the provided address was already used.
+    void allocateBuiltInVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object, LayerClass &Layer);
+    void allocatePredefinedGlobalVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object);
+    //Return true if new memory was allocated.
     bool allocateRealMemory(const std::string &variableId, const DataType &variableType,
         const bool &readOnly, const bool &isLocal, const bool &isReference,
         const unsigned int &newRealAddress, const unsigned int &localIndex,
@@ -474,7 +475,7 @@ public:
     void loadVariableFromMemoryAddress(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void dumpVariables(const MemoryMapType & MemoryMap);
     void dumpMemory(MemoryMapType & MemoryMap);
-    EngineInstr executeInstructions(vector<OperationClass> & Operations, LayerClass *& OwnerLayer,
+    EngineInstr executeInstructions(LayerClass *& OwnerLayer,
         AncestorObject *& Owner, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject *> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EventModule>::iterator & it_StartingEvent,
         vector<EventModule>::iterator & Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,

@@ -32,7 +32,7 @@ start testEdit
     run edit()
 end
 start testSand
-    string param1 "scripts/lorem.sand"
+    string param1 "scripts/terminal/lorem.sand"
     run sand()
 end
 start testCd
@@ -50,7 +50,7 @@ start testSaveLoadTerminal
     run load_terminal
 end
 start dvd
-    = param1 "scripts/dvd.sand"
+    = param1 "scripts/terminal/dvd.sand"
     run sand()
 end
 start test

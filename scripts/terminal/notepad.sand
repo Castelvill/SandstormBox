@@ -57,7 +57,7 @@ end
 
 
 start resizeObjectWhenMaxed()
-    triggers mouse_released
+    triggers on_mouse_release
     if (mouse_released(0))
         index my_layer [0 0 1] collision MaxCollision
         run resizeObjectWhenMaxedCheck()

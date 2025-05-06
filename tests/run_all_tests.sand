@@ -62,6 +62,10 @@ start testRunnerEvent()
     new Objects my_layer 1 "TestTokenize" TestTokenize
     bind TestTokenize ["tests/tokenize.sand"]
     build TestTokenize true
+    
+    new Objects my_layer 1 "TestRecompilation" TestRecompilation
+    bind TestRecompilation ["tests/recompilation.sand"]
+    build TestRecompilation true
 end
 
 start on_idle()

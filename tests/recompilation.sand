@@ -1,0 +1,15 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "RECOMPILATION_TEST - START\n"
+
+    var globalVariable 555
+    int localVariable 42
+
+    load_build me ["tests/recompilation_help.sand"]
+
+    assert globalVariable 555
+    assert localVariable 42
+    
+    print "RECOMPILATION_TEST - PASSED\n"
+end

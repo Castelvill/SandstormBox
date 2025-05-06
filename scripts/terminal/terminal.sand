@@ -348,8 +348,6 @@ start createWindowTemplate()
     //fun NewWindowObject set_can_be_selected true
     fun NewWindowObject disable_scrolling
     fun NewWindowObject set_can_be_moved_with_mouse false
-    bind NewWindowObject ["scripts/window_template.sand"]
-    build NewWindowObject true
     
     new Variables NewWindowObject 1 "cameraID" objectsCameraID
     fun objectsCameraID set_string "WindowCamera"
@@ -441,6 +439,11 @@ start createWindowTemplate()
     fun title set_wrapping "n"
     fun title set_content "Template Window"
     fun title disable_scrolling
+
+    //In this situation, window_template.sand script uses variables that should be already defined.
+    //For this reason we have to first define them all here and only then build the script. 
+    bind NewWindowObject ["scripts/terminal/window_template.sand"]
+    build NewWindowObject true
 end
 
 
@@ -501,7 +504,7 @@ start spawnNotepad(Layer & NewWindowLayer, string & fileName)
     fun TextEditor set_content ""
     fun TextEditor activate
     fun Object set_size 640 480
-    bind Object ["scripts/notepad.sand"]
+    bind Object ["scripts/terminal/notepad.sand"]
     build Object true
     run loadTextFromFile(TextEditor, fileName)
 end
@@ -543,9 +546,9 @@ start spawnMover(Camera & NewWindowCamera, Layer & NewWindowLayer, string & sele
     new Variables NewObject 1 "insideCameraID" cameraID
     fun cameraID set_string newCameraID
 
-    //bind NewObject ["scripts/mover.sand"]
+    //bind NewObject ["scripts/terminal/mover.sand"]
     //build_subset NewObject false
-    load_build NewObject ["scripts/mover.sand"]
+    load_build NewObject ["scripts/terminal/mover.sand"]
 end
 
 

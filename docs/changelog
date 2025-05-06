@@ -1,3 +1,10 @@
+6.05.2025
+-Partially fixed the terminal.
+-Added "recompilation.sand" test.
+-Added automatic allocation of global variables defined for other objects.  
+-Fixed: All local variables were added to the global scope.
+-Fixed: Some operations could be partially corrupted during the runtime. 
+
 5.05.2025
 -Partially fixed the terminal - it now compiles, although it doesn't work beyond displaying one message on screen.
 -Created more tests: tokenize.sand and declaration.sand.

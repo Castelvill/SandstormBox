@@ -93,7 +93,7 @@ public:
         const vector<WordStruct> & words, const string & scriptName, const unsigned & lineNumber,
         vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress,
         bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
-        OperationClass *& Operation, BranchingStackStruct & BranchingStack
+        BranchingStackStruct & BranchingStack
     );
     /*Translate instructions into events and add them to the event container of the object.*/
     ReturnType assembleEvents(vector<string> & code, const string & scriptName,

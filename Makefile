@@ -26,5 +26,5 @@ test:
 	./$(OUTPUT) -c ./tests/run_all_tests.sand
 
 # Clean target to remove the executable
-clean:
+clear:
 	rm -f $(OUTPUT)

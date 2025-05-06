@@ -118,26 +118,56 @@ void detectRecursionInEvents(vector<EventModule> & EventContainer, const InstrDe
         }
     }
 }
-void ProcessClass::setupBuiltInVariables(ObjectMemoryStruct & CurrentMap){
+void ProcessClass::allocateBuiltInVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object, LayerClass &Layer){
     if(CurrentMap.topAddress > 0){
         return; //User-defined global variables will be added to the global scope during the compilation.
     }
     const bool & isReadOnly = true;
     const bool & writable = false;
-    const bool & isNotLocal = false;
+    const bool & isLocal = false;
     const bool & isReference = true;
 
-    allocateRealMemory("NULL", null_dt, isReadOnly, isNotLocal, isReference, builtInVarAddr::NULL_bv, 0, CurrentMap);
-    allocateRealMemory("me", object_inst, writable, isNotLocal, isReference, builtInVarAddr::me_bv, 0, CurrentMap);
-    allocateRealMemory("my_layer", layer_inst, writable, isNotLocal, isReference, builtInVarAddr::my_layer_bv, 0, CurrentMap);
+    allocateRealMemory("NULL", null_dt, isReadOnly, isLocal, isReference, builtInVarAddr::NULL_bv, 0, CurrentMap);
+    if(allocateRealMemory("me", object_inst, writable, isLocal, isReference, builtInVarAddr::me_bv, 0, CurrentMap)){
+        CurrentMap.MemoryMap.back().Objects.push_back(&Object);
+    }
+    if(allocateRealMemory("my_layer", layer_inst, writable, isLocal, isReference, builtInVarAddr::my_layer_bv, 0, CurrentMap)){
+        CurrentMap.MemoryMap.back().Layers.push_back(&Layer);
+    }
     CurrentMap.topAddress = 3;
+}
+inline bool wasGlobalVariableDefined(const vector<VariableLocationStruct> & GlobalScope, const string & variableName, DataType variableType){
+    for(const VariableLocationStruct & GlobalScopeVar : GlobalScope){
+        if(GlobalScopeVar.name == variableName && GlobalScopeVar.type == variableType){
+            return true;
+        }
+    }
+    return false;
+}
+void ProcessClass::allocatePredefinedGlobalVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object){
+    for(VariableModule & GlobalVariable : Object.VariablesContainer){
+        if(wasGlobalVariableDefined(CurrentMap.GlobalScope, GlobalVariable.getID(), variable_mod)){
+            continue;
+        }
+        if(allocateRealMemory(GlobalVariable.getID(), variable_mod, false, false, false, CurrentMap.topAddress++, 0, CurrentMap)){
+            CurrentMap.MemoryMap.back().Modules.Variables.push_back(&GlobalVariable);
+        }
+    }
+    for(VectorModule & GlobalVariable : Object.VectorContainer){
+        if(wasGlobalVariableDefined(CurrentMap.GlobalScope, GlobalVariable.getID(), vector_mod)){
+            continue;
+        }
+        if(allocateRealMemory(GlobalVariable.getID(), vector_mod, false, false, false, CurrentMap.topAddress++, 0, CurrentMap)){
+            CurrentMap.MemoryMap.back().Modules.Vectors.push_back(&GlobalVariable);
+        }
+    }
 }
 bool ProcessClass::allocateRealMemory(const std::string &variableId, const DataType &variableType,
     const bool &readOnly, const bool &isLocal, const bool &isReference, const unsigned int &newRealAddress,
     const unsigned int &localIndex, ObjectMemoryStruct &CurrentMap
 ){
     if(newRealAddress < CurrentMap.MemoryMap.size()){
-        return true;
+        return false;
     }
     if(newRealAddress > CurrentMap.MemoryMap.size()){
         if(newRealAddress == 0 || newRealAddress - CurrentMap.MemoryMap.size() > 100){
@@ -152,8 +182,10 @@ bool ProcessClass::allocateRealMemory(const std::string &variableId, const DataT
     CurrentMap.MemoryMap.back().ID = variableId;
     CurrentMap.MemoryMap.back().type = variableType;
     CurrentMap.MemoryMap.back().readOnly = readOnly;
-    CurrentMap.GlobalScope.emplace_back(variableId, variableType, isLocal, isReference, localIndex, newRealAddress);
-    return false;
+    if(!isLocal){
+        CurrentMap.GlobalScope.emplace_back(variableId, variableType, isLocal, isReference, localIndex, newRealAddress);
+    }
+    return true;
 }
 void ProcessClass::allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap, const vector<EventModule> & EventContainer){
     const bool & writable = false;
@@ -224,8 +256,9 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
     Layers.back().objectsOrder.emplace_back(Layers.back().Objects.size() - 1);
     AncestorObject & InitObject = Layers.back().Objects.back();
     InitObject.primaryConstructor(newObjectID, &Layers.back().objectsIDs, Layers.back().getID(), "");
-    ObjectMemoryStruct & CurrentMap = ContextLookupTable[InitObject.objectLookupID];
-    setupBuiltInVariables(CurrentMap);
+    ObjectMemoryStruct & CurrentMap = ProcessMemory[InitObject.objectLookupID];
+    allocateBuiltInVariables(CurrentMap, InitObject, Layers.back());
+    allocatePredefinedGlobalVariables(CurrentMap, InitObject);
     if(initFilePath != ""){
         if(initFilePath[0] == '?'){ // Script paths that start with a question mark are built-in scripts.
             InitObject.bindedScripts.push_back(initFilePath);
@@ -7271,12 +7304,21 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case object:
             if(CurrentLayer->Objects.size() + newVectorSize > CurrentLayer->Objects.capacity()){
-                PointerRecalculator Recalculator;
-                Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-                Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                vector<PointerRecalculator> Recalculators;
+                for(AncestorObject & itObject : CurrentLayer->Objects){
+                    Recalculators.emplace_back();
+                    auto & CurrentObjectMemory = ProcessMemory[itObject.objectLookupID];
+                    Recalculators.back().findIndexesForObjects(Layers, CurrentObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
+                    Recalculators.back().findIndexesForModules(Layers, CurrentObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                }
                 CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
-                Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-                Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                size_t objectIdx = 0;
+                for(AncestorObject & itObject : CurrentLayer->Objects){\
+                    auto & CurrentObjectMemory = ProcessMemory[itObject.objectLookupID];
+                    Recalculators[objectIdx].updatePointersToObjects(Layers, CurrentObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
+                    Recalculators[objectIdx].updatePointersToModules(Layers, CurrentObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                    ++objectIdx;
+                }
             }
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
@@ -8508,6 +8550,14 @@ void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation, Obje
         Object->bindedScripts.clear();
     }
 }
+inline LayerClass * findLayerWithId(vector<LayerClass> &Layers, const string &layerId){
+    for(LayerClass & itLayer : Layers){
+        if(itLayer.getID() == layerId){
+            return &itLayer;
+        }
+    }
+    return nullptr;
+}
 bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
     vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool allowNotAscii
 ){
@@ -8552,16 +8602,24 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ObjectMemory
         if(canResetEvents && Object == Owner){
             if(!canDeleteEventsOfItsOwner){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Cannot delete events of the owner of the currently executed event.\n";
+                    << "Cannot delete events of the owner of the currently executed event.\n";
                 continue;
             }
             myEventsAreDeleted = true;
         }
-        ObjectMemoryStruct & CurrentMap = ContextLookupTable[Object->objectLookupID];
+        ObjectMemoryStruct & CurrentMap = ProcessMemory[Object->objectLookupID];
         if(canResetEvents){
             CurrentMap.clear();
         }
-        setupBuiltInVariables(CurrentMap);
+        LayerClass * ObjectsLayer = findLayerWithId(Layers, Object->getLayerID());
+        if(ObjectsLayer == nullptr){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Layer '" << Object->getLayerID() << "' with an object '"
+                << Object->getID() << "' does not exist.\n";
+            return myEventsAreDeleted;
+        }
+        allocateBuiltInVariables(CurrentMap, *Object, *ObjectsLayer);
+        allocatePredefinedGlobalVariables(CurrentMap, *Object);
         Object->translateAllScripts(canResetEvents, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
         //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
@@ -8638,11 +8696,19 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
             }
             myEventsAreDeleted = true;
         }
-        ObjectMemoryStruct & CurrentMap = ContextLookupTable[Object->objectLookupID];
+        ObjectMemoryStruct & CurrentMap = ProcessMemory[Object->objectLookupID];
         if(canResetEvents){
             CurrentMap.clear();
         }
-        setupBuiltInVariables(CurrentMap);
+        LayerClass * ObjectsLayer = findLayerWithId(Layers, Object->getLayerID());
+        if(ObjectsLayer == nullptr){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Layer '" << Object->getLayerID() << "' with an object '"
+                << Object->getID() << "' does not exist.\n";
+            return myEventsAreDeleted;
+        }
+        allocateBuiltInVariables(CurrentMap, *Object, *ObjectsLayer);
+        allocatePredefinedGlobalVariables(CurrentMap, *Object);
         switch(mode){
             case load_build:
                 for(string & path : stringVector){
@@ -8739,7 +8805,7 @@ void ProcessClass::clearEventsInObjects(OperationClass & Operation, ObjectMemory
                 << "Cannot delete events from the owner of the currently executed event.\n";
             continue;
         }
-        ContextLookupTable[Object->objectLookupID].clear();
+        ProcessMemory[Object->objectLookupID].clear();
         Object->clearAllEvents();
         wasAnyEventUpdated = true;
     }
@@ -9526,7 +9592,8 @@ void ProcessClass::executeFunctionForObjects(OperationClass & Operation, vector 
         }
     }
 }
-void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & Event, EngineClass & Engine
+void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
+    vector<EventModule>::iterator & Event, EngineClass & Engine
 ){
     ContextClass * Context = nullptr;
 
@@ -12295,21 +12362,21 @@ inline void ProcessClass::dumpMemory(MemoryMapType & MemoryMap){
     buffor += "\n";
     printInColor(buffor, 11);
 }
-EngineInstr ProcessClass::executeInstructions(vector<OperationClass> & Operations, LayerClass *& OwnerLayer,
+EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
     AncestorObject *& Owner, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject *> & TriggeredObjects,
     vector<ProcessClass> & Processes, vector<EventModule>::iterator & it_StartingEvent,
     vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,
     unsigned & runChildEventWithIndex
 ){
-    if(Operations.size() > 0){
-        CurrentInstr.scriptName = Operations[0].scriptName;
+    if(it_Event->Operations.size() > 0){
+        CurrentInstr.scriptName = it_Event->Operations[0].scriptName;
     }
 
-    for(; EventCallState.programCounter < Operations.size(); ++EventCallState.programCounter){
+    for(; EventCallState.programCounter < it_Event->Operations.size(); ++EventCallState.programCounter){
         EventCallState.programCounter -= EventCallState.decrementProgramCounter;
         EventCallState.decrementProgramCounter = false;
         
-        OperationClass & Operation = Operations[EventCallState.programCounter];
+        OperationClass & Operation = it_Event->Operations[EventCallState.programCounter];
         CurrentInstr.instruction = Operation.instruction;
         CurrentInstr.lineNumber = Operation.lineNumber;
 
@@ -13956,9 +14023,9 @@ void deleteEventInstance(vector<EventModule> & Container, vector<string> & IDs, 
         if(Instance->getIsDeleted() || Instance->willBeDeleted){
             vector<unsigned> indexesForDeletion;
             for(size_t contextIdx = 0; contextIdx < ContextMap.MemoryMap.size(); ++contextIdx){
-                if(ContextMap.MemoryMap[contextIdx].eventID == Instance->getID()){
-                    indexesForDeletion.push_back(contextIdx);
-                }
+                // if(ContextMap.MemoryMap[contextIdx].definitionEventId == Instance->getID()){
+                //     indexesForDeletion.push_back(contextIdx);
+                // }
             }
             // for(const unsigned & key : indexesForDeletion){
             //     ContextMap.MemoryMap[key]; //???
@@ -14018,8 +14085,8 @@ bool ProcessClass::deleteEntities(){
     for(auto Layer = Layers.begin(); Layer != Layers.end(); entityIndex++){
         if(Layer->getIsDeleted()){
             for(const AncestorObject & Object : Layer->Objects){
-                ContextLookupTable[Object.objectLookupID].clear();
-                ContextLookupTable.erase(Object.objectLookupID);
+                ProcessMemory[Object.objectLookupID].clear();
+                ProcessMemory.erase(Object.objectLookupID);
             }
             removeFromVector(layersIDs, Layer->getID());
             layersWereModified = true;
@@ -14031,8 +14098,8 @@ bool ProcessClass::deleteEntities(){
             unsigned objectIndex = 0;
             for(vector<AncestorObject>::iterator Object = Layer->Objects.begin(); Object != Layer->Objects.end(); objectIndex++){
                 if(Object->getIsDeleted()){
-                    ContextLookupTable[Object->objectLookupID].clear();
-                    ContextLookupTable.erase(Object->objectLookupID);
+                    ProcessMemory[Object->objectLookupID].clear();
+                    ProcessMemory.erase(Object->objectLookupID);
                     removeFromVector(Layer->objectsIDs, Object->getID());
                     layersWereModified = true;
                     Object->clear();
@@ -14051,7 +14118,7 @@ bool ProcessClass::deleteEntities(){
                     
                     bool wereEventsDeleted = false;
                     deleteEventInstance(Object->EventContainer, Object->EventContainerIDs, layersWereModified,
-                        wereEventsDeleted, ContextLookupTable[Object->objectLookupID]
+                        wereEventsDeleted, ProcessMemory[Object->objectLookupID]
                     );
                     if(wereEventsDeleted){
                         findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
@@ -14104,9 +14171,6 @@ inline bool isEventTriggered(const Triggers & CurrentTriggers, const std::vector
         }
     }
     return false;
-}
-inline string localContextID(const string & eventID, const string & newID){
-    return eventID + /*":" +*/ newID;
 }
 inline bool areTypesCompatible(const DataType & leftOperand, const DataType & rightOperand){
     if(rightOperand == any_dt){
@@ -14520,7 +14584,7 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
         unsigned runChildEventWithIndex = 0;
         if(EventCallState.programCounter < it_Event->Operations.size()){
             interruptInstruction = executeInstructions(
-                it_Event->Operations, TriggeredLayer, Triggered, ObjectMemory, TriggeredObjects,
+                TriggeredLayer, Triggered, ObjectMemory, TriggeredObjects,
                 Processes, it_StartingEvent, it_Event, EventStack, Engine, runChildEventWithIndex
             );
 
@@ -14658,15 +14722,6 @@ inline bool findFirstTriggeredEvent(AncestorObject * TriggeredObject, Triggers &
     }
     return true;
 }
-inline void setupVariablesLookupTable(ObjectMemoryStruct & VariablesLoookupTable, AncestorObject * TriggeredObject,
-    LayerClass * TriggeredLayer, const bool & printOutInstructions
-){
-    VariablesLoookupTable.MemoryMap[builtInVarAddr::me_bv].Objects.clear();
-    VariablesLoookupTable.MemoryMap[builtInVarAddr::me_bv].Objects.push_back(TriggeredObject);
-
-    VariablesLoookupTable.MemoryMap[builtInVarAddr::my_layer_bv].Layers.clear();
-    VariablesLoookupTable.MemoryMap[builtInVarAddr::my_layer_bv].Layers.push_back(TriggeredLayer);
-}
 bool ProcessClass::executeTriggeredEvents(EngineClass & Engine, vector<ProcessClass> & Processes,
     vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers
 ){
@@ -14681,9 +14736,7 @@ bool ProcessClass::executeTriggeredEvents(EngineClass & Engine, vector<ProcessCl
         
         it_StartingEvent = it_Event;
 
-        ObjectMemoryStruct & ObjectMemory = ContextLookupTable[it_TriggeredObject->objectLookupID];
-
-        setupVariablesLookupTable(ObjectMemory, it_TriggeredObject, TriggeredLayer, printOutInstructions);
+        ObjectMemoryStruct & ObjectMemory = ProcessMemory[it_TriggeredObject->objectLookupID];
 
         CurrentInstr.layerID = TriggeredLayer->getID();
         CurrentInstr.objectID = it_TriggeredObject->getID();

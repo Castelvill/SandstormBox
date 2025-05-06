@@ -1733,13 +1733,14 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
     const vector<WordStruct> & words, const string & scriptName, const unsigned & lineNumber,
     vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress,
     bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
-    OperationClass *& Operation, BranchingStackStruct & BranchingStack
+    BranchingStackStruct & BranchingStack
 ){
     unsigned cursor = 1;
     string error;
+    OperationClass * Operation = nullptr;
 
     if(words[0].value == "import"){
-        //Ignore
+        return ReturnType::OK;
     }
     if(words[0].value == "start" ||  words[0].value == "override"){
         if(createEvent(scriptName, lineNumber, layerID, ID, EventContainer,
@@ -3083,7 +3084,6 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
     vector<WordStruct> words;
     EventModule NewEvent = EventModule();
     unsigned lineNumber = 0;
-    OperationClass * Operation;
     bool triggerBreakpoint = false;
 
     vector <string> allAvailableEventIDs;
@@ -3110,7 +3110,7 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
         
         ReturnType result = translateTokensIntoEngineInstruction(
             words, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
-            NewEvent, allAvailableEventIDs, Operation, BranchingStack
+            NewEvent, allAvailableEventIDs, BranchingStack
         );
         if(result == ReturnType::ERROR){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"

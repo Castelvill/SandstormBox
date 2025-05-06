@@ -8,7 +8,7 @@ start checkIfWindowMoved()
 	if (mouse_moved isBorderless ! &&)
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
-        run revertWindowIfMoved()
+        run revertWindowIfMoved(Camera)
         run refreshWindowWithCamera()
     end_if
 end
@@ -20,7 +20,7 @@ start checkIfDisplayResize()
     end_if
 end
 
-start revertWindowIfMoved()
+start revertWindowIfMoved(Camera & Camera)
 	if (isMaxed Camera.grabbed &&)
         = isMaxed false
         fun Camera set_can_mouse_resize true
@@ -54,7 +54,7 @@ start refreshWindowWithDisplay()
 	access sx [display_w]
 	access sy [display_h]
 	fun Camera resize sx sy
-	run refreshWindow()
+	run refreshWindow(Camera, sx, sy)
 end
 
 start refreshWindowWithCamera()
@@ -62,11 +62,11 @@ start refreshWindowWithCamera()
 	find_by_id_2 Cameras cameraID Camera
 	access sx [Camera.size_x]
 	access sy [Camera.size_y]
-	run refreshWindow
+	run refreshWindow(Camera, sx, sy)
 end
 
 
-start refreshWindow
+start refreshWindow(Camera & Camera, double & sx, double & sy)
 	int sxShift -100
 	+= sxShift sx
 	int height 30
@@ -141,9 +141,9 @@ end
 
 
 start exitWindow()
-    triggers mouse_released
+    triggers on_mouse_release
     if (mouse_released(0))
-        access myLayerID [me layer_id]
+        access myLayerID [me.layer_id]
         all Layers _ _ _ _ _ _ Layers
         find_by_id_2 Layers myLayerID Layer
         index Layer [0 0 0] collision ExitCollision
@@ -165,7 +165,7 @@ end
 
 
 start maxWindow()
-    triggers mouse_released
+    triggers on_mouse_release
     if (mouse_released(0))
         access myLayerID [me.layer_id]
         all Layers _ _ _ _ _ _ Layers
@@ -210,7 +210,7 @@ end
 
 
 start minimizeWindow
-    triggers mouse_released
+    triggers on_mouse_release
     if (mouse_released(0))
         access myLayerID [me.layer_id]
         all Layers _ _ _ _ _ _ Layers
