@@ -96,6 +96,7 @@ public:
     void addBasePointer(T * pointer);
     template<typename T>
     void setFirstBasePointer(T * pointer);
+    void updateType(size_t vecSize);
     void addModule(TextModule * Module);
     void addModule(EditableTextModule * Module);
     void addModule(SuperTextModule * Module);
@@ -288,7 +289,7 @@ private:
 
     VariableModule LeftOperandProc, RightOperandProc;
     ContextClass NewContext, HelpContext;
-    EngineInstr interruptInstruction;
+    EngineInstr interruptInstruction = null;
     vector<DynamicVariableInfo> LocalToGlobalTranslation;
     EventCallStateStruct EventCallState;
 public:

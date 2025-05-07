@@ -1,3 +1,4 @@
+-Fix in the terminal: autocomplete, history, mouse cursor (small window), dvd.sand is not bouncing, note, mover, nw, wait, test.
 -Recalculate pointers of all objects when creating new layers.
 -Change ObjectMemory 
 -Remove pointers: "Owner, TriggeredObjects, SelectedLayer, SelectedObject" from the main recalculator - calculate them separately, because sometimes we have to recalculate memory for the whole vector of objects.  

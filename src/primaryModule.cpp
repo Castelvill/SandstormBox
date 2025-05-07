@@ -590,14 +590,14 @@ string instrToStr(const EngineInstr & instruction){
 string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType){
     if(Description.scriptName == ""){
         if(Description.layerID == ""){
-            return messageType + ":" + NEW_LINE_PADDING + "In " + functionName + ":\n"
+            return messageType + ": In " + functionName + ":\n"
                 + NEW_LINE_PADDING;
         }
-        return messageType + ":" + NEW_LINE_PADDING + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
+        return messageType + ": In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
             + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ":\n"
             + NEW_LINE_PADDING;
     }
-    return messageType + ":" + NEW_LINE_PADDING + "In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
+    return messageType + ": In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
         + NEW_LINE_PADDING + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
         + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ":\n"
         + NEW_LINE_PADDING;

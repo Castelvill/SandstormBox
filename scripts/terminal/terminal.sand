@@ -273,7 +273,7 @@ start selectTextWithMouse()
     double windowLimitYDown -30.0
     += windowLimitYDown windowH
     double windowLimitYUp 10.0
-    run moveScrollbarBySelectingText()
+    run moveScrollbarBySelectingText(TextField, cursorPosY, windowLimitYDown, windowLimitYUp)
 end
 start selectTextWithKeys()
     triggers on_key_pressing
@@ -966,9 +966,9 @@ start upArrow(Camera & Camera)
         fun commandHistory set currentCommandNumber command
 
         -- currentCommandNumber
-
+        //dump_memory
         fun EditableText cut_unprotected_area
-        access diffCommand [Vectors.commandHistory.context.currentCommandNumber]
+        index_vec commandHistory currentCommandNumber diffCommand
         fun EditableText add_content diffCommand
         fun EditableText update
         first EditableText _ _ _ _ content _ history
@@ -990,7 +990,7 @@ start downArrow(Camera & Camera)
         ++ currentCommandNumber
 
         fun EditableText cut_unprotected_area
-        access diffCommand [Vectors.commandHistory.context.currentCommandNumber]
+        index_vec commandHistory currentCommandNumber diffCommand
         fun EditableText add_content diffCommand
         fun EditableText update
         first EditableText _ _ _ _ content _ history

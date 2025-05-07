@@ -10,7 +10,7 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}${pathSeparator}SandstormBox",
-        "args": ["-c", "./tests/run_all_tests.sand"],
+        //"args": ["-c", "./tests/run_all_tests.sand"],
         //"args": ["-c", "./tests/declaration.sand"],
         //"args": ["-c", "./tests/scopes.sand"],
         //"args": ["-c", "./tests/global.sand"],

@@ -1904,70 +1904,88 @@ void ContextClass::setFirstBasePointer(T * pointer){
     }
     BasePointers.back().setPointer(pointer);
 }
-void ContextClass::addModule(TextModule * Module){
+void ContextClass::updateType(size_t vecSize){
+    if(vecSize > 1){
+        type = vectorizeEntityDataType(InstrDescription(), type);
+    }
+}
+void ContextClass::addModule(TextModule *Module){
     if(Module != nullptr){
         Modules.Texts.push_back(Module);
+        updateType(Modules.Texts.size());
     }
 }
 void ContextClass::addModule(EditableTextModule * Module){
     if(Module != nullptr){
         Modules.EditableTexts.push_back(Module);
+        updateType(Modules.EditableTexts.size());
     }
 }
 void ContextClass::addModule(SuperTextModule *Module){
     if(Module != nullptr){
         Modules.SuperTexts.push_back(Module);
+        updateType(Modules.SuperTexts.size());
     }
 }
 void ContextClass::addModule(SuperEditableTextModule *Module){
     if(Module != nullptr){
         Modules.SuperEditableTexts.push_back(Module);
+        updateType(Modules.SuperEditableTexts.size());
     }
 }
-void ContextClass::addModule(ImageModule *Module)
-{
+void ContextClass::addModule(ImageModule *Module){
     if(Module != nullptr){
         Modules.Images.push_back(Module);
+        updateType(Modules.Images.size());
+        
     }
 }
 void ContextClass::addModule(MovementModule * Module){
     if(Module != nullptr){
         Modules.Movements.push_back(Module);
+        updateType(Modules.Movements.size());
     }
 }
 void ContextClass::addModule(CollisionModule * Module){
     if(Module != nullptr){
         Modules.Collisions.push_back(Module);
+        updateType(Modules.Collisions.size());
     }
 }
 void ContextClass::addModule(ParticleEffectModule * Module){
     if(Module != nullptr){
         Modules.Particles.push_back(Module);
+        updateType(Modules.Particles.size());
     }
 }
 void ContextClass::addModule(EventModule * Module){
     if(Module != nullptr){
         Modules.Events.push_back(Module);
+        updateType(Modules.Events.size());
     }
 }
 void ContextClass::addModule(VariableModule * Module){
     if(Module != nullptr){
         Modules.Variables.push_back(Module);
+        updateType(Modules.Variables.size());
     }
 }
 void ContextClass::addModule(ScrollbarModule * Module){
     if(Module != nullptr){
         Modules.Scrollbars.push_back(Module);
+        updateType(Modules.Scrollbars.size());
     }
 }
 void ContextClass::addModule(PrimitivesModule * Module){
     if(Module != nullptr){
         Modules.Primitives.push_back(Module);
+        updateType(Modules.Primitives.size());
     }
 }
 void ContextClass::addModule(VectorModule * Module){
     if(Module != nullptr){
         Modules.Vectors.push_back(Module);
+        updateType(Modules.Vectors.size());
     }
 }
 bool translateIndexToTreeRoots(const vector<ParameterStruct> & Parameters, const unsigned & index, unsigned & realIndex){
@@ -2783,7 +2801,7 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
             if(HelpContext->Modules.Variables.size() == 0){
                 return true;
             }
-            if(HelpContext->Values[0].type != 'b' && HelpContext->Values[0].type != 'i'){
+            if(HelpContext->Modules.Variables[0]->type != 'b' && HelpContext->Modules.Variables[0]->type != 'i'){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Parameter " << index+1 << " is not an integer.\n";
                 return true;
@@ -3898,6 +3916,10 @@ inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr,
             return primitives_mod;
         case vector_mod_vec:
             return vector_mod;
+        case value_vec:
+            return value_inst;
+        case pointer_vec:
+            return pointer_inst;
         case camera_inst:
         case layer_inst:
         case object_inst:
@@ -3914,6 +3936,8 @@ inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr,
         case scrollbar_mod:
         case primitives_mod:
         case vector_mod:
+        case value_inst:
+        case pointer_inst:
             return oldType;
         default:
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
@@ -5509,7 +5533,26 @@ void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, ContextClas
     if(Variable->type == null_dt){
         Variable->type = NewContext.type;   
     }
-    moveRightToLeft(CurrentInstr, EngineInstr::assign, Variable, NewContext);
+    switch(Variable->type){
+        case bool_inst:
+        case bool_vec:
+        case int_inst:
+        case int_vec:
+        case double_inst:
+        case double_vec:
+        case string_inst:
+        case string_vec:
+        case value_inst:
+        case value_vec:
+        case pointer_inst:
+        case pointer_vec:
+        case any_dt:
+            moveRightToLeft(CurrentInstr, EngineInstr::assign, Variable, NewContext);
+            return;
+        default:
+            moveRightToLeft(CurrentInstr, EngineInstr::move, Variable, NewContext);
+            return;
+    }
 }
 void ProcessClass::aggregateValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *OwnerLayer,
     AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes
@@ -11143,7 +11186,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ObjectM
         return;
     }
 
-    if(tokenizedWords.size() != Outputs.size()){
+    if(tokenizedWords.size() > Outputs.size()){
         cerr << instructionWarning(CurrentInstr, __FUNCTION__)
             << "Number of extracted tokens (" << tokenizedWords.size()
             << ") is not equal to the number of provided outputs (" << Outputs.size() << ").\n";
@@ -11152,7 +11195,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ObjectM
     NewContext.Values.emplace_back(VariableModule::newString(""));
     for(unsigned index = 0; index < tokenizedWords.size() && index < Outputs.size(); index++){
         NewContext.Values.back().setString(tokenizedWords[index]);
-        assignVariable(ObjectMemory, Outputs[index]);
+        assignVariable(ObjectMemory, Outputs[index]); 
     }
 }
 void ProcessClass::printTree(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<ProcessClass> & Processes){
@@ -11688,9 +11731,9 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
     
     if(NewContext.getVectorSize() == 0){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "There is no entity with an id '" << entityID << "' and of the type '"
-            << dataTypeToStr(SourceContext.type) << "' A new context with id '"
-            << Operation.Output.variableID << "' cannot be created.\n";
+            << "There is no entity '" << entityID << "' of the '"
+            << dataTypeToStr(SourceContext.type) << "' type. Cannot create a variable with id '"
+            << Operation.Output.variableID << "'.\n";
         return;
     }
     assignVariable(ObjectMemory, Operation.Output);
@@ -13376,6 +13419,10 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             }
             printTooManyInstancesWarning(Context->Modules.Variables.size(), Context->type, CurrentInstr);
         case variable_mod:
+            if(Condition.Location.attribute == size_a){
+                NewValue.setInt(Context->Modules.Variables[0]->getString().size());
+                return;
+            }
             NewValue.copyValue(Context->Modules.Variables[0]);
             return;
         case collision_mod_vec:
@@ -14643,6 +14690,8 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
         return flow_jump_back;
     }
 
+    interruptInstruction = EngineInstr::null;
+
     return flow_next_event;
 }
 inline bool findNextEvent(const Triggers & CurrentTriggers, vector<EventModule>::iterator & it_Event,
@@ -14669,6 +14718,8 @@ bool ProcessClass::executeEventLoop(EngineClass & Engine, vector<ProcessClass> &
     EventCallState.clear();
     LocalToGlobalTranslation.clear();
     allocateMemoryForDynamicVariables(it_Event, ObjectMemory);
+
+    interruptInstruction = EngineInstr::null;
 
     while(it_Event != TriggeredObject->EventContainer.end()){
         EventControlFlow e_eventControl = executeSingleEvent(

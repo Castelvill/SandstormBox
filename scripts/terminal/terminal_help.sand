@@ -52,7 +52,7 @@ end
 
 start updateTerminal()
     string result ""
-    run printOnTerminal()
+    run printOnTerminal(result)
 end
 
 
