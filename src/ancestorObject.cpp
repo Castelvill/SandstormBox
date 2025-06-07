@@ -160,6 +160,7 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     clearVectorsOfIDs();
     clear();
     PrimaryModule::clone(Original, listOfUniqueIDs, newLayerID, "", changeOldID);
+    objectLookupID = ID + layerID;
     for(const TextModule & Text : Original.TextContainer){
         TextContainer.emplace_back(TextModule());
         TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID(), true);
@@ -351,9 +352,9 @@ void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, v
         }
     }
 }
-void AncestorObject::refreshCoordinates(){
-    cerr << "Error: Method 'refreshCoordinates' is currently deprecated.\n";
-    return;
+void AncestorObject::refreshPositionsAndSizesOfObjectAndItsImages(){
+    // cerr << "Error: Method is currently deprecated.\n"; // Idk what was the reason of this "deprecation". For now will ignore it.
+    // return;
     
     if(ImageContainer.size() == 0){
         return;
@@ -368,7 +369,7 @@ void AncestorObject::refreshCoordinates(){
         maxPos.set(pos + ImageContainer[0].getPos() + ImageContainer[0].getSize()/2 + ImageContainer[0].getScaledSize()/2);
     }
 
-    for(auto Image : ImageContainer){
+    for(const ImageModule & Image : ImageContainer){
         if(!Image.getIsScaledFromCenter()){
             minPos.set(min(minPos, pos+Image.getPos()));
             maxPos.set(max(maxPos, pos+Image.getPos() + Image.getScaledSize()));
@@ -1566,9 +1567,13 @@ bool setupFirstLastAllRandomInstr(const vector<WordStruct> & words, EventModule 
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
             return true;
         }
-        outputType = layer_inst;
-        if(Operation->Location.attribute != object_a && Operation->Location.objectID == ""
-            && Operation->Location.moduleType == null_s && Operation->Location.moduleID == ""
+        if(Operation->Location.attribute == null_a && Operation->Location.objectID.empty()
+            && Operation->Location.moduleType == null_s && Operation->Location.moduleID.empty()
+        ){
+            outputType = layer_inst;
+        }
+        else if(Operation->Location.attribute != object_a && Operation->Location.objectID.empty()
+            && Operation->Location.moduleType == null_s && Operation->Location.moduleID.empty()
         ){
             outputType = pointer_inst;
         }
@@ -1973,8 +1978,8 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
         }
         BranchingStack.whileEndStack.back().push_back(NewEvent.Operations.size()-1);
     }
-    else if(isStringInGroup(words[0].value, 9, "return", "reboot", "exit", "delete_this_event",
-        "reset_keyboard", "dump_context_stack", "dump_memory", "restart_drag", "breakpoint"
+    else if(isStringInGroup(words[0].value, 10, "return", "reboot", "exit", "delete_this_event",
+        "reset_keyboard", "dump_context_stack", "dump_memory", "dump_local_memory", "restart_drag", "breakpoint"
     )){
         if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
     }
@@ -2182,7 +2187,6 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
             case double_vec_i:
             case string_vec_i:
                 newVariableType = value_vec;
-                makeOutputGlobal = true;
                 break;
             default:
                 break;

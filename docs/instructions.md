@@ -217,11 +217,17 @@ run *event* ( [[argument]...] )
 
     Delete current event and interrupt the execution of the current scope.
 
-## dump_context_stack
+## dump_memory
    
 **Description**
 
-    Print out the current context stack.
+    Print all global variables on the standard output. 
+
+## dump_local_memory
+   
+**Description**
+
+    Print all local (current scope) variables on the standard output. 
 
 ## all / first / last / random
 

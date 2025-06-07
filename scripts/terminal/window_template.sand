@@ -135,7 +135,7 @@ start refreshWindow(Camera & Camera, double & sx, double & sy)
     run additionalUpdate()
 end
 
-start additionalUpdate
+start additionalUpdate()
     //interface
 end
 
@@ -147,7 +147,9 @@ start exitWindow()
         all Layers _ _ _ _ _ _ Layers
         find_by_id_2 Layers myLayerID Layer
         index Layer [0 0 0] collision ExitCollision
+        
         if(ExitCollision.release_on)
+            //dump_local_memory
             = delete true
         end_if
     end_if

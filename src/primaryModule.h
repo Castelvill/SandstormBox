@@ -10,23 +10,17 @@ enum ReturnType : char{
 };
 
 enum EngineInstr : char{
-    null, start, end_i, triggers, run, if_i,
-    else_if, else_i, end_if, while_i, end_while, continue_i,
-    break_i, return_i, reboot, exit_i, delete_this_event,
-    reset_keyboard, dump_context_stack, dump_memory, first, last, all,
-    random_i, index_i, index_vec, sum, intersection, diff, add, sub, mul,
-    div_i, mod, pow_i, assign, move, add_move, sub_move, mul_move, div_move,
-    equal, not_equal, more, less, more_equal, less_equal, not_i,
-    and_i, or_i, igT, igF, in, find_by_id_2, inc, next, dec, del, demolish,
-    access_i, bool_i, int_i, double_i, string_i, bool_vec_i, int_vec_i,
-    double_vec_i, string_vec_i, rand_int, find_by_id,
-    clone_i, new_i, bind_i, rbind_i, build, load_build, build_subset,
-    inject_code, inject_instr, fun, env, edit_proc, load_bitmap,
-    mkdir_i, rm, rmll, mv_i, print_v, print_d, print, load_text, save_text, ls,
-    lse, new_proc, var, vec, tokenize, tree, len, size, substr, load_font,
-    restart_drag, cd, pwd, similar, count, create_display, console_input,
-    start_timer, stop_timer, breakpoint, assert, type, load_i,
-    
+    null, start, end_i, triggers, run, if_i, else_if, else_i, end_if,while_i, end_while, continue_i,
+    break_i, return_i, reboot, exit_i, delete_this_event, reset_keyboard, dump_context_stack,
+    dump_memory, dump_local_memory, first, last, all, random_i, index_i, index_vec, sum, intersection,
+    diff, add, sub, mul, div_i, mod, pow_i, assign, move, add_move, sub_move, mul_move, div_move,
+    equal, not_equal, more, less, more_equal, less_equal, not_i, and_i, or_i, igT, igF, in,
+    find_by_id_2, inc, next, dec, del, demolish, access_i, bool_i, int_i, double_i, string_i,
+    bool_vec_i, int_vec_i, double_vec_i, string_vec_i, rand_int, find_by_id, clone_i, new_i, bind_i,
+    rbind_i, build, load_build, build_subset, inject_code, inject_instr, fun, env, edit_proc,
+    load_bitmap, mkdir_i, rm, rmll, mv_i, print_v, print_d, print, load_text, save_text, ls, lse,
+    new_proc, var, vec, tokenize, tree, len, size, substr, load_font, restart_drag, cd, pwd, similar,
+    count, create_display, console_input, start_timer, stop_timer, breakpoint, assert, type, load_i
 };
 EngineInstr strToInstr(const string & instruction);
 string instrToStr(const EngineInstr & instruction);
@@ -403,7 +397,7 @@ class PrimaryModule{
     vec2d getSize() const;
     vec2d & getSizeAddr();
     vec2d getScale() const;
-    vec2d getScaledSize();
+    vec2d getScaledSize() const;
     bool getIsActive() const;
     bool getIsDeleted() const;
     bool getIsScaledFromCenter() const;

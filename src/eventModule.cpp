@@ -2144,7 +2144,7 @@ void EventModule::controlSuperEditableText(SuperEditableTextModule *& SuperEdita
             SuperEditableText->protectedArea = Values[0].getIntUnsafe();
             return;
         case cut_unprotected_area:
-            SuperEditableText->cutContent(SuperEditableText->protectedArea);
+            SuperEditableText->cutContentToSize(SuperEditableText->protectedArea);
             return;
         case set_cursor_pos:
             if(Values.size() == 0){

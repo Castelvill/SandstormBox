@@ -58,6 +58,9 @@ EngineInstr strToInstr(const string & instruction){
     if(instruction == "dump_memory"){
         return EngineInstr::dump_memory;
     }
+    if(instruction == "dump_local_memory"){
+        return EngineInstr::dump_local_memory;
+    }
     if(instruction == "first"){
         return EngineInstr::first;
     }
@@ -391,6 +394,8 @@ string instrToStr(const EngineInstr & instruction){
             return "dump_context_stack";
         case dump_memory:
             return "dump_memory";
+        case dump_local_memory:
+            return "dump_local_memory";
         case first:
             return "first";
         case last:
@@ -813,7 +818,7 @@ vec2d& PrimaryModule::getSizeAddr(){
 vec2d PrimaryModule::getScale() const{
     return scale;
 }
-vec2d PrimaryModule::getScaledSize(){
+vec2d PrimaryModule::getScaledSize() const{
     vec2d scaledSize(size);
     scaledSize.multiply(scale);
     return scaledSize;

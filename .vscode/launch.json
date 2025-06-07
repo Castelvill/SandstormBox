@@ -17,7 +17,7 @@
         //"args": ["-c", "./tests/tokenize.sand"],
         //"args": ["-c", "./tests/recompile.sand"],
         //"args": ["-c", "./scripts/robotfindskitten.sand"],
-        //"args": ["-c", "./scripts/terminal/init.sand"],
+        "args": ["-c", "./scripts/terminal/init.sand"],
         //"args": ["-c", "./tests/run_all_tests.sand"],
         //"args": ["-c", "./tests/while_loop.sand"],
         //"args": ["-c", "./examples/dvd.sand"],

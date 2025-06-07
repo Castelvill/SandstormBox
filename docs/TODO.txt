@@ -1,4 +1,9 @@
--Fix in the terminal: autocomplete, history, mouse cursor (small window), dvd.sand is not bouncing, note, mover, nw, wait, test.
+-Fix in the terminal: note, mover, nw, test.
+-Make Rule 110 program in text mode.
+-Make game of life in text mode.
+-Make all/first/last/random more humane.
+-Test the communication between different objects and make it easier.
+-Build programs and windows as modules that can be injected anywhere.
 -Recalculate pointers of all objects when creating new layers.
 -Change ObjectMemory 
 -Remove pointers: "Owner, TriggeredObjects, SelectedLayer, SelectedObject" from the main recalculator - calculate them separately, because sometimes we have to recalculate memory for the whole vector of objects.  
@@ -19,71 +24,50 @@
 -Fuse "triggers" instruction with event declaration with the syntax "event<triggers>(args)" or add triggers based on pre-defined event names like "start onInit()" or "start onKeyPress()".
 -Fix creating variables in interpreter.sand.
 
--Rewrite the terminal.
 -Update documentation.
 -Optimize EditableSuperText.
+    -Implement lazy updates for SuperEditableText::update - calling update method causes only max one real update during the entire frame (so update can happen only once per few iterations). Update happens on the last iteration of the frame and the process keeps the info which text field needs to be updated.
+    -Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
 
 -Add "throw_error [message]" and "throw_warning [message]" instructions - they will just write an error or warning message on the standard output.
--IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.
--Classes should have two uses: templates for objects and user-defined argument types in the function definitions. The second one means that when passing parameters to a function, aside from checking if the context is of "ObjectInst"/"ObjectVec" type, engine additionally compares a new AncestorObject variable "originID" (which can be set during a "clone" instruction) to the user-defined type. If something is incorrect, raise an error.
+-Create "struct/class" scope - basically on_init events but without any logic, only declarations.
+    -IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.
+    -Classes should have two uses: templates for objects and user-defined argument types in the function definitions. The second one means that when passing parameters to a function, aside from checking if the context is of "ObjectInst"/"ObjectVec" type, engine additionally compares a new AncestorObject variable "originID" (which can be set during a "clone" instruction) to the user-defined type. If something is incorrect, raise an error.
 -Before the event assembly the user should have an option to create a new Objects and layer that will be used as a destination for the new events. Minimally, in the terminal the "sand" instruction should have a parameter to choose an object and layer names (with the dot syntax) as a destination - if an object or/and layer does not exist, create a new one. OR the "sand" instruction should just use the file name as a name of the new layer and object (or object could have a default name like "main"). ORRRRR you could assemble a new program... inside a new process! WE BUILD THEM FOR A REASON.
 -Check if you can stop and start a process (without a restart meaning the state is preserved and the process is just not iterated through). Maybe you should add something like "ps stop/start/restart/kill [process_number]" to the terminal. 
 -Maybe all objects and layers that are consider to be "main" programs should be part of the "Program"/"Process" group.
--You should add some kind of a destructor trigger like "on_destroy": when an object is to be deleted, the on_destroy event is executed and all children objects can be also deleted or some finishing code can be executed. Additionally when creating a program, all objects should join a group with a name "proc_[random_unique_number]". Alternativly each program should just be in a seperate layer. 
--Update instructions docs.
+-Add a destructor trigger "on_destroy": when an object is to be deleted, the on_destroy event is executed and all children objects can be also deleted or some finishing code can be executed. Additionally when creating a program, all objects should join a group with a name "proc_[random_unique_number]". Alternativly each program should just be in a seperate layer. 
 -Test cloning objects with events and established variables.
 -Test removing events.
 -Create "fill_with_letter *letter* *red* *green* *blue*" function for the text module.
 -Create "draw_letter *letter* *pos_x* *pos_y* *red* *green* *blue*" function for the text module.
 -Recreate robotfindskitten in sand.
 
-MILESTONE: Resurrect the engine.
-
--Create "struct/class" scope.
 -Optimize: For all printOutInstructions' if statements: ALWAYS add text to logs Vector; Add "pop_log(level, output)" "dump_logs(level, output)" and "clear_logs" instructions to the engine; Add printOutInstructions' if statement only in one place in the iteration or better - add priting instructions only in the compilation time if. If project flag CAN_PRINT_INSTRUCTION_INFO is true during the engine compilation, add instruction printing.
--Create in-engine correctness and speed tests.
--Create correctness tests in python.
+-Create in-engine benchmarks / speed tests.
 -If there is a compilation error and some bool like "rollback_on_error" is true, delete all events created during the current compilation like in a transaction. You could also abort the engine if some compilation flag is used.
--Remove all getters from vector if they are not necessary.
 -Update generateRandomVariable.
--Implement lazy updates for SuperEditableText::update - calling update method causes only max one real update during the entire frame (so update can happen only once per few iterations). Update happens on the last iteration of the frame and the process keeps the info which text field needs to be updated.
+
 -Add the event stack trace to the error messages (links to the lines with the "run" instructions). 
 -Upgrade "build" instruction: if the "reset" parameter is false or omitted, do not rebuild scripts marked as "compiled". Mark newly built scripts as "compiled" and reset this flag if the "reset" parameter is true.
--Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
--Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
--Maybe the "start" instruction could be used inside the existing scope? If it would work, then you could easily create the "if" scope.
--Check file path checks: "", "~/" and ''.
--Idea: Stopping the use of indexes can help in isolating programs.
--Add a vector of ContextClass to the MemoryStackStruct to create a history of contexts: this will isolate scopes (more freedom in naming variables and less ambiguity), simplify the event loop and it's crucial for implementing the functions.
--Implement the "scope" parameter to the "start" instruction. If it is not empty, the new event will become a function with a Context vector equal to the "scope".
--Fix: Post/After operations does not have children.
--Add explicit parameters to events and functions (trigger-less events) for better readability. Don't add them to loops, ifs and else, they don't need explicit parameters.
--Transform every Reverse Polish Notation into normal expressions.
+-Implement a C++ method for generating the syntax formatting for text modules with S/S++ code inside.
+    -Add syntax highlighting: first token blue, variables and keywords light blue, numbers light green, strings brown.
 -Change special signs into special signs only inside "print" and in other instances when it is expected.
 -Fix: Print command doesn't use special signs.
--Implement "set_triggers *event* [[trigger] ...]" instruction.
--(?)Implement "set_if *event* *expression*" instruction.
--Move "triggers" to the object definition or bind events to them - right now without using if statements triggers can cause script based bugs. 
--Thought: If S++ language is much slower than S, then: S++ will be used for easier development, while S for optimal deployment.
 -Update: "Access" instruction still uses "vector" and "context" specifiers. 
 
 MILESTONE: Improve scripting language.
 
--Replace "start...end" scopes with "func name {...}" "event name (triggers) {...}", "if (conditions) {}", "else if (conditions) {...}", "else {...}" and "while (conditions) {...}" scopes. Names of "if", "else if", "else" and "while" scopes will be generated automatically and start with "_" sign. During compilation, new types of scopes will be seperated from parent events by the parser and put into new events with auto-generated names.
 -Transform "fun context function [values...]" into "context.function([values...])". Do the same with all other instructions except the arithmetic ones.
 -Change old move instructions syntax into "left_operand move_instr right_operand;". 
 -Implement optional new line functionality for semicolons in order to divide instructions better.
--Create a language wrapper in order to have as much debug info (instruction list) as possible.
--Implement a C++ method for generating the syntax formatting for text modules with S/S++ code inside.
 
 MILESTONE: Create a new scripting language (a wrapper for the previous one).
 
 -Unit tests: Execute "test_x.sand" and if it's correct, save its output to the file "test_x.out.correct". During the routine testing, save its output to the file "test_x.out" and compare it to "test_x.out.correct". Do it for every test file.
 -Implement the triggers: objects, variables, collision, editables.
--Implement optional automatic sorting of objects' drawing order based on "automatic_sorting_of_object_drawing_order.txt".
 -Forward errors from the "sh" instruction to the terminal.
--Add to terminal "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
--Update documentation: Instructions that use moveOrRename should have a different definition of "output" parameter.
+-Add to terminal the "start" command: should begin bundling the instructions into one string and "end" command should end it and use inject_instr.
 -Create the ImageViewer. It would take the image path and check if an image with same path exists. If yes, then it'd connect it to the window object, otherwise it'd load the bitmap to the memory (pseudo caching) and then connect it to the window object.
 -Remove old TextModule and EditableTextModule and rename new modules.
 -Add previous (for undo) and future (for redo) versions of content and formatting to the SuperEditableText. They will be saved on the start of editing and every entered white space just like in vs code. Remember to update support variables. 
@@ -101,7 +85,6 @@ MILESTONE: Create a new scripting language (a wrapper for the previous one).
 -Add to PrimaryModule "vec2b centerAxes" variable that moves the start of the drawing axes to the center of the camera.
 
 -Block "." and ".." links in filesystem commands.
--Convert all "if forests" to switches.
 -Add dmenu, one command line called by a shortcut, that allows to use quick commands like: "open new window", "compile", "run program", etc.
 -Add synchronized/shared files that allow for server-like communication between two instances of the engine.
 -Implement syntax coloring for the scriptic language.

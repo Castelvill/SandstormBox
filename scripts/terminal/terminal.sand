@@ -1,7 +1,7 @@
 start onInit
     triggers on_init
     create_display 920 480 1920 1080 false
-    //edit_proc draw_hitboxes 1
+    edit_proc draw_hitboxes 0
     edit_proc print_instructions 0
     //edit_proc auto_print_stack 1
     edit_proc draw_text_borders 0
@@ -31,7 +31,7 @@ start runAfterInit()
 	run forceRefresh()
 end
 
-start buildTerminal
+start buildTerminal()
     var KEY_LCTRL 217
     var KEY_ESC 59
     var KEY_SHIFT 215
@@ -458,6 +458,7 @@ start spawnNewWindow(Camera & NewWindowCamera, Layer & NewWindowLayer)
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras "WindowCamera" TemplateCamera
     all Layers _ _ _ _ _ _ Layers
+    Layer TemplateLayer
     find_by_id_2 Layers "WindowLayer" TemplateLayer
 
     new Layers 1 param1 NewWindowLayer
@@ -589,13 +590,14 @@ start autoCompleteFiles(string & command, ValVec & params)
     ls "" files true depth
     ValVec filesTokenized
     tokenize " " files filesTokenized
+    ValVec completes
     similar lastParameter filesTokenized false completes
     similar lastParameter filesTokenized true commonPart
     string result "\n"
     int i 0
     if(completes.size 1 == is_directory(completes) &&)
         print_v completes _ completes "/"
-    else if(completes.size 1 ==)
+    else_if(completes.size 1 ==)
         print_v completes _ completes " "
     end_if
     run replaceWithAutoComplete(command, params, completes, commonPart, lastParameter)
@@ -603,6 +605,7 @@ end
 
 start autoCompletePrograms(ValVec & params, string & command)
     if(params.size 1 ==)
+        ValVec completes
         similar command allowedPrograms false completes
         similar command allowedPrograms true commonPart
         string lastParameter ""
@@ -631,7 +634,7 @@ start replaceWithAutoComplete(string & command, ValVec & params, ValVec & comple
         first EditableText _ _ _ _ content _ history
         len history historySize
         fun EditableText set_cursor_pos historySize
-    else if(completes.size 0 >)
+    else_if(completes.size 0 >)
         int i 0
         string result "\n"
         while (i completes.size <)
@@ -1023,6 +1026,7 @@ start edit()
         fun TextEditor set_content ""
         fun TextEditor set_cursor_pos 0
         fun TextEditor activate
+        fun TextEditor update
         string fileName ""
         = fileName param1
         run loadTextFromFile(TextEditor, fileName)
@@ -1046,7 +1050,6 @@ start loadTextFromFile(SEditText & TextEditor, string & fileName)
 end
 
 start informFileDoesNotExist(string & fileName)
-    = program ""
     string result "Warning: File '"
     += result fileName
     += result "' does not exist.\n"
@@ -1129,6 +1132,7 @@ end
 start textEditorInsert()
     triggers on_key_press
     if(program "edit" == key_pressed(KEY_LCTRL) && key_pressed(KEY_I) &&)
+        bool isEditing false
         first Layers KERNEL KERNEL SEditTexts TextEditor is_editing_active _ isEditing
         run checkIfInsertPressed(isEditing)
     end_if

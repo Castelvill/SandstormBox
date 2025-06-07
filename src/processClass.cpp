@@ -1270,7 +1270,9 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
                     for(size_t i = 0; i < Modules.Vectors[0]->getSize(); i++){
                         buffer += shortenText(Modules.Vectors[0]->getAnyStringValueUnsafe(i), maxLengthOfValuesPrinting) + ", ";
                     }
-                    buffer += "]";
+                    buffer += "]<";
+                    buffer += uIntToStr(Modules.Vectors[0]->getSize());
+                    buffer += ">";
                 }
             }
             else{
@@ -1290,9 +1292,9 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
                 for(size_t i = 0; i < Vector->getSize(); i++){
                     buffer += shortenText(Vector->getAnyStringValueUnsafe(i), maxLengthOfValuesPrinting) + ", ";
                 }
-                buffer += "]";
-
-                buffer += ", ";
+                buffer += "]<";
+                buffer += uIntToStr(Vector->getSize());
+                buffer += ">, ";
             }
             buffer += "]<";
             buffer += uIntToStr(Modules.Variables.size());
@@ -5922,10 +5924,7 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
             break;
     }
 } 
-inline void cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass * RightOperand,
-    const InstrDescription & CurrentInstr, bool & wasNewExecuted, vector<string> & camerasIDs,
-    bool & changeOldID, vector<string> & layersIDs, vector<LayerClass> & Layers
-){
+void ProcessClass::cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass * RightOperand, bool & wasNewExecuted, bool & changeOldID){
     unsigned i = 0, j = 0;
     bool sameSize = false;
     switch(LeftOperand->type){
@@ -5963,6 +5962,19 @@ inline void cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass 
             }
             for(; i < LeftOperand->Layers.size(); i++, j+=sameSize){
                 LeftOperand->Layers[i]->clone(*RightOperand->Layers[j], layersIDs, changeOldID);
+                //Clone object memory
+                for(size_t objectIdx = 0; objectIdx < RightOperand->Layers[j]->Objects.size(); ++objectIdx){
+                    const AncestorObject & OriginalObject = RightOperand->Layers[j]->Objects[objectIdx];
+                    const AncestorObject & ClonedObject = LeftOperand->Layers[i]->Objects[objectIdx];
+                    if(ProcessMemory.contains(OriginalObject.objectLookupID)){
+                        ObjectMemoryStruct & OriginalMemory = ProcessMemory[OriginalObject.objectLookupID];
+                        ObjectMemoryStruct & ClonedMemory = ProcessMemory[ClonedObject.objectLookupID];
+                        ClonedMemory = OriginalMemory;
+                        PointerRecalculator Recalculator;
+                        Recalculator.findIndexesForObjectsInObjectMemory(Layers, OriginalMemory.MemoryMap);
+                        Recalculator.updatePointersToObjectsInObjectMemory(Layers, ClonedMemory.MemoryMap, CurrentInstr);
+                    }
+                }
             }
             wasNewExecuted = true;
             break;
@@ -5977,6 +5989,9 @@ inline void cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass 
                         continue;
                     }
                     LeftOperand->Objects[i]->clone(*RightOperand->Objects[j], Layer.objectsIDs, Layer.getID(), changeOldID);
+                    if(ProcessMemory.contains(RightOperand->Objects[j]->objectLookupID)){
+                        ProcessMemory[LeftOperand->Objects[i]->objectLookupID] = ProcessMemory[RightOperand->Objects[j]->objectLookupID];
+                    }
                     break;
                 }
             }
@@ -6078,7 +6093,7 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     }
 
     if(LeftOperand->type == RightOperand->type){
-        cloneEntitiesOfTheSameType(LeftOperand, RightOperand, CurrentInstr, wasNewExecuted, camerasIDs, changeOldID, layersIDs, Layers);
+        cloneEntitiesOfTheSameType(LeftOperand, RightOperand, wasNewExecuted, changeOldID);
     }
     else{
         cloneEntitiesOfDifferentType(LeftOperand, RightOperand, CurrentInstr);
@@ -9775,7 +9790,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                             ModulesObject->imageContainerIDs, Engine.BitmapContainer, EXE_PATH + workingDirectory
                         );
                         if(Operation.Location.attribute != set_id){
-                            //ModulesObject->refreshCoordinates();
+                            ModulesObject->refreshPositionsAndSizesOfObjectAndItsImages();
                         }
                     }
                     return;
@@ -11510,7 +11525,7 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
     }
 
     NewContext.clear();
-    NewContext.type = SourceContext.type;
+    NewContext.type = instantiateEntityDataType(CurrentInstr, SourceContext.type);
 
     if(printOutInstructions){
         cerr << instrToStr(Operation.instruction) << " " << SourceContext.ID << " " << entityID << " " << Operation.Output.variableID << "\n";
@@ -12356,20 +12371,16 @@ inline void setProgramCounter(unsigned & programCounter, bool & decrementProgram
         decrementProgramCounter = true;
     }
 }
-inline void ProcessClass::dumpVariables(const MemoryMapType & MemoryMap){
-    string buffor = "\nStack: ";
-    for(auto Context : MemoryMap){
-        buffor += Context.ID + ":" + dataTypeToStr(Context.type)
-            + ":" + Context.getValue(CurrentInstr, maxLengthOfValuesPrinting) + ", ";
-    }
-    buffor += "\n\n";
-    printInColor(buffor, 11);
-}
 string getFieldWithPadding(const string &text, const size_t & maxTabCount){
     const size_t & TAB_SIZE = 8; 
     size_t textLength = text.size();
     size_t usedTabs = (textLength / TAB_SIZE) + 1;
     string customPadding = "\t";
+
+    if(maxTabCount - usedTabs + 1 < 0){
+        cerr << "Error: Unsigned only condition is negative.\n";
+        return "";
+    }
 
     for (size_t i = 1; i < maxTabCount - usedTabs + 1; ++i){
         customPadding += "\t";
@@ -12401,6 +12412,43 @@ inline void ProcessClass::dumpMemory(MemoryMapType & MemoryMap){
             + getFieldWithPadding(Variable.ID, maxFieldPadding[1])
             + getFieldWithPadding(dataTypeToStr(Variable.type), maxFieldPadding[2])
             + getFieldWithPadding(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting), maxFieldPadding[3]) + "\n";
+    }
+    buffor += "\n";
+    printInColor(buffor, 11);
+}
+inline void ProcessClass::dumpLocalMemory(MemoryMapType & MemoryMap){
+    const size_t & TAB_SIZE = 8; 
+    auto normalize = [](const size_t & valueSize, const size_t & TAB_SIZE){
+        return (valueSize / TAB_SIZE) + 1;
+    };
+    const size_t labelNumber = 5;
+    size_t maxFieldPadding[labelNumber] = {1, 1, 1, 1, 1};
+    string labels[labelNumber] = {"LOC_ADDR", "REAL_ADDR", "NAME", "TYPE", "VALUE"};
+    for(size_t labelIdx = 0; labelIdx < labelNumber; ++labelIdx){
+        maxFieldPadding[labelIdx] = std::max(maxFieldPadding[labelIdx], normalize(labels[labelIdx].size(), TAB_SIZE));
+    }
+    for(unsigned localAddress = 0; localAddress < LocalToGlobalTranslation.size(); ++localAddress){
+        unsigned globalAddress =  LocalToGlobalTranslation[localAddress].dynamicAddress;
+        const ContextClass & Variable = MemoryMap[globalAddress];
+        maxFieldPadding[0] = std::max(maxFieldPadding[0], normalize(std::to_string(localAddress).size(), TAB_SIZE));
+        maxFieldPadding[1] = std::max(maxFieldPadding[1], normalize(std::to_string(globalAddress).size(), TAB_SIZE));
+        maxFieldPadding[2] = std::max(maxFieldPadding[2], normalize(Variable.ID.size(), TAB_SIZE));
+        maxFieldPadding[3] = std::max(maxFieldPadding[3], normalize(dataTypeToStr(Variable.type).size(), TAB_SIZE));
+        maxFieldPadding[4] = std::max(maxFieldPadding[4], normalize(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting).size(), TAB_SIZE));
+    }
+    string buffor = "\n";
+    for(size_t labelIdx = 0; labelIdx < labelNumber; ++labelIdx){
+        buffor += getFieldWithPadding(labels[labelIdx], maxFieldPadding[labelIdx]);
+    }
+    buffor += "\n";
+    for(unsigned localAddress = 0; localAddress < LocalToGlobalTranslation.size(); ++localAddress){
+        unsigned globalAddress =  LocalToGlobalTranslation[localAddress].dynamicAddress;
+        const ContextClass & Variable = MemoryMap[globalAddress];
+        buffor += getFieldWithPadding(std::to_string(localAddress), maxFieldPadding[0])
+            + getFieldWithPadding(std::to_string(globalAddress), maxFieldPadding[1])
+            + getFieldWithPadding(Variable.ID, maxFieldPadding[2])
+            + getFieldWithPadding(dataTypeToStr(Variable.type), maxFieldPadding[3])
+            + getFieldWithPadding(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting), maxFieldPadding[4]) + "\n";
     }
     buffor += "\n";
     printInColor(buffor, 11);
@@ -12696,11 +12744,11 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
             case find_by_id_2:
                 findByIDInObjectMemory(Operation, ObjectMemory);
                 break;
-            case dump_context_stack:
-                dumpVariables(ObjectMemory.MemoryMap);
-                break;
             case dump_memory:
                 dumpMemory(ObjectMemory.MemoryMap);
+                break;
+            case dump_local_memory:
+                dumpLocalMemory(ObjectMemory.MemoryMap);
                 break;
             case restart_drag:
                 detectStartPosOfDraggingCamera(Engine.display, Engine.Mouse);
@@ -14653,6 +14701,7 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
             }
         }
         if(interruptInstruction == EngineInstr::run){
+            interruptInstruction = EngineInstr::null;
             EventStack.emplace_back(it_Event, LocalToGlobalTranslation, EventCallState);
 
             ChildStruct * SelectedChild = nullptr;
@@ -14787,6 +14836,10 @@ bool ProcessClass::executeTriggeredEvents(EngineClass & Engine, vector<ProcessCl
         
         it_StartingEvent = it_Event;
 
+        if(!ProcessMemory.contains(it_TriggeredObject->objectLookupID)){
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object '" << it_TriggeredObject->getID() << "' doesn't have memory.\n";
+            continue;
+        }
         ObjectMemoryStruct & ObjectMemory = ProcessMemory[it_TriggeredObject->objectLookupID];
 
         CurrentInstr.layerID = TriggeredLayer->getID();
@@ -16188,7 +16241,7 @@ void ProcessClass::selectObject(const MouseClass & Mouse){
             selectedObjectID = Object.getID();
             SelectedLayer = &Layer;
             SelectedObject = &Object;
-            //SelectedObject->refreshCoordinates();
+            SelectedObject->refreshPositionsAndSizesOfObjectAndItsImages();
             return;
         }
     }
@@ -16432,6 +16485,19 @@ void PointerRecalculator::findIndexesForObjects(vector<LayerClass> &Layers, Obje
             if(Layers[layerIndex].getID() == SelectedObject->getLayerID()){
                 SelectedObjectIndex = AncestorIndex(layerIndex, SelectedObject - &Layers[layerIndex].Objects[0]);
                 break;
+            }
+        }
+    }
+}
+void PointerRecalculator::findIndexesForObjectsInObjectMemory(vector<LayerClass> &Layers, MemoryMapType &MemoryMap){
+    unsigned layerIndex;   
+    for(size_t contextIdx = 0; contextIdx < MemoryMap.size(); ++contextIdx){
+        for(AncestorObject * Object : MemoryMap[contextIdx].Objects){
+            for(layerIndex = 0; layerIndex < Layers.size(); layerIndex++){
+                if(Layers[layerIndex].getID() == Object->getLayerID()){
+                    ObjectIndexes[contextIdx].push_back(AncestorIndex(layerIndex, Object - &Layers[layerIndex].Objects[0]));
+                    break;
+                }
             }
         }
     }
@@ -16684,6 +16750,17 @@ void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers, Ob
     }
     if(SelectedObject != nullptr){
         SelectedObject = SelectedObjectIndex.object(Layers);
+    }
+}
+void PointerRecalculator::updatePointersToObjectsInObjectMemory(
+    vector<LayerClass> &Layers, MemoryMapType &MemoryMap, const InstrDescription & CurrentInstr
+){
+    for(const auto & IndexPair : ObjectIndexes){
+        ContextClass & CurrentContext = MemoryMap[IndexPair.first];
+        CurrentContext.Objects.clear();
+        for(const AncestorIndex & Index : IndexPair.second){
+            CurrentContext.Objects.push_back(Index.object(Layers));
+        }
     }
 }
 void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,

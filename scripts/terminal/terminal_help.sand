@@ -424,7 +424,7 @@ start printHistory(int & commandHistorySize)
         ++ j
         += result j
         += result "\t"
-        access nextCommand [Vectors.commandHistory.context.i]
+        index_vec commandHistory i nextCommand
         += result nextCommand
         += result "\n"
         ++ i
@@ -435,13 +435,14 @@ end
 
 start wait()
     = program "wait"
-    int waitingTime 0
+    = waitingTime 0
 end
 start executeWaiting()
     triggers each_second
     if (program "wait" == second_passed &&)
         index me [0 0] super_editable_text Terminal
         fun Terminal cut_unprotected_area
+        fun Terminal update
         if(waitingTime 0 ==)
             string result "||||||||||||||||||||"
             ++ waitingTime
@@ -452,7 +453,7 @@ start executeWaiting()
             run printOnTerminalUnprotected(result)
         else_if(waitingTime 2 ==)
             string result "--------------------"
-            int waitingTime 0
+            = waitingTime 0
             run printOnTerminalUnprotected(result)
         end_if
     end_if

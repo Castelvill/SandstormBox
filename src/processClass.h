@@ -198,6 +198,7 @@ struct PointerRecalculator{
     void findIndexesForLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer);
     void findIndexesForObjects(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject);
+    void findIndexesForObjectsInObjectMemory(vector<LayerClass> &Layers, MemoryMapType &MemoryMap);
     template <class Module>
     ModuleIndex getIndex(Module *& Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
     ModuleIndex getIndex(vector<EventModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
@@ -210,6 +211,9 @@ struct PointerRecalculator{
     void updatePointersToLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr);
     void updatePointersToObjects(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, AncestorObject *& Owner,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& SelectedLayer, AncestorObject *& SelectedObject, const InstrDescription & CurrentInstr);
+    void updatePointersToObjectsInObjectMemory(
+        vector<LayerClass> &Layers, MemoryMapType &MemoryMap, const InstrDescription & CurrentInstr
+    );
     void updatePointersToModules(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
         vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
     LayerClass * getOwnerLayer(vector <LayerClass> & Layers);
@@ -383,6 +387,7 @@ public:
     //void nameVariable(ContextMapStruct & ObjectMemory, OperationClass & Operation);
     void moveValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void incrementInteger(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass * RightOperand, bool & wasNewExecuted, bool & changeOldID);
     void cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers);
     void executeArithmetics(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void generateRandomVariable(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
@@ -474,8 +479,8 @@ public:
     bool assertValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void getContextType(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void loadVariableFromMemoryAddress(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
-    void dumpVariables(const MemoryMapType & MemoryMap);
     void dumpMemory(MemoryMapType & MemoryMap);
+    void dumpLocalMemory(MemoryMapType & MemoryMap);
     EngineInstr executeInstructions(LayerClass *& OwnerLayer,
         AncestorObject *& Owner, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject *> & TriggeredObjects,
         vector<ProcessClass> & Processes, vector<EventModule>::iterator & it_StartingEvent,

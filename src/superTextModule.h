@@ -67,6 +67,7 @@ public:
     ) const;
 
     void fitFormattingToContent();
+    void cutFormattingToContent();
     void setContent(string newContent);
     void addContent(string newContent);
     void addNewTextLine(string newLine);
@@ -105,7 +106,7 @@ public:
     void setCursorPos(int newPos);
     void setSecondCursorPos(int newPos);
     void divideFormattingByCursor();
-    void cutContent(size_t newSize);
+    void cutContentToSize(size_t newSize);
     void saveFormattedTextToTheFile(string filePath);
     void loadFormattedTextFromTheFile(string filePath, vector<SingleFont> & FontContainer);
 };
@@ -146,17 +147,20 @@ public:
     VariableModule getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const;
     void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
 
-    bool prepareEditing(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
-    void executeOneBackspaceOrCtrlX(char pKey, string text, ALLEGRO_DISPLAY * display, unsigned & leftCursorOnFormatIdx,
-        unsigned & rightCursorOnFormatIdx, bool ENABLE_al_set_clipboard_text, string & internalClipboard,
-        vector<FormatClass> & CopiedFormatting, string EXE_PATH
-    );
-    void executeOneDeletion(string text, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
-    bool deleteFromText(char pKey, string text, bool & control, ALLEGRO_DISPLAY * display,
-        unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx,
-        bool ENABLE_al_set_clipboard_text, string & internalClipboard,
-        vector<FormatClass> & CopiedFormatting, string EXE_PATH
-    );
+    bool preprocessUserInput(const vector <short> & releasedKeys, vector <short> & pressedKeys, bool & shift, bool & control);
+    void executeCut(char pKey, ALLEGRO_DISPLAY *display, unsigned &leftCursorOnFormatIdx,
+                    unsigned &rightCursorOnFormatIdx, bool ENABLE_al_set_clipboard_text, string &internalClipboard,
+                    vector<FormatClass> &CopiedFormatting, string EXE_PATH);
+    void copyOneLetterWithCut(std::string &internalClipboard, bool ENABLE_al_set_clipboard_text, ALLEGRO_DISPLAY *display, std::string &EXE_PATH, std::vector<FormatClass> &CopiedFormatting, unsigned int &leftCursorOnFormatIdx);
+    void copySelectionWithCut(std::string &internalClipboard, unsigned int selectionStart, unsigned int selectionEnd, bool ENABLE_al_set_clipboard_text, ALLEGRO_DISPLAY *display, std::string &EXE_PATH, std::vector<FormatClass> &CopiedFormatting, unsigned int &leftCursorOnFormatIdx, unsigned int &rightCursorOnFormatIdx);
+    void executeOneBackspace(unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
+    void executeOneDeletion(unsigned &leftCursorOnFormatIdx, unsigned &rightCursorOnFormatIdx);
+    void deleteSelection(std::string &newContent, unsigned int &leftCursorOnFormatIdx, unsigned int &rightCursorOnFormatIdx);
+    bool deleteFromText(char pKey, bool &control, ALLEGRO_DISPLAY *display,
+                        unsigned &leftCursorOnFormatIdx, unsigned &rightCursorOnFormatIdx,
+                        bool ENABLE_al_set_clipboard_text, string &internalClipboard,
+                        vector<FormatClass> &CopiedFormatting, string EXE_PATH);
+    void selectLeftFragmentOfCurrentWord(unsigned int &wordSizeToLeftFromCursor);
     void getNumbers(char pKey, char & character, bool shift);
     void addFloatingPoint(char pKey, char & character, string text);
     bool addMinus(char pKey, char & character, string text);
@@ -185,14 +189,34 @@ public:
     void moveCursorToLeft(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorToRightByOne(bool shift, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
     void moveCursorToRight(bool shift, bool control, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
-    void edit(vector <short> releasedKeys, vector <short> pressedKeys, ALLEGRO_DISPLAY * display,
-        bool ENABLE_al_set_clipboard_text, string & internalClipboard, vector<FormatClass> & CopiedFormatting,
-        string EXE_PATH, bool allowNotAscii
+    void replaceSelectionWithNewCharacter(string & text, char & character, unsigned & leftCursorOnFormatIdx, unsigned & rightCursorOnFormatIdx);
+    bool handleMovement(char pKey, bool shift, unsigned int &leftCursorOnFormatIdx, unsigned int &rightCursorOnFormatIdx, bool control);
+    void handleControlButtonBehaviour(char pKey, std::string &text, unsigned int &leftCursorOnFormatIdx, unsigned int &rightCursorOnFormatIdx,
+        std::string &internalClipboard, bool ENABLE_al_set_clipboard_text, ALLEGRO_DISPLAY *display, std::string &EXE_PATH,
+        std::vector<FormatClass> &CopiedFormatting, bool shift, bool allowNotAscii
     );
+    void edit(vector<short> releasedKeys, vector<short> pressedKeys, ALLEGRO_DISPLAY *display, bool ENABLE_al_set_clipboard_text,
+        string &internalClipboard, vector<FormatClass> &CopiedFormatting, string EXE_PATH, bool allowNotAscii
+    );
+    void processPressedKey(char pKey, bool shift, unsigned int &leftCursorOnFormatIdx, unsigned int &rightCursorOnFormatIdx, bool &isControlPressed,
+        ALLEGRO_DISPLAY *display, bool ENABLE_al_set_clipboard_text, std::string &internalClipboard, std::vector<FormatClass> &CopiedFormatting,
+        std::string &EXE_PATH, bool allowNotAscii
+    );
+    //Return true if the text is not selected.
+    bool findBothEndsOfSelectedFormatting(unsigned int &leftCursorOnFormatIdx, unsigned int &rightCursorOnFormatIdx);
+    void processTextFieldEnding();
     void setCursorPos(int newPos);
     void setSecondCursorPos(int newPos);
     float getWidthOfLetterInTheText(unsigned currentCursorPos);
     void setCursorsWithMouse(vec2d finalPos, const MouseClass & Mouse, const Camera2D *Camera);
+    void selectWholeText(std::string &text, unsigned int &leftCursorOnFormatIdx, unsigned int &rightCursorOnFormatIdx);
+    void copySelectedText(std::string &text, std::string &internalClipboard, bool ENABLE_al_set_clipboard_text, ALLEGRO_DISPLAY *display,
+        std::string &EXE_PATH, std::vector<FormatClass> &CopiedFormatting, unsigned int &leftCursorOnFormatIdx, unsigned int &rightCursorOnFormatIdx
+    );
+    void replaceSelectionWithTextFromTheClipboard(std::string &text, bool ENABLE_al_set_clipboard_text, bool shift, ALLEGRO_DISPLAY *display,
+        bool allowNotAscii, std::string &internalClipboard, std::vector<FormatClass> &CopiedFormatting, unsigned int &leftCursorOnFormatIdx,
+        unsigned int &rightCursorOnFormatIdx
+    );
 };
 
 #endif

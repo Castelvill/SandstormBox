@@ -1,3 +1,12 @@
+7.06.2025
+-Updated TODO list.
+-Fixed "wait" program.
+-Fixed text field: backspace, delete, cutting and edge case detected by "wait" program.
+-Fixed edit program: insert mode, clearing text field.
+
+1.06.2025
+-Added "dump_local_memory" instruction.
+
 7.05.2025
 -Fixed terminal - some commands work.
 

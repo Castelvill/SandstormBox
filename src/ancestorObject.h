@@ -82,7 +82,7 @@ public:
     void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects,
         vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string workingDirectory
     );
-    void refreshCoordinates();
+    void refreshPositionsAndSizesOfObjectAndItsImages();
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
     void setID(string newID, vector<string> & listOfIDs);
