@@ -71,8 +71,8 @@ public:
 
     vector <string> bindedScripts;
     
-    bool canBeMovedWithMouse;
-    bool canDrawSelectionBorder;
+    bool canBeMovedWithMouse = false;
+    bool canDrawSelectionBorder = false;
 
     AncestorObject();
     void deleteLater();

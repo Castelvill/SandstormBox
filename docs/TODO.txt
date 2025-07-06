@@ -1,4 +1,11 @@
--Fix in the terminal: note, mover, nw, test.
+-Test deleting modules and using variables with indexes that may have been affected by deletion.
+-Recalculate pointers of variables only when the memory in the object is invalidated.
+-Create dot/extract instuction which will use/merge accessor functionalities from: first, all, last and random instructions. Add filter instruction that will use filtering functionality of first, all, last and random instructions.
+-Compress all id vectors in ancestorObject to a single set if the order of these ids is not important. Thanks to that user will be able to access module instances without mentioning their types and imporove performance. 
+-Test and improve finding and accessing other objects' parameters 
+-Remove old "eventsContainerIDs"
+-Change me and my_layer to this and layer/thisLayer
+-Fix in the terminal: nw, mover, note, test.
 -Make Rule 110 program in text mode.
 -Make game of life in text mode.
 -Make all/first/last/random more humane.
@@ -21,7 +28,7 @@
 -Use Shunting Yard Algorithm to convert normal conditional expression to Reverse Polish Notation.
 -Use curly brackets instead of "end", "end_if" and "end_while"
 -Create a translation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
--Fuse "triggers" instruction with event declaration with the syntax "event<triggers>(args)" or add triggers based on pre-defined event names like "start onInit()" or "start onKeyPress()".
+-Fuse "triggers" instruction with event declaration with syntax: "event<triggers>(args)", but don't add triggers based on pre-defined event names like "start onInit()" or "start onKeyPress()", because then you won't be able to easily test multiple different on_init events. Another way would be to add both ideas: <triggers> and OVERRIDING predefined events.
 -Fix creating variables in interpreter.sand.
 
 -Update documentation.

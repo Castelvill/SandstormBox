@@ -67,6 +67,8 @@ public:
     //value, pointer, variable, vector, camera, layer, object, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, variable, scrollbar, primitives, vector
     DataType type = null_dt;
     bool readOnly = false;
+    bool isPointingToMember = false; //If false, developer has to handle reasigning the pointers themselves.
+    size_t containerIndex = 0;
     vector <VariableModule> Values; //Variables exist during the lifespan of Events' chain execution.
     vector <BasePointersStruct> BasePointers;
     ModulesPointers Modules;
@@ -135,7 +137,7 @@ void copyFirstInstance(vector<EntityType> & NewContainer, vector<EntityType> & O
     if(OriginalContainer.size() == 0){
         cerr << "Error: In " << functionName << ": For the context '"
             << originalID << "' of the type '" << dataTypeToStr(originalType)
-            << "': Container is empty.";
+            << "': Container is empty.\n";
         return;
     }
     if(NewContainer.size() == 0){
@@ -152,10 +154,13 @@ struct DynamicMemoryStruct{
 struct ObjectMemoryStruct{
 	vector<ContextClass> MemoryMap;
     vector<DynamicMemoryStruct> DynamicMemory;
-    vector<VariableLocationStruct> GlobalScope; //Required for runtime compilation.
+    vector<VariableLocationStruct> MemberVarsScope; //Required for runtime compilation.
     unsigned topAddress = 0;
     unsigned topFreeDynamicAddress = 0; //It's a quick and dirty? way to track where the unused dynamic memory starts.
     void clear();
+    void cloneMemory(ObjectMemoryStruct & OriginalMemory, AncestorObject * OriginalObject, AncestorObject * ClonedObject,
+        LayerClass * CloneLayer, vector<LayerClass> & Layers
+    );
 };
 
 struct EventCallStateStruct{
@@ -284,7 +289,7 @@ private:
     bool printOutInstructions;
     int maxLengthOfValuesPrinting = 100; //Used in printing values of variables while debugging.
     bool printOutStackAutomatically;
-    float reservationMultiplier = 1.5;
+    float reservationMultiplier = 2.0;
 
     long timeToInterruptMovement;
     long timeToInterruptParticles;
@@ -309,7 +314,7 @@ public:
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
     void allocateBuiltInVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object, LayerClass &Layer);
-    void allocatePredefinedGlobalVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object);
+    void allocatePredefinedMemberParameters(ObjectMemoryStruct &CurrentMap, AncestorObject &Object);
     //Return true if new memory was allocated.
     bool allocateRealMemory(const std::string &variableId, const DataType &variableType,
         const bool &readOnly, const bool &isLocal, const bool &isReference,
@@ -387,8 +392,14 @@ public:
     //void nameVariable(ContextMapStruct & ObjectMemory, OperationClass & Operation);
     void moveValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void incrementInteger(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
-    void cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass * RightOperand, bool & wasNewExecuted, bool & changeOldID);
-    void cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers);
+    void cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory, ContextClass * LeftOperand, ContextClass * RightOperand,
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
+        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool & wasNewExecuted, bool & changeOldID
+    );
+    void cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers,
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
+        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
+    );
     void executeArithmetics(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void generateRandomVariable(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void createLiteral(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);

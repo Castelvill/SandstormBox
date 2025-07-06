@@ -160,7 +160,7 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     clearVectorsOfIDs();
     clear();
     PrimaryModule::clone(Original, listOfUniqueIDs, newLayerID, "", changeOldID);
-    objectLookupID = ID + layerID;
+    objectLookupID = layerID + ID;
     for(const TextModule & Text : Original.TextContainer){
         TextContainer.emplace_back(TextModule());
         TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID(), true);
@@ -441,12 +441,12 @@ vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
 
 void AncestorObject::setID(string newID, vector<string> &listOfIDs){
     PrimaryModule::setID(newID, listOfIDs);
-    objectLookupID = ID + layerID;
+    objectLookupID = layerID + ID;
 }
 
 void AncestorObject::primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     PrimaryModule::primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    objectLookupID = ID + layerID;
+    objectLookupID = layerID + ID;
 }
 
 void AncestorObject::setIsScrollable(bool newValue){

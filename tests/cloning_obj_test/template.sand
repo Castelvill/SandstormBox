@@ -1,0 +1,23 @@
+start onInit()
+    triggers on_init
+
+    access myName [me.id]
+    if(myName "Template" ==)
+        assert 1 0
+    end_if
+
+    ++ var0
+    assert var0 16
+
+    run decrementLock()
+
+    //print "Hello from " myName ": " var0 "\n"
+end
+
+start decrementLock()
+    Var idleLock
+    first my_layer _ _ _ _ object _ objects
+    find_by_id_2 objects testObjName testObj
+    first testObj _ _ Variables idleLock _ _ idleLock
+    -- idleLock
+end

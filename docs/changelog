@@ -1,3 +1,7 @@
+6.07.2025
+-Added counting of passed tests.
+-Fixed pointer invalidation caused by cloning instructions.
+
 7.06.2025
 -Updated TODO list.
 -Fixed "wait" program.

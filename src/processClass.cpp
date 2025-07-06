@@ -35,7 +35,7 @@ void ProcessClass::setID(string newID, vector<string> &listOfIDs){
     ID = findNewUniqueID(listOfIDs, newID);
     listOfIDs.push_back(ID);
 }
-void findIndexesOfEventChildren(vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr){
+void findIndexesOfEventChildren(vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr, bool postDelete = false){
     for(EventModule & ParentEvent : EventContainer){
         for(ChildStruct & Child : ParentEvent.Children){
             unsigned childEventIdx = 0;
@@ -46,10 +46,18 @@ void findIndexesOfEventChildren(vector<EventModule> & EventContainer, const Inst
                 }
             }
             if(childEventIdx == EventContainer.size()){
-                printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
-                    "Child '" + Child.ID + "' of the event " + ParentEvent.getID()
-                    + " does not exist in the event container.\n"
-                );
+                if(!postDelete){
+                    printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
+                        "Child '" + Child.ID + "' of the event '" + ParentEvent.getID()
+                        + "' does not exist in the event container.\n"
+                    );
+                }
+                else{
+                    printLogMessage("Warning", __FILE__, __LINE__, __FUNCTION__,
+                        "Child '" + Child.ID + "' of the event '" + ParentEvent.getID()
+                        + "' has been deleted.\n"
+                    );
+                }  
             }
         }
     }
@@ -136,7 +144,7 @@ void ProcessClass::allocateBuiltInVariables(ObjectMemoryStruct &CurrentMap, Ance
     }
     CurrentMap.topAddress = 3;
 }
-inline bool wasGlobalVariableDefined(const vector<VariableLocationStruct> & GlobalScope, const string & variableName, DataType variableType){
+inline bool wasMemberVariableDefined(const vector<VariableLocationStruct> & GlobalScope, const string & variableName, DataType variableType){
     for(const VariableLocationStruct & GlobalScopeVar : GlobalScope){
         if(GlobalScopeVar.name == variableName && GlobalScopeVar.type == variableType){
             return true;
@@ -144,21 +152,25 @@ inline bool wasGlobalVariableDefined(const vector<VariableLocationStruct> & Glob
     }
     return false;
 }
-void ProcessClass::allocatePredefinedGlobalVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object){
-    for(VariableModule & GlobalVariable : Object.VariablesContainer){
-        if(wasGlobalVariableDefined(CurrentMap.GlobalScope, GlobalVariable.getID(), variable_mod)){
+void ProcessClass::allocatePredefinedMemberParameters(ObjectMemoryStruct &CurrentMap, AncestorObject &Object){
+    for(VariableModule & MemberParameter : Object.VariablesContainer){
+        if(wasMemberVariableDefined(CurrentMap.MemberVarsScope, MemberParameter.getID(), variable_mod)){
             continue;
         }
-        if(allocateRealMemory(GlobalVariable.getID(), variable_mod, false, false, false, CurrentMap.topAddress++, 0, CurrentMap)){
-            CurrentMap.MemoryMap.back().Modules.Variables.push_back(&GlobalVariable);
+        if(allocateRealMemory(MemberParameter.getID(), variable_mod, false, false, false, CurrentMap.topAddress++, 0, CurrentMap)){
+            CurrentMap.MemoryMap.back().Modules.Variables.push_back(&MemberParameter);
+            CurrentMap.MemoryMap.back().isPointingToMember = true;
+            CurrentMap.MemoryMap.back().containerIndex = &MemberParameter - &Object.VariablesContainer[0];
         }
     }
-    for(VectorModule & GlobalVariable : Object.VectorContainer){
-        if(wasGlobalVariableDefined(CurrentMap.GlobalScope, GlobalVariable.getID(), vector_mod)){
+    for(VectorModule & MemberVector : Object.VectorContainer){
+        if(wasMemberVariableDefined(CurrentMap.MemberVarsScope, MemberVector.getID(), vector_mod)){
             continue;
         }
-        if(allocateRealMemory(GlobalVariable.getID(), vector_mod, false, false, false, CurrentMap.topAddress++, 0, CurrentMap)){
-            CurrentMap.MemoryMap.back().Modules.Vectors.push_back(&GlobalVariable);
+        if(allocateRealMemory(MemberVector.getID(), vector_mod, false, false, false, CurrentMap.topAddress++, 0, CurrentMap)){
+            CurrentMap.MemoryMap.back().Modules.Vectors.push_back(&MemberVector);
+            CurrentMap.MemoryMap.back().isPointingToMember = true;
+            CurrentMap.MemoryMap.back().containerIndex = &MemberVector - &Object.VectorContainer[0];
         }
     }
 }
@@ -183,7 +195,7 @@ bool ProcessClass::allocateRealMemory(const std::string &variableId, const DataT
     CurrentMap.MemoryMap.back().type = variableType;
     CurrentMap.MemoryMap.back().readOnly = readOnly;
     if(!isLocal){
-        CurrentMap.GlobalScope.emplace_back(variableId, variableType, isLocal, isReference, localIndex, newRealAddress);
+        CurrentMap.MemberVarsScope.emplace_back(variableId, variableType, isLocal, isReference, localIndex, newRealAddress);
     }
     return true;
 }
@@ -194,7 +206,7 @@ void ProcessClass::allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap, con
         for(unsigned localVarIdx = 0; localVarIdx < it_Event.LocalVariables.size(); ++localVarIdx){
             const VariableInfo & it_Variable = it_Event.LocalVariables[localVarIdx];
             if(it_Variable.isReference){
-                continue; //There's no need to allocate memory for the reference since its real address will not be used.
+                continue; //There's no need to allocate memory for a reference since its real address will not be used.
             }
             allocateRealMemory(it_Variable.name, it_Variable.type, writable, isLocal,
                 it_Variable.isReference, it_Variable.defaultAddress, localVarIdx, CurrentMap
@@ -258,7 +270,7 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
     InitObject.primaryConstructor(newObjectID, &Layers.back().objectsIDs, Layers.back().getID(), "");
     ObjectMemoryStruct & CurrentMap = ProcessMemory[InitObject.objectLookupID];
     allocateBuiltInVariables(CurrentMap, InitObject, Layers.back());
-    allocatePredefinedGlobalVariables(CurrentMap, InitObject);
+    allocatePredefinedMemberParameters(CurrentMap, InitObject);
     if(initFilePath != ""){
         if(initFilePath[0] == '?'){ // Script paths that start with a question mark are built-in scripts.
             InitObject.bindedScripts.push_back(initFilePath);
@@ -266,7 +278,7 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
         else{
             InitObject.bindedScripts.push_back(EXE_PATH + initFilePath);
         }
-        InitObject.translateAllScripts(true, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
+        InitObject.translateAllScripts(true, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
         allocateAllLocalVariables(CurrentMap, InitObject.EventContainer);
         //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, InitObject.EventContainer, CurrentInstr);
         findIndexesOfEventChildren(InitObject.EventContainer, CurrentInstr);
@@ -981,6 +993,7 @@ void ContextClass::clear(){
     type = any_dt;
     clearState();
     type = null_dt;
+    isPointingToMember = false;
 }
 void ContextClass::clearState(){
     switch(type){
@@ -1572,6 +1585,8 @@ ContextClass::ContextClass(const ContextClass &Original){
     ID = Original.ID;
     type = Original.type;
     readOnly = Original.readOnly;
+    isPointingToMember = Original.isPointingToMember;
+    containerIndex = Original.containerIndex;
     switch(Original.type){
         case value_inst:
             if(Original.Values.size() == 0){
@@ -1803,6 +1818,8 @@ ContextClass &ContextClass::operator=(const ContextClass &Original){
     ID = Original.ID;
     type = Original.type;
     readOnly = Original.readOnly;
+    isPointingToMember = Original.isPointingToMember;
+    containerIndex = Original.containerIndex;
     switch(Original.type){
         case value_inst:
         case value_vec:
@@ -2234,7 +2251,7 @@ void ContextClass::copyOnlyCurrentType(const ContextClass *Original){
             if(Original->Values.empty()){
                 cerr << "Error: In " << __FUNCTION__ << ": For the context '"
                     << Original->ID << "' of the type '" << dataTypeToStr(Original->type)
-                    << "': Container is empty.";
+                    << "': Container is empty.\n";
                 return;
             }
             if(Values.empty()){
@@ -2250,7 +2267,7 @@ void ContextClass::copyOnlyCurrentType(const ContextClass *Original){
             if(Original->BasePointers.size() == 0){
                 cerr << "Error: In " << __FUNCTION__ << ": For the context '"
                     << Original->ID << "' of the type '" << dataTypeToStr(Original->type)
-                    << "': Container is empty.";
+                    << "': Container is empty.\n";
                 return;
             }
             if(BasePointers.size() == 0){
@@ -2264,7 +2281,7 @@ void ContextClass::copyOnlyCurrentType(const ContextClass *Original){
             if(Original->Modules.Variables.size() == 0){
                 cerr << "Error: In " << __FUNCTION__ << ": For the context '"
                     << Original->ID << "' of the type '" << dataTypeToStr(Original->type)
-                    << "': Container is empty.";
+                    << "': Container is empty.\n";
                 return;
             }
             if(Modules.Variables.size() == 0){
@@ -2278,7 +2295,7 @@ void ContextClass::copyOnlyCurrentType(const ContextClass *Original){
             if(Original->Modules.Vectors.size() == 0){
                 cerr << "Error: In " << __FUNCTION__ << ": For the context '"
                     << Original->ID << "' of the type '" << dataTypeToStr(Original->type)
-                    << "': Container is empty.";
+                    << "': Container is empty.\n";
                 return;
             }
             if(Modules.Vectors.size() == 0){
@@ -4007,6 +4024,7 @@ void ProcessClass::findContextInObject(ValueLocation Location, ContextClass & Ne
                 findContextInModuleVector(Location, NewContext, Object->VectorContainer);
                 break;
             default:
+                NewContext.type = null_dt;
                 break;
         }
     }
@@ -4266,8 +4284,8 @@ void ProcessClass::aggregateModulesById(DataType moduleType, string moduleID, At
             getContextFromModuleVectorById<VectorModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Vectors, false);
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "There are no instances of the \'" << dataTypeToStr(moduleType) << "\' module.\n";
+            // cerr << instructionError(CurrentInstr, __FUNCTION__)
+            //     << "There are no instances of the \'" << dataTypeToStr(moduleType) << "\' module.\n";
             break;
     }
 }
@@ -4427,32 +4445,6 @@ void ProcessClass::executeOperationsOnSets(vector<Entity> & NewContext, vector<E
         }
     }
 }
-// void ProcessClass::addNewContext(ContextMapStruct & ObjectMemory,
-//     const ContextClass & NewContext, string type, string newID, bool global
-// ){
-//     if(global){
-//         if(ObjectMemory.Contexts.contains(newID)){
-//             cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context '" << newID << "' already exists.\n";
-//             return;
-//         }
-//         ObjectMemory.Contexts[newID] = NewContext;
-//         ObjectMemory.Contexts[newID].type = type;
-//         ObjectMemory.Contexts[newID].setID(
-//             CurrentInstr, ObjectMemory.Contexts, ObjectMemory.References, newID, printOutInstructions, maxLengthOfValuesPrinting
-//         );
-//         return;
-//     }
-//     if(ObjectMemory.Contexts.contains(localContextID(CurrentInstr.eventID, newID))){
-//         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context '" << newID << "' already exists.\n";
-//         return;
-//     }
-//     ObjectMemory.Contexts[localContextID(CurrentInstr.eventID, newID)] = NewContext;
-//     ObjectMemory.Contexts[localContextID(CurrentInstr.eventID, newID)].type = type;
-//     ObjectMemory.Contexts[localContextID(CurrentInstr.eventID, newID)].setID(
-//         CurrentInstr, ObjectMemory.Contexts, ObjectMemory.References, newID, printOutInstructions, maxLengthOfValuesPrinting
-//     );
-//     localContextOfCurrentEvent.push_back(localContextID(CurrentInstr.eventID, newID));
-// }
 void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     NewContext.clear();
     ContextClass LeftOperand;
@@ -4616,6 +4608,7 @@ void ProcessClass::aggregateEntities(OperationClass & Operation, ObjectMemoryStr
                 Operation.Location.print(SourceContext->ID);
                 cout << "\n";
             }
+            NewContext.type = SourceContext->type;
             switch(SourceContext->type){
                 case camera_inst:
                     if(SourceContext->Cameras.size() > 0){
@@ -4695,6 +4688,138 @@ inline bool abortIfVectorModEmptyOrNull(const InstrDescription & CurrentInstr, c
         return true;
     }
     return false;
+}
+bool sameEntities(DataType leftType, DataType rightType){
+    switch(leftType){
+        case camera_inst:
+        case camera_vec:
+            switch(rightType){
+                case camera_inst:
+                case camera_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case layer_inst:
+        case layer_vec:
+            switch(rightType){
+                case layer_inst:
+                case layer_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case object_inst:
+        case object_vec:
+            switch(rightType){
+                case object_inst:
+                case object_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case text_mod:
+        case text_mod_vec:
+            switch(rightType){
+                case text_mod:
+                case text_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case editable_text_mod:
+        case editable_text_mod_vec:
+            switch(rightType){
+                case editable_text_mod:
+                case editable_text_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case super_text_mod:
+        case super_text_mod_vec:
+            switch(rightType){
+                case super_text_mod:
+                case super_text_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case super_editable_text_mod:
+        case super_editable_text_mod_vec:
+            switch(rightType){
+                case super_editable_text_mod:
+                case super_editable_text_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case image_mod:
+        case image_mod_vec:
+            switch(rightType){
+                case image_mod:
+                case image_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case movement_mod:
+        case movement_mod_vec:
+            switch(rightType){
+                case movement_mod:
+                case movement_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case collision_mod:
+        case collision_mod_vec:
+            switch(rightType){
+                case collision_mod:
+                case collision_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case particles_mod:
+        case particles_mod_vec:
+            switch(rightType){
+                case particles_mod:
+                case particles_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case event_mod:
+        case event_mod_vec:
+            switch(rightType){
+                case event_mod:
+                case event_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case scrollbar_mod:
+        case scrollbar_mod_vec:
+            switch(rightType){
+                case scrollbar_mod:
+                case scrollbar_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        case primitives_mod:
+        case primitives_mod_vec:
+            switch(rightType){
+                case primitives_mod:
+                case primitives_mod_vec:
+                    return true;
+                default:
+                    return false;
+            }
+        default:
+            return false;
+    }
 }
 void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * LeftOperand, ContextClass & RightOperand){
     //Move a starting value to an empty variable. In other words, clear the left operand and assign it with new values or pointers.
@@ -5020,40 +5145,12 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
                     return;
             }
             return;
-        case camera_inst:
-        case camera_vec:
-        case layer_inst:
-        case layer_vec:
-        case object_inst:
-        case object_vec:
-        case text_mod:
-        case text_mod_vec:
-        case editable_text_mod:
-        case editable_text_mod_vec:
-        case super_text_mod:
-        case super_text_mod_vec:
-        case super_editable_text_mod:
-        case super_editable_text_mod_vec:
-        case image_mod:
-        case image_mod_vec:
-        case movement_mod:
-        case movement_mod_vec:
-        case collision_mod:
-        case collision_mod_vec:
-        case particles_mod:
-        case particles_mod_vec:
-        case event_mod:
-        case event_mod_vec:
-        case scrollbar_mod:
-        case scrollbar_mod_vec:
-        case primitives_mod:
-        case primitives_mod_vec:
-            if(LeftOperand->type != RightOperand.type){
-                printAssignRightToLeftError(CurrentInstr, LeftOperand->type, RightOperand.type);
-            }
-            LeftOperand->copyOnlyCurrentType(&RightOperand);
-            return;
         default:
+            if(sameEntities(LeftOperand->type, RightOperand.type)){
+                LeftOperand->copyOnlyCurrentType(&RightOperand);
+                return;
+            }
+            printAssignRightToLeftError(CurrentInstr, LeftOperand->type, RightOperand.type);
             return;
     }
 }
@@ -5522,6 +5619,8 @@ void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, const Outpu
     if(Variable->type == null_dt){
         Variable->type = NewContext.type;   
     }
+    Variable->isPointingToMember = NewContext.isPointingToMember;
+    Variable->containerIndex = NewContext.containerIndex;
     moveRightToLeft(CurrentInstr, EngineInstr::assign, Variable, NewContext);        
     
     // NewContext.type = literal;
@@ -5923,9 +6022,18 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                 << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
             break;
     }
-} 
-void ProcessClass::cloneEntitiesOfTheSameType(ContextClass * LeftOperand, ContextClass * RightOperand, bool & wasNewExecuted, bool & changeOldID){
-    unsigned i = 0, j = 0;
+}
+void ObjectMemoryStruct::cloneMemory(ObjectMemoryStruct & OriginalMemory, AncestorObject * OriginalObject, AncestorObject * ClonedObject,
+    LayerClass * CloneLayer, vector<LayerClass> & Layers
+){
+    *this = OriginalMemory;
+    MemoryMap[1].Objects[0] = ClonedObject;
+    MemoryMap[2].Layers[0] = CloneLayer;
+}
+void ProcessClass::cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory, ContextClass * LeftOperand, ContextClass * RightOperand,
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
+    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool & wasNewExecuted, bool & changeOldID
+){
     bool sameSize = false;
     switch(LeftOperand->type){
         case pointer_inst:
@@ -5933,7 +6041,7 @@ void ProcessClass::cloneEntitiesOfTheSameType(ContextClass * LeftOperand, Contex
             if(!checkForVectorSize(CurrentInstr, LeftOperand->BasePointers.size(), RightOperand->BasePointers.size(), sameSize, __FUNCTION__)){
                 return;
             }
-            for(; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
+            for(unsigned i = 0, j = 0; i < LeftOperand->BasePointers.size(); i++, j+=sameSize){
                 LeftOperand->BasePointers[i].move(RightOperand->BasePointers[j], EngineInstr::clone_i);
             }
             break;
@@ -5942,7 +6050,7 @@ void ProcessClass::cloneEntitiesOfTheSameType(ContextClass * LeftOperand, Contex
             if(!checkForVectorSize(CurrentInstr, LeftOperand->Values.size(), RightOperand->Values.size(), sameSize, __FUNCTION__)){
                 return;
             }
-            for(; i < LeftOperand->Values.size(); i++, j+=sameSize){
+            for(unsigned i = 0, j = 0; i < LeftOperand->Values.size(); i++, j+=sameSize){
                 LeftOperand->Values[i] = RightOperand->Values[j];
             }
             break;
@@ -5951,52 +6059,69 @@ void ProcessClass::cloneEntitiesOfTheSameType(ContextClass * LeftOperand, Contex
             if(!checkForVectorSize(CurrentInstr, LeftOperand->Cameras.size(), RightOperand->Cameras.size(), sameSize, __FUNCTION__)){
                 return;
             }
-            for(; i < LeftOperand->Cameras.size(); i++, j+=sameSize){
+            for(unsigned i = 0, j = 0; i < LeftOperand->Cameras.size(); i++, j+=sameSize){
                 LeftOperand->Cameras[i]->clone(*RightOperand->Cameras[j], camerasIDs, changeOldID);
             }
             break;
         case layer_inst:
-        case layer_vec:
+        case layer_vec:{
             if(!checkForVectorSize(CurrentInstr, LeftOperand->Layers.size(), RightOperand->Layers.size(), sameSize, __FUNCTION__)){
                 return;
             }
-            for(; i < LeftOperand->Layers.size(); i++, j+=sameSize){
+            PointerRecalculator Recalculator;
+            Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
+            Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+            for(unsigned i = 0, j = 0; i < LeftOperand->Layers.size(); i++, j+=sameSize){
                 LeftOperand->Layers[i]->clone(*RightOperand->Layers[j], layersIDs, changeOldID);
-                //Clone object memory
+            }
+            Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
+            Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+            
+            //Copy memory of each cloned object with events
+            for(unsigned i = 0, j = 0; i < LeftOperand->Layers.size(); i++, j+=sameSize){
                 for(size_t objectIdx = 0; objectIdx < RightOperand->Layers[j]->Objects.size(); ++objectIdx){
-                    const AncestorObject & OriginalObject = RightOperand->Layers[j]->Objects[objectIdx];
-                    const AncestorObject & ClonedObject = LeftOperand->Layers[i]->Objects[objectIdx];
-                    if(ProcessMemory.contains(OriginalObject.objectLookupID)){
-                        ObjectMemoryStruct & OriginalMemory = ProcessMemory[OriginalObject.objectLookupID];
-                        ObjectMemoryStruct & ClonedMemory = ProcessMemory[ClonedObject.objectLookupID];
-                        ClonedMemory = OriginalMemory;
-                        PointerRecalculator Recalculator;
-                        Recalculator.findIndexesForObjectsInObjectMemory(Layers, OriginalMemory.MemoryMap);
-                        Recalculator.updatePointersToObjectsInObjectMemory(Layers, ClonedMemory.MemoryMap, CurrentInstr);
+                    AncestorObject * OriginalObject = &RightOperand->Layers[j]->Objects[objectIdx];
+                    if(ProcessMemory.contains(OriginalObject->objectLookupID)){
+                        AncestorObject * ClonedObject = &LeftOperand->Layers[i]->Objects[objectIdx];
+                        ObjectMemoryStruct & OriginalMemory = ProcessMemory[OriginalObject->objectLookupID];
+                        ObjectMemoryStruct & ClonedMemory = ProcessMemory[ClonedObject->objectLookupID];
+                        ClonedMemory.cloneMemory(OriginalMemory, OriginalObject, ClonedObject, LeftOperand->Layers[i], Layers);
                     }
                 }
             }
             wasNewExecuted = true;
-            break;
+
+            } break;
         case object_inst:
-        case object_vec:
+        case object_vec:{
             if(!checkForVectorSize(CurrentInstr, LeftOperand->Objects.size(), RightOperand->Objects.size(), sameSize, __FUNCTION__)){
                 return;
             }
-            for(; i < LeftOperand->Objects.size(); i++, j+=sameSize){
+            PointerRecalculator Recalculator;
+            Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+            vector<size_t> copiedObjectsLayerIdxs;
+            for(unsigned i = 0, j = 0; i < LeftOperand->Objects.size(); i++, j+=sameSize){
                 for(LayerClass & Layer : Layers){
                     if(Layer.getID() != LeftOperand->Objects[i]->getLayerID()){
                         continue;
                     }
+                    copiedObjectsLayerIdxs.push_back(&Layer - &Layers[0]);
                     LeftOperand->Objects[i]->clone(*RightOperand->Objects[j], Layer.objectsIDs, Layer.getID(), changeOldID);
-                    if(ProcessMemory.contains(RightOperand->Objects[j]->objectLookupID)){
-                        ProcessMemory[LeftOperand->Objects[i]->objectLookupID] = ProcessMemory[RightOperand->Objects[j]->objectLookupID];
-                    }
                     break;
                 }
             }
+            Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+            for(unsigned i = 0, j = 0; i < LeftOperand->Objects.size(); i++, j+=sameSize){
+                AncestorObject * OriginalObject = RightOperand->Objects[j];
+                if(ProcessMemory.contains(OriginalObject->objectLookupID)){
+                    AncestorObject * ClonedObject = LeftOperand->Objects[i];
+                    LayerClass * CloneLayer = &Layers[copiedObjectsLayerIdxs[i]];
+                    ObjectMemoryStruct & ClonedMemory = ProcessMemory[ClonedObject->objectLookupID];
+                    ClonedMemory.cloneMemory(ProcessMemory[OriginalObject->objectLookupID], OriginalObject, ClonedObject, CloneLayer, Layers);
+                }
+            }
             wasNewExecuted = true;
-            break;
+            } break;
         case text_mod:
         case text_mod_vec:
             cloneRightToLeft(LeftOperand->Modules.Texts, RightOperand->Modules.Texts, Layers, changeOldID, CurrentInstr);
@@ -6054,7 +6179,10 @@ void ProcessClass::cloneEntitiesOfTheSameType(ContextClass * LeftOperand, Contex
             break;
     }
 }
-void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers){
+void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers,
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
+    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
+){
     if(Operation.rootParametersSize < 3){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 3 parameters.\n";
         return;
@@ -6093,7 +6221,9 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     }
 
     if(LeftOperand->type == RightOperand->type){
-        cloneEntitiesOfTheSameType(LeftOperand, RightOperand, wasNewExecuted, changeOldID);
+        cloneEntitiesOfTheSameType(ObjectMemory, LeftOperand, RightOperand, Owner, TriggeredObjects, it_StartingEvent,
+            it_Event, MemoryStack, wasNewExecuted, changeOldID
+        );
     }
     else{
         cloneEntitiesOfDifferentType(LeftOperand, RightOperand, CurrentInstr);
@@ -8677,8 +8807,8 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ObjectMemory
             return myEventsAreDeleted;
         }
         allocateBuiltInVariables(CurrentMap, *Object, *ObjectsLayer);
-        allocatePredefinedGlobalVariables(CurrentMap, *Object);
-        Object->translateAllScripts(canResetEvents, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
+        allocatePredefinedMemberParameters(CurrentMap, *Object);
+        Object->translateAllScripts(canResetEvents, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
         //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
         findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
@@ -8766,13 +8896,14 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
             return myEventsAreDeleted;
         }
         allocateBuiltInVariables(CurrentMap, *Object, *ObjectsLayer);
-        allocatePredefinedGlobalVariables(CurrentMap, *Object);
+        allocatePredefinedMemberParameters(CurrentMap, *Object);
+        
         switch(mode){
             case load_build:
                 for(string & path : stringVector){
                     path = EXE_PATH + workingDirectory + path;
                 }
-                Object->translateScriptsFromPaths(canResetEvents, stringVector, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
+                Object->translateScriptsFromPaths(canResetEvents, stringVector, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
                 allocateAllLocalVariables(CurrentMap, Object->EventContainer);
                 //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
                 findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
@@ -8782,14 +8913,14 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
                 for(string & path : stringVector){
                     path = EXE_PATH + workingDirectory + path;
                 }
-                Object->translateSubsetBindedScripts(canResetEvents, stringVector, allowNotAscii, CurrentMap.GlobalScope, CurrentMap.topAddress);
+                Object->translateSubsetBindedScripts(canResetEvents, stringVector, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
                 allocateAllLocalVariables(CurrentMap, Object->EventContainer);
                 //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
                 findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
                 detectRecursionInEvents(Object->EventContainer, CurrentInstr);
                 break;
             case inject_code:
-                Object->injectCode(canResetEvents, stringVector, CurrentMap.GlobalScope, CurrentMap.topAddress);
+                Object->injectCode(canResetEvents, stringVector, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
                 allocateAllLocalVariables(CurrentMap, Object->EventContainer);
                 //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
                 findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
@@ -8817,7 +8948,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
                         cout << "\t" << line << "\n";
                     }
                 }
-                Object->injectInstructions(canResetEvents, preprocessed, CurrentMap.GlobalScope, CurrentMap.topAddress);
+                Object->injectInstructions(canResetEvents, preprocessed, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
                 allocateAllLocalVariables(CurrentMap, Object->EventContainer);
                 //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
                 findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
@@ -8829,10 +8960,10 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
                     << "c (uses injectCode), i (uses injectInstructions)\n";
                 return false;
         }
-        
+
         wasAnyEventUpdated = true;
     }
-    if(!myEventsAreDeleted){
+    if(!myEventsAreDeleted || wasAnyEventUpdated){
         Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
     }
 
@@ -11014,6 +11145,8 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ObjectMemo
     if(Owner->VariablesContainer.size() > 0){
         NewContext.Modules.Variables.push_back(&Owner->VariablesContainer.back());
         NewContext.type = variable_mod;
+        NewContext.isPointingToMember = true;
+        NewContext.containerIndex = Owner->VariablesContainer.size() - 1;
         assignVariable(ObjectMemory, Operation.Output);
     }
     else{
@@ -12269,17 +12402,14 @@ bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct &
     }
     else if(LeftVariable.getVectorSize() == 0 && RightVariable.getVectorSize() == 0){
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << NEW_LINE_PADDING << "Assertion failed: Both operands are empty and of different type.\n";
+            << NEW_LINE_PADDING << "Assertion failed: Both operands are empty and of different types.\n";
         return false;
     }
-    else if(LeftVariable.getVectorSize() == 0){
+    else if(LeftVariable.getVectorSize() == 0 || RightVariable.getVectorSize() == 0){
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << NEW_LINE_PADDING << "Assertion failed: Only left operand is empty.\n";
-        return false;
-    }
-    else if(RightVariable.getVectorSize() == 0){
-        cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
-            << NEW_LINE_PADDING << "Assertion failed: Only right operand is empty.\n";
+            << NEW_LINE_PADDING << "Assertion failed: ["
+            << dataTypeToStr(LeftVariable.type) << "]<" << LeftVariable.getVectorSize() << "> != ["
+            << dataTypeToStr(RightVariable.type) << "]<" << RightVariable.getVectorSize() << ">\n";
         return false;
     }
     else if(LeftVariable.getValue(LeftOperandProc) != ReturnType::INVALID_TYPE
@@ -12599,7 +12729,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 aggregateOnlyById(ObjectMemory, Operation, OwnerLayer, Owner);
                 break;
             case clone_i:
-                cloneEntities(Operation, ObjectMemory, Layers);
+                cloneEntities(Operation, ObjectMemory, Layers, Owner, TriggeredObjects, it_StartingEvent, it_Event, MemoryStack);
                 break;
             case add:
             case sub:
@@ -13406,8 +13536,8 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
     };
     auto printEmptyError = [](const unsigned & vecSize, const DataType & type, VariableModule & NewValue, const InstrDescription & CurrentInstr){
         if(vecSize == 0){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "There are no instances of '" << type << "' type in the context.\n";
+            // cerr << instructionError(CurrentInstr, __FUNCTION__)
+            //     << "There are no instances of '" << type << "' type in the context.\n";
             NewValue.setBool(false);
             return true;
         }
@@ -14216,7 +14346,7 @@ bool ProcessClass::deleteEntities(){
                         wereEventsDeleted, ProcessMemory[Object->objectLookupID]
                     );
                     if(wereEventsDeleted){
-                        findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+                        findIndexesOfEventChildren(Object->EventContainer, CurrentInstr, true);
                         detectRecursionInEvents(Object->EventContainer, CurrentInstr);
                     }
 
@@ -14844,6 +14974,26 @@ bool ProcessClass::executeTriggeredEvents(EngineClass & Engine, vector<ProcessCl
 
         CurrentInstr.layerID = TriggeredLayer->getID();
         CurrentInstr.objectID = it_TriggeredObject->getID();
+
+        //TODO: refactor it to look better -> function 
+        for(auto & var : ObjectMemory.MemoryMap){
+            if(!var.isPointingToMember){
+                continue;
+            }
+            switch(var.type){
+                case variable_mod:
+                    var.Modules.Variables[0] = &it_TriggeredObject->VariablesContainer[var.containerIndex];
+                    break;
+                case vector_mod:
+                    var.Modules.Vectors[0] = &it_TriggeredObject->VectorContainer[var.containerIndex];
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        ObjectMemory.MemoryMap[1].Objects[0] = it_TriggeredObject;
+        ObjectMemory.MemoryMap[2].Layers[0] = TriggeredLayer;
 
         if(executeEventLoop(Engine, Processes, CurrentTriggers,
             it_StartingEvent, it_Event, ObjectMemory, TriggeredObjects,
@@ -16685,13 +16835,15 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, Obj
 ){
     for(const auto & IndexPair : CameraIndexes){
         ContextClass & CurrentContext = ObjectMemory.MemoryMap[IndexPair.first];
-        for(const unsigned & camera : IndexPair.second){
-            if(camera >= Cameras.size()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "CameraIndexes[context][camera] goes out of scope of Cameras.\n";
-                CurrentContext.Cameras[camera] = nullptr;
+        for(size_t varCamIdx = 0; varCamIdx < IndexPair.second.size(); ++varCamIdx){
+            unsigned realCamIdx = IndexPair.second[varCamIdx];
+            if(realCamIdx >= Cameras.size()){
+                cerr << instructionError(CurrentInstr, __FUNCTION__) << "CameraIndexes[" << IndexPair.first
+                    << "][" << realCamIdx << "] goes out of scope of Cameras<" << Cameras.size() << ">.\n";
+                CurrentContext.Cameras[varCamIdx] = nullptr;
                 continue;
             }
-            CurrentContext.Cameras[camera] = &Cameras[camera];
+            CurrentContext.Cameras[varCamIdx] = &Cameras[realCamIdx];
         }
     }
     if(SelectedCamera != nullptr){
@@ -16706,15 +16858,16 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras, Obj
 void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr){
     for(const auto & IndexPair : LayerIndexes){
         ContextClass & CurrentContext = ObjectMemory.MemoryMap[IndexPair.first];
-        for(const unsigned & layer : IndexPair.second){
-            if(layer >= Layers.size()){
+        for(size_t varLayerIdx = 0; varLayerIdx < IndexPair.second.size(); ++varLayerIdx){
+            unsigned realLayerIdx = IndexPair.second[varLayerIdx];
+            if(realLayerIdx >= Layers.size()){
                 cerr << instructionError(CurrentInstr, __FUNCTION__) << "LayerIndexes[\"" << IndexPair.first
-                    << "\"][" << layer << "]"
+                    << "\"][" << realLayerIdx << "]"
                     << " goes out of scope of Layers<" << Layers.size()  << ">.\n";
-                CurrentContext.Layers[layer] = nullptr;
+                CurrentContext.Layers[varLayerIdx] = nullptr;
                 continue;
             }
-            CurrentContext.Layers[layer] = &Layers[layer];
+            CurrentContext.Layers[varLayerIdx] = &Layers[realLayerIdx];
         }
     }
     if(OwnerLayer != nullptr){
@@ -16782,11 +16935,6 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, O
                 cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object pointer is a null value.\n";
                 continue;
             }
-
-            // if(!ObjectMemory.Contexts.contains(IndexPair.first)){
-            //     cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context '" << IndexPair.first << "' does not exist.\n";
-            //     continue;
-            // }
 
             ContextClass & CurrentContext = ObjectMemory.MemoryMap[IndexPair.first];
 

@@ -3,6 +3,9 @@ start testRunnerEvent()
     env can_exit_on_idle 1
     edit_proc print_instructions 0
 
+    var passedTests 0
+    var allTestsCount 0
+
     print "============================================\n"
     print "RUNNING ALL TESTS - START\n"
     print "============================================\n"
@@ -10,68 +13,98 @@ start testRunnerEvent()
     new Objects my_layer 1 "TestAssert" TestAssert
     bind TestAssert ["tests/assert.sand"]
     build TestAssert true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestAccess" TestAccess
     bind TestAccess ["tests/access.sand"]
     build TestAccess true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestIfStatements" TestIfStatements
     bind TestIfStatements ["tests/if_statements.sand"]
     build TestIfStatements true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestScopes" TestScopes
     bind TestScopes ["tests/scopes.sand"]
     build TestScopes true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestPassingReferences" TestPassingReferences
     bind TestPassingReferences ["tests/passing_references.sand"]
     build TestPassingReferences true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestPassingValues" TestPassingValues
     bind TestPassingValues ["tests/passing_values.sand"]
     build TestPassingValues true
+    ++ allTestsCount
     
     new Objects my_layer 1 "TestVariables" TestVariables
     bind TestVariables ["tests/variables.sand"]
     build TestVariables true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestWhileLoop" TestWhileLoop
     bind TestWhileLoop ["tests/while_loop.sand"]
     build TestWhileLoop true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestDisplay" TestDisplay
     bind TestDisplay ["tests/display.sand"]
     build TestDisplay true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestOverride" TestOverride
     bind TestOverride ["tests/override.sand"]
     build TestOverride true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestGlobal" TestGlobal
     bind TestGlobal ["tests/override.sand"]
     build TestGlobal true
+    ++ allTestsCount
     
     new Objects my_layer 1 "TestRecursion" TestRecursion
     bind TestRecursion ["tests/recursion.sand"]
     build TestRecursion true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestDeclaration" TestDeclaration
     bind TestDeclaration ["tests/declaration.sand"]
     build TestDeclaration true
+    ++ allTestsCount
 
     new Objects my_layer 1 "TestTokenize" TestTokenize
     bind TestTokenize ["tests/tokenize.sand"]
     build TestTokenize true
+    ++ allTestsCount
     
     new Objects my_layer 1 "TestRecompilation" TestRecompilation
     bind TestRecompilation ["tests/recompilation.sand"]
     build TestRecompilation true
+    ++ allTestsCount
+
+    new Objects my_layer 1 "TestMemberVariables" TestMemberVariables
+    bind TestMemberVariables ["tests/member_variables.sand"]
+    build TestMemberVariables true
+    ++ allTestsCount
+
+    new Objects my_layer 1 "TestCloningObjects" TestCloningObjects
+    bind TestCloningObjects ["tests/cloning_obj_test/main.sand"]
+    build TestCloningObjects true
+    ++ allTestsCount
+
+    new Objects my_layer 1 "TestCloningLayers" TestCloningLayers
+    bind TestCloningLayers ["tests/cloning_layer_test/main.sand"]
+    build TestCloningLayers true
+    ++ allTestsCount
 end
 
 start on_idle()
     triggers on_idle
     print "============================================\n"
-    print "RUNNING ALL TESTS - PASSED\n"
+    print "RUNNING ALL TESTS - " passedTests "/" allTestsCount " PASSED\n"
     print "============================================\n"
     exit //delete_this_event works the same in this instance
 end

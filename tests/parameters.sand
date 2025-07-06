@@ -1,0 +1,38 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "PARAMETERS_TEST - START\n"
+    
+    new Objects my_layer 1 "otherObject" otherObject
+    new Variables otherObject 1 "p0" p0
+    fun p0 set_int 15
+    
+    assert p0 15
+    ++ p0
+    assert p0 16
+
+    
+end
+
+start onIdle()
+    triggers on_idle
+
+    Var p0
+    first my_layer _ "otherObject" Variables "p0" _ _ p0 //Access variable from object inside a layer
+    assert p0 16
+
+    run incrementPassedTests()
+    print "PARAMETERS_TEST - FINISHED\n"
+    exit
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
+end

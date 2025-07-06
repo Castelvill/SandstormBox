@@ -115,7 +115,7 @@ bool isCharInGroup(char ID, int count, ...){
     va_end(args);
     return false;
 }
-bool stringToBool(string text){
+bool stringToBool(const string & text){
     if(text == "true" || text == "1"){
         return true;
     }
@@ -127,24 +127,24 @@ bool stringToBool(string text){
     return false;
 }
 
-void addUniqueToStringVector(vector <string> & stringVec, string newString){
+void addUniqueToStringVector(vector<string> & stringVec, const string & newString){
     auto findString = std::find(begin(stringVec), end(stringVec), newString);
     if(findString == std::end(stringVec)){
         stringVec.push_back(newString);
     }
 }
-void removeFromStringVector(vector <string> & stringVec, string selectedString){
+void removeFromStringVector(vector<string> & stringVec, const string & selectedString){
     auto foundString = std::find(begin(stringVec), end(stringVec), selectedString);
     if(foundString != std::end(stringVec)){
         stringVec.erase(foundString);
     }
 }
-bool isStringInVector(const vector <string> & stringVec, string findString){
+bool isStringInVector(const vector<string> & stringVec, const string & findString){
     auto foundGroup = std::find(begin(stringVec), end(stringVec), findString);
     return foundGroup != std::end(stringVec);
 }
 
-string findNewUniqueID(vector <string> uniqueIDs, string newID){
+string findNewUniqueID(const vector<string> & uniqueIDs, string newID){
     string error;
     if(newID == ""){
         newID = "0";
@@ -174,7 +174,7 @@ bool hasEnding(string const &fullString, string const &ending){
 }
 
 
-void printInColor(string text, short color){
+void printInColor(const string & text, short color){
     #if __WIN32__
         if(IsDebuggerPresent()){
             cout << text;
@@ -191,7 +191,7 @@ void printInColor(string text, short color){
     #endif
 }
 
-string removeNotAscii(string originalText){
+string removeNotAscii(const string & originalText){
     string newText;
     for(unsigned letter = 0; letter < originalText.size(); letter++){
         if(int(originalText[letter]) < 0){

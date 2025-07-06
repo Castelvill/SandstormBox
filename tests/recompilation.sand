@@ -11,5 +11,17 @@ start main()
     assert globalVariable 555
     assert localVariable 42
     
+    run incrementPassedTests()
     print "RECOMPILATION_TEST - PASSED\n"
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
 end

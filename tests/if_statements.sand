@@ -20,6 +20,7 @@ start main()
     run test_if(x)
     assert x 1500
 
+    run incrementPassedTests()
     print "IF_STATEMENT_TEST - PASSED\n"
 end
 
@@ -42,4 +43,15 @@ start test_if(int & x)
         = x 100
     end_if
     //print x "\n"
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
 end

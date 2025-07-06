@@ -27,11 +27,11 @@ double randomDouble(double minValue, double maxValue);
 short translateToAllegroKey(char key);
 bool isStringInGroup(const string & ID, int count, ...);
 bool isCharInGroup(char ID, int count, ...);
-bool stringToBool(string text);
+bool stringToBool(const string & text);
 
-void addUniqueToStringVector(vector <string> & stringVec, string newString);
-void removeFromStringVector(vector <string> & stringVec, std::string selectedString);
-bool isStringInVector(const vector <string> & stringVec, std::string findString);
+void addUniqueToStringVector(vector <string> & stringVec, const string & newString);
+void removeFromStringVector(vector <string> & stringVec, const string & selectedString);
+bool isStringInVector(const vector <string> & stringVec, const string & findString);
 template <typename T>
 void removeFromVector(vector <T> & Vec, T selectedValue){
     auto foundValue = std::find(begin(Vec), end(Vec), selectedValue);
@@ -40,7 +40,7 @@ void removeFromVector(vector <T> & Vec, T selectedValue){
     }
 }
 
-string findNewUniqueID(vector <string> IDs, string newID);
+string findNewUniqueID(const vector<string> &IDs, string newID);
 
 
 template<typename Iterator, typename Pred, typename Operation>
@@ -56,8 +56,8 @@ bool hasEnding(string const &fullString, string const &ending);
 
 //Function is windows-only.
 //Numbers of colors are in "windows colors.PNG" file.
-void printInColor(string text, short color);
+void printInColor(const string & text, short color);
 
-string removeNotAscii(string originalText);
+string removeNotAscii(const string & originalText);
 
 #endif // USEFULL_H_INCLUDED

@@ -221,13 +221,13 @@ run *event* ( [[argument]...] )
    
 **Description**
 
-    Print all global variables on the standard output. 
+    Print all variables of the current object to the standard output. 
 
 ## dump_local_memory
    
 **Description**
 
-    Print all local (current scope) variables on the standard output. 
+    Print all local (current scope) variables to the standard output. 
 
 ## all / first / last / random
 
@@ -242,7 +242,7 @@ run *event* ( [[argument]...] )
 **Parameters:**
 
 - aggregation_type (instruction): “all” - return every entity that fullfils all conditions, “first” - return only the first entity that fullfils all conditions, “last” - return only the last entity that fullfils all conditions, “random” - return one random entity that fullfils all conditions;
-- entities (variable) - a variable of one of these types: Camera, Layer, Object, Text, EditText, SText, SEditText, "Image", "Movement", "Collision", "Particles", "Event", "Var", "Vec", "Scrollbar", “Pointer”, “Val”. Type of the entity affects other parameters;
+- entities (variable) - a variable of one of these types: Camera, Layer, Object, Text, EditText, SText, SEditText, "Image", "Movement", "Collision", "Particles", "Event", "Param", "Vec", "Scrollbar", “Pointer”, “Val”. Type of the entity affects other parameters;
 - [camera_id] (string) - if the provided variable is of a Camera type, only the camera with this id can be aggregated;
 - [layer_id] (string) - if the provided variable is of a Layer type, only the layer with this id can be aggregated;
 - [object_id] (string) - if the provided variable is of a Layer or object type, only the object with this id can be aggregated;

@@ -184,7 +184,7 @@ string VariableModule::getAnyValue() const{
     if(type == 's'){
         return "\"" + vString + "\"";
     }
-    return "";
+    return "<invalid_type>";
 }
 char VariableModule::getType() const{
     return type;

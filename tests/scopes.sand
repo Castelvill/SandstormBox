@@ -13,6 +13,7 @@ start main()
     run changeA(a)
     assert a 10
     assert b NULL
+    run incrementPassedTests()
     print "SCOPES_TEST - PASSED\n"
 end
 
@@ -23,4 +24,15 @@ start changeA(int & a)
     assert a 5
     = a 10
     assert b 20
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
 end

@@ -16,5 +16,17 @@ start main()
     assert a 12
     assert 12 a
 
+    run incrementPassedTests()
     print "ASSERT_TEST - PASSED\n"
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
 end

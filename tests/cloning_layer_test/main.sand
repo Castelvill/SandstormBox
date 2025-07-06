@@ -1,0 +1,52 @@
+start onInit()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "CLONING_LAYERS_TEST - START\n"
+
+    access thisName [me.id]
+    access thisLayerName [my_layer.id]
+
+    new Layers 1 "TemplateLayer" TemplateLayer
+    fun TemplateLayer deactivate
+    new Objects TemplateLayer 1 "Obj0" Obj
+    new Variables Obj 1 "var0" var0
+    fun var0 set_int 15
+    new Variables Obj 1 "testLayerName" testLayerName
+    fun testLayerName set_string thisLayerName
+    new Variables Obj 1 "testObjName" testObjName
+    fun testObjName set_string thisName
+    bind Obj ["tests/cloning_layer_test/template.sand"]
+    build Obj true
+
+    int i 0
+    var idleLock 0
+    while(i 200 <)
+        new Layers 1 "NewLayer0" NewLayer
+        clone NewLayer TemplateLayer false
+        fun NewLayer activate
+        ++ idleLock
+        next i
+        //print i "\n"
+    end_while
+end
+
+start waitForOtherObjects()
+    triggers each_iteration
+    if(idleLock 0 >)
+        return
+    end_if
+    run incrementPassedTests()
+    print "CLONING_LAYERS_TEST - PASSED\n"
+    delete_this_event
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
+end

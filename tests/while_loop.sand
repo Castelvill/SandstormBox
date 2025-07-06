@@ -32,6 +32,7 @@ start main()
 
     assert sum 1700
 
+    run incrementPassedTests()
     print "WHILE_LOOP_TEST - PASSED\n"
 end
 
@@ -40,4 +41,15 @@ start test_loop(int & sum, int & j, int & y)
         ++ sum
         ++ j
     end_while
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
 end

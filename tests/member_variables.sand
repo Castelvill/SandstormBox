@@ -1,18 +1,22 @@
 start main()
     triggers on_init
     env can_exit_on_idle 1
-    print "TOKENIZE_TEST - START\n"
+    print "MEMBER_VARIABLE_TEST - START\n"
+    
+    var mVar0 30 // Create a member variable for the object that is currently executing this event
+    assert mVar0 30
+    ++ mVar0
 
-    tokenize " " "a b c d e" xd
-    print_v output0 "-" xd "\n"
-    assert output0 "a-b-c-d-e-\n"
+    int_vec mVec0 [0 1 2 3]
 
-    tokenize " " "a b c d e" [varA varB varC varD varE]
-    print_v output1 "+" varA varB varC varD varE "\n"
-    assert output1 "a+b+c+d+e+\n"
+    assert mVar0 31
+end
 
+start onIdle()
+    triggers on_init
+    assert mVar0 31
     run incrementPassedTests()
-    print "TOKENIZE_TEST - END\n"
+    print "MEMBER_VARIABLE_TEST - PASSED\n"
 end
 
 start incrementPassedTests()

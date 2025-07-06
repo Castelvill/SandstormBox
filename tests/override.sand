@@ -11,6 +11,7 @@ override main()
     env can_exit_on_idle 1
     print "OVERRIDE_TEST - START\n"
     run func()
+    run incrementPassedTests()
     print "OVERRIDE_TEST - PASSED\n"
 end
 
@@ -20,4 +21,15 @@ end
 
 override func()
     return
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
 end

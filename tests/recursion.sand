@@ -15,11 +15,11 @@ start main()
     assert n 5
     load n3 3
     load n4 4
-    load n5 12
-    load n6 13
-    load n7 14
-    load n8 15
-    load n9 16
+    load n5 16
+    load n6 17
+    load n7 18
+    load n8 19
+    load n9 20
     assert n3 4
     assert n4 5
     assert n5 3
@@ -27,5 +27,17 @@ start main()
     assert n7 1
     assert n8 0
     assert n9 0
+    run incrementPassedTests()
     print "RECURSION_TEST - PASSED\n"
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
 end
