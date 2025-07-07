@@ -16,6 +16,7 @@ OUTPUT := SandstormBox
 
 # Default target
 all: $(OUTPUT)
+.PRECIOUS: $(OUTPUT)
 
 # Link all object files to create the executable and run tests
 $(OUTPUT): $(SRC)

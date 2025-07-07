@@ -325,8 +325,11 @@ public:
 
 constexpr const char* NEW_LINE_PADDING = "\t";
 inline void printLogMessage(const string & messageType, const string & fileName, const size_t lineNumber, const string & functionName, const string & message){
-    cerr << messageType << ":"
-        << NEW_LINE_PADDING << "In " << fileName << ":" << uIntToStr(lineNumber) << ":" << functionName << ":\n"
+    cerr << messageType << ":";
+    if(messageType.size() < 8){
+        cerr << NEW_LINE_PADDING;
+    }
+    cerr << "In " << fileName << ":" << uIntToStr(lineNumber) << ":" << functionName << ":\n"
         << NEW_LINE_PADDING << message;
 }
 string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType = "Error");

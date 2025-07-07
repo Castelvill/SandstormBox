@@ -50,6 +50,7 @@ public:
     vector <CollisionModule> CollisionContainer;
     vector <ParticleEffectModule> ParticlesContainer;
     vector <EventModule> EventContainer;
+    //Other name: Parameters
     vector <VariableModule> VariablesContainer;
     vector <ScrollbarModule> ScrollbarContainer;
     vector <PrimitivesModule> PrimitivesContainer;
@@ -73,6 +74,7 @@ public:
     
     bool canBeMovedWithMouse = false;
     bool canDrawSelectionBorder = false;
+    bool hasInvalidatedMemory = true;
 
     AncestorObject();
     void deleteLater();

@@ -1,3 +1,6 @@
+7.07.2025
+-Limited recalculations of persistent pointers (parameters and vectors).
+
 6.07.2025
 -Added counting of passed tests.
 -Fixed pointer invalidation caused by cloning instructions.

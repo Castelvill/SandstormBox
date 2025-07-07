@@ -102,8 +102,7 @@ AncestorObject::AncestorObject(){
     isActive = false;
     canBeMovedWithMouse = true;
     canDrawSelectionBorder = false;
-    //blank object
-    //cout << "Warning: You are creating a blank object - it doesn't have an ID nor layerID.\n";
+    hasInvalidatedMemory = true;
 }
 void AncestorObject::deleteLater(){
     deleted = true;
@@ -161,6 +160,7 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     clear();
     PrimaryModule::clone(Original, listOfUniqueIDs, newLayerID, "", changeOldID);
     objectLookupID = layerID + ID;
+    hasInvalidatedMemory = true;
     for(const TextModule & Text : Original.TextContainer){
         TextContainer.emplace_back(TextModule());
         TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID(), true);
@@ -447,6 +447,7 @@ void AncestorObject::setID(string newID, vector<string> &listOfIDs){
 void AncestorObject::primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
     PrimaryModule::primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
     objectLookupID = layerID + ID;
+    hasInvalidatedMemory = true;
 }
 
 void AncestorObject::setIsScrollable(bool newValue){

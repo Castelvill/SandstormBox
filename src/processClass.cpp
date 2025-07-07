@@ -14952,52 +14952,58 @@ inline bool findFirstTriggeredEvent(AncestorObject * TriggeredObject, Triggers &
     }
     return true;
 }
+void updatePersistentPointers(AncestorObject *& currentObj, MemoryMapType & memory){
+    if(!currentObj->hasInvalidatedMemory){
+        return;
+    }
+    currentObj->hasInvalidatedMemory = false;
+    for(ContextClass & variable : memory){
+        if(!variable.isPointingToMember){
+            continue;
+        }
+        switch(variable.type){
+            case variable_mod:
+                variable.Modules.Variables[0] = &currentObj->VariablesContainer[variable.containerIndex];
+                break;
+            case vector_mod:
+                variable.Modules.Vectors[0] = &currentObj->VectorContainer[variable.containerIndex];
+                break;
+            default:
+                break;
+        }
+    }
+}
 bool ProcessClass::executeTriggeredEvents(EngineClass & Engine, vector<ProcessClass> & Processes,
     vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers
 ){
     vector<EventModule>::iterator it_StartingEvent, it_Event;
     LayerClass * TriggeredLayer = nullptr;
 
-    for(AncestorObject * it_TriggeredObject : TriggeredObjects){
-        if(isEntityInaccessible(it_TriggeredObject)
-            || findFirstTriggeredEvent(it_TriggeredObject, CurrentTriggers, it_Event)
-            || findTriggeredLayer(Layers, it_TriggeredObject, TriggeredLayer)
+    for(AncestorObject * itTriggeredObject : TriggeredObjects){
+        if(isEntityInaccessible(itTriggeredObject)
+            || findFirstTriggeredEvent(itTriggeredObject, CurrentTriggers, it_Event)
+            || findTriggeredLayer(Layers, itTriggeredObject, TriggeredLayer)
         ){ continue; }
         
         it_StartingEvent = it_Event;
 
-        if(!ProcessMemory.contains(it_TriggeredObject->objectLookupID)){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object '" << it_TriggeredObject->getID() << "' doesn't have memory.\n";
+        if(!ProcessMemory.contains(itTriggeredObject->objectLookupID)){
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object '" << itTriggeredObject->getID() << "' doesn't have memory.\n";
             continue;
         }
-        ObjectMemoryStruct & ObjectMemory = ProcessMemory[it_TriggeredObject->objectLookupID];
+        ObjectMemoryStruct & ObjectMemory = ProcessMemory[itTriggeredObject->objectLookupID];
 
         CurrentInstr.layerID = TriggeredLayer->getID();
-        CurrentInstr.objectID = it_TriggeredObject->getID();
+        CurrentInstr.objectID = itTriggeredObject->getID();
 
-        //TODO: refactor it to look better -> function 
-        for(auto & var : ObjectMemory.MemoryMap){
-            if(!var.isPointingToMember){
-                continue;
-            }
-            switch(var.type){
-                case variable_mod:
-                    var.Modules.Variables[0] = &it_TriggeredObject->VariablesContainer[var.containerIndex];
-                    break;
-                case vector_mod:
-                    var.Modules.Vectors[0] = &it_TriggeredObject->VectorContainer[var.containerIndex];
-                    break;
-                default:
-                    break;
-            }
-        }
+        updatePersistentPointers(itTriggeredObject, ObjectMemory.MemoryMap);
 
-        ObjectMemory.MemoryMap[1].Objects[0] = it_TriggeredObject;
+        ObjectMemory.MemoryMap[1].Objects[0] = itTriggeredObject;
         ObjectMemory.MemoryMap[2].Layers[0] = TriggeredLayer;
 
         if(executeEventLoop(Engine, Processes, CurrentTriggers,
             it_StartingEvent, it_Event, ObjectMemory, TriggeredObjects,
-            TriggeredLayer, it_TriggeredObject
+            TriggeredLayer, itTriggeredObject
         )){ return true; }
 
         if(wasNewExecuted || wasAnyEventUpdated){
@@ -16700,6 +16706,7 @@ ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass>
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].EventContainer[0]);
             }
             else if constexpr (std::is_same<Module, VariableModule>::value){
+                Layers[layer].Objects[object].hasInvalidatedMemory = true;
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].VariablesContainer[0]);
             }
             else if constexpr (std::is_same<Module, ScrollbarModule>::value){
@@ -16709,6 +16716,7 @@ ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass>
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].PrimitivesContainer[0]);
             }
             else if constexpr (std::is_same<Module, VectorModule>::value){
+                Layers[layer].Objects[object].hasInvalidatedMemory = true;
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].VectorContainer[0]);
             }
             break;
@@ -16930,7 +16938,7 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, O
         for(unsigned module = 0; module < IndexPair.second.size(); ++module){
             Index = IndexPair.second[module];
             Object = Index.object(Layers);
-//TODO -> passing variables by value and reference
+
             if(Object == nullptr){
                 cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object pointer is a null value.\n";
                 continue;
