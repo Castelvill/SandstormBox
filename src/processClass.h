@@ -67,7 +67,7 @@ public:
     //value, pointer, variable, vector, camera, layer, object, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, variable, scrollbar, primitives, vector
     DataType type = null_dt;
     bool readOnly = false;
-    bool isPointingToMember = false; //If false, developer has to handle reasigning the pointers themselves.
+    bool isPointingToMember = false; //If true, engine will automatically keep this pointer valid. Otherwise, accessing not-reassign pointer inside a new scope is an undefined behavior.
     size_t containerIndex = 0;
     vector <VariableModule> Values; //Variables exist during the lifespan of Events' chain execution.
     vector <BasePointersStruct> BasePointers;
@@ -209,8 +209,8 @@ struct PointerRecalculator{
     ModuleIndex getIndex(vector<EventModule>::iterator & Instance, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr);
     template <class Module>
     void findIndexesInModule(vector<Module*> Instances, vector<LayerClass> & Layers, const InstrDescription & CurrentInstr, const unsigned & address);
-    void findIndexesForModules(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
+    void findIndexesForModules(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & startingEventIt,
+        vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
     void updatePointersToCameras(vector<Camera2D> &Cameras, ObjectMemoryStruct & ObjectMemory,
         Camera2D *& SelectedCamera, string processID, string & focusedProcessID, const InstrDescription & CurrentInstr);
     void updatePointersToLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer, const InstrDescription & CurrentInstr);
@@ -219,8 +219,8 @@ struct PointerRecalculator{
     void updatePointersToObjectsInObjectMemory(
         vector<LayerClass> &Layers, MemoryMapType &MemoryMap, const InstrDescription & CurrentInstr
     );
-    void updatePointersToModules(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
+    void updatePointersToModules(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & startingEventIt,
+        vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr);
     LayerClass * getOwnerLayer(vector <LayerClass> & Layers);
 };
 
@@ -393,12 +393,12 @@ public:
     void moveValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void incrementInteger(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory, ContextClass * LeftOperand, ContextClass * RightOperand,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool & wasNewExecuted, bool & changeOldID
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & startingEventIt,
+        vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, bool & wasNewExecuted, bool & changeOldID
     );
     void cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & startingEventIt,
+        vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack
     );
     void executeArithmetics(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void generateRandomVariable(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
@@ -410,8 +410,8 @@ public:
         ContextClass & NewValue, OutputParameterStruct & Output
     );
     void createNewEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, string & focusedProcessID
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & startingEventIt,
+        vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, string & focusedProcessID
     );
     void markEntitiesForDeletion(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, string & focusedProcess
@@ -425,10 +425,10 @@ public:
     void bindFilesToObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void removeBindedFilesFromObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     bool buildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
-        vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool allowNotAscii
+        vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, bool allowNotAscii
     );
     bool customBuildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
-        AncestorObject * Owner, vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
+        AncestorObject * Owner, vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
         vector<EventStackStruct> & MemoryStack, const EngineInstr & mode, bool allowNotAscii
     );
     void clearEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner);
@@ -460,14 +460,14 @@ public:
     void loadFileAsString(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void listOutEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, const vector<ProcessClass> & Processes, const EngineClass & Engine);
     void createNewProcess(OperationClass & Operation, vector<ProcessClass> & Processes, ObjectMemoryStruct & ObjectMemory,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & startingEventIt,
+        vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, EngineClass & Engine
     );
     void createNewOwnerVariable(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
-        vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
+        vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack
     );
     void createNewOwnerVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
-        vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
+        vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack
     );
     void tokenizeStringFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void printTree(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<ProcessClass> & Processes);
@@ -494,7 +494,7 @@ public:
     void dumpLocalMemory(MemoryMapType & MemoryMap);
     EngineInstr executeInstructions(LayerClass *& OwnerLayer,
         AncestorObject *& Owner, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject *> & TriggeredObjects,
-        vector<ProcessClass> & Processes, vector<EventModule>::iterator & it_StartingEvent,
+        vector<ProcessClass> & Processes, vector<EventModule>::iterator & startingEventIt,
         vector<EventModule>::iterator & Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,
         unsigned & runChildEventWithIndex
     );
@@ -530,7 +530,7 @@ public:
     );
     bool deleteEntities();
     void allocateNewDynamicMemory(ObjectMemoryStruct & ObjectMemory, const VariableInfo & NewLocalVar);
-    void allocateMemoryForDynamicVariables(const vector<EventModule>::iterator & it_NewEvent, ObjectMemoryStruct & ObjectMemory);
+    void allocateMemoryForDynamicVariables(const vector<EventModule>::iterator & newEventIt, ObjectMemoryStruct & ObjectMemory);
     void deallocateDynamicallyAllocatedMemory(vector<DynamicMemoryStruct> & DynamicMemory, unsigned & topDynamicAddress);
     bool passVariablesToTheChild(const vector<PassingVariableInfo> & ParentEventArguments,
         const vector<PassingVariableInfo> & CurrentEventParameters,
@@ -540,18 +540,18 @@ public:
         ObjectMemoryStruct & ObjectMemory
     );
     EventControlFlow prepareChildEvent(ObjectMemoryStruct & ObjectMemory, vector<EventStackStruct> & EventStack,
-        vector<EventModule>::iterator & it_Event, ChildStruct * SelectedChild
+        vector<EventModule>::iterator & eventIt, ChildStruct * SelectedChild
     );
     EventControlFlow executeSingleEvent(EngineClass & Engine, vector<ProcessClass> & Processes,
-        vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
+        vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
         vector<EventStackStruct> & EventStack, ObjectMemoryStruct & VariablesLoookupTable,
         vector<AncestorObject*> & TriggeredObjects, LayerClass *& TriggeredLayer,
         AncestorObject *& Triggered
     );
     //Return true if engine should be rebooted or terminated.
     bool executeEventLoop(EngineClass & Engine, vector<ProcessClass> & Processes,
-        const Triggers & CurrentTriggers, vector<EventModule>::iterator & it_StartingEvent,
-        vector<EventModule>::iterator & it_Event, ObjectMemoryStruct & VariablesLoookupTable,
+        const Triggers & CurrentTriggers, vector<EventModule>::iterator & startingEventIt,
+        vector<EventModule>::iterator & eventIt, ObjectMemoryStruct & VariablesLoookupTable,
         vector <AncestorObject*> & TriggeredObjects, LayerClass *& TriggeredLayer,
         AncestorObject *& TriggeredObject
     );

@@ -1,0 +1,67 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "DELETE_VARIABLES_TEST - START\n"
+
+    var var0 5
+    var var1 10
+    var var2 15
+    var var3 20
+    var var4 25
+
+    assert var0 5
+    assert var1 10
+    assert var2 15
+    assert var3 20
+    assert var4 25
+
+    delete var1
+
+    assert var0 5
+    assert var1 NULL
+    assert var2 15
+    assert var3 20
+    assert var4 25
+
+    delete var3
+
+    assert var0 5
+    assert var1 NULL
+    assert var2 15
+    assert var3 NULL
+    assert var4 25
+
+    run incrementPassedTests()
+    print "DELETE_VARIABLES_TEST - PASSED\n"
+end
+
+start onInit()
+    triggers on_init
+    assert var0 5
+    assert var1 NULL
+    assert var2 15
+    assert var3 NULL
+    assert var4 25
+    delete_this_event
+end
+
+start onIdle()
+    triggers on_idle
+    assert var0 5
+    assert var1 NULL
+    assert var2 15
+    assert var3 NULL
+    assert var4 25
+    delete_this_event
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
+end

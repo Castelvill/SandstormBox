@@ -1,0 +1,67 @@
+start main()
+    triggers on_init
+    env can_exit_on_idle 1
+    print "DELETE_VECTORS_TEST - START\n"
+
+    vec int vec0 [5]
+    vec int vec1 [10]
+    vec int vec2 [15]
+    vec int vec3 [20]
+    vec int vec4 [25]
+
+    assert vec0 5
+    assert vec1 10
+    assert vec2 15
+    assert vec3 20
+    assert vec4 25
+
+    delete vec1
+
+    assert vec0 5
+    assert vec1 NULL
+    assert vec2 15
+    assert vec3 20
+    assert vec4 25
+
+    delete vec3
+
+    assert vec0 5
+    assert vec1 NULL
+    assert vec2 15
+    assert vec3 NULL
+    assert vec4 25
+
+    run incrementPassedTests()
+    print "DELETE_VECTORS_TEST - PASSED\n"
+end
+
+start onInit()
+    triggers on_init
+    assert vec0 5
+    assert vec1 NULL
+    assert vec2 15
+    assert vec3 NULL
+    assert vec4 25
+    delete_this_event
+end
+
+start onIdle()
+    triggers on_idle
+    assert vec0 5
+    assert vec1 NULL
+    assert vec2 15
+    assert vec3 NULL
+    assert vec4 25
+    delete_this_event
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "Init" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
+end

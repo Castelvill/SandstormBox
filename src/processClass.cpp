@@ -202,14 +202,14 @@ bool ProcessClass::allocateRealMemory(const std::string &variableId, const DataT
 void ProcessClass::allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap, const vector<EventModule> & EventContainer){
     const bool & writable = false;
     const bool & isLocal = true;
-    for(const EventModule & it_Event : EventContainer){
-        for(unsigned localVarIdx = 0; localVarIdx < it_Event.LocalVariables.size(); ++localVarIdx){
-            const VariableInfo & it_Variable = it_Event.LocalVariables[localVarIdx];
-            if(it_Variable.isReference){
+    for(const EventModule & eventIt : EventContainer){
+        for(unsigned localVarIdx = 0; localVarIdx < eventIt.LocalVariables.size(); ++localVarIdx){
+            const VariableInfo & variableIt = eventIt.LocalVariables[localVarIdx];
+            if(variableIt.isReference){
                 continue; //There's no need to allocate memory for a reference since its real address will not be used.
             }
-            allocateRealMemory(it_Variable.name, it_Variable.type, writable, isLocal,
-                it_Variable.isReference, it_Variable.defaultAddress, localVarIdx, CurrentMap
+            allocateRealMemory(variableIt.name, variableIt.type, writable, isLocal,
+                variableIt.isReference, variableIt.defaultAddress, localVarIdx, CurrentMap
             );
         }
     }
@@ -793,8 +793,8 @@ inline void addAllObjectsByMovementTrigger(vector<AncestorIndex> & ObjectIndexes
     }
 }
 inline bool isObjectMoving(const vector<MovementModule> & MovementContainer){
-    for(const MovementModule & it_Movement : MovementContainer){
-        if(it_Movement.getIsActive() && it_Movement.isMoving()){
+    for(const MovementModule & movementIt : MovementContainer){
+        if(movementIt.getIsActive() && movementIt.isMoving()){
             return true;
         }
     }
@@ -831,8 +831,8 @@ inline void removeObjectDuplicates(vector<AncestorObject*> & TriggeredObjects){
         }
     }
 }
-inline bool areAllEventsDisabled(const vector<AncestorObject*>::iterator & it_Object){
-    for(const EventModule & Event : (*it_Object)->EventContainer){
+inline bool areAllEventsDisabled(const vector<AncestorObject*>::iterator & objectIt){
+    for(const EventModule & Event : (*objectIt)->EventContainer){
         if(Event.getIsActive() && !Event.getIsDeleted()){
             return false;
         }
@@ -843,19 +843,19 @@ inline void removeObjectsWithDisabledEvents(vector<AncestorObject*> & TriggeredO
     std::unordered_map<string, std::unordered_set<string>> & consecutiveTriggers,
     const bool & printOutInstructions
 ){
-    for(auto it_Object = TriggeredObjects.begin(); it_Object != TriggeredObjects.end();){
-        if(areAllEventsDisabled(it_Object)){
-            it_Object = TriggeredObjects.erase(it_Object);
+    for(auto objectIt = TriggeredObjects.begin(); objectIt != TriggeredObjects.end();){
+        if(areAllEventsDisabled(objectIt)){
+            objectIt = TriggeredObjects.erase(objectIt);
             continue;
         }
         if(printOutInstructions){
-            cout << (*it_Object)->getLayerID() << "::" << (*it_Object)->getID() << "<";
-            for(const string & triggers : consecutiveTriggers[(*it_Object)->getID()+(*it_Object)->getLayerID()]){
+            cout << (*objectIt)->getLayerID() << "::" << (*objectIt)->getID() << "<";
+            for(const string & triggers : consecutiveTriggers[(*objectIt)->getID()+(*objectIt)->getLayerID()]){
                 cout << triggers << ", ";
             }
             cout << ">, ";
         }
-        ++it_Object;
+        ++objectIt;
     }
 }
 void ProcessClass::detectTriggeredEvents(const EngineClass & Engine, vector<AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers){
@@ -2094,27 +2094,27 @@ bool ContextClass::copyFromTheParameter(
     else if(CurrentParameter.type == 'v'){
         type = value_vec;
         for(++realIndex; realIndex < Parameters.size(); ++realIndex){
-            const ParameterStruct & it_Parameter = Parameters[realIndex];
-            if(it_Parameter.treeLevel != 1){
+            const ParameterStruct & parameterIt = Parameters[realIndex];
+            if(parameterIt.treeLevel != 1){
                 return false;
             }
-            if(it_Parameter.type == 'l'){
-                Values.push_back(it_Parameter.Literal);
+            if(parameterIt.type == 'l'){
+                Values.push_back(parameterIt.Literal);
                 continue;
             }
-            if(it_Parameter.type != 'c'){
+            if(parameterIt.type != 'c'){
                 printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << it_Parameter.type << "' type.\n";
+                    << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << parameterIt.type << "' type.\n";
                 return true;
             }
 
             ContextClass * TempContext = getVariableByAddress(CurrentInstr, MemoryMap,
-                EventLocalVariables[it_Parameter.localAddress],
-                it_Parameter.variableID, printErrors
+                EventLocalVariables[parameterIt.localAddress],
+                parameterIt.variableID, printErrors
             );
             if(TempContext == nullptr){
                 printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Variable '" << it_Parameter.variableID
+                    << "Variable '" << parameterIt.variableID
                     << "' from the parameter " << index+2 << " does not exist.\n";
                 return true;
             }
@@ -2158,7 +2158,7 @@ bool ContextClass::copyFromTheParameter(
                     break;
                 default:
                     printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Context with ID '" << it_Parameter.variableID << "' found in the parameter "
+                        << "Context with ID '" << parameterIt.variableID << "' found in the parameter "
                         << index << " is of the invalid type: '" << dataTypeToStr(TempContext->type)
                         << "'. Function expects only numeric and string values.\n";
                     return true;
@@ -2208,28 +2208,28 @@ std::pair<vector<ContextClass*>, bool> getAllVariablesPointerFromParameters(
     }
     else if(CurrentParameter.type == 'v'){
         for(++realIndex; realIndex < Parameters.size(); ++realIndex){
-            const ParameterStruct & it_Parameter = Parameters[realIndex];
-            if(it_Parameter.treeLevel != 1){
+            const ParameterStruct & parameterIt = Parameters[realIndex];
+            if(parameterIt.treeLevel != 1){
                 return {GatheredVariables, false};
             }
-            if(it_Parameter.type == 'l'){
+            if(parameterIt.type == 'l'){
                 printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Parameter " << realIndex << " contains a literal instead of a variable.\n";
                 return {vector<ContextClass*>(), true};
             }
-            if(it_Parameter.type != 'c'){
+            if(parameterIt.type != 'c'){
                 printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << it_Parameter.type << "' type.\n";
+                    << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << parameterIt.type << "' type.\n";
                 return {vector<ContextClass*>(), true};
             }
 
             ContextClass * TempContext = getVariableByAddress(CurrentInstr, MemoryMap,
-                EventLocalVariables[it_Parameter.localAddress],
-                it_Parameter.variableID, printErrors
+                EventLocalVariables[parameterIt.localAddress],
+                parameterIt.variableID, printErrors
             );
             if(TempContext == nullptr){
                 printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Variable '" << it_Parameter.variableID
+                    << "Variable '" << parameterIt.variableID
                     << "' from the parameter " << index+2 << " does not exist.\n";
                 return {vector<ContextClass*>(), true};
             }
@@ -6031,8 +6031,8 @@ void ObjectMemoryStruct::cloneMemory(ObjectMemoryStruct & OriginalMemory, Ancest
     MemoryMap[2].Layers[0] = CloneLayer;
 }
 void ProcessClass::cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory, ContextClass * LeftOperand, ContextClass * RightOperand,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool & wasNewExecuted, bool & changeOldID
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & startingEventIt,
+    vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, bool & wasNewExecuted, bool & changeOldID
 ){
     bool sameSize = false;
     switch(LeftOperand->type){
@@ -6070,12 +6070,12 @@ void ProcessClass::cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory,
             }
             PointerRecalculator Recalculator;
             Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-            Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+            Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
             for(unsigned i = 0, j = 0; i < LeftOperand->Layers.size(); i++, j+=sameSize){
                 LeftOperand->Layers[i]->clone(*RightOperand->Layers[j], layersIDs, changeOldID);
             }
             Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-            Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+            Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
             
             //Copy memory of each cloned object with events
             for(unsigned i = 0, j = 0; i < LeftOperand->Layers.size(); i++, j+=sameSize){
@@ -6098,7 +6098,7 @@ void ProcessClass::cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory,
                 return;
             }
             PointerRecalculator Recalculator;
-            Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+            Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
             vector<size_t> copiedObjectsLayerIdxs;
             for(unsigned i = 0, j = 0; i < LeftOperand->Objects.size(); i++, j+=sameSize){
                 for(LayerClass & Layer : Layers){
@@ -6110,7 +6110,7 @@ void ProcessClass::cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory,
                     break;
                 }
             }
-            Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+            Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
             for(unsigned i = 0, j = 0; i < LeftOperand->Objects.size(); i++, j+=sameSize){
                 AncestorObject * OriginalObject = RightOperand->Objects[j];
                 if(ProcessMemory.contains(OriginalObject->objectLookupID)){
@@ -6180,8 +6180,8 @@ void ProcessClass::cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory,
     }
 }
 void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<LayerClass> &Layers,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & startingEventIt,
+    vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack
 ){
     if(Operation.rootParametersSize < 3){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 3 parameters.\n";
@@ -6221,8 +6221,8 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     }
 
     if(LeftOperand->type == RightOperand->type){
-        cloneEntitiesOfTheSameType(ObjectMemory, LeftOperand, RightOperand, Owner, TriggeredObjects, it_StartingEvent,
-            it_Event, MemoryStack, wasNewExecuted, changeOldID
+        cloneEntitiesOfTheSameType(ObjectMemory, LeftOperand, RightOperand, Owner, TriggeredObjects, startingEventIt,
+            eventIt, MemoryStack, wasNewExecuted, changeOldID
         );
     }
     else{
@@ -7145,14 +7145,14 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, Objec
 template <class Module>
 void createNewModule(vector <Module> & Container, vector <string> & allIDs, vector<Module*> & Context, const unsigned & newVectorSize,
     const vector <string> & newIDs, string & layerID, string & objectID, vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory,
-    vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack,
+    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack,
     double reservationMultiplier, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
     if(Container.size() + newVectorSize > Container.capacity()){
         PointerRecalculator Recalculator;
-        Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+        Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
         Container.reserve((Container.size() + newVectorSize) * reservationMultiplier);
-        Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+        Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
     }
     string ID = "";
     for(unsigned i = 0; i < newVectorSize; i++){
@@ -7397,7 +7397,7 @@ void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClas
 }
 void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
     LayerClass *& OwnerLayer, AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
-    vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
+    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
     vector<EventStackStruct> & MemoryStack, string & focusedProcessID
 ){
     LayerClass * CurrentLayer = nullptr;
@@ -7475,11 +7475,11 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
                 PointerRecalculator Recalculator;
                 Recalculator.findIndexesForLayers(Layers, ObjectMemory, OwnerLayer);
                 Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-                Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
                 Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
                 Recalculator.updatePointersToLayers(Layers, ObjectMemory, OwnerLayer, CurrentInstr);
                 Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-                Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
             }
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
@@ -7497,14 +7497,14 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
                     Recalculators.emplace_back();
                     auto & CurrentObjectMemory = ProcessMemory[itObject.objectLookupID];
                     Recalculators.back().findIndexesForObjects(Layers, CurrentObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-                    Recalculators.back().findIndexesForModules(Layers, CurrentObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                    Recalculators.back().findIndexesForModules(Layers, CurrentObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
                 }
                 CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
                 size_t objectIdx = 0;
                 for(AncestorObject & itObject : CurrentLayer->Objects){\
                     auto & CurrentObjectMemory = ProcessMemory[itObject.objectLookupID];
                     Recalculators[objectIdx].updatePointersToObjects(Layers, CurrentObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-                    Recalculators[objectIdx].updatePointersToModules(Layers, CurrentObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+                    Recalculators[objectIdx].updatePointersToModules(Layers, CurrentObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
                     ++objectIdx;
                 }
             }
@@ -7520,7 +7520,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case text:
             createNewModule(CurrentObject->TextContainer, CurrentObject->textContainerIDs, NewContext.Modules.Texts,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->TextContainer.size() - 1; i >= long(CurrentObject->TextContainer.size() - newVectorSize); i--){
@@ -7529,7 +7529,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case editable_text:
             createNewModule(CurrentObject->EditableTextContainer, CurrentObject->editableTextContainerIDs, NewContext.Modules.EditableTexts,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->EditableTextContainer.size() - 1; i >= long(CurrentObject->EditableTextContainer.size() - newVectorSize); i--){
                 CurrentObject->EditableTextContainer[i].setIsScrollable(CurrentObject->getIsScrollable());
@@ -7537,7 +7537,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case super_text:
             createNewModule(CurrentObject->SuperTextContainer, CurrentObject->superTextContainerIDs, NewContext.Modules.SuperTexts,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->SuperTextContainer.size() - 1; i >= long(CurrentObject->SuperTextContainer.size() - newVectorSize); i--){
                 CurrentObject->SuperTextContainer[i].setIsScrollable(CurrentObject->getIsScrollable());
@@ -7545,7 +7545,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case super_editable_text:
             createNewModule(CurrentObject->SuperEditableTextContainer, CurrentObject->superEditableTextContainerIDs, NewContext.Modules.SuperEditableTexts,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->SuperEditableTextContainer.size() - 1; i >= long(CurrentObject->SuperEditableTextContainer.size() - newVectorSize); i--){
                 CurrentObject->SuperEditableTextContainer[i].setIsScrollable(CurrentObject->getIsScrollable());
@@ -7553,7 +7553,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case image:
             createNewModule(CurrentObject->ImageContainer, CurrentObject->imageContainerIDs, NewContext.Modules.Images,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->ImageContainer.size() - 1; i >= long(CurrentObject->ImageContainer.size() - newVectorSize); i--){
@@ -7562,7 +7562,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case movement:
             createNewModule(CurrentObject->MovementContainer, CurrentObject->movementContainerIDs, NewContext.Modules.Movements,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->MovementContainer.size() - 1; i >= long(CurrentObject->MovementContainer.size() - newVectorSize); i--){
@@ -7571,7 +7571,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case collision:
             createNewModule(CurrentObject->CollisionContainer, CurrentObject->collisionContainerIDs, NewContext.Modules.Collisions,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->CollisionContainer.size() - 1; i >= long(CurrentObject->CollisionContainer.size() - newVectorSize); i--){
@@ -7580,7 +7580,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case particles:
             createNewModule(CurrentObject->ParticlesContainer, CurrentObject->particlesContainerIDs, NewContext.Modules.Particles,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->ParticlesContainer.size() - 1; i >= long(CurrentObject->ParticlesContainer.size() - newVectorSize); i--){
@@ -7589,19 +7589,19 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case event:
             createNewModule(CurrentObject->EventContainer, CurrentObject->EventContainerIDs, NewContext.Modules.Events,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             break;
         case variable:
             createNewModule(CurrentObject->VariablesContainer, CurrentObject->variablesContainerIDs, NewContext.Modules.Variables,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             break;
         case scrollbar:
             createNewModule(CurrentObject->ScrollbarContainer, CurrentObject->scrollbarContainerIDs, NewContext.Modules.Scrollbars,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->ScrollbarContainer.size() - 1; i >= long(CurrentObject->ScrollbarContainer.size() - newVectorSize); i--){
@@ -7610,7 +7610,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case primitives:
             createNewModule(CurrentObject->PrimitivesContainer, CurrentObject->primitivesContainerIDs, NewContext.Modules.Primitives,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             for(long i = CurrentObject->PrimitivesContainer.size() - 1; i >= long(CurrentObject->PrimitivesContainer.size() - newVectorSize); i--){
@@ -7619,7 +7619,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case vector_s:
             createNewModule(CurrentObject->VectorContainer, CurrentObject->vectorContainerIDs, NewContext.Modules.Vectors,
-                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack,
+                newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
             break;
@@ -7967,6 +7967,8 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ObjectMem
         default:
             break;
     }
+
+    DeletedContext->type = DataType::null_dt;
 }
 template <class Entity>
 void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggregated, DataType type,
@@ -8747,7 +8749,7 @@ inline LayerClass * findLayerWithId(vector<LayerClass> &Layers, const string &la
     return nullptr;
 }
 bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
-    vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, bool allowNotAscii
+    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, bool allowNotAscii
 ){
     ContextClass ObjectContext;
     if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
@@ -8783,7 +8785,7 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ObjectMemory
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
 
     bool myEventsAreDeleted = false;
     for(AncestorObject * Object : ObjectContext.Objects){
@@ -8817,13 +8819,13 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ObjectMemory
     }
 
     if(!myEventsAreDeleted){
-        Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+        Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
     }
 
     return myEventsAreDeleted;
 }
 bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
-    AncestorObject * Owner, vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
+    AncestorObject * Owner, vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
     vector<EventStackStruct> & MemoryStack, const EngineInstr & mode, bool allowNotAscii
 ){
     ContextClass ObjectContext;
@@ -8871,7 +8873,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
 
     //All indexes linked with events must be recalculated - after adding new events, some contexts of event type might be invalid.  
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
 
     bool myEventsAreDeleted = false;
     
@@ -8964,7 +8966,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
         wasAnyEventUpdated = true;
     }
     if(!myEventsAreDeleted || wasAnyEventUpdated){
-        Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+        Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
     }
 
     return myEventsAreDeleted;
@@ -11037,8 +11039,8 @@ void ProcessClass::listOutEntities(OperationClass & Operation, ObjectMemoryStruc
     }
 }
 void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessClass> & Processes, ObjectMemoryStruct & ObjectMemory,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & startingEventIt,
+    vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, EngineClass & Engine
 ){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
@@ -11083,7 +11085,7 @@ void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessCl
     }
 }
 void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
-    vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
+    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack
 ){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 parameter.\n";
@@ -11111,7 +11113,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ObjectMemo
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
     
     if(Value.getType() == 'b'){
         Owner->VariablesContainer.emplace_back(VariableModule::newBool(
@@ -11139,7 +11141,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ObjectMemo
         return;
     }
 
-    Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
 
     NewContext.clear();
     if(Owner->VariablesContainer.size() > 0){
@@ -11155,7 +11157,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation, ObjectMemo
     }
 }
 void ProcessClass::createNewOwnerVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner,
-    vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack
+    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack
 ){
     if(Operation.rootParametersSize < 1){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
@@ -11189,7 +11191,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation, ObjectMemory
     }
 
     PointerRecalculator Recalculator;
-    Recalculator.findIndexesForModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
     
     Owner->VectorContainer.emplace_back(Operation.Output.variableID, &Owner->vectorContainerIDs, Owner->getLayerID(), Owner->getID(), vectorType);
 
@@ -11255,12 +11257,14 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation, ObjectMemory
         return;
     }
 
-    Recalculator.updatePointersToModules(Layers, ObjectMemory, it_StartingEvent, it_Event, MemoryStack, ActiveEditableText, CurrentInstr);
+    Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
 
     NewContext.clear();
     if(Owner->VectorContainer.size() > 0){
         NewContext.Modules.Vectors.push_back(&Owner->VectorContainer.back());
         NewContext.type = vector_mod;
+        NewContext.isPointingToMember = true;
+        NewContext.containerIndex = Owner->VectorContainer.size() - 1;
         assignVariable(ObjectMemory, Operation.Output);
     }
     else{
@@ -12585,19 +12589,19 @@ inline void ProcessClass::dumpLocalMemory(MemoryMapType & MemoryMap){
 }
 EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
     AncestorObject *& Owner, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject *> & TriggeredObjects,
-    vector<ProcessClass> & Processes, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,
+    vector<ProcessClass> & Processes, vector<EventModule>::iterator & startingEventIt,
+    vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, EngineClass & Engine,
     unsigned & runChildEventWithIndex
 ){
-    if(it_Event->Operations.size() > 0){
-        CurrentInstr.scriptName = it_Event->Operations[0].scriptName;
+    if(eventIt->Operations.size() > 0){
+        CurrentInstr.scriptName = eventIt->Operations[0].scriptName;
     }
 
-    for(; EventCallState.programCounter < it_Event->Operations.size(); ++EventCallState.programCounter){
+    for(; EventCallState.programCounter < eventIt->Operations.size(); ++EventCallState.programCounter){
         EventCallState.programCounter -= EventCallState.decrementProgramCounter;
         EventCallState.decrementProgramCounter = false;
         
-        OperationClass & Operation = it_Event->Operations[EventCallState.programCounter];
+        OperationClass & Operation = eventIt->Operations[EventCallState.programCounter];
         CurrentInstr.instruction = Operation.instruction;
         CurrentInstr.lineNumber = Operation.lineNumber;
 
@@ -12729,7 +12733,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 aggregateOnlyById(ObjectMemory, Operation, OwnerLayer, Owner);
                 break;
             case clone_i:
-                cloneEntities(Operation, ObjectMemory, Layers, Owner, TriggeredObjects, it_StartingEvent, it_Event, MemoryStack);
+                cloneEntities(Operation, ObjectMemory, Layers, Owner, TriggeredObjects, startingEventIt, eventIt, MemoryStack);
                 break;
             case add:
             case sub:
@@ -12759,12 +12763,12 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 break;
             case new_i:
                 createNewEntities(Operation, ObjectMemory, OwnerLayer, Owner,
-                    TriggeredObjects, it_StartingEvent, it_Event, MemoryStack, Engine.focusedProcessID
+                    TriggeredObjects, startingEventIt, eventIt, MemoryStack, Engine.focusedProcessID
                 );
                 break;
             case del:
                 markEntitiesForDeletion(Operation, ObjectMemory, OwnerLayer, Owner, TriggeredObjects, Engine.focusedProcessID);
-                if(OwnerLayer == nullptr || Owner == nullptr || it_Event->getIsDeleted()){
+                if(OwnerLayer == nullptr || Owner == nullptr || eventIt->getIsDeleted()){
                     return null;
                 }
                 break;
@@ -12772,7 +12776,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 if(printOutInstructions){
                     cout << "delete_this_event\n";
                 }
-                it_Event->deleteLater();
+                eventIt->deleteLater();
                 wasDeleteExecuted = true;
                 return Operation.instruction;
             case bind_i:
@@ -12782,7 +12786,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 removeBindedFilesFromObjects(Operation, ObjectMemory);
                 break;
             case build:
-                if(buildEventsInObjects(Operation, ObjectMemory, Owner, it_StartingEvent, it_Event, MemoryStack, Engine.allowNotAscii)){
+                if(buildEventsInObjects(Operation, ObjectMemory, Owner, startingEventIt, eventIt, MemoryStack, Engine.allowNotAscii)){
                     return return_i;
                 }
                 break;
@@ -12790,7 +12794,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
             case build_subset:
             case inject_code:
             case inject_instr:
-                if(customBuildEventsInObjects(Operation, ObjectMemory, Owner, it_StartingEvent, it_Event, MemoryStack, Operation.instruction, Engine.allowNotAscii)){
+                if(customBuildEventsInObjects(Operation, ObjectMemory, Owner, startingEventIt, eventIt, MemoryStack, Operation.instruction, Engine.allowNotAscii)){
                     return return_i;
                 }
                 break;
@@ -12798,7 +12802,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 clearEventsInObjects(Operation, ObjectMemory, Owner);
                 break;
             case fun:
-                executeFunction(Operation, ObjectMemory, it_Event, Engine);
+                executeFunction(Operation, ObjectMemory, eventIt, Engine);
                 break;
             case env:
                 changeEngineVariables(Operation, ObjectMemory, Engine);
@@ -12840,13 +12844,13 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 break;
             case new_proc:
                 createNewProcess(Operation, Processes, ObjectMemory, Owner, TriggeredObjects,
-                    it_StartingEvent, it_Event, MemoryStack, Engine);
+                    startingEventIt, eventIt, MemoryStack, Engine);
                 break;
             case var:
-                createNewOwnerVariable(Operation, ObjectMemory, Owner, it_StartingEvent, it_Event, MemoryStack);
+                createNewOwnerVariable(Operation, ObjectMemory, Owner, startingEventIt, eventIt, MemoryStack);
                 break;
             case vec:
-               createNewOwnerVector(Operation, ObjectMemory, Owner, it_StartingEvent, it_Event, MemoryStack);
+               createNewOwnerVector(Operation, ObjectMemory, Owner, startingEventIt, eventIt, MemoryStack);
                 break;
             case tokenize:
                 tokenizeStringFromContext(Operation, ObjectMemory);
@@ -12925,7 +12929,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 loadVariableFromMemoryAddress(Operation, ObjectMemory);
                 break;
             default:
-                cerr << "Error: In " << OwnerLayer->getID() << "::" << Owner->getID() << "::" << it_Event->getID()
+                cerr << "Error: In " << OwnerLayer->getID() << "::" << Owner->getID() << "::" << eventIt->getID()
                     << "': In " << __FUNCTION__ << ": Instruction '" << instrToStr(Operation.instruction) << "' does not exist.\n";
                 break;
         }
@@ -14243,7 +14247,27 @@ void deleteModuleInstance(vector<Module> & Container, vector<string> & IDs, bool
         }
     }
 }
-void deleteEventInstance(vector<EventModule> & Container, vector<string> & IDs, bool & layersWereModified, bool & wereEventsDeleted, ObjectMemoryStruct & ContextMap){
+template <class Module>
+vector<size_t> deleteModuleInstanceAndReturnIndexes(vector<Module> & Container, vector<string> & IDs, bool & layersWereModified){
+    vector<size_t> deletedIndexes;
+    size_t deletionCount = 0; //Index normalisation
+    for(auto moduleInstanceIt = Container.begin(); moduleInstanceIt != Container.end();){
+        if(moduleInstanceIt->getIsDeleted()){
+            removeFromVector(IDs, moduleInstanceIt->getID());
+            layersWereModified = true;
+            deletedIndexes.push_back(std::distance(Container.begin(), moduleInstanceIt) + deletionCount);
+            moduleInstanceIt->clear();
+            moduleInstanceIt = Container.erase(moduleInstanceIt);
+            ++deletionCount;
+        }
+        else{
+            ++moduleInstanceIt;
+        }
+    }
+    return deletedIndexes;
+}
+bool deleteEventInstance(vector<EventModule> & Container, vector<string> & IDs, bool & layersWereModified, ObjectMemoryStruct & ContextMap){
+    bool wereEventsDeleted = false;
     for(auto Instance = Container.begin(); Instance != Container.end();){
         if(Instance->getIsDeleted() || Instance->willBeDeleted){
             vector<unsigned> indexesForDeletion;
@@ -14267,6 +14291,7 @@ void deleteEventInstance(vector<EventModule> & Container, vector<string> & IDs, 
             ++Instance;
         }
     }
+    return wereEventsDeleted;
 }
 void removeIndexFromOrder(const InstrDescription Description, vector<unsigned> & order, unsigned index){
     bool foundInOrder = false;
@@ -14292,18 +14317,28 @@ void removeIndexFromOrder(const InstrDescription Description, vector<unsigned> &
         }
     }
 }
+inline void fixIndexesAfterDeletion(MemoryMapType & objectMemory, const vector<size_t> &deletedIndexes, DataType variableType){
+    if(!deletedIndexes.empty()){
+        for(ContextClass & memVarIt : objectMemory){
+            if(!memVarIt.isPointingToMember || memVarIt.type != variableType){ continue; }
+            for(auto indexIt = deletedIndexes.rbegin(); indexIt < deletedIndexes.rend(); ++indexIt){
+                if(memVarIt.containerIndex >= *indexIt){ --memVarIt.containerIndex; }
+            }
+        }
+    }
+} 
 bool ProcessClass::deleteEntities(){
     bool layersWereModified = false;
     unsigned entityIndex = 0;
-    for(auto Camera = Cameras.begin(); Camera != Cameras.end(); entityIndex++){
-        if(Camera->getIsDeleted()){
-            removeFromVector(camerasIDs, Camera->getID());
-            Camera->clear();
-            Camera = Cameras.erase(Camera);
+    for(auto cameraIt = Cameras.begin(); cameraIt != Cameras.end(); entityIndex++){
+        if(cameraIt->getIsDeleted()){
+            removeFromVector(camerasIDs, cameraIt->getID());
+            cameraIt->clear();
+            cameraIt = Cameras.erase(cameraIt);
             removeIndexFromOrder(CurrentInstr, camerasOrder, entityIndex);
         }
         else{
-            ++Camera;
+            ++cameraIt;
         }
     }
     entityIndex = 0;
@@ -14321,40 +14356,40 @@ bool ProcessClass::deleteEntities(){
         }
         else{
             unsigned objectIndex = 0;
-            for(vector<AncestorObject>::iterator Object = Layer->Objects.begin(); Object != Layer->Objects.end(); objectIndex++){
-                if(Object->getIsDeleted()){
-                    ProcessMemory[Object->objectLookupID].clear();
-                    ProcessMemory.erase(Object->objectLookupID);
-                    removeFromVector(Layer->objectsIDs, Object->getID());
+            for(vector<AncestorObject>::iterator objectIt = Layer->Objects.begin(); objectIt != Layer->Objects.end(); objectIndex++){
+                if(objectIt->getIsDeleted()){
+                    ProcessMemory[objectIt->objectLookupID].clear();
+                    ProcessMemory.erase(objectIt->objectLookupID);
+                    removeFromVector(Layer->objectsIDs, objectIt->getID());
                     layersWereModified = true;
-                    Object->clear();
-                    Object = Layer->Objects.erase(Object);
+                    objectIt->clear();
+                    objectIt = Layer->Objects.erase(objectIt);
                     removeIndexFromOrder(CurrentInstr, Layer->objectsOrder, objectIndex);
                 }
                 else{
-                    deleteModuleInstance(Object->TextContainer, Object->textContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->EditableTextContainer, Object->editableTextContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->SuperTextContainer, Object->superTextContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->SuperEditableTextContainer, Object->superEditableTextContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->ImageContainer, Object->imageContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->MovementContainer, Object->movementContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->CollisionContainer, Object->collisionContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->ParticlesContainer, Object->particlesContainerIDs, layersWereModified);
-                    
-                    bool wereEventsDeleted = false;
-                    deleteEventInstance(Object->EventContainer, Object->EventContainerIDs, layersWereModified,
-                        wereEventsDeleted, ProcessMemory[Object->objectLookupID]
-                    );
-                    if(wereEventsDeleted){
-                        findIndexesOfEventChildren(Object->EventContainer, CurrentInstr, true);
-                        detectRecursionInEvents(Object->EventContainer, CurrentInstr);
+                    deleteModuleInstance(objectIt->TextContainer, objectIt->textContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->EditableTextContainer, objectIt->editableTextContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->SuperTextContainer, objectIt->superTextContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->SuperEditableTextContainer, objectIt->superEditableTextContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->ImageContainer, objectIt->imageContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->MovementContainer, objectIt->movementContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->CollisionContainer, objectIt->collisionContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->ParticlesContainer, objectIt->particlesContainerIDs, layersWereModified);
+                    if(deleteEventInstance(objectIt->EventContainer, objectIt->EventContainerIDs, layersWereModified, ProcessMemory[objectIt->objectLookupID])){
+                        findIndexesOfEventChildren(objectIt->EventContainer, CurrentInstr, true);
+                        detectRecursionInEvents(objectIt->EventContainer, CurrentInstr);
                     }
-
-                    deleteModuleInstance(Object->VariablesContainer, Object->variablesContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->ScrollbarContainer, Object->scrollbarContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->PrimitivesContainer, Object->primitivesContainerIDs, layersWereModified);
-                    deleteModuleInstance(Object->VectorContainer, Object->vectorContainerIDs, layersWereModified);
-                    ++Object;
+                    deleteModuleInstance(objectIt->ScrollbarContainer, objectIt->scrollbarContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->PrimitivesContainer, objectIt->primitivesContainerIDs, layersWereModified);
+                    vector<size_t> deletedParametersIndexes = deleteModuleInstanceAndReturnIndexes(
+                        objectIt->VariablesContainer, objectIt->variablesContainerIDs, layersWereModified
+                    );
+                    fixIndexesAfterDeletion(ProcessMemory[objectIt->objectLookupID].MemoryMap, deletedParametersIndexes, DataType::variable_mod);
+                    vector<size_t> deletedVectorParametersIndexes = deleteModuleInstanceAndReturnIndexes(
+                        objectIt->VectorContainer, objectIt->vectorContainerIDs, layersWereModified
+                    );
+                    fixIndexesAfterDeletion(ProcessMemory[objectIt->objectLookupID].MemoryMap, deletedVectorParametersIndexes, DataType::vector_mod);
+                    ++objectIt;
                 }
             }
             ++Layer;
@@ -14611,13 +14646,13 @@ inline bool areTypesCompatibleWithReference(const DataType & leftOperand, const 
 //Return true if there's no need to allocate new memory.
 inline bool findFreeDynamicMemory(ObjectMemoryStruct & ObjectMemory, vector<DynamicVariableInfo> & NewLocalVariables, const bool & isReference){
     for(unsigned memIdx = ObjectMemory.topFreeDynamicAddress; memIdx < ObjectMemory.DynamicMemory.size(); ++memIdx){
-        DynamicMemoryStruct &it_DynamicVar = ObjectMemory.DynamicMemory[memIdx];
-        if(it_DynamicVar.inUse){
+        DynamicMemoryStruct &dynamicVarIt = ObjectMemory.DynamicMemory[memIdx];
+        if(dynamicVarIt.inUse){
             continue;
         }
-        it_DynamicVar.inUse = true;
+        dynamicVarIt.inUse = true;
         ObjectMemory.topFreeDynamicAddress = memIdx+1;
-        NewLocalVariables.emplace_back(DynamicVariableInfo(it_DynamicVar.address, memIdx, isReference));
+        NewLocalVariables.emplace_back(DynamicVariableInfo(dynamicVarIt.address, memIdx, isReference));
         return true;
     }
     return false;
@@ -14646,42 +14681,42 @@ void ProcessClass::allocateNewDynamicMemory(ObjectMemoryStruct & ObjectMemory, c
     ObjectMemory.DynamicMemory.emplace_back(DynamicMemoryStruct(newDynamicAddress, true));
     ObjectMemory.topFreeDynamicAddress = ObjectMemory.DynamicMemory.size();
 }
-void ProcessClass::allocateMemoryForDynamicVariables(const vector<EventModule>::iterator & it_NewEvent, ObjectMemoryStruct & ObjectMemory){
+void ProcessClass::allocateMemoryForDynamicVariables(const vector<EventModule>::iterator & newEventIt, ObjectMemoryStruct & ObjectMemory){
     //If the event was called for the first time in the current stack, use pre-allocated memory found under the default address. 
     if(!EventCallState.isCurrentCallRecursive){
-		for(const VariableInfo & it_LocalVar : it_NewEvent->LocalVariables){
-            LocalToGlobalTranslation.emplace_back(DynamicVariableInfo(it_LocalVar.defaultAddress, 0, it_LocalVar.isReference));
+		for(const VariableInfo & localVarIt : newEventIt->LocalVariables){
+            LocalToGlobalTranslation.emplace_back(DynamicVariableInfo(localVarIt.defaultAddress, 0, localVarIt.isReference));
 		}
         return;
 	}
 	//If it's a recurrent call, find already allocated memory that is not currently in use or allocate new memory.
-    for(VariableInfo & it_LocalVar : it_NewEvent->LocalVariables){
-        if(it_LocalVar.isReference){
-            LocalToGlobalTranslation.emplace_back(DynamicVariableInfo(it_LocalVar.defaultAddress, 0, true));
+    for(VariableInfo & localVarIt : newEventIt->LocalVariables){
+        if(localVarIt.isReference){
+            LocalToGlobalTranslation.emplace_back(DynamicVariableInfo(localVarIt.defaultAddress, 0, true));
             continue;
         }		
         
-        if(!findFreeDynamicMemory(ObjectMemory, LocalToGlobalTranslation, it_LocalVar.isReference)){
-            allocateNewDynamicMemory(ObjectMemory, it_LocalVar);
+        if(!findFreeDynamicMemory(ObjectMemory, LocalToGlobalTranslation, localVarIt.isReference)){
+            allocateNewDynamicMemory(ObjectMemory, localVarIt);
             LocalToGlobalTranslation.emplace_back(DynamicVariableInfo(
-                ObjectMemory.DynamicMemory.back().address, ObjectMemory.DynamicMemory.size()-1, it_LocalVar.isReference
+                ObjectMemory.DynamicMemory.back().address, ObjectMemory.DynamicMemory.size()-1, localVarIt.isReference
             ));
         }
     }
 }
 void ProcessClass::deallocateDynamicallyAllocatedMemory(vector<DynamicMemoryStruct> & DynamicMemory, unsigned & topDynamicAddress){
-    for(DynamicVariableInfo & it_LocalVar : LocalToGlobalTranslation){
-        if(it_LocalVar.isReference){
+    for(DynamicVariableInfo & localVarIt : LocalToGlobalTranslation){
+        if(localVarIt.isReference){
             continue;
         }
-        if(it_LocalVar.dynamicMemoryAddress >= DynamicMemory.size()){
+        if(localVarIt.dynamicMemoryAddress >= DynamicMemory.size()){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Dynamic memory at address " << it_LocalVar.dynamicMemoryAddress
+                << "Dynamic memory at address " << localVarIt.dynamicMemoryAddress
                 << " has already been deallocated.\n";
             continue;
         }
-        DynamicMemory[it_LocalVar.dynamicMemoryAddress].inUse = false;
-        topDynamicAddress = it_LocalVar.dynamicMemoryAddress;
+        DynamicMemory[localVarIt.dynamicMemoryAddress].inUse = false;
+        topDynamicAddress = localVarIt.dynamicMemoryAddress;
     }
 }
 bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & ParentEventArguments,
@@ -14758,16 +14793,16 @@ bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & P
     return false;
 }
 EventControlFlow ProcessClass::prepareChildEvent(ObjectMemoryStruct & ObjectMemory, vector<EventStackStruct> & EventStack,
-    vector<EventModule>::iterator & it_Event, ChildStruct * SelectedChild
+    vector<EventModule>::iterator & eventIt, ChildStruct * SelectedChild
 ){
     CurrentInstr.lineNumber = SelectedChild->lineNumber;
     CurrentInstr.scriptName = SelectedChild->callingScript;
     
-    CurrentInstr.eventID = it_Event->getID();
+    CurrentInstr.eventID = eventIt->getID();
     CurrentInstr.instruction = EngineInstr::run;
 
     if(printOutInstructions){
-        cout << "run " << it_Event->getID() << "(";
+        cout << "run " << eventIt->getID() << "(";
         if(SelectedChild != nullptr){
             for(auto variable : SelectedChild->Arguments){
                 cout << variable.name << ", ";
@@ -14779,23 +14814,23 @@ EventControlFlow ProcessClass::prepareChildEvent(ObjectMemoryStruct & ObjectMemo
     EventCallState.clear();
     LocalToGlobalTranslation.clear();
     EventCallState.isCurrentCallRecursive = SelectedChild->isRecursiveCall;
-    allocateMemoryForDynamicVariables(it_Event, ObjectMemory);
-    if(passVariablesToTheChild(SelectedChild->Arguments, it_Event->Parameters, EventStack.back().Event,
-        it_Event, EventStack.back().LocalVariables, LocalToGlobalTranslation, ObjectMemory
+    allocateMemoryForDynamicVariables(eventIt, ObjectMemory);
+    if(passVariablesToTheChild(SelectedChild->Arguments, eventIt->Parameters, EventStack.back().Event,
+        eventIt, EventStack.back().LocalVariables, LocalToGlobalTranslation, ObjectMemory
     )){
         return flow_abort;
     }
     return flow_run_function;
 }
 EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<ProcessClass> & Processes,
-    vector<EventModule>::iterator & it_StartingEvent, vector<EventModule>::iterator & it_Event,
+    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
     vector<EventStackStruct> & EventStack, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject*> & TriggeredObjects,
     LayerClass *& TriggeredLayer, AncestorObject *& Triggered
 ){
-    CurrentInstr.eventID = it_Event->getID();
-    removeOnInitTrigger(it_Event->primaryTriggerTypes);
+    CurrentInstr.eventID = eventIt->getID();
+    removeOnInitTrigger(eventIt->primaryTriggerTypes);
     if(printOutInstructions){
-        printInColor("\n---Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + it_Event->getID() + "\n", 14);
+        printInColor("\n---Current event: " + TriggeredLayer->getID() + "::" + Triggered->getID() + "::" + eventIt->getID() + "\n", 14);
         if(interruptInstruction == EngineInstr::break_i){
             printInColor("---break\n", 14);
         }
@@ -14807,10 +14842,10 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
     //Execute all instructions bound to an event.
     if(interruptInstruction != EngineInstr::break_i && interruptInstruction != EngineInstr::return_i){
         unsigned runChildEventWithIndex = 0;
-        if(EventCallState.programCounter < it_Event->Operations.size()){
+        if(EventCallState.programCounter < eventIt->Operations.size()){
             interruptInstruction = executeInstructions(
                 TriggeredLayer, Triggered, ObjectMemory, TriggeredObjects,
-                Processes, it_StartingEvent, it_Event, EventStack, Engine, runChildEventWithIndex
+                Processes, startingEventIt, eventIt, EventStack, Engine, runChildEventWithIndex
             );
 
             if(interruptInstruction == EngineInstr::exit_i || interruptInstruction == EngineInstr::assert){
@@ -14832,11 +14867,11 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
         }
         if(interruptInstruction == EngineInstr::run){
             interruptInstruction = EngineInstr::null;
-            EventStack.emplace_back(it_Event, LocalToGlobalTranslation, EventCallState);
+            EventStack.emplace_back(eventIt, LocalToGlobalTranslation, EventCallState);
 
             ChildStruct * SelectedChild = nullptr;
 
-            std::tie(it_Event, SelectedChild) = findChildEventToRun(Triggered->EventContainer, it_Event, runChildEventWithIndex);
+            std::tie(eventIt, SelectedChild) = findChildEventToRun(Triggered->EventContainer, eventIt, runChildEventWithIndex);
             
             if(SelectedChild == nullptr){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -14844,7 +14879,7 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
                 return flow_abort;
             }
 
-            return prepareChildEvent(ObjectMemory, EventStack, it_Event, SelectedChild);
+            return prepareChildEvent(ObjectMemory, EventStack, eventIt, SelectedChild);
         }
     }
 
@@ -14854,7 +14889,7 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
             printInColor("---go_back\n", 14);
         }
 
-        if(!it_Event->isInline){
+        if(!eventIt->isInline){
             interruptInstruction = EngineInstr::null;
         }
 
@@ -14862,7 +14897,7 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
             deallocateDynamicallyAllocatedMemory(ObjectMemory.DynamicMemory, ObjectMemory.topFreeDynamicAddress);
         }
         
-        it_Event = EventStack.back().Event;
+        eventIt = EventStack.back().Event;
         LocalToGlobalTranslation = EventStack.back().LocalVariables;
         EventCallState = EventStack.back().EventCallState;
         EventStack.pop_back();
@@ -14873,13 +14908,13 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
 
     return flow_next_event;
 }
-inline bool findNextEvent(const Triggers & CurrentTriggers, vector<EventModule>::iterator & it_Event,
-    vector<EventModule>::iterator & it_StartingEvent, AncestorObject *& TriggeredObject
+inline bool findNextEvent(const Triggers & CurrentTriggers, vector<EventModule>::iterator & eventIt,
+    vector<EventModule>::iterator & startingEventIt, AncestorObject *& TriggeredObject
 ){
     auto end = TriggeredObject->EventContainer.end();
 
-    while(++it_Event != end && ++it_StartingEvent != end){
-        if(isEventTriggered(CurrentTriggers, it_Event)){
+    while(++eventIt != end && ++startingEventIt != end){
+        if(isEventTriggered(CurrentTriggers, eventIt)){
             return true;
         }
     }
@@ -14887,8 +14922,8 @@ inline bool findNextEvent(const Triggers & CurrentTriggers, vector<EventModule>:
     return false;
 } 
 bool ProcessClass::executeEventLoop(EngineClass & Engine, vector<ProcessClass> & Processes,
-    const Triggers & CurrentTriggers, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, ObjectMemoryStruct & ObjectMemory,
+    const Triggers & CurrentTriggers, vector<EventModule>::iterator & startingEventIt,
+    vector<EventModule>::iterator & eventIt, ObjectMemoryStruct & ObjectMemory,
     vector <AncestorObject*> & TriggeredObjects, LayerClass *& TriggeredLayer,
     AncestorObject *& TriggeredObject
 ){
@@ -14896,22 +14931,22 @@ bool ProcessClass::executeEventLoop(EngineClass & Engine, vector<ProcessClass> &
 
     EventCallState.clear();
     LocalToGlobalTranslation.clear();
-    allocateMemoryForDynamicVariables(it_Event, ObjectMemory);
+    allocateMemoryForDynamicVariables(eventIt, ObjectMemory);
 
     interruptInstruction = EngineInstr::null;
 
-    while(it_Event != TriggeredObject->EventContainer.end()){
+    while(eventIt != TriggeredObject->EventContainer.end()){
         EventControlFlow e_eventControl = executeSingleEvent(
-            Engine, Processes, it_StartingEvent, it_Event, EventStack,
+            Engine, Processes, startingEventIt, eventIt, EventStack,
             ObjectMemory, TriggeredObjects, TriggeredLayer, TriggeredObject
         );
 
         switch(e_eventControl){
             case flow_next_event:
-                if(findNextEvent(CurrentTriggers, it_Event, it_StartingEvent, TriggeredObject)){
+                if(findNextEvent(CurrentTriggers, eventIt, startingEventIt, TriggeredObject)){
                     EventCallState.clear();
                     LocalToGlobalTranslation.clear();
-                    allocateMemoryForDynamicVariables(it_Event, ObjectMemory);
+                    allocateMemoryForDynamicVariables(eventIt, ObjectMemory);
                 }
                 break;
             case flow_self_deletion:
@@ -14932,9 +14967,9 @@ inline bool isEntityInaccessible(Entity * t_Entity){
 }
 inline bool findTriggeredLayer(vector<LayerClass> & AllLayers, AncestorObject * TriggeredObject, LayerClass *& TriggeredLayer){
     TriggeredLayer = nullptr;
-    for(LayerClass & it_Layer : AllLayers){
-        if(TriggeredObject->getLayerID() == it_Layer.getID()){
-            TriggeredLayer = &it_Layer;
+    for(LayerClass & layerIt : AllLayers){
+        if(TriggeredObject->getLayerID() == layerIt.getID()){
+            TriggeredLayer = &layerIt;
             break;
         }
     }
@@ -14943,30 +14978,34 @@ inline bool findTriggeredLayer(vector<LayerClass> & AllLayers, AncestorObject * 
     }
     return false;
 }
-inline bool findFirstTriggeredEvent(AncestorObject * TriggeredObject, Triggers & CurrentTriggers, vector<EventModule>::iterator & it_Event){
-    it_Event = TriggeredObject->EventContainer.begin();
-    for(; it_Event < TriggeredObject->EventContainer.end(); it_Event++){
-        if(isEventTriggered(CurrentTriggers, it_Event)){
+inline bool findFirstTriggeredEvent(AncestorObject * TriggeredObject, Triggers & CurrentTriggers, vector<EventModule>::iterator & eventIt){
+    eventIt = TriggeredObject->EventContainer.begin();
+    for(; eventIt < TriggeredObject->EventContainer.end(); eventIt++){
+        if(isEventTriggered(CurrentTriggers, eventIt)){
             return false;
         }
     }
     return true;
 }
-void updatePersistentPointers(AncestorObject *& currentObj, MemoryMapType & memory){
+inline void updatePersistentPointers(AncestorObject *& currentObj, MemoryMapType & memory, const InstrDescription &CurrentInstr){
     if(!currentObj->hasInvalidatedMemory){
         return;
     }
     currentObj->hasInvalidatedMemory = false;
-    for(ContextClass & variable : memory){
-        if(!variable.isPointingToMember){
-            continue;
-        }
-        switch(variable.type){
+    for(ContextClass & contextVar : memory){
+        if(!contextVar.isPointingToMember){ continue; }
+        switch(contextVar.type){
             case variable_mod:
-                variable.Modules.Variables[0] = &currentObj->VariablesContainer[variable.containerIndex];
+                if(currentObj->VariablesContainer.empty()){
+                    continue;
+                }
+                contextVar.Modules.Variables[0] = &currentObj->VariablesContainer[contextVar.containerIndex];
                 break;
             case vector_mod:
-                variable.Modules.Vectors[0] = &currentObj->VectorContainer[variable.containerIndex];
+                if(currentObj->VectorContainer.empty()){
+                    continue;
+                }
+                contextVar.Modules.Vectors[0] = &currentObj->VectorContainer[contextVar.containerIndex];
                 break;
             default:
                 break;
@@ -14976,34 +15015,34 @@ void updatePersistentPointers(AncestorObject *& currentObj, MemoryMapType & memo
 bool ProcessClass::executeTriggeredEvents(EngineClass & Engine, vector<ProcessClass> & Processes,
     vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers
 ){
-    vector<EventModule>::iterator it_StartingEvent, it_Event;
-    LayerClass * TriggeredLayer = nullptr;
+    vector<EventModule>::iterator startingEventIt, eventIt;
+    LayerClass * triggeredLayer = nullptr;
 
-    for(AncestorObject * itTriggeredObject : TriggeredObjects){
-        if(isEntityInaccessible(itTriggeredObject)
-            || findFirstTriggeredEvent(itTriggeredObject, CurrentTriggers, it_Event)
-            || findTriggeredLayer(Layers, itTriggeredObject, TriggeredLayer)
+    for(AncestorObject * triggeredObjectIt : TriggeredObjects){
+        if(isEntityInaccessible(triggeredObjectIt)
+            || findFirstTriggeredEvent(triggeredObjectIt, CurrentTriggers, eventIt)
+            || findTriggeredLayer(Layers, triggeredObjectIt, triggeredLayer)
         ){ continue; }
         
-        it_StartingEvent = it_Event;
+        startingEventIt = eventIt;
 
-        if(!ProcessMemory.contains(itTriggeredObject->objectLookupID)){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object '" << itTriggeredObject->getID() << "' doesn't have memory.\n";
+        if(!ProcessMemory.contains(triggeredObjectIt->objectLookupID)){
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object '" << triggeredObjectIt->getID() << "' doesn't have memory.\n";
             continue;
         }
-        ObjectMemoryStruct & ObjectMemory = ProcessMemory[itTriggeredObject->objectLookupID];
+        ObjectMemoryStruct & ObjectMemory = ProcessMemory[triggeredObjectIt->objectLookupID];
 
-        CurrentInstr.layerID = TriggeredLayer->getID();
-        CurrentInstr.objectID = itTriggeredObject->getID();
+        CurrentInstr.layerID = triggeredLayer->getID();
+        CurrentInstr.objectID = triggeredObjectIt->getID();
 
-        updatePersistentPointers(itTriggeredObject, ObjectMemory.MemoryMap);
+        updatePersistentPointers(triggeredObjectIt, ObjectMemory.MemoryMap, CurrentInstr);
 
-        ObjectMemory.MemoryMap[1].Objects[0] = itTriggeredObject;
-        ObjectMemory.MemoryMap[2].Layers[0] = TriggeredLayer;
+        ObjectMemory.MemoryMap[1].Objects[0] = triggeredObjectIt;
+        ObjectMemory.MemoryMap[2].Layers[0] = triggeredLayer;
 
         if(executeEventLoop(Engine, Processes, CurrentTriggers,
-            it_StartingEvent, it_Event, ObjectMemory, TriggeredObjects,
-            TriggeredLayer, itTriggeredObject
+            startingEventIt, eventIt, ObjectMemory, TriggeredObjects,
+            triggeredLayer, triggeredObjectIt
         )){ return true; }
 
         if(wasNewExecuted || wasAnyEventUpdated){
@@ -16755,8 +16794,8 @@ ModuleIndex PointerRecalculator::getIndex(vector<EventModule>::iterator & Instan
     }
     return ModuleIndex(0, 0, 0);
 }
-void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
+void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & startingEventIt,
+    vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
     //Invalidate all pointers that reference other modules' instances.
     for(LayerClass & Layer : Layers){
@@ -16768,8 +16807,8 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers, Obj
         }
     }
 
-    startingEventIndex = getIndex(it_StartingEvent, Layers, CurrentInstr);
-    eventIndex = getIndex(it_Event, Layers, CurrentInstr);
+    startingEventIndex = getIndex(startingEventIt, Layers, CurrentInstr);
+    eventIndex = getIndex(eventIt, Layers, CurrentInstr);
     for(EventStackStruct & Memory : MemoryStack){
         PastEvents.emplace_back(getIndex(Memory.Event, Layers, CurrentInstr));
     }
@@ -16924,11 +16963,11 @@ void PointerRecalculator::updatePointersToObjectsInObjectMemory(
         }
     }
 }
-void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & it_StartingEvent,
-    vector<EventModule>::iterator & it_Event, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
+void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers, ObjectMemoryStruct & ObjectMemory, vector<EventModule>::iterator & startingEventIt,
+    vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, SuperEditableTextModule *& ActiveEditableText, const InstrDescription & CurrentInstr
 ){
-    it_StartingEvent = startingEventIndex.module(Layers);
-    it_Event = eventIndex.module(Layers);
+    startingEventIt = startingEventIndex.module(Layers);
+    eventIt = eventIndex.module(Layers);
     for(unsigned memory = 0; memory < MemoryStack.size(); memory++){
         MemoryStack[memory].Event = PastEvents[memory].module(Layers);
     }

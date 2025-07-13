@@ -74,7 +74,13 @@ public:
     
     bool canBeMovedWithMouse = false;
     bool canDrawSelectionBorder = false;
-    bool hasInvalidatedMemory = true;
+    //Engine invalidates object's memory in these instances:
+    // - object is created
+    // - object/layer is cloned
+    // - container with layers is expanded
+    // - container with objects is expanded in the same layer
+    // - container with parameters and/or vectorParameters is expanded in this object
+    bool hasInvalidatedMemory = true; 
 
     AncestorObject();
     void deleteLater();

@@ -90,6 +90,16 @@ start testRunnerEvent()
     build TestMemberVariables true
     ++ allTestsCount
 
+    new Objects my_layer 1 "TestDeleteVariables" TestDeleteVariables
+    bind TestDeleteVariables ["tests/delete_variables.sand"]
+    build TestDeleteVariables true
+    ++ allTestsCount
+
+    new Objects my_layer 1 "TestDeleteVectors" TestDeleteVectors
+    bind TestDeleteVectors ["tests/delete_vectors.sand"]
+    build TestDeleteVectors true
+    ++ allTestsCount
+
     new Objects my_layer 1 "TestCloningObjects" TestCloningObjects
     bind TestCloningObjects ["tests/cloning_obj_test/main.sand"]
     build TestCloningObjects true

@@ -1109,17 +1109,17 @@ inline const VariableLocationStruct * findVariableInTheScopes(
 ){
     if(forceNewDeclaration){
         // const auto & CurrentScope = Scopes.back();
-        // for(const VariableLocationStruct & it_Variable : CurrentScope){
-        //     if(variableName == it_Variable.name){
-        //         return &it_Variable;
+        // for(const VariableLocationStruct & variableIt : CurrentScope){
+        //     if(variableName == variableIt.name){
+        //         return &variableIt;
         //     }
         // }
         return nullptr;
     }
-    for(auto it_Scope = Scopes.rbegin(); it_Scope != Scopes.rend(); ++it_Scope){
-        for(const VariableLocationStruct & it_Variable : *it_Scope){
-            if(variableName == it_Variable.name){
-                return &it_Variable;
+    for(auto scopeIt = Scopes.rbegin(); scopeIt != Scopes.rend(); ++scopeIt){
+        for(const VariableLocationStruct & variableIt : *scopeIt){
+            if(variableName == variableIt.name){
+                return &variableIt;
             }
         }
     }
