@@ -1,7 +1,8 @@
+import "tests/test_template.sand"
+
 start main()
     triggers on_init
-    env can_exit_on_idle 1
-    print "DECLARATION_TEST - START\n"
+    run startTest()
 
     string varType ""
 
@@ -23,24 +24,13 @@ start main()
     type anyVar varType
     assert varType "any"
     
-    run incrementPassedTests()
-    print "DECLARATION_TEST - PASSED\n"
+    run endTest()
 end
 
 start setVal(Val & val)
     fun val set_int 5
 end
+
 start checkVal(Val & val)
     assert val 5
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
 end

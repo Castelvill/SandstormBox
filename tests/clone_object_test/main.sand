@@ -1,7 +1,8 @@
+import "tests/test_template.sand"
+
 start onInit()
     triggers on_init
-    env can_exit_on_idle 1
-    print "CLONING_OBJ_TEST - START\n"
+    run startTest()
 
     access thisName [me.id]
 
@@ -11,14 +12,14 @@ start onInit()
     new Variables Template 1 "testObjName" testObjName
     fun testObjName set_string thisName
 
-    bind Template ["tests/cloning_obj_test/template.sand"]
+    bind Template ["tests/clone_object_test/template.sand"]
     build Template true
     fun Template deactivate
 
     int i 0
     var idleLock 0
     
-    while(i 100 <)
+    while(i 200 <)
         new Objects my_layer 1 "Clone0" Clone0
         clone Clone0 Template false
         fun Clone0 activate
@@ -33,18 +34,6 @@ start waitForOtherObjects()
     if(idleLock 0 >)
         return
     end_if
-    run incrementPassedTests()
-    print "CLONING_OBJ_TEST - PASSED\n"
+    run endTest()
     delete_this_event
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
 end

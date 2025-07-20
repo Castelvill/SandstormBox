@@ -1,7 +1,8 @@
+import "tests/test_template.sand"
+
 start onInit()
     triggers on_init
-    env can_exit_on_idle 1
-    print "CLONING_LAYERS_TEST - START\n"
+    run startTest()
 
     access thisName [me.id]
     access thisLayerName [my_layer.id]
@@ -15,7 +16,7 @@ start onInit()
     fun testLayerName set_string thisLayerName
     new Variables Obj 1 "testObjName" testObjName
     fun testObjName set_string thisName
-    bind Obj ["tests/cloning_layer_test/template.sand"]
+    bind Obj ["tests/clone_layer_test/template.sand"]
     build Obj true
 
     int i 0
@@ -35,18 +36,6 @@ start waitForOtherObjects()
     if(idleLock 0 >)
         return
     end_if
-    run incrementPassedTests()
-    print "CLONING_LAYERS_TEST - PASSED\n"
+    run endTest()
     delete_this_event
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
 end

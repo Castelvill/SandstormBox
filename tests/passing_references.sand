@@ -1,8 +1,8 @@
+import "tests/test_template.sand"
+
 start main()
     triggers on_init
-    env can_exit_on_idle 1
-    edit_proc print_instructions 0
-    print "PASSING_REFERENCES_TEST - START\n"
+    run startTest()
 
     int x 0
     assert x 0
@@ -19,8 +19,7 @@ start main()
     run refToRef(x)
     assert x 8
 
-    run incrementPassedTests()
-    print "PASSING_REFERENCES_TEST - PASSED\n"
+    run endTest()
 end
 
 start val(int x)
@@ -73,15 +72,4 @@ end
 
 start ref2(int & x)
     = x 8
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
 end

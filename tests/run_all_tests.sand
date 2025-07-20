@@ -81,7 +81,7 @@ start testRunnerEvent()
     ++ allTestsCount
     
     new Objects my_layer 1 "TestRecompilation" TestRecompilation
-    bind TestRecompilation ["tests/recompilation.sand"]
+    bind TestRecompilation ["tests/recompilation_test/main.sand"]
     build TestRecompilation true
     ++ allTestsCount
 
@@ -100,13 +100,18 @@ start testRunnerEvent()
     build TestDeleteVectors true
     ++ allTestsCount
 
+    new Objects my_layer 1 "TestPersistentModPtr" TestPersistentModPtr
+    bind TestPersistentModPtr ["tests/persistent_module_pointers.sand"]
+    build TestPersistentModPtr true
+    ++ allTestsCount
+
     new Objects my_layer 1 "TestCloningObjects" TestCloningObjects
-    bind TestCloningObjects ["tests/cloning_obj_test/main.sand"]
+    bind TestCloningObjects ["tests/clone_object_test/main.sand"]
     build TestCloningObjects true
     ++ allTestsCount
 
     new Objects my_layer 1 "TestCloningLayers" TestCloningLayers
-    bind TestCloningLayers ["tests/cloning_layer_test/main.sand"]
+    bind TestCloningLayers ["tests/clone_layer_test/main.sand"]
     build TestCloningLayers true
     ++ allTestsCount
 end

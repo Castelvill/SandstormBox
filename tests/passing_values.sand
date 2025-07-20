@@ -1,13 +1,14 @@
+import "tests/test_template.sand"
+
 start main()
     triggers on_init
-    env can_exit_on_idle 1
-    print "PASSING_VALUES_TEST - START\n"
+    run startTest()
+
     var a 10
     run passA(a)
     run passA2(a)
 
-    run incrementPassedTests()
-    print "PASSING_VALUES_TEST - PASSED\n"
+    run endTest()
 end
 
 start passA(int localA)
@@ -32,15 +33,4 @@ start passA2(Var & localA)
 
     type a typeOfGlobal
     assert typeOfGlobal "Var"
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
 end

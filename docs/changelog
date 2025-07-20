@@ -1,3 +1,9 @@
+20.07.2025
+-Refactored test cases with an import - moved common logic to a seperate file.
+-Added "persistent_module_pointers" test.
+-Fixed: Crash in the "nw" terminal command - engine would crash after closing a window and creating a new one.
+-Added basic garbage collector for clearing unused pointers.
+
 13.07.2025
 -Tested deleting and accessing member variables.
 -Added recalculating member variables pointers after deletion.

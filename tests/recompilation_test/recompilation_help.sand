@@ -2,4 +2,5 @@ start checkAlreadyDefinedVariables()
     triggers on_init
     assert localVariable NULL
     assert globalVariable 555
+    run endTest()
 end

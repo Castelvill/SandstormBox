@@ -1,7 +1,8 @@
+import "tests/test_template.sand"
+
 start main()
     triggers on_init
-    env can_exit_on_idle 1
-    print "WHILE_LOOP_TEST - START\n"
+    run startTest()
 
     int sum 0
     int x 23
@@ -32,8 +33,7 @@ start main()
 
     assert sum 1700
 
-    run incrementPassedTests()
-    print "WHILE_LOOP_TEST - PASSED\n"
+    run endTest()
 end
 
 start test_loop(int & sum, int & j, int & y)
@@ -41,15 +41,4 @@ start test_loop(int & sum, int & j, int & y)
         ++ sum
         ++ j
     end_while
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
 end

@@ -63,8 +63,7 @@ public:
     vector <string> movementContainerIDs;
     vector <string> collisionContainerIDs;
     vector <string> particlesContainerIDs;
-    vector <string> eventsContainerIDs;
-    vector <string> EventContainerIDs;
+    vector <string> eventContainerIDs;
     vector <string> variablesContainerIDs;
     vector <string> scrollbarContainerIDs;
     vector <string> primitivesContainerIDs;
@@ -80,7 +79,9 @@ public:
     // - container with layers is expanded
     // - container with objects is expanded in the same layer
     // - container with parameters and/or vectorParameters is expanded in this object
-    bool hasInvalidatedMemory = true; 
+    bool hasInvalidatedMemory = true;
+    //If true clean all non-member pointers that could be deleted between event execution.
+    bool executeGarbageCollector = false;
 
     AncestorObject();
     void deleteLater();

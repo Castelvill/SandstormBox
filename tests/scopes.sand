@@ -1,7 +1,9 @@
+import "tests/test_template.sand"
+
 start main()
     triggers on_init
-    env can_exit_on_idle 1
-    print "SCOPES_TEST - START\n"
+    run startTest()
+
     int a 2
     assert a 2
     if()
@@ -13,8 +15,8 @@ start main()
     run changeA(a)
     assert a 10
     assert b NULL
-    run incrementPassedTests()
-    print "SCOPES_TEST - PASSED\n"
+    
+    run endTest()
 end
 
 start changeA(int & a)
@@ -24,15 +26,4 @@ start changeA(int & a)
     assert a 5
     = a 10
     assert b 20
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
 end

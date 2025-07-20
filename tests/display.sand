@@ -1,20 +1,10 @@
+import "tests/test_template.sand"
+
 start main()
     triggers on_init
-    env can_exit_on_idle 1
-    print "DISPLAY_TEST - START\n"
+    run startTest()
+
     create_display 640 480 640 480
 
-    run incrementPassedTests()
-    print "DISPLAY_TEST - PASSED\n"
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
+    run endTest()
 end

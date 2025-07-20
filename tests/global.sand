@@ -1,6 +1,9 @@
+import "tests/test_template.sand"
+
 start main()
     triggers on_init
-    env can_exit_on_idle 1
+    run startTest()
+
     var a 10
     assert a 10
     run subFun()
@@ -15,9 +18,12 @@ end
 
 start main1()
     triggers on_init
+    
     assert a 15
     run subFun2()
     assert a 20
+
+    run endTest()
 end
 
 start subFun2()

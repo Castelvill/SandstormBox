@@ -432,20 +432,22 @@ void VariableModule::addStringUnsafe(string newValue){
     vString += newValue;
 }
 void VariableModule::negate(){
-    if(type == 'b'){
-        toggleBool();
-    }
-    else if(type == 'i'){
-        vInt = -vInt;
-    }
-    else if(type == 'd'){
-        vDouble = -vDouble;
-    }
-    else if(type == 's'){
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t You can't negate a string.\n";
-    }
-    else{
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t You can't negate the value of already not-initialized variable.\n";
+    switch(type){
+        case 'b':
+            toggleBool();
+            return;
+        case 'i':
+            vInt = -vInt;
+            return;
+        case 'd':
+            vDouble = -vDouble;
+            return;
+        case 's':
+            cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t Cannot negate a string value.\n";
+            return;
+        default:
+            cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t Cannot negate a value of uninitialized variable.\n";
+            return;
     }
 }
 void VariableModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){

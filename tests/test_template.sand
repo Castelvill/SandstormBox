@@ -1,0 +1,46 @@
+// Copy this code snippet to create a new test case compatible with the "run_all_tests.sand" script:
+/*
+import "tests/test_template.sand"
+
+start main()
+    triggers on_init
+    run startTest()
+
+    //Here goes the testing code
+
+    run endTest()
+end
+*/
+
+
+start initTest()
+    triggers on_init
+    env can_exit_on_idle 1
+    access testCaseName [me.id]
+    if(testCaseName "Init" ==)
+        fun me set_id "TEST"
+    end_if
+end
+
+start startTest()
+    access testCaseName [me.id]
+    //print testCaseName " - START\n"
+end
+
+start endTest()
+    run incrementPassedTests()
+    access testCaseName [me.id]
+    print testCaseName " - PASSED\n"
+end
+
+start incrementPassedTests()
+    access myName [me.id]
+    if(myName "TEST" ==)
+        return
+    end_if
+    all Layers _ _ _ _ _ _ layers
+    index layers [0 0] object MainTest
+    first MainTest _ _ Variables passedTests _ _ passedTests
+    ++ passedTests
+end
+

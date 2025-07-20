@@ -675,8 +675,8 @@ void SuperTextModule::setContent(string newContent){
 }
 void SuperTextModule::addContent(string newContent){
     content += newContent;
-    Formatting.back().limit += newContent.size();
-
+    //Formatting.back().limit += newContent.size();
+    fitFormattingToContent();
     //update();
 }
 void SuperTextModule::addNewTextLine(string newLine){

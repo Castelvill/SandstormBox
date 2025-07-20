@@ -1,7 +1,8 @@
+import "tests/test_template.sand"
+
 start main()
     triggers on_init
-    env can_exit_on_idle 1
-    print "MEMBER_VARIABLE_TEST - START\n"
+    run startTest()
     
     var mVar0 30 // Create a member variable for the object that is currently executing this event
     assert mVar0 30
@@ -15,17 +16,5 @@ end
 start onIdle()
     triggers on_init
     assert mVar0 31
-    run incrementPassedTests()
-    print "MEMBER_VARIABLE_TEST - PASSED\n"
-end
-
-start incrementPassedTests()
-    access myName [me.id]
-    if(myName "Init" ==)
-        return
-    end_if
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
-    ++ passedTests
+    run endTest()
 end

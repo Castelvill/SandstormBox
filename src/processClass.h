@@ -80,11 +80,7 @@ public:
     ContextClass & operator=(const ContextClass& Original);
     void clear();
     void clearState();
-    // void setID(const InstrDescription & CurrentInstr,
-    //     std::unordered_map<string, ContextClass> & ObjectMemory,
-    //     std::unordered_map<string, ReferenceStruct> & References, string newID,
-    //     const bool & printOutInstructions, int maxLengthOfValuesPrinting
-    // );
+    void clearPointers();
     size_t getVectorSize() const;
     string getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting) const;
     ReturnType getAllValues(vector<VariableModule> & NewValues);

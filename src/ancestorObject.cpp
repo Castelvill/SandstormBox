@@ -195,7 +195,7 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     }
     for(const EventModule & Event : Original.EventContainer){
         EventContainer.emplace_back(EventModule());
-        EventContainer.back().clone(Event, EventContainerIDs, newLayerID, getID(), true);
+        EventContainer.back().clone(Event, eventContainerIDs, newLayerID, getID(), true);
     }
     for(const VariableModule & Variable : Original.VariablesContainer){
         VariablesContainer.emplace_back(VariableModule());
@@ -226,8 +226,7 @@ void AncestorObject::clearVectorsOfIDs(){
     movementContainerIDs.clear();
     collisionContainerIDs.clear();
     particlesContainerIDs.clear();
-    eventsContainerIDs.clear();
-    EventContainerIDs.clear();
+    eventContainerIDs.clear();
     variablesContainerIDs.clear();
     scrollbarContainerIDs.clear();
     primitivesContainerIDs.clear();
@@ -413,7 +412,7 @@ void AncestorObject::createVectorsOfIds(){
         particlesContainerIDs.emplace_back(content.getID());
     }
     for(const EventModule & content : EventContainer){
-        EventContainerIDs.emplace_back(content.getID());
+        eventContainerIDs.emplace_back(content.getID());
     }
     for(const VariableModule & content : VariablesContainer){
         variablesContainerIDs.emplace_back(content.getID());
@@ -1750,7 +1749,7 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
     }
     if(words[0].value == "start" ||  words[0].value == "override"){
         if(createEvent(scriptName, lineNumber, layerID, ID, EventContainer,
-            EventContainerIDs, NewEvent, words, Scopes, topAddress
+            eventContainerIDs, NewEvent, words, Scopes, topAddress
         )){ return ReturnType::ERROR; }
         allAvailableEventIDs.clear();
         allAvailableEventIDs.push_back(NewEvent.getID());
@@ -3176,7 +3175,7 @@ void AncestorObject::clearAllEvents(){
         Event.clear();
     }
     EventContainer.clear();
-    EventContainerIDs.clear();
+    eventContainerIDs.clear();
 }
 inline void printEmptyFileWarning(string scriptName, string functionName){
     cout << "Warning: In " << functionName

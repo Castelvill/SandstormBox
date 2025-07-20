@@ -1104,6 +1104,94 @@ void ContextClass::clearState(){
             return;
     }
 }
+void ContextClass::clearPointers(){
+    switch(type){
+        case camera_inst:
+        case camera_vec:
+            Cameras.clear();
+            return;
+        case layer_inst:
+        case layer_vec:
+            Layers.clear();
+            return;
+        case object_inst:
+        case object_vec:
+            Objects.clear();
+            return;
+        case variable_mod:
+        case variable_mod_vec:
+            Modules.Variables.clear();
+            return;
+        case vector_mod:
+        case vector_mod_vec:
+            Modules.Vectors.clear();
+            return;
+        case text_mod:
+        case text_mod_vec:
+            Modules.Texts.clear();
+            return;
+        case editable_text_mod:
+        case editable_text_mod_vec:
+            Modules.EditableTexts.clear();
+            return;
+        case super_text_mod:
+        case super_text_mod_vec:
+            Modules.SuperTexts.clear();
+            return;
+        case super_editable_text_mod:
+        case super_editable_text_mod_vec:
+            Modules.SuperEditableTexts.clear();
+            return;
+        case image_mod:
+        case image_mod_vec:
+            Modules.Images.clear();
+            return;
+        case movement_mod:
+        case movement_mod_vec:
+            Modules.Movements.clear();
+            return;
+        case collision_mod:
+        case collision_mod_vec:
+            Modules.Collisions.clear();
+            return;
+        case particles_mod:
+        case particles_mod_vec:
+            Modules.Particles.clear();
+            return;
+        case event_mod:
+        case event_mod_vec:
+            Modules.Events.clear();
+            return;
+        case scrollbar_mod:
+        case scrollbar_mod_vec:
+            Modules.Scrollbars.clear();
+            return;
+        case primitives_mod:
+        case primitives_mod_vec:
+            Modules.Primitives.clear();;
+            return;
+        case any_dt:
+            Cameras.clear();
+            Layers.clear();
+            Objects.clear();
+            Modules.Variables.clear();
+            Modules.Vectors.clear();
+            Modules.Texts.clear();
+            Modules.EditableTexts.clear();
+            Modules.SuperTexts.clear();
+            Modules.SuperEditableTexts.clear();
+            Modules.Images.clear();
+            Modules.Movements.clear();
+            Modules.Collisions.clear();
+            Modules.Particles.clear();
+            Modules.Events.clear();
+            Modules.Scrollbars.clear();
+            Modules.Primitives.clear();
+            return;
+        default:
+            return;
+    }
+}
 size_t ContextClass::getVectorSize() const{
     switch(type){
         case value_inst:
@@ -7492,21 +7580,12 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             break;
         case object:
             if(CurrentLayer->Objects.size() + newVectorSize > CurrentLayer->Objects.capacity()){
-                vector<PointerRecalculator> Recalculators;
-                for(AncestorObject & itObject : CurrentLayer->Objects){
-                    Recalculators.emplace_back();
-                    auto & CurrentObjectMemory = ProcessMemory[itObject.objectLookupID];
-                    Recalculators.back().findIndexesForObjects(Layers, CurrentObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-                    Recalculators.back().findIndexesForModules(Layers, CurrentObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-                }
+                PointerRecalculator Recalculator;
+                Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
+                Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
                 CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
-                size_t objectIdx = 0;
-                for(AncestorObject & itObject : CurrentLayer->Objects){\
-                    auto & CurrentObjectMemory = ProcessMemory[itObject.objectLookupID];
-                    Recalculators[objectIdx].updatePointersToObjects(Layers, CurrentObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-                    Recalculators[objectIdx].updatePointersToModules(Layers, CurrentObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-                    ++objectIdx;
-                }
+                Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
+                Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
             }
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
@@ -7588,7 +7667,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             }
             break;
         case event:
-            createNewModule(CurrentObject->EventContainer, CurrentObject->EventContainerIDs, NewContext.Modules.Events,
+            createNewModule(CurrentObject->EventContainer, CurrentObject->eventContainerIDs, NewContext.Modules.Events,
                 newVectorSize, newIDs, layerID, objectID, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
                 reservationMultiplier, ActiveEditableText, CurrentInstr
             );
@@ -14326,9 +14405,19 @@ inline void fixIndexesAfterDeletion(MemoryMapType & objectMemory, const vector<s
             }
         }
     }
-} 
+}
+void activateGarbageCollector(bool wereLayersModified, vector<LayerClass> &layers){
+    if(!wereLayersModified){
+        return;
+    }
+    for(LayerClass & layerIt : layers){
+        for(AncestorObject & objectIt : layerIt.Objects){
+            objectIt.executeGarbageCollector = true;
+        }
+    }
+}
 bool ProcessClass::deleteEntities(){
-    bool layersWereModified = false;
+    bool wereLayersModified = false;
     unsigned entityIndex = 0;
     for(auto cameraIt = Cameras.begin(); cameraIt != Cameras.end(); entityIndex++){
         if(cameraIt->getIsDeleted()){
@@ -14349,7 +14438,7 @@ bool ProcessClass::deleteEntities(){
                 ProcessMemory.erase(Object.objectLookupID);
             }
             removeFromVector(layersIDs, Layer->getID());
-            layersWereModified = true;
+            wereLayersModified = true;
             Layer->clear();
             Layer = Layers.erase(Layer);
             removeIndexFromOrder(CurrentInstr, layersOrder, entityIndex);
@@ -14361,32 +14450,32 @@ bool ProcessClass::deleteEntities(){
                     ProcessMemory[objectIt->objectLookupID].clear();
                     ProcessMemory.erase(objectIt->objectLookupID);
                     removeFromVector(Layer->objectsIDs, objectIt->getID());
-                    layersWereModified = true;
+                    wereLayersModified = true;
                     objectIt->clear();
                     objectIt = Layer->Objects.erase(objectIt);
                     removeIndexFromOrder(CurrentInstr, Layer->objectsOrder, objectIndex);
                 }
                 else{
-                    deleteModuleInstance(objectIt->TextContainer, objectIt->textContainerIDs, layersWereModified);
-                    deleteModuleInstance(objectIt->EditableTextContainer, objectIt->editableTextContainerIDs, layersWereModified);
-                    deleteModuleInstance(objectIt->SuperTextContainer, objectIt->superTextContainerIDs, layersWereModified);
-                    deleteModuleInstance(objectIt->SuperEditableTextContainer, objectIt->superEditableTextContainerIDs, layersWereModified);
-                    deleteModuleInstance(objectIt->ImageContainer, objectIt->imageContainerIDs, layersWereModified);
-                    deleteModuleInstance(objectIt->MovementContainer, objectIt->movementContainerIDs, layersWereModified);
-                    deleteModuleInstance(objectIt->CollisionContainer, objectIt->collisionContainerIDs, layersWereModified);
-                    deleteModuleInstance(objectIt->ParticlesContainer, objectIt->particlesContainerIDs, layersWereModified);
-                    if(deleteEventInstance(objectIt->EventContainer, objectIt->EventContainerIDs, layersWereModified, ProcessMemory[objectIt->objectLookupID])){
+                    deleteModuleInstance(objectIt->TextContainer, objectIt->textContainerIDs, wereLayersModified);
+                    deleteModuleInstance(objectIt->EditableTextContainer, objectIt->editableTextContainerIDs, wereLayersModified);
+                    deleteModuleInstance(objectIt->SuperTextContainer, objectIt->superTextContainerIDs, wereLayersModified);
+                    deleteModuleInstance(objectIt->SuperEditableTextContainer, objectIt->superEditableTextContainerIDs, wereLayersModified);
+                    deleteModuleInstance(objectIt->ImageContainer, objectIt->imageContainerIDs, wereLayersModified);
+                    deleteModuleInstance(objectIt->MovementContainer, objectIt->movementContainerIDs, wereLayersModified);
+                    deleteModuleInstance(objectIt->CollisionContainer, objectIt->collisionContainerIDs, wereLayersModified);
+                    deleteModuleInstance(objectIt->ParticlesContainer, objectIt->particlesContainerIDs, wereLayersModified);
+                    if(deleteEventInstance(objectIt->EventContainer, objectIt->eventContainerIDs, wereLayersModified, ProcessMemory[objectIt->objectLookupID])){
                         findIndexesOfEventChildren(objectIt->EventContainer, CurrentInstr, true);
                         detectRecursionInEvents(objectIt->EventContainer, CurrentInstr);
                     }
-                    deleteModuleInstance(objectIt->ScrollbarContainer, objectIt->scrollbarContainerIDs, layersWereModified);
-                    deleteModuleInstance(objectIt->PrimitivesContainer, objectIt->primitivesContainerIDs, layersWereModified);
+                    deleteModuleInstance(objectIt->ScrollbarContainer, objectIt->scrollbarContainerIDs, wereLayersModified);
+                    deleteModuleInstance(objectIt->PrimitivesContainer, objectIt->primitivesContainerIDs, wereLayersModified);
                     vector<size_t> deletedParametersIndexes = deleteModuleInstanceAndReturnIndexes(
-                        objectIt->VariablesContainer, objectIt->variablesContainerIDs, layersWereModified
+                        objectIt->VariablesContainer, objectIt->variablesContainerIDs, wereLayersModified
                     );
                     fixIndexesAfterDeletion(ProcessMemory[objectIt->objectLookupID].MemoryMap, deletedParametersIndexes, DataType::variable_mod);
                     vector<size_t> deletedVectorParametersIndexes = deleteModuleInstanceAndReturnIndexes(
-                        objectIt->VectorContainer, objectIt->vectorContainerIDs, layersWereModified
+                        objectIt->VectorContainer, objectIt->vectorContainerIDs, wereLayersModified
                     );
                     fixIndexesAfterDeletion(ProcessMemory[objectIt->objectLookupID].MemoryMap, deletedVectorParametersIndexes, DataType::vector_mod);
                     ++objectIt;
@@ -14395,7 +14484,8 @@ bool ProcessClass::deleteEntities(){
             ++Layer;
         }
     }
-    return layersWereModified;
+    activateGarbageCollector(wereLayersModified, Layers);
+    return wereLayersModified;
 }
 void removeOnInitTrigger(vector<TriggerType> & primaryTriggerTypes){
     for(auto primaryTrigger = primaryTriggerTypes.begin(); primaryTrigger != primaryTriggerTypes.end();){
@@ -14920,7 +15010,17 @@ inline bool findNextEvent(const Triggers & CurrentTriggers, vector<EventModule>:
     }
 
     return false;
-} 
+}
+//Clear module pointers from different objects when their memory layout is modified (deletions, additions, etc.)
+void collectGarbage(AncestorObject *& TriggeredObject, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject*> &TriggeredObjects){
+    if(TriggeredObject->executeGarbageCollector){
+        TriggeredObject->executeGarbageCollector = false;
+        for(size_t varIdx = 3; varIdx < ObjectMemory.MemoryMap.size(); ++varIdx){
+            if(ObjectMemory.MemoryMap[varIdx].isPointingToMember){ continue; }
+            ObjectMemory.MemoryMap[varIdx].clearPointers();
+        }
+    }
+}
 bool ProcessClass::executeEventLoop(EngineClass & Engine, vector<ProcessClass> & Processes,
     const Triggers & CurrentTriggers, vector<EventModule>::iterator & startingEventIt,
     vector<EventModule>::iterator & eventIt, ObjectMemoryStruct & ObjectMemory,
@@ -14936,12 +15036,14 @@ bool ProcessClass::executeEventLoop(EngineClass & Engine, vector<ProcessClass> &
     interruptInstruction = EngineInstr::null;
 
     while(eventIt != TriggeredObject->EventContainer.end()){
-        EventControlFlow e_eventControl = executeSingleEvent(
+        collectGarbage(TriggeredObject, ObjectMemory, TriggeredObjects);    
+
+        EventControlFlow eEventControl = executeSingleEvent(
             Engine, Processes, startingEventIt, eventIt, EventStack,
             ObjectMemory, TriggeredObjects, TriggeredLayer, TriggeredObject
         );
 
-        switch(e_eventControl){
+        switch(eEventControl){
             case flow_next_event:
                 if(findNextEvent(CurrentTriggers, eventIt, startingEventIt, TriggeredObject)){
                     EventCallState.clear();
