@@ -405,6 +405,16 @@ public:
     void assignEntities(ObjectMemoryStruct & ObjectMemory,
         ContextClass & NewValue, OutputParameterStruct & Output
     );
+    void reserveMemoryForNewLayers(ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
+        vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
+        vector<EventStackStruct> & MemoryStack, unsigned newVectorSize
+    );
+    void reserveMemoryForNewObjects(ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
+        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
+        vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
+        vector<EventStackStruct> & MemoryStack, unsigned newVectorSize
+    );
     void createNewEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
         AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects, vector<EventModule>::iterator & startingEventIt,
         vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, string & focusedProcessID

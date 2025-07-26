@@ -468,6 +468,7 @@ start spawnNewWindow(Camera & NewWindowCamera, Layer & NewWindowLayer)
 
     index NewWindowLayer [0 0 0] super_text Title
     fun Title set_content param1
+    fun Title update
 
     new Cameras 1 param1 NewWindowCamera
     clone NewWindowCamera TemplateCamera false

@@ -1,4 +1,10 @@
+26.07.2025
+-Refactored few small things.
+-Added memory invalidation to the "new" instruction.
+
 20.07.2025
+-Fixed in 'nw' command: title bar.
+-Fixed colors in 'ls' command.
 -Refactored test cases with an import - moved common logic to a seperate file.
 -Added "persistent_module_pointers" test.
 -Fixed: Crash in the "nw" terminal command - engine would crash after closing a window and creating a new one.

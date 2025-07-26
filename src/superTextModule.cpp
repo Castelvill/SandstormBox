@@ -2839,11 +2839,11 @@ void SuperEditableTextModule::edit(vector <short> releasedKeys, vector <short> p
     }
 
     if(content.size() < cursorPos){
-        cerr << "Error: In " << __FUNCTION__ << ": Cursor (" << cursorPos << ") is outside the text (" << content.size() << ").\n";
+        //cerr << "Error: In " << __FUNCTION__ << ": Cursor (" << cursorPos << ") is outside the text (" << content.size() << ").\n";
         return;
     }
     if(content.size() < secondCursorPos){
-        cerr << "Error: In " << __FUNCTION__ << ": Second cursor (" << secondCursorPos << ") is outside the text (" << content.size() << ").\n";
+        //cerr << "Error: In " << __FUNCTION__ << ": Second cursor (" << secondCursorPos << ") is outside the text (" << content.size() << ").\n";
         return;
     }
     

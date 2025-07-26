@@ -83,16 +83,16 @@ start ls
         ValVec files
         tokenize " " result files
         index me [0 0] super_editable_text EditableText
-        int fileIndex 0
         string result ""
-        run lsColoringLoop(EditableText, fileIndex, files)
+        run lsColoringLoop(EditableText, files)
         = program "_enter"
     else 
         run informFileDoesNotExistForCD()
     end_if
 end
-start lsColoringLoop(SEditText & EditableText, int & fileIndex, ValVec & files)
-	while (fileIndex files.size <)
+start lsColoringLoop(SEditText & EditableText, ValVec & files)
+	int fileIndex 0
+    while (fileIndex files.size <)
         index files [fileIndex] value file
         len file fileNameLength
         int length 5
@@ -108,17 +108,12 @@ start lsColoringLoop(SEditText & EditableText, int & fileIndex, ValVec & files)
     end_while
 end
 start colorIfDirectory(SEditText & EditableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
-	if(param1.size 0 >)
-        string fullPath ""
-        = fullPath param1 
-        += fullPath "/"
-        += fullPath file
-        if (is_directory(fullPath))
-            fun EditableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
-        else
-            run colorIfSandScript(EditableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
-        end_if
-	else
+    string fullPath param1
+    += fullPath "/"
+    += fullPath file
+    if (is_directory(fullPath))
+        fun EditableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
+    else
         run colorIfSandScript(EditableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
     end_if
 end

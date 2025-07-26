@@ -77,42 +77,42 @@ VariableModule & VariableModule::operator=(const VariableModule& Original){
     }
     return *this;
 }
-void VariableModule::copyValue(const VariableModule& Original){
+ReturnType VariableModule::copyValue(const VariableModule& Original){
     type = Original.type;
     switch(type){
         case 'b':
             vBool = Original.vBool;
-            break;
+            return ReturnType::OK;
         case 'i':
             vInt = Original.vInt;
-            break;
+            return ReturnType::OK;
         case 'd':
             vDouble = Original.vDouble;
-            break;
+            return ReturnType::OK;
         case 's':
             vString = Original.vString;
-            break;
+            return ReturnType::OK;
         default:
-            break;
+            return ReturnType::CORRUPTED;
     }
 }
-void VariableModule::copyValue(const VariableModule * Original){
+ReturnType VariableModule::copyValue(const VariableModule * Original){
     type = Original->type;
     switch(type){
         case 'b':
             vBool = Original->vBool;
-            break;
+            return ReturnType::OK;
         case 'i':
             vInt = Original->vInt;
-            break;
+            return ReturnType::OK;
         case 'd':
             vDouble = Original->vDouble;
-            break;
+            return ReturnType::OK;
         case 's':
             vString = Original->vString;
-            break;
+            return ReturnType::OK;
         default:
-            break;
+            return ReturnType::CORRUPTED;
     }
 }
 VariableModule::~VariableModule(){
@@ -334,6 +334,15 @@ string VariableModule::getStringUnsafe() const{
     
     return "";
 }
+string VariableModule::getIdentity() const{
+    string result = "";
+    if(ID != ""){
+        result += ID + ":";
+    }
+    result += type + ":";
+    result += getAnyValue();
+    return result;
+}
 void VariableModule::setID(string newID, vector<string> *listOfIDs){
     if(isStringInVector(reservedIDs, ID)){
         cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
@@ -431,23 +440,19 @@ bool VariableModule::addString(string newValue){
 void VariableModule::addStringUnsafe(string newValue){
     vString += newValue;
 }
-void VariableModule::negate(){
+ReturnType VariableModule::negate(){
     switch(type){
         case 'b':
             toggleBool();
-            return;
+            return ReturnType::OK;
         case 'i':
             vInt = -vInt;
-            return;
+            return ReturnType::OK;
         case 'd':
             vDouble = -vDouble;
-            return;
-        case 's':
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t Cannot negate a string value.\n";
-            return;
+            return ReturnType::OK;
         default:
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t Cannot negate a value of uninitialized variable.\n";
-            return;
+            return ReturnType::ERROR;
     }
 }
 void VariableModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
@@ -487,159 +492,154 @@ void VariableModule::getContext(AttributeType attribute, vector <BasePointersStr
 
 template <typename condValueType>
 bool VariableModule::isConditionMet(condValueType condVal, EngineInstr operatorType, char valType){
-    if(operatorType == EngineInstr::or_i){
-        if(valType == 'b'){
-            return getBoolUnsafe() || condVal;
-        }
-        else if(valType == 'i'){
-            return getIntUnsafe() || condVal;
-        }
-        else if(valType == 'd'){
-            return getDoubleUnsafe() || condVal;
-        }
+    switch(operatorType){
+        case EngineInstr::or_i:
+            if(valType == 'b'){
+                return getBoolUnsafe() || condVal;
+            }
+            else if(valType == 'i'){
+                return getIntUnsafe() || condVal;
+            }
+            else if(valType == 'd'){
+                return getDoubleUnsafe() || condVal;
+            }
+            return false;
+        case EngineInstr::and_i:
+            if(valType == 'b'){
+                return getBoolUnsafe() && condVal;
+            }
+            else if(valType == 'i'){
+                return getIntUnsafe() && condVal;
+            }
+            else if(valType == 'd'){
+                return getDoubleUnsafe() && condVal;
+            }
+            return false;
+        case EngineInstr::equal:
+            if(valType == 'b'){
+                return getBoolUnsafe() == condVal;
+            }
+            else if(valType == 'i'){
+                return getIntUnsafe() == condVal;
+            }
+            else if(valType == 'd'){
+                return getDoubleUnsafe() == condVal;
+            }
+            return false;
+        case EngineInstr::not_equal:
+            if(valType == 'b'){
+                return getBoolUnsafe() != condVal;
+            }
+            else if(valType == 'i'){
+                return getIntUnsafe() != condVal;
+            }
+            else if(valType == 'd'){
+                return getDoubleUnsafe() != condVal;
+            }
+            return false;
+        case EngineInstr::more:
+            if(valType == 'b'){
+                return getBoolUnsafe() > condVal;
+            }
+            else if(valType == 'i'){
+                return getIntUnsafe() > condVal;
+            }
+            else if(valType == 'd'){
+                return getDoubleUnsafe() > condVal;
+            }
+            return false;
+        case EngineInstr::less:
+            if(valType == 'b'){
+                return getBoolUnsafe() < condVal;
+            }
+            else if(valType == 'i'){
+                return getIntUnsafe() < condVal;
+            }
+            else if(valType == 'd'){
+                return getDoubleUnsafe() < condVal;
+            }
+            return false;
+        case EngineInstr::more_equal:
+            if(valType == 'b'){
+                return getBoolUnsafe() >= condVal;
+            }
+            else if(valType == 'i'){
+                return getIntUnsafe() >= condVal;
+            }
+            else if(valType == 'd'){
+                return getDoubleUnsafe() >= condVal;
+            }
+            return false;
+        case EngineInstr::less_equal:
+            if(valType == 'b'){
+                return getBoolUnsafe() <= condVal;
+            }
+            else if(valType == 'i'){
+                return getIntUnsafe() <= condVal;
+            }
+            else if(valType == 'd'){
+                return getDoubleUnsafe() <= condVal;
+            }
+        default:
+            return false;
     }
-    else if(operatorType == EngineInstr::and_i){
-        if(valType == 'b'){
-            return getBoolUnsafe() && condVal;
-        }
-        else if(valType == 'i'){
-            return getIntUnsafe() && condVal;
-        }
-        else if(valType == 'd'){
-            return getDoubleUnsafe() && condVal;
-        }
-    }
-    else if(operatorType == EngineInstr::equal){
-        if(valType == 'b'){
-            return getBoolUnsafe() == condVal;
-        }
-        else if(valType == 'i'){
-            return getIntUnsafe() == condVal;
-        }
-        else if(valType == 'd'){
-            return getDoubleUnsafe() == condVal;
-        }
-    }
-    else if(operatorType == EngineInstr::not_equal){
-        if(valType == 'b'){
-            return getBoolUnsafe() != condVal;
-        }
-        else if(valType == 'i'){
-            return getIntUnsafe() != condVal;
-        }
-        else if(valType == 'd'){
-            return getDoubleUnsafe() != condVal;
-        }
-    }
-    else if(operatorType == EngineInstr::more){
-        if(valType == 'b'){
-            return getBoolUnsafe() > condVal;
-        }
-        else if(valType == 'i'){
-            return getIntUnsafe() > condVal;
-        }
-        else if(valType == 'd'){
-            return getDoubleUnsafe() > condVal;
-        }
-    }
-    else if(operatorType == EngineInstr::less){
-        if(valType == 'b'){
-            return getBoolUnsafe() < condVal;
-        }
-        else if(valType == 'i'){
-            return getIntUnsafe() < condVal;
-        }
-        else if(valType == 'd'){
-            return getDoubleUnsafe() < condVal;
-        }
-    }
-    else if(operatorType == EngineInstr::more_equal){
-        if(valType == 'b'){
-            return getBoolUnsafe() >= condVal;
-        }
-        else if(valType == 'i'){
-            return getIntUnsafe() >= condVal;
-        }
-        else if(valType == 'd'){
-            return getDoubleUnsafe() >= condVal;
-        }
-    }
-    else if(operatorType == EngineInstr::less_equal){
-        if(valType == 'b'){
-            return getBoolUnsafe() <= condVal;
-        }
-        else if(valType == 'i'){
-            return getIntUnsafe() <= condVal;
-        }
-        else if(valType == 'd'){
-            return getDoubleUnsafe() <= condVal;
-        }
-    }
-    return false;
 }
-bool VariableModule::isConditionMet(const string & condVal, EngineInstr operatorType, char valType){
+std::pair<bool, ReturnType> VariableModule::isConditionMet(const string & condVal, EngineInstr operatorType, char valType){
     if(type != valType || valType != 's'){
-        cerr << "Error: In " << __FUNCTION__ << ": Comparison of two different variable types.\n";
-        return false;
+        return {false, ReturnType::ERROR};
     }
     switch(operatorType){
         case equal:
-            return vString == condVal;
+            return {vString == condVal, ReturnType::OK};
         case not_equal:
-            return vString != condVal;
+            return {vString != condVal, ReturnType::OK};
         case more:
-            return vString > condVal;
+            return {vString > condVal, ReturnType::OK};
         case less:
-            return vString < condVal;
+            return {vString < condVal, ReturnType::OK};
         case more_equal:
-            return vString >= condVal;
+            return {vString >= condVal, ReturnType::OK};
         case less_equal:
-            return vString <= condVal;
+            return {vString <= condVal, ReturnType::OK};
         default:
-            break;
+            return {false, OK};
     }
-    return false;
 }
-bool VariableModule::isConditionMet(EngineInstr operatorType, VariableModule * OtherVariable){
+std::pair<bool, ReturnType> VariableModule::isConditionMet(EngineInstr operatorType, VariableModule * OtherVariable){
     if(isNumeric() && OtherVariable->isNumeric()){
         if(OtherVariable->getType() == 'b'){
-            return isConditionMet(OtherVariable->getBool(), operatorType, OtherVariable->getType());
+            return {isConditionMet(OtherVariable->getBool(), operatorType, OtherVariable->getType()), OK};
         }
         else if(OtherVariable->getType() == 'i'){
-            return isConditionMet(OtherVariable->getInt(), operatorType, OtherVariable->getType());
+            return {isConditionMet(OtherVariable->getInt(), operatorType, OtherVariable->getType()), OK};
         }
         else if(OtherVariable->getType() == 'd'){
-            return isConditionMet(OtherVariable->getDouble(), operatorType, OtherVariable->getType());
+            return {isConditionMet(OtherVariable->getDouble(), operatorType, OtherVariable->getType()), OK};
         }
     }
     else if(OtherVariable->getType() == 's' && type == 's'){
         return isConditionMet(OtherVariable->getString(), operatorType, OtherVariable->getType());
     }
     
-    cerr << "Error: In " << __FUNCTION__ << ": Invalid comparison: " << ID << ":" << type << ":" << getAnyValue()
-        << " " << instrToStr(operatorType) << " " << OtherVariable->getID() << ":" << OtherVariable->getType() << ":" << OtherVariable->getAnyValue() << "\n";
-    
-    return false;
+    return {false, ERROR};
 }
-bool VariableModule::isConditionMet(EngineInstr operatorType, const BasePointersStruct & OtherVariable){
+std::pair<bool, ReturnType> VariableModule::isConditionMet(EngineInstr operatorType, const BasePointersStruct & OtherVariable){
     if(OtherVariable.isNumeric() && isNumeric()){
         if(type == 'b'){
-            return isConditionMet(OtherVariable.getBool(), operatorType, type);
+            return {isConditionMet(OtherVariable.getBool(), operatorType, type), ReturnType::OK};
         }
         else if(type == 'i'){
-            return isConditionMet(OtherVariable.getInt(), operatorType, type);
+            return {isConditionMet(OtherVariable.getInt(), operatorType, type), ReturnType::OK};
         }
         else{
-            return isConditionMet(OtherVariable.getDouble(), operatorType, type);
+            return {isConditionMet(OtherVariable.getDouble(), operatorType, type), ReturnType::OK};
         }
     }
     else if(type == 's' && (OtherVariable.type == string_bt || OtherVariable.type == char_bt)){
         return isConditionMet(OtherVariable.getString(), operatorType, type);
     }
     
-    cerr << "Error: " << __FUNCTION__ << ": Invalid types.\n";
-    
-    return false;
+    return {false, ReturnType::ERROR};
 }
 double VariableModule::floatingOperation(EngineInstr operatorType, VariableModule * OtherVariable){
     if(type == 's' || OtherVariable->getType() == 's'){

@@ -30,8 +30,8 @@ public:
     VariableModule(string value);
     VariableModule(const VariableModule & Original);
     VariableModule & operator=(const VariableModule& Original);
-    void copyValue(const VariableModule& Original);
-    void copyValue(const VariableModule * Original);
+    ReturnType copyValue(const VariableModule& Original);
+    ReturnType copyValue(const VariableModule * Original);
     ~VariableModule();
     
     void deleteLater();
@@ -55,6 +55,7 @@ public:
     double getDoubleUnsafe() const;
     string getString() const;
     string getStringUnsafe() const;
+    string getIdentity() const;
     void setID(string, vector<string> * listOfIDs);
     void setIdUnsafe(string);
     void setLayerID(string);
@@ -71,13 +72,13 @@ public:
     bool addDouble(double);
     bool addString(string newValue);
     void addStringUnsafe(string newValue);
-    void negate();
+    ReturnType negate();
     void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
     template <typename condValueType>
     bool isConditionMet(condValueType condVal, EngineInstr operatorType, char valType);
-    bool isConditionMet(const string & condVal, EngineInstr operatorType, char valType);
-    bool isConditionMet(EngineInstr operatorType, VariableModule * OtherVariable);
-    bool isConditionMet(EngineInstr operatorType, const BasePointersStruct & OtherVariable);
+    std::pair<bool, ReturnType> isConditionMet(const string & condVal, EngineInstr operatorType, char valType);
+    std::pair<bool, ReturnType> isConditionMet(EngineInstr operatorType, VariableModule * OtherVariable);
+    std::pair<bool, ReturnType> isConditionMet(EngineInstr operatorType, const BasePointersStruct & OtherVariable);
     double floatingOperation(EngineInstr operatorType, VariableModule * OtherVariable);
     double floatingOperation(EngineInstr operatorType, BasePointersStruct * OtherVariable);
     int intOperation(EngineInstr operatorType, VariableModule * OtherVariable);

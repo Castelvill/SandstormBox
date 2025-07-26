@@ -1,7 +1,5 @@
--Find a better way of dealing with deleted modules from other objects. The problem lies in not-yet re-initialised pointers to deleted modules from different objects. The clean solution would be to iterate through all other object's memories and erase invalidated pointers.
--Fix nw: naming windows, top-bar's collision is broken, buttons vanish after moving the window.
--Fix terminal: text and ls have one color.
--Fix terminal: nw, mover, note, test.
+-Fix nw: top-bar's collision is broken, buttons vanish after moving the window.
+-Fix terminal: nw, mover, note, test, edit (it automatically scrolls to the cursor after using mouse wheel).
 -Create dot/extract instuction which will use/merge accessor functionalities from: first, all, last and random instructions. Add filter instruction that will use filtering functionality of first, all, last and random instructions.
 -Compress all id vectors in ancestorObject to a single set if the order of these ids is not important. Thanks to that user will be able to access module instances without mentioning their types and imporove performance. 
 -Test and improve finding and accessing other objects' parameters 

@@ -4461,8 +4461,48 @@ void ProcessClass::findLowerContextById(ValueLocation & Location, ContextClass &
             break;
     }
 }
+inline bool validate(char type){
+    switch(type){
+        case 'b':
+        case 'i':
+        case 'd':
+        case 's':
+            return true;
+        case 'n':
+            return true;
+        default:
+            cerr << "TMP_ERROR: OPERATOR TYPE IS CORRUPTED\n";
+            return false;
+    }
+}
+inline bool cmpVars(VariableModule * Left, EngineInstr op, VariableModule * Right, const InstrDescription &CurrentInstr){
+    // if(!validate(Left->type)){
+    //     return false;
+    // }
+    // if(!validate(Right->type)){
+    //     return false;
+    // }
+    auto[result, status] = Left->isConditionMet(op, Right);
+    if(status != OK){
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Invalid comparison: "
+            << Left->getID() << ":" << Left->type << ":" << Left->getAnyValue() << " "
+            << instrToStr(op) << " "
+            << Right->getID() << ":" << Right->getType() << ":" << Right->getAnyValue() << "\n";
+    }
+    return result;
+}
+inline bool areEqual(VariableModule * Left, BasePointersStruct & Right, const InstrDescription &CurrentInstr){
+    auto[result, status] = Left->isConditionMet(EngineInstr::equal, Right);
+    if(status != OK){
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Invalid comparison: "
+            << Left->getID() << ":" << Left->type << ":" << Left->getAnyValue() << " "
+            << instrToStr(EngineInstr::equal) << " "
+            << Right.type << ":" << Right.getString() << "\n";
+    }
+    return result;
+}
 bool ProcessClass::checkDefaultCondition(VariableModule * Left, VariableModule * Right){
-    return Left->isConditionMet(EngineInstr::equal, Right);
+    return cmpVars(Left, equal, Right, CurrentInstr);
 }
 bool ProcessClass::checkDefaultCondition(BasePointersStruct * Left, BasePointersStruct * Right){
     return Left->areEqual(Right);
@@ -4764,20 +4804,25 @@ inline bool doesOperandContainSingleElement(const InstrDescription & CurrentInst
     }
     return false;
 }
-inline bool abortIfVectorModEmptyOrNull(const InstrDescription & CurrentInstr, const string & functionName, const ReturnType & result){
-    if(result == ReturnType::EMPTY){
-        cerr << instructionError(CurrentInstr, functionName)
-            << "Right operand is empty.\n";
-        return true;
+inline bool didFnFailed(const InstrDescription & CurrentInstr, const string & functionName, const ReturnType & result){
+    switch(result){
+        case ReturnType::EMPTY:
+            cerr << instructionError(CurrentInstr, functionName)
+                << "Operand is empty.\n";
+            return true;
+        case ReturnType::NULL_VAL:
+            cerr << instructionError(CurrentInstr, functionName)
+                << "Operand is null.\n";
+            return true;
+        case ReturnType::CORRUPTED:
+            cerr << instructionError(CurrentInstr, functionName)
+                << "Operand is corrupted.\n";
+            return true;
+        default:
+            return false;
     }
-    if(result == ReturnType::NULL_VAL){
-        cerr << instructionError(CurrentInstr, functionName)
-            << "Right operand is null.\n";
-        return true;
-    }
-    return false;
 }
-bool sameEntities(DataType leftType, DataType rightType){
+bool isEntityTypeEqual(DataType leftType, DataType rightType){
     switch(leftType){
         case camera_inst:
         case camera_vec:
@@ -4966,7 +5011,7 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
                         return;
                     }
                     result = RightOperand.Modules.Vectors[0]->setVariableWithFirstValue(LeftOperand->Values[0]);
-                    abortIfVectorModEmptyOrNull(CurrentInstr, __FUNCTION__, result);
+                    didFnFailed(CurrentInstr, __FUNCTION__, result);
                     return;
                 case vector_mod_vec:
                     if(doesOperandContainSingleElement(CurrentInstr, __FUNCTION__, LeftOperand->type, RightOperand.type, RightOperand.Modules.Vectors.size())){
@@ -4976,7 +5021,7 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
                         return;
                     }
                     result = RightOperand.Modules.Vectors[0]->setVariableWithFirstValue(LeftOperand->Values[0]);
-                    abortIfVectorModEmptyOrNull(CurrentInstr, __FUNCTION__, result);
+                    didFnFailed(CurrentInstr, __FUNCTION__, result);
                     return;
                 default:
                     printAssignRightToLeftError(CurrentInstr, LeftOperand->type, RightOperand.type);
@@ -5020,7 +5065,7 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
                     return;
                 case vector_mod:
                     result = RightOperand.Modules.Vectors[0]->getValuesIntoContext(LeftOperand->Values);
-                    if(abortIfVectorModEmptyOrNull(CurrentInstr, __FUNCTION__, result)){
+                    if(didFnFailed(CurrentInstr, __FUNCTION__, result)){
                         LeftOperand->Values.clear();
                         return;
                     }
@@ -5029,7 +5074,7 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
                     LeftOperand->Values.reserve(LeftOperand->Values.size() + RightOperand.Modules.Vectors.size());
                     for(const VectorModule * Vector : RightOperand.Modules.Vectors){
                         result = Vector->getValuesIntoContext(LeftOperand->Values);
-                        if(abortIfVectorModEmptyOrNull(CurrentInstr, __FUNCTION__, result)){
+                        if(didFnFailed(CurrentInstr, __FUNCTION__, result)){
                             LeftOperand->Values.clear();
                             return;
                         }
@@ -5234,7 +5279,7 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
             }
             return;
         default:
-            if(sameEntities(LeftOperand->type, RightOperand.type)){
+            if(isEntityTypeEqual(LeftOperand->type, RightOperand.type)){
                 LeftOperand->copyOnlyCurrentType(&RightOperand);
                 return;
             }
@@ -6882,7 +6927,7 @@ inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand,
         case value_vec:
             for(i = 0; i < LeftOperand.Values.size(); i++){
                 for(j = 0; j < RightOperand.Values.size(); j++){
-                    if(LeftOperand.Values[i].isConditionMet(EngineInstr::equal, &RightOperand.Values[j])){
+                    if(cmpVars(&LeftOperand.Values[i], equal, &RightOperand.Values[j], CurrentInstr)){
                         result = true;
                         break;
                     }
@@ -7007,7 +7052,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                 case pointer_vec:
                     for(i = 0; i < LeftOperand.Values.size(); i++){
                         for(j = 0; j < RightOperand.BasePointers.size(); j++){
-                            if(LeftOperand.Values[i].isConditionMet(EngineInstr::equal, RightOperand.BasePointers[j])){
+                            if(areEqual(&LeftOperand.Values[i], RightOperand.BasePointers[j], CurrentInstr)){
                                 result = true;
                                 break;
                             }
@@ -7115,7 +7160,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                 case value_vec:
                     for(i = 0; i < LeftOperand.Modules.Variables.size(); i++){
                         for(j = 0; j < RightOperand.Values.size(); j++){
-                            if(LeftOperand.Modules.Variables[i]->isConditionMet(EngineInstr::equal, &RightOperand.Values[j])){
+                            if(cmpVars(LeftOperand.Modules.Variables[i], equal, &RightOperand.Values[j], CurrentInstr)){
                                 result = true;
                                 break;
                             }
@@ -7129,7 +7174,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                 case pointer_vec:
                     for(i = 0; i < LeftOperand.Modules.Variables.size(); i++){
                         for(j = 0; j < RightOperand.BasePointers.size(); j++){
-                            if(LeftOperand.Modules.Variables[i]->isConditionMet(EngineInstr::equal, RightOperand.BasePointers[j])){
+                            if(areEqual(LeftOperand.Modules.Variables[i], RightOperand.BasePointers[j], CurrentInstr)){
                                 result = true;
                                 break;
                             }
@@ -7483,6 +7528,50 @@ void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClas
             break;
     }
 }
+void ProcessClass::reserveMemoryForNewLayers(ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
+    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
+    vector<EventStackStruct> & MemoryStack, unsigned newVectorSize
+){
+    if(Layers.size() + newVectorSize <= Layers.capacity()){
+        return;
+    }
+    PointerRecalculator Recalculator;
+    Recalculator.findIndexesForLayers(Layers, ObjectMemory, OwnerLayer);
+    Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
+    Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
+    Recalculator.updatePointersToLayers(Layers, ObjectMemory, OwnerLayer, CurrentInstr);
+    Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
+    Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
+    
+    //Invalidate memory in all different objects
+    for(LayerClass & layerIt : Layers){
+        for(AncestorObject & objectIt : layerIt.Objects){
+            objectIt.hasInvalidatedMemory = true;
+        }
+    }
+    Owner->hasInvalidatedMemory = false;
+}
+void ProcessClass::reserveMemoryForNewObjects(ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
+    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
+    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
+    vector<EventStackStruct> & MemoryStack, unsigned newVectorSize
+){
+    if(CurrentLayer->Objects.size() + newVectorSize <= CurrentLayer->Objects.capacity()){
+        return;
+    }
+    PointerRecalculator Recalculator;
+    Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
+    Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
+    CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
+    Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
+    Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
+    for(AncestorObject & objectIt : OwnerLayer->Objects){
+        objectIt.hasInvalidatedMemory = true;
+    }
+    Owner->hasInvalidatedMemory = false;
+}
 void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
     LayerClass *& OwnerLayer, AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
     vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
@@ -7559,16 +7648,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             }
             break;
         case layer:
-            if(Layers.size() + newVectorSize > Layers.capacity()){
-                PointerRecalculator Recalculator;
-                Recalculator.findIndexesForLayers(Layers, ObjectMemory, OwnerLayer);
-                Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-                Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-                Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
-                Recalculator.updatePointersToLayers(Layers, ObjectMemory, OwnerLayer, CurrentInstr);
-                Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-                Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-            }
+            reserveMemoryForNewLayers(ObjectMemory, OwnerLayer, Owner, TriggeredObjects, startingEventIt, eventIt, MemoryStack, newVectorSize);
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
                     ID = newIDs[i];
@@ -7579,14 +7659,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             }
             break;
         case object:
-            if(CurrentLayer->Objects.size() + newVectorSize > CurrentLayer->Objects.capacity()){
-                PointerRecalculator Recalculator;
-                Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
-                Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-                CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
-                Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
-                Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-            }
+            reserveMemoryForNewObjects(ObjectMemory, OwnerLayer, Owner, TriggeredObjects, startingEventIt, eventIt, MemoryStack, newVectorSize);
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
                     ID = newIDs[i];
@@ -12498,7 +12571,7 @@ bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct &
     else if(LeftVariable.getValue(LeftOperandProc) != ReturnType::INVALID_TYPE
         && RightVariable.getValue(RightOperandProc) != ReturnType::INVALID_TYPE
     ){
-        if(LeftOperandProc.isConditionMet(EngineInstr::equal, &RightOperandProc)){
+        if(cmpVars(&LeftOperandProc, equal, &RightOperandProc, CurrentInstr)){
             return true;
         }
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
@@ -14133,7 +14206,7 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
 char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, vector<VariableModule> & resultStack,
     AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory
 ){
-
+    
     short ignoreFlagOr = 0, ignoreFlagAnd = 0;
     bool comparasion;
     int resultInt;
@@ -14190,12 +14263,6 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                 LeftOperandProc.copyValue(resultStack[stackSize]);
                 --stackSize;
 
-                // newID = "(";
-                // newID += leftOperand.getID();
-                // newID += op;
-                // newID += rightOperand.getID();
-                // newID += ")";
-
                 resultStack[++stackSize].clear();
 
                 switch(op){
@@ -14207,7 +14274,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                     case less:
                     case more_equal:
                     case less_equal:
-                        comparasion = LeftOperandProc.isConditionMet(op, &RightOperandProc);
+                        comparasion = cmpVars(&LeftOperandProc, op, &RightOperandProc, CurrentInstr);
                         
                         if(printOutLogicalEvaluations){
                             cout << LeftOperandProc.getID() << ":"  << shortenText(LeftOperandProc.getAnyValue(), maxLengthOfValuesPrinting) << " "
@@ -14406,10 +14473,7 @@ inline void fixIndexesAfterDeletion(MemoryMapType & objectMemory, const vector<s
         }
     }
 }
-void activateGarbageCollector(bool wereLayersModified, vector<LayerClass> &layers){
-    if(!wereLayersModified){
-        return;
-    }
+void activateGarbageCollector(vector<LayerClass> &layers){
     for(LayerClass & layerIt : layers){
         for(AncestorObject & objectIt : layerIt.Objects){
             objectIt.executeGarbageCollector = true;
@@ -14484,7 +14548,9 @@ bool ProcessClass::deleteEntities(){
             ++Layer;
         }
     }
-    activateGarbageCollector(wereLayersModified, Layers);
+    if(wereLayersModified){
+        activateGarbageCollector(Layers);
+    }
     return wereLayersModified;
 }
 void removeOnInitTrigger(vector<TriggerType> & primaryTriggerTypes){
