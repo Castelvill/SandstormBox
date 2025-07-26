@@ -1,17 +1,19 @@
 # SandstormBox
 Graphical Engine / 2D Game Engine written in c++ and Allegro5 graphical library.
 
-This engine uses Sand - a custom scripting language made out of the engine's instructions. You can find all implemented instructions in the /docs/instructions.md file. To learn about this language read the /docs/language.md file. All programs and utilities that work inside the engine are written in the Sand language.
+It's my hobby project and will not be "production ready" any time soon.
+
+SandstormBox engine uses Sand - it's my custom scripting language closely integrated into the engine. You can find all implemented instructions in the /docs/instructions.md file. To learn more about Sand read the /docs/language.md file (it's probably outdated tho). All programs and utilities that work inside the engine are written in the Sand language.
 
 ## Implemented functionality
 
 Below are the most important working parts of the engine: 
-- JIT Compilation - all the software inside the engine is currently compiled from the scripts. You can also compile scripts inside the terminal using "sand" compilator.
-- Terminal - you can use many commands like "ls" (list files in the directory), "edit" (text editor), "sand" (execute Sand scripts) or "cat" (print out the contents of the file on the terminal).
-- Text editor - is built into the terminal and can be opened with "edit" command. With this editor you can edit any text files and save them. You can also select multiple letters, words and lines in the text with the keyboard or mouse. Text inside the editor is wrapped automatically.
-- Mover - a program that lets you move around the objects inside the chosen layer. 
-- Scrollbars - programs that use scrollbars let you scroll through their contents with the mouse - both with the wheel and by dragging the scrollbar.
-- Windows - you can create, move, resize, fullscreen and close them. Command "nw" creates a blank window and its first parameter is used as a title of this window.
+- JIT Compilation - engine can compile and run scripts during the runtime. By default engine grabs initial scripts from the config file, but you can also pass your scripts as the command line arguments. 
+- Terminal - you can use commands like "ls" (list files in the directory), "edit" (text editor), "sand" (compile & run Sand scripts) or "cat" (output file contents to the terminal).
+- Text editor - it's built into the terminal and can be opened with "edit" command. With this editor you can edit any text files and save them. You can also select multiple letters, words and lines in the text with the keyboard or mouse. Text inside the editor is wrapped automatically - all text fields have this feature implemented.
+- Mover - program that lets you move around all objects inside the chosen layer. 
+- Scrollbars - you can scroll horizontally and vertically through the layer by using mouse - both with the mouse wheel and by dragging the scrollbar.
+- Windows - you can create, move, resize, fullscreen and close them. Command "nw" creates a blank window and its first parameter is used as a title for the new window.
 
 Use 'help' command inside the terminal or press the TAB key to list all the available programs.
 
@@ -36,7 +38,13 @@ Text editor:
 
 ## Scripts
 
-Currently, if you execute the engine binary without any scripts, you will get only a black screen. Directories "init" and "scripts" have necessary scripts for creating the terminal.
+Currently, if you compile and run SandstormBox without any scripts as an input, engine will only output source code for a hello world program. You can test the engine by passing to it any Sand script from "examples" and "scripts" directories. To use my terminal run:
+
+    ./SandstormBox scripts/terminal/init.sand
+
+## Tests
+
+After compiling SandstormBox make will run tests written in Sand. You can run them mannualy by using "make test" or by passing any test script from the "scripts" directory.
 
 ## Command line arguments
 
@@ -63,7 +71,7 @@ Currently, if you execute the engine binary without any scripts, you will get on
 
 ## Config file
 
-EXECUTE script_path - execute the script in a new process - on boot and restart.
+EXECUTE script_path - execute the script in a new process when the engine boots or restarts.
 
 SAMPLES *number* - set the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, you must set this value to 0.
 
@@ -85,8 +93,8 @@ After meeting this condition you can build the engine with:
 
     make
 
-Alternatively you can use Visual Studio Code to compile the engine with the CTRL+SHIFT+B shortcut and clicking "Compile Engine".
+Alternatively (less cooler approach) you can use Visual Studio Code to compile the engine with the CTRL+SHIFT+B shortcut and clicking "Compile Engine".
 
 ## Troubleshooting
 
-- If the text has a glitched font, you can change the antialiasing samples to 1 in the .config file.
+- If the rendered text has a glitched font, you can change the antialiasing samples to 1 in the .config file.

@@ -1,4 +1,5 @@
 26.07.2025
+-Updated README.md.
 -Refactored tests.
 -Fixed imports paths in the compiler.
 -Added 'reassign' test.
