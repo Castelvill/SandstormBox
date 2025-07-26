@@ -44,7 +44,7 @@ Currently, if you compile and run SandstormBox without any scripts as an input, 
 
 ## Tests
 
-After compiling SandstormBox make will run tests written in Sand. You can run them mannualy by using "make test" or by passing any test script from the "scripts" directory.
+After compiling SandstormBox make will automatically run tests written in Sand. You can also run them manually by using "make test" or by passing any test script from the "scripts" directory.
 
 ## Command line arguments
 
