@@ -7554,7 +7554,7 @@ void ProcessClass::reserveMemoryForNewLayers(ObjectMemoryStruct & ObjectMemory, 
     Owner->hasInvalidatedMemory = false;
 }
 void ProcessClass::reserveMemoryForNewObjects(ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
-    AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
+    LayerClass *& CurrentLayer, AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
     vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
     vector<EventStackStruct> & MemoryStack, unsigned newVectorSize
 ){
@@ -7659,7 +7659,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             }
             break;
         case object:
-            reserveMemoryForNewObjects(ObjectMemory, OwnerLayer, Owner, TriggeredObjects, startingEventIt, eventIt, MemoryStack, newVectorSize);
+            reserveMemoryForNewObjects(ObjectMemory, OwnerLayer, CurrentLayer, Owner, TriggeredObjects, startingEventIt, eventIt, MemoryStack, newVectorSize);
             for(unsigned i = 0; i < newVectorSize; i++){
                 if(i < newIDs.size()){
                     ID = newIDs[i];

@@ -411,7 +411,7 @@ public:
         vector<EventStackStruct> & MemoryStack, unsigned newVectorSize
     );
     void reserveMemoryForNewObjects(ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer,
-        AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
+        LayerClass *& CurrentLayer, AncestorObject *& Owner, vector <AncestorObject*> & TriggeredObjects,
         vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
         vector<EventStackStruct> & MemoryStack, unsigned newVectorSize
     );
