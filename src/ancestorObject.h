@@ -109,11 +109,11 @@ public:
         vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
     );
     void clearAllEvents();
-    void translateAllScripts(bool clearEvents, bool allowNotAscii, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress);
-    void translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii,
+    void translateAllScripts(const string & exePath, bool clearEvents, bool allowNotAscii, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress);
+    void translateScriptsFromPaths(const string & exePath, bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii,
         vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
     );
-    void translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii,
+    void translateSubsetBindedScripts(const string & exePath, bool clearEvents, vector<string> scripts, bool allowNotAscii,
         vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
     );
     void injectCode(bool clearEvents, vector<string> code, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress);

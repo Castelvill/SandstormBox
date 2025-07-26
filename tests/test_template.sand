@@ -1,15 +1,15 @@
 // Copy this code snippet to create a new test case compatible with the "run_all_tests.sand" script:
 /*
-import "tests/test_template.sand"
+    import "tests/test_template.sand"
 
-start main()
-    triggers on_init
-    run startTest()
+    start main()
+        triggers on_init
+        run startTest()
 
-    //Here goes the testing code
+        //Here goes the testing code
 
-    run endTest()
-end
+        run endTest()
+    end
 */
 
 

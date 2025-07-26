@@ -10,109 +10,80 @@ start testRunnerEvent()
     print "RUNNING ALL TESTS - START\n"
     print "============================================\n"
     
-    new Objects my_layer 1 "TestAssert" TestAssert
-    bind TestAssert ["tests/assert.sand"]
-    build TestAssert true
-    ++ allTestsCount
+    string path "assert"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestAccess" TestAccess
-    bind TestAccess ["tests/access.sand"]
-    build TestAccess true
-    ++ allTestsCount
+    = path "access"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestIfStatements" TestIfStatements
-    bind TestIfStatements ["tests/if_statements.sand"]
-    build TestIfStatements true
-    ++ allTestsCount
+    = path "if_statements"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestScopes" TestScopes
-    bind TestScopes ["tests/scopes.sand"]
-    build TestScopes true
-    ++ allTestsCount
+    = path "reassign"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestPassingReferences" TestPassingReferences
-    bind TestPassingReferences ["tests/passing_references.sand"]
-    build TestPassingReferences true
-    ++ allTestsCount
+    = path "scopes"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestPassingValues" TestPassingValues
-    bind TestPassingValues ["tests/passing_values.sand"]
-    build TestPassingValues true
-    ++ allTestsCount
+    = path "passing_references"
+    run scheduleTest(path)
+
+    = path "passing_values"
+    run scheduleTest(path)
+
+    = path "variables"
+    run scheduleTest(path)
+
+    = path "while_loop"
+    run scheduleTest(path)
+
+    = path "display"
+    run scheduleTest(path)
+
+    = path "override"
+    run scheduleTest(path)
+
+    = path "global"
+    run scheduleTest(path)
+
+    = path "recursion"
+    run scheduleTest(path)
     
-    new Objects my_layer 1 "TestVariables" TestVariables
-    bind TestVariables ["tests/variables.sand"]
-    build TestVariables true
-    ++ allTestsCount
+    = path "declaration"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestWhileLoop" TestWhileLoop
-    bind TestWhileLoop ["tests/while_loop.sand"]
-    build TestWhileLoop true
-    ++ allTestsCount
+    = path "tokenize"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestDisplay" TestDisplay
-    bind TestDisplay ["tests/display.sand"]
-    build TestDisplay true
-    ++ allTestsCount
+    = path "recompilation_test/test"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestOverride" TestOverride
-    bind TestOverride ["tests/override.sand"]
-    build TestOverride true
-    ++ allTestsCount
+    = path "member_variables"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestGlobal" TestGlobal
-    bind TestGlobal ["tests/override.sand"]
-    build TestGlobal true
-    ++ allTestsCount
+    = path "delete_variables"
+    run scheduleTest(path)
     
-    new Objects my_layer 1 "TestRecursion" TestRecursion
-    bind TestRecursion ["tests/recursion.sand"]
-    build TestRecursion true
-    ++ allTestsCount
+    = path "delete_vectors"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestDeclaration" TestDeclaration
-    bind TestDeclaration ["tests/declaration.sand"]
-    build TestDeclaration true
-    ++ allTestsCount
+    = path "persistent_module_pointers"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestTokenize" TestTokenize
-    bind TestTokenize ["tests/tokenize.sand"]
-    build TestTokenize true
-    ++ allTestsCount
-    
-    new Objects my_layer 1 "TestRecompilation" TestRecompilation
-    bind TestRecompilation ["tests/recompilation_test/main.sand"]
-    build TestRecompilation true
-    ++ allTestsCount
+    = path "clone_object_test/test"
+    run scheduleTest(path)
 
-    new Objects my_layer 1 "TestMemberVariables" TestMemberVariables
-    bind TestMemberVariables ["tests/member_variables.sand"]
-    build TestMemberVariables true
-    ++ allTestsCount
+    = path "clone_layer_test/test"
+    run scheduleTest(path)
+end
 
-    new Objects my_layer 1 "TestDeleteVariables" TestDeleteVariables
-    bind TestDeleteVariables ["tests/delete_variables.sand"]
-    build TestDeleteVariables true
-    ++ allTestsCount
-
-    new Objects my_layer 1 "TestDeleteVectors" TestDeleteVectors
-    bind TestDeleteVectors ["tests/delete_vectors.sand"]
-    build TestDeleteVectors true
-    ++ allTestsCount
-
-    new Objects my_layer 1 "TestPersistentModPtr" TestPersistentModPtr
-    bind TestPersistentModPtr ["tests/persistent_module_pointers.sand"]
-    build TestPersistentModPtr true
-    ++ allTestsCount
-
-    new Objects my_layer 1 "TestCloningObjects" TestCloningObjects
-    bind TestCloningObjects ["tests/clone_object_test/main.sand"]
-    build TestCloningObjects true
-    ++ allTestsCount
-
-    new Objects my_layer 1 "TestCloningLayers" TestCloningLayers
-    bind TestCloningLayers ["tests/clone_layer_test/main.sand"]
-    build TestCloningLayers true
+start scheduleTest(string & path)
+    new Objects my_layer 1 path testCase
+    string fullPath "tests/"
+    += fullPath path
+    += fullPath ".sand"
+    bind testCase [fullPath]
+    build testCase true
     ++ allTestsCount
 end
 

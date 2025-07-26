@@ -1,0 +1,22 @@
+import "tests/test_template.sand"
+
+start main()
+    triggers on_init
+    run startTest()
+
+    int a 10
+    assert a 10
+
+    int a 50
+    assert a 50
+
+    // Valid code btw
+    if
+        int a 100
+        assert a 100
+    end_if
+
+    assert a 50
+
+    run endTest()
+end

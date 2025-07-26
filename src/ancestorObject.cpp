@@ -802,12 +802,12 @@ bool optionalOutput(const string & scriptName, const unsigned & lineNumber, stri
         OutputParameter.variableID = instructionOutput.value;
         OutputParameter.type = outputType;
 
-        ReturnType e_Result = ReturnType::OK;
-        std::tie(OutputParameter.localAddress, e_Result) = getLocalAddress(
+        ReturnType result = ReturnType::OK;
+        std::tie(OutputParameter.localAddress, result) = getLocalAddress(
             OutputParameter.variableID, outputType, Scopes, NewLocalVariables,
             topAddress, true, makeOutputGlobal, false, forceNewDeclaration
         );
-        if(e_Result == ReturnType::OUT_OF_SCOPE){
+        if(result == ReturnType::OUT_OF_SCOPE){
             error = + "Index (" + std::to_string(OutputParameter.localAddress)
                 + ") of the local variable is out of scope ("
                 + std::to_string(NewLocalVariables.size()) + ").\n";
@@ -817,7 +817,7 @@ bool optionalOutput(const string & scriptName, const unsigned & lineNumber, stri
             OutputParameter.localAddress = 0;
             return true;
         }
-        else if(e_Result == ReturnType::UNDEFINED){
+        else if(result == ReturnType::UNDEFINED){
             error = + "Variable '" + OutputParameter.variableID + "' is undefined.\n";
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__
@@ -927,26 +927,30 @@ inline bool getLocalAddressWithError(unsigned & localAddress, const string & var
     vector<vector<VariableLocationStruct>> &Scopes, vector<VariableInfo> &NewLocalVariables,
     unsigned &topAddress, const string &scriptName, const unsigned &lineNumber
 ){
-    ReturnType e_Result = ReturnType::OK;
-    std::tie(localAddress, e_Result) = getLocalAddress(
+    ReturnType result = ReturnType::OK;
+    std::tie(localAddress, result) = getLocalAddress(
         variableId, any_dt, Scopes, NewLocalVariables, topAddress, false
     );
-    if(e_Result == ReturnType::OUT_OF_SCOPE){
-        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": "
-             << "Index (" << localAddress
-             << ") of a variable '" << variableId
-             << "' is out of scope (" << NewLocalVariables.size() << ").\n";
-        localAddress = 0;
-        return true;
+    switch(result){
+        case ReturnType::OUT_OF_SCOPE:
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": "
+                << "Index (" << localAddress
+                << ") of a variable '" << variableId
+                << "' is out of scope (" << NewLocalVariables.size() << ").\n";
+            localAddress = 0;
+            return true;
+        case ReturnType::UNDEFINED:
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": "
+                << "Index (" << localAddress
+                << ") of a variable '" << variableId
+                << "' is out of scope (" << NewLocalVariables.size() << ").\n";
+            localAddress = 0;
+            return true;
+        default:
+            return false;
     }
-    else if(e_Result == ReturnType::UNDEFINED){
-        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": "
-             << "Variable '" << variableId << "' is undefined.\n";
-        return true;
-    }
-    return false;
 }
 inline void setOptionalAddressInCond(const size_t & index, const vector<WordStruct> & words, unsigned & localAddress,
     const string & scriptName, unsigned lineNumber, vector<vector<VariableLocationStruct>> & Scopes,
@@ -3037,11 +3041,11 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
     }
     else if(isStringAnInstanceDeclaration(words[0].value)){
         if(!prepareNewVariableDeclaration(words, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        auto[localAddress, e_Result] = getLocalAddress(
+        auto[localAddress, result] = getLocalAddress(
             words[1].value, strToDataType(words[0].value), Scopes, NewEvent.LocalVariables,
             topAddress, true, false, false, true
         );
-        if(e_Result != ReturnType::OK){
+        if(result != ReturnType::OK){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable declaration failed.\n";
             return ReturnType::ERROR;
@@ -3190,7 +3194,7 @@ inline void printBasicFile(){
         << "end\n\n";
 }
 //Return true if a script is trying to import itself.
-ReturnType gatherImportsFromScript(const string & scriptName, vector<string> & allImports){
+ReturnType gatherImportsFromScript(const string & exePath, const string & scriptName, vector<string> & allImports){
     allImports.clear();
     vector<string> scriptLines = readLines(scriptName, false);
     if(scriptLines.size() == 0){
@@ -3215,7 +3219,7 @@ ReturnType gatherImportsFromScript(const string & scriptName, vector<string> & a
                 allImports.clear();
                 return ReturnType::ERROR_INF;
             }
-            allImports.push_back(words[1].value);
+            allImports.push_back(exePath + words[1].value);
             continue;
         }
     }
@@ -3234,7 +3238,7 @@ void removeStringDuplicatesFromVector(vector<string> & stringVec){
     }
 }
 //Return a vector of scripts and their imports in left-to-right, depth-first order.
-ReturnType addImportsToBindedScripts(const vector<string> & bindedScripts, vector<string> & allScriptsToAssemble){
+ReturnType addImportsToBindedScripts(const string & exePath, const vector<string> & bindedScripts, vector<string> & allScriptsToAssemble){
     if(bindedScripts.size() == 0){
         return OK;
     }
@@ -3253,7 +3257,7 @@ ReturnType addImportsToBindedScripts(const vector<string> & bindedScripts, vecto
     while(!scriptsToAnalyze.empty()){
         currentScript = scriptsToAnalyze.back().front();
         scriptsToAnalyze.back().pop();
-        importResult = gatherImportsFromScript(currentScript, subsequentImports);
+        importResult = gatherImportsFromScript(exePath, currentScript, subsequentImports);
         if(importResult == ERROR_INF){
             return ReturnType::ERROR_INF;
         }
@@ -3293,7 +3297,7 @@ ReturnType addImportsToBindedScripts(const vector<string> & bindedScripts, vecto
 
     return ReturnType::OK;
 }
-void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress){
+void AncestorObject::translateAllScripts(const string & exePath, bool clearEvents, bool allowNotAscii, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress){
     if(clearEvents){
         clearAllEvents();
     }
@@ -3305,7 +3309,7 @@ void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii, v
 
     removeStringDuplicatesFromVector(bindedScripts);
     vector<string> allScriptsToAssemble;
-    ReturnType status = addImportsToBindedScripts(bindedScripts, allScriptsToAssemble);
+    ReturnType status = addImportsToBindedScripts(exePath, bindedScripts, allScriptsToAssemble);
     if(status == ERROR_INF){
         cerr << "Error: Assembler preprocessor detected a cycle in the imports.\n";
         return;
@@ -3335,7 +3339,7 @@ void AncestorObject::translateAllScripts(bool clearEvents, bool allowNotAscii, v
         printBasicFile();
     }
 }
-void AncestorObject::translateScriptsFromPaths(bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii,
+void AncestorObject::translateScriptsFromPaths(const string & exePath, bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii,
     vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
 ){
     if(clearEvents){
@@ -3344,7 +3348,7 @@ void AncestorObject::translateScriptsFromPaths(bool clearEvents, vector<string> 
 
     removeStringDuplicatesFromVector(scriptsPaths);
     vector<string> allScriptsToAssemble;
-    ReturnType status = addImportsToBindedScripts(scriptsPaths, allScriptsToAssemble);
+    ReturnType status = addImportsToBindedScripts(exePath, scriptsPaths, allScriptsToAssemble);
     if(status == ERROR_INF){
         cerr << "Error: Assembler preprocessor detected a cycle in the imports.\n";
         return;
@@ -3375,7 +3379,7 @@ void AncestorObject::translateScriptsFromPaths(bool clearEvents, vector<string> 
         printBasicFile();
     }
 }
-void AncestorObject::translateSubsetBindedScripts(bool clearEvents, vector<string> scripts, bool allowNotAscii,
+void AncestorObject::translateSubsetBindedScripts(const string & exePath, bool clearEvents, vector<string> scripts, bool allowNotAscii,
     vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
 ){
     if(clearEvents){
@@ -3393,7 +3397,7 @@ void AncestorObject::translateSubsetBindedScripts(bool clearEvents, vector<strin
     }
 
     vector<string> allScriptsToAssemble;
-    ReturnType status = addImportsToBindedScripts(selectedBindedScripts, allScriptsToAssemble);
+    ReturnType status = addImportsToBindedScripts(exePath, selectedBindedScripts, allScriptsToAssemble);
     if(status == ERROR_INF){
         cerr << "Error: Assembler preprocessor detected a cycle in the imports.\n";
         return;

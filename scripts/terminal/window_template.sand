@@ -77,49 +77,49 @@ start refreshWindow(Camera & Camera, double & sx, double & sy)
     all Layers _ _ _ _ _ _ Layers
     find_by_id_2 Layers myLayerID Layer
 
-    index Layer [0 0 0] primitives Primi
-    fun Primi set_size sx sy
-    fun Primi update_with_size
+    index Layer [0 0 0] primitives border1
+    fun border1 set_size sx sy
+    fun border1 update_with_size
 
-    index Layer [0 0 1] primitives Primi
-    int height 30
-    fun Primi set_size sx height
-    fun Primi update_with_size
+    index Layer [0 0 1] primitives border2
+    = height 30
+    fun border2 set_size sx height
+    fun border2 update_with_size
 
-    index Layer [0 0 2] primitives Primi
-    int sxShift -4
+    index Layer [0 0 2] primitives border3
+    = sxShift -4
     int syShift -4
     += sxShift sx
     += syShift sy
-    fun Primi set_size sxShift syShift
-    fun Primi update_with_size
+    fun border3 set_size sxShift syShift
+    fun border3 update_with_size
 
-    index Layer [0 0 3] primitives Primi
-    int sxShift -20
-    int height 15
+    index Layer [0 0 3] primitives exitButton
+    = sxShift -20
+    = height 15
     += sxShift sx
-    fun Primi set_pos sxShift height
-    fun Primi update_with_size
+    fun exitButton set_pos sxShift height
+    fun exitButton update_with_size
 
     index Layer [0 0 0] collision ExitCollision
     fun ExitCollision set_pos sxShift height
 
-    index Layer [0 0 4] primitives Primi
-    int sxShift -50
-    int height 15
+    index Layer [0 0 4] primitives maxButton
+    = sxShift -50
+    = height 15
     += sxShift sx
-    fun Primi set_pos sxShift height
-    fun Primi update_with_size
+    fun maxButton set_pos sxShift height
+    fun maxButton update_with_size
 
     index Layer [0 0 1] collision MaxCollision
     fun MaxCollision set_pos sxShift height
 
-    index Layer [0 0 5] primitives Primi
-    int sxShift -80
-    int height 15
+    index Layer [0 0 5] primitives minimizeButton
+    = sxShift -80
+    = height 15
     += sxShift sx
-    fun Primi set_pos sxShift height
-    fun Primi update_with_size
+    fun minimizeButton set_pos sxShift height
+    fun minimizeButton update_with_size
 
     index Layer [0 0 2] collision MinCollision
     fun MinCollision set_pos sxShift height

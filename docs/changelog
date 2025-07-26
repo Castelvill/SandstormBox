@@ -1,4 +1,9 @@
 26.07.2025
+-Refactored tests.
+-Fixed imports paths in the compiler.
+-Added 'reassign' test.
+-Fixed selection order of redefined variables.
+-Fixed button offsets in 'nw' command.
 -Refactored few small things.
 -Added memory invalidation to the "new" instruction.
 

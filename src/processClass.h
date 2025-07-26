@@ -318,9 +318,6 @@ public:
         ObjectMemoryStruct &CurrentMap
     );
     void allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap, const vector<EventModule> & EventContainer);
-    // void buildVariableLookupTable(ObjectMemoryStruct & ObjectMemory, vector<VariableInfo> & NewLocalVariables,
-    //     const vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr
-    // );
     void create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
     void clear();
     void resizeWindow(vec2d newSize);

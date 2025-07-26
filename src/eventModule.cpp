@@ -1085,10 +1085,10 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
             cursor++;
         }
 
-        const auto[localAddress, e_Result] = getLocalAddress(
+        const auto[localAddress, result] = getLocalAddress(
             variableID, variableType, Scopes, LocalVariables, topAddress, true, false, isReference
         );
-        if(e_Result == ReturnType::OUT_OF_SCOPE){
+        if(result == ReturnType::OUT_OF_SCOPE){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": "
                 << "Index (" << localAddress
@@ -1117,9 +1117,9 @@ inline const VariableLocationStruct * findVariableInTheScopes(
         return nullptr;
     }
     for(auto scopeIt = Scopes.rbegin(); scopeIt != Scopes.rend(); ++scopeIt){
-        for(const VariableLocationStruct & variableIt : *scopeIt){
-            if(variableName == variableIt.name){
-                return &variableIt;
+        for(auto variableIt = (*scopeIt).rbegin(); variableIt != (*scopeIt).rend(); ++variableIt){
+            if(variableName == variableIt->name){
+                return &(*variableIt);
             }
         }
     }
@@ -1186,17 +1186,17 @@ unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsign
     bool canCreateNewVariable, bool ignoreUndefinedVariable
 ){
     error = false;
-    const auto [localAddress, e_Result] = getLocalAddress(variableID, variableType, Scopes,
+    const auto [localAddress, result] = getLocalAddress(variableID, variableType, Scopes,
         NewLocalVariables, topAddress, canCreateNewVariable
     );
 
-    if(e_Result == ReturnType::OUT_OF_SCOPE){
+    if(result == ReturnType::OUT_OF_SCOPE){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Address ("
             << localAddress << ") is out of scope (" << NewLocalVariables.size() << ").\n";
         error = true;
     }
-    else if(e_Result == ReturnType::UNDEFINED){
+    else if(result == ReturnType::UNDEFINED){
         if(ignoreUndefinedVariable){
             const auto [localAddress, _] = getLocalAddress("NULL", null_dt, Scopes,
                 NewLocalVariables, topAddress, canCreateNewVariable
@@ -1317,17 +1317,17 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, co
 
         const string & variableId = words[cursor].value;
 
-        const auto [localAddress, e_Result] = getLocalAddress(variableId, any_dt, Scopes,
+        const auto [localAddress, result] = getLocalAddress(variableId, any_dt, Scopes,
             LocalVariables, topAddress, false
         );
 
-        if(e_Result == ReturnType::OUT_OF_SCOPE){
+        if(result == ReturnType::OUT_OF_SCOPE){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Address ("
                 << localAddress << ") is out of scope (" << LocalVariables.size() << ").\n";
             return true;
         }
-        else if(e_Result == ReturnType::UNDEFINED){
+        else if(result == ReturnType::UNDEFINED){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableId << "' is undefined.\n";
             return true;

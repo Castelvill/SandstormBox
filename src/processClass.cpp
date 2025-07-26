@@ -278,9 +278,8 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
         else{
             InitObject.bindedScripts.push_back(EXE_PATH + initFilePath);
         }
-        InitObject.translateAllScripts(true, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
+        InitObject.translateAllScripts(EXE_PATH, true, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
         allocateAllLocalVariables(CurrentMap, InitObject.EventContainer);
-        //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, InitObject.EventContainer, CurrentInstr);
         findIndexesOfEventChildren(InitObject.EventContainer, CurrentInstr);
         detectRecursionInEvents(InitObject.EventContainer, CurrentInstr);
     }
@@ -8962,9 +8961,8 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation, ObjectMemory
         }
         allocateBuiltInVariables(CurrentMap, *Object, *ObjectsLayer);
         allocatePredefinedMemberParameters(CurrentMap, *Object);
-        Object->translateAllScripts(canResetEvents, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
+        Object->translateAllScripts(EXE_PATH, canResetEvents, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-        //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
         findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
         detectRecursionInEvents(Object->EventContainer, CurrentInstr);
         wasAnyEventUpdated = true;
@@ -9057,9 +9055,8 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
                 for(string & path : stringVector){
                     path = EXE_PATH + workingDirectory + path;
                 }
-                Object->translateScriptsFromPaths(canResetEvents, stringVector, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
+                Object->translateScriptsFromPaths(EXE_PATH, canResetEvents, stringVector, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
                 allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-                //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
                 findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
                 detectRecursionInEvents(Object->EventContainer, CurrentInstr);
                 break;
@@ -9067,16 +9064,14 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
                 for(string & path : stringVector){
                     path = EXE_PATH + workingDirectory + path;
                 }
-                Object->translateSubsetBindedScripts(canResetEvents, stringVector, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
+                Object->translateSubsetBindedScripts(EXE_PATH, canResetEvents, stringVector, allowNotAscii, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
                 allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-                //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
                 findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
                 detectRecursionInEvents(Object->EventContainer, CurrentInstr);
                 break;
             case inject_code:
                 Object->injectCode(canResetEvents, stringVector, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
                 allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-                //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
                 findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
                 detectRecursionInEvents(Object->EventContainer, CurrentInstr);
                 break;
@@ -9104,7 +9099,6 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
                 }
                 Object->injectInstructions(canResetEvents, preprocessed, CurrentMap.MemberVarsScope, CurrentMap.topAddress);
                 allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-                //buildVariableLookupTable(NewVariablesForLookupTable, CurrentMap, Object->EventContainer, CurrentInstr);
                 findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
                 detectRecursionInEvents(Object->EventContainer, CurrentInstr);
                 } break;
