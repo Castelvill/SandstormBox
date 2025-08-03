@@ -52,34 +52,38 @@ After compiling SandstormBox make will automatically run tests written in Sand. 
         Start the interpreter.
 
     -c, --ignore-config
-        Ignore .config file.
+        Ignore .config file. By default engine will always search for .config file on startup and if it exists engine will execute its commands.
 
     -s, --samples
-        Set the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, you must set this value to 0.
+        Set the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, set it to 0.
 
     -p, --pixel-art
-        Disable the pixel blur while drawing bitmaps.
+        Disable "pixel blur" while drawing bitmaps.
 
     -f, --fullscreen
-        Go to fullscreen mode when a window is created.
+        Go to fullscreen mode when window is created.
 
     -n, --not-ascii
-        Allow use of other character encodings.
+        Allow the use of other character encodings. Although they can be displayed, interacting with them will cause undefined behavior.
 
     --mouse-text-skip
-        Set the number of skipped iterations when mouse is selecting the text. Number cannot be lower than 1.
+        Set the number of skipped iterations when selecting text using mouse. Number cannot be lower than 1. It's a workaround for increasing performance when working with long text files.
 
 ## Config file
 
-EXECUTE script_path - execute the script in a new process when the engine boots or restarts.
+Following commands can be used only in ".config" file:
 
-SAMPLES *number* - set the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, you must set this value to 0.
+    EXECUTE script_path - execute one script in a new in-engine process every time engine is called or restarted at its runtime. EXECUTE command can be used as many times as needed to run multiple scripts one after the other.
 
-ENABLE_al_set_clipboard_text - al_set_clipboard_text can cause undefined behavior on some linux configurations so it's disabled by default. When enabled, allows to copy text from the engine to the clipboard of the host OS.
+    SAMPLES *number* - set the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, you must set this value to 0.
 
-ENABLE_NOT_ASCII - allow using characters other than ASCII.
+    ENABLE_al_set_clipboard_text - al_set_clipboard_text can cause undefined behavior on some linux configurations so it's disabled by default. When enabled, allows to copy text from the engine to the clipboard of the host OS.
 
-MOUSE_TEXT_SKIP *number* - set the number of skipped iterations when mouse is selecting the text. Number cannot be lower than 1.
+    ENABLE_NOT_ASCII - allow using characters other than ASCII.
+
+    MOUSE_TEXT_SKIP *number* - set the number of skipped iterations when mouse is selecting the text. Number cannot be lower than 1.
+
+Engine will execute these commands only on startup before its main loop. Keep in mind you can still execute new scripts at runtime 
 
 ## Allegro5
 

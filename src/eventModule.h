@@ -84,10 +84,22 @@ struct OutputParameterStruct{
     DataType type = null_dt;
 };
 
+enum class TokenType {
+    empty_tk, keyword_tk,
+    identifier_tk, //user defined name/keyword
+    start_scope_tk, end_scope_tk,
+    start_expr_tk, end_expr_tk,
+    open_brackets_tk, close_brackets_tk,
+    bool_tk, int_tk, double_tk, string_tk
+};
+
+string tokenToStr(TokenType type);
+
 struct WordStruct{
-    char type = 'e'; //o - operation, b - bool, i - int, d - double, s - string, e - empty, c - context
-    string value;
-    bool negateVariable;
+    TokenType type = TokenType::empty_tk;
+    string value = "";
+    bool negateVariable = false;
+    EngineInstr instruction = null;
 };
 
 struct VariableInfo{

@@ -6,11 +6,12 @@
 using std::string;
 
 enum ReturnType : char{
-    OK, NULL_VAL, EMPTY, INVALID_TYPE, READ_ONLY, ERROR, ERROR_INF, OUT_OF_SCOPE, UNDEFINED, CORRUPTED
+    OK, NULL_VAL, EMPTY, INVALID_TYPE, READ_ONLY, ERROR,
+    ERROR_INF, OUT_OF_SCOPE, UNDEFINED, CORRUPTED, CONTINUE
 };
 
-enum EngineInstr : char{
-    null, start, end_i, triggers, run, if_i, else_if, else_i, end_if,while_i, end_while, continue_i,
+enum EngineInstr : unsigned char{
+    null, start, override, end_i, triggers, run, if_i, else_if, else_i, end_if,while_i, end_while, continue_i,
     break_i, return_i, reboot, exit_i, delete_this_event, reset_keyboard, dump_context_stack,
     dump_memory, dump_local_memory, first, last, all, random_i, index_i, index_vec, sum, intersection,
     diff, add, sub, mul, div_i, mod, pow_i, assign, move, add_move, sub_move, mul_move, div_move,
@@ -18,11 +19,17 @@ enum EngineInstr : char{
     find_by_id_2, inc, next, dec, del, demolish, access_i, bool_i, int_i, double_i, string_i,
     bool_vec_i, int_vec_i, double_vec_i, string_vec_i, rand_int, find_by_id, clone_i, new_i, bind_i,
     rbind_i, build, load_build, build_subset, inject_code, inject_instr, fun, env, edit_proc,
-    load_bitmap, mkdir_i, rm, rmll, mv_i, print_v, print_d, print, load_text, save_text, ls, lse,
-    new_proc, var, vec, tokenize, tree, len, size, substr, load_font, restart_drag, cd, pwd, similar,
-    count, create_display, console_input, start_timer, stop_timer, breakpoint, assert, type, load_i
+    load_bitmap, mkdir_i, rm, rmll, mv_i, print_v_i, print_d_i, print_i, load_text, save_text, ls, lse,
+    new_proc, var, vec, tokenize, tree, len, size_i, substr, load_font, restart_drag, cd, pwd, similar,
+    count, create_display, console_input, start_timer, stop_timer, compiler_breakpoint, breakpoint, assert, type, load_i,
+    import,
+    //instance declarations
+    Val, ValVec, Pointer, PointerVec, Camera, CameraVec, Layer, LayerVec,
+    Object, ObjectVec, Var, VarVec, Vec, VecVec, Text, TextVec, EditText, EditTextVec, SText, STextVec,
+    SEditText, SEditTextVec, Image, ImageVec, Movement, MovementVec, Collision, CollisionVec, Particles,
+    Event, EventVec, Scrollbar, ScrollbarVec, Primitive, PrimitiveVec, any 
 };
-EngineInstr strToInstr(const string & instruction);
+EngineInstr strToInstr(const string & instruction, bool printError = true);
 string instrToStr(const EngineInstr & instruction);
 
 enum AttributeType: short{

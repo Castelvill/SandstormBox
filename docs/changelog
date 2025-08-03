@@ -1,3 +1,7 @@
+03.08.2025
+-Refactored instruction parsing.
+-Made "run" instruction optional.
+
 26.07.2025
 -Updated README.md.
 -Refactored tests.

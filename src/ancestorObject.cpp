@@ -603,12 +603,13 @@ vector<WordStruct> tokenizeCode(string input){
     isInsideStringSector = false;
     unsigned sector = 0;
     string error;
+    bool keywordAquired = false;
 
     //If a word is not a part of a string, add it as a single word, otherwise add the whole string as a single word and ignore its parts. Don't add " to the words.
     for(unsigned i = 0; i < output.size(); i++){
         if(output[i][0] == '\"' && !isInsideStringSector){
             isInsideStringSector = true;
-            mergedOutput.emplace_back(WordStruct('s', stringSectors[sector], false));
+            mergedOutput.emplace_back(WordStruct(TokenType::string_tk, stringSectors[sector], false));
             sector++;
             continue;
         }
@@ -621,51 +622,83 @@ vector<WordStruct> tokenizeCode(string input){
         if(output[i] == "\t"){
             continue;
         }
-        if(i == 0){
-            mergedOutput.emplace_back(WordStruct('o', output[i], false)); //operation
+        if(!keywordAquired){
+            mergedOutput.emplace_back(WordStruct(TokenType::keyword_tk, output[i], false, strToInstr(output[i], false)));
+            if(mergedOutput.back().instruction == null){
+                mergedOutput.back().type = TokenType::identifier_tk;
+            }
+            keywordAquired = true;
+            continue;
+        }
+        if(isStringInGroup(output[i], 9, "!", "==", "!=", "<", "<=", ">", ">=", "||", "&&")){
+            mergedOutput.emplace_back(WordStruct(TokenType::keyword_tk, output[i], false, strToInstr(output[i], false)));
             continue;
         }
         if(output[i] == "_"){
-            mergedOutput.emplace_back(WordStruct('e', output[i], false)); //empty / null
+            mergedOutput.emplace_back(WordStruct(TokenType::empty_tk, output[i], false));
+            continue;
+        }
+        if(output[i] == "("){
+            mergedOutput.emplace_back(WordStruct(TokenType::start_expr_tk, output[i], false));
+            continue;
+        }
+        if(output[i] == ")"){
+            mergedOutput.emplace_back(WordStruct(TokenType::end_expr_tk, output[i], false));
+            continue;
+        }
+        if(output[i] == "{"){
+            mergedOutput.emplace_back(WordStruct(TokenType::start_scope_tk, output[i], false));
+            continue;
+        }
+        if(output[i] == "}"){
+            mergedOutput.emplace_back(WordStruct(TokenType::end_scope_tk, output[i], false));
+            continue;
+        }
+        if(output[i] == "["){
+            mergedOutput.emplace_back(WordStruct(TokenType::open_brackets_tk, output[i], false));
+            continue;
+        }
+        if(output[i] == "]"){
+            mergedOutput.emplace_back(WordStruct(TokenType::close_brackets_tk, output[i], false));
             continue;
         }
         if(output[i] == "true"){
-            mergedOutput.emplace_back(WordStruct('b', "1", false)); //bool
+            mergedOutput.emplace_back(WordStruct(TokenType::bool_tk, "1", false));
             continue;
         }
         if(output[i] == "false"){
-            mergedOutput.emplace_back(WordStruct('b', "0", false)); //bool
+            mergedOutput.emplace_back(WordStruct(TokenType::bool_tk, "0", false));
             continue;
         }
         if(canStringBeDouble(output[i])){
             cstod(output[i], error);
-            if(mergedOutput.size() > 0 && mergedOutput.back().type == 'c' && mergedOutput.back().value == "-"){
+            if(mergedOutput.size() > 0 && mergedOutput.back().type == TokenType::identifier_tk && mergedOutput.back().value == "-"){
                 mergedOutput.pop_back();
-                mergedOutput.emplace_back(WordStruct('d', "-" + output[i], false)); //double
+                mergedOutput.emplace_back(WordStruct(TokenType::double_tk, "-" + output[i], false));
             }
             else{
-                mergedOutput.emplace_back(WordStruct('d', output[i], false)); //double
+                mergedOutput.emplace_back(WordStruct(TokenType::double_tk, output[i], false));
             }
             continue;
         }
         cstoi(output[i], error);
         if(error == ""){
-            if(mergedOutput.size() > 0 && mergedOutput.back().type == 'c' && mergedOutput.back().value == "-"){
+            if(mergedOutput.size() > 0 && mergedOutput.back().type == TokenType::identifier_tk && mergedOutput.back().value == "-"){
                 mergedOutput.pop_back();
-                mergedOutput.emplace_back(WordStruct('i', "-" + output[i], false)); //int
+                mergedOutput.emplace_back(WordStruct(TokenType::int_tk, "-" + output[i], false));
             }
             else{
-                mergedOutput.emplace_back(WordStruct('i', output[i], false)); //int
+                mergedOutput.emplace_back(WordStruct(TokenType::int_tk, output[i], false));
             }
             
             continue;
         }
-        if(mergedOutput.size() > 0 && mergedOutput.back().type == 'c' && mergedOutput.back().value == "-"){
+        if(mergedOutput.size() > 0 && mergedOutput.back().type == TokenType::identifier_tk && mergedOutput.back().value == "-"){
             mergedOutput.pop_back();
-            mergedOutput.emplace_back(WordStruct('c', output[i], true)); //context / variable
+            mergedOutput.emplace_back(WordStruct(TokenType::identifier_tk, output[i], true));
         }
         else{
-            mergedOutput.emplace_back(WordStruct('c', output[i], false)); //context / variable
+            mergedOutput.emplace_back(WordStruct(TokenType::identifier_tk, output[i], false));
         }
     }
 
@@ -747,7 +780,7 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, string & vari
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor].type != 'e'){
+    if(words[cursor].type != TokenType::empty_tk){
         variable = words[cursor].value;
     }
     cursor++;
@@ -757,7 +790,7 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, AttributeType
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor].type != 'e'){
+    if(words[cursor].type != TokenType::empty_tk){
         attribute = strToAttribute(words[cursor].value);
     }
     cursor++;
@@ -767,7 +800,7 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, ValueSource &
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor].type != 'e'){
+    if(words[cursor].type != TokenType::empty_tk){
         string error;
         variable = strToSource(words[cursor].value, error);
         if(error.size() > 0){
@@ -779,7 +812,7 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, ValueSource &
     return false;
 }
 bool optionalOutput(const string & scriptName, const unsigned & lineNumber, string & error, const vector<WordStruct> & words,
-    unsigned & cursor, const DataType & outputType, vector<vector<VariableLocationStruct>> & Scopes,
+    unsigned & cursor, const DataType & outputType, ScopeType & Scopes,
     vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, OutputParameterStruct & OutputParameter,
     bool makeOutputGlobal = false, bool forceNewDeclaration = false
 ){
@@ -789,7 +822,7 @@ bool optionalOutput(const string & scriptName, const unsigned & lineNumber, stri
     }
     const WordStruct & instructionOutput = words[cursor];
     
-    if(instructionOutput.type != 'e' && instructionOutput.type != 'c'){
+    if(instructionOutput.type != TokenType::empty_tk && instructionOutput.type != TokenType::identifier_tk){
         error = "Parameter 'output' (" + intToStr(cursor);
         error += ") must be a context.";
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -798,7 +831,7 @@ bool optionalOutput(const string & scriptName, const unsigned & lineNumber, stri
         return true;
     }
 
-    if(instructionOutput.type == 'c'){
+    if(instructionOutput.type == TokenType::identifier_tk){
         OutputParameter.variableID = instructionOutput.value;
         OutputParameter.type = outputType;
 
@@ -836,7 +869,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModul
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor].type != 'e'){
+    if(words[cursor].type != TokenType::empty_tk){
         switch(type){   
             case 'b':
                 Variable.setBool(cstoi(words[cursor].value, error));
@@ -860,7 +893,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModul
                 }
                 break;
             case 's':
-                if(words[cursor].type == 's'){
+                if(words[cursor].type == TokenType::string_tk){
                     Variable.setString(words[cursor].value);
                 }
                 else{
@@ -875,7 +908,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, VariableModul
                 break;
         }
     }
-    if(words[cursor].value != "]"){
+    if(words[cursor].type != TokenType::close_brackets_tk){
         cursor++;
     }
     return false;
@@ -884,7 +917,7 @@ inline void setOptionalAttributeValueInCond(const size_t & index, const char & t
     const vector<WordStruct> & words, VariableModule & Variable, const string & scriptName,
     const unsigned & lineNumber
 ){
-    if(index >= words.size() || words[index].type == 'e'){
+    if(index >= words.size() || words[index].type == TokenType::empty_tk){
         return;
     }
     string error = "";
@@ -911,7 +944,7 @@ inline void setOptionalAttributeValueInCond(const size_t & index, const char & t
             }
             return;
         case 's':
-            if(words[index].type == 's'){
+            if(words[index].type == TokenType::string_tk){
                 Variable.setString(words[index].value);
             }
             else{
@@ -924,7 +957,7 @@ inline void setOptionalAttributeValueInCond(const size_t & index, const char & t
     }
 }
 inline bool getLocalAddressWithError(unsigned & localAddress, const string & variableId,
-    vector<vector<VariableLocationStruct>> &Scopes, vector<VariableInfo> &NewLocalVariables,
+    ScopeType &Scopes, vector<VariableInfo> &NewLocalVariables,
     unsigned &topAddress, const string &scriptName, const unsigned &lineNumber
 ){
     ReturnType result = ReturnType::OK;
@@ -953,13 +986,13 @@ inline bool getLocalAddressWithError(unsigned & localAddress, const string & var
     }
 }
 inline void setOptionalAddressInCond(const size_t & index, const vector<WordStruct> & words, unsigned & localAddress,
-    const string & scriptName, unsigned lineNumber, vector<vector<VariableLocationStruct>> & Scopes,
+    const string & scriptName, unsigned lineNumber, ScopeType & Scopes,
     vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, bool canCreateNewVariable
 ){
-    if(index >= words.size() || words[index].type == 'e'){
+    if(index >= words.size() || words[index].type == TokenType::empty_tk){
         return;
     }
-    if(words[index].type == 'c'){
+    if(words[index].type == TokenType::identifier_tk){
         getLocalAddressWithError(localAddress, words[index].value,
             Scopes, NewLocalVariables, topAddress, scriptName, lineNumber
         );
@@ -973,7 +1006,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, int & variabl
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor].type != 'e'){
+    if(words[cursor].type != TokenType::empty_tk){
         string error;
         variable = cstoi(words[cursor].value, error);
         if(error.size() > 0){
@@ -981,7 +1014,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, int & variabl
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": " << error << "\n";
         }
     }
-    if(words[cursor].value != "]"){
+    if(words[cursor].type!= TokenType::close_brackets_tk){
         cursor++;
     }
     return false;
@@ -990,7 +1023,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, double & vari
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor].type != 'e'){
+    if(words[cursor].type != TokenType::empty_tk){
         string error;
         variable = cstod(words[cursor].value, error);
         if(error.size() > 0){
@@ -998,7 +1031,7 @@ bool nextCond(const vector<WordStruct> & words, unsigned & cursor, double & vari
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": " << error << "\n";
         }
     }
-    if(words[cursor].value != "]"){
+    if(words[cursor].type != TokenType::close_brackets_tk){
         cursor++;
     }
     return false;
@@ -1011,7 +1044,7 @@ inline string getStringByIndex(const vector<string> & strVec, const size_t & ind
 }
 inline bool prepareVectorSource(const vector<string> & attributes, const vector<WordStruct> & attributeArgs,
     const unsigned & lineNumber, const string & scriptName, ConditionClass & Expression,
-    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
+    ScopeType & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
     const bool & canCreateNewVariable
 ){
     Expression.Location.moduleID = getStringByIndex(attributes, 1);
@@ -1079,7 +1112,7 @@ inline void prepareObjectSource(const vector<string> & attributes, const vector<
     return;
 }
 inline bool setLocalAddressForExpression(ConditionClass &Expression, const vector<string> &attributes,
-    vector<vector<VariableLocationStruct>> &Scopes, vector<VariableInfo> &NewLocalVariables,
+    ScopeType &Scopes, vector<VariableInfo> &NewLocalVariables,
     unsigned &topAddress, const string &scriptName, const unsigned &lineNumber
 ){
     if(getLocalAddressWithError(Expression.localAddresses[0], getStringByIndex(attributes, 0),
@@ -1093,7 +1126,7 @@ inline bool setLocalAddressForExpression(ConditionClass &Expression, const vecto
 }
 //Return true on failure.
 bool setComplexDataAccessors(const vector<string> & attributes, const vector<WordStruct> & attributeArgs, unsigned lineNumber,
-    const string & scriptName, ConditionClass & Expression, vector<vector<VariableLocationStruct>> & Scopes,
+    const string & scriptName, ConditionClass & Expression, ScopeType & Scopes,
     vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, const bool & canCreateNewVariable
 ){
     string valueSource = attributes[0];
@@ -1108,7 +1141,7 @@ bool setComplexDataAccessors(const vector<string> & attributes, const vector<Wor
         case mouse_released:
         case screen_w:
         case screen_h:
-            if(attributeArgs.size() > 0 && attributeArgs[0].type == 'c'){
+            if(attributeArgs.size() > 0 && attributeArgs[0].type == TokenType::identifier_tk){
                 Expression.Literal.setString(attributeArgs[0].value); //Set variableId
                 setOptionalAddressInCond(0, attributeArgs, Expression.localAddresses[0],
                     scriptName, lineNumber, Scopes, NewLocalVariables, topAddress, canCreateNewVariable
@@ -1120,7 +1153,7 @@ bool setComplexDataAccessors(const vector<string> & attributes, const vector<Wor
             return false;
         case exists:
         case is_directory:
-            if(attributeArgs.size() > 0 && attributeArgs[0].type == 'c'){
+            if(attributeArgs.size() > 0 && attributeArgs[0].type == TokenType::identifier_tk){
                 Expression.Literal.setString(attributeArgs[0].value);
                 setOptionalAddressInCond(0, attributeArgs, Expression.localAddresses[0],
                     scriptName, lineNumber, Scopes, NewLocalVariables, topAddress, canCreateNewVariable
@@ -1187,33 +1220,148 @@ bool setComplexDataAccessors(const vector<string> & attributes, const vector<Wor
     }
     return false;
 }
-bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression,
+inline bool isLogicInstr(EngineInstr instruction){
+    switch(instruction){
+        case EngineInstr::not_i:
+        case EngineInstr::equal:
+        case EngineInstr::not_equal:
+        case EngineInstr::less:
+        case EngineInstr::less_equal:
+        case EngineInstr::more:
+        case EngineInstr::more_equal:
+        case EngineInstr::or_i:
+        case EngineInstr::and_i:
+            return true;
+        default:
+            return false;
+    }
+}
+ReturnType parseUserDefinedIdentifiers(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression,
+    unsigned lineNumber, const string & scriptName, ScopeType & Scopes,
+    vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, bool canCreateNewVariable, WordStruct &firstWord
+){
+    if(words[cursor].type != TokenType::close_brackets_tk){
+        cursor++;
+    }
+
+    vector<string> valueLocationAttributes;
+    string currentAttribute = "";
+    for(const char & letter : firstWord.value){
+        if(letter != '.'){
+            currentAttribute += letter;
+        }
+        else{
+            valueLocationAttributes.push_back(currentAttribute);
+            currentAttribute = "";
+        }
+    }
+    valueLocationAttributes.push_back(currentAttribute);
+
+    vector<WordStruct> locationAttributesArgs; //Value in optional parenthesis
+    if(words[cursor].type == TokenType::start_expr_tk){
+        if(cursor == words.size() - 1){
+            return ReturnType::CONTINUE;
+        }
+        ++cursor;
+        while(cursor < words.size() - 1 && words[cursor].type != TokenType::end_expr_tk){
+            if(words[cursor].type == TokenType::close_brackets_tk){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parenthesis were not closed.\n";
+                return ReturnType::ERROR;
+            }
+            locationAttributesArgs.push_back(words[cursor]);
+            ++cursor;
+        }
+        if(words[cursor].type != TokenType::end_expr_tk){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parenthesis were not closed.\n";
+            return ReturnType::ERROR;
+        }
+        if(cursor == words.size() - 1){
+            return ReturnType::CONTINUE;
+        }
+        ++cursor;
+    }
+
+    if(setComplexDataAccessors(valueLocationAttributes, locationAttributesArgs,
+        lineNumber, scriptName, Expression.back(), Scopes, NewLocalVariables, topAddress,
+        canCreateNewVariable
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType parseExpression(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression,
+    unsigned lineNumber, const string & scriptName, ScopeType & Scopes,
+    vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, bool canCreateNewVariable, WordStruct &firstWord
+){
+    if(words.size() < cursor + 1){ return ReturnType::CONTINUE; };
+
+    if(words[cursor].type != TokenType::empty_tk && words[cursor].type != TokenType::close_brackets_tk){
+        firstWord = words[cursor];
+    }
+
+    Expression.push_back(ConditionClass(""));
+
+    string error;
+    Expression.back().Location.source = strToSource(firstWord.value, error);
+
+    switch(firstWord.type){
+        case TokenType::bool_tk:
+            Expression.back().Location.source = ValueSource::literal;
+            if(nextCond(words, cursor, Expression.back().Literal, 'b', scriptName, lineNumber)){
+                return ReturnType::CONTINUE;
+            };
+            return ReturnType::OK;
+        case TokenType::int_tk:
+            Expression.back().Location.source = ValueSource::literal;
+            if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ return ReturnType::CONTINUE; };
+            return ReturnType::OK;
+        case TokenType::double_tk:
+            Expression.back().Location.source = ValueSource::literal;
+            if(nextCond(words, cursor, Expression.back().Literal, 'd', scriptName, lineNumber)){ return ReturnType::CONTINUE; };
+            return ReturnType::OK;
+        case TokenType::string_tk:
+            Expression.back().Location.source = ValueSource::literal;
+            if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ return ReturnType::CONTINUE; };
+            return ReturnType::OK;
+        case TokenType::identifier_tk:
+            return parseUserDefinedIdentifiers(words, cursor, Expression, lineNumber, scriptName, Scopes,
+                NewLocalVariables, topAddress, canCreateNewVariable, firstWord
+            );    
+        default:
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Word of the '"
+                << tokenToStr(firstWord.type) << "' type is not valid.\n";
+            return ReturnType::ERROR;
+    }
+}
+ReturnType createExpression(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression,
     vector<VariableModule> & resultStack, unsigned lineNumber, string scriptName, bool isConditionalExpression,
-    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
+    ScopeType & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
     bool canCreateNewVariable
 ){
     if(cursor >= words.size()){
-        return true;
+        return ReturnType::OK;
     }
-    if(words[cursor].type == 'e'){
+    if(words[cursor].type == TokenType::empty_tk){
         cursor++;
-        return true;
+        return ReturnType::OK;
     }
 
-    string endingChar = ")";
+    TokenType scopeType = TokenType::end_expr_tk;
     if(isConditionalExpression){
-        if(words[cursor].value != "("){
+        if(words[cursor].type != TokenType::start_expr_tk){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Every expression must begin with parentheses.\n";
-            return false;
+            return ReturnType::ERROR;
         }
     }
     else{
-        endingChar = "]";
-        if(words[cursor].value != "["){
+        scopeType = TokenType::close_brackets_tk;
+        if(words[cursor].type != TokenType::open_brackets_tk){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor << " must begin with square brackets.\n";
-            return false;
+            return ReturnType::ERROR;
         }
     }
     
@@ -1221,118 +1369,47 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     if(cursor >= words.size()){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Command is too short.\n";
-        return false;
+        return ReturnType::ERROR;
     }
     WordStruct firstWord;
     
-    while(words[cursor].value != endingChar){
+    while(words[cursor].type != scopeType){
         if(cursor >= words.size()){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Command is too short.\n";
-            return false;
+            return ReturnType::ERROR;
         }
-        if(isStringInGroup(words[cursor].value, 9, "!", "==", "!=", "<", "<=", ">", ">=", "||", "&&")){
+        if(words[cursor].type == TokenType::keyword_tk && isLogicInstr(words[cursor].instruction)){
             if(!isConditionalExpression){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << NEW_LINE_PADDING << "In " << __FUNCTION__
                     << ": Cannot use operators inside not conditional expression. Correct syntax: [[source_0] [source_1] ...]\n";
-                return false;
+                return ReturnType::ERROR;
             }
             if(Expression.size() == 0){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << NEW_LINE_PADDING << "In " << __FUNCTION__
                     << ": Operator '" << words[cursor].value << "' cannot be added to an empty expression.\n";
-                return false;
+                return ReturnType::ERROR;
             }
-            Expression.back().operators.emplace_back(strToInstr(words[cursor].value));
+            Expression.back().operators.emplace_back(words[cursor].instruction);
             cursor++;
         }
         else{
-            if(words.size() < cursor + 1){ continue; };
-            if(words[cursor].type != 'e' && words[cursor].value != "]"){
-                firstWord = words[cursor];
+            ReturnType status = parseExpression(words, cursor, Expression, lineNumber, scriptName, Scopes,
+                NewLocalVariables, topAddress, canCreateNewVariable, firstWord
+            );
+            if(status == ReturnType::CONTINUE){
+                continue;
             }
-
-            Expression.push_back(ConditionClass(""));
-
-            string error;
-            Expression.back().Location.source = strToSource(firstWord.value, error);
-
-            if(firstWord.type == 'b'){
-                Expression.back().Location.source = ValueSource::literal;
-                if(nextCond(words, cursor, Expression.back().Literal, 'b', scriptName, lineNumber)){ continue; };
-            }
-            else if(firstWord.type == 'i'){
-                Expression.back().Location.source = ValueSource::literal;
-                if(nextCond(words, cursor, Expression.back().Literal, 'i', scriptName, lineNumber)){ continue; };
-            }
-            else if(firstWord.type == 'd'){
-                Expression.back().Location.source = ValueSource::literal;
-                if(nextCond(words, cursor, Expression.back().Literal, 'd', scriptName, lineNumber)){ continue; };
-            }
-            else if(firstWord.type == 's'){
-                Expression.back().Location.source = ValueSource::literal;
-                if(nextCond(words, cursor, Expression.back().Literal, 's', scriptName, lineNumber)){ continue; };
-            }
-            else if(firstWord.type == 'c'){
-                if(words[cursor].value != "]"){
-                    cursor++;
-                }
-
-                vector<string> valueLocationAttributes;
-                string currentAttribute = "";
-                for(const char & letter : firstWord.value){
-                    if(letter != '.'){
-                        currentAttribute += letter;
-                    }
-                    else{
-                        valueLocationAttributes.push_back(currentAttribute);
-                        currentAttribute = "";
-                    }
-                }
-                valueLocationAttributes.push_back(currentAttribute);
-
-                vector<WordStruct> locationAttributesArgs; //Value in optional parenthesis
-                if(words[cursor].value == "("){
-                    if(cursor == words.size() - 1){
-                        continue;
-                    }
-                    ++cursor;
-                    while(cursor < words.size() - 1 && words[cursor].value != ")"){
-                        if(words[cursor].value == "]"){
-                            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parenthesis were not closed.\n";
-                            return false;
-                        }
-                        locationAttributesArgs.push_back(words[cursor]);
-                        ++cursor;
-                    }
-                    if(words[cursor].value != ")"){
-                        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parenthesis were not closed.\n";
-                        return false;
-                    }
-                    if(cursor == words.size() - 1){
-                        continue;
-                    }
-                    ++cursor;
-                }
-
-                if(setComplexDataAccessors(valueLocationAttributes, locationAttributesArgs,
-                    lineNumber, scriptName, Expression.back(), Scopes, NewLocalVariables, topAddress,
-                    canCreateNewVariable
-                )){ return false; }
-            }
-            else{
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Word of the '" << firstWord.type << "' type is not valid.\n";
-                return false;
+            if(status == ReturnType::ERROR){
+                return ReturnType::ERROR;
             }
         }
         if(cursor >= words.size()){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Command is too short.\n";
-            return false;
+            return ReturnType::ERROR;
         }
     }
     cursor++;
@@ -1340,12 +1417,12 @@ bool createExpression(const vector<WordStruct> & words, unsigned & cursor, vecto
     for(unsigned i = 0; i < Expression.size(); ++i){
         resultStack.push_back(VariableModule());
     }
-    return true;
+    return ReturnType::OK;
 }
 bool createEvent(const string & scriptName, const unsigned & lineNumber, const string & layerID,
     const string & objectID, vector <EventModule> & EventContainer, vector <string> & EventContainerIDs,
     EventModule & NewEvent, const vector<WordStruct> & words,
-    vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
+    ScopeType & Scopes, unsigned & topAddress
 ){
     string eventID = "";
     
@@ -1354,7 +1431,7 @@ bool createEvent(const string & scriptName, const unsigned & lineNumber, const s
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 1 parameter.\n";
         return true;
     }
-    if(words[1].type != 'c' && words[1].type != 'e'){
+    if(words[1].type != TokenType::identifier_tk && words[1].type != TokenType::empty_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": In the '" << words[0].value
             << "' instruction: The first parameter (id) is not a context.\n";
@@ -1426,14 +1503,14 @@ bool createCallingStackOfInlineEvents(const string & scriptName, const unsigned 
 bool createInlineEvent(const string & scriptName, const unsigned & lineNumber, const string & layerID,
     const string & objectID, vector <EventModule> & EventContainer, vector <string> & EventContainerIDs,
     EventModule & NewEvent, const vector<WordStruct> & words, vector<string> & allAvailableEventIDs,
-    vector<vector<VariableLocationStruct>> & Scopes
+    ScopeType & Scopes
 ){
     if(words.size() < 2){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 1 parameter.\n";
         return true;
     }
-    if(words[1].type != 'c' && words[1].type != 'e'){
+    if(words[1].type != TokenType::identifier_tk && words[1].type != TokenType::empty_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": In the '" << words[0].value
             << "' instruction: The first parameter (id) is not a context.\n";
@@ -1497,19 +1574,357 @@ inline DataType attributeToInstDataType(const InstrDescription & CurrentInstr, c
             return null_dt;
     }
 }
-bool setupFirstLastAllRandomInstr(const vector<WordStruct> & words, EventModule & NewEvent,
-    OperationClass * Operation, unsigned lineNumber, string scriptName, string & error, unsigned & cursor,
-    vector <string> & allAvailableEventIDs, vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
-){
-    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){
-        return true;
+DataType instrToDataType(EngineInstr instruction){
+    switch(instruction){
+        case Val:
+            return DataType::value_inst;
+        case ValVec:
+            return DataType::value_vec;
+        case Pointer:
+            return DataType::pointer_inst;
+        case PointerVec:
+            return DataType::pointer_vec;
+        case Camera:
+            return DataType::camera_inst;
+        case CameraVec:
+            return DataType::camera_vec;
+        case Layer:
+            return DataType::layer_inst;
+        case LayerVec:
+            return DataType::layer_vec;
+        case Object:
+            return DataType::object_inst;
+        case ObjectVec:
+            return DataType::object_vec;
+        case Var:
+            return DataType::variable_mod;
+        case VarVec:
+            return DataType::variable_mod_vec;
+        case Vec:
+            return DataType::vector_mod;
+        case VecVec:
+            return DataType::vector_mod_vec;
+        case Text:
+            return DataType::text_mod;
+        case TextVec:
+            return DataType::text_mod_vec;
+        case EditText:
+            return DataType::editable_text_mod;
+        case EditTextVec:
+            return DataType::editable_text_mod_vec;
+        case SText:
+            return DataType::super_text_mod;
+        case STextVec:
+            return DataType::super_text_mod_vec;
+        case SEditText:
+            return DataType::super_editable_text_mod;
+        case SEditTextVec:
+            return DataType::super_editable_text_mod_vec;
+        case Image:
+            return DataType::image_mod;
+        case ImageVec:
+            return DataType::image_mod_vec;
+        case Movement:
+            return DataType::movement_mod;
+        case MovementVec:
+            return DataType::movement_mod_vec;
+        case Collision:
+            return DataType::collision_mod;
+        case CollisionVec:
+            return DataType::collision_mod_vec;
+        case Particles:
+            return DataType::particles_mod;
+        case Event:
+            return DataType::event_mod;
+        case EventVec:
+            return DataType::event_mod_vec;
+        case Scrollbar:
+            return DataType::scrollbar_mod;
+        case ScrollbarVec:
+            return DataType::scrollbar_mod_vec;
+        case Primitive:
+            return DataType::primitives_mod;
+        case PrimitiveVec:
+            return DataType::primitives_mod_vec;
+        case any:
+            return DataType::any_dt;
+        default:
+            return DataType::null_dt;
     }
-    if(words[1].type != 'c'){
+}
+
+ReturnType InstrParser::parseCompilerBreakpoint(bool & triggerBreakpoint){
+    triggerBreakpoint = true;
+    cerr << "Warning: The 'compiler_breakpoint' instruction can be used only in the debugger.\n";
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseStartAndOverride(vector<string> & allAvailableEventIDs, const string & layerId, const string & objectId,
+    vector<EventModule> &eventContainer, vector<string> &eventContainerIds
+){
+    if(createEvent(scriptName, lineNumber, layerId, objectId, eventContainer, eventContainerIds, NewEvent, words, Scopes, topAddress))
+        return ReturnType::ERROR;
+    allAvailableEventIDs.clear();
+    allAvailableEventIDs.push_back(NewEvent.getID());
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseEnd(vector<EventModule> &eventContainer){
+    if(NewEvent.isInline){
+        NewEvent.Parameters.clear();
+    }
+    Scopes.pop_back(); //Remove the scope of the last event
+    eventContainer.push_back(NewEvent);
+    NewEvent = EventModule();
+    return ReturnType::OK;
+
+}
+ReturnType InstrParser::parseTriggers(){
+    size_t cursor = 1;
+    if(words.size() < 2){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Instruction \'" << words[0].value << "\' requires at least 2 parameters.\n";
+        return ReturnType::ERROR;
+    }
+    while(cursor < words.size()){
+        if(words[cursor].type != TokenType::identifier_tk){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": In the '" << words[0].value << "' instruction: Parameter " << cursor << " is not a context.\n";
+            return ReturnType::ERROR;
+        }
+        if(words[cursor].type != TokenType::empty_tk){
+            TriggerType NewTrigger = strToTrigger(words[cursor].value);
+            if(NewTrigger == null_t){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__
+                    << ": In the '" << words[0].value << "' instruction: Parameter '"
+                    << words[cursor].value << "' is not a valid trigger.\n";
+                return ReturnType::ERROR;
+            }
+            NewEvent.primaryTriggerTypes.push_back(NewTrigger);
+            NewEvent.isFunction = false;
+        }
+        cursor++;
+    }
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseEmpty(){
+    OperationClass * operation = nullptr;
+    if(!prepareNewInstruction(words, NewEvent, operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseIf(BranchingStackStruct & BranchingStack){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    Scopes.emplace_back(vector<VariableLocationStruct>());
+    if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+        lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+    )){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+        return ReturnType::ERROR;
+    }
+    BranchingStack.ifElseJumpStack.push_back(NewEvent.Operations.size()-1);
+    BranchingStack.usedElseStatements.push_back(0);
+    BranchingStack.ifEndJumpStack.push_back(vector<unsigned>());
+    BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseElseIf(BranchingStackStruct & BranchingStack){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    Scopes.pop_back();
+    Scopes.emplace_back(vector<VariableLocationStruct>());
+
+    if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+        lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+    )){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+        return ReturnType::ERROR;
+    }
+    
+    if(BranchingStack.ifElseJumpStack.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside the if statement scope.\n";
+        return ReturnType::ERROR;
+    }
+
+    NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
+
+    BranchingStack.ifElseJumpStack.pop_back();
+    BranchingStack.ifElseJumpStack.push_back(NewEvent.Operations.size()-1);
+    if(BranchingStack.ifEndJumpStack.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside the if statement scope.\n";
+        return ReturnType::ERROR;
+    }
+    BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseElse(BranchingStackStruct & BranchingStack){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    Scopes.pop_back();
+    Scopes.emplace_back(vector<VariableLocationStruct>());
+
+    if(BranchingStack.ifElseJumpStack.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside the if statement scope.\n";
+        return ReturnType::ERROR;
+    }
+
+    NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
+    BranchingStack.ifElseJumpStack.pop_back();
+
+    if(BranchingStack.usedElseStatements.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside the if statement scope.\n";
+        return ReturnType::ERROR;
+    }
+
+    BranchingStack.usedElseStatements.back() = 1;
+
+    if(BranchingStack.ifEndJumpStack.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside the if statement scope.\n";
+        return ReturnType::ERROR;
+    }
+
+    BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseEndIf(BranchingStackStruct & BranchingStack){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    Scopes.pop_back();
+    if(BranchingStack.ifEndJumpStack.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside the if statement scope.\n";
+        return ReturnType::ERROR;
+    }
+    if(BranchingStack.usedElseStatements.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside the if statement scope.\n";
+        return ReturnType::ERROR;
+    }
+    if(BranchingStack.usedElseStatements.back() == 0){
+        if(BranchingStack.ifElseJumpStack.size() == 0){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+                << words[0].value << "' outside the if statement scope.\n";
+            return ReturnType::ERROR;
+        }
+        NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
+        BranchingStack.ifElseJumpStack.pop_back();
+    }
+    BranchingStack.usedElseStatements.pop_back();
+    if(BranchingStack.ifEndJumpStack.size() > 0){
+        for(unsigned lineNumberIdx : BranchingStack.ifEndJumpStack.back()){
+            NewEvent.Operations[lineNumberIdx].jumpToLine = NewEvent.Operations.size()-1;
+        }
+        BranchingStack.ifEndJumpStack.back().clear();
+        BranchingStack.ifEndJumpStack.pop_back();
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseWhile(BranchingStackStruct & BranchingStack){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    Scopes.emplace_back(vector<VariableLocationStruct>());
+    if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+        lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+    )){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+        return ReturnType::ERROR;
+    }
+
+    BranchingStack.whileStartStack.push_back(NewEvent.Operations.size()-1);
+    BranchingStack.whileEndStack.push_back(vector<unsigned>());
+    BranchingStack.whileEndStack.back().push_back(NewEvent.Operations.size()-1);
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseEndWhile(BranchingStackStruct & BranchingStack){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    Scopes.pop_back();
+
+    if(BranchingStack.whileStartStack.size() == 0 || BranchingStack.whileEndStack.size() == 0 || BranchingStack.whileEndStack.back().size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' before any loop.\n";
+        return ReturnType::ERROR;
+    }
+
+    NewEvent.Operations.back().jumpToLine = BranchingStack.whileStartStack.back();
+    BranchingStack.whileStartStack.pop_back();
+    for(unsigned & index : BranchingStack.whileEndStack.back()){
+        NewEvent.Operations[index].jumpToLine = NewEvent.Operations.size()-1;
+    }
+    BranchingStack.whileEndStack.back().clear();
+    BranchingStack.whileEndStack.pop_back();
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseContinue(BranchingStackStruct & BranchingStack){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    if(BranchingStack.whileStartStack.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside a loop.\n";
+        return ReturnType::ERROR;
+    }
+
+    NewEvent.Operations.back().jumpToLine = BranchingStack.whileStartStack.back();
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseBreak(BranchingStackStruct & BranchingStack){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    if(BranchingStack.whileEndStack.size() == 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
+            << words[0].value << "' outside a loop.\n";
+        return ReturnType::ERROR;
+    }
+    BranchingStack.whileEndStack.back().push_back(NewEvent.Operations.size() - 1);
+    
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEventIDs){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){
+        return ReturnType::ERROR;
+    }
+    if(words[1].type != TokenType::identifier_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
-        return true;
+        return ReturnType::ERROR;
     }
+
+    string error = "";
 
     if(words[1].value == "Layers"){
         Operation->Location.source = ValueSource::layer;
@@ -1522,27 +1937,27 @@ bool setupFirstLastAllRandomInstr(const vector<WordStruct> & words, EventModule 
         if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
             cursor, 'c', "context", false, false, false
-        )){ return true; }
+        )){ return ReturnType::ERROR; }
     }
     else{
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": First parameter cannot be an empty context.\n";
-        return true;
+        return ReturnType::ERROR;
     }
 
     DataType outputType = null_dt;
     
     cursor = 2;
     if(Operation->Location.source == ValueSource::camera){
-        if(optional(words, cursor, Operation->Location.cameraID)){ return false; }
-        if(optional(words, cursor, Operation->Location.attribute)){ return false; }
-        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+        if(optional(words, cursor, Operation->Location.cameraID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
+        if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
             lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
         )){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-            return true;
+            return ReturnType::ERROR;
         }
         outputType = camera_inst;
         if(Operation->Location.attribute != null_a && Operation->Location.attribute != camera_a){
@@ -1554,22 +1969,22 @@ bool setupFirstLastAllRandomInstr(const vector<WordStruct> & words, EventModule 
         if(optionalOutput(scriptName, lineNumber, error, words, cursor,
             outputType, Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
         )){
-            if(error.size() == 0){ return false; }
-            return true;
+            if(error.size() == 0){ return ReturnType::OK; }
+            return ReturnType::ERROR;
         }
     }
     else if(Operation->Location.source == ValueSource::layer){
-        if(optional(words, cursor, Operation->Location.layerID)){ return false; }
-        if(optional(words, cursor, Operation->Location.objectID)){ return false; }
-        if(optional(words, cursor, Operation->Location.moduleType)){ return false; }
-        if(optional(words, cursor, Operation->Location.moduleID)){ return false; }
-        if(optional(words, cursor, Operation->Location.attribute)){ return false; }
-        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+        if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.objectID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.moduleType)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.moduleID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
+        if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
             lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
         )){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-            return true;
+            return ReturnType::ERROR;
         }
         if(Operation->Location.attribute == null_a && Operation->Location.objectID.empty()
             && Operation->Location.moduleType == null_s && Operation->Location.moduleID.empty()
@@ -1640,22 +2055,22 @@ bool setupFirstLastAllRandomInstr(const vector<WordStruct> & words, EventModule 
         if(optionalOutput(scriptName, lineNumber, error, words, cursor,
             outputType, Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
         )){
-            if(error.size() == 0){ return false; }
-            return true;
+            if(error.size() == 0){ return ReturnType::OK; }
+            return ReturnType::ERROR;
         }
     }
     else if(Operation->Location.source == ValueSource::context){
-        if(optional(words, cursor, Operation->Location.layerID)){ return false; }
-        if(optional(words, cursor, Operation->Location.objectID)){ return false; }
-        if(optional(words, cursor, Operation->Location.moduleType)){ return false; }
-        if(optional(words, cursor, Operation->Location.moduleID)){ return false; }
-        if(optional(words, cursor, Operation->Location.attribute)){ return false; }
-        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+        if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.objectID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.moduleType)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.moduleID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
+        if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
             lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
         )){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-            return true;
+            return ReturnType::ERROR;
         }
         outputType = attributeToInstDataType(InstrDescription(), Operation->Location.attribute);
         if(outputType == null_dt){
@@ -1667,32 +2082,31 @@ bool setupFirstLastAllRandomInstr(const vector<WordStruct> & words, EventModule 
         if(optionalOutput(scriptName, lineNumber, error, words, cursor,
             outputType, Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
         )){
-            if(error.size() == 0){ return false; }
-            return true;
+            if(error.size() == 0){ return ReturnType::OK; }
+            return ReturnType::ERROR;
         }
     }
     else{
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": Source '" << words[1].value << "' does not exist.\n";
-        return true;
+        return ReturnType::ERROR;
     }
-    return false;
+    return ReturnType::OK;
 }
-bool setupIndexInstr(const vector<WordStruct> & words, EventModule & NewEvent, OperationClass * Operation,
-    unsigned lineNumber, string scriptName, string & error, unsigned & cursor,
-    vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
-){
-    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){
-        return true;
-    }
-    if(words[1].type != 'c'){
+ReturnType InstrParser::parseIndex(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    if(words[1].type != TokenType::identifier_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << words[0].value
             << "' instruction: The first two parameters are not of a context type.\n";
-        return true;
+        return ReturnType::ERROR;
     }
+
+    string error = "";
 
     if(words[1].value == "Processes"){
         Operation->Location.source = ValueSource::process;
@@ -1708,939 +2122,861 @@ bool setupIndexInstr(const vector<WordStruct> & words, EventModule & NewEvent, O
         if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
             1, 'c', "source", false, false, false
-        )){ return true; }
+        )){ return ReturnType::ERROR; }
     }
     else{
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": First parameter cannot be an empty context.\n";
-        return true;
+        return ReturnType::ERROR;
     }
     
     cursor = 2;
-    if(Operation->addVectorOrVariableToParameters(
-        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+    
+    if(Operation->addVectorOrVariableToParameters(scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
         cursor, 'i', "indexes", false, false
-    )){ return true; }
-    if(optional(words, cursor, Operation->Location.attribute)){ return false; }
+    )){ return ReturnType::ERROR; }
+
+    if(optional(words, cursor, Operation->Location.attribute))
+        return ReturnType::OK;
+
     if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
         Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
     )){
-        if(error.size() == 0){ return false; }
-        return true;
-    }
-    return false;
-}
-inline bool isStringAnInstanceDeclaration(const string & instruction){
-    return isStringInGroup(instruction, 36, "Val", "ValVec", "Pointer", "PointerVec", "Camera", "CameraVec", "Layer", "LayerVec", //8
-        "Object", "ObjectVec", "Var", "VarVec", "Vec", "VecVec", "Text", "TextVec", "EditText", "EditTextVec", "SText", "STextVec", //12
-        "SEditText", "SEditTextVec", "Image", "ImageVec", "Movement", "MovementVec", "Collision", "CollisionVec", "Particles", //9
-        "Event", "EventVec", "Scrollbar", "ScrollbarVec", "Primitive", "PrimitiveVec", "any" //7
-    );
-} 
-ReturnType AncestorObject::translateTokensIntoEngineInstruction(
-    const vector<WordStruct> & words, const string & scriptName, const unsigned & lineNumber,
-    vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress,
-    bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
-    BranchingStackStruct & BranchingStack
-){
-    unsigned cursor = 1;
-    string error;
-    OperationClass * Operation = nullptr;
-
-    if(words[0].value == "import"){
-        return ReturnType::OK;
-    }
-    if(words[0].value == "start" ||  words[0].value == "override"){
-        if(createEvent(scriptName, lineNumber, layerID, ID, EventContainer,
-            eventContainerIDs, NewEvent, words, Scopes, topAddress
-        )){ return ReturnType::ERROR; }
-        allAvailableEventIDs.clear();
-        allAvailableEventIDs.push_back(NewEvent.getID());
-    }
-    else if(Scopes.size() < 2){
-        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ":\n"
-            << NEW_LINE_PADDING << "Instruction \'" << words[0].value << "\' cannot be used outside of an event scope.\n";
+        if(error.empty()){ return ReturnType::OK; }
         return ReturnType::ERROR;
     }
-    else if(words[0].value == "compiler_breakpoint"){
-        triggerBreakpoint = true;
-        cerr << "Warning: The 'compiler_breakpoint' instruction can be used only in the debugger.\n";
-    }
-    else if(words[0].value == "end"){
-        if(NewEvent.isInline){
-            NewEvent.Parameters.clear();
-        }
-        Scopes.pop_back(); //Remove the scope of the last event
-        EventContainer.push_back(NewEvent);
-        NewEvent = EventModule();
-    }
-    else if(words[0].value == "triggers"){
-        if(words.size() < 2){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": Instruction \'" << words[0].value << "\' requires at least 2 parameters.\n";
-            return ReturnType::ERROR;
-        }
-        while(cursor < words.size()){
-            if(words[cursor].type != 'c'){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__
-                    << ": In the '" << words[0].value << "' instruction: Parameter " << cursor << " is not a context.\n";
-                return ReturnType::ERROR;
-            }
-            if(words[cursor].type != 'e'){
-                TriggerType NewTrigger = strToTrigger(words[cursor].value);
-                if(NewTrigger == null_t){
-                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << NEW_LINE_PADDING << "In " << __FUNCTION__
-                        << ": In the '" << words[0].value << "' instruction: Parameter '"
-                        << words[cursor].value << "' is not a valid trigger.\n";
-                    return ReturnType::ERROR;
-                }
-                NewEvent.primaryTriggerTypes.push_back(NewTrigger);
-                NewEvent.isFunction = false;
-            }
-            cursor++;
-        }
-        /*if(!gatherStringVector(words, cursor, NewEvent.primaryTriggerTypes, lineNumber, scriptName)){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << ERROR_SPACING << "In " << __FUNCTION__ << ": Context gather failed.\n";
-            return ReturnType::ERROR;
-        }*/
-    }
-    else if(words[0].value == "run"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[1].type != 'c'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
-            return ReturnType::ERROR;
-        }
-        Operation->specialValue = NewEvent.Children.size();
-        NewEvent.Children.emplace_back(ChildStruct(words[1].value, vector<PassingVariableInfo>(), 0, scriptName, lineNumber));
-        cursor = 2;
 
-        if(NewEvent.getPassingVariables(NewEvent.Children.back().Arguments,
-            words, cursor, lineNumber, scriptName, Scopes, topAddress
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseIndexVec(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    if(words[1].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+        return ReturnType::ERROR;
+    }
+
+    string error = "";
+
+    if(words[1].value != ""){
+        Operation->Location.source = ValueSource::context;
+        if(Operation->addParameter(scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            1, 'c', "vector", false, false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[0].value == "if"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        Scopes.emplace_back(vector<VariableLocationStruct>());
-        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-            lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
-        )){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-            return ReturnType::ERROR;
-        }
-        BranchingStack.ifElseJumpStack.push_back(NewEvent.Operations.size()-1);
-        BranchingStack.usedElseStatements.push_back(0);
-        BranchingStack.ifEndJumpStack.push_back(vector<unsigned>());
-        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
+    else{
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": First parameter cannot be an empty context.\n";
+        return ReturnType::ERROR;
     }
-    else if(words[0].value == "else_if"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        Scopes.pop_back();
-        Scopes.emplace_back(vector<VariableLocationStruct>());
-        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-            lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
-        )){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-            return ReturnType::ERROR;
-        }
-        if(BranchingStack.ifElseJumpStack.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside the if statement scope.\n";
-            return ReturnType::ERROR;
-        }
-        NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
-        BranchingStack.ifElseJumpStack.pop_back();
-        BranchingStack.ifElseJumpStack.push_back(NewEvent.Operations.size()-1);
-        if(BranchingStack.ifEndJumpStack.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside the if statement scope.\n";
-            return ReturnType::ERROR;
-        }
-        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
-    }
-    else if(words[0].value == "else"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        Scopes.pop_back();
-        Scopes.emplace_back(vector<VariableLocationStruct>());
-        if(BranchingStack.ifElseJumpStack.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside the if statement scope.\n";
-            return ReturnType::ERROR;
-        }
-        NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
-        BranchingStack.ifElseJumpStack.pop_back();
-        if(BranchingStack.usedElseStatements.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside the if statement scope.\n";
-            return ReturnType::ERROR;
-        }
-        BranchingStack.usedElseStatements.back() = 1;
-        if(BranchingStack.ifEndJumpStack.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside the if statement scope.\n";
-            return ReturnType::ERROR;
-        }
-        BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
-    }
-    else if(words[0].value == "end_if"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        Scopes.pop_back();
-        if(BranchingStack.ifEndJumpStack.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside the if statement scope.\n";
-            return ReturnType::ERROR;
-        }
-        if(BranchingStack.usedElseStatements.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside the if statement scope.\n";
-            return ReturnType::ERROR;
-        }
-        if(BranchingStack.usedElseStatements.back() == 0){
-            if(BranchingStack.ifElseJumpStack.size() == 0){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                    << words[0].value << "' outside the if statement scope.\n";
-                return ReturnType::ERROR;
-            }
-            NewEvent.Operations[BranchingStack.ifElseJumpStack.back()].specialValue = NewEvent.Operations.size()-1;
-            BranchingStack.ifElseJumpStack.pop_back();
-        }
-        BranchingStack.usedElseStatements.pop_back();
-        if(BranchingStack.ifEndJumpStack.size() > 0){
-            for(unsigned lineNumberIdx : BranchingStack.ifEndJumpStack.back()){
-                NewEvent.Operations[lineNumberIdx].jumpToLine = NewEvent.Operations.size()-1;
-            }
-            BranchingStack.ifEndJumpStack.back().clear();
-            BranchingStack.ifEndJumpStack.pop_back();
-        }
+    
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'i', "index", false, false, false
+    )){ return ReturnType::ERROR; }
 
-    }
-    else if(words[0].value == "while"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        Scopes.emplace_back(vector<VariableLocationStruct>());
-        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-            lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
-        )){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-            return ReturnType::ERROR;
-        }
-        BranchingStack.whileStartStack.push_back(NewEvent.Operations.size()-1);
-        BranchingStack.whileEndStack.push_back(vector<unsigned>());
-        BranchingStack.whileEndStack.back().push_back(NewEvent.Operations.size()-1);
-    }
-    else if(words[0].value == "end_while"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        Scopes.pop_back();
-        if(BranchingStack.whileStartStack.size() == 0 || BranchingStack.whileEndStack.size() == 0 || BranchingStack.whileEndStack.back().size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' before any loop.\n";
-            return ReturnType::ERROR;
-        }
-        NewEvent.Operations.back().jumpToLine = BranchingStack.whileStartStack.back();
-        BranchingStack.whileStartStack.pop_back();
-        for(unsigned & index : BranchingStack.whileEndStack.back()){
-            NewEvent.Operations[index].jumpToLine = NewEvent.Operations.size()-1;
-        }
-        BranchingStack.whileEndStack.back().clear();
-        BranchingStack.whileEndStack.pop_back();
-    }
-    else if(words[0].value == "continue"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(BranchingStack.whileStartStack.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside a loop.\n";
-            return ReturnType::ERROR;
-        }
-        NewEvent.Operations.back().jumpToLine = BranchingStack.whileStartStack.back();
-    }
-    else if(words[0].value == "break"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(BranchingStack.whileEndStack.size() == 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
-                << words[0].value << "' outside a loop.\n";
-            return ReturnType::ERROR;
-        }
-        BranchingStack.whileEndStack.back().push_back(NewEvent.Operations.size()-1);
-    }
-    else if(isStringInGroup(words[0].value, 10, "return", "reboot", "exit", "delete_this_event",
-        "reset_keyboard", "dump_context_stack", "dump_memory", "dump_local_memory", "restart_drag", "breakpoint"
+    cursor = 3;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
     )){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
+        if(error.empty())
+            return ReturnType::OK;
+        return ReturnType::ERROR;
     }
-    else if(isStringInGroup(words[0].value, 4, "first", "last", "all", "random")){
-        if(setupFirstLastAllRandomInstr(words, NewEvent,
-            Operation, lineNumber, scriptName, error, cursor,
-            allAvailableEventIDs, Scopes, topAddress
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseAddSubMulDivModPowRandAssert(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+    
+    if(words[0].instruction == add || words[0].instruction == assert){
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            1, 'a', "left", false, false, words[0].instruction == assert
+        )){ return ReturnType::ERROR; }
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'a', "right", false, false, words[0].instruction == assert
         )){ return ReturnType::ERROR; }
     }
-    else if(words[0].value == "index"){
-        if(setupIndexInstr(words, NewEvent, Operation, lineNumber,
-            scriptName, error, cursor, Scopes, topAddress
+    else{
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            1, 'n', "left", false, false, false
+        )){ return ReturnType::ERROR; }
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'n', "right", false, false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[0].value == "index_vec"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[1].type != 'c'){
+    cursor = 3;
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseLoad(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    string error = "";
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'a', "address", false, true, true
+    )){ return ReturnType::ERROR; }
+    
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseMove(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+    
+    if(Operation->addParameter(scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', "left", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(words[0].instruction == move || words[0].instruction == add_move){
+        if(Operation->addParameter(scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'a', "right", false, false, false
+        )){ return ReturnType::ERROR; }
+    }
+    else{
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'n', "right", false, false, false
+        )){ return ReturnType::ERROR; }
+    }
+
+    cursor = 3;
+    
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+    
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseFindById2(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+    
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', "source", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 's', "id", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 3;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty())
+            return ReturnType::OK;
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseSumIntersecDiffIn(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', "left", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'c', "right", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 3;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty())
+            return ReturnType::OK;
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseIncDecDelDemolishRbindType(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    string parameterName = "context";
+    if(words[0].instruction == demolish || words[0].instruction == rbind_i){
+        parameterName = "objects";
+    }
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', parameterName, false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 2;
+    
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty())
+            return ReturnType::OK;
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseNext(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'i', "number", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseAccess(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    string error = "";
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.size() > 0)
+            return ReturnType::ERROR;
+    }
+
+    if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
+        lineNumber, scriptName, false, Scopes, NewEvent.LocalVariables, topAddress, false
+    )){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseBoolIntDoubleStringAndTheirVectors(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    DataType newVariableType = value_inst;
+    
+    switch(Operation->instruction){
+        case bool_vec_i:
+        case int_vec_i:
+        case double_vec_i:
+        case string_vec_i:
+            newVariableType = value_vec;
+            break;
+        default:
+            break;
+    }
+
+    bool makeOutputGlobal = false;
+    string error = "";
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, newVariableType,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output, makeOutputGlobal, true
+    )){
+        if(error.size() > 0)
+            return ReturnType::ERROR;
+    }
+    
+    switch(Operation->instruction){
+        case bool_i:
+            if(Operation->addLiteralOrVectorOrVariableToParameters(
+                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+                cursor, 'b', "value", false, false, true
+            )){ return ReturnType::ERROR; }
+            break;
+        case bool_vec_i:
+            if(Operation->addLiteralOrVectorOrVariableToParameters(
+                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+                cursor, 'b', "values", false, false, false
+            )){ return ReturnType::ERROR; }
+            break;
+        case int_i:
+            if(Operation->addLiteralOrVectorOrVariableToParameters(
+                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+                cursor, 'i', "value", false, false, true
+            )){ return ReturnType::ERROR; }
+            break;
+        case int_vec_i:
+            if(Operation->addLiteralOrVectorOrVariableToParameters(
+                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+                cursor, 'i', "values", false, false, false
+            )){ return ReturnType::ERROR; }
+            break;
+        case double_i:
+            if(Operation->addLiteralOrVectorOrVariableToParameters(
+                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+                cursor, 'd', "value", false, false, true
+            )){ return ReturnType::ERROR; }
+            break;
+        case double_vec_i:
+            if(Operation->addLiteralOrVectorOrVariableToParameters(
+                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+                cursor, 'd', "values", false, false, false
+            )){ return ReturnType::ERROR; }
+            break;
+        case string_i:
+            if(Operation->addLiteralOrVectorOrVariableToParameters(
+                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+                cursor, 's', "value", false, false, true
+            )){ return ReturnType::ERROR; }
+            break;
+        case string_vec_i:
+            if(Operation->addLiteralOrVectorOrVariableToParameters(
+                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+                cursor, 's', "values", false, false, false
+            )){ return ReturnType::ERROR; }
+            break;
+        default:
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Literal type is required.\n";
+            return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseFindById(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    if(words[1].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+        return ReturnType::ERROR;
+    }
+
+    string error = "";
+    Operation->Location.source = strToSource(words[1].value, error);
+
+    if(error.size() > 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: " << error << "\n";
+        return ReturnType::ERROR;
+    }
+
+    cursor = 2;
+
+    if(words[1].value == "Cameras"){
+        if(words.size() < 4){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: The first two parameters are not of a context type.\n";
+                << ": \'find_by_id " << words[1].value << "\' requires at least 2 additional parameters.\n";
             return ReturnType::ERROR;
         }
 
-        if(words[1].value != ""){
-            Operation->Location.source = ValueSource::context;
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                1, 'c', "vector", false, false, false
-            )){ return ReturnType::ERROR; }
+        if(optional(words, cursor, Operation->Location.cameraID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
+        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+        )){
+            if(error.empty()){ return ReturnType::OK; }
+            return ReturnType::ERROR;
         }
-        else{
+    }
+    else if(words[1].value == "Layers"){
+        if(words.size() < 7){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": First parameter cannot be an empty context.\n";
+                << ": \'find_by_id " << words[1].value << "\' requires at least 5 additional parameters.\n";
             return ReturnType::ERROR;
         }
+
+        if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.objectID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.moduleType)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.moduleID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
+        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+        )){
+            if(error.empty()){ return ReturnType::OK; }
+            return ReturnType::ERROR;
+        }
+    }
+    else if(words[1].value == "context" || words[1].value == "c" || words[1].type == TokenType::empty_tk){
+        if(Operation->addVectorOrVariableToParameters(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            cursor, 'c', "scripts", false, false
+        )){ return ReturnType::ERROR; }
         
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'i', "index", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 3;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(isStringInGroup(words[0].value, 8, "+", "-", "*", "/", "%", "**", "random_int", "assert")){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[0].value == "+" || words[0].value == "assert"){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                1, 'a', "left", false, false, words[0].value == "assert"
-            )){ return ReturnType::ERROR; }
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'a', "right", false, false, words[0].value == "assert"
-            )){ return ReturnType::ERROR; }
-        }
-        else{
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                1, 'n', "left", false, false, false
-            )){ return ReturnType::ERROR; }
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'n', "right", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        cursor = 3;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "load"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'a', "address", false, true, true
-        )){ return ReturnType::ERROR; }
-    }
-    else if(isStringInGroup(words[0].value, 5, "=", "+=", "-=", "*=", "/=")){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', "left", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(words[0].value == "=" || words[0].value == "+="){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'a', "right", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else{
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'n', "right", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        cursor = 3;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "find_by_id_2"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', "source", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 's', "id", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 3;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(isStringInGroup(words[0].value, 4, "sum", "intersection", "difference", "in")){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', "left", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'c', "right", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 3;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "++" || words[0].value == "--" || words[0].value == "delete"
-        || words[0].value == "demolish" || words[0].value == "rbind" || words[0].value == "type"
-    ){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        string parameterName = "context";
-        if(words[0].value == "demolish" || words[0].value == "rbind"){
-            parameterName = "objects";
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', parameterName, false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 2;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "next"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'i', "number", false, false, false
-        )){ return ReturnType::ERROR; }
-    }
-    else if(words[0].value == "access"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.size() > 0){ return ReturnType::ERROR; }
-        }
-        if(!createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-            lineNumber, scriptName, false, Scopes, NewEvent.LocalVariables, topAddress, false
-        )){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
-            return ReturnType::ERROR;
-        }
-    }
-    else if(isStringInGroup(words[0].value, 8, "bool", "int", "double", "string", "bool_vec", "int_vec", "double_vec", "string_vec")){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        
-        DataType newVariableType = value_inst;
-        bool makeOutputGlobal = false;
-        switch(Operation->instruction){
-            case bool_vec_i:
-            case int_vec_i:
-            case double_vec_i:
-            case string_vec_i:
-                newVariableType = value_vec;
-                break;
-            default:
-                break;
-        }
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, newVariableType,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output, makeOutputGlobal, true
-        )){
-            if(error.size() > 0){ return ReturnType::ERROR; }
-        }
-        
-        switch(Operation->instruction){
-            case bool_i:
-                if(Operation->addLiteralOrVectorOrVariableToParameters(
-                    scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                    cursor, 'b', "value", false, false, true
-                )){ return ReturnType::ERROR; }
-                break;
-            case bool_vec_i:
-                if(Operation->addLiteralOrVectorOrVariableToParameters(
-                    scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                    cursor, 'b', "values", false, false, false
-                )){ return ReturnType::ERROR; }
-                break;
-            case int_i:
-                if(Operation->addLiteralOrVectorOrVariableToParameters(
-                    scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                    cursor, 'i', "value", false, false, true
-                )){ return ReturnType::ERROR; }
-                break;
-            case int_vec_i:
-                if(Operation->addLiteralOrVectorOrVariableToParameters(
-                    scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                    cursor, 'i', "values", false, false, false
-                )){ return ReturnType::ERROR; }
-                break;
-            case double_i:
-                if(Operation->addLiteralOrVectorOrVariableToParameters(
-                    scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                    cursor, 'd', "value", false, false, true
-                )){ return ReturnType::ERROR; }
-                break;
-            case double_vec_i:
-                if(Operation->addLiteralOrVectorOrVariableToParameters(
-                    scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                    cursor, 'd', "values", false, false, false
-                )){ return ReturnType::ERROR; }
-                break;
-            case string_i:
-                if(Operation->addLiteralOrVectorOrVariableToParameters(
-                    scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                    cursor, 's', "value", false, false, true
-                )){ return ReturnType::ERROR; }
-                break;
-            case string_vec_i:
-                if(Operation->addLiteralOrVectorOrVariableToParameters(
-                    scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                    cursor, 's', "values", false, false, false
-                )){ return ReturnType::ERROR; }
-                break;
-            default:
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Literal type is required.\n";
-                return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "find_by_id"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[1].type != 'c'){
+        if(words.size() < cursor + 5){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+                << ": \'find_by_id " << words[1].value << " [context_list]\' requires at least 5 additional parameters.\n";
             return ReturnType::ERROR;
         }
-        Operation->Location.source = strToSource(words[1].value, error);
-        if(error.size() > 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: " << error << "\n";
-            return ReturnType::ERROR;
-        }
-        cursor = 2;
-        if(words[1].value == "Cameras"){
-            if(words.size() < 4){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__
-                    << ": \'find_by_id " << words[1].value << "\' requires at least 2 additional parameters.\n";
-                return ReturnType::ERROR;
-            }
-            if(optional(words, cursor, Operation->Location.cameraID)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-                Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-            )){
-                if(error.empty()){ return ReturnType::OK; }
-                return ReturnType::ERROR;
-            }
-        }
-        else if(words[1].value == "Layers"){
-            if(words.size() < 7){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__
-                    << ": \'find_by_id " << words[1].value << "\' requires at least 5 additional parameters.\n";
-                return ReturnType::ERROR;
-            }
-            if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.objectID)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.moduleType)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.moduleID)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-                Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-            )){
-                if(error.empty()){ return ReturnType::OK; }
-                return ReturnType::ERROR;
-            }
-        }
-        else if(words[1].value == "context" || words[1].value == "c" || words[1].type == 'e'){
-            if(Operation->addVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'c', "scripts", false, false
-            )){ return ReturnType::ERROR; }
-            if(words.size() < cursor + 5){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__
-                    << ": \'find_by_id " << words[1].value << " [context_list]\' requires at least 5 additional parameters.\n";
-                return ReturnType::ERROR;
-            }
-            if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.objectID)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.moduleType)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.moduleID)){ return ReturnType::OK; }
-            if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
-            if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
-                Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-            )){
-                if(error.empty()){ return ReturnType::OK; }
-                return ReturnType::ERROR;
-            }
-        }
-    }
-    else if(words[0].value == "clone"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', "left", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'c', "right", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 'b', "changeOldID", false, false, false
-        )){ return ReturnType::ERROR; }
-    }
-    else if(words[0].value == "new"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[1].type != 'c'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
-            return ReturnType::ERROR;
-        }
-        Operation->Location.source = strToSource(words[1].value, error);
-        if(error.size() > 0){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: " << error << "\n";
-            return ReturnType::ERROR;
-        }
-        
-        //If the destination is provided as a variable, skip one parameter in the instruction.
-        if(words[2].type == 'c'){
-            Operation->addLiteralParameter(VariableModule::newString("variable"));
-        }
-        else{
-            Operation->addLiteralParameter(VariableModule::newString("location"));
-        }
-        
-        cursor = 2;
-        if(words[cursor].type == 'c'){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'c', "destination", false, false, false
-            )){ return ReturnType::ERROR; }
-            cursor++;
-        }
-        else{
-            if(Operation->Location.source == ValueSource::object){
-                if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
-            }
-            else if(Operation->Location.source != ValueSource::camera && Operation->Location.source != ValueSource::layer){
-                if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
-                if(optional(words, cursor, Operation->Location.objectID)){ return ReturnType::OK; }
-            }
-        }
-        
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 'i', "quantity", true, false, false
+
+        if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.objectID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.moduleType)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.moduleID)){ return ReturnType::OK; }
+        if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
+        if(optionalOutput(scriptName, lineNumber, error, words, cursor, any_dt,
+            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
         )){
             if(error.empty()){ return ReturnType::OK; }
             return ReturnType::ERROR;
         }
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseClone(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', "left", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'c', "right", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 'b', "changeOldID", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseNew(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    if(words[1].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+        return ReturnType::ERROR;
+    }
+
+    string error = "";
+    Operation->Location.source = strToSource(words[1].value, error);
+    
+    if(error.size() > 0){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: " << error << "\n";
+        return ReturnType::ERROR;
+    }
+    
+    //If the destination is provided as a variable, skip one parameter in the instruction.
+    if(words[2].type == TokenType::identifier_tk){
+        Operation->addLiteralParameter(VariableModule::newString("variable"));
+    }
+    else{
+        Operation->addLiteralParameter(VariableModule::newString("location"));
+    }
+    
+    cursor = 2;
+
+    if(words[cursor].type == TokenType::identifier_tk){
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            cursor, 'c', "destination", false, false, false
+        )){ return ReturnType::ERROR; }
         cursor++;
-        if(Operation->addLiteralOrVectorOrVariableToParameters(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 's', "new_ids", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
+    }
+    else{
+        if(Operation->Location.source == ValueSource::object){
+            if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
         }
-        DataType typeForNewEntity = sourceToEntityType(InstrDescription(), Operation->Location.source);
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, typeForNewEntity,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
+        else if(Operation->Location.source != ValueSource::camera && Operation->Location.source != ValueSource::layer){
+            if(optional(words, cursor, Operation->Location.layerID)){ return ReturnType::OK; }
+            if(optional(words, cursor, Operation->Location.objectID)){ return ReturnType::OK; }
         }
     }
-    else if(words[0].value == "bind"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
+    
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 'i', "quantity", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    cursor++;
+
+    if(Operation->addLiteralOrVectorOrVariableToParameters(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 's', "new_ids", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    DataType typeForNewEntity = sourceToEntityType(InstrDescription(), Operation->Location.source);
+    
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, typeForNewEntity,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+    
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseBind(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+    
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', "objects", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 2;
+    if(Operation->addVectorOrVariableToParameters(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 's', "scripts", false, false
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseBuild(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', "objects", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'b', "reset", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 'b', "do_not_preserve", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseLoadBuildInject(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    if(Operation->addVectorOrVariableToParameters(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 'c', "objects", false, false
+    )){ return ReturnType::ERROR; }
+
+    string parameterName = "paths";
+    if(words[0].instruction == inject_code){
+        parameterName = "code";
+    }
+    else if(words[0].instruction == inject_instr){
+        parameterName = "instructions";
+    }
+
+    if(Operation->addVectorOrVariableToParameters(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 's', parameterName, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 'b', "reset", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor + 1, 'b', "do_not_preserve", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseFunction(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', "objects", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    Operation->Location.attribute = strToAttribute(words[2].value);
+
+    cursor = 3;
+
+    while(words.size() > cursor){
         if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', "objects", false, false, false
+            cursor, 'a', "value", false, false, false
         )){ return ReturnType::ERROR; }
-        cursor = 2;
-        if(Operation->addVectorOrVariableToParameters(
+        cursor++;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseEnv(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    if(words[1].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+        return ReturnType::ERROR;
+    }
+
+    Operation->addLiteralParameter(VariableModule::newString(words[1].value));
+
+    string error = "";
+
+    if(words[1].value == "window_title"){
+        if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 's', "scripts", false, false
+            2, 's', "title", false, false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[0].value == "build"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
+    else if(words[1].value == "display_size"){
         if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', "objects", false, false, false
+            2, 'i', "width", false, false, false
         )){ return ReturnType::ERROR; }
         if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'b', "reset", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 'b', "do_not_preserve", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "load_build" || words[0].value == "build_subset"
-        || words[0].value == "inject_code" || words[0].value == "inject_instr"
-    ){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addVectorOrVariableToParameters(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 'c', "objects", false, false
-        )){ return ReturnType::ERROR; }
-        string parameterName = "paths";
-        if(words[0].value == "inject_code"){
-            parameterName = "code";
-        }
-        else if(words[0].value == "inject_instr"){
-            parameterName = "instructions";
-        }
-        if(Operation->addVectorOrVariableToParameters(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 's', parameterName, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 'b', "reset", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor + 1, 'b', "do_not_preserve", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "fun"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', "objects", false, false, false
-        )){ return ReturnType::ERROR; }
-        Operation->Location.attribute = strToAttribute(words[2].value);
-        cursor = 3;
-        while(words.size() > cursor){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'a', "value", false, false, false
-            )){ return ReturnType::ERROR; }
-            cursor++;
-        }
-    }
-    else if(words[0].value == "env"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[1].type != 'c'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
-            return ReturnType::ERROR;
-        }
-        Operation->addLiteralParameter(VariableModule::newString(words[1].value));
-        if(words[1].value == "window_title"){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 's', "title", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else if(words[1].value == "display_size"){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'i', "width", false, false, false
-            )){ return ReturnType::ERROR; }
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                3, 'i', "height", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else{
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'i', "value", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-    }
-    else if(words[0].value == "edit_proc"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[1].type != 'c'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
-            return ReturnType::ERROR;
-        }
-        for(cursor = 2; cursor < words.size(); cursor++){
-            if(words[cursor].type != 'c'){
-                continue;
-            }
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: Parameter " << cursor << " must be a literal.\n";
-            return ReturnType::ERROR;
-        }
-        Operation->addLiteralParameter(VariableModule::newString(words[1].value));
-        if(isStringInGroup(words[1].value, 2, "clear_layers", "clear_cameras")){
-            return ReturnType::OK;
-        }
-        
-        if(words[1].value == "id"){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 's', "new_id", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else if(words[1].value == "reservation_multiplier"){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'd', "multiplier", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else if(words[1].value == "window_pos" || words[1].value == "window_size" || words[1].value == "min_window_size"){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'i', "x", false, false, false
-            )){ return ReturnType::ERROR; }
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                3, 'i', "y", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else if(words[1].value == "window_tint"){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'd', "red", false, false, false
-            )){ return ReturnType::ERROR; }
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                3, 'd', "green", false, false, false
-            )){ return ReturnType::ERROR; }
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                4, 'd', "blue", false, false, false
-            )){ return ReturnType::ERROR; }
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                5, 'd', "alpha", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else{
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                2, 'i', "value", false, false, false
-            )){ return ReturnType::ERROR; }
-        }
-    }
-    else if(words[0].value == "load_bitmap"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "path", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 's', "name", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 'b', "light", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            4, 'b', "ignore_warnings", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "mkdir" || words[0].value == "rm" || words[0].value == "rmll"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "path", false, false, false
+            3, 'i', "height", false, false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[0].value == "mv"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
+    else{
         if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "path", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 's', "new_path", false, false, false
+            2, 'i', "value", false, false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[0].value == "print_v" || words[0].value == "print_d" || words[0].value == "print"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[0].value == "print_v"){ //output
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseEditProc(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    if(words[1].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+        return ReturnType::ERROR;
+    }
+
+    for(cursor = 2; cursor < words.size(); cursor++){
+        if(words[cursor].type != TokenType::identifier_tk){
+            continue;
+        }
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: Parameter " << cursor << " must be a literal.\n";
+        return ReturnType::ERROR;
+    }
+
+    Operation->addLiteralParameter(VariableModule::newString(words[1].value));
+
+    if(isStringInGroup(words[1].value, 2, "clear_layers", "clear_cameras")){
+        return ReturnType::OK;
+    }
+
+    string error = "";
+    
+    if(words[1].value == "id"){
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 's', "new_id", false, false, false
+        )){ return ReturnType::ERROR; }
+    }
+    else if(words[1].value == "reservation_multiplier"){
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'd', "multiplier", false, false, false
+        )){ return ReturnType::ERROR; }
+    }
+    else if(words[1].value == "window_pos" || words[1].value == "window_size" || words[1].value == "min_window_size"){
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'i', "x", false, false, false
+        )){ return ReturnType::ERROR; }
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            3, 'i', "y", false, false, false
+        )){ return ReturnType::ERROR; }
+    }
+    else if(words[1].value == "window_tint"){
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'd', "red", false, false, false
+        )){ return ReturnType::ERROR; }
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            3, 'd', "green", false, false, false
+        )){ return ReturnType::ERROR; }
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            4, 'd', "blue", false, false, false
+        )){ return ReturnType::ERROR; }
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            5, 'd', "alpha", false, false, false
+        )){ return ReturnType::ERROR; }
+    }
+    else{
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            2, 'i', "value", false, false, false
+        )){ return ReturnType::ERROR; }
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseLoadBitmap(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "path", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 's', "name", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 'b', "light", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        4, 'b', "ignore_warnings", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseMkdirRmRmll(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR; 
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "path", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseMv(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "path", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 's', "new_path", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parsePrint(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    switch(words[0].instruction){
+        case print_v_i:
             if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
                 Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
             )){
@@ -2652,410 +2988,856 @@ ReturnType AncestorObject::translateTokensIntoEngineInstruction(
                 2, 's', "delimeter", false, false, false
             )){ return ReturnType::ERROR; }
             cursor = 3;
-        }
-        else if(words[0].value == "print_d"){ //delimeter
+            break;
+        case print_d_i:
             if(Operation->addParameter(
                 scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
                 1, 's', "delimeter", false, false, false
             )){ return ReturnType::ERROR; }
             cursor = 2;
-        }
-        else{
+            break;
+        default:
             Operation->addEmptyParameter();
-        }
-        while(cursor < words.size()){
-            if(Operation->addParameter(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'a', "value", false, false, false
-            )){ return ReturnType::ERROR; }
-            cursor++;
-        }
+            break;
     }
-    else if(words[0].value == "load_text"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "path", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 2;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "save_text"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "path", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 's', "text", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 's', "delimeter", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "ls"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "path", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        cursor = 2;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 'b', "recursive", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            4, 'i', "max_depth", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "lse"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[1].type != 'c'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
-            return ReturnType::ERROR;
-        }
-        Operation->addLiteralParameter(VariableModule::newString(words[1].value));
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'b', "detail", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "new_proc"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "name", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 's', "layer", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 's', "object", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            4, 's', "script", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "var"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, variable_mod,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output, true
-        )){
-            if(error.size() > 0){ return ReturnType::ERROR; }
-        }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'a', "value", false, false, false
-        )){ return ReturnType::ERROR; }
-    }
-    else if(words[0].value == "vec"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(words[1].type != 'c'){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
-            return ReturnType::ERROR;
-        }
-        Operation->addLiteralParameter(VariableModule::newString(words[1].value));
-        cursor = 2;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, vector_mod,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output, true
-        )){
-            if(error.size() > 0){ return ReturnType::ERROR; }
-        }
-        if(words.size() < 4){
-            return ReturnType::OK;
-        }
-        if(words[1].value == "bool"){
-            if(Operation->addVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'b', "scripts", false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else if(words[1].value == "int"){
-            if(Operation->addVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'i', "scripts", false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else if(words[1].value == "double"){
-            if(Operation->addVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'd', "scripts", false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else if(words[1].value == "string"){
-            if(Operation->addVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 's', "scripts", false, false
-            )){ return ReturnType::ERROR; }
-        }
-        else{
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": In the instruction '" << words[0].value
-                << "': The type \'" << words[1].value << "\' does not exist.\n";
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "tokenize"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "delimeter", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 's', "text", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 3;
-        if(Operation->addVectorOrVariableToParameters(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 'c', "outputs", false, true
-        )){ return ReturnType::ERROR; }
-    }
-    else if(words[0].value == "tree" || words[0].value == "pwd" || words[0].value == "console_input"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "len"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "text", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 2;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "size"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'c', "text", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 2;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "substr"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "text", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'i', "begin", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 'i', "length", false, false, false
-        )){ return ReturnType::ERROR; }
 
-        cursor = 4;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
+    while(cursor < words.size()){
+        if(Operation->addParameter(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            cursor, 'a', "value", false, false, false
+        )){ return ReturnType::ERROR; }
+        cursor++;
     }
-    else if(words[0].value == "load_font"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "path", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'i', "size", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 's', "name", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            4, 'b', "ignore_warnings", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseLoadText(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "path", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 2;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
     }
-    else if(words[0].value == "cd"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "path", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseSaveText(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "path", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 's', "text", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 's', "delimeter", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
     }
-    else if(words[0].value == "similar"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "pattern", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 2;
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseLs(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "path", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    cursor = 2;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 'b', "recursive", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        4, 'i', "max_depth", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseLse(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    if(words[1].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+        return ReturnType::ERROR;
+    }
+
+    Operation->addLiteralParameter(VariableModule::newString(words[1].value));
+
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'b', "detail", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseNewProc(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "name", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 's', "layer", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 's', "object", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        4, 's', "script", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseVar(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, variable_mod,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output, true
+    )){
+        if(error.size() > 0){ return ReturnType::ERROR; }
+    }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'a', "value", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseVec(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    if(words[1].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+        return ReturnType::ERROR;
+    }
+
+    Operation->addLiteralParameter(VariableModule::newString(words[1].value));
+
+    cursor = 2;
+    string error = "";
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, vector_mod,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output, true
+    )){
+        if(error.size() > 0){ return ReturnType::ERROR; }
+    }
+
+    if(words.size() < 4){
+        return ReturnType::OK;
+    }
+
+    if(words[1].value == "bool"){
         if(Operation->addVectorOrVariableToParameters(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 's', "vector", false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            cursor, 'b', "longest_common_part", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-        cursor++;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "count"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "pattern", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 's', "text", false, false, false
-        )){ return ReturnType::ERROR; }
-        cursor = 3;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "create_display"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 5, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'i', "display_width", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'i', "display_height", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            3, 'i', "backbuffer_width", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            4, 'i', "backbuffer_height", false, false, false
-        )){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            5, 'b', "auto_scale_backbuffer", true, false, false
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
-    }
-    else if(words[0].value == "start_timer"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
-            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "name", false, false, false
+            cursor, 'b', "scripts", false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[0].value == "stop_timer"){
-        if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        if(Operation->addParameter(
+    else if(words[1].value == "int"){
+        if(Operation->addVectorOrVariableToParameters(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 's', "name", false, false, false
+            cursor, 'i', "scripts", false, false
         )){ return ReturnType::ERROR; }
-        cursor = 2;
-        if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
-            Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
-        )){
-            if(error.empty()){ return ReturnType::OK; }
-            return ReturnType::ERROR;
-        }
     }
-    else if(isStringAnInstanceDeclaration(words[0].value)){
-        if(!prepareNewVariableDeclaration(words, 2, lineNumber, scriptName)){ return ReturnType::ERROR; }
-        auto[localAddress, result] = getLocalAddress(
-            words[1].value, strToDataType(words[0].value), Scopes, NewEvent.LocalVariables,
-            topAddress, true, false, false, true
-        );
-        if(result != ReturnType::OK){
+    else if(words[1].value == "double"){
+        if(Operation->addVectorOrVariableToParameters(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            cursor, 'd', "scripts", false, false
+        )){ return ReturnType::ERROR; }
+    }
+    else if(words[1].value == "string"){
+        if(Operation->addVectorOrVariableToParameters(
+            scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+            cursor, 's', "scripts", false, false
+        )){ return ReturnType::ERROR; }
+    }
+    else{
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": In the instruction '" << words[0].value
+            << "': The type \'" << words[1].value << "\' does not exist.\n";
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseTokenize(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "delimeter", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 's', "text", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 3;
+
+    if(Operation->addVectorOrVariableToParameters(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 'c', "outputs", false, true
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseTreePwdConsoleInput(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseLen(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "text", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 2;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseSize(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'c', "text", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 2;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseSubstr(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "text", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'i', "begin", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 'i', "length", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 4;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseLoadFont(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "path", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'i', "size", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 's', "name", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        4, 'b', "ignore_warnings", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseCd(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "path", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseSimilar(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "pattern", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 2;
+
+    if(Operation->addVectorOrVariableToParameters(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 's', "vector", false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        cursor, 'b', "longest_common_part", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    cursor++;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseCount(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "pattern", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 's', "text", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 3;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseCreateDisplay(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 5, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'i', "display_width", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'i', "display_height", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        3, 'i', "backbuffer_width", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        4, 'i', "backbuffer_height", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        5, 'b', "auto_scale_backbuffer", true, false, false
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseStartTimer(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+        
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "name", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseStopTimer(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    string error = "";
+
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 's', "name", false, false, false
+    )){ return ReturnType::ERROR; }
+
+    cursor = 2;
+
+    if(optionalOutput(scriptName, lineNumber, error, words, cursor, value_inst,
+        Scopes, NewEvent.LocalVariables, topAddress, Operation->Output
+    )){
+        if(error.empty()){ return ReturnType::OK; }
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseVarDefinition(){
+    if(!prepareNewVariableDeclaration(words, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    auto[localAddress, result] = getLocalAddress(
+        words[1].value, instrToDataType(words[0].instruction), Scopes, NewEvent.LocalVariables,
+        topAddress, true, false, false, true
+    );
+
+    if(result != ReturnType::OK){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable declaration failed.\n";
+        return ReturnType::ERROR;
+    }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseRun(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
+        return ReturnType::ERROR;
+        
+    if(words[1].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+        return ReturnType::ERROR;
+    }
+
+    Operation->specialValue = NewEvent.Children.size();
+
+    NewEvent.Children.emplace_back(ChildStruct(words[1].value, vector<PassingVariableInfo>(), 0, scriptName, lineNumber));
+
+    cursor = 2;
+
+    if(NewEvent.getPassingVariables(NewEvent.Children.back().Arguments,
+        words, cursor, lineNumber, scriptName, Scopes, topAddress
+    )){ return ReturnType::ERROR; }
+
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseAutoRun(){
+    if(words.size() >= 3 && words[1].type == TokenType::start_expr_tk && words.back().type == TokenType::end_expr_tk){
+        const vector<WordStruct> runToken = {WordStruct(TokenType::keyword_tk, "run", false)};
+        if(!prepareNewInstruction(runToken, NewEvent, Operation, 1, lineNumber, scriptName))
+            return ReturnType::ERROR;
+        
+        if(words[0].type != TokenType::identifier_tk){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable declaration failed.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": In the 'auto_run' instruction: The first parameter is not a context.\n";
             return ReturnType::ERROR;
         }
+        Operation->specialValue = NewEvent.Children.size();
+        NewEvent.Children.emplace_back(ChildStruct(words[0].value, vector<PassingVariableInfo>(), 0, scriptName, lineNumber));
+        cursor = 1;
+
+        if(NewEvent.getPassingVariables(NewEvent.Children.back().Arguments,
+            words, cursor, lineNumber, scriptName, Scopes, topAddress
+        )){ return ReturnType::ERROR; }
     }
     else{
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' does not exist.\n";
     }
     return ReturnType::OK;
+}
+
+ReturnType AncestorObject::parseEngineInstruction(const vector<WordStruct> & words, const string & scriptName,
+    const unsigned & lineNumber, ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint,
+    EventModule & NewEvent, vector<string> & allAvailableEventIDs, BranchingStackStruct & BranchingStack
+){
+    /*unsigned cursor = 1;
+    string error;
+    OperationClass * Operation = nullptr;
+    const vector<WordStruct> runToken = {WordStruct(TokenType::keyword_tk, "run", false)};*/
+
+    switch(words[0].instruction){
+        case EngineInstr::import:
+        case EngineInstr::start:
+        case EngineInstr::override:
+            break;
+        default:
+            if(Scopes.size() < 2){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ":\n"
+                    << NEW_LINE_PADDING << "Instruction \'" << words[0].value << "\' cannot be used outside of an event scope.\n";
+                return ReturnType::ERROR;
+            }
+            break;
+    }
+
+    InstrParser instrParser(words, scriptName, lineNumber, NewEvent, Scopes, topAddress);
+
+    switch(words[0].instruction){
+        case import:
+            return ReturnType::OK;
+        case compiler_breakpoint:
+            return instrParser.parseCompilerBreakpoint(triggerBreakpoint);
+        case start:
+        case override:
+            return instrParser.parseStartAndOverride(allAvailableEventIDs, layerID, ID, EventContainer, eventContainerIDs);
+        case end_i:
+            return instrParser.parseEnd(EventContainer);
+        case triggers:
+            return instrParser.parseTriggers();
+        case if_i:
+            return instrParser.parseIf(BranchingStack);
+        case else_if:
+            return instrParser.parseElseIf(BranchingStack);
+        case else_i:
+            return instrParser.parseElse(BranchingStack);
+        case end_if:
+            return instrParser.parseEndIf(BranchingStack);
+        case while_i:
+            return instrParser.parseWhile(BranchingStack);
+        case end_while:
+            return instrParser.parseEndWhile(BranchingStack);
+        case continue_i:
+            return instrParser.parseContinue(BranchingStack);
+        case break_i:
+            return instrParser.parseBreak(BranchingStack);
+        case return_i:
+        case reboot:
+        case exit_i:
+        case delete_this_event:
+        case reset_keyboard:
+        case dump_context_stack:
+        case dump_memory:
+        case dump_local_memory:
+        case restart_drag:
+        case breakpoint:
+            return instrParser.parseEmpty();
+        case first:
+        case last:
+        case all:
+        case random_i:
+            return instrParser.parseFirstLastAllRandom(allAvailableEventIDs);
+        case index_i:
+            return instrParser.parseIndex();
+        case index_vec:
+            return instrParser.parseIndexVec();
+        case add:
+        case sub:
+        case mul:
+        case div_i:
+        case mod:
+        case pow_i:
+        case rand_int:
+        case assert:
+            return instrParser.parseAddSubMulDivModPowRandAssert();
+        case load_i:
+            return instrParser.parseLoad();
+        case move:
+        case add_move:
+        case sub_move:
+        case mul_move:
+        case div_move:
+            return instrParser.parseMove();
+        case find_by_id_2:
+            return instrParser.parseFindById2();
+        case sum:
+        case intersection:
+        case diff:
+        case in:
+            return instrParser.parseSumIntersecDiffIn();
+        case inc:
+        case dec:
+        case del:
+        case demolish:
+        case rbind_i:
+        case type:
+            return instrParser.parseIncDecDelDemolishRbindType();
+        case next:
+            return instrParser.parseNext();
+        case access_i:
+            return instrParser.parseAccess();
+        case bool_i:
+        case int_i:
+        case double_i:
+        case string_i:
+        case bool_vec_i:
+        case int_vec_i:
+        case double_vec_i:
+        case string_vec_i:
+            return instrParser.parseBoolIntDoubleStringAndTheirVectors();
+        case find_by_id:
+            return instrParser.parseFindById();
+        case clone_i:
+            return instrParser.parseClone();
+        case new_i:
+            return instrParser.parseNew();
+        case bind_i:
+            return instrParser.parseBind();
+        case build:
+            return instrParser.parseBuild();
+        case load_build:
+        case build_subset:
+        case inject_code:
+        case inject_instr:
+            return instrParser.parseLoadBuildInject();
+        case fun:
+            return instrParser.parseFunction();
+        case env:
+            return instrParser.parseEnv();
+        case edit_proc:
+            return instrParser.parseEditProc();
+        case load_bitmap:
+            return instrParser.parseLoadBitmap();
+        case mkdir_i:
+        case rm:
+        case rmll:
+            return instrParser.parseMkdirRmRmll();
+        case mv_i:
+            return instrParser.parseMv();
+        case print_v_i:
+        case print_d_i:
+        case print_i:
+            return instrParser.parsePrint();
+        case load_text:
+            return instrParser.parseLoadText();
+        case save_text:
+            return instrParser.parseSaveText();
+        case ls:
+            return instrParser.parseLs();
+        case lse:
+            return instrParser.parseLse();
+        case new_proc:
+            return instrParser.parseNewProc();
+        case var:
+            return instrParser.parseVar();
+        case vec:
+            return instrParser.parseVec();
+        case tokenize:
+            return instrParser.parseTokenize();
+        case tree:
+        case pwd:
+        case console_input:
+            return instrParser.parseTreePwdConsoleInput();
+        case len:
+            return instrParser.parseLen();
+        case size_i:
+            return instrParser.parseSize();
+        case substr:
+            return instrParser.parseSubstr();
+        case load_font:
+            return instrParser.parseLoadFont();
+        case cd:
+            return instrParser.parseCd();
+        case similar:
+            return instrParser.parseSimilar();
+        case count:
+            return instrParser.parseCount();
+        case create_display:
+            return instrParser.parseCreateDisplay();
+        case start_timer:
+            return instrParser.parseStartTimer();
+        case stop_timer:
+            return instrParser.parseStopTimer();
+        case Val:
+        case ValVec:
+        case Pointer:
+        case PointerVec:
+        case Camera:
+        case CameraVec:
+        case Layer:
+        case LayerVec:
+        case Object:
+        case ObjectVec:
+        case Var:
+        case VarVec:
+        case Vec:
+        case VecVec:
+        case Text:
+        case TextVec:
+        case EditText:
+        case EditTextVec:
+        case SText:
+        case STextVec:
+        case SEditText:
+        case SEditTextVec:
+        case Image:
+        case ImageVec:
+        case Movement:
+        case MovementVec:
+        case Collision:
+        case CollisionVec:
+        case Particles:
+        case Event:
+        case EventVec:
+        case Scrollbar:
+        case ScrollbarVec:
+        case Primitive:
+        case PrimitiveVec:
+        case any:
+            return instrParser.parseVarDefinition();
+        case run:
+            return instrParser.parseRun();
+        default:
+            return instrParser.parseAutoRun();
+    }
 }
 ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & scriptName,
     vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
@@ -3096,7 +3878,7 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
 
     vector <string> allAvailableEventIDs;
 
-    vector<vector<VariableLocationStruct>> Scopes;
+    ScopeType Scopes;
     Scopes.push_back(GlobalScope);
 
     BranchingStackStruct BranchingStack;
@@ -3116,7 +3898,7 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
             triggerBreakpoint = false;
         }
         
-        ReturnType result = translateTokensIntoEngineInstruction(
+        ReturnType result = parseEngineInstruction(
             words, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
             NewEvent, allAvailableEventIDs, BranchingStack
         );
@@ -3126,6 +3908,7 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
             return ReturnType::ERROR;
         }
     }
+    
     if(words.size() > 0){
         if(words[0].value != "end"){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"

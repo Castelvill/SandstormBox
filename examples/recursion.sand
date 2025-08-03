@@ -10,6 +10,6 @@ end
 start main()
     triggers on_init
     int n 5
-    run printNumbers(n)
+    printNumbers(n)
     exit
 end

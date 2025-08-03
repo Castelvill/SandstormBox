@@ -1,8 +1,11 @@
 #include "primaryModule.h"
 
-EngineInstr strToInstr(const string & instruction){
+EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "start"){
         return EngineInstr::start;
+    }
+    if(instruction == "override"){
+        return EngineInstr::override;
     }
     if(instruction == "end"){
         return EngineInstr::end_i;
@@ -263,13 +266,13 @@ EngineInstr strToInstr(const string & instruction){
         return EngineInstr::mv_i;
     }
     if(instruction == "print_v"){
-        return EngineInstr::print_v;
+        return EngineInstr::print_v_i;
     }
     if(instruction == "print_d"){
-        return EngineInstr::print_d;
+        return EngineInstr::print_d_i;
     }
     if(instruction == "print"){
-        return EngineInstr::print;
+        return EngineInstr::print_i;
     }
     if(instruction == "load_text"){
         return EngineInstr::load_text;
@@ -302,7 +305,7 @@ EngineInstr strToInstr(const string & instruction){
         return EngineInstr::len;
     }
     if(instruction == "size"){
-        return EngineInstr::size;
+        return EngineInstr::size_i;
     }
     if(instruction == "substr"){
         return EngineInstr::substr;
@@ -337,6 +340,9 @@ EngineInstr strToInstr(const string & instruction){
     if(instruction == "stop_timer"){
         return EngineInstr::stop_timer;
     }
+    if(instruction == "compiler_breakpoint"){
+        return EngineInstr::breakpoint;
+    }
     if(instruction == "breakpoint"){
         return EngineInstr::breakpoint;
     }
@@ -349,7 +355,118 @@ EngineInstr strToInstr(const string & instruction){
     if(instruction == "load"){
         return EngineInstr::load_i;
     }
-    cerr << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
+    if(instruction == "import"){
+        return EngineInstr::import;
+    }
+    if(instruction == "Val"){
+        return EngineInstr::Val;
+    }
+    if(instruction == "ValVec"){
+        return EngineInstr::ValVec;
+    }
+    if(instruction == "Pointer"){
+        return EngineInstr::Pointer;
+    }
+    if(instruction == "PointerVec"){
+        return EngineInstr::PointerVec;
+    }
+    if(instruction == "Camera"){
+        return EngineInstr::Camera;
+    }
+    if(instruction == "CameraVec"){
+        return EngineInstr::CameraVec;
+    }
+    if(instruction == "Layer"){
+        return EngineInstr::Layer;
+    }
+    if(instruction == "LayerVec"){
+        return EngineInstr::LayerVec;
+    }
+    if(instruction == "Object"){
+        return EngineInstr::Object;
+    }
+    if(instruction == "ObjectVec"){
+        return EngineInstr::ObjectVec;
+    }
+    if(instruction == "Var"){
+        return EngineInstr::Var;
+    }
+    if(instruction == "VarVec"){
+        return EngineInstr::VarVec;
+    }
+    if(instruction == "Vec"){
+        return EngineInstr::Vec;
+    }
+    if(instruction == "VecVec"){
+        return EngineInstr::VecVec;
+    }
+    if(instruction == "Text"){
+        return EngineInstr::Text;
+    }
+    if(instruction == "TextVec"){
+        return EngineInstr::TextVec;
+    }
+    if(instruction == "EditText"){
+        return EngineInstr::EditText;
+    }
+    if(instruction == "EditTextVec"){
+        return EngineInstr::EditTextVec;
+    }
+    if(instruction == "SText"){
+        return EngineInstr::SText;
+    }
+    if(instruction == "STextVec"){
+        return EngineInstr::STextVec;
+    }
+    if(instruction == "SEditText"){
+        return EngineInstr::SEditText;
+    }
+    if(instruction == "SEditTextVec"){
+        return EngineInstr::SEditTextVec;
+    }
+    if(instruction == "Image"){
+        return EngineInstr::Image;
+    }
+    if(instruction == "ImageVec"){
+        return EngineInstr::ImageVec;
+    }
+    if(instruction == "Movement"){
+        return EngineInstr::Movement;
+    }
+    if(instruction == "MovementVec"){
+        return EngineInstr::MovementVec;
+    }
+    if(instruction == "Collision"){
+        return EngineInstr::Collision;
+    }
+    if(instruction == "CollisionVec"){
+        return EngineInstr::CollisionVec;
+    }
+    if(instruction == "Particles"){
+        return EngineInstr::Particles;
+    }
+    if(instruction == "Event"){
+        return EngineInstr::Event;
+    }
+    if(instruction == "EventVec"){
+        return EngineInstr::EventVec;
+    }
+    if(instruction == "Scrollbar"){
+        return EngineInstr::Scrollbar;
+    }
+    if(instruction == "ScrollbarVec"){
+        return EngineInstr::ScrollbarVec;
+    }
+    if(instruction == "Primitive"){
+        return EngineInstr::Primitive;
+    }
+    if(instruction == "PrimitiveVec"){
+        return EngineInstr::PrimitiveVec;
+    }
+    if(instruction == "any"){
+        return EngineInstr::any;
+    }
+    printError && cerr << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return EngineInstr::null;
 }
 string instrToStr(const EngineInstr & instruction){
@@ -358,6 +475,8 @@ string instrToStr(const EngineInstr & instruction){
             return "null";
         case start:
             return "start";
+        case override:
+            return "override";
         case end_i:
             return "end";
         case triggers:
@@ -530,11 +649,11 @@ string instrToStr(const EngineInstr & instruction){
             return "rmll";
         case mv_i:
             return "mv";
-        case print_v:
+        case print_v_i:
             return "print_v";
-        case print_d:
+        case print_d_i:
             return "print_d";
-        case print:
+        case print_i:
             return "print";
         case load_text:
             return "load_text";
@@ -556,7 +675,7 @@ string instrToStr(const EngineInstr & instruction){
             return "tree";
         case len:
             return "len";
-        case size:
+        case size_i:
             return "size";
         case substr:
             return "substr";
@@ -580,6 +699,8 @@ string instrToStr(const EngineInstr & instruction){
             return "start_timer";
         case stop_timer:
             return "stop_timer";
+        case compiler_breakpoint:
+            return "compiler_breakpoint";
         case breakpoint:
             return "breakpoint";
         case assert:
@@ -588,9 +709,84 @@ string instrToStr(const EngineInstr & instruction){
             return "type";
         case load_i:
             return "load";
+        case import:
+            return "import";
+        case Val:
+            return "Val";
+        case ValVec:
+            return "ValVec";
+        case Pointer:
+            return "Pointer";
+        case PointerVec:
+            return "PointerVec";
+        case Camera:
+            return "Camera";
+        case CameraVec:
+            return "CameraVec";
+        case Layer:
+            return "Layer";
+        case LayerVec:
+            return "LayerVec";
+        case Object:
+            return "Object";
+        case ObjectVec:
+            return "ObjectVec";
+        case Var:
+            return "Var";
+        case VarVec:
+            return "VarVec";
+        case Vec:
+            return "Vec";
+        case VecVec:
+            return "VecVec";
+        case Text:
+            return "Text";
+        case TextVec:
+            return "TextVec";
+        case EditText:
+            return "EditText";
+        case EditTextVec:
+            return "EditTextVec";
+        case SText:
+            return "SText";
+        case STextVec:
+            return "STextVec";
+        case SEditText:
+            return "SEditText";
+        case SEditTextVec:
+            return "SEditTextVec";
+        case Image:
+            return "Image";
+        case ImageVec:
+            return "ImageVec";
+        case Movement:
+            return "Movement";
+        case MovementVec:
+            return "MovementVec";
+        case Collision:
+            return "Collision";
+        case CollisionVec:
+            return "CollisionVec";
+        case Particles:
+            return "Particles";
+        case Event:
+            return "Event";
+        case EventVec:
+            return "EventVec";
+        case Scrollbar:
+            return "Scrollbar";
+        case ScrollbarVec:
+            return "ScrollbarVec";
+        case Primitive:
+            return "Primitive";
+        case PrimitiveVec:
+            return "PrimitiveVec";
+        case any:
+            return "any";
+        default:
+            cerr << "Error: In " << __FUNCTION__ << ": EngineInstr with code: '" << instruction << "' is undefined.\n"; 
+        return "undefined";
     }
-    cerr << "Error: In " << __FUNCTION__ << ": EngineInstr with code: '" << instruction << "' is undefined.\n"; 
-    return "undefined";
 }
 string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType){
     if(Description.scriptName == ""){

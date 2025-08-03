@@ -11,70 +11,70 @@ start testRunnerEvent()
     print "============================================\n"
     
     string path "assert"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "access"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "if_statements"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "reassign"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "scopes"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "passing_references"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "passing_values"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "variables"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "while_loop"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "display"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "override"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "global"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "recursion"
-    run scheduleTest(path)
+    scheduleTest(path)
     
     = path "declaration"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "tokenize"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "recompilation_test/test"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "member_variables"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "delete_variables"
-    run scheduleTest(path)
+    scheduleTest(path)
     
     = path "delete_vectors"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "persistent_module_pointers"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "clone_object_test/test"
-    run scheduleTest(path)
+    scheduleTest(path)
 
     = path "clone_layer_test/test"
-    run scheduleTest(path)
+    scheduleTest(path)
 end
 
 start scheduleTest(string & path)

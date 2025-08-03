@@ -12971,9 +12971,9 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
             case mv_i:
                 renameFileOrDirectory(Operation, ObjectMemory);
                 break;
-            case print_v:
-            case print_d:
-            case print:
+            case print_v_i:
+            case print_d_i:
+            case print_i:
                 executePrint(Operation, ObjectMemory);
                 break;
             case load_text:
@@ -13007,7 +13007,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
             case len:
                 getStringSizeFromContext(Operation, ObjectMemory);
                 break;
-            case size:
+            case size_i:
                 getSizeOfContext(Operation, ObjectMemory);
                 break;
             case substr:
