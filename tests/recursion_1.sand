@@ -1,0 +1,26 @@
+import "tests/test_template.sand"
+
+start main()
+    triggers on_init
+    startTest()
+
+    int result 0
+    int start 1
+    int n 5
+    doubleNumber(result, start, n)
+    //print result "\n"
+    assert result 32
+    
+    endTest()
+end
+
+start doubleNumber(int & result, int start, int n)
+    if(n 0 <=)
+        = result start
+        return
+    end_if
+    -- n
+    *= start 2
+    doubleNumber(result, start, n)
+    return
+end

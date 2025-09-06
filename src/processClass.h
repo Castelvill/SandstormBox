@@ -2,7 +2,6 @@
 #define PROCESSCLASS_H_INCLUDED
 
 #include "engineClass.h"
-#include <unordered_map>
 #include <chrono>
 
 enum CameraMoveType: unsigned char{NONE, CAMERA_FULL, CAMERA_N, CAMERA_NE, CAMERA_E, CAMERA_SE, CAMERA_S, CAMERA_SW, CAMERA_W, CAMERA_NW};

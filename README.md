@@ -1,15 +1,15 @@
 # SandstormBox
 Graphical Engine / 2D Game Engine written in c++ and Allegro5 graphical library.
 
-It's my hobby project and will not be "production ready" any time soon.
+It's my hobby project and will not be "production ready" any time soon. And if it ever gets finished its use will be purely recreational - I hope.
 
 SandstormBox engine uses Sand - it's my custom scripting language closely integrated into the engine. You can find all implemented instructions in the /docs/instructions.md file. To learn more about Sand read the /docs/language.md file (it's probably outdated tho). All programs and utilities that work inside the engine are written in the Sand language.
 
 ## Implemented functionality
 
-Below are the most important working parts of the engine: 
-- JIT Compilation - engine can compile and run scripts during the runtime. By default engine grabs initial scripts from the config file, but you can also pass your scripts as the command line arguments. 
-- Terminal - you can use commands like "ls" (list files in the directory), "edit" (text editor), "sand" (compile & run Sand scripts) or "cat" (output file contents to the terminal).
+Below are the most important implemented parts of the engine: 
+- Script-to-Event Execution Pipeline - engine can compile and run scripts during the runtime. By default engine grabs initial scripts from the config file, but you can also pass your scripts as the command line arguments. 
+- Terminal - you can use commands like "ls" (list files in the directory), "edit" (simple text editor), "sand" (compile & run Sand scripts) or "cat" (output file contents to the terminal).
 - Text editor - it's built into the terminal and can be opened with "edit" command. With this editor you can edit any text files and save them. You can also select multiple letters, words and lines in the text with the keyboard or mouse. Text inside the editor is wrapped automatically - all text fields have this feature implemented.
 - Mover - program that lets you move around all objects inside the chosen layer. 
 - Scrollbars - you can scroll horizontally and vertically through the layer by using mouse - both with the mouse wheel and by dragging the scrollbar.
@@ -38,21 +38,21 @@ Text editor:
 
 ## Scripts
 
-Currently, if you compile and run SandstormBox without any scripts as an input, engine will only output source code for a hello world program. You can test the engine by passing to it any Sand script from "examples" and "scripts" directories. To use my terminal run:
+Currently, if you compile and run SandstormBox without any scripts as an input, engine will only output source code for a hello world program. You can test the engine by passing to it any Sand script from "examples" and "scripts" directories. For example, to use my terminal run:
 
     ./SandstormBox scripts/terminal/init.sand
 
 ## Tests
 
-After compiling SandstormBox make will automatically run tests written in Sand. You can also run them manually by using "make test" or by passing any test script from the "scripts" directory.
+After compiling SandstormBox Make will automatically run tests written in Sand. You can also run them manually by using "make test" or by passing any test script from the "scripts" directory to the engine.
 
 ## Command line arguments
 
     -i, --interpreter
-        Start the interpreter.
+        Start a very simple interpreter.
 
     -c, --ignore-config
-        Ignore .config file. By default engine will always search for .config file on startup and if it exists engine will execute its commands.
+        Ignore .config file. By default engine will always search for .config file on startup and if this file exists engine will execute its commands.
 
     -s, --samples
         Set the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, set it to 0.
@@ -83,17 +83,17 @@ Following commands can be used only in ".config" file:
 
     MOUSE_TEXT_SKIP *number* - set the number of skipped iterations when mouse is selecting the text. Number cannot be lower than 1.
 
-Engine will execute these commands only on startup before its main loop. Keep in mind you can still execute new scripts at runtime 
+Engine will execute these commands only on startup before its main loop. Keep in mind you can still execute new scripts at runtime.
 
 ## Allegro5
 
-To install allegro go here: https://github.com/liballeg/allegro_wiki/wiki/Quickstart.
+To install allegro5 go here: https://github.com/liballeg/allegro_wiki/wiki/Quickstart.
 
 ## Build
 
 To build and use the SandstormBox engine you need the Allegro5 library and the Make program.
 
-After meeting this condition you can build the engine with:
+After meeting these conditions you can build the engine with:
 
     make
 

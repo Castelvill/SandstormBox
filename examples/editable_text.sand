@@ -1,0 +1,63 @@
+start main()
+    triggers on_init
+
+    int windowWidth 640
+    int windowHeight 480
+    create_display windowWidth windowHeight windowWidth windowHeight
+
+    fun me set_size windowWidth windowHeight
+
+    new Cameras 1 "Camera" Camera
+    fun Camera resize windowWidth windowHeight
+    fun Camera add_visible_layer "KERNEL"
+    fun Camera add_accessible_layer "KERNEL"
+    fun Camera focus
+
+    load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
+
+    double textColorR 0.95
+    double textColorG 0.95
+    double textColorB 0.95
+    double textColorA 1.0
+
+    double accentTextColorR 0.4
+    double accentTextColorG 0.4
+    double accentTextColorB 1.0
+    double accentTextColorA 1.0
+
+    string text "Lorem Ipsum is simply dummy text of the printing and typesetting industry.\nLorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.\nIt has survived not only five centuries,\nbut also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+
+    //Basic setup
+    new SEditTexts me 1 "edi" textField
+    fun textField set_size windowWidth windowHeight
+    fun textField set_wrapping "w"
+    fun textField set_input_delay 0.3
+    fun textField set_repetition_delay 0.05
+
+    //Basic formatting
+    fun textField add_format "cascadia_code" 74
+    fun textField set_last_color textColorR textColorG textColorB textColorA
+    fun textField set_last_accent_color accentTextColorR accentTextColorG accentTextColorB accentTextColorA
+    fun textField add_format "cascadia_code" 171
+    fun textField set_last_color accentTextColorR accentTextColorG accentTextColorB accentTextColorA
+    fun textField set_last_accent_color textColorR textColorG textColorB textColorA
+    fun textField add_format "cascadia_code" 50
+    fun textField set_last_color textColorR textColorG textColorB textColorA
+    fun textField set_last_accent_color accentTextColorR accentTextColorG accentTextColorB accentTextColorA
+    fun textField set_offset 2 0 10
+    fun textField add_format "cascadia_code" 74
+    fun textField set_offset 3 0 0
+    fun textField set_last_color textColorR textColorG textColorB textColorA
+    fun textField set_last_accent_color accentTextColorR accentTextColorG accentTextColorB accentTextColorA
+
+    //Starting text content
+    fun textField set_content text
+    fun textField update
+    
+    //Optional flags
+    //fun textField set_can_be_edited true
+    //fun textField set_can_use_space true
+    //fun textField set_can_use_tabs true
+    //fun textField set_can_use_enter true
+
+end

@@ -1,0 +1,59 @@
+start main()
+
+    triggers on_init
+
+/*
+    int v0 0
+    = v0 return15()
+    assert v0 15
+    int v1 0
+    = v1 returnVal25()
+    assert v1 25
+
+    int v2 0
+    int arg_v2_0 76
+    = v2 passThrough(arg_v2_0)
+    assert v2 76
+
+    int v3 0
+    = v3 passThrough(return123())
+    assert v3 123
+
+    int v4 0
+    int arg_v4_0 543
+    = v4 passThrough(passThrough(arg_v4_0))
+    assert v4 543
+*/
+end
+
+
+
+/*
+
+int return15()
+    return 15
+end
+
+int doubleNumber(int start, int n)
+    if(n 0 <=)
+        return start
+    end_if
+    -- n
+    *= start 2
+    return doubleNumber(start, n)
+end
+
+int returnVal25()
+    int value 25
+    return value
+end
+
+int passThrough(int passing)
+    return passing
+end
+
+int return123()
+    return 123
+end
+
+*/

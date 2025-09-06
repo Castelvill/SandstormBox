@@ -1112,12 +1112,6 @@ inline const VariableLocationStruct * findVariableInTheScopes(
     const vector<vector<VariableLocationStruct>> & Scopes, const string & variableName, bool forceNewDeclaration = false
 ){
     if(forceNewDeclaration){
-        // const auto & CurrentScope = Scopes.back();
-        // for(const VariableLocationStruct & variableIt : CurrentScope){
-        //     if(variableName == variableIt.name){
-        //         return &variableIt;
-        //     }
-        // }
         return nullptr;
     }
     for(auto scopeIt = Scopes.rbegin(); scopeIt != Scopes.rend(); ++scopeIt){
@@ -1129,6 +1123,17 @@ inline const VariableLocationStruct * findVariableInTheScopes(
     }
     return nullptr;
 }
+inline string findUnusedNameInTheScope(const vector<vector<VariableLocationStruct>> & Scopes, const string & baseName){
+    string newName = baseName;
+    for(auto scopeIt = Scopes.rbegin(); scopeIt != Scopes.rend(); ++scopeIt){
+        for(auto variableIt = (*scopeIt).rbegin(); variableIt != (*scopeIt).rend(); ++variableIt){
+            if(newName == variableIt->name){
+                incrementString(newName);
+            }
+        }
+    }
+    return newName;
+}
 string tokenToStr(TokenType type){
     switch(type){
         case TokenType::empty_tk:
@@ -1136,7 +1141,7 @@ string tokenToStr(TokenType type){
         case TokenType::keyword_tk:
             return "keyword_tk";
         case TokenType::identifier_tk:
-            return "context_tk";
+            return "identifier_tk";
         case TokenType::start_scope_tk:
             return "scope_start_tk";
         case TokenType::end_scope_tk:
@@ -1163,10 +1168,10 @@ string tokenToStr(TokenType type){
     }
 }
 std::pair<unsigned, ReturnType> getLocalAddress(const string &variableId, const DataType &variableType,
-                                                vector<vector<VariableLocationStruct>> &Scopes, vector<VariableInfo> &NewLocalVariables,
-                                                unsigned &topAddress, bool canAllocateNewVariable, bool makeVariableGlobal, bool makeVariableReference,
-                                                bool forceNewDeclaration)
-{
+    vector<vector<VariableLocationStruct>> &Scopes, vector<VariableInfo> &NewLocalVariables,
+    unsigned &topAddress, bool canAllocateNewVariable, bool makeVariableGlobal, bool makeVariableReference,
+    bool forceNewDeclaration
+){
     const VariableLocationStruct * FoundLocation = findVariableInTheScopes(Scopes, variableId, forceNewDeclaration);
     
     if(FoundLocation != nullptr){ //If the variable already exists
@@ -1216,6 +1221,17 @@ std::pair<unsigned, ReturnType> getLocalAddress(const string &variableId, const 
     }
     
     return {newLocalIndex, ReturnType::OK};
+}
+void createConstantLiteral(const string &variableId, const DataType &variableType,
+    vector<vector<VariableLocationStruct>> &Scopes, vector<VariableInfo> &NewLocalVariables,
+    unsigned &topAddress, bool canAllocateNewVariable, bool makeVariableGlobal, bool makeVariableReference,
+    bool forceNewDeclaration
+){
+    string constantId = "__0";
+    const VariableLocationStruct * foundLocation = nullptr;
+    do{
+        foundLocation = findVariableInTheScopes(Scopes, variableId, forceNewDeclaration);
+    }while(foundLocation != nullptr);
 }
 unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned &lineNumber, bool & error,
     const string & variableID, const DataType & variableType, vector<vector<VariableLocationStruct>> & Scopes,
@@ -1332,10 +1348,18 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, co
         {
             // [')'], [name, ')'], [name, ',']
             // [')'], [name]
-            if(words[cursor].type != TokenType::identifier_tk){ //[name]
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 << " must be a context.\n";
-                return true;
+            //if(words[cursor].type != TokenType::identifier_tk){ //[name]
+            switch(words[cursor].type){
+                case TokenType::identifier_tk:
+                case TokenType::bool_tk:
+                case TokenType::int_tk:
+                case TokenType::double_tk:
+                case TokenType::string_tk:
+                    break;
+                default:
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                        << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 << " must be a context.\n";
+                    return true;
             }
             if(cursor + 1 >= words.size()){ //[')'], [',']
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -1356,10 +1380,28 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, co
             }
         }
 
-        const string & variableId = words[cursor].value;
+        string variableId = "";
+        bool createNewVariable = false;
+
+        variableId = words[cursor].value;
+
+        switch(words[cursor].type){
+            case TokenType::identifier_tk:
+                variableId = words[cursor].value;
+                break;
+            // case TokenType::bool_tk:
+            // case TokenType::int_tk:
+            // case TokenType::double_tk:
+            // case TokenType::string_tk:
+            //     createNewVariable = true;
+            //     variableId = findUnusedNameInTheScope(Scopes, "__const__0");
+            //     break;
+            default:
+                break;
+        }
 
         const auto [localAddress, result] = getLocalAddress(variableId, any_dt, Scopes,
-            LocalVariables, topAddress, false
+            LocalVariables, topAddress, createNewVariable
         );
 
         if(result == ReturnType::OUT_OF_SCOPE){
@@ -1832,23 +1874,40 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
             return;
         }
         case add_format:
-            if(Values.size() >= 13){
-                SuperText->addFormat(al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
+            if(Values.size() >= 17){
+                SuperText->addFormat(
+                    al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
                     al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()),
+                    al_map_rgba_f(Values[8].getDoubleUnsafe(), Values[9].getDoubleUnsafe(), Values[10].getDoubleUnsafe(), Values[11].getDoubleUnsafe()),
+                    Values[12].getStringUnsafe(), FontContainer, Values[13].getIntUnsafe(), Values[14].getIntUnsafe(), Values[15].getIntUnsafe(),
+                    Values[16].getIntUnsafe()
+                );
+                return;
+            }
+            if(Values.size() >= 13){
+                SuperText->addFormat(
+                    al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
+                    al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()),
+                    al_map_rgba_f(0.0, 0.0, 0.0, 0.0),
                     Values[8].getStringUnsafe(), FontContainer, Values[9].getIntUnsafe(), Values[10].getIntUnsafe(), Values[11].getIntUnsafe(),
                     Values[12].getIntUnsafe()
                 );
                 return;
             }
             if(Values.size() >= 6){
-                SuperText->addFormat(al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
+                SuperText->addFormat(
+                    al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
                     al_map_rgba_f(1.0, 1.0, 1.0, 1.0),
+                    al_map_rgba_f(0.0, 0.0, 0.0, 0.0),
                     Values[4].getStringUnsafe(), FontContainer, 0.0, 0.0, false, Values[5].getIntUnsafe()
                 );
                 return;
             }
             if(Values.size() >= 2){
-                SuperText->addFormat(al_map_rgba_f(0.0, 0.0, 0.0, 1.0), al_map_rgba_f(1.0, 1.0, 1.0, 1.0),
+                SuperText->addFormat(
+                    al_map_rgba_f(0.0, 0.0, 0.0, 1.0),
+                    al_map_rgba_f(1.0, 1.0, 1.0, 1.0),
+                    al_map_rgba_f(0.0, 0.0, 0.0, 0.0),
                     Values[0].getStringUnsafe(), FontContainer, 0.0, 0.0, false, Values[1].getIntUnsafe()
                 );
                 return;
@@ -1858,17 +1917,21 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
             if(Values.size() < 14){
                 return;
             }
-            SuperText->modifyFormat(Values[0].getIntUnsafe(), al_map_rgba_f(Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(),
-                Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()), al_map_rgba_f(Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(),
-                Values[7].getDoubleUnsafe(), Values[8].getDoubleUnsafe()), Values[9].getStringUnsafe(), FontContainer, Values[10].getIntUnsafe(),
+            SuperText->modifyFormat(Values[0].getIntUnsafe(),
+                al_map_rgba_f(Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()),
+                al_map_rgba_f(Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe(), Values[8].getDoubleUnsafe()),
+                al_map_rgba_f(0.0, 0.0, 0.0, 0.0),
+                Values[9].getStringUnsafe(), FontContainer, Values[10].getIntUnsafe(),
                 Values[11].getIntUnsafe(), Values[12].getBoolUnsafe(), Values[13].getIntUnsafe()
             );
             return;
         case modify_last_format:
             if(Values.size() >= 13){
-                SuperText->modifyFormat(SuperText->Formatting.size() - 1, al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(),
-                    Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()), al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(),
-                    Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()), Values[8].getStringUnsafe(), FontContainer, Values[9].getIntUnsafe(),
+                SuperText->modifyFormat(SuperText->Formatting.size() - 1,
+                    al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
+                    al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()),
+                    al_map_rgba_f(0.0, 0.0, 0.0, 0.0),
+                    Values[8].getStringUnsafe(), FontContainer, Values[9].getIntUnsafe(),
                     Values[10].getIntUnsafe(), Values[11].getBoolUnsafe(), Values[12].getIntUnsafe()
                 );
                 return;
@@ -1877,6 +1940,7 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
                 SuperText->modifyFormat(SuperText->Formatting.size() - 1,
                     al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()),
                     al_map_rgba_f(Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe(), Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe()),
+                    al_map_rgba_f(0.0, 0.0, 0.0, 0.0),
                     Values[8].getStringUnsafe(), FontContainer, 0.0, 0.0, false, Values[9].getIntUnsafe()
                 );
                 return;
@@ -1884,10 +1948,11 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
             return;
         case inject_format:
             if(Values.size() >= 14){
-                SuperText->injectFormat(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(), al_map_rgba_f(Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(),
-                    Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe()), al_map_rgba_f(Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe(),
-                    Values[8].getDoubleUnsafe(), Values[9].getDoubleUnsafe()), Values[10].getStringUnsafe(), FontContainer, Values[11].getIntUnsafe(),
-                    Values[12].getIntUnsafe(), Values[13].getBoolUnsafe()
+                SuperText->injectFormat(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(),
+                    al_map_rgba_f(Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe()),
+                    al_map_rgba_f(Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe(), Values[8].getDoubleUnsafe(), Values[9].getDoubleUnsafe()),
+                    al_map_rgba_f(0.0, 0.0, 0.0, 0.0),
+                    Values[10].getStringUnsafe(), FontContainer, Values[11].getIntUnsafe(), Values[12].getIntUnsafe(), Values[13].getBoolUnsafe()
                 );
                 return;
             }
@@ -1895,6 +1960,7 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
                 SuperText->injectFormat(Values[0].getIntUnsafe(), Values[1].getIntUnsafe(),
                     al_map_rgba_f(Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe(), Values[5].getDoubleUnsafe()),
                     al_map_rgba_f(Values[6].getDoubleUnsafe(), Values[7].getDoubleUnsafe(), Values[8].getDoubleUnsafe(), Values[9].getDoubleUnsafe()),
+                    al_map_rgba_f(0.0, 0.0, 0.0, 0.0),
                     Values[10].getStringUnsafe(), FontContainer, 0.0, 0.0, false
                 );
             }
@@ -1929,6 +1995,14 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
                 Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()
             ));
             return;
+        case set_background_color:
+            if(Values.size() < 5){
+                return;
+            }
+            SuperText->setBackgroundColor(Values[0].getIntUnsafe(), al_map_rgba_f(Values[1].getDoubleUnsafe(),
+                Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe(), Values[4].getDoubleUnsafe()
+            ));
+            return;
         case set_last_accent_color:
             if(Values.size() < 4){
                 return;
@@ -1936,6 +2010,26 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
             SuperText->setAccentColor(SuperText->Formatting.size() - 1, al_map_rgba_f(Values[0].getDoubleUnsafe(),
                 Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()
             ));
+            return;
+        case set_last_background_color:
+            if(Values.size() < 4){
+                return;
+            }
+            SuperText->setBackgroundColor(SuperText->Formatting.size() - 1, al_map_rgba_f(Values[0].getDoubleUnsafe(),
+                Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()
+            ));
+            return;
+        case set_background_color_drawing:
+            if(Values.size() < 2){
+                return;
+            }
+            SuperText->setBackgroundDrawing(Values[0].getIntUnsafe(), Values[1].getBoolUnsafe());
+            return;
+        case set_last_background_color_drawing:
+            if(Values.size() < 1){
+                return;
+            }
+            SuperText->setBackgroundDrawing(SuperText->Formatting.size() - 1, Values[0].getBoolUnsafe());
             return;
         case set_font:
             if(Values.size() < 2){

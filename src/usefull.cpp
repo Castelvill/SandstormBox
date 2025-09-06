@@ -16,6 +16,14 @@ int cstoi(const string & text, string & error){
         return 0;
     }
 }
+int stoiOrZero(const string & text){
+    try{
+        return stoi(text);
+    }
+    catch(std::invalid_argument const& ex){
+        return 0;
+    }
+}
 double cstod(const string & text, string & error){
     error = "";
     try{
@@ -144,22 +152,24 @@ bool isStringInVector(const vector<string> & stringVec, const string & findStrin
     return foundGroup != std::end(stringVec);
 }
 
+void incrementString(string & text){
+    if(isdigit(text.back())){
+        size_t last_index = text.find_last_not_of("0123456789");
+        const string & nextSufix = intToStr(stoiOrZero(text.substr(last_index + 1)) + 1);
+        text = text.substr(0, last_index + 1) + nextSufix;
+    }
+    else{
+        text += "0";
+    }
+}
+
 string findNewUniqueID(const vector<string> & uniqueIDs, string newID){
     string error;
     if(newID == ""){
         newID = "0";
     }
     while(isStringInVector(uniqueIDs, newID)){
-        if(isdigit(newID.back())){
-            size_t last_index = newID.find_last_not_of("0123456789");
-            newID = newID.substr(0, last_index + 1) + intToStr(cstoi(newID.substr(last_index + 1), error) + 1);
-            if(error.size() > 0){
-                cerr << "Error: In " << __FUNCTION__ << ":\n" << error << "\n";
-            }
-        }
-        else{
-            newID += "0";
-        }
+        incrementString(newID);
     }
     return newID;
 }

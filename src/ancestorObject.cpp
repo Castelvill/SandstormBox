@@ -100,7 +100,7 @@ vector<string> readLines(const string& filename, bool allowNotAscii) {
 AncestorObject::AncestorObject(){
     deleted = false;
     isActive = false;
-    canBeMovedWithMouse = true;
+    canBeMovedWithMouse = false;
     canDrawSelectionBorder = false;
     hasInvalidatedMemory = true;
 }
@@ -567,10 +567,12 @@ bool canStringBeDouble(string text){
     return hasPoint;
 }
 
-vector<WordStruct> tokenizeCode(string input){
+std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
     std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|&|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
     auto words_end = std::sregex_iterator();
+
+    bool triggerPreprocessor = false;
 
     vector <string> output;
     string match_str;
@@ -639,6 +641,7 @@ vector<WordStruct> tokenizeCode(string input){
             continue;
         }
         if(output[i] == "("){
+            triggerPreprocessor = false;
             mergedOutput.emplace_back(WordStruct(TokenType::start_expr_tk, output[i], false));
             continue;
         }
@@ -702,7 +705,7 @@ vector<WordStruct> tokenizeCode(string input){
         }
     }
 
-    return mergedOutput;
+    return {mergedOutput, triggerPreprocessor};
 }
 vector <string> mergeStrings(vector <string> code){
     vector <string> merged;
@@ -3605,8 +3608,8 @@ ReturnType InstrParser::parseAutoRun(){
     return ReturnType::OK;
 }
 
-ReturnType AncestorObject::parseEngineInstruction(const vector<WordStruct> & words, const string & scriptName,
-    const unsigned & lineNumber, ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint,
+ReturnType AncestorObject::parseTokensAndAssembleEvents(const vector<WordStruct> & words, const string & scriptName,
+    unsigned lineNumber, ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint,
     EventModule & NewEvent, vector<string> & allAvailableEventIDs, BranchingStackStruct & BranchingStack
 ){
     /*unsigned cursor = 1;
@@ -3839,6 +3842,32 @@ ReturnType AncestorObject::parseEngineInstruction(const vector<WordStruct> & wor
             return instrParser.parseAutoRun();
     }
 }
+vector<vector<WordStruct>> CodeGenerator::preprocessTokens(const vector<WordStruct> & inputTokens){
+    if(inputTokens.size() == 0){
+        return vector<vector<WordStruct>>{};
+    }
+
+    vector<vector<WordStruct>> generatedCode;
+
+    vector<WordStruct> modifiedInput;
+
+    /*size_t cursor = 0;
+    //Find start_expr_tk
+    for(cursor = 0; cursor < inputTokens.size(); ++cursor){
+
+    }
+
+    switch(inputTokens[0].instruction){
+
+        default:
+            generatedCode.push_back(inputTokens);
+            return generatedCode;
+    }*/
+
+    generatedCode.push_back(inputTokens);
+
+    return generatedCode;
+}
 ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & scriptName,
     vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
 ){
@@ -3869,26 +3898,30 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
     }
     code = code2;
 
-    // Pre-define built-in global variables.
-
     vector<WordStruct> words;
     EventModule NewEvent = EventModule();
     unsigned lineNumber = 0;
     bool triggerBreakpoint = false;
+    bool assembleEvents = true;
+    bool printTokens = false;
 
-    vector <string> allAvailableEventIDs;
+    vector<string> allAvailableEventIDs;
 
     ScopeType Scopes;
     Scopes.push_back(GlobalScope);
 
     BranchingStackStruct BranchingStack;
+    CodeGenerator codeGenerator;
 
     for(string line : code){
         lineNumber++;
         words.clear();
         line = findAndUseSpecialCharacters(line);
-        words = tokenizeCode(line);
-        //words = mergeStrings(words);
+
+        bool triggerPreprocessor = false;
+        
+        std::tie(words, triggerPreprocessor) = tokenizeCode(line);
+
         if(words.size() == 0){
             continue;
         }
@@ -3897,15 +3930,66 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
             raise(SIGINT);
             triggerBreakpoint = false;
         }
-        
-        ReturnType result = parseEngineInstruction(
-            words, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
-            NewEvent, allAvailableEventIDs, BranchingStack
-        );
-        if(result == ReturnType::ERROR){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Compilation aborted due to previous errors.\n";
-            return ReturnType::ERROR;
+
+        //Compilation-time instructions
+        bool resumeLoop = false;
+        switch(words[0].instruction){
+            case EngineInstr::resume_assembling:
+                assembleEvents = true;
+                break;
+            case EngineInstr::stop_assembling:
+                assembleEvents = false;
+                break;
+            case EngineInstr::start_printing_tokens:
+                printTokens = true;
+                break;
+            case EngineInstr::stop_printing_tokens:
+                printTokens = false;
+                break;
+            default:
+                resumeLoop = true;
+                break;
+        }
+
+        if(printTokens){
+            for(const WordStruct & word : words){
+                if(word.negateVariable){
+                    cout << "neg ";
+                }
+                cout << "[" << tokenToStr(word.type) << ", " << instrToStr(word.instruction) << ", \"" << word.value << "\"] ";
+            }
+            cout << "\n";
+            cout.flush();
+        }
+
+        if(!assembleEvents || !resumeLoop){
+            continue;
+        }
+
+        if(triggerPreprocessor){
+            vector<vector<WordStruct>> preprocessedWords = codeGenerator.preprocessTokens(words);
+            for(auto finalWords : preprocessedWords){
+                ReturnType result = parseTokensAndAssembleEvents(
+                    finalWords, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
+                    NewEvent, allAvailableEventIDs, BranchingStack
+                );
+                if(result == ReturnType::ERROR){
+                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                        << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Compilation aborted due to previous errors.\n";
+                    return ReturnType::ERROR;
+                }
+            }
+        }
+        else{
+            ReturnType result = parseTokensAndAssembleEvents(
+                words, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
+                NewEvent, allAvailableEventIDs, BranchingStack
+            );
+            if(result == ReturnType::ERROR){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Compilation aborted due to previous errors.\n";
+                return ReturnType::ERROR;
+            }
         }
     }
     
@@ -3985,7 +4069,8 @@ ReturnType gatherImportsFromScript(const string & exePath, const string & script
     }
     vector<WordStruct> words;
     for(const string & line : scriptLines){
-        words = tokenizeCode(line); //TODO: Use less expensive way to extract imports from lines
+        bool triggerPreprocessor = false;
+        std::tie(words, triggerPreprocessor) = tokenizeCode(line); //TODO: Use less expensive way to extract imports from lines
         if(words.size() == 0){
             continue;
         }

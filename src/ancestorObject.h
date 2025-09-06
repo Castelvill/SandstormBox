@@ -2,6 +2,7 @@
 #define ALLOBJECTS_H_INCLUDED
 #include "eventModule.h"
 #include <unordered_set>
+#include <unordered_map>
 
 DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType);
 
@@ -33,6 +34,12 @@ struct BranchingStackStruct{
     
     vector<unsigned> whileStartStack; //Indexes of operations that will store line number for jumping from "end_while" and "continue" labels to the "while" instruction.
     vector<vector<unsigned>> whileEndStack; //Indexes of operations that will store line number for jumping from "break" and "while" instructions to the "end_while" label.
+};
+
+struct CodeGenerator{
+    std::unordered_map<string, string> constants;
+
+    vector<vector<WordStruct>> preprocessTokens(const vector<WordStruct> & inputTokens);
 };
 
 using ScopeType = vector<vector<VariableLocationStruct>>;
@@ -175,10 +182,8 @@ public:
     void primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
     void setIsScrollable(bool newValue);
     VariableModule getAttributeValue(const AttributeType & attribute, const string & detail);
-    ReturnType parseEngineInstruction(
-        const vector<WordStruct> & words, const string & scriptName, const unsigned & lineNumber,
-        ScopeType & Scopes, unsigned & topAddress,
-        bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
+    ReturnType parseTokensAndAssembleEvents(const vector<WordStruct> & words, const string & scriptName, unsigned lineNumber,
+        ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
         BranchingStackStruct & BranchingStack
     );
     /*Translate instructions into events and add them to the event container of the object.*/
@@ -199,7 +204,7 @@ public:
     void propagateObjectID();
 };
 
-vector <WordStruct> tokenizeCode(string input);
+std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input);
 
 
 template<class Module>

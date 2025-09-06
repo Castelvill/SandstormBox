@@ -145,9 +145,9 @@ unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsign
 
 class OperationClass{
 public:
-    vector <ConditionClass> ConditionalChain;
+    vector<ConditionClass> ConditionalChain;
     vector<VariableModule> resultStack;
-    vector <ParameterStruct> Parameters;
+    vector<ParameterStruct> Parameters;
     unsigned rootParametersSize = 0;
     ValueLocation Location;
     EngineInstr instruction = null; //first, last, all, random, let, assigment, class method, run(), break, return

@@ -32,6 +32,7 @@ bool stringToBool(const string & text);
 void addUniqueToStringVector(vector <string> & stringVec, const string & newString);
 void removeFromStringVector(vector <string> & stringVec, const string & selectedString);
 bool isStringInVector(const vector <string> & stringVec, const string & findString);
+void incrementString(string & text);
 template <typename T>
 void removeFromVector(vector <T> & Vec, T selectedValue){
     auto foundValue = std::find(begin(Vec), end(Vec), selectedValue);

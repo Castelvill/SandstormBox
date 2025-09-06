@@ -29,10 +29,10 @@ void Camera2D::setUpInstance(string newID, vector <string> & camerasIDs, bool ne
     isPinnedToCamera = false;
     isForcefullyPinned = false;
     isFollowingObject = false;
-    isUsingKeyboardToMove = true;
-    isUsingKeyboardToZoom = true;
-    isVisionAffectedByMouse = true;
-    canZoomWithMouse = true;
+    isUsingKeyboardToMove = false;
+    isUsingKeyboardToZoom = false;
+    isVisionAffectedByMouse = false;
+    canZoomWithMouse = false;
     canBeModifiedByMouse = false;
     allowsDrawingBorders = false;
     canDrawObjectBorders = false;

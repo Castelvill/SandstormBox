@@ -28,6 +28,16 @@ end
 
 start runAfterInit()
     //cd scripts
+
+    new Objects my_layer 1 "commandLine" commandLine
+
+    new Primitives commandLine 1 "background" background
+    fun background set_type "filled_rectangle"
+    fun background add_point 0 0
+    fun background add_point 920 40
+    fun background set_color 0.0 0.0 0.0 0.9
+    fun background set_pos 0 440
+
 	run forceRefresh()
 end
 
@@ -73,7 +83,7 @@ start buildTerminal()
     new Images me 1 "background" background
     fun background connect_bitmap_via_alias "background"
     fun background resize ww wh
-    fun background set_color 0.5 0.5 0.5 0.3
+    fun background set_color 0.3 0.3 0.3 0.3
     fun background disable_scrolling
 
     var terminalColorR "0.988235294"
@@ -95,6 +105,8 @@ start buildTerminal()
     fun TerminalTextField add_format "cascadia_code" 1
     fun TerminalTextField set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun TerminalTextField set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
+    //fun TerminalTextField set_last_background_color_drawing true
+    //fun TerminalTextField set_last_background_color 0.0 0.0 1.0 1.0
     fun TerminalTextField set_wrapping "w"
     fun TerminalTextField set_can_be_edited true
     fun TerminalTextField set_can_use_space true
@@ -107,6 +119,8 @@ start buildTerminal()
     fun TerminalTextField set_ignore_vertical_arrows true
     fun TerminalTextField set_can_copy_format true
     fun TerminalTextField start_editing
+    //fun TerminalTextField set_last_background_color 0.5 0.5 0.5 1.0
+    //fun TerminalTextField set_last_background_color_drawing false
 
     var minScrollbarThumbHeight 24
 
@@ -214,7 +228,7 @@ start buildTerminal()
     var currentCommandNumber 0
     vec string commandHistory [""]
 
-    vec string allowedPrograms ["help" "ls" "cls" "cat" "cd" "pwd" "mv" "print" "exit" "reboot" "history" "forgor" "edit" "sand" "sh" "nw" "note" "mover" "fullscreen" "fs" "neofetch" "spawn" "hello" "sq" "cats" "v4" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal" "test"]
+    vec string allowedPrograms ["help" "ls" "cls" "cat" "cd" "pwd" "mv" "print" "exit" "reboot" "history" "forgor" "edit" "sand" "sh" "nw" "note" "mover" "fullscreen" "fs" "neofetch" "spawn" "hello" "sq" "cats" "v4" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal" "test" "mkdir"]
 
     var dir "scripts"
 
@@ -453,7 +467,6 @@ start nw()
     run spawnNewWindow(NewCamera, NewLayer)
 end
 
-
 start spawnNewWindow(Camera & NewWindowCamera, Layer & NewWindowLayer)
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras "WindowCamera" TemplateCamera
@@ -556,7 +569,7 @@ end
 
 start interrupt()
     triggers on_key_press
-    if (key_pressed(KEY_SHIFT) key_pressed(KEY_C) &&)
+    if (key_pressed(KEY_LCTRL) key_pressed(KEY_C) &&)
         = program ""
         string result "^C\n"
         run printOnTerminal(result)
@@ -1252,4 +1265,20 @@ start load_terminal()
     index me [0 0] super_editable_text TerminalTextField
     fun TerminalTextField load_from_file param1
     = program ""
+end
+
+start mkdir()
+	= program ""
+	if(param1 "" ==)
+		string txt "Cannot create a directory with an empty name!\n"
+		cout(txt)
+		return
+	end_if
+	if(exists(param1))
+		string txt ""
+		print_v txt _ "Directory with name '" param1 "' already exists!\n"
+		cout(txt)
+		return
+	end_if
+	mkdir param1
 end

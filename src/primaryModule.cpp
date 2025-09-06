@@ -358,6 +358,18 @@ EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "import"){
         return EngineInstr::import;
     }
+    if(instruction == "resume_assembling"){
+        return EngineInstr::resume_assembling;
+    }
+    if(instruction == "stop_assembling"){
+        return EngineInstr::stop_assembling;
+    }
+    if(instruction == "start_printing_tokens"){
+        return EngineInstr::start_printing_tokens;
+    }
+    if(instruction == "stop_printing_tokens"){
+        return EngineInstr::stop_printing_tokens;
+    }
     if(instruction == "Val"){
         return EngineInstr::Val;
     }
@@ -711,6 +723,14 @@ string instrToStr(const EngineInstr & instruction){
             return "load";
         case import:
             return "import";
+        case resume_assembling:
+            return "resume_assembling";
+        case stop_assembling:
+            return "stop_assembling";
+        case start_printing_tokens:
+            return "start_printing_tokens";
+        case stop_printing_tokens:
+            return "stop_printing_tokens";
         case Val:
             return "Val";
         case ValVec:
@@ -2270,6 +2290,10 @@ string attributeToStr(const AttributeType &attribute){
         case set_last_color: return "set_last_color";
         case set_accent_color: return "set_accent_color";
         case set_last_accent_color: return "set_last_accent_color";
+        case set_background_color: return "set_background_color";
+        case set_last_background_color: return "set_last_background_color";
+        case set_background_color_drawing: return "set_background_color";
+        case set_last_background_color_drawing: return "set_last_background_color";
         case set_offset: return "set_offset";
         case add_offset: return "add_offset";
         case set_offset_x: return "set_offset_x";
@@ -2853,6 +2877,10 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "set_last_color") return set_last_color;
     else if(attribute == "set_accent_color") return set_accent_color;
     else if(attribute == "set_last_accent_color") return set_last_accent_color;
+    else if(attribute == "set_background_color") return set_background_color;
+    else if(attribute == "set_last_background_color") return set_last_background_color;
+    else if(attribute == "set_background_color_drawing") return set_background_color_drawing;
+    else if(attribute == "set_last_background_color_drawing") return set_last_background_color_drawing;
     else if(attribute == "set_offset") return set_offset;
     else if(attribute == "add_offset") return add_offset;
     else if(attribute == "set_offset_x") return set_offset_x;

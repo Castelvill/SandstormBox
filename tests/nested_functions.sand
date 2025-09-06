@@ -1,0 +1,42 @@
+stop_assembling
+start_printing_tokens
+
+start main()
+    triggers on_init
+    fn0(fn1())
+    print "\n"
+    exit
+end
+
+start fn0()
+    print 0
+    return
+end
+
+start fn1()
+    print 1
+    return
+end
+
+start fn2()
+    print 2
+    return
+end
+
+start fn3()
+    print 3
+    return
+end
+
+start fn4()
+    print 4
+    return
+end
+
+resume_assembling
+stop_printing_tokens
+
+start exit_()
+    triggers on_init
+    exit
+end

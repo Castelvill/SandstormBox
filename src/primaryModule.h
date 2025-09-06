@@ -22,7 +22,7 @@ enum EngineInstr : unsigned char{
     load_bitmap, mkdir_i, rm, rmll, mv_i, print_v_i, print_d_i, print_i, load_text, save_text, ls, lse,
     new_proc, var, vec, tokenize, tree, len, size_i, substr, load_font, restart_drag, cd, pwd, similar,
     count, create_display, console_input, start_timer, stop_timer, compiler_breakpoint, breakpoint, assert, type, load_i,
-    import,
+    import, resume_assembling, stop_assembling, start_printing_tokens, stop_printing_tokens,
     //instance declarations
     Val, ValVec, Pointer, PointerVec, Camera, CameraVec, Layer, LayerVec,
     Object, ObjectVec, Var, VarVec, Vec, VecVec, Text, TextVec, EditText, EditTextVec, SText, STextVec,
@@ -56,6 +56,8 @@ enum AttributeType: short{
     set_text_line, add_to_text_line, save_to_file, load_from_file,
     add_format, modify_format, modify_last_format, inject_format,
     delete_format, set_last_color, set_accent_color, set_last_accent_color,
+    set_background_color, set_last_background_color,
+    set_background_color_drawing, set_last_background_color_drawing,
     set_offset, add_offset, set_offset_x, add_offset_x, set_offset_y,
     add_offset_y, set_selected, set_limit, set_padding_between_lines,
     add_rotation, set_tab_length, set_draw_selection_first,

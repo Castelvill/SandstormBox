@@ -719,7 +719,7 @@ edit_proc *attribute* [value] [value] [value] [value]
 
 **Description**
 
-    Change the value of the attribute of the current process.
+    Modify an attribute of the current process.
 
 **Parameters**
 

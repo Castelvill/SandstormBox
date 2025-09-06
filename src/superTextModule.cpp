@@ -1,12 +1,12 @@
 #include "superTextModule.h"
 
-bool FormatClass::isTheSame(const FormatClass &Compare){
-    return color.r == Compare.color.r && color.g == Compare.color.g
-        && color.b == Compare.color.b && color.a == Compare.color.a
-        && accentColor.r == Compare.accentColor.r && accentColor.g == Compare.accentColor.g
-        && accentColor.b == Compare.accentColor.b && accentColor.a == Compare.accentColor.a
-        && Font == Compare.Font && offset.x == Compare.offset.x
-        && offset.y == Compare.offset.y && selected == Compare.selected;
+bool FormatClass::isTheSame(const FormatClass &other){
+    return color.r == other.color.r && color.g == other.color.g
+        && color.b == other.color.b && color.a == other.color.a
+        && accentColor.r == other.accentColor.r && accentColor.g == other.accentColor.g
+        && accentColor.b == other.accentColor.b && accentColor.a == other.accentColor.a
+        && Font == other.Font && offset.x == other.offset.x
+        && offset.y == other.offset.y && selected == other.selected;
 }
 
 void SuperTextModule::setUpNewInstance(){
@@ -476,30 +476,21 @@ void SuperTextModule::getContext(AttributeType attribute, vector<BasePointersStr
     }
 }
 
-void SuperTextModule::drawFormattedString(string text, vec2d finalPos, size_t lineIdx, vector<FormatClass>::iterator Format, bool drawSelection) const{
-    if(Format->selected){
+void SuperTextModule::drawFormattedString(string & text, vec2d finalPos, size_t lineIdx, vector<FormatClass>::iterator Format, bool drawSelection) const{
+    if(Format->selected || Format->background){
         if(drawSelection){
-            string background;
-            for(size_t i = 0; i < text.size(); i++){
-                background += "█";
-            }
-            al_draw_text(Format->Font->font, Format->color, finalPos.x + Format->offset.x,
-                finalPos.y,
-                0, background.c_str()
-            );
+            const ALLEGRO_COLOR backgroundColor = Format->selected ? Format->color : Format->backgroundColor;
+            string backgroundText = "";
+            for(size_t i = 0; i < text.size(); ++i)
+                backgroundText += "█";
+            al_draw_text(Format->Font->font, backgroundColor, finalPos.x + Format->offset.x, finalPos.y, 0, backgroundText.c_str());
         }
         if(!drawSelectionFirst || !drawSelection){
-            al_draw_text(Format->Font->font, Format->accentColor, finalPos.x + Format->offset.x,
-                finalPos.y,
-                0, text.c_str()
-            );
+            al_draw_text(Format->Font->font, Format->accentColor, finalPos.x + Format->offset.x, finalPos.y,0, text.c_str());
         }
     }
     else{
-        al_draw_text(Format->Font->font, Format->color, finalPos.x + Format->offset.x,
-            finalPos.y,
-            0, text.c_str()
-        );
+        al_draw_text(Format->Font->font, Format->color, finalPos.x + Format->offset.x, finalPos.y, 0, text.c_str());
     }
 }
 void SuperTextModule::drawAllLines(vec2d finalPos, bool drawSelection, vec2i displaySize) const{
@@ -696,19 +687,20 @@ void SuperTextModule::addToTextLine(size_t index, string newLine){
     }
     textLines[index] += newLine;
 }
-void SuperTextModule::addFormat(ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
-                                vector<SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit)
-{
+void SuperTextModule::addFormat(ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, ALLEGRO_COLOR newBackgroundColor, const string &fontID,
+    vector<SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
+){
     Formatting.emplace_back(FormatClass());
     Formatting.back().color = newColor;
     Formatting.back().accentColor = newAccentColor;
+    Formatting.back().backgroundColor = newBackgroundColor;
     Formatting.back().Font = findFontByID(FontContainer, fontID);
     Formatting.back().offset.set(offsetX, offsetY);
     Formatting.back().selected = isSelected;
     Formatting.back().limit = newLimit;
 }
-void SuperTextModule::modifyFormat(size_t index, ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
-    vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
+void SuperTextModule::modifyFormat(size_t index, ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, ALLEGRO_COLOR newBackgroundColor,
+    string fontID, vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
 ){
     if(index > Formatting.size()){
         std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
@@ -716,13 +708,14 @@ void SuperTextModule::modifyFormat(size_t index, ALLEGRO_COLOR newColor, ALLEGRO
     }
     Formatting[index].color = newColor;
     Formatting[index].accentColor = newAccentColor;
+    Formatting[index].backgroundColor = newBackgroundColor;
     Formatting[index].Font = findFontByID(FontContainer, fontID);
     Formatting[index].offset.set(offsetX, offsetY);
     Formatting[index].selected = isSelected;
     Formatting[index].limit = newLimit;
 }
 void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd, ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor,
-    string fontID, vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected
+    ALLEGRO_COLOR newBackgroundColor, string fontID, vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected
 ){
     if(fragmentStart > content.size()){
         cerr << "Error: In " << __FUNCTION__ << ": Cannot inject format beyond the text content (start-index:" << fragmentStart << " >= size:" << content.size() << ").\n";
@@ -814,6 +807,7 @@ void SuperTextModule::injectFormat(unsigned fragmentStart, unsigned fragmentEnd,
     Formatting.insert(Formatting.begin() + startErase, FormatClass());
     Formatting[startErase].color = newColor;
     Formatting[startErase].accentColor = newAccentColor;
+    Formatting[startErase].backgroundColor = newBackgroundColor;
     Formatting[startErase].Font = findFontByID(FontContainer, fontID);
     Formatting[startErase].offset.set(offsetX, offsetY);
     Formatting[startErase].selected = isSelected;
@@ -841,6 +835,20 @@ void SuperTextModule::setAccentColor(size_t index, ALLEGRO_COLOR newAccentColor)
         return;
     }
     Formatting[index].accentColor = newAccentColor;
+}
+void SuperTextModule::setBackgroundColor(size_t index, ALLEGRO_COLOR color){
+    if(index > Formatting.size()){
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        return;
+    }
+    Formatting[index].backgroundColor = color;
+}
+void SuperTextModule::setBackgroundDrawing(size_t index, bool drawBackground){
+    if(index > Formatting.size()){
+        std::cerr << "Error: In " << __FUNCTION__ << ": In SuperTextModule '" << ID << "': Index is out of scope of Formatting vector.\n";
+        return;
+    }
+    Formatting[index].background = drawBackground;
 }
 void SuperTextModule::setFont(size_t index, string newFontID, vector <SingleFont> & FontContainer){
     if(index > Formatting.size()){
@@ -1155,39 +1163,39 @@ void SuperTextModule::loadFormattedTextFromTheFile(string filePath, vector<Singl
             FormattingBuffer.emplace_back(FormatClass());
 
             FormattingBuffer.back().color.r = cstof(buffer[formatIdx * 14], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
             FormattingBuffer.back().color.g = cstof(buffer[1 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
             FormattingBuffer.back().color.b = cstof(buffer[2 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
             FormattingBuffer.back().color.a = cstof(buffer[3 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
 
             FormattingBuffer.back().accentColor.r = cstof(buffer[4 + formatIdx * 14], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
             FormattingBuffer.back().accentColor.g = cstof(buffer[5 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
             FormattingBuffer.back().accentColor.b = cstof(buffer[6 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
             FormattingBuffer.back().accentColor.a = cstof(buffer[7 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
 
             FormattingBuffer.back().Font = findFontByID(FontContainer, buffer[8 + (formatIdx * 14)]);
 
             FormattingBuffer.back().offset.x = cstof(buffer[9 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
             FormattingBuffer.back().offset.y = cstof(buffer[10 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
 
             FormattingBuffer.back().selected = cstoi(buffer[11 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
 
             FormattingBuffer.back().limit = cstoi(buffer[12 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
             FormattingBuffer.back().drawingLimit = cstoi(buffer[13 + (formatIdx * 14)], error);
-            if(error.size() > 0){break;};
+            if(!error.empty()){break;};
         }
-        if(error.size() > 0){
+        if(!error.empty()){
             std::cerr << "Error: In " << __FUNCTION__ << ": Formatting in the file: '" << filePath << "' is corrupted.\n";
             std::cerr << error << "\n";
             return;

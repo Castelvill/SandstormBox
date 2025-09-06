@@ -1,5 +1,6 @@
--Fix keyword naming convention.
+-Implement returning values from functions.
 -Implement passing literals directly into the functions.
+-Fix keyword naming convention.
 -Fix terminal: mover, note, test, edit.
 -Use test program in the terminal to find new bugs.
 -Create "."/extract instuction which will use/merge accessor functionalities from: first, all, last and random instructions. Add filter instruction that will use filtering functionality of first, all, last and random instructions.
@@ -32,6 +33,7 @@
 
 -Update documentation.
 -Optimize EditableSuperText.
+    -Test al_draw_multiline_text.
     -Implement lazy updates for SuperEditableText::update - calling update method causes only max one real update during the entire frame (so update can happen only once per few iterations). Update happens on the last iteration of the frame and the process keeps the info which text field needs to be updated.
     -Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
 

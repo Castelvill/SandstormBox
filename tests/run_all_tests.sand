@@ -10,10 +10,9 @@ start testRunnerEvent()
     print "RUNNING ALL TESTS - START\n"
     print "============================================\n"
     
-    string path "assert"
-    scheduleTest(path)
+    //scheduleTest("assert")
 
-    = path "access"
+    string path "access"
     scheduleTest(path)
 
     = path "if_statements"

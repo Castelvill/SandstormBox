@@ -8,11 +8,13 @@ class FormatClass{
 public:
     ALLEGRO_COLOR color;
     ALLEGRO_COLOR accentColor;
-    SingleFont * Font; //Not a dynamic pointer.
+    ALLEGRO_COLOR backgroundColor;
+    SingleFont * Font = nullptr; //Not a dynamic pointer.
     vec2f offset;
-    bool selected;
-    size_t limit, drawingLimit;
-    bool isTheSame(const FormatClass & Compare);
+    bool selected = false;
+    bool background = false;
+    size_t limit = 0, drawingLimit = 0;
+    bool isTheSame(const FormatClass & compare);
 };
 
 class SuperTextModule: public PrimaryModule{
@@ -58,7 +60,7 @@ public:
     VariableModule getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const;
     void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
     
-    void drawFormattedString(string text, vec2d finalPos, size_t lineIdx,
+    void drawFormattedString(string & text, vec2d finalPos, size_t lineIdx,
         vector<FormatClass>::iterator Format, bool drawSelection
     ) const;
     void drawAllLines(vec2d finalPos, bool drawSelection, vec2i displaySize) const;
@@ -73,19 +75,21 @@ public:
     void addNewTextLine(string newLine);
     void setTextLine(size_t index, string newLine);
     void addToTextLine(size_t index, string newLine);
-    void addFormat(ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
+    void addFormat(ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, ALLEGRO_COLOR newBackgroundColor, const string &fontID,
         vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
     );
-    void modifyFormat(size_t index, ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, string fontID,
-        vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
+    void modifyFormat(size_t index, ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor, ALLEGRO_COLOR newBackgroundColor,
+        string fontID, vector <SingleFont> & FontContainer, float offsetX, float offsetY, bool isSelected, size_t newLimit
     );
-    void injectFormat(unsigned fragmentStart, unsigned fragmentEnd, ALLEGRO_COLOR newColor,
-        ALLEGRO_COLOR newAccentColor, string fontID, vector <SingleFont> & FontContainer,
-        float offsetX, float offsetY, bool isSelected
+    void injectFormat(unsigned fragmentStart, unsigned fragmentEnd, ALLEGRO_COLOR newColor, ALLEGRO_COLOR newAccentColor,
+        ALLEGRO_COLOR newBackgroundColor, string fontID, vector <SingleFont> & FontContainer, float offsetX, float offsetY,
+        bool isSelected
     );
     void deleteFormat(size_t index);
     void setColor(size_t index, ALLEGRO_COLOR newColor);
     void setAccentColor(size_t index, ALLEGRO_COLOR newAccentColor);
+    void setBackgroundColor(size_t index, ALLEGRO_COLOR color);
+    void setBackgroundDrawing(size_t index, bool draw);
     void setFont(size_t index, string newFontID, vector <SingleFont> & FontContainer);
     void setOffset(size_t index, float offsetX, float offsetY);
     void addOffset(size_t index, float offsetX, float offsetY);
