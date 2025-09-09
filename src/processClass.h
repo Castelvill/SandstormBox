@@ -377,6 +377,7 @@ public:
     void aggregateEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, const EngineClass & Engine);
     void assignVariable(ObjectMemoryStruct & ObjectMemory, const OutputParameterStruct & Output);
     void assignVariable(ObjectMemoryStruct & ObjectMemory, ContextClass * Variable);
+    void moveToVariable(ObjectMemoryStruct & ObjectMemory, const OutputParameterStruct & Output);
     void aggregateValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
         LayerClass *OwnerLayer, AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes
     );

@@ -5199,15 +5199,6 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
             return;
         case variable_mod:
             switch(RightOperand.type){
-                case value_inst:
-                    LeftOperand->Modules.Variables.push_back(&RightOperand.Values[0]);
-                    return;
-                case value_vec:
-                    if(doesOperandContainSingleElement(CurrentInstr, __FUNCTION__, LeftOperand->type, RightOperand.type, RightOperand.Values.size())){
-                        return;
-                    }
-                    LeftOperand->Modules.Variables.push_back(&RightOperand.Values[0]);
-                    return;
                 case variable_mod:
                     LeftOperand->Modules.Variables.push_back(RightOperand.Modules.Variables[0]);
                     return;
@@ -5224,15 +5215,6 @@ void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * Lef
             return;
         case variable_mod_vec:
             switch(RightOperand.type){
-                case value_inst:
-                    LeftOperand->Modules.Variables.push_back(&RightOperand.Values[0]);
-                    return;
-                case value_vec:
-                    LeftOperand->Modules.Variables.reserve(LeftOperand->Modules.Variables.size() + RightOperand.Values.size());
-                    for(VariableModule & Variable : RightOperand.Values){
-                        LeftOperand->Modules.Variables.push_back(&Variable);
-                    }
-                    return;
                 case variable_mod:
                     LeftOperand->Modules.Variables.push_back(RightOperand.Modules.Variables[0]);
                     return;
@@ -5302,7 +5284,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
     auto printMoveRightToLeftError = [](const DataType & leftType, const DataType & rightType, const InstrDescription & CurrentInstr, const string &functionName) { 
         cerr << instructionError(CurrentInstr, functionName)
             << "Cannot move a value of '" << dataTypeToStr(rightType)
-            << "'type to a variable of '" << dataTypeToStr(leftType) << "' type.\n";
+            << "' type to a variable of '" << dataTypeToStr(leftType) << "' type.\n";
     };
     auto printLeftNotInitialized = [](const string &id, const DataType &type, const InstrDescription &CurrentInstr, const string &functionName) { 
         cerr << instructionError(CurrentInstr, functionName)
@@ -5786,6 +5768,21 @@ void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, ContextClas
             moveRightToLeft(CurrentInstr, EngineInstr::move, Variable, NewContext);
             return;
     }
+}
+void ProcessClass::moveToVariable(ObjectMemoryStruct & ObjectMemory, const OutputParameterStruct & Output){
+    ContextClass * Variable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+        LocalToGlobalTranslation[Output.localAddress], Output.variableID, false
+    );
+    if(Variable == nullptr){
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID << "' does not exist.\n";
+        return;
+    }
+    if(Variable->type == null_dt){
+        Variable->type = NewContext.type;   
+    }
+    Variable->isPointingToMember = NewContext.isPointingToMember;
+    Variable->containerIndex = NewContext.containerIndex;
+    moveRightToLeft(CurrentInstr, EngineInstr::move, Variable, NewContext);        
 }
 void ProcessClass::aggregateValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *OwnerLayer,
     AncestorObject *Owner, const EngineClass & Engine, vector<ProcessClass> * Processes
@@ -6654,7 +6651,7 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemorySt
     if(NewContext.Values.size() > 1){
         NewContext.type = value_vec;
     }
-    assignVariable(ObjectMemory, Operation.Output);
+    moveToVariable(ObjectMemory, Operation.Output);
 }
 void ProcessClass::createLiteral(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     NewContext.clear();
@@ -7283,7 +7280,10 @@ void createNewModule(vector <Module> & Container, vector <string> & allIDs, vect
     if(Container.size() + newVectorSize > Container.capacity()){
         PointerRecalculator Recalculator;
         Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-        Container.reserve((Container.size() + newVectorSize) * reservationMultiplier);
+        size_t newCapacity = static_cast<std::size_t>(
+            (Container.size() + newVectorSize) * reservationMultiplier
+        );
+        Container.reserve(newCapacity);
         Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
     }
     string ID = "";
@@ -7404,6 +7404,11 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation, ObjectMe
     return true;
 }
 void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClass & NewValue, OutputParameterStruct & Output){
+    //TODO: Remove this temporary if
+    if(Output.localAddress >= LocalToGlobalTranslation.size()){
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Local address '" << Output.localAddress << "' is out of scope.\n";
+        return;
+    }
     ContextClass * Variable = getVariableByAddress(
         CurrentInstr, ObjectMemory.MemoryMap, LocalToGlobalTranslation[Output.localAddress], Output.variableID, false
     );
@@ -7539,7 +7544,10 @@ void ProcessClass::reserveMemoryForNewLayers(ObjectMemoryStruct & ObjectMemory, 
     Recalculator.findIndexesForLayers(Layers, ObjectMemory, OwnerLayer);
     Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
     Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-    Layers.reserve((Layers.size() + newVectorSize) * reservationMultiplier);
+    size_t newCapacity = static_cast<std::size_t>(
+        (Layers.size() + newVectorSize) * reservationMultiplier
+    );
+    Layers.reserve(newCapacity);
     Recalculator.updatePointersToLayers(Layers, ObjectMemory, OwnerLayer, CurrentInstr);
     Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
     Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
@@ -7563,7 +7571,10 @@ void ProcessClass::reserveMemoryForNewObjects(ObjectMemoryStruct & ObjectMemory,
     PointerRecalculator Recalculator;
     Recalculator.findIndexesForObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject);
     Recalculator.findIndexesForModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
-    CurrentLayer->Objects.reserve((CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier);
+    size_t newCapacity = static_cast<std::size_t>(
+        (CurrentLayer->Objects.size() + newVectorSize) * reservationMultiplier
+    );
+    CurrentLayer->Objects.reserve(newCapacity);
     Recalculator.updatePointersToObjects(Layers, ObjectMemory, Owner, TriggeredObjects, SelectedLayer, SelectedObject, CurrentInstr);
     Recalculator.updatePointersToModules(Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack, ActiveEditableText, CurrentInstr);
     for(AncestorObject & objectIt : OwnerLayer->Objects){
@@ -7633,7 +7644,10 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
                 }
                 PointerRecalculator Recalculator;
                 Recalculator.findIndexesForCameras(Cameras, ObjectMemory, SelectedCamera);
-                Cameras.reserve((Cameras.size() + newVectorSize) * reservationMultiplier);
+                size_t newCapacity = static_cast<std::size_t>(
+                    (Cameras.size() + newVectorSize) * reservationMultiplier
+                );
+                Cameras.reserve(newCapacity);
                 Recalculator.updatePointersToCameras(Cameras, ObjectMemory, SelectedCamera, getID(), focusedProcessID, CurrentInstr);
             }
             for(unsigned i = 0; i < newVectorSize; i++){
@@ -10960,7 +10974,7 @@ void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct &
         buffer = buffer.substr(0, buffer.size() - delimeter.size());
     }
 
-    if(Operation.Output.variableID == ""){
+    if(Operation.Output.type == null_dt){
         cout << buffer;
         cout.flush();
     }
@@ -11632,7 +11646,7 @@ void ProcessClass::printTree(OperationClass & Operation, ObjectMemoryStruct & Ob
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << Operation.Output.variableID << "\n";
     }
-    if(Operation.Output.variableID == ""){
+    if(Operation.Output.type == null_dt){
         cout << buffor;
         return;
     }
@@ -11683,7 +11697,7 @@ void ProcessClass::getSizeOfContext(OperationClass & Operation, ObjectMemoryStru
     NewContext.clear();
     NewContext.type = value_inst;
     NewContext.Values.emplace_back(VariableModule::newInt(size));
-    assignVariable(ObjectMemory, Operation.Output);
+    moveToVariable(ObjectMemory, Operation.Output);
 }
 void ProcessClass::getSubStringFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 3){
@@ -12145,8 +12159,9 @@ void ProcessClass::listOutFiles(OperationClass & Operation, ObjectMemoryStruct &
         }
         buffer += file + " ";
     }
-    if(Operation.Output.variableID == ""){
+    if(Operation.Output.type == null_dt){
         cout << buffer;
+        return;
     }
 
     NewContext.clear();
@@ -12203,8 +12218,9 @@ void ProcessClass::changeWorkingDirectory(OperationClass & Operation, ObjectMemo
     
 }
 void ProcessClass::printWorkingDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
-    if(Operation.Output.variableID == ""){
+    if(Operation.Output.type == null_dt){
         cout << workingDirectory;
+        return;
     }
     NewContext.clear();
     NewContext.type = value_inst;
@@ -12232,7 +12248,7 @@ void ProcessClass::findSimilarStrings(OperationClass & Operation, ObjectMemorySt
     }
 
     bool returnTheLongestCommonPart = false;
-    if(getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, returnTheLongestCommonPart, false));
+    getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, returnTheLongestCommonPart, false);
 
     if(printOutInstructions){
         cout << Operation.instruction << " " << shortenText(pattern, maxLengthOfValuesPrinting) << " ";
@@ -12581,7 +12597,7 @@ bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct &
     return false;
 }
 void ProcessClass::getContextType(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
-    if(Operation.rootParametersSize < 1 || Operation.Output.variableID == ""){
+    if(Operation.rootParametersSize < 1 || Operation.Output.type == null_dt){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
@@ -12608,7 +12624,7 @@ void ProcessClass::getContextType(OperationClass & Operation, ObjectMemoryStruct
     assignVariable(ObjectMemory, Operation.Output);
 }
 void ProcessClass::loadVariableFromMemoryAddress(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
-    if(Operation.rootParametersSize < 1 || Operation.Output.variableID == ""){
+    if(Operation.rootParametersSize < 1 || Operation.Output.type == null_dt){
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }

@@ -24,7 +24,8 @@ vector<string> tokenizeString(string input, char delimeter){
     {
         struct timeval tv;
         if (gettimeofday(&tv, NULL) != 0) {
-            // Handle error
+            cerr << "Error: From time.h: gettimeofday failed.\n";
+            return 0;
         }
         return (unsigned long long) tv.tv_sec * 1000 + (unsigned long long) tv.tv_usec / 1000;
     }

@@ -265,14 +265,13 @@ void TextModule::setCursorPos(vec2d finalPos, vec2d finalSize, const vector<Sing
             columns--;
         }
     }
-    unsigned rowLength = 0, tabCounter = 0, i, rowCursor = cursorPos, onlyTabs = 0, realWidth = 0;
+    unsigned rowLength = 0, tabCounter = 0, i, rowCursor = cursorPos, realWidth = 0;
     for(; rowCursor < text.size(); rowCursor++, tabCounter++, rowLength++){
         if(text[rowCursor] == '\t'){
             for(i = 0; i < tabLength - tabCounter % tabLength; i++){
                 realWidth += al_get_text_width(font, string(" ").c_str());
             }
             rowLength += getCurrentTabLength(tabCounter);
-            onlyTabs += getCurrentTabLength(tabCounter);
             if(tabLength > 0){
                 tabCounter += getCurrentTabLength(tabCounter);
             }

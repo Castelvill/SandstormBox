@@ -24,7 +24,7 @@ end
 
 start startTest()
     access testCaseName [me.id]
-    //print testCaseName " - START\n"
+    print testCaseName " - START\n"
 end
 
 start endTest()

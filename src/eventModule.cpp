@@ -588,7 +588,7 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
         error = "For parameter '" + parameterName + "': ";
         error += "Index " + intToStr(index+0);
         error += " is out of scope (" + intToStr(words.size());
-        error += ").";
+        error += ")";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
@@ -613,6 +613,8 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
             ignoreUndefinedVariable
         );
         if(subError){
+            error = "Failed to access variable '" + words[index].value + "' in the current scope";
+            printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
 
@@ -621,14 +623,14 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
     }
     if(type == 'c'){
         error = "Parameter '" + parameterName + "' (";
-        error += intToStr(index+0) + ") must be a variable.";
+        error += intToStr(index+0) + ") must be a variable";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
     if(words[index].type == TokenType::string_tk){
         if(type != 'a' && type != 's'){
             error = "Parameter '" + parameterName + "' (";
-            error += intToStr(index+0) + ") cannot be a string.";
+            error += intToStr(index+0) + ") cannot be a string";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
@@ -641,14 +643,14 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
     }
     if(type == 's'){
         error = "Parameter '" + parameterName + "' (";
-        error += intToStr(index+0) + ") must be a string.";
+        error += intToStr(index+0) + ") must be a string";
         printError(scriptName, lineNumber, words[0].value, error);
         return true;
     }
     if(words[index].type == TokenType::double_tk){
         if(type == 'i' || type == 'b'){
             error = "Parameter '" + parameterName + "' (";
-            error += intToStr(index+0) + ") cannot have a floating point.";
+            error += intToStr(index+0) + ") cannot have a floating point";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
@@ -689,7 +691,7 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned & li
     }
     error = "Parameter '" + parameterName + "' (";
     error += intToStr(index+0) + ") cannot be of the type '";
-    error += tokenToStr(words[index].type) + "'.";
+    error += tokenToStr(words[index].type) + "'";
     printError(scriptName, lineNumber, words[0].value, error);
     return true;
 }
@@ -1030,8 +1032,6 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
         return true;
     }
-    
-    short variableIndex = 0;
 
     while(words[cursor].type != TokenType::end_expr_tk){
         // [')'], [type, name, ')'], [type, '&', name, ')'], [type, name, ','], [type, '&', name, ',']
@@ -1102,8 +1102,6 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
         }
 
         Parameters.emplace_back(isReference, variableType, localAddress, variableID);
-        
-        ++variableIndex;
     }
     cursor++;
     return false;

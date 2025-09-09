@@ -1,8 +1,9 @@
 CXX := g++
 CXXFLAGS := -fdiagnostics-color=always -g -Wall -std=c++20
+CXXFLAGS_SANITIZE := -fsanitize=address,undefined
 
 # Define the Allegro libraries
-LIBS := -lallegro -lallegro_font -lallegro_ttf -lallegro_image -lallegro_primitives -lallegro_dialog -static-libasan
+LIBS := -lallegro -lallegro_font -lallegro_ttf -lallegro_image -lallegro_primitives -lallegro_dialog
 
 SRC_DIR := src
 SRC := $(SRC_DIR)/vectors.cpp $(SRC_DIR)/usefull.cpp $(SRC_DIR)/primaryModule.cpp $(SRC_DIR)/collisionModule.cpp \

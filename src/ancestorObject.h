@@ -73,7 +73,8 @@ struct InstrParser{
     ReturnType parseFirstLastAllRandom(vector<string> & allAvailableEventIDs);
     ReturnType parseIndex();
     ReturnType parseIndexVec();
-    ReturnType parseAddSubMulDivModPowRandAssert();
+    ReturnType parseAddSubMulDivModPowRand();
+    ReturnType parseAssert();
     ReturnType parseLoad();
     ReturnType parseMove();
     ReturnType parseFindById2();

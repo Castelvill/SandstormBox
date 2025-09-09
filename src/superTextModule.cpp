@@ -1026,7 +1026,8 @@ void SuperTextModule::divideFormattingByCursor(){
 
     //This is the biggest problem
     for(letterIdx = 0; letterIdx < contentEnd; letterIdx++, currentLineLength++){
-        if(line < textLines.size() && letterIdx == lineStarts[line + 1]){
+        //If the current line is not yet the last one and the current letter is the beginning of the new line, then...
+        if(line + 1 < lineStarts.size() && letterIdx == lineStarts[line + 1]){
             line++;
             currentLineLength = 0;
             lineWidth = 0;

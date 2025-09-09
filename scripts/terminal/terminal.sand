@@ -29,14 +29,14 @@ end
 start runAfterInit()
     //cd scripts
 
-    new Objects my_layer 1 "commandLine" commandLine
+    /*new Objects my_layer 1 "commandLine" commandLine
 
     new Primitives commandLine 1 "background" background
     fun background set_type "filled_rectangle"
     fun background add_point 0 0
     fun background add_point 920 40
     fun background set_color 0.0 0.0 0.0 0.9
-    fun background set_pos 0 440
+    fun background set_pos 0 440*/
 
 	run forceRefresh()
 end

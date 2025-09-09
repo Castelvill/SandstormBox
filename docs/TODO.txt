@@ -1,3 +1,6 @@
+-Update changelog.
+-Decide which instruction can create variables - almost none.
+-Investigate: Why are there so many calls to divideFormattingByCursor?
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
 -Fix keyword naming convention.

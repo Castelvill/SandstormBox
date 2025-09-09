@@ -79,11 +79,12 @@ end
 
 start ls
     if (exists(param1) param1 "" == ||)
+        string result ""
         ls param1 result
         ValVec files
         tokenize " " result files
         index me [0 0] super_editable_text EditableText
-        string result ""
+        = result ""
         run lsColoringLoop(EditableText, files)
         = program "_enter"
     else 
@@ -138,7 +139,8 @@ start colorIfNormalFile(SEditText & EditableText)
 	fun EditableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
 end
 start printFileNameOnTerminal(string & file)
-	+ file "  " result
+    string result file
+	+= result "  " 
 	run cout(result)
 end
 

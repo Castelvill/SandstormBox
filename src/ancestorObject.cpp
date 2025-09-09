@@ -2195,20 +2195,20 @@ ReturnType InstrParser::parseIndexVec(){
 
     return ReturnType::OK;
 }
-ReturnType InstrParser::parseAddSubMulDivModPowRandAssert(){
-    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+ReturnType InstrParser::parseAddSubMulDivModPowRand(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 4, lineNumber, scriptName))
         return ReturnType::ERROR;
 
     string error = "";
     
-    if(words[0].instruction == add || words[0].instruction == assert){
+    if(words[0].instruction == add){
         if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            1, 'a', "left", false, false, words[0].instruction == assert
+            1, 'a', "left", false, false, false
         )){ return ReturnType::ERROR; }
         if(Operation->addParameter(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-            2, 'a', "right", false, false, words[0].instruction == assert
+            2, 'a', "right", false, false, false
         )){ return ReturnType::ERROR; }
     }
     else{
@@ -2228,6 +2228,23 @@ ReturnType InstrParser::parseAddSubMulDivModPowRandAssert(){
         if(error.empty()){ return ReturnType::OK; }
         return ReturnType::ERROR;
     }
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseAssert(){
+    if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
+        return ReturnType::ERROR;
+
+    string error = "";
+    
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        1, 'a', "left", false, false, true
+    )){ return ReturnType::ERROR; }
+    if(Operation->addParameter(
+        scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
+        2, 'a', "right", false, false, true
+    )){ return ReturnType::ERROR; }
+
     return ReturnType::OK;
 }
 ReturnType InstrParser::parseLoad(){
@@ -3689,8 +3706,9 @@ ReturnType AncestorObject::parseTokensAndAssembleEvents(const vector<WordStruct>
         case mod:
         case pow_i:
         case rand_int:
+            return instrParser.parseAddSubMulDivModPowRand();
         case assert:
-            return instrParser.parseAddSubMulDivModPowRandAssert();
+            return instrParser.parseAssert();
         case load_i:
             return instrParser.parseLoad();
         case move:
