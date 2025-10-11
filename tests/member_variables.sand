@@ -1,7 +1,7 @@
 import "tests/test_template.sand"
 
+@trigger on_init
 start main()
-    triggers on_init
     run startTest()
     
     var mVar0 30 // Create a member variable for the object that is currently executing this event
@@ -13,8 +13,8 @@ start main()
     assert mVar0 31
 end
 
+@trigger on_init
 start onIdle()
-    triggers on_init
     assert mVar0 31
     run endTest()
 end

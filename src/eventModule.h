@@ -137,7 +137,7 @@ std::pair<unsigned, ReturnType> getLocalAddress(const string & variableId, const
     unsigned & topAddress, bool canAllocateNewVariable = true, bool makeVariableGlobal = false,
     bool makeVariableReference = false, bool forceNewDeclaration = false
 );
-unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned &lineNumber, bool & error,
+unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned lineNumber, bool & error,
     const string & variableID, const DataType & variableType, vector<vector<VariableLocationStruct>> & Scopes,
     vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
     bool canCreateNewVariable, bool ignoreUndefinedVariable
@@ -162,23 +162,28 @@ public:
     
     //Add literal or context. The type will be checked only if the provided word is a literal.
     //Available types: a - anything, v - variable, n - number, b - bool, i - int, d - double, s - string.
-    bool addParameter(const string & scriptName, const unsigned & lineNumber,
+    bool addParameter(const string & scriptName, const unsigned lineNumber,
         string & error, vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
         vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, unsigned index, char type,
         const string & parameterName, bool optional, bool canCreateNewVariable, bool ignoreUndefinedVariable
     );
     void addEmptyParameter();
     bool addLiteralOrVectorOrVariableToParameters(
-        const string &scriptName, const unsigned &lineNumber, string &error, vector<WordStruct> words,
+        const string &scriptName, const unsigned lineNumber, string &error, vector<WordStruct> words,
         vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
         unsigned &index, char type, string name, bool optional, bool canCreateNewVariable, const bool &forbidVectors
     );
     bool addVectorOrVariableToParameters(
-        const string & scriptName, const unsigned & lineNumber, string &error,
+        const string & scriptName, const unsigned lineNumber, string &error,
         vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
         vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
         unsigned &index, char type, string name, bool optional, bool canCreateNewVariable,
         const bool & forbidVectors = false
+    );
+    bool addVectorToParameters(const string & scriptName, const unsigned lineNumber, string &error,
+        vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables,
+        unsigned & topAddress, unsigned &index, char type, const string & name, bool canCreateNewVariable,
+        const bool & forbidVectors
     );
     void addLiteralParameter(const VariableModule & Variable);
 };

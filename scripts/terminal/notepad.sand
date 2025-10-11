@@ -1,9 +1,10 @@
-override additionalUpdate()
+@override
+start additionalUpdate()
     run refreshWindowWithCameraNotepad()
 end
 
+@trigger on_mouse_pressing
 start _checkIfWindowMovedNotepad()
-    triggers on_mouse_pressing
     if (mouse_moved mouse_pressing(0) &&)
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
@@ -11,8 +12,8 @@ start _checkIfWindowMovedNotepad()
     end_if
 end
 
+@trigger on_display_resize
 start checkIfDisplayResizeNotepad()
-    triggers on_display_resize
     if (isMaxed)
         run refreshWindowWithDisplayNotepad()
     end_if
@@ -55,9 +56,8 @@ start resizeObjectWhenNotBorderless(double &sx, double &sy)
     end_if
 end
 
-
+@trigger on_mouse_release
 start resizeObjectWhenMaxed()
-    triggers on_mouse_release
     if (mouse_released(0))
         index my_layer [0 0 1] collision MaxCollision
         if(MaxCollision.release_on)
@@ -73,8 +73,8 @@ start resizeObjectWhenMaxed()
     end_if
 end
 
+@trigger on_key_press
 start resizeObjectWhenSwitchingToBorderlessMode()
-    triggers on_key_press
     if (key_pressed(KEY_F11))
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera

@@ -1,8 +1,8 @@
--Update changelog.
--Decide which instruction can create variables - almost none.
--Investigate: Why are there so many calls to divideFormattingByCursor?
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
+-Changing the position of the cursor in the text should update currentLine and currentChar parameters in the editor's command line - expand access instruction.
+-Remove the need to manually add points to the primitives, unless we want to add polygons - in that case adding points should be optional and all of them will be used only if the primitive is of "polygon" type.
+-Decide which instruction can create variables - only those with single possible output type.
 -Fix keyword naming convention.
 -Fix terminal: mover, note, test, edit.
 -Use test program in the terminal to find new bugs.
@@ -31,8 +31,8 @@
 -Use Shunting Yard Algorithm to convert normal conditional expression to Reverse Polish Notation.
 -Use curly brackets instead of "end", "end_if" and "end_while"
 -Create a translation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
--Fuse "triggers" instruction with event declaration with syntax: "event<triggers>(args)", but don't add triggers based on pre-defined event names like "start onInit()" or "start onKeyPress()", because then you won't be able to easily test multiple different on_init events. Another way would be to add both ideas: <triggers> and OVERRIDING predefined events.
 -Fix creating variables in interpreter.sand.
+-Separate Sand compiler from the ancestorObject.cpp and event.cpp.
 
 -Update documentation.
 -Optimize EditableSuperText.
@@ -102,7 +102,6 @@ MILESTONE: Create a new scripting language (a wrapper for the previous one).
 -Add "unload_bitmaps", "unload_fonts", "unload_bitmap bitmap" and "unload_font font" instructions.
 -Add "shell"/"instruction" MODE to the Terminal.
 -Use draw_vertical_gradient_rect and draw_horizontal_gradient_rect in a new module that will have a vector of colors.
--Add a glowing "backdoor" that will disable all each_iteration triggers to fight the infinite loops.
 -Finish implementing "new_proc" instruction - new processes that overflow the capacity of the vector, will be added to a buffer vector in order to be mutable.
 -Upgrade "edit_proc" instruction - process can be found in a normal vector or in a vector buffer of new processes.
 -Add deleting processes.

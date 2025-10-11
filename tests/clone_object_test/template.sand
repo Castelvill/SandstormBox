@@ -1,6 +1,5 @@
+@trigger on_init
 start onInit()
-    triggers on_init
-
     access myName [me.id]
     if(myName "Template" ==)
         assert 1 0

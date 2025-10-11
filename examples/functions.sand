@@ -2,9 +2,8 @@ start println(Val & output)
     print output "\n"
 end
 
+@trigger on_init
 start main()
-    triggers on_init
-
     string hello "Hello from a function!";
     println(hello)
 

@@ -1,0 +1,54 @@
+import "tests/test_template.sand"
+
+@trigger on_init
+start main()
+    run startTest()
+
+    //normal definitions from constants
+
+    bool a true
+    assert a true
+    bool a_0 false
+    assert a_0 false
+
+    int b 100
+    assert b 100
+
+    double c 6532.432
+    assert c 6532.432
+
+    string d "abcdef"
+    assert d "abcdef"
+
+    //casting to other types
+    
+    //to bool
+
+    int int_0 1000
+    bool int_to_bool int_0
+    assert int_to_bool true
+
+    int int_1 0
+    bool int_to_bool_2 int_1
+    assert int_to_bool_2 false
+
+    int int_2 -500
+    bool int_to_bool_3 int_2
+    assert int_to_bool_3 false
+
+    //to string
+
+    bool bool_l false
+    string bool_to_string bool_l
+    assert bool_to_string "false"
+
+    int int_l 10
+    string int_to_str int_l
+    assert int_to_str "10"
+
+    double double_l 791.43
+    string double_to_str double_l
+    assert double_to_str "791.430000"
+
+    run endTest()
+end

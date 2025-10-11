@@ -1,6 +1,5 @@
+@trigger on_init
 start main()
-    triggers on_init
-
     int windowWidth 640
     int windowHeight 480
     create_display windowWidth windowHeight windowWidth windowHeight

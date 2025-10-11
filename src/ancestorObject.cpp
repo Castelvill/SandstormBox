@@ -40,8 +40,8 @@ vector<string> removeComments(const vector<string> & lines){
     return newLines;
 }
 inline vector<string> builtInScriptInterpreter = {
+    "@trigger each_iteration",
     "start interpreter",
-    "triggers each_iteration",
     "pwd path",
     "print path \">> \"",
     "console_input input",
@@ -49,8 +49,8 @@ inline vector<string> builtInScriptInterpreter = {
     "end"
 };
 inline vector<string> builtInScriptHello = {
+    "@trigger on_init",
     "start interpreter",
-    "triggers on_init",
     "print \"Hello, World!\n\"",
     "exit",
     "end"
@@ -520,7 +520,7 @@ VariableModule AncestorObject::getAttributeValue(const AttributeType &attribute,
             NewValue.setBool(canDrawSelectionBorder);
             break;
         default:
-            cerr << "Error: In " << __PRETTY_FUNCTION__ <<
+            cerr << "Error: In " << __FUNCTION__ <<
                 ":\n" << NEW_LINE_PADDING << "Attribute '" << attributeToStr(attribute) << "' is not valid.\n";
             NewValue.setBool(false);
             break;
@@ -1425,7 +1425,7 @@ ReturnType createExpression(const vector<WordStruct> & words, unsigned & cursor,
 bool createEvent(const string & scriptName, const unsigned & lineNumber, const string & layerID,
     const string & objectID, vector <EventModule> & EventContainer, vector <string> & EventContainerIDs,
     EventModule & NewEvent, const vector<WordStruct> & words,
-    ScopeType & Scopes, unsigned & topAddress
+    ScopeType & Scopes, unsigned & topAddress, bool override
 ){
     string eventID = "";
     
@@ -1444,7 +1444,7 @@ bool createEvent(const string & scriptName, const unsigned & lineNumber, const s
     eventID = words[1].value;
     
     if(eventID[0] != '_' && isStringInVector(EventContainerIDs, eventID)){
-        if(words[0].value == "override"){
+        if(override){
             removeFromStringVector(EventContainerIDs, eventID);
             removeModuleInstanceByID(EventContainer, eventID);
         }
@@ -1661,38 +1661,38 @@ ReturnType InstrParser::parseCompilerBreakpoint(bool & triggerBreakpoint){
     cerr << "Warning: The 'compiler_breakpoint' instruction can be used only in the debugger.\n";
     return ReturnType::OK;
 }
-ReturnType InstrParser::parseStartAndOverride(vector<string> & allAvailableEventIDs, const string & layerId, const string & objectId,
-    vector<EventModule> &eventContainer, vector<string> &eventContainerIds
-){
-    if(createEvent(scriptName, lineNumber, layerId, objectId, eventContainer, eventContainerIds, NewEvent, words, Scopes, topAddress))
-        return ReturnType::ERROR;
-    allAvailableEventIDs.clear();
-    allAvailableEventIDs.push_back(NewEvent.getID());
-    return ReturnType::OK;
-}
-ReturnType InstrParser::parseEnd(vector<EventModule> &eventContainer){
-    if(NewEvent.isInline){
-        NewEvent.Parameters.clear();
-    }
-    Scopes.pop_back(); //Remove the scope of the last event
-    eventContainer.push_back(NewEvent);
-    NewEvent = EventModule();
-    return ReturnType::OK;
-
-}
-ReturnType InstrParser::parseTriggers(){
-    size_t cursor = 1;
-    if(words.size() < 2){
+ReturnType InstrParser::parseAnnotations(){
+    if(words.size() < 1){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
-            << ": Instruction \'" << words[0].value << "\' requires at least 2 parameters.\n";
+            << ": Invalid annotation syntax. Correct syntax is: @*annotation_name* [args...]\n";
         return ReturnType::ERROR;
     }
+    if(words[1].value == "trigger"){
+        return parseTriggersAnnotation();
+    }
+    else if(words[1].value == "override"){
+        return parseOverrideAnnotation();
+    }
+    else{
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Unknown annotation: '" << words[1].value << "'.\n";
+        return ReturnType::ERROR;
+    }
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseOverrideAnnotation(){
+    annotations.override = true;
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseTriggersAnnotation(){
+    cursor = 2;
     while(cursor < words.size()){
         if(words[cursor].type != TokenType::identifier_tk){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the '" << words[0].value << "' instruction: Parameter " << cursor << " is not a context.\n";
+                << ": In the annotation '" << words[1].value << "': Parameter " << cursor << " is not a context.\n";
             return ReturnType::ERROR;
         }
         if(words[cursor].type != TokenType::empty_tk){
@@ -1704,12 +1704,45 @@ ReturnType InstrParser::parseTriggers(){
                     << words[cursor].value << "' is not a valid trigger.\n";
                 return ReturnType::ERROR;
             }
-            NewEvent.primaryTriggerTypes.push_back(NewTrigger);
-            NewEvent.isFunction = false;
+            annotations.triggersForNextEvent.push_back(NewTrigger);
         }
         cursor++;
     }
     return ReturnType::OK;
+}
+ReturnType InstrParser::parseStartAndOverride(vector<string> & allAvailableEventIDs, const string & layerId, const string & objectId,
+    vector<EventModule> &eventContainer, vector<string> &eventContainerIds
+){
+    if(createEvent(scriptName, lineNumber, layerId, objectId, eventContainer, eventContainerIds, NewEvent,
+        words, Scopes, topAddress, annotations.override
+    ))
+        return ReturnType::ERROR;
+    allAvailableEventIDs.clear();
+    allAvailableEventIDs.push_back(NewEvent.getID());
+
+    //handle annotations
+    annotations.override = false;
+    if(!annotations.triggersForNextEvent.empty()){
+        NewEvent.primaryTriggerTypes.insert(
+            NewEvent.primaryTriggerTypes.begin(),
+            annotations.triggersForNextEvent.begin(),
+            annotations.triggersForNextEvent.end()
+        );
+        annotations.triggersForNextEvent.clear();
+        NewEvent.isFunction = false;
+    }
+    
+    return ReturnType::OK;
+}
+ReturnType InstrParser::parseEnd(vector<EventModule> &eventContainer){
+    if(NewEvent.isInline){
+        NewEvent.Parameters.clear();
+    }
+    Scopes.pop_back(); //Remove the scope of the last event
+    eventContainer.push_back(NewEvent);
+    NewEvent = EventModule();
+    return ReturnType::OK;
+
 }
 ReturnType InstrParser::parseEmpty(){
     OperationClass * operation = nullptr;
@@ -3626,18 +3659,13 @@ ReturnType InstrParser::parseAutoRun(){
 }
 
 ReturnType AncestorObject::parseTokensAndAssembleEvents(const vector<WordStruct> & words, const string & scriptName,
-    unsigned lineNumber, ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint,
-    EventModule & NewEvent, vector<string> & allAvailableEventIDs, BranchingStackStruct & BranchingStack
+    unsigned lineNumber, ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint, EventModule & NewEvent,
+    vector<string> & allAvailableEventIDs, BranchingStackStruct & BranchingStack, Annotations& annotations
 ){
-    /*unsigned cursor = 1;
-    string error;
-    OperationClass * Operation = nullptr;
-    const vector<WordStruct> runToken = {WordStruct(TokenType::keyword_tk, "run", false)};*/
-
     switch(words[0].instruction){
         case EngineInstr::import:
+        case EngineInstr::annotation_i:
         case EngineInstr::start:
-        case EngineInstr::override:
             break;
         default:
             if(Scopes.size() < 2){
@@ -3649,20 +3677,19 @@ ReturnType AncestorObject::parseTokensAndAssembleEvents(const vector<WordStruct>
             break;
     }
 
-    InstrParser instrParser(words, scriptName, lineNumber, NewEvent, Scopes, topAddress);
+    InstrParser instrParser(words, scriptName, lineNumber, NewEvent, Scopes, topAddress, annotations);
 
     switch(words[0].instruction){
         case import:
-            return ReturnType::OK;
+        return ReturnType::OK;
         case compiler_breakpoint:
             return instrParser.parseCompilerBreakpoint(triggerBreakpoint);
+        case annotation_i:
+            return instrParser.parseAnnotations();
         case start:
-        case override:
             return instrParser.parseStartAndOverride(allAvailableEventIDs, layerID, ID, EventContainer, eventContainerIDs);
         case end_i:
             return instrParser.parseEnd(EventContainer);
-        case triggers:
-            return instrParser.parseTriggers();
         case if_i:
             return instrParser.parseIf(BranchingStack);
         case else_if:
@@ -3930,6 +3957,7 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
 
     BranchingStackStruct BranchingStack;
     CodeGenerator codeGenerator;
+    Annotations annotations;
 
     for(string line : code){
         lineNumber++;
@@ -3989,7 +4017,7 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
             for(auto finalWords : preprocessedWords){
                 ReturnType result = parseTokensAndAssembleEvents(
                     finalWords, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
-                    NewEvent, allAvailableEventIDs, BranchingStack
+                    NewEvent, allAvailableEventIDs, BranchingStack, annotations
                 );
                 if(result == ReturnType::ERROR){
                     cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -4001,7 +4029,7 @@ ReturnType AncestorObject::assembleEvents(vector<string> & code, const string & 
         else{
             ReturnType result = parseTokensAndAssembleEvents(
                 words, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
-                NewEvent, allAvailableEventIDs, BranchingStack
+                NewEvent, allAvailableEventIDs, BranchingStack, annotations
             );
             if(result == ReturnType::ERROR){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -4072,8 +4100,8 @@ inline void printEmptyFileWarning(string scriptName, string functionName){
 }
 inline void printBasicFile(){
     cout << "Basic \"Hello World\" program:\n\n"
+        << "@trigger on_init\n"
         << "start helloWorld\n"
-        << "\ttriggers on_init\n"
         << "\tprint \"Hello, World!\\n\"\n"
         << "\texit\n"
         << "end\n\n";
@@ -4352,8 +4380,8 @@ void AncestorObject::injectInstructions(bool clearEvents, vector<string> instruc
     }
     
     preprocessed = removeComments(preprocessed);
-    preprocessed.insert(preprocessed.begin(), "triggers each_iteration");
     preprocessed.insert(preprocessed.begin(), "start _");
+    preprocessed.insert(preprocessed.begin(), "@trigger each_iteration");
     preprocessed.emplace_back("delete_this_event");
     preprocessed.emplace_back("end");
     size_t preAssemblyEventCount = EventContainer.size();

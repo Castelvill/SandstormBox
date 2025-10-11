@@ -1,17 +1,14 @@
 #include "primaryModule.h"
 
 EngineInstr strToInstr(const string & instruction, bool printError){
+    if(instruction == "@"){
+        return EngineInstr::annotation_i;
+    }
     if(instruction == "start"){
         return EngineInstr::start;
     }
-    if(instruction == "override"){
-        return EngineInstr::override;
-    }
     if(instruction == "end"){
         return EngineInstr::end_i;
-    }
-    if(instruction == "triggers"){
-        return EngineInstr::triggers;
     }
     if(instruction == "run"){
         return EngineInstr::run;
@@ -485,14 +482,12 @@ string instrToStr(const EngineInstr & instruction){
     switch(instruction){
         case null:
             return "null";
+        case annotation_i:
+            return "@";
         case start:
             return "start";
-        case override:
-            return "override";
         case end_i:
             return "end";
-        case triggers:
-            return "triggers";
         case run:
             return "run";
         case if_i:
@@ -2718,6 +2713,8 @@ string attributeToStr(const AttributeType &attribute){
         case cursor_pos_y: return "cursor_pos_y";
         case min_cursor_pos: return "min_cursor_pos";
         case max_cursor_pos: return "max_cursor_pos";
+        case wrapped_lines: return "wrapped_lines";
+        case current_line: return "current_line";
         case scroll_shift_x: return "scroll_shift_x";
         case scroll_shift_y: return "scroll_shift_y";
         case thumb_pos_x: return "thumb_pos_x";
@@ -3312,6 +3309,8 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "cursor_pos_y") return cursor_pos_y;
     else if(attribute == "min_cursor_pos") return min_cursor_pos;
     else if(attribute == "max_cursor_pos") return max_cursor_pos;
+    else if(attribute == "wrapped_lines") return wrapped_lines;
+    else if(attribute == "current_line") return current_line;
     else if(attribute == "scroll_shift_x") return scroll_shift_x;
     else if(attribute == "scroll_shift_y") return scroll_shift_y;
     else if(attribute == "thumb_pos_x") return thumb_pos_x;

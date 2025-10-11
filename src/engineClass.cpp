@@ -180,7 +180,6 @@ void getDesktopResolution(int adapter, int *w, int *h){
     *w = info.x2 - info.x1;
     *h = info.y2 - info.y1;
 }
-
 void EngineClass::initAllegro(){
     al_init();
     al_init_primitives_addon();
@@ -224,59 +223,74 @@ void EngineClass::initAllegro(){
     al_start_timer(timer);
 
     if(loadConfig){
-        std::ifstream File(EXE_PATH+".config");
-        if(File){
-            string buffer;
-            vector<string> words;
-            while(getline(File, buffer)){
-                if(buffer == ""){
-                    continue;
-                }
-                words = tokenizeString(buffer, ' ');
-                if(words.size() == 0 || words[0][0] == '#' || words[0] == ""){
-                    continue;
-                }
-                if(words[0] == "SAMPLES"){
-                    if(words.size() > 1){
-                        samples = atoi(words[1].c_str());
-                    }
-                    else{
-                        cerr << "Error: In " << __FUNCTION__ << ": SAMPLES command requires one numeric argument (0-4 recommended).\n";
-                    }
-                }
-                else if(words[0] == "ENABLE_al_set_clipboard_text"){
-                    ENABLE_al_set_clipboard_text = true;
-                }
-                else if(words[0] == "ENABLE_NOT_ASCII"){
-                    allowNotAscii = true;
-                }
-                else if(words[0] == "EXECUTE"){
-                    if(words.size() > 1){
-                        initFiles.push_back(words[1]);
-                    }
-                    else{
-                        cerr << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one string argument.\n";
-                    }
-                }
-                else if(words[0] == "MOUSE_TEXT_SKIP"){
-                    if(words.size() > 1){
-                        mouseTextSelectionSkip = atoi(words[1].c_str());
-                        if(mouseTextSelectionSkip == 0){
-                            cerr << "Error: In " << __FUNCTION__ << ": 'mouseTextSelectionSkip' requires one numeric argument bigger than 0.\n";
-                            mouseTextSelectionSkip = 1;
-                        }
-                    }
-                    else{
-                        cerr << "Error: In " << __FUNCTION__ << ": '" << words[0] << "' command requires one numeric argument bigger than 0.\n";
-                    }
-                }
-                else{
-                    cerr << "Error: In " << __FUNCTION__ << ": Configuration option '" << words[0] << "' is not valid.\n";
-                }
+        loadSettingFromConfig();
+    }
+}
+void EngineClass::loadSettingFromConfig(){
+    std::ifstream File(EXE_PATH+".config");
+
+    if(!File){
+        File.close();
+        return;
+    }
+
+    string buffer;
+    vector<string> words;
+    while(getline(File, buffer)){
+        if(buffer == ""){
+            continue;
+        }
+        words = tokenizeString(buffer, ' ');
+        if(words.size() == 0 || words[0][0] == '#' || words[0] == ""){
+            continue;
+        }
+        if(words[0] == "SAMPLES"){
+            if(words.size() > 1){
+                samples = atoi(words[1].c_str());
+            }
+            else{
+                cerr << "Error: In " << __FUNCTION__ << ": SAMPLES command requires one numeric argument (0-4 recommended).\n";
             }
         }
-        File.close();
+        else if(words[0] == "ENABLE_al_set_clipboard_text"){
+            ENABLE_al_set_clipboard_text = true;
+        }
+        else if(words[0] == "ENABLE_NOT_ASCII"){
+            allowNotAscii = true;
+        }
+        else if(words[0] == "EXECUTE"){
+            if(words.size() > 1){
+                initFiles.push_back(words[1]);
+            }
+            else{
+                cerr << "Error: In " << __FUNCTION__ << ": EXECUTE command requires one string argument.\n";
+            }
+        }
+        else if(words[0] == "MOUSE_TEXT_SKIP"){
+            if(words.size() > 1){
+                mouseTextSelectionSkip = atoi(words[1].c_str());
+                if(mouseTextSelectionSkip == 0){
+                    cerr << "Error: In " << __FUNCTION__ << ": 'mouseTextSelectionSkip' requires one numeric argument bigger than 0.\n";
+                    mouseTextSelectionSkip = 1;
+                }
+            }
+            else{
+                cerr << "Error: In " << __FUNCTION__ << ": '" << words[0] << "' command requires one argument.\n";
+            }
+        }
+        else if(words[0] == "WINDOW_POSITION"){
+            if(words.size() > 2){
+                displayStartingPosition.set(atoi(words[1].c_str()), atoi(words[2].c_str()));
+            }
+            else{
+                cerr << "Error: In " << __FUNCTION__ << ": '" << words[0] << "' command requires two arguments: position_x and position_y.\n";
+            }
+        }
+        else{
+            cerr << "Error: In " << __FUNCTION__ << ": Configuration option '" << words[0] << "' is not valid.\n";
+        }
     }
+    File.close();
 }
 void EngineClass::createDisplay(){
     if(display != nullptr){
@@ -298,7 +312,7 @@ void EngineClass::createDisplay(){
 
     display = al_create_display(displaySize.x, displaySize.y);
     al_set_window_title(display, windowTitle.c_str());
-    al_set_window_position(display, 0, 0);
+    al_set_window_position(display, displayStartingPosition.x, displayStartingPosition.y);
 
     al_register_event_source(eventQueue, al_get_display_event_source(display));
 

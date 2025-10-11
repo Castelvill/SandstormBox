@@ -1,6 +1,5 @@
+@trigger on_init
 start inject
-    triggers on_init
-
     index Layers [0 1] object Terminal
     index Terminal [0 0] super_editable_text EditableText
 

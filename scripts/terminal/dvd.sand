@@ -1,6 +1,5 @@
+@trigger each_iteration
 start putRectangleOnScreen
-    triggers each_iteration
-
     var DISPLAY_W 640
     var DISPLAY_H 480
     access display_w [display_w]
@@ -39,8 +38,8 @@ start putRectangleOnScreen
 	delete_this_event
 end
 
+@trigger on_display_resize
 start updateFiledWithResize
-    triggers on_display_resize
     access display_w [display_w]
     access display_h [display_h]
     = DISPLAY_W display_w
@@ -50,9 +49,8 @@ start updateFiledWithResize
 	= y 10.0
 end
 
+@trigger each_second
 start printFPS
-    triggers each_second
-
     all me _ _ STexts _ _ _ Texts
     find_by_id_2 Texts "Fps" FpsText
     access fpsValue [fps]
@@ -63,7 +61,7 @@ start printFPS
 end
 
 start moveRectangle
-	triggers each_iteration
+	@trigger each_iteration
     + x SIZE_X xs
     + y SIZE_Y ys
     if(x 0 <= xs DISPLAY_W >= ||)

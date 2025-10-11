@@ -2,8 +2,8 @@
 /*
     import "tests/test_template.sand"
 
+    @trigger on_init
     start main()
-        triggers on_init
         run startTest()
 
         //Here goes the testing code
@@ -12,9 +12,8 @@
     end
 */
 
-
+@trigger on_init
 start initTest()
-    triggers on_init
     env can_exit_on_idle 1
     access testCaseName [me.id]
     if(testCaseName "Init" ==)
@@ -24,7 +23,7 @@ end
 
 start startTest()
     access testCaseName [me.id]
-    print testCaseName " - START\n"
+    //print testCaseName " - START\n"
 end
 
 start endTest()

@@ -1,6 +1,5 @@
+@trigger on_init
 start onInit
-    triggers on_init
-
     //edit_proc print_instructions 1
     edit_proc auto_print_stack 0
 
@@ -54,9 +53,9 @@ start onInit
     vec int nonKittenPos []
 end
 
+@trigger on_key_press
+@trigger each_iteration
 start eachIteration
-    triggers on_key_press
-    //triggers each_iteration
     index me [0 0] super_text TextField
     
     run startGame()

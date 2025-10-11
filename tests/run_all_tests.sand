@@ -1,5 +1,5 @@
+@trigger on_init
 start testRunnerEvent()
-    triggers on_init
     env can_exit_on_idle 1
     edit_proc print_instructions 0
 
@@ -9,10 +9,19 @@ start testRunnerEvent()
     print "============================================\n"
     print "RUNNING ALL TESTS - START\n"
     print "============================================\n"
-    
-    //scheduleTest("assert")
 
-    string path "access"
+    string path ""
+
+    = path "assert"
+    scheduleTest(path)
+
+    = path "literals_and_casting"
+    scheduleTest(path) 
+
+    = path "arithmetics"
+    scheduleTest(path) 
+
+    = path "access"
     scheduleTest(path)
 
     = path "if_statements"
@@ -46,6 +55,9 @@ start testRunnerEvent()
     scheduleTest(path)
 
     = path "recursion"
+    scheduleTest(path)
+
+    = path "recursion_1"
     scheduleTest(path)
     
     = path "declaration"
@@ -86,8 +98,8 @@ start scheduleTest(string & path)
     ++ allTestsCount
 end
 
+@trigger on_idle
 start on_idle()
-    triggers on_idle
     print "============================================\n"
     print "RUNNING ALL TESTS - " passedTests "/" allTestsCount " PASSED\n"
     print "============================================\n"

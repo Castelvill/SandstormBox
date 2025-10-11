@@ -1,8 +1,27 @@
-start main()
+// TODO
 
-    triggers on_init
+/*stop_assembling
+start_printing_tokens
+resume_assembling
+stop_printing_tokens*/
+
+int fn()
+	return 5
+end
+
+@trigger on_init
+start
+	int result fn()
+	assert result 5
+end
+
+
+
+
 
 /*
+@trigger on_init
+start main()
     int v0 0
     = v0 return15()
     assert v0 15
@@ -23,9 +42,8 @@ start main()
     int arg_v4_0 543
     = v4 passThrough(passThrough(arg_v4_0))
     assert v4 543
-*/
 end
-
+*/
 
 
 /*

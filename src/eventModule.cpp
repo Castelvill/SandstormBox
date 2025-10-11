@@ -570,7 +570,7 @@ string ParameterStruct::getVariableIdOrValue(){
             return "(bad type)";
     }
 }
-bool OperationClass::addParameter(const string & scriptName, const unsigned & lineNumber,
+bool OperationClass::addParameter(const string & scriptName, const unsigned lineNumber,
     string & error, vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
     vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, unsigned index, char type,
     const string & parameterName, bool optional, bool canCreateNewVariable, bool ignoreUndefinedVariable
@@ -702,7 +702,7 @@ void OperationClass::addEmptyParameter(){
     ++rootParametersSize;
 }
 bool OperationClass::addLiteralOrVectorOrVariableToParameters(
-    const string &scriptName, const unsigned &lineNumber, string &error, vector<WordStruct> words,
+    const string &scriptName, const unsigned lineNumber, string &error, vector<WordStruct> words,
     vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
     unsigned &index, char type, string name, bool optional, bool canCreateNewVariable, const bool &forbidVectors
 ){
@@ -760,7 +760,7 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(
         index++;
         return false;
     }
-    if(words[index].type == TokenType::string_tk){
+    else if(words[index].type == TokenType::string_tk){
         if(type != 's' && type != 'a'){
             error = "Parameter '" + name + "' (";
             error += intToStr(index+0) + ") of the type '" + type;
@@ -782,18 +782,18 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(
         index, type, name, optional, canCreateNewVariable, forbidVectors
     );
 }
+inline void printError(const string & scriptName, unsigned lineNumber, const string & instruction, const string & error){
+    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+        << NEW_LINE_PADDING << "In " << __FUNCTION__
+        << ": In the '" << instruction << "' instruction: " << error << "\n";
+};
 bool OperationClass::addVectorOrVariableToParameters(
-    const string & scriptName, const unsigned & lineNumber, string &error,
+    const string & scriptName, const unsigned lineNumber, string &error,
     vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
     vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
     unsigned &index, char type, string name, bool optional, bool canCreateNewVariable,
     const bool & forbidVectors
 ){
-    auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
-        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << NEW_LINE_PADDING << "In " << __FUNCTION__
-            << ": In the '" << instruction << "' instruction: " << error << "\n";
-    };
     error = "";
     if(index >= words.size()){
         if(optional){
@@ -836,134 +836,140 @@ bool OperationClass::addVectorOrVariableToParameters(
         return false;
     }
 
-    { //TODO: To function
-
-        if(words[index].type != TokenType::open_brackets_tk){
-            error = "Parameter '" + name + "' (";
-            error += intToStr(index+0) + ") must be a vector or a context. Vectors must begin and end with square brackets.";
-            printError(scriptName, lineNumber, words[0].value, error);
-            return true;
-        }
-
-        if(forbidVectors){
-            error = "Cannot pass a vector to the parameter '" + name + "' (";
-            error += intToStr(index) + ").";
-            printError(scriptName, lineNumber, words[0].value, error);
-            return true;
-        }
-
-        index++;
-        if(index >= words.size()){
-            error = "Failed to build a vector for the parameter '" + name + "' (";
-            error += intToStr(index+0) + ").";
-            printError(scriptName, lineNumber, words[0].value, error);
-            return true;
-        }
-
-        Parameters.emplace_back(ParameterStruct());
-        Parameters.back().treeLevel = 0;
-        Parameters.back().type = 'v';
-        ++rootParametersSize;
-        while(index < words.size() && words[index].type != TokenType::close_brackets_tk){
-            if(words[index].type == TokenType::identifier_tk){
-                Parameters.emplace_back(ParameterStruct());
-                Parameters.back().treeLevel = 1;
-                Parameters.back().type = 'c';
-                Parameters.back().variableID = words[index].value;
-                Parameters.back().negateVariable = words[index].negateVariable;
-
-                bool subError = false;
-                Parameters.back().localAddress = findExistingVariableOrCreateNew(
-                    scriptName, lineNumber, subError, words[index].value, any_dt, Scopes,
-                    NewLocalVariables, topAddress, canCreateNewVariable, false
-                );
-                if(subError){
-                    return true;
-                }
-
-                index++;
-                continue;
-            }
-            if(type == 'c'){
-                error = "Parameter '" + name + "' (";
-                error += intToStr(index+0) + ") must be a variable.";
-                printError(scriptName, lineNumber, words[0].value, error);
-                return true;
-            }
-            if(words[index].type == TokenType::string_tk){
-                if(type != 'a' && type != 's'){
-                    error = "Parameter '" + name + "' (";
-                    error += intToStr(index+0) + ") cannot be a string.";
-                    printError(scriptName, lineNumber, words[0].value, error);
-                    return true;
-                }
-                Parameters.emplace_back(ParameterStruct());
-                Parameters.back().treeLevel = 1;
-                Parameters.back().type = 'l';
-                Parameters.back().Literal.setString(words[index].value);
-                index++;
-                continue;
-            }
-            if(type == 's'){
-                error = "Parameter '" + name + "' (";
-                error += intToStr(index+0) + ") must be a string.";
-                printError(scriptName, lineNumber, words[0].value, error);
-                return true;
-            }
-            if(words[index].type == TokenType::double_tk){
-                Parameters.emplace_back(ParameterStruct());
-                Parameters.back().treeLevel = 1;
-                Parameters.back().type = 'l';
-                Parameters.back().Literal.setDouble(cstod(words[index].value, error));
-                if(error.size() > 0){
-                    printError(scriptName, lineNumber, words[0].value, error);
-                    return true;
-                }
-                index++;
-                continue;
-            }
-            if(words[index].type == TokenType::int_tk){
-                Parameters.emplace_back(ParameterStruct());
-                Parameters.back().treeLevel = 1;
-                Parameters.back().type = 'l';
-                Parameters.back().Literal.setInt(cstoi(words[index].value, error));
-                if(error.size() > 0){
-                    printError(scriptName, lineNumber, words[0].value, error);
-                    return true;
-                }
-                index++;
-                continue;
-            }
-            if(words[index].type == TokenType::bool_tk){
-                Parameters.emplace_back(ParameterStruct());
-                Parameters.back().treeLevel = 1;
-                Parameters.back().type = 'l';
-                Parameters.back().Literal.setBool(cstoi(words[index].value, error));
-                if(error.size() > 0){
-                    printError(scriptName, lineNumber, words[0].value, error);
-                    return true;
-                }
-                index++;
-                continue;
-            }
-            error = "Parameter '" + name + "' (";
-            error += intToStr(index+0) + ") cannot be of the type '";
-            error += tokenToStr(words[index].type) + "'.";
-            printError(scriptName, lineNumber, words[0].value, error);
-            return true;
-        }
-
-        if(index >= words.size()){
-            error = "There is no closing square bracket in the parameter '" + name + "' (";
-            error += intToStr(index+0) + ").";
-            printError(scriptName, lineNumber, words[0].value, error);
-            return true;
-        }
-
-        index++;
-        return false;
-
+    return addVectorToParameters(scriptName, lineNumber, error, words, Scopes, NewLocalVariables, topAddress,
+        index, type, name, canCreateNewVariable, forbidVectors
+    );
+}
+bool OperationClass::addVectorToParameters(const string & scriptName, const unsigned lineNumber, string &error,
+    vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables,
+    unsigned & topAddress, unsigned &index, char type, const string & name, bool canCreateNewVariable,
+    const bool & forbidVectors
+){ 
+    if(words[index].type != TokenType::open_brackets_tk){
+        error = "Parameter '" + name + "' (";
+        error += intToStr(index+0) + ") must be a vector or a context. Vectors must begin and end with square brackets.";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
     }
+
+    if(forbidVectors){
+        error = "Cannot pass a vector to the parameter '" + name + "' (";
+        error += intToStr(index) + ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+
+    index++;
+    if(index >= words.size()){
+        error = "Failed to build a vector for the parameter '" + name + "' (";
+        error += intToStr(index+0) + ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+
+    Parameters.emplace_back(ParameterStruct());
+    Parameters.back().treeLevel = 0;
+    Parameters.back().type = 'v';
+    ++rootParametersSize;
+    while(index < words.size() && words[index].type != TokenType::close_brackets_tk){
+        if(words[index].type == TokenType::identifier_tk){
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'c';
+            Parameters.back().variableID = words[index].value;
+            Parameters.back().negateVariable = words[index].negateVariable;
+
+            bool subError = false;
+            Parameters.back().localAddress = findExistingVariableOrCreateNew(
+                scriptName, lineNumber, subError, words[index].value, any_dt, Scopes,
+                NewLocalVariables, topAddress, canCreateNewVariable, false
+            );
+            if(subError){
+                return true;
+            }
+
+            index++;
+            continue;
+        }
+        if(type == 'c'){
+            error = "Parameter '" + name + "' (";
+            error += intToStr(index+0) + ") must be a variable.";
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        if(words[index].type == TokenType::string_tk){
+            if(type != 'a' && type != 's'){
+                error = "Parameter '" + name + "' (";
+                error += intToStr(index+0) + ") cannot be a string.";
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'l';
+            Parameters.back().Literal.setString(words[index].value);
+            index++;
+            continue;
+        }
+        if(type == 's'){
+            error = "Parameter '" + name + "' (";
+            error += intToStr(index+0) + ") must be a string.";
+            printError(scriptName, lineNumber, words[0].value, error);
+            return true;
+        }
+        if(words[index].type == TokenType::double_tk){
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'l';
+            Parameters.back().Literal.setDouble(cstod(words[index].value, error));
+            if(error.size() > 0){
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            index++;
+            continue;
+        }
+        if(words[index].type == TokenType::int_tk){
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'l';
+            Parameters.back().Literal.setInt(cstoi(words[index].value, error));
+            if(error.size() > 0){
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            index++;
+            continue;
+        }
+        if(words[index].type == TokenType::bool_tk){
+            Parameters.emplace_back(ParameterStruct());
+            Parameters.back().treeLevel = 1;
+            Parameters.back().type = 'l';
+            Parameters.back().Literal.setBool(cstoi(words[index].value, error));
+            if(error.size() > 0){
+                printError(scriptName, lineNumber, words[0].value, error);
+                return true;
+            }
+            index++;
+            continue;
+        }
+        error = "Parameter '" + name + "' (";
+        error += intToStr(index+0) + ") cannot be of the type '";
+        error += tokenToStr(words[index].type) + "'.";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+
+    if(index >= words.size()){
+        error = "There is no closing square bracket in the parameter '" + name + "' (";
+        error += intToStr(index+0) + ").";
+        printError(scriptName, lineNumber, words[0].value, error);
+        return true;
+    }
+
+    index++;
+    return false;
+
 }
 void OperationClass::addLiteralParameter(const VariableModule & Variable){
     Parameters.emplace_back(ParameterStruct());
@@ -1231,7 +1237,7 @@ void createConstantLiteral(const string &variableId, const DataType &variableTyp
         foundLocation = findVariableInTheScopes(Scopes, variableId, forceNewDeclaration);
     }while(foundLocation != nullptr);
 }
-unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned &lineNumber, bool & error,
+unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned lineNumber, bool & error,
     const string & variableID, const DataType & variableType, vector<vector<VariableLocationStruct>> & Scopes,
     vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
     bool canCreateNewVariable, bool ignoreUndefinedVariable

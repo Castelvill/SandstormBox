@@ -2,8 +2,8 @@
 
 import "tests/test_template.sand"
 
+@trigger on_init
 start main()
-    triggers on_init
     run startTest()
 
     new STexts me 1 "text" text

@@ -30,8 +30,8 @@ int main(int argc, char* argv[]){
         if(Processes.size() == 0){
             cout << "No source files provided.\n"
                 << "Basic \"Hello World\" program:\n\n"
+                << "@trigger on_init\n"
                 << "start helloWorld\n"
-                << "\ttriggers on_init\n"
                 << "\tprint \"Hello, World!\\n\"\n"
                 << "\texit\n"
                 << "end\n\n";

@@ -7,8 +7,8 @@ start printNumbers(int n)
     run printNumbers(n)
 end
 
+@trigger on_init
 start main()
-    triggers on_init
     int n 5
     printNumbers(n)
     exit

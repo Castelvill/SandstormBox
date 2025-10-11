@@ -1,7 +1,7 @@
 //Create a simple event that will close the engine.
 
-start helloWorld
-    triggers on_init
+@trigger on_init
+start main()bar
     print "Hello, World!\n"
     exit
 end

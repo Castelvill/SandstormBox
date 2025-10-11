@@ -1,5 +1,5 @@
+@trigger on_init
 start main()
-    triggers on_init
     int height 5
     int i 0
     while(i height <)

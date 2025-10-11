@@ -1,3 +1,20 @@
+02.10.2025
+-Replace "override" instruction with "@override" annotation and refactor all occurences of deprecated instruction.
+-Replace "triggers" instruction with "@trigger" annotation and refactor all occurences of deprecated instruction.
+
+29.09.2025
+-Extended bool, int, double and string instructions with casting between types (excluding string).
+-Fixed relative line updating.
+
+16.09.2025
+-Added WINDOW_POSITION configuration option.
+-Added relative line numbering to the edit program.
+-Added current_line attribute - returned value ignores wrapped lines.
+
+15.09.2025
+-Added line numbering to the edit program.
+-Added "wrapped_lines" attribute to text modules - it returns a vector where each element is the number of wrapped lines created from normal lines.
+
 03.08.2025
 -Refactored instruction parsing.
 -Made "run" instruction optional.

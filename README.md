@@ -77,11 +77,13 @@ Following commands can be used only in ".config" file:
 
     SAMPLES *number* - set the number of samples used in antialiasing. Maximal recommended number of samples is 8. If sampling is not supported on your machine, you must set this value to 0.
 
-    ENABLE_al_set_clipboard_text - al_set_clipboard_text can cause undefined behavior on some linux configurations so it's disabled by default. When enabled, allows to copy text from the engine to the clipboard of the host OS.
+    ENABLE_al_set_clipboard_text - al_set_clipboard_text can cause undefined behavior on some linux environments so it's disabled by default. When enabled, allows to copy text from the engine to the clipboard of the host OS.
 
     ENABLE_NOT_ASCII - allow using characters other than ASCII.
 
     MOUSE_TEXT_SKIP *number* - set the number of skipped iterations when mouse is selecting the text. Number cannot be lower than 1.
+
+    WINDOW_POSITION *x* *y* - set the starting position where the new engine window will be placed.
 
 Engine will execute these commands only on startup before its main loop. Keep in mind you can still execute new scripts at runtime.
 

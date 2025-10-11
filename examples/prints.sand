@@ -1,6 +1,5 @@
+@trigger on_init
 start main()
-    triggers on_init
-
     print "Normal print\n"
 
     bool a true

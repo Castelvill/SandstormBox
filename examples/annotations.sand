@@ -1,0 +1,29 @@
+@trigger on_boot
+start on_boot()
+    print "on_boot\n"
+    var countdown 120
+end
+
+@trigger on_init
+start on_init()
+    print "on_init\n"
+end
+
+@trigger each_iteration
+start each_iteration()
+    print "each_iteration\n"
+    -- countdown
+    if(countdown 0 <=)
+        delete_this_event
+    end
+end
+
+@trigger each_second
+start each_second()
+    print "each_second\n"
+end
+
+@trigger on_idle
+start on_idle()
+    print "on_idle\n"
+end

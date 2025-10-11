@@ -88,6 +88,8 @@ void SuperTextModule::update(){
     lineStarts.emplace_back(0);
     floatingNewLine.clear();
     floatingNewLine.emplace_back(false);
+    wrappedLines.clear();
+    wrappedLines.emplace_back(0);
     realTextSize.set(0.0, 0.0);
     localCursorPos = 0;
     lineWithCursorIdx = 0;
@@ -96,7 +98,7 @@ void SuperTextModule::update(){
     lineWithSecondCursorIdx = 0;
     lineWidthToSecondCursor = 0.0;
 
-    if(Formatting.size() == 0){
+    if(Formatting.empty()){
         cout << "Warning: In " << __FUNCTION__ << ": In SuperText '" << ID << "': Text does not have any formatting.\n";
         return;
     }
@@ -166,6 +168,8 @@ void SuperTextModule::update(){
 
             textLines.back() += ' ';
             textLines.emplace_back("");
+
+            wrappedLines.emplace_back(0);
             
             realTextSize.x = std::max(realTextSize.x, lineWidth);
             lineWidths.back() = lineWidth;
@@ -209,6 +213,7 @@ void SuperTextModule::update(){
             if(lineWidth + letterWidth > size.x && (wrapped == 'l' || wrapped == 'w')){
                 currentTabLength = tabLength;
                 textLines.emplace_back("");
+                ++wrappedLines.back();
                 realTextSize.x = std::max(realTextSize.x, lineWidth);
                 lineWidths.back() = lineWidth;
                 lineWidths.emplace_back(0);
@@ -247,6 +252,7 @@ void SuperTextModule::update(){
                         // }
                         //currentTabLength = tabLength;
                         textLines.emplace_back("");
+                        ++wrappedLines.back();
                         realTextSize.x = std::max(realTextSize.x, lineWidth);
                         lineWidths.back() = lineWidth;
                         lineWidths.emplace_back(0);
@@ -324,6 +330,7 @@ void SuperTextModule::update(){
                 }
                 else if(wrapped == 'l' || wrapped == 'w'){
                     textLines.emplace_back("");
+                    ++wrappedLines.back();
                     realTextSize.x = std::max(realTextSize.x, lineWidth);
                     lineWidths.back() = lineWidth;
                     lineWidths.emplace_back(0);
@@ -445,12 +452,26 @@ VariableModule SuperTextModule::getAttributeValue(const AttributeType &attribute
             return VariableModule::newDouble(cursorPixelPosY);
         }
         default:
-            break;
+            cerr << instructionError(CurrentInstr, __PRETTY_FUNCTION__)
+                << "\n" << NEW_LINE_PADDING << "Attribute '" << attribute << "' is not valid.\n";
+            return VariableModule::newBool(false);
     }
-    
-    cerr << instructionError(CurrentInstr, __PRETTY_FUNCTION__)
-        << "\n" << NEW_LINE_PADDING << "Attribute '" << attribute << "' is not valid.\n";
-    return VariableModule::newBool(false);
+}
+bool SuperTextModule::getComplexAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr,
+    vector<VariableModule> * NewValueVec
+) const {
+    if(NewValueVec == nullptr){
+        return false;
+    }
+    switch(attribute){
+        case wrapped_lines:
+            for(unsigned line : wrappedLines){
+                NewValueVec->emplace_back(VariableModule::newInt(line));
+            }
+            return true;
+        default:
+            return false;
+    }
 }
 void SuperTextModule::getContext(AttributeType attribute, vector<BasePointersStruct> &BasePointers){
     BasePointers.emplace_back(BasePointersStruct());
@@ -594,7 +615,7 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
         finalPos.y += size.y - realTextSize.y;
     }
 
-    if(Formatting.size() == 0){
+    if(Formatting.empty()){
         cout << "Warning: In " << __FUNCTION__ << ": In SuperText '" << ID << "': Text does not have any formatting.\n";
         if(drawBorders){
             al_draw_rectangle(unformatedPos.x, unformatedPos.y, unformatedPos.x+size.x, unformatedPos.y+size.y, Formatting.back().color, 1);
@@ -625,7 +646,7 @@ void SuperTextModule::draw(vec2d base, bool drawBorders, Camera2D Camera, unsign
 }
 
 void SuperTextModule::fitFormattingToContent(){
-    if(Formatting.size() == 0){
+    if(Formatting.empty()){
         cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Formatting vector is empty.\n";
         return;
     }
@@ -1335,6 +1356,16 @@ VariableModule SuperEditableTextModule::getAttributeValue(const AttributeType &a
             return VariableModule::newInt(std::min(cursorPos, secondCursorPos));
         case max_cursor_pos:
             return VariableModule::newInt(std::max(cursorPos, secondCursorPos));
+        case current_line:{
+            unsigned wrappedIdx = 0;
+            for(size_t lineIdx = 0; lineIdx < wrappedLines.size(); ++lineIdx){
+                wrappedIdx += wrappedLines[lineIdx] + 1;
+                if(wrappedIdx > lineWithCursorIdx){
+                    return VariableModule::newInt(lineIdx);
+                }
+            }
+            return VariableModule::newInt(0);
+        }
         default:
             break;
     }
@@ -2984,7 +3015,7 @@ void SuperEditableTextModule::replaceSelectionWithTextFromTheClipboard(std::stri
     for(const FormatClass &Format : CopiedFormatting){
         sumCheck += Format.limit;
     }
-    if(clipboard != internalClipboard || CopiedFormatting.size() == 0 || internalClipboard.size() != sumCheck){
+    if(clipboard != internalClipboard || CopiedFormatting.empty() || internalClipboard.size() != sumCheck){
         FinalFormatting.push_back(Formatting[leftCursorOnFormatIdx]);
         FinalFormatting.back().limit = clipboard.size();
     }
@@ -3140,7 +3171,7 @@ void SuperEditableTextModule::setCursorsWithMouse(vec2d basePos, const MouseClas
     cursorPos = 0;
     unsigned lineIdx;
 
-    if(Formatting.size() == 0){
+    if(Formatting.empty()){
         cursorPos = content.size();
         localCursorPos = lineLengths.back();
         lineWidthToCursor = lineWidths.back();

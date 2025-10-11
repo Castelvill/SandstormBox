@@ -1,5 +1,5 @@
+@trigger each_iteration
 start interpreter
-    triggers each_iteration
     pwd path
     print path ">> "
     console_input input

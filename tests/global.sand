@@ -1,7 +1,7 @@
 import "tests/test_template.sand"
 
+@trigger on_init
 start main()
-    triggers on_init
     run startTest()
 
     var a 10
@@ -16,9 +16,8 @@ start subFun()
     assert a 15
 end
 
+@trigger on_init
 start main1()
-    triggers on_init
-    
     assert a 15
     run subFun2()
     assert a 20

@@ -11,7 +11,7 @@ enum ReturnType : char{
 };
 
 enum EngineInstr : unsigned char{
-    null, start, override, end_i, triggers, run, if_i, else_if, else_i, end_if,while_i, end_while, continue_i,
+    null, start, end_i, annotation_i, run, if_i, else_if, else_i, end_if,while_i, end_while, continue_i,
     break_i, return_i, reboot, exit_i, delete_this_event, reset_keyboard, dump_context_stack,
     dump_memory, dump_local_memory, first, last, all, random_i, index_i, index_vec, sum, intersection,
     diff, add, sub, mul, div_i, mod, pow_i, assign, move, add_move, sub_move, mul_move, div_move,
@@ -198,7 +198,8 @@ enum AttributeType: short{
     max_content_length, input_delay, repetition_delay, is_editing_active, cursor_pos,
     second_cursor_pos,
     //super_text_value
-    cursor_pos_x, cursor_pos_y, min_cursor_pos, max_cursor_pos,
+    cursor_pos_x, cursor_pos_y, min_cursor_pos, max_cursor_pos, wrapped_lines,
+    current_line,
     //scrollbar_value
     scroll_shift_x, scroll_shift_y, thumb_pos_x, thumb_pos_y, thumb_size_x,
     thumb_size_y, scrolling_area_x, scrolling_area_y, real_scrolling_area_x,

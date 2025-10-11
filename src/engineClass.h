@@ -59,10 +59,11 @@ public:
     unsigned short samples = 0;
     bool fullscreen = false;
     bool isPixelArt = false; //If true, zoomed bitmaps will not look blurry.
-    bool ENABLE_al_set_clipboard_text = false; //al_set_clipboard_text can cause undefined behavior on GNU/Linux (it depends on window manager used).
+    bool ENABLE_al_set_clipboard_text = false; //al_set_clipboard_text can cause undefined behavior on GNU/Linux (it depends on used window manager).
     bool allowNotAscii = false;
     bool autoScaleBackbuffer = false;
     unsigned mouseTextSelectionSkip = 1;
+    vec2i displayStartingPosition = vec2i(0, 0);
 
     vector<string> inputFiles;
 
@@ -94,6 +95,7 @@ public:
     void resetState(bool resetScreen);
     EngineClass();
     void initAllegro();
+    void loadSettingFromConfig();
     void createDisplay();
     void clear();
     void exitAllegro();

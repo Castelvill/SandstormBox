@@ -249,7 +249,7 @@ int VariableModule::getInt() const{
         //cout << "Warning [VariableModule]: floating point ignored.\n";
         return vDouble;
     }
-    else if(type != 'i'){
+    else if(type == 's'){
         cerr << "Error: In " << __PRETTY_FUNCTION__ << ":\n\t You can't access int variable.\n";
         return 0;
     }
@@ -262,7 +262,7 @@ int VariableModule::getIntUnsafe() const{
     else if(type == 'd'){
         return vDouble;
     }
-    else if(type != 'i'){
+    else if(type == 's'){
         return 0;
     }
     return vInt;

@@ -1,7 +1,7 @@
 import "tests/test_template.sand"
 
+@trigger on_init
 start main()
-    triggers on_init
     run startTest()
 
     var var0 5
@@ -35,8 +35,8 @@ start main()
     run endTest()
 end
 
+@trigger on_init
 start onInit()
-    triggers on_init
     assert var0 5
     assert var1 NULL
     assert var2 15
@@ -45,8 +45,8 @@ start onInit()
     delete_this_event
 end
 
+@trigger on_idle
 start onIdle()
-    triggers on_idle
     assert var0 5
     assert var1 NULL
     assert var2 15

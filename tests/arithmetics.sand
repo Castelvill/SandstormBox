@@ -1,0 +1,28 @@
+import "tests/test_template.sand"
+
+@trigger on_init
+start main()
+    run startTest()
+
+    int a 0
+
+    + 2 2 a
+    assert a 4
+
+    - 10 6 a
+    assert a 4
+
+    * 7 4 a
+    assert a 28
+
+    / 100 4 a
+    assert a 25
+
+    ** 8 3 a
+    assert a 512
+
+    % 50 42 a
+    assert a 8
+
+    run endTest()
+end

@@ -15,7 +15,8 @@ start *name*( [[parameter]...] )
 - name - a name for a new event;
 - [parameter] (variable) - input variable for a new event.
 
-## override
+
+## override [REMOVED]
 
 **Syntax**
 
@@ -62,7 +63,7 @@ inline *name*
 
     Set a debugger breakpoint right before the next instruction. It will be triggered at runtime. If the engine is executed outside the debugger, this instruction will trigger a crash.
 
-## triggers
+## triggers [REMOVED]
 
 **Syntax**
 
@@ -356,7 +357,7 @@ access *output* [[*source*] ...]
 
 **Description**
 
-    Declare a variable with provided values.
+    Declare a variable with provided values. If the input values are variables, cast them to the correct type when possible. Casting is done during runtime.
 
 **Parameters**
 

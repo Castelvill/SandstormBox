@@ -44,6 +44,11 @@ struct CodeGenerator{
 
 using ScopeType = vector<vector<VariableLocationStruct>>;
 
+struct Annotations{
+    vector<TriggerType> triggersForNextEvent;
+    bool override = false;
+};
+
 struct InstrParser{
     const vector<WordStruct> & words;
     const string & scriptName;
@@ -51,16 +56,19 @@ struct InstrParser{
     EventModule & NewEvent;
     ScopeType & Scopes;
     unsigned & topAddress;
+    Annotations& annotations;
 
     OperationClass * Operation = nullptr;
     unsigned cursor = 1;
 
     ReturnType parseCompilerBreakpoint(bool & triggerBreakpoint);
+    ReturnType parseAnnotations();
+    ReturnType parseOverrideAnnotation();
+    ReturnType parseTriggersAnnotation();
     ReturnType parseStartAndOverride(vector<string> & allAvailableEventIDs,
         const string & layerId, const string & objectId, vector<EventModule> &eventContainer, vector<string> &eventContainerIds
     );
     ReturnType parseEnd(vector<EventModule> &eventContainer);
-    ReturnType parseTriggers();
     ReturnType parseEmpty();
     ReturnType parseIf(BranchingStackStruct & BranchingStack);
     ReturnType parseElseIf(BranchingStackStruct & BranchingStack);
@@ -185,7 +193,7 @@ public:
     VariableModule getAttributeValue(const AttributeType & attribute, const string & detail);
     ReturnType parseTokensAndAssembleEvents(const vector<WordStruct> & words, const string & scriptName, unsigned lineNumber,
         ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
-        BranchingStackStruct & BranchingStack
+        BranchingStackStruct & BranchingStack, Annotations& annotations
     );
     /*Translate instructions into events and add them to the event container of the object.*/
     ReturnType assembleEvents(vector<string> & code, const string & scriptName,

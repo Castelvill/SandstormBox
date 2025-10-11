@@ -521,10 +521,13 @@ public:
     bool getProcess(VariableModule & NewValue, vector<ProcessClass> * Processes, ProcessClass *& Process, const string & processID);
     VariableModule getValueFromVector(ConditionClass & Condition, ObjectMemoryStruct & ObjectMemory);
     void getValueFromContext(ConditionClass & Condition, ObjectMemoryStruct & ObjectMemory,
-        AncestorObject * Owner, LayerClass * OwnerLayer, const MouseClass & Mouse, VariableModule & NewValue
+        AncestorObject * Owner, LayerClass * OwnerLayer, const MouseClass & Mouse, VariableModule & NewValue,
+        vector<VariableModule> * NewValueVec
     );
     void findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
-        const EngineClass & Engine, vector<ProcessClass> * Processes, ObjectMemoryStruct & ObjectMemory, VariableModule & NewValue);
+        const EngineClass & Engine, vector<ProcessClass> * Processes, ObjectMemoryStruct & ObjectMemory,
+        VariableModule & NewValue, vector<VariableModule> * NewValueVec
+    );
     char evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, vector<VariableModule> & resultStack,
     AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory);
     std::pair<vector<EventModule>::iterator, ChildStruct*> findChildEventToRun(

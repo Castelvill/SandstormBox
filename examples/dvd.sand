@@ -1,6 +1,5 @@
+@trigger on_init
 start putRectangleOnScreen()
-    triggers on_init
-
     var DISPLAY_W 640
     var DISPLAY_H 480
     create_display DISPLAY_W DISPLAY_H DISPLAY_W DISPLAY_H
@@ -29,8 +28,8 @@ start putRectangleOnScreen()
     fun Rectangle update_with_size
 end
 
+@trigger each_iteration
 start moveRectangle()
-	triggers each_iteration
     + x SIZE_X xs
     + y SIZE_Y ys
     if(x 0 <= xs DISPLAY_W >= ||)
@@ -45,8 +44,8 @@ start moveRectangle()
 	fun Rectangle set_pos x y
 end
 
+@trigger on_key_press
 start exitProgram()
-    triggers on_key_press
     if(key_pressed(KEY_LCTRL) key_pressed(KEY_ESC) &&)
         exit
     end_if

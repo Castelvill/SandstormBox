@@ -1,10 +1,10 @@
 stop_assembling
 start_printing_tokens
 
+@trigger on_init
 start main()
-    triggers on_init
     fn0(fn1())
-    print "\n"
+    print "abc"
     exit
 end
 
@@ -36,7 +36,7 @@ end
 resume_assembling
 stop_printing_tokens
 
-start exit_()
-    triggers on_init
+@trigger on_init
+start exit()
     exit
 end

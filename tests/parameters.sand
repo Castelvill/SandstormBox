@@ -1,7 +1,7 @@
 import "tests/test_template.sand"
 
+@trigger on_init
 start main()
-    triggers on_init
     run startTest()
     
     new Objects my_layer 1 "otherObject" otherObject
@@ -13,9 +13,8 @@ start main()
     assert p0 16
 end
 
+@trigger on_idle
 start onIdle()
-    triggers on_idle
-
     Var p0
     first my_layer _ "otherObject" Variables "p0" _ _ p0 //Access variable from object inside a layer
     assert p0 16

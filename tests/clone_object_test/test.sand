@@ -1,7 +1,7 @@
 import "tests/test_template.sand"
 
+@trigger on_init
 start onInit()
-    triggers on_init
     run startTest()
 
     access thisName [me.id]
@@ -29,8 +29,8 @@ start onInit()
 
 end
 
+@trigger each_iteration
 start waitForOtherObjects()
-    triggers each_iteration
     if(idleLock 0 >)
         return
     end_if

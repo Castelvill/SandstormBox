@@ -1,5 +1,5 @@
+@trigger each_iteration
 start lol
-    triggers each_iteration
     string result "Lorem ipsum lool\n"
     run printOnTerminal(result)
     delete_this_event

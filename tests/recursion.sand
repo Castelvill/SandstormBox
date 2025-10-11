@@ -8,8 +8,8 @@ start printNumbers(int n)
     run printNumbers(n)
 end
 
+@trigger on_init
 start main()
-    triggers on_init
     run startTest()
 
     int n 5

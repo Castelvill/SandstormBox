@@ -1,12 +1,12 @@
+@trigger on_init
 start on_init()
-    triggers on_init
     var counter 0
     var idleCounter 1
     print "Init...\n"
 end
 
+@trigger each_second
 start each_second()
-    triggers each_second
     = idleCounter 1
     ++ counter
     print "\nSecond has passed..." counter "\n"
@@ -15,8 +15,8 @@ start each_second()
     end_if
 end
 
+@trigger on_idle
 start on_idle()
-    triggers on_idle
     print "(idle " idleCounter ") " 
     ++ idleCounter
     int modulo 0

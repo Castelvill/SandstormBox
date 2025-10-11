@@ -5795,8 +5795,10 @@ void ProcessClass::aggregateValues(OperationClass & Operation, ObjectMemoryStruc
             ValueLocation.Location.print("");
             cout << "\n";
         }
-        findNextValue(ValueLocation, Owner, OwnerLayer, Engine, Processes, ObjectMemory, NewValue);
-        NewContext.Values.emplace_back(NewValue);
+        findNextValue(ValueLocation, Owner, OwnerLayer, Engine, Processes, ObjectMemory, NewValue, &NewContext.Values);
+        if(NewValue.type != 'n'){
+            NewContext.Values.emplace_back(NewValue);
+        }
     }
     NewContext.type = value_inst;
     if(NewContext.Values.size() > 1){
@@ -6676,6 +6678,34 @@ void ProcessClass::createLiteral(const OperationClass & Operation, ObjectMemoryS
             }
             cout << "], ";
         }
+
+        for(VariableModule & rawVal : NewVariables){
+            switch(Operation.instruction){
+                case bool_i:
+                case bool_vec_i:
+                    rawVal.vBool = rawVal.getBool();
+                    rawVal.setType('b');
+                    break;
+                case int_i:
+                case int_vec_i:
+                    rawVal.vInt = rawVal.getInt();
+                    rawVal.setType('i');
+                    break;
+                case double_i:
+                case double_vec_i:
+                    rawVal.vDouble = rawVal.getDouble();
+                    rawVal.setType('d');
+                    break;
+                case string_i:
+                case string_vec_i:
+                    rawVal.vString = rawVal.getString();
+                    rawVal.setType('s');
+                    break;
+                default:
+                    break;
+            }
+        }
+        
         NewContext.Values.insert(NewContext.Values.end(), NewVariables.begin(), NewVariables.end());
     }
 
@@ -13679,7 +13709,8 @@ VariableModule ProcessClass::getValueFromVector(ConditionClass & Condition, Obje
     return NewValue;
 }
 void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryStruct & ObjectMemory,
-    AncestorObject * Owner, LayerClass * OwnerLayer, const MouseClass & Mouse, VariableModule & NewValue
+    AncestorObject * Owner, LayerClass * OwnerLayer, const MouseClass & Mouse, VariableModule & NewValue,
+    vector<VariableModule> * NewValueVec
 ){
     ContextClass * Context = nullptr;
     
@@ -13823,6 +13854,11 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             }
             printTooManyInstancesWarning(Context->Modules.SuperTexts.size(), Context->type, CurrentInstr);
         case super_text_mod:
+            if(Context->Modules.SuperTexts[0]->getComplexAttributeValue(Condition.Location.attribute,
+                Condition.Location.spareID, CurrentInstr, NewValueVec
+            )){
+                return;
+            }
             NewValue.copyValue(Context->Modules.SuperTexts[0]
                 -> getAttributeValue(Condition.Location.attribute, Condition.Location.spareID, CurrentInstr)
             );
@@ -13833,6 +13869,11 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             }
             printTooManyInstancesWarning(Context->Modules.SuperEditableTexts.size(), Context->type, CurrentInstr);
         case super_editable_text_mod:
+            if(Context->Modules.SuperEditableTexts[0]->getComplexAttributeValue(Condition.Location.attribute,
+                Condition.Location.spareID, CurrentInstr, NewValueVec
+            )){
+                return;
+            }
             NewValue.copyValue(Context->Modules.SuperEditableTexts[0]
                 -> getAttributeValue(Condition.Location.attribute, Condition.Location.spareID, CurrentInstr)
             );
@@ -13896,7 +13937,8 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
     return;
 }
 void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
-    const EngineClass & Engine, vector<ProcessClass> * Processes, ObjectMemoryStruct & ObjectMemory, VariableModule & NewValue
+    const EngineClass & Engine, vector<ProcessClass> * Processes, ObjectMemoryStruct & ObjectMemory,
+    VariableModule & NewValue, vector<VariableModule> * NewValueVec
 ){
     ProcessClass * Process = this;
     NewValue.clear();
@@ -13920,7 +13962,7 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             return;}
         case used_os:{
             #if __WIN32__
-            NewValue.setString("windows");
+                NewValue.setString("windows");
             #elif __linux__
                 NewValue.setString("linux");
             #elif __APPLE__
@@ -14202,7 +14244,7 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             NewValue.setBool(false);
             return;}
         case context:
-            getValueFromContext(Condition, ObjectMemory, Owner, OwnerLayer, Engine.Mouse, NewValue);
+            getValueFromContext(Condition, ObjectMemory, Owner, OwnerLayer, Engine.Mouse, NewValue, NewValueVec);
             return;
         default:
             break;
@@ -14211,7 +14253,6 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
     cerr << instructionError(CurrentInstr, __FUNCTION__)
         << "Source \'" << sourceToStr(Condition.Location.source) << "\' is not valid.\n";
     NewValue.setBool(false);
-    return;
 }
 char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & ConditionalChain, vector<VariableModule> & resultStack,
     AncestorObject * Owner, LayerClass * OwnerLayer, const EngineClass & Engine, ObjectMemoryStruct & ObjectMemory
@@ -14225,7 +14266,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
     
     for(ConditionClass & Condition : ConditionalChain){
         if(ignoreFlagOr == 0 && ignoreFlagAnd == 0){
-            findNextValue(Condition, Owner, OwnerLayer, Engine, nullptr, ObjectMemory, resultStack[++stackSize]);
+            findNextValue(Condition, Owner, OwnerLayer, Engine, nullptr, ObjectMemory, resultStack[++stackSize], nullptr);
             //resultStack[++stackSize].copyValue(LeftOperandProc);
         }
         if(stackSize == -1){

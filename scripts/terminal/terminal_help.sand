@@ -4,7 +4,7 @@ start printOnTerminal(string & textToPrint)
     fun EditableText update
     fun EditableText crop_height_to_text
 
-    first EditableText _ _ _ _ content _ history
+    access history [EditableText.content]
     len history historySize
     fun EditableText set_protected_area historySize
     fun EditableText set_cursor_pos historySize
@@ -26,7 +26,7 @@ start printOnTerminalUnprotected(string & textToPrint)
     fun EditableText update
     fun EditableText crop_height_to_text
 
-    first EditableText _ _ _ _ content _ history
+    access history [EditableText.content]
     len history historySize
     //fun EditableText set_protected_area historySize
     //fun EditableText set_cursor_pos historySize
@@ -45,7 +45,12 @@ end
 start cout(string & result)
     index me [0 0] super_editable_text EditableText
     fun EditableText add_content result
-    first EditableText _ _ _ _ content _ history
+    putCursorOnTop()
+end
+
+start putCursorOnTop()
+    index me [0 0] super_editable_text EditableText
+    access history [EditableText.content]
     len history historySize
     fun EditableText set_cursor_pos historySize
 end
@@ -59,7 +64,7 @@ end
 start help()
     print_v result " " allowedPrograms
     index me [0 0] super_editable_text EditableText
-    fun EditableText modify_last_format 1.0 0.8 0.0 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
+    fun EditableText modify_last_format colorGoldR colorGoldG colorGoldB colorGoldA 0.0 0.0 0.0 1.0 "cascadia_code" 1
     = program "_enter"
     run cout(result)
 end
@@ -83,9 +88,9 @@ start ls
         ls param1 result
         ValVec files
         tokenize " " result files
-        index me [0 0] super_editable_text EditableText
+        index me [0 0] super_editable_text terminalTextField
         = result ""
-        run lsColoringLoop(EditableText, files)
+        run lsColoringLoop(terminalTextField, files)
         = program "_enter"
     else 
         run informFileDoesNotExistForCD()
@@ -434,8 +439,9 @@ start wait()
     = program "wait"
     = waitingTime 0
 end
+
+@trigger each_second
 start executeWaiting()
-    triggers each_second
     if (program "wait" == second_passed &&)
         index me [0 0] super_editable_text Terminal
         fun Terminal cut_unprotected_area

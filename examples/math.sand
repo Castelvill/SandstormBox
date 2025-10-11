@@ -1,6 +1,5 @@
+@trigger on_init
 start quickMath
-    triggers on_init
-    
     int a 2
     print "a = 2\n"
     int b 4

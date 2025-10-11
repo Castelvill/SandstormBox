@@ -26,6 +26,7 @@ public:
     vector<size_t> lineLengths;
     vector<unsigned> lineStarts; //Needed for the situation when there are tabs on the beginning of the line.
     vector<bool> floatingNewLine;
+    vector<unsigned> wrappedLines;
     vec2f realTextSize;
 
     vector<FormatClass> Formatting;
@@ -58,6 +59,9 @@ public:
     void cropHeightToText();
 
     VariableModule getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const;
+    bool getComplexAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr,
+        vector<VariableModule> * NewValueVec
+    ) const;
     void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
     
     void drawFormattedString(string & text, vec2d finalPos, size_t lineIdx,
@@ -118,7 +122,7 @@ public:
 class SuperEditableTextModule : public SuperTextModule{
 public:
     vector<string> previousContent, futureContent; //Checkpoints for content history - undo and redo.
-    vector<FormatClass> previousFormatting, futureFormatting;
+    vector<FormatClass> previousFormatting, futureFormatting; //Placeholders for undo/redo
 
     bool canBeEdited;
     bool canUseSpace;

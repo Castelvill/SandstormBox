@@ -1,7 +1,7 @@
 import "tests/test_template.sand"
 
+@trigger on_init
 start main()
-    triggers on_init
     startTest()
 
     int result 0

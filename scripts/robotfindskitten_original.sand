@@ -1,5 +1,5 @@
+@trigger on_init
 start onInit
-    triggers on_init
     start_timer "fullProgramTimer"
     
     var SCREEN_W 640
@@ -50,9 +50,9 @@ start onInit
     vec int nonKittenPos
 end
 
+//@trigger on_key_press
+@trigger each_iteration
 start eachIteration
-    //triggers on_key_press
-    triggers each_iteration
     index me [0 0] super_text TextField
     run startGame()
     run drawScene(TextField)

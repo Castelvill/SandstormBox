@@ -1,10 +1,10 @@
+@trigger on_init
 start onInit()
-    triggers on_init
     var KEY_F11 57
 end
 
 start checkIfWindowMoved()
-	triggers on_mouse_pressing
+	@trigger on_mouse_pressing
 	if (mouse_moved isBorderless ! &&)
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
@@ -14,7 +14,7 @@ start checkIfWindowMoved()
 end
 
 start checkIfDisplayResize()
-	triggers on_display_resize
+	@trigger on_display_resize
 	if (isMaxed)
 	    run refreshWindowWithDisplay()
     end_if
@@ -139,9 +139,8 @@ start additionalUpdate()
     //interface
 end
 
-
+@trigger on_mouse_release
 start exitWindow()
-    triggers on_mouse_release
     if (mouse_released(0))
         access myLayerID [me.layer_id]
         all Layers _ _ _ _ _ _ Layers
@@ -155,8 +154,8 @@ start exitWindow()
     end_if
 end
 
+@trigger each_iteration
 start deleteWindow()
-    triggers each_iteration
     if (delete has_friends ! deleted_friends || &&)
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
@@ -165,9 +164,8 @@ start deleteWindow()
     end_if
 end
 
-
+@trigger on_mouse_release
 start maxWindow()
-    triggers on_mouse_release
     if (mouse_released(0))
         access myLayerID [me.layer_id]
         all Layers _ _ _ _ _ _ Layers
@@ -210,9 +208,8 @@ start revertWindowFromMax()
     run revertBorderIfPossible()
 end
 
-
+@trigger on_mouse_release
 start minimizeWindow
-    triggers on_mouse_release
     if (mouse_released(0))
         access myLayerID [me.layer_id]
         all Layers _ _ _ _ _ _ Layers
@@ -226,8 +223,8 @@ start minimizeWindow
     end_if
 end
 
+@trigger on_key_press
 start switchBorderlessMode
-    triggers on_key_press
     if (key_pressed(KEY_F11))
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
