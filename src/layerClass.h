@@ -33,7 +33,8 @@ public:
     bool getIsDeleted() const;
     bool* getIsActiveAddr();
     VariableModule getValue(AttributeType attribute, string option) const;
-    void clone(const LayerClass& Original, vector <string> & layersIDs, const bool & changeOldID);
+    void clone(const LayerClass& Original, vector <string> & layersIDs, const bool & changeOldID,
+        size_t & topUniqueIndex);
 
     void addGroup(string newGroup);
     void removeGroup(string selectedGroup);

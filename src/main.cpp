@@ -82,7 +82,5 @@ int main(int argc, char* argv[]){
     
     Engine.exitAllegro();
 
-    //cout << "Program terminated gracefully.\n";
-
     return 0;
 }

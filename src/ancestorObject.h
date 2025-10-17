@@ -1,8 +1,6 @@
 #ifndef ALLOBJECTS_H_INCLUDED
 #define ALLOBJECTS_H_INCLUDED
-#include "eventModule.h"
-#include <unordered_set>
-#include <unordered_map>
+#include "compiler.h"
 
 DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const DataType & oldType);
 
@@ -27,113 +25,12 @@ struct ModulesPointers{
     ModulesPointers(){};
 };
 
-struct BranchingStackStruct{
-    vector<unsigned> ifElseJumpStack; //Indexes of operations that will store line numbers for jumping to else_ifs and elses from ifs and else_ifs.
-    vector<vector<unsigned>> ifEndJumpStack; //Indexes of operations that store line numbers for jumping to end_if labels from ifs, else_ifs and elses.
-    vector<char> usedElseStatements; //If an else statement was used in an if statement store 1, otherwise store 0. This vector is required for clearing pointers in if statements without elses.  
-    
-    vector<unsigned> whileStartStack; //Indexes of operations that will store line number for jumping from "end_while" and "continue" labels to the "while" instruction.
-    vector<vector<unsigned>> whileEndStack; //Indexes of operations that will store line number for jumping from "break" and "while" instructions to the "end_while" label.
-};
-
-struct CodeGenerator{
-    std::unordered_map<string, string> constants;
-
-    vector<vector<WordStruct>> preprocessTokens(const vector<WordStruct> & inputTokens);
-};
-
-using ScopeType = vector<vector<VariableLocationStruct>>;
-
-struct Annotations{
-    vector<TriggerType> triggersForNextEvent;
-    bool override = false;
-};
-
-struct InstrParser{
-    const vector<WordStruct> & words;
-    const string & scriptName;
-    const unsigned & lineNumber;
-    EventModule & NewEvent;
-    ScopeType & Scopes;
-    unsigned & topAddress;
-    Annotations& annotations;
-
-    OperationClass * Operation = nullptr;
-    unsigned cursor = 1;
-
-    ReturnType parseCompilerBreakpoint(bool & triggerBreakpoint);
-    ReturnType parseAnnotations();
-    ReturnType parseOverrideAnnotation();
-    ReturnType parseTriggersAnnotation();
-    ReturnType parseStartAndOverride(vector<string> & allAvailableEventIDs,
-        const string & layerId, const string & objectId, vector<EventModule> &eventContainer, vector<string> &eventContainerIds
-    );
-    ReturnType parseEnd(vector<EventModule> &eventContainer);
-    ReturnType parseEmpty();
-    ReturnType parseIf(BranchingStackStruct & BranchingStack);
-    ReturnType parseElseIf(BranchingStackStruct & BranchingStack);
-    ReturnType parseElse(BranchingStackStruct & BranchingStack);
-    ReturnType parseEndIf(BranchingStackStruct & BranchingStack);
-    ReturnType parseWhile(BranchingStackStruct & BranchingStack);
-    ReturnType parseEndWhile(BranchingStackStruct & BranchingStack);
-    ReturnType parseContinue(BranchingStackStruct & BranchingStack);
-    ReturnType parseBreak(BranchingStackStruct & BranchingStack);
-    ReturnType parseFirstLastAllRandom(vector<string> & allAvailableEventIDs);
-    ReturnType parseIndex();
-    ReturnType parseIndexVec();
-    ReturnType parseAddSubMulDivModPowRand();
-    ReturnType parseAssert();
-    ReturnType parseLoad();
-    ReturnType parseMove();
-    ReturnType parseFindById2();
-    ReturnType parseSumIntersecDiffIn();
-    ReturnType parseIncDecDelDemolishRbindType();
-    ReturnType parseNext();
-    ReturnType parseAccess();
-    ReturnType parseBoolIntDoubleStringAndTheirVectors();
-    ReturnType parseFindById();
-    ReturnType parseClone();
-    ReturnType parseNew();
-    ReturnType parseBind();
-    ReturnType parseBuild();
-    ReturnType parseLoadBuildInject();
-    ReturnType parseFunction();
-    ReturnType parseEnv();
-    ReturnType parseEditProc();
-    ReturnType parseLoadBitmap();
-    ReturnType parseMkdirRmRmll();
-    ReturnType parseMv();
-    ReturnType parsePrint();
-    ReturnType parseLoadText();
-    ReturnType parseSaveText();
-    ReturnType parseLs();
-    ReturnType parseLse();
-    ReturnType parseNewProc();
-    ReturnType parseVar();
-    ReturnType parseVec();
-    ReturnType parseTokenize();
-    ReturnType parseTreePwdConsoleInput();
-    ReturnType parseLen();
-    ReturnType parseSize();
-    ReturnType parseSubstr();
-    ReturnType parseLoadFont();
-    ReturnType parseCd();
-    ReturnType parseSimilar();
-    ReturnType parseCount();
-    ReturnType parseCreateDisplay();
-    ReturnType parseStartTimer();
-    ReturnType parseStopTimer();
-    ReturnType parseVarDefinition();
-    ReturnType parseRun();
-    ReturnType parseAutoRun();
-};
-
 /**
 The most important class, a container for all modules that make an object.
 */
 class AncestorObject: public PrimaryModule{
 public:
-    string objectLookupID;
+    size_t uniqueIndex = 0;
     vector <TextModule> TextContainer;
     vector <EditableTextModule> EditableTextContainer;
     vector <SuperTextModule> SuperTextContainer;
@@ -178,7 +75,8 @@ public:
 
     AncestorObject();
     void deleteLater();
-    void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID, const bool & changeOldID);
+    void clone(const AncestorObject& Original, vector <string> & listOfUniqueIDs, string newLayerID,
+        const bool & changeOldID, size_t & topUniqueIndex);
     void clearVectorsOfIDs();
     void clear();
     void operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects,
@@ -188,21 +86,15 @@ public:
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);
     void setID(string newID, vector<string> & listOfIDs);
-    void primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    void primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, 
+        string newObjectID, size_t & topUniqueIndex
+    );
     void setIsScrollable(bool newValue);
     VariableModule getAttributeValue(const AttributeType & attribute, const string & detail);
-    ReturnType parseTokensAndAssembleEvents(const vector<WordStruct> & words, const string & scriptName, unsigned lineNumber,
-        ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
-        BranchingStackStruct & BranchingStack, Annotations& annotations
-    );
-    /*Translate instructions into events and add them to the event container of the object.*/
-    ReturnType assembleEvents(vector<string> & code, const string & scriptName,
-        vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
-    );
     void clearAllEvents();
     void translateAllScripts(const string & exePath, bool clearEvents, bool allowNotAscii, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress);
-    void translateScriptsFromPaths(const string & exePath, bool clearEvents, vector<string> scriptsPaths, bool allowNotAscii,
-        vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
+    void translateScriptsFromPaths(const string & exePath, bool clearEvents, vector<string> scriptsPaths,
+        bool allowNotAscii, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
     );
     void translateSubsetBindedScripts(const string & exePath, bool clearEvents, vector<string> scripts, bool allowNotAscii,
         vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
@@ -215,18 +107,6 @@ public:
 
 std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input);
 
-
-template<class Module>
-bool removeModuleInstanceByID(vector <Module> & Container, string destroyID){
-    auto foundInstance = std::find_if(begin(Container), end(Container), [destroyID](Module &Instance){
-        return Instance.getID() == destroyID;
-    });
-    if(foundInstance != std::end(Container)){
-        Container.erase(foundInstance);
-        return true;
-    }
-    return false;
-}
 
 template<class Module>
 struct isStringInGroupModule {

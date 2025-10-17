@@ -19,7 +19,13 @@ start testRunnerEvent()
     scheduleTest(path) 
 
     = path "arithmetics"
-    scheduleTest(path) 
+    scheduleTest(path)
+
+    = path "on_init/test"
+    scheduleTest(path)
+
+    = path "import/test"
+    scheduleTest(path)
 
     = path "access"
     scheduleTest(path)

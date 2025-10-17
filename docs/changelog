@@ -1,3 +1,15 @@
+17.10.2025
+-Fixed accessing object's memory by replacing string key with unique index.
+-Fixed updating object id across all modules.
+-Fixed: events with "each_iteration" trigger could be executed before "on_init" events. Example: running scripts inside the terminal.
+
+12.10.2025
+-Created "parser.cpp" file.
+
+11.10.2025
+-Fixed imports: the root script could be lost during the importing process.
+-Created the "compiler.cpp" file.
+
 02.10.2025
 -Replace "override" instruction with "@override" annotation and refactor all occurences of deprecated instruction.
 -Replace "triggers" instruction with "@trigger" annotation and refactor all occurences of deprecated instruction.

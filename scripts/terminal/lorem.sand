@@ -1,6 +1,6 @@
-@trigger each_iteration
-start lol
-    string result "Lorem ipsum lool\n"
+@trigger on_init
+start lorem
+    string result "Lorem ipsum\n"
     run printOnTerminal(result)
     delete_this_event
 end

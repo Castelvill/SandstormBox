@@ -1,0 +1,19 @@
+@trigger on_init
+start fn0()
+    ++ a
+    assert a 1
+end
+
+@trigger on_init
+start fn1()
+    ++ a
+    assert a 2
+end
+
+@trigger on_init
+start fn2()
+    ++ a
+    assert a 3
+    endTest()
+end
+

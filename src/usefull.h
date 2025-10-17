@@ -9,6 +9,7 @@
 #include "vectors.h"
 
 using std::string;
+using std::string_view;
 
 const double FPS = 60.0;
 const vector<string> reservedIDs = {};

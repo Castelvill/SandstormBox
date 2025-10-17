@@ -575,7 +575,7 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned line
     vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, unsigned index, char type,
     const string & parameterName, bool optional, bool canCreateNewVariable, bool ignoreUndefinedVariable
 ){
-    auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
+    auto printError = [](string_view scriptName, unsigned lineNumber, string_view instruction, string_view error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << instruction << "' instruction: " << error << ".\n";
@@ -606,13 +606,12 @@ bool OperationClass::addParameter(const string & scriptName, const unsigned line
         Parameters.back().variableID = words[index].value;
         Parameters.back().negateVariable = words[index].negateVariable;
 
-        bool subError = false;
-        Parameters.back().localAddress = findExistingVariableOrCreateNew(
-            scriptName, lineNumber, subError, words[index].value, any_dt, Scopes,
-            NewLocalVariables, topAddress, canCreateNewVariable,
-            ignoreUndefinedVariable
+        ReturnType result;
+        std::tie(Parameters.back().localAddress, result) = findExistingVariableOrCreateNew(
+            scriptName, lineNumber, words[index].value, any_dt, Scopes, NewLocalVariables,
+            topAddress, canCreateNewVariable, ignoreUndefinedVariable
         );
-        if(subError){
+        if(result != ReturnType::OK){
             error = "Failed to access variable '" + words[index].value + "' in the current scope";
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
@@ -822,12 +821,12 @@ bool OperationClass::addVectorOrVariableToParameters(
         Parameters.back().variableID = words[index].value;
         Parameters.back().negateVariable = words[index].negateVariable;
 
-        bool subError = false;
-        Parameters.back().localAddress = findExistingVariableOrCreateNew(
-            scriptName, lineNumber, subError, words[index].value, any_dt, Scopes,
-            NewLocalVariables, topAddress, canCreateNewVariable, false
+        ReturnType result;
+        std::tie(Parameters.back().localAddress, result) = findExistingVariableOrCreateNew(
+            scriptName, lineNumber, words[index].value, any_dt, Scopes, NewLocalVariables,
+            topAddress, canCreateNewVariable, false
         );
-        if(subError){
+        if(result != ReturnType::OK){
             return true;
         }
 
@@ -879,12 +878,12 @@ bool OperationClass::addVectorToParameters(const string & scriptName, const unsi
             Parameters.back().variableID = words[index].value;
             Parameters.back().negateVariable = words[index].negateVariable;
 
-            bool subError = false;
-            Parameters.back().localAddress = findExistingVariableOrCreateNew(
-                scriptName, lineNumber, subError, words[index].value, any_dt, Scopes,
-                NewLocalVariables, topAddress, canCreateNewVariable, false
+            ReturnType result;
+            std::tie(Parameters.back().localAddress, result) = findExistingVariableOrCreateNew(
+                scriptName, lineNumber, words[index].value, any_dt, Scopes, NewLocalVariables,
+                topAddress, canCreateNewVariable, false
             );
-            if(subError){
+            if(result != ReturnType::OK){
                 return true;
             }
 
@@ -1113,7 +1112,8 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
     return false;
 }
 inline const VariableLocationStruct * findVariableInTheScopes(
-    const vector<vector<VariableLocationStruct>> & Scopes, const string & variableName, bool forceNewDeclaration = false
+    const vector<vector<VariableLocationStruct>> & Scopes, const string & variableName,
+    bool forceNewDeclaration = false
 ){
     if(forceNewDeclaration){
         return nullptr;
@@ -1171,12 +1171,14 @@ string tokenToStr(TokenType type){
             return "empty_tk";
     }
 }
-std::pair<unsigned, ReturnType> getLocalAddress(const string &variableId, const DataType &variableType,
-    vector<vector<VariableLocationStruct>> &Scopes, vector<VariableInfo> &NewLocalVariables,
-    unsigned &topAddress, bool canAllocateNewVariable, bool makeVariableGlobal, bool makeVariableReference,
-    bool forceNewDeclaration
+std::pair<unsigned, ReturnType> getLocalAddress(const string &variableId, 
+    const DataType &variableType, vector<vector<VariableLocationStruct>> &Scopes,
+    vector<VariableInfo> &NewLocalVariables, unsigned &topAddress, bool canAllocateNewVariable,
+    bool makeVariableGlobal, bool makeVariableReference, bool forceNewDeclaration
 ){
-    const VariableLocationStruct * FoundLocation = findVariableInTheScopes(Scopes, variableId, forceNewDeclaration);
+    const VariableLocationStruct * FoundLocation = findVariableInTheScopes(Scopes, variableId,
+        forceNewDeclaration
+    );
     
     if(FoundLocation != nullptr){ //If the variable already exists
         if(FoundLocation->isLocal){
@@ -1185,16 +1187,17 @@ std::pair<unsigned, ReturnType> getLocalAddress(const string &variableId, const 
             }
             return {FoundLocation->index, ReturnType::OK};
         }
-        else{
-            const unsigned newLocalIndex = NewLocalVariables.size();
-            NewLocalVariables.emplace_back(
-                VariableInfo(FoundLocation->name, FoundLocation->type, FoundLocation->isReference, FoundLocation->defaultAddress)
-            );
-            Scopes.back().push_back(*FoundLocation);
-            Scopes.back().back().index = newLocalIndex;
-            Scopes.back().back().isLocal = true;
-            return {newLocalIndex, ReturnType::OK};
-        }
+
+        const unsigned newLocalIndex = NewLocalVariables.size();
+        NewLocalVariables.emplace_back(
+            VariableInfo(FoundLocation->name, FoundLocation->type, FoundLocation->isReference,
+                FoundLocation->defaultAddress
+            )
+        );
+        Scopes.back().push_back(*FoundLocation);
+        Scopes.back().back().index = newLocalIndex;
+        Scopes.back().back().isLocal = true;
+        return {newLocalIndex, ReturnType::OK};
     }
 
     if(!canAllocateNewVariable){
@@ -1205,22 +1208,35 @@ std::pair<unsigned, ReturnType> getLocalAddress(const string &variableId, const 
     
     if(!makeVariableGlobal){
         if(makeVariableReference){
-            NewLocalVariables.emplace_back(VariableInfo(variableId, variableType, makeVariableReference, 0)); //References don't need a real address.
+            //References don't need a real address.
+            NewLocalVariables.emplace_back(VariableInfo(variableId, variableType,
+                makeVariableReference, 0)
+            );
         }
         else{
-            NewLocalVariables.emplace_back(VariableInfo(variableId, variableType, makeVariableReference, topAddress++));
+            NewLocalVariables.emplace_back(VariableInfo(variableId, variableType,
+                makeVariableReference, topAddress++
+            ));
         }
         Scopes.back().emplace_back(
-            VariableLocationStruct(variableId, variableType, true, makeVariableReference, newLocalIndex, NewLocalVariables.back().defaultAddress)
+            VariableLocationStruct(variableId, variableType, true, makeVariableReference,
+                newLocalIndex, NewLocalVariables.back().defaultAddress
+            )
         );    
     }
     else{
         NewLocalVariables.emplace_back(VariableInfo(variableId, variableType, false, topAddress++));
-        Scopes[0].emplace_back( //Add this variable to the global scope. Other events will be able to reference it.
-            VariableLocationStruct(variableId, variableType, false, true, newLocalIndex, NewLocalVariables.back().defaultAddress)
+        //Add this variable to the global scope. Other events will be able to reference it.
+        Scopes[0].emplace_back( 
+            VariableLocationStruct(variableId, variableType, false, true, newLocalIndex,
+                NewLocalVariables.back().defaultAddress
+            )
         );
-        Scopes.back().emplace_back( //Add this variable to the local scope so there's no further need o copying it in this scope.
-            VariableLocationStruct(variableId, variableType, true, false, newLocalIndex, NewLocalVariables.back().defaultAddress)
+        //Add this variable to the local scope so there's no further need o copying it in this scope.
+        Scopes.back().emplace_back( 
+            VariableLocationStruct(variableId, variableType, true, false, newLocalIndex,
+                NewLocalVariables.back().defaultAddress
+            )
         );  
     }
     
@@ -1228,8 +1244,8 @@ std::pair<unsigned, ReturnType> getLocalAddress(const string &variableId, const 
 }
 void createConstantLiteral(const string &variableId, const DataType &variableType,
     vector<vector<VariableLocationStruct>> &Scopes, vector<VariableInfo> &NewLocalVariables,
-    unsigned &topAddress, bool canAllocateNewVariable, bool makeVariableGlobal, bool makeVariableReference,
-    bool forceNewDeclaration
+    unsigned &topAddress, bool canAllocateNewVariable, bool makeVariableGlobal, 
+    bool makeVariableReference, bool forceNewDeclaration
 ){
     string constantId = "__0";
     const VariableLocationStruct * foundLocation = nullptr;
@@ -1237,12 +1253,11 @@ void createConstantLiteral(const string &variableId, const DataType &variableTyp
         foundLocation = findVariableInTheScopes(Scopes, variableId, forceNewDeclaration);
     }while(foundLocation != nullptr);
 }
-unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned lineNumber, bool & error,
-    const string & variableID, const DataType & variableType, vector<vector<VariableLocationStruct>> & Scopes,
-    vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
-    bool canCreateNewVariable, bool ignoreUndefinedVariable
+std::pair<unsigned, ReturnType> findExistingVariableOrCreateNew(const string & scriptName,
+    const unsigned lineNumber, const string & variableID, const DataType & variableType,
+    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables,
+    unsigned & topAddress, bool canCreateNewVariable, bool ignoreUndefinedVariable
 ){
-    error = false;
     const auto [localAddress, result] = getLocalAddress(variableID, variableType, Scopes,
         NewLocalVariables, topAddress, canCreateNewVariable
     );
@@ -1251,23 +1266,23 @@ unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsign
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Address ("
             << localAddress << ") is out of scope (" << NewLocalVariables.size() << ").\n";
-        error = true;
+        return {0, result};
     }
     else if(result == ReturnType::UNDEFINED){
         if(ignoreUndefinedVariable){
-            const auto [localAddress, _] = getLocalAddress("NULL", null_dt, Scopes,
-                NewLocalVariables, topAddress, canCreateNewVariable
+            return getLocalAddress("NULL", null_dt, Scopes, NewLocalVariables, topAddress,
+                canCreateNewVariable
             );
-            return localAddress;
         }
         else{
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableID << "' is undefined.\n";
-            error = true;
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableID 
+                << "' is undefined.\n";
+            return {0, result};
         }
     }
 
-    return localAddress;
+    return {localAddress, ReturnType::OK};
 }
 TriggerType strToTrigger(const string &trigger){
     if(trigger == "on_boot") return on_boot;
@@ -1321,9 +1336,9 @@ string triggerToStr(const TriggerType &trigger){
             return "undefined";
     }
 }
-bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, const vector<WordStruct> &words,
-    unsigned &cursor, const unsigned &lineNumber, const string &scriptName,
-    vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
+bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, 
+    const vector<WordStruct> &words, unsigned &cursor, const unsigned &lineNumber,
+    const string &scriptName, vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
 ){
     if(cursor >= words.size()){
         return false;
@@ -1335,7 +1350,8 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, co
 
     if(words[cursor].type != TokenType::start_expr_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Passing parameters to a function must be enclosed in parentheses.\n";
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ 
+            << ": Passing parameters to a function must be enclosed in parentheses.\n";
         return true;
     }
     
@@ -1362,23 +1378,27 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, co
                     break;
                 default:
                     cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 << " must be a context.\n";
+                        << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 
+                        << " must be a context.\n";
                     return true;
             }
             if(cursor + 1 >= words.size()){ //[')'], [',']
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__
+                    << ": Parentheses were not closed.\n";
                 return true;
             }
             if(words[cursor + 1].type != TokenType::end_expr_tk){
                 if(words[cursor + 1].value != ","){
                     cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variables must be divided by commas.\n";
+                        << NEW_LINE_PADDING << "In " << __FUNCTION__
+                        << ": Variables must be divided by commas.\n";
                     return true;
                 }
                 if(cursor + 2 >= words.size()){
                     cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
+                        << NEW_LINE_PADDING << "In " << __FUNCTION__
+                        << ": Parentheses were not closed.\n";
                     return true;
                 }
             }
@@ -1416,7 +1436,8 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, co
         }
         else if(result == ReturnType::UNDEFINED){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableId << "' is undefined.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableId
+                << "' is undefined.\n";
             return true;
         }
 
@@ -1434,7 +1455,10 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, co
     return false;
 }
 
-void EventModule::controlText(TextModule *Text, AttributeType attribute, const vector<VariableModule> &Values, vector<string> &IDs, const vector<SingleFont> &FontContainer){
+void EventModule::controlText(TextModule *Text, AttributeType attribute, 
+    const vector<VariableModule> &Values, vector<string> &IDs,
+    const vector<SingleFont> &FontContainer
+){
     switch(attribute){
         case set_id:
             if(Values.size() == 0){
@@ -1470,7 +1494,9 @@ void EventModule::controlText(TextModule *Text, AttributeType attribute, const v
             if(Values.size() < 4){
                 break;
             }
-            Text->setColors(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe());
+            Text->setColors(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), 
+                Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()
+            );
             break;
         case set_color_r:
             if(Values.size() < 1){
@@ -1581,7 +1607,9 @@ void EventModule::controlText(TextModule *Text, AttributeType attribute, const v
             if(Values.size() < 2){
                 break;
             }
-            Text->modifyContentAndResize(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(), FontContainer);
+            Text->modifyContentAndResize(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(),
+                FontContainer
+            );
             break;
         case set_wrapping:
             if(Values.size() == 0){
@@ -1622,7 +1650,10 @@ void EventModule::controlText(TextModule *Text, AttributeType attribute, const v
             return;
     }
 }
-void EventModule::controlEditableText(EditableTextModule *EditableText, AttributeType attribute, const vector<VariableModule> &Values, vector<string> &IDs, const vector<SingleFont> &FontContainer){
+void EventModule::controlEditableText(EditableTextModule *EditableText, AttributeType attribute,
+    const vector<VariableModule> &Values, vector<string> &IDs, 
+    const vector<SingleFont> &FontContainer
+){
     switch(attribute){
         case set_editable:
             if(Values.size() == 0){
@@ -1764,8 +1795,9 @@ void EventModule::controlEditableText(EditableTextModule *EditableText, Attribut
             return;
     }
 }
-void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType attribute, const vector<VariableModule> & Values,
-    vector <string> & IDs, vector<SingleFont> & FontContainer, string EXE_PATH, string workingDirectory
+void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType attribute,
+    const vector<VariableModule> & Values, vector<string> & IDs,
+    vector<SingleFont> & FontContainer, string EXE_PATH, string workingDirectory
 ){
     switch(attribute){
         case set_id:
@@ -1859,7 +1891,8 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
             }
             string fileName = Values[0].getStringUnsafe();
             if(fileName == ""){
-                std::cerr << "Error: In " << __FUNCTION__ << ": In the event '" << ID << "': In function '" << attribute << "': File name is empty.\n";
+                std::cerr << "Error: In " << __FUNCTION__ << ": In the event '" << ID 
+                    << "': In function '" << attribute << "': File name is empty.\n";
                 return;
             }
             string finalPath = "";
@@ -3172,10 +3205,8 @@ void EventModule::controlVariables(VariableModule * Variable, AttributeType attr
             if(Values.size() < 1){
                 return;
             } 
-            cout << "hello ";
             unsigned int dice = rand() % Values.size();
-            cout << Variable->setString(Values[dice].getString()) << " ";
-            cout << Variable->getString() << "\n";
+            Variable->setString(Values[dice].getString());
             return;
         }
         case add_int:

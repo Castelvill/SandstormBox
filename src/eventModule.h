@@ -62,7 +62,7 @@ public:
     VariableModule Literal;
     ValueLocation Location;
     unsigned localAddresses[2] = {0, 0};
-    vector <EngineInstr> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
+    vector<EngineInstr> operators; //!, ==, !=, <=, <, >=, >, &&, ||, igT (ignore the rest if true), igF (ignore the rest if false)
     ConditionClass(unsigned int newID);
     ConditionClass(string newID);
     ConditionClass();
@@ -137,10 +137,10 @@ std::pair<unsigned, ReturnType> getLocalAddress(const string & variableId, const
     unsigned & topAddress, bool canAllocateNewVariable = true, bool makeVariableGlobal = false,
     bool makeVariableReference = false, bool forceNewDeclaration = false
 );
-unsigned findExistingVariableOrCreateNew(const string & scriptName, const unsigned lineNumber, bool & error,
-    const string & variableID, const DataType & variableType, vector<vector<VariableLocationStruct>> & Scopes,
-    vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
-    bool canCreateNewVariable, bool ignoreUndefinedVariable
+std::pair<unsigned, ReturnType> findExistingVariableOrCreateNew(const string & scriptName,
+    const unsigned lineNumber, const string & variableID, const DataType & variableType,
+    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables,
+    unsigned & topAddress, bool canCreateNewVariable, bool ignoreUndefinedVariable
 );
 
 class OperationClass{
@@ -210,7 +210,7 @@ public:
     vector<VariableModule> resultStack;
     vector<OperationClass> Operations;
 	vector<ChildStruct> Children;
-    //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events with the use of "run" and "else" commands.
+    //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events.
     vector<TriggerType> primaryTriggerTypes;
     vector<VariableInfo> LocalVariables;
     vector<PassingVariableInfo> Parameters;

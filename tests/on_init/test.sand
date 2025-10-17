@@ -1,0 +1,11 @@
+import "tests/test_template.sand"
+
+@trigger on_init
+start main()
+    startTest()
+
+    var a 0
+
+    load_build me ["tests/on_init/helper_0.sand"]
+
+end

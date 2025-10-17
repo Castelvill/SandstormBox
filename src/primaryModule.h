@@ -3,8 +3,6 @@
 #include <cstdio>
 #include "usefull.h"
 
-using std::string;
-
 enum ReturnType : char{
     OK, NULL_VAL, EMPTY, INVALID_TYPE, READ_ONLY, ERROR,
     ERROR_INF, OUT_OF_SCOPE, UNDEFINED, CORRUPTED, CONTINUE

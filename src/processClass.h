@@ -193,6 +193,8 @@ struct PointerRecalculator{
     bool didActiveEditableTextExist;
     ModuleIndex ActiveEditableTextIndex = {0, 0, 0};
 
+    string eventIdCheck;
+
     void clear();
     void findIndexesForCameras(vector<Camera2D> &Cameras, ObjectMemoryStruct & ObjectMemory, Camera2D *& SelectedCamera);
     void findIndexesForLayers(vector<LayerClass> &Layers, ObjectMemoryStruct & ObjectMemory, LayerClass *& OwnerLayer);
@@ -300,7 +302,8 @@ public:
     vector <unsigned> camerasOrder;
     vector <unsigned> layersOrder;
     InstrDescription CurrentInstr;
-    std::unordered_map<string, ObjectMemoryStruct> ProcessMemory; //Keys are made of ids of the layer and object.
+    std::unordered_map<size_t, ObjectMemoryStruct> ProcessMemory;
+    size_t topUniqueIndex = 0;
 
     std::unordered_map<string, TimePoint> userDefinedTimers;
 
@@ -600,7 +603,7 @@ public:
     void startScrollbarDragging(const MouseClass & Mouse);
     void stopScrollbarDragging();
     void dragScrollbars(const MouseClass & Mouse);
-    void updateBaseOfTriggerableObjects();
+    void updateBaseOfTriggerableObjects(Triggers * CurrentTriggers);
     void detectTriggeredEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers);
     void detectTriggeredByIdleEvents(const EngineClass & Engine, vector <AncestorObject*> & TriggeredObjects, Triggers & CurrentTriggers);
     size_t countLayers() const;

@@ -128,7 +128,9 @@ VariableModule LayerClass::getValue(AttributeType attribute, string option) cons
             return VariableModule();
     }
 }
-void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, const bool &changeOldID){
+void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs,
+    const bool &changeOldID, size_t & topUniqueIndex
+){
     if(isStringInVector(reservedIDs, Original.ID)){
         cerr << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
         return;
@@ -152,7 +154,7 @@ void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, co
 
     for(const AncestorObject & Object : Original.Objects){
         Objects.emplace_back(AncestorObject());
-        Objects.back().clone(Object, objectsIDs, ID, true);
+        Objects.back().clone(Object, objectsIDs, ID, true, topUniqueIndex);
     }
 
     objectsOrder = Original.objectsOrder;

@@ -1,6 +1,9 @@
+-Instead of comparing string ids use unique numbers to recalculate indexes etc.
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
+-Fix terminal: Clicking tab while the cursor is inside the text will color the rest of the line to the right.
 -Changing the position of the cursor in the text should update currentLine and currentChar parameters in the editor's command line - expand access instruction.
+-Add a build restriction keyword to forbid given scripts from being built and/or executed in a specified way.
 -Remove the need to manually add points to the primitives, unless we want to add polygons - in that case adding points should be optional and all of them will be used only if the primitive is of "polygon" type.
 -Decide which instruction can create variables - only those with single possible output type.
 -Fix keyword naming convention.
@@ -22,7 +25,6 @@
 -Move "access" into "=" instruction with accessors like "Window.attribute", "Sys.attribute", etc.
 -Move "fun" instructions into "variable.function_name([params])" syntax.
 -Remove it_StartingEvent.
--Remove createCallingStackOfInlineEvents???
 -Remove inline events - now we can easily create new scopes so it's current version is not needed anymore.
 -Make it possible to pass literals to functions - for example add VariableModule to PassingVariableInfo.
 -Create printCompilationError function that returns a string beginning with "Compilation Error" or "Compilation Warning".
@@ -33,6 +35,7 @@
 -Create a translation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
 -Fix creating variables in interpreter.sand.
 -Separate Sand compiler from the ancestorObject.cpp and event.cpp.
+-Create "print_table" instruction based on printing style of "dump_memory" instruction. 
 
 -Update documentation.
 -Optimize EditableSuperText.

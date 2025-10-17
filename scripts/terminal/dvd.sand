@@ -1,4 +1,4 @@
-@trigger each_iteration
+@trigger on_init
 start putRectangleOnScreen
     var DISPLAY_W 640
     var DISPLAY_H 480
@@ -34,8 +34,6 @@ start putRectangleOnScreen
     fun FpsText set_color 0 0.0 1.0 0.0 1.0
     fun FpsText set_wrapping "n"
     fun FpsText set_content "FPS"
-
-	delete_this_event
 end
 
 @trigger on_display_resize
@@ -60,8 +58,10 @@ start printFPS
 	fun FpsText update
 end
 
+@trigger each_iteration
 start moveRectangle
-	@trigger each_iteration
+    double xs 0.0
+    double ys 0.0
     + x SIZE_X xs
     + y SIZE_Y ys
     if(x 0 <= xs DISPLAY_W >= ||)

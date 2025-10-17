@@ -1,0 +1,8 @@
+import "tests/import/helper_1_0.sand"
+import "tests/import/helper_1_1.sand"
+
+start test_1(int & a)   //3
+    test_1_0(a)         //3 * 7 = 21
+    test_1_1(a)         //21 + 44 = 65
+    -= a 4              //65 - 4 = 61
+end

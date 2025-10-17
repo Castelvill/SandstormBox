@@ -385,9 +385,6 @@ void EngineClass::exitAllegro(){
     al_uninstall_keyboard();
     al_uninstall_mouse();
     al_uninstall_system();
-    if(al_is_keyboard_installed()){
-        cout << "BAZINGA\n";
-    }
 }
 void EngineClass::updateEvents(){
     switch(event.type){

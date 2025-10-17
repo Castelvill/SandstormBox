@@ -1,0 +1,6 @@
+import "tests/import/helper_0_0.sand"
+
+start test_0(int & a)
+    test_0_0(a)
+    += a 13
+end

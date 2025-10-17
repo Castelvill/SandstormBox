@@ -1,5 +1,5 @@
 @trigger on_init
-start onInit
+start onInit()
     //edit_proc print_instructions 1
     edit_proc auto_print_stack 0
 
@@ -62,7 +62,7 @@ start eachIteration
     run drawScene(TextField)
 end
 
-start startGame 
+start startGame()
     if(gameState 0 !=)
         return
     end_if

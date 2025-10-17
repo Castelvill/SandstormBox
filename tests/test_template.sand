@@ -16,6 +16,7 @@
 start initTest()
     env can_exit_on_idle 1
     access testCaseName [me.id]
+    //By default first automatically created object is called "Init"
     if(testCaseName "Init" ==)
         fun me set_id "TEST"
     end_if

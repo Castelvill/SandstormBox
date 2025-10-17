@@ -1,3 +1,5 @@
+//It's really old version, don't touch it.
+
 @trigger on_init
 start onInit
     start_timer "fullProgramTimer"
