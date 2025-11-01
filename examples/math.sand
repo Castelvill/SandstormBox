@@ -4,6 +4,7 @@ start quickMath
     print "a = 2\n"
     int b 4
     print "a = 4\n"
+    int c 0
     + a b c
     print "a + b = " c "\n"
 
@@ -21,6 +22,7 @@ start quickMath
     print_d " " vecA "]"
     print "\n"
 
+    int vecB 0
     + vecA 10 vecB
     print "vecA + 10 = [ "
     print_d " " vecB "]\n"

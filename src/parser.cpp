@@ -36,16 +36,18 @@ bool removeModuleInstanceByID(vector <Module> & Container, string destroyID){
     }
     return false;
 }
-bool createEvent(const string & scriptName, const unsigned & lineNumber, const string & layerID,
-    const string & objectID, vector <EventModule> & EventContainer, vector <string> & EventContainerIDs,
-    EventModule & NewEvent, const vector<WordStruct> & words,
-    ScopeType & Scopes, unsigned & topAddress, bool override
+bool createEvent(const string & scriptName, const unsigned & lineNumber, const size_t layerIndex,
+    const string & layerID, const size_t objectIndex, const string & objectID,
+    vector <EventModule> & EventContainer, vector<string> & EventContainerIDs,
+    EventModule & NewEvent, const vector<WordStruct> & words, ScopeType & Scopes,
+    unsigned & topAddress, bool override, size_t & topModuleUniqueIndex
 ){
     string eventID = "";
     
     if(words.size() < 2){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires 1 parameter.\n";
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value
+            << "\' requires 1 parameter.\n";
         return true;
     }
     if(words[1].type != TokenType::identifier_tk && words[1].type != TokenType::empty_tk){
@@ -64,11 +66,21 @@ bool createEvent(const string & scriptName, const unsigned & lineNumber, const s
         }
         else{
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Event with id \'" << eventID << "\' already exists.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Event with id \'" << eventID 
+                << "\' already exists.\n";
             return true;
         }
     }
-    NewEvent = EventModule(eventID, &EventContainerIDs, layerID, objectID);
+    PrimaryData initData = {
+        .topIndex = &topModuleUniqueIndex,
+        .objectUniqueIndex = objectIndex,
+        .layerUniqueIndex = layerIndex,
+        .newID = eventID,
+        .listOfIDs = &EventContainerIDs,
+        .newLayerID = layerID,
+        .newObjectID = objectID
+    };
+    NewEvent = EventModule(initData);
     
     Scopes.emplace_back(vector<VariableLocationStruct>()); //Create a new scope
 
@@ -826,11 +838,14 @@ ReturnType InstrParser::parseTriggersAnnotation(){
     }
     return ReturnType::OK;
 }
-ReturnType InstrParser::parseStartAndOverride(vector<string> & allAvailableEventIDs, const string & layerId, const string & objectId,
-    vector<EventModule> &eventContainer, vector<string> &eventContainerIds
+ReturnType InstrParser::parseStartAndOverride(vector<string> & allAvailableEventIDs,
+    const size_t layerIndex, const string & layerId, const size_t objectIndex,
+    const string & objectId, vector<EventModule> &eventContainer, vector<string> &eventContainerIds,
+    size_t & topModuleUniqueIndex
 ){
-    if(createEvent(scriptName, lineNumber, layerId, objectId, eventContainer, eventContainerIds, NewEvent,
-        words, Scopes, topAddress, annotations.override
+    if(createEvent(scriptName, lineNumber, layerIndex, layerId, objectIndex, objectId,
+        eventContainer, eventContainerIds, NewEvent, words, Scopes, topAddress,
+        annotations.override, topModuleUniqueIndex
     ))
         return ReturnType::ERROR;
     allAvailableEventIDs.clear();
@@ -858,7 +873,6 @@ ReturnType InstrParser::parseEnd(vector<EventModule> &eventContainer){
     eventContainer.push_back(NewEvent);
     NewEvent = EventModule();
     return ReturnType::OK;
-
 }
 ReturnType InstrParser::parseEmpty(){
     OperationClass * operation = nullptr;

@@ -23,15 +23,15 @@ start onInit
     resizeDisplay()
     buildTerminal()
     createWindowTemplate()
+    createEditorCommandLine()
     runAfterInit()
 end
 
 start runAfterInit()
     //cd scripts
+    note()
 
-    createEditorCommandLine()
-
-	run forceRefresh()
+	forceRefresh()
 end
 
 
@@ -639,12 +639,16 @@ start spawnNotepad(Layer & NewWindowLayer, string & fileName)
     fun TextEditor set_pos 5 30
     fun TextEditor set_size 640 480
     fun TextEditor set_color 0 1.0 0.0 0.0 1.0
-    fun TextEditor set_wrapping "n"
+    fun TextEditor set_wrapping "w"
     fun TextEditor set_content ""
     fun TextEditor activate
     fun Object set_size 640 480
-    bind Object ["scripts/terminal/notepad.sand"]
-    build Object true
+    
+    //TODO_0: Fix: bind + build...true doesn't reset the entire memory map causing undefined behavior 
+    //bind Object ["scripts/terminal/notepad.sand"]
+    //build Object true
+    
+    load_build Object ["scripts/terminal/notepad.sand"]
     loadTextFromFile(TextEditor, fileName)
 end
 
@@ -1031,7 +1035,7 @@ start enterCommand()
     string lastCommand ""
     ignoreRepetition(lastCommand)
     saveCommand(command, commandLength, lastCommand)
-    programCheck(isAllowed)
+    validateAndRunProgram(isAllowed)
     = currentCommandNumber commandNumber
 end
 
@@ -1054,7 +1058,7 @@ start saveCommand(string & command, int & commandLength, string & lastCommand)
     end_if
 end
 
-start programCheck(bool & isAllowed)
+start validateAndRunProgram(bool & isAllowed)
     if (isAllowed)
         string run "run "
         += run param0

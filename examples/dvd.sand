@@ -30,6 +30,8 @@ end
 
 @trigger each_iteration
 start moveRectangle()
+    double xs 0
+    double ys 0
     + x SIZE_X xs
     + y SIZE_Y ys
     if(x 0 <= xs DISPLAY_W >= ||)

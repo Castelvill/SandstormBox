@@ -1,3 +1,10 @@
+1.11.2025
+-Fixed "inject_code" instruction and created a new test for it - new line and strings didn't work.
+-Updated examples.
+-Updated entities initialization and cloning - moved parameters into a PrimaryData struct.
+-Added unique indexes for entities - replaced some string comparisons with a numeric alternative.
+-Cleaned up code - mainly line width.
+
 17.10.2025
 -Fixed accessing object's memory by replacing string key with unique index.
 -Fixed updating object id across all modules.

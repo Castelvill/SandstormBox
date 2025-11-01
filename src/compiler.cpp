@@ -19,10 +19,10 @@ bool canStringBeDouble(string text){
     return hasPoint;
 }
 
-string findAndUseSpecialCharacters(string input){
-    //Translate special letter pairs into special characters.
+//Translate special letter pairs into special characters.
+string findAndUseSpecialCharacters(const string & input){
     string output = "";
-    for(unsigned i = 0; i < input.size(); i++){
+    for(size_t i = 0; i < input.size(); i++){
         if(input[i] == '\\' && i + 1 < input.size()){
             if(input[i + 1] == 'n'){
                 output += '\n';
@@ -37,8 +37,45 @@ string findAndUseSpecialCharacters(string input){
         }
         output += input[i];
     }
-
     return output;
+}
+
+//For every '\n' or "\n" create a new vector element 
+vector<string> divideStringIntoLines(const string & input){
+    vector<string> output = {""};
+    for(size_t i = 0; i < input.size(); i++){
+        if(input[i] == '\n'){
+            output.emplace_back();
+            continue;
+        }
+        if(input[i] == '\\' && i + 1 < input.size()){
+            if(input[i + 1] == 'n'){
+                output.emplace_back();
+                i++;
+                continue;
+            }
+            if(input[i + 1] == '\"'){
+                output.back() += '\"';
+                i++;
+                continue;
+            }
+        }
+        output.back() += input[i];
+    }
+    return output;
+}
+
+//For every '\n' or "\n" create a new vector element 
+vector<string> divideStringVectorIntoLines(const vector<string> & input){
+    vector<string> outputWithoutNewLines;
+    for(const string & codeSnippet : input){
+        vector<string> lines = divideStringIntoLines(codeSnippet);
+        outputWithoutNewLines.insert(outputWithoutNewLines.end(),
+            std::make_move_iterator(lines.begin()),
+            std::make_move_iterator(lines.end())
+        );
+    }
+    return outputWithoutNewLines;
 }
 
 vector <string> mergeStrings(vector <string> code){
@@ -107,7 +144,8 @@ std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
     string error;
     bool keywordAquired = false;
 
-    //If a word is not a part of a string, add it as a single word, otherwise add the whole string as a single word and ignore its parts. Don't add " to the words.
+    //If a word is not a part of a string, add it as a single word, otherwise add the whole string
+    //as a single word and ignore its parts. Don't add " to the words.
     for(unsigned i = 0; i < output.size(); i++){
         if(output[i][0] == '\"' && !isInsideStringSector){
             isInsideStringSector = true;
@@ -412,10 +450,12 @@ ReturnType addImportsToBindedScripts(const string & exePath, const vector<string
     return ReturnType::OK;
 }
 
-ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer, vector<string> &eventContainerIds,
-    const string & layerId, const string & objectId, const vector<WordStruct> & words, const string & scriptName,
-    unsigned lineNumber, ScopeType & Scopes, unsigned & topAddress, bool & triggerBreakpoint, EventModule & NewEvent,
-    vector<string> & allAvailableEventIDs, BranchingStackStruct & BranchingStack, Annotations & annotations
+ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer,
+    vector<string> &eventContainerIds, const size_t layerIndex, const string & layerId,
+    const size_t objectIndex, const string & objectId, const vector<WordStruct> & words,
+    const string & scriptName, unsigned lineNumber, ScopeType & Scopes, unsigned & topAddress,
+    bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
+    BranchingStackStruct & BranchingStack, Annotations & annotations, size_t & topModuleUniqueIndex
 ){
     switch(words[0].instruction){
         case EngineInstr::import:
@@ -426,13 +466,16 @@ ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer, vec
             if(Scopes.size() < 2){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << NEW_LINE_PADDING << "In " << __FUNCTION__ << ":\n"
-                    << NEW_LINE_PADDING << "Instruction \'" << words[0].value << "\' cannot be used outside of an event scope.\n";
+                    << NEW_LINE_PADDING << "Instruction \'" << words[0].value
+                    << "\' cannot be used outside of an event scope.\n";
                 return ReturnType::ERROR;
             }
             break;
     }
 
-    InstrParser instrParser(words, scriptName, lineNumber, NewEvent, Scopes, topAddress, annotations);
+    InstrParser instrParser(words, scriptName, lineNumber, NewEvent, Scopes, topAddress,
+        annotations
+    );
 
     switch(words[0].instruction){
         case import:
@@ -442,7 +485,9 @@ ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer, vec
         case annotation_i:
             return instrParser.parseAnnotations();
         case start:
-            return instrParser.parseStartAndOverride(allAvailableEventIDs, layerId, objectId, eventContainer, eventContainerIds);
+            return instrParser.parseStartAndOverride(allAvailableEventIDs, layerIndex, layerId,
+                objectIndex, objectId, eventContainer, eventContainerIds, topModuleUniqueIndex
+            );
         case end_i:
             return instrParser.parseEnd(eventContainer);
         case if_i:
@@ -643,49 +688,96 @@ ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer, vec
     }
 }
 
-ReturnType assembleEvents(vector<EventModule> &eventContainer, vector<string> &eventContainerIds,
-    const string & layerId, const string & objectId, vector<string> & code, const string & scriptName,
-    vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress
-){
-    if(layerId.empty()){
-        cerr << "Error: In " << scriptName << ":\n"
-            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Layer id empty. Compilation aborted.\n";
-        return ReturnType::ERROR;
-    }
-    if(objectId.empty()){
-        cerr << "Error: In " << scriptName << ":\n"
-            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Object id empty. Compilation aborted.\n";
-        return ReturnType::ERROR;
-    }
-    //merge string sections
-    vector<string> code2 = {""};
+vector<string> mergeStringSections(const vector<string> & input){
+    vector<string> mergedInput = {""};
     bool stringSection = false;
-    unsigned emptyLinesCount = 0;
-    for(unsigned line = 0; line < code.size(); line++){
-        for(unsigned ch = 0; ch < code[line].size(); ch++){
-            if(code[line][ch] == '\"'){
-                if(ch != 0 && code[line][ch-1] == '\\'){
+    size_t emptyLinesCount = 0;
+    for(size_t line = 0; line < input.size(); line++){
+        for(size_t ch = 0; ch < input[line].size(); ch++){
+            if(input[line][ch] == '\"'){
+                if(ch != 0 && input[line][ch-1] == '\\'){
                     continue;
                 }
                 stringSection = !stringSection;
             }
         }
-        code2.back() += code[line];
+        mergedInput.back() += input[line];
         if(!stringSection){
-            code2.emplace_back("");
+            mergedInput.emplace_back("");
             for(; emptyLinesCount > 0; emptyLinesCount--){
-                code2.emplace_back("");
+                mergedInput.emplace_back("");
             }
         }
         else{
-            code2.back() += '\n';
+            mergedInput.back() += '\n';
             emptyLinesCount++;
         }
     }
-    code = code2;
+    return mergedInput;
+}
+
+vector<string> mergeStringSectionsAndUseSpecialSigns(const vector<string> & input){
+    vector<string> mergedInput = {""};
+    bool stringSection = false;
+    size_t emptyLinesCount = 0;
+    for(size_t line = 0; line < input.size(); line++){
+        for(size_t ch = 0; ch < input[line].size(); ch++){
+            if(input[line][ch] == '\"'){
+                if(ch != 0 && input[line][ch-1] == '\\'){
+                    continue;
+                }
+                stringSection = !stringSection;
+            }
+        }
+        mergedInput.back() += input[line];
+        if(!stringSection){
+            mergedInput.emplace_back("");
+            for(; emptyLinesCount > 0; emptyLinesCount--){
+                mergedInput.emplace_back("");
+            }
+        }
+        else{
+            mergedInput.back() += '\n';
+            emptyLinesCount++;
+        }
+    }
+    return mergedInput;
+}
+
+ReturnType assembleEvents(vector<EventModule> & eventContainer, vector<string> & eventContainerIds,
+    size_t layerIndex, const string & layerId, size_t objectIndex, string & objectId,
+    vector<string> & code, const string & scriptName, vector<VariableLocationStruct> & GlobalScope,
+    unsigned & topMemoryAddress, size_t & topModuleUniqueIndex
+){
+    if(layerIndex == 0){
+        cerr << "Error: In " << scriptName << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Unique index of layer is 0. Compilation aborted.\n";
+        return ReturnType::ERROR;
+    }
+    if(objectIndex == 0){
+        cerr << "Error: In " << scriptName << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Unique index of object is 0. Compilation aborted.\n";
+        return ReturnType::ERROR;
+    }
+    if(layerId.empty()){
+        cerr << "Error: In " << scriptName << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Layer id empty. Compilation aborted.\n";
+        return ReturnType::ERROR;
+    }
+    if(objectId.empty()){
+        cerr << "Error: In " << scriptName << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Object id empty. Compilation aborted.\n";
+        return ReturnType::ERROR;
+    }
+    
+    code = mergeStringSections(code);
 
     vector<WordStruct> words;
-    EventModule NewEvent = EventModule();
+    EventModule NewEvent;
     unsigned lineNumber = 0;
     bool triggerBreakpoint = false;
     bool assembleEvents = true;
@@ -743,7 +835,8 @@ ReturnType assembleEvents(vector<EventModule> &eventContainer, vector<string> &e
                 if(word.negateVariable){
                     cout << "neg ";
                 }
-                cout << "[" << tokenToStr(word.type) << ", " << instrToStr(word.instruction) << ", \"" << word.value << "\"] ";
+                cout << "[" << tokenToStr(word.type) << ", " << instrToStr(word.instruction)
+                    << ", \"" << word.value << "\"] ";
             }
             cout << "\n";
             cout.flush();
@@ -757,26 +850,29 @@ ReturnType assembleEvents(vector<EventModule> &eventContainer, vector<string> &e
             vector<vector<WordStruct>> preprocessedWords = codeGenerator.preprocessTokens(words);
             for(auto finalWords : preprocessedWords){
                 ReturnType result = parseTokensAndAssembleEvents(
-                    eventContainer, eventContainerIds, layerId, objectId,
+                    eventContainer, eventContainerIds, layerIndex, layerId, objectIndex, objectId,
                     finalWords, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
-                    NewEvent, allAvailableEventIDs, BranchingStack, annotations
+                    NewEvent, allAvailableEventIDs, BranchingStack, annotations,
+                    topModuleUniqueIndex
                 );
                 if(result == ReturnType::ERROR){
                     cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Compilation aborted due to previous errors.\n";
+                        << NEW_LINE_PADDING << "In " << __FUNCTION__
+                        << ": Compilation aborted due to previous errors.\n";
                     return ReturnType::ERROR;
                 }
             }
         }
         else{
             ReturnType result = parseTokensAndAssembleEvents(
-                eventContainer, eventContainerIds, layerId, objectId,
+                eventContainer, eventContainerIds, layerIndex, layerId, objectIndex, objectId,
                 words, scriptName, lineNumber, Scopes, topMemoryAddress, triggerBreakpoint,
-                NewEvent, allAvailableEventIDs, BranchingStack, annotations
+                NewEvent, allAvailableEventIDs, BranchingStack, annotations, topModuleUniqueIndex
             );
             if(result == ReturnType::ERROR){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Compilation aborted due to previous errors.\n";
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__
+                    << ": Compilation aborted due to previous errors.\n";
                 return ReturnType::ERROR;
             }
         }
@@ -785,11 +881,14 @@ ReturnType assembleEvents(vector<EventModule> &eventContainer, vector<string> &e
     if(words.size() > 0){
         if(words[0].value != "end"){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Every event must end with 'end' instruction.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": Every event must end with 'end' instruction.\n";
         }
     }
 
-    if(BranchingStack.ifElseJumpStack.size() > 0 || BranchingStack.ifEndJumpStack.size() > 0 || BranchingStack.usedElseStatements.size() > 0){
+    if(BranchingStack.ifElseJumpStack.size() > 0 || BranchingStack.ifEndJumpStack.size() > 0
+        || BranchingStack.usedElseStatements.size() > 0
+    ){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": Every if statement must end with '"
@@ -828,9 +927,11 @@ inline void printEmptyFileWarning(string scriptName, string functionName){
         << ": Script '" << scriptName << "' is empty or cannot be opened.\n";
 }
 
-std::pair<ReturnType, bool> compile(const string & exePath, const vector<string> & bindedScripts, bool allowNotAscii,
-    vector<EventModule> &eventContainer, vector<string> &eventContainerIds, vector<VariableLocationStruct> & globalScope,
-    unsigned & topMemoryAddress, const string & layerId, string & objectId
+std::pair<ReturnType, bool> compile(const string & exePath, const vector<string> & bindedScripts,
+    bool allowNotAscii, vector<EventModule> &eventContainer, vector<string> &eventContainerIds,
+    vector<VariableLocationStruct> & globalScope, unsigned & topMemoryAddress,
+    size_t layerIndex, const string & layerId, size_t objectIndex, string & objectId,
+    size_t & topModuleUniqueIndex
 ){
     vector<string> allScriptsToAssemble;
     ReturnType status = addImportsToBindedScripts(exePath, bindedScripts, allScriptsToAssemble);
@@ -847,11 +948,14 @@ std::pair<ReturnType, bool> compile(const string & exePath, const vector<string>
         if(!code.empty()){
             anyAssembledEvents = true;
             size_t preAssemblyEventCount = eventContainer.size();
-            ReturnType assemblyStatus = assembleEvents(eventContainer, eventContainerIds, layerId, objectId, code,
-                scriptName, globalScope, topMemoryAddress
+            size_t preAssemblyModuleUniqueIndex = topModuleUniqueIndex;
+            ReturnType assemblyStatus = assembleEvents(eventContainer, eventContainerIds,
+                layerIndex, layerId, objectIndex, objectId, code, scriptName, globalScope,
+                topMemoryAddress, topModuleUniqueIndex
             );
             if(assemblyStatus == ReturnType::ERROR){
                 eventContainer.resize(preAssemblyEventCount);
+                topModuleUniqueIndex = preAssemblyModuleUniqueIndex;
                 return {ReturnType::ERROR, anyAssembledEvents};
             }
             code.clear();

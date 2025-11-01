@@ -75,6 +75,9 @@ start testRunnerEvent()
     = path "recompilation_test/test"
     scheduleTest(path)
 
+    = path "inject_code"
+    scheduleTest(path)
+
     = path "member_variables"
     scheduleTest(path)
 
@@ -109,5 +112,5 @@ start on_idle()
     print "============================================\n"
     print "RUNNING ALL TESTS - " passedTests "/" allTestsCount " PASSED\n"
     print "============================================\n"
-    exit //delete_this_event works the same in this instance
+    exit
 end

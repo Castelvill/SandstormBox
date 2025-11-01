@@ -1,7 +1,16 @@
 #include "vectorModule.h"
 
-VectorModule::VectorModule(){}
+VectorModule::VectorModule(size_t & topModuleUniqueIndex){
+    uniqueIndex = topModuleUniqueIndex++;
+}
+void VectorModule::setAllIndexes(size_t index, size_t objectIndex, size_t layerIndex){
+    uniqueIndex = index;
+    objectUniqueIndex = objectIndex;
+    layerUniqueIndex = layerIndex;
+}
 VectorModule::VectorModule(const VectorModule &Original){
+    setAllIndexes(Original.uniqueIndex, Original.objectUniqueIndex, Original.layerUniqueIndex);
+
     deleted = Original.deleted;
     ID = Original.ID;
     layerID = Original.layerID;
@@ -10,20 +19,24 @@ VectorModule::VectorModule(const VectorModule &Original){
     if(deleted){
         return;
     }
-    if(type == 'b'){
-        vBool = Original.vBool;
-    }
-    else if(type == 'i'){
-        vInt = Original.vInt;
-    }
-    else if(type == 'd'){
-        vDouble = Original.vDouble;
-    }
-    else if(type == 's'){
-        vString = Original.vString;
+    switch(type){
+        case 'b':
+            vBool = Original.vBool;
+            return;
+        case 'i':
+            vInt = Original.vInt;
+            return;
+        case 'd':
+            vDouble = Original.vDouble;
+            return;
+        case 's':
+            vString = Original.vString;
+            return;
     }
 }
 VectorModule &VectorModule::operator=(const VectorModule &Original){
+    setAllIndexes(Original.uniqueIndex, Original.objectUniqueIndex, Original.layerUniqueIndex);
+    
     deleted = Original.deleted;
     ID = Original.ID;
     layerID = Original.layerID;
@@ -32,26 +45,29 @@ VectorModule &VectorModule::operator=(const VectorModule &Original){
     if(deleted){
         return *this;
     }
-    if(type == 'b'){
-        vBool = Original.vBool;
-    }
-    else if(type == 'i'){
-        vInt = Original.vInt;
-    }
-    else if(type == 'd'){
-        vDouble = Original.vDouble;
-    }
-    else if(type == 's'){
-        vString = Original.vString;
+    switch(type){
+        case 'b':
+            vBool = Original.vBool;
+            break;
+        case 'i':
+            vInt = Original.vInt;
+            break;
+        case 'd':
+            vDouble = Original.vDouble;
+            break;
+        case 's':
+            vString = Original.vString;
+            break;
     }
     return *this;
 }
-VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID)
-{
-    setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
+VectorModule::VectorModule(PrimaryData & initData){
+    setAllIndexes(*initData.topIndex++, initData.objectUniqueIndex, initData.layerUniqueIndex);
+    setAllIDs(initData, true);
 }
-VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, string newType){
-    setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
+VectorModule::VectorModule(PrimaryData & initData, const string & newType){
+    setAllIndexes(*initData.topIndex++, initData.objectUniqueIndex, initData.layerUniqueIndex);
+    setAllIDs(initData, true);
     if(newType == "null"){
         type = 'n';
     }
@@ -71,8 +87,9 @@ VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLa
         cerr << "Error: In " << __FUNCTION__ << ": Type '" << newType << "' is not valid.\n";
     }
 }
-VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, char newType){
-    setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
+VectorModule::VectorModule(PrimaryData & initData, char newType){
+    setAllIndexes(*initData.topIndex++, initData.objectUniqueIndex, initData.layerUniqueIndex);
+    setAllIDs(initData, true);
     if(newType == 'n' || newType == 'b' || newType == 'i' || newType == 'd' || newType == 's'){
         type = newType;
     }
@@ -81,39 +98,78 @@ VectorModule::VectorModule(string newID, vector<string> *listOfIDs, string newLa
     }
 }
 void VectorModule::clear(){
-    if(type == 'b'){
-        vBool.clear();
-    }
-    else if(type == 'i'){
-        vInt.clear();
-    }
-    else if(type == 'd'){
-        vDouble.clear();
-    }
-    else if(type == 's'){
-        vString.clear();
+    switch(type){
+        case 'b':
+            vBool.clear();
+            break;
+        case 'i':
+            vInt.clear();
+            break;
+        case 'd':
+            vDouble.clear();
+            break;
+        case 's':
+            vString.clear();
+            break;
     }
     type = 'n';
 }
-void VectorModule::setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
+void VectorModule::setAllIDs(PrimaryData & initData, bool changeOldID){
     if(changeOldID){
-        setID(newID, listOfIDs);
+        setID(initData.newID, initData.listOfIDs);
     }
-    setLayerID(newLayerID);
-    setObjectID(newObjectID);
+    setLayerID(initData.newLayerID);
+    setObjectID(initData.newObjectID);
 }
-void VectorModule::clone(const VectorModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
-    string oldID = ID;
-    *this = Original;
-    ID = oldID;
-    setAllIDs(Original.getID(), &listOfIDs, newLayerID, newObjectID, changeOldID);
+void VectorModule::clone(const VectorModule &Original, PrimaryData & initData, bool changeOldID){
+    setAllIndexes(uniqueIndex, initData.objectUniqueIndex, initData.layerUniqueIndex);
+
+    initData.newID = Original.getID();
+    setAllIDs(initData, changeOldID);
+
+    deleted = Original.deleted;
+    
+    type = Original.type;
+    switch(type){
+        case 'b':
+            vBool = Original.vBool;
+            break;
+        case 'i':
+            vInt = Original.vInt;
+            break;
+        case 'd':
+            vDouble = Original.vDouble;
+            break;
+        case 's':
+            vString = Original.vString;
+            break;
+    }
 }
 void VectorModule::deleteLater(){
     deleted = true;
 }
+void VectorModule::setUniqueIndex(size_t value){
+    uniqueIndex = value;
+}
+size_t VectorModule::getUniqueIndex() const{
+    return uniqueIndex;
+}
+void VectorModule::setObjectUniqueIndex(size_t value){
+    objectUniqueIndex = value;
+}
+size_t VectorModule::getObjectUniqueIndex() const{
+    return objectUniqueIndex;
+}
+void VectorModule::setLayerUniqueIndex(size_t value){
+    layerUniqueIndex = value;
+}
+size_t VectorModule::getLayerUniqueIndex() const{
+    return layerUniqueIndex;
+}
 void VectorModule::setID(string newID, vector<string> *listOfIDs){
     if(isStringInVector(reservedIDs, ID)){
-        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID
+            << "\' cannot be changed.\n";
         return;
     }
     if(listOfIDs != nullptr){
@@ -125,19 +181,21 @@ void VectorModule::setID(string newID, vector<string> *listOfIDs){
         ID = newID;
     }
 }
-void VectorModule::setLayerID(string newID){
+void VectorModule::setLayerID(const string & newID){
     layerID = newID;
 }
-void VectorModule::setObjectID(string newID){
+void VectorModule::setObjectID(const string & newID){
     objectID = newID;
 }
 bool VectorModule::setType(char newType){
     if(type != 'n' && type != newType){
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": You can't change the type of already initialized vector without clearing it first.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": You can't change the type of already "
+            << "initialized vector without clearing it first.\n";
         return false;
     }
     if(!isCharInGroup(newType, 4, 'b', 'i', 'd', 's')){
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Variable type '" << newType << "' does not exist.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Variable type '" << newType
+            << "' does not exist.\n";
         return false;
     }
     type = newType;
@@ -161,7 +219,8 @@ bool VectorModule::pushBool(bool newValue){
         vString.emplace_back(intToStr(newValue));
         return true;
     }
-    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'bool' type to a '" << type << "' vector.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__
+        << ": Cannot push back a value of 'bool' type to a '" << type << "' vector.\n";
     return false;
 }
 void VectorModule::pushBoolUnsafe(bool newValue){
@@ -185,7 +244,8 @@ bool VectorModule::pushInt(int newValue){
         vString.emplace_back(intToStr(newValue));
         return true;
     }
-    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'int' type to a '" << type << "' vector.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__
+        << ": Cannot push back a value of 'int' type to a '" << type << "' vector.\n";
     return false;
 }
 void VectorModule::pushIntUnsafe(int newValue){
@@ -209,7 +269,8 @@ bool VectorModule::pushDouble(double newValue){
         vString.emplace_back(doubleToStr(newValue));
         return true;
     }
-    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'double' type to a '" << type << "' vector.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__
+        << ": Cannot push back a value of 'double' type to a '" << type << "' vector.\n";
     return false;
 }
 void VectorModule::pushDoubleUnsafe(double newValue){
@@ -221,7 +282,8 @@ bool VectorModule::pushString(string newValue){
         type = 's';
         return true;
     }
-    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot push back a value of 'string' type to a '" << type << "' vector.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__
+        << ": Cannot push back a value of 'string' type to a '" << type << "' vector.\n";
     return false;
 }
 void VectorModule::pushStringUnsafe(string newValue){
@@ -264,7 +326,8 @@ bool VectorModule::removeIndex(size_t index){
         vString.erase(vString.begin()+index);
         return true;
     }
-    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index << ") is out of scope of vector '" << ID << "'.\n";
+    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
+        << ") is out of scope of vector '" << ID << "'.\n";
     return false;
 }
 bool VectorModule::setBool(size_t index, bool newValue){
@@ -317,14 +380,15 @@ bool VectorModule::setDouble(size_t index, double newValue){
     }
     return true;
 }
-bool VectorModule::setString(size_t index, string newValue){
+bool VectorModule::setString(size_t index, const string & newValue){
     if(index >= vString.size()){
         cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
             << ") is out of scope of the vector " << ID << " of size " << vBool.size() << ".\n";
         return false;
     }
     if(type != 's'){
-        cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Cannot assign a string value to a vector of '" << type << "' type.\n";
+        cerr << "Error: In " << __PRETTY_FUNCTION__
+            << ": Cannot assign a string value to a vector of '" << type << "' type.\n";
         return false;
     }
     vString[index] = newValue;
@@ -344,11 +408,14 @@ void VectorModule::reserve(unsigned newSize){
         vString.reserve(newSize);
     }
     else{
-        cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Cannot reserve memory for a vector of '" << type << "' type.\n";
+        cout << "Warning: In " << __PRETTY_FUNCTION__
+            << ": Cannot reserve memory for a vector of '" << type << "' type.\n";
     }
 }
 template<typename LeftType, typename RightType>
-void executeMoveTypeInstruction2(LeftType * LeftOperand, RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void executeMoveTypeInstruction2(LeftType * LeftOperand, RightType * RightOperand,
+    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
+){
     if(LeftOperand == nullptr){
         cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
             << "Left operand is null.\n";
@@ -397,7 +464,9 @@ void executeMoveTypeInstruction2(LeftType * LeftOperand, RightType * RightOperan
     }
 }
 template<typename RightType>
-void VectorModule::moveValueToEachInstance(RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void VectorModule::moveValueToEachInstance(RightType * RightOperand,
+    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
+){
     switch(type){
         case 'b':
             for(stupidBool & valBool : vBool){
@@ -413,7 +482,9 @@ void VectorModule::moveValueToEachInstance(RightType * RightOperand, const Engin
             return;
         case 'd':
             for(double & valDouble : vDouble){
-                executeMoveTypeInstruction2(&valDouble, RightOperand, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&valDouble, RightOperand, instruction,
+                    CurrentInstrInfo
+                );
             }
             return;
         default:
@@ -422,7 +493,9 @@ void VectorModule::moveValueToEachInstance(RightType * RightOperand, const Engin
             return;
     }
 }
-void VectorModule::move(VariableModule* RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void VectorModule::move(VariableModule* RightOperand, const EngineInstr & instruction,
+    const InstrDescription & CurrentInstrInfo
+){
     if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         moveValueToEachInstance((int*)nullptr, instruction, CurrentInstrInfo);
         return;
@@ -458,7 +531,8 @@ void VectorModule::move(VariableModule* RightOperand, const EngineInstr & instru
             }
             else{
                 cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                    << "Cannot execute any instructions if only the right operand is of a string type.\n";
+                    << "Cannot execute any instructions if only the right operand is of a string "
+                    << "type.\n";
             }
             return;
         default:
@@ -467,9 +541,11 @@ void VectorModule::move(VariableModule* RightOperand, const EngineInstr & instru
             return;
     }
 }
-//Return true if both vectors are of the same size or one of them has one instance. Set incrementation flags based on the size of both vectors.
+//Return true if both vectors are of the same size or one of them has one instance.
+//Set incrementation flags based on the size of both vectors.
 bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t leftSize,
-    size_t rightSize, bool & incLeftIdx, bool & incRightIdx, unsigned & maxIndex, const string & functionName
+    size_t rightSize, bool & incLeftIdx, bool & incRightIdx, unsigned & maxIndex,
+    const string & functionName
 ){
     if(leftSize == rightSize){
         incLeftIdx = true;
@@ -486,14 +562,15 @@ bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t leftSize,
     }
     else{
         cerr << instructionError(CurrentInstr, functionName)
-            << "Vector sizes " << leftSize << " (left) and " << rightSize << " (right) are incorrect.\n";
+            << "Vector sizes " << leftSize << " (left) and " << rightSize
+            << " (right) are incorrect.\n";
         return false;
     }
     return true;
 }
 template <typename LeftType>
-void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<VariableModule> * RightOperand,
-    const bool & incLeftIdx, const bool & incRightIdx, unsigned maxIndex,
+void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand,
+    vector<VariableModule> * RightOperand, bool incLeftIdx, bool incRightIdx, unsigned maxIndex,
     const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
 ){
     int tempValueForBool = 0;
@@ -503,13 +580,19 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<Variable
         switch((*RightOperand)[rightIndex].type){
             case 'b':
                 tempValueForBool = (*RightOperand)[rightIndex].vBool;
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &tempValueForBool, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &tempValueForBool,
+                    instruction, CurrentInstrInfo
+                );
                 continue;
             case 'i':
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &(*RightOperand)[rightIndex].vInt, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    &(*RightOperand)[rightIndex].vInt, instruction, CurrentInstrInfo
+                );
                 continue;
             case 'd':
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &(*RightOperand)[rightIndex].vDouble, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    &(*RightOperand)[rightIndex].vDouble, instruction, CurrentInstrInfo
+                );
                 continue;
             default:
                 cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
@@ -520,8 +603,8 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<Variable
     }
 }
 template <typename LeftType>
-void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<VariableModule*> * RightOperand,
-    const bool & incLeftIdx, const bool & incRightIdx, unsigned maxIndex,
+void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand,
+    vector<VariableModule*> * RightOperand, bool incLeftIdx, bool incRightIdx, unsigned maxIndex,
     const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
 ){
     int tempValueForBool = 0;
@@ -531,13 +614,19 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<Variable
         switch((*RightOperand)[rightIndex]->type){
             case 'b':
                 tempValueForBool = (*RightOperand)[rightIndex]->vBool;
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &tempValueForBool, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &tempValueForBool,
+                    instruction, CurrentInstrInfo
+                );
                 continue;
             case 'i':
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &(*RightOperand)[rightIndex]->vInt, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    &(*RightOperand)[rightIndex]->vInt, instruction, CurrentInstrInfo
+                );
                 continue;
             case 'd':
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &(*RightOperand)[rightIndex]->vDouble, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    &(*RightOperand)[rightIndex]->vDouble, instruction, CurrentInstrInfo
+                );
                 continue;
             default:
                 cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
@@ -548,9 +637,9 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<Variable
     }
 }
 template <typename LeftType>
-void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<BasePointersStruct> * RightOperand,
-    const bool & incLeftIdx, const bool & incRightIdx, unsigned maxIndex,
-    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
+void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand,
+    vector<BasePointersStruct> * RightOperand, bool incLeftIdx, bool incRightIdx,
+    unsigned maxIndex, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
 ){
     short tempValueForBool = 0;
     for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
@@ -559,28 +648,44 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<BasePoin
         switch((*RightOperand)[rightIndex].type){
             case bool_bt:
                 tempValueForBool = *(*RightOperand)[rightIndex].pBool;
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &tempValueForBool, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], &tempValueForBool,
+                    instruction, CurrentInstrInfo
+                );
                 continue;
             case char_bt:
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], (*RightOperand)[rightIndex].pChar, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    (*RightOperand)[rightIndex].pChar, instruction, CurrentInstrInfo
+                );
                 continue;
             case short_bt:
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], (*RightOperand)[rightIndex].pShort, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    (*RightOperand)[rightIndex].pShort, instruction, CurrentInstrInfo
+                );
                 continue;
             case u_short_bt:
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], (*RightOperand)[rightIndex].pUShort, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    (*RightOperand)[rightIndex].pUShort, instruction, CurrentInstrInfo
+                );
                 continue;
             case int_bt:
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], (*RightOperand)[rightIndex].pInt, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    (*RightOperand)[rightIndex].pInt, instruction, CurrentInstrInfo
+                );
                 continue;
             case u_int_bt:
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], (*RightOperand)[rightIndex].pUInt, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    (*RightOperand)[rightIndex].pUInt, instruction, CurrentInstrInfo
+                );
                 continue;
             case float_bt:
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], (*RightOperand)[rightIndex].pFloat, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    (*RightOperand)[rightIndex].pFloat, instruction, CurrentInstrInfo
+                );
                 continue;
             case double_bt:
-                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex], (*RightOperand)[rightIndex].pDouble, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&(*LeftOperand)[leftIndex],
+                    (*RightOperand)[rightIndex].pDouble, instruction, CurrentInstrInfo
+                );
                 continue;
             default:
                 cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
@@ -590,13 +695,14 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand, vector<BasePoin
         }
     }
 }
-void moveString(vector<string> & vString, vector<VariableModule> * RightOperand,
-    const bool & incLeftIdx, const bool & incRightIdx, unsigned maxIndex,
-    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
+void moveString(vector<string> & vString, vector<VariableModule> * RightOperand, bool incLeftIdx,
+    bool incRightIdx, unsigned maxIndex, const EngineInstr & instruction,
+    const InstrDescription & CurrentInstrInfo
 ){
     switch(instruction){
         case EngineInstr::move:
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 if((*RightOperand)[rightIndex].type == 's'){
@@ -604,11 +710,13 @@ void moveString(vector<string> & vString, vector<VariableModule> * RightOperand,
                 }
                 else{
                     cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                        << "Cannot execute any instructions if only the left operand is of a string type.\n";
+                        << "Cannot execute any instructions if only the left operand is of a string"
+                        << " type.\n";
                 }
             }
         case EngineInstr::add_move:
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 if((*RightOperand)[rightIndex].type == 's'){
@@ -616,7 +724,8 @@ void moveString(vector<string> & vString, vector<VariableModule> * RightOperand,
                 }
                 else{
                     cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                        << "Cannot execute any instructions if only the left operand is of a string type.\n";
+                        << "Cannot execute any instructions if only the left operand is of a string"
+                        << " type.\n";
                 }
             }
         default:
@@ -625,13 +734,14 @@ void moveString(vector<string> & vString, vector<VariableModule> * RightOperand,
                 << "\' instruction on string type values.\n";
     }
 }
-void moveString(vector<string> & vString, vector<VariableModule*> * RightOperand,
-    const bool & incLeftIdx, const bool & incRightIdx, unsigned maxIndex,
-    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
+void moveString(vector<string> & vString, vector<VariableModule*> * RightOperand, bool incLeftIdx,
+    bool incRightIdx, unsigned maxIndex, const EngineInstr & instruction,
+    const InstrDescription & CurrentInstrInfo
 ){
     switch(instruction){
         case EngineInstr::move:
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 if((*RightOperand)[rightIndex]->type == 's'){
@@ -639,11 +749,13 @@ void moveString(vector<string> & vString, vector<VariableModule*> * RightOperand
                 }
                 else{
                     cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                        << "Cannot execute any instructions if only the left operand is of a string type.\n";
+                        << "Cannot execute any instructions if only the left operand is of a string"
+                        << " type.\n";
                 }
             }
         case EngineInstr::add_move:
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 if((*RightOperand)[rightIndex]->type == 's'){
@@ -651,7 +763,8 @@ void moveString(vector<string> & vString, vector<VariableModule*> * RightOperand
                 }
                 else{
                     cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                        << "Cannot execute any instructions if only the left operand is of a string type.\n";
+                        << "Cannot execute any instructions if only the left operand is of a string"
+                        << " type.\n";
                 }
             }
         default:
@@ -661,12 +774,13 @@ void moveString(vector<string> & vString, vector<VariableModule*> * RightOperand
     }
 }
 void moveString(vector<string> & vString, vector<BasePointersStruct> * RightOperand,
-    const bool & incLeftIdx, const bool & incRightIdx, unsigned maxIndex,
+    bool incLeftIdx, bool incRightIdx, unsigned maxIndex,
     const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
 ){
     switch(instruction){
         case EngineInstr::move:
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 if((*RightOperand)[rightIndex].type == 's'){
@@ -674,11 +788,13 @@ void moveString(vector<string> & vString, vector<BasePointersStruct> * RightOper
                 }
                 else{
                     cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                        << "Cannot execute any instructions if only the left operand is of a string type.\n";
+                        << "Cannot execute any instructions if only the left operand is of a string"
+                        << " type.\n";
                 }
             }
         case EngineInstr::add_move:
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 if((*RightOperand)[rightIndex].type == 's'){
@@ -686,7 +802,8 @@ void moveString(vector<string> & vString, vector<BasePointersStruct> * RightOper
                 }
                 else{
                     cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                        << "Cannot execute any instructions if only the left operand is of a string type.\n";
+                        << "Cannot execute any instructions if only the left operand is of a string"
+                        << " type.\n";
                 }
             }
         default:
@@ -695,10 +812,13 @@ void moveString(vector<string> & vString, vector<BasePointersStruct> * RightOper
                 << "\' instruction on string type values.\n";
     }
 }
-// requires (std::same_as<RightOperandType, VariableModule> || std::same_as<RightOperandType, BasePointersStruct>
+// requires (std::same_as<RightOperandType, VariableModule>
+//     || std::same_as<RightOperandType, BasePointersStruct>
 //     || std::same_as<RightOperandType, VariableModule*>)
 template<class RightOperandType>
-void VectorModule::move(vector<RightOperandType> * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void VectorModule::move(vector<RightOperandType> * RightOperand, const EngineInstr & instruction,
+    const InstrDescription & CurrentInstrInfo
+){
     if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         moveValueToEachInstance((int*)nullptr, instruction, CurrentInstrInfo);
         return;
@@ -717,7 +837,9 @@ void VectorModule::move(vector<RightOperandType> * RightOperand, const EngineIns
             for(const stupidBool & valBool : vBool){
                 tempVector.push_back(valBool.value);
             }
-            moveAllValuesToEachInstance(&tempVector, RightOperand, incLeftIdx, incRightIdx, maxIndex, instruction, CurrentInstrInfo);
+            moveAllValuesToEachInstance(&tempVector, RightOperand, incLeftIdx, incRightIdx,
+                maxIndex, instruction, CurrentInstrInfo
+            );
             for(unsigned boolIndex = 0; boolIndex < vBool.size(); ++boolIndex){
                 vBool[boolIndex].value = tempVector[boolIndex] > 0;
             }
@@ -728,7 +850,9 @@ void VectorModule::move(vector<RightOperandType> * RightOperand, const EngineIns
             ){
                 return;
             }
-            moveAllValuesToEachInstance(&vInt, RightOperand, incLeftIdx, incRightIdx, maxIndex, instruction, CurrentInstrInfo);
+            moveAllValuesToEachInstance(&vInt, RightOperand, incLeftIdx, incRightIdx, maxIndex,
+                instruction, CurrentInstrInfo
+            );
             return;
         case 'd':
             if(!checkForVectorSize(CurrentInstrInfo, vDouble.size(),
@@ -736,7 +860,9 @@ void VectorModule::move(vector<RightOperandType> * RightOperand, const EngineIns
             ){
                 return;
             }
-            moveAllValuesToEachInstance(&vDouble, RightOperand, incLeftIdx, incRightIdx, maxIndex, instruction, CurrentInstrInfo);
+            moveAllValuesToEachInstance(&vDouble, RightOperand, incLeftIdx, incRightIdx, maxIndex,
+                instruction, CurrentInstrInfo
+            );
             return;
         case 's':
             if(!checkForVectorSize(CurrentInstrInfo, vString.size(),
@@ -744,7 +870,9 @@ void VectorModule::move(vector<RightOperandType> * RightOperand, const EngineIns
             ){
                 return;
             }
-            moveString(vString, RightOperand, incLeftIdx, incRightIdx, maxIndex, instruction, CurrentInstrInfo);
+            moveString(vString, RightOperand, incLeftIdx, incRightIdx, maxIndex, instruction,
+                CurrentInstrInfo
+            );
             return;
         default:
             cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
@@ -752,10 +880,15 @@ void VectorModule::move(vector<RightOperandType> * RightOperand, const EngineIns
             return;
     }
 }
-template void VectorModule::move<VariableModule>(vector<VariableModule> * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
-template void VectorModule::move<VariableModule*>(vector<VariableModule*> * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
-template void VectorModule::move<BasePointersStruct>(vector<BasePointersStruct> * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
-void VectorModule::move(BasePointersStruct* RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+template void VectorModule::move<VariableModule>(vector<VariableModule> * RightOperand,
+    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+template void VectorModule::move<VariableModule*>(vector<VariableModule*> * RightOperand,
+    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+template void VectorModule::move<BasePointersStruct>(vector<BasePointersStruct> * RightOperand,
+    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+void VectorModule::move(BasePointersStruct* RightOperand, const EngineInstr & instruction,
+    const InstrDescription & CurrentInstrInfo
+){
     if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         moveValueToEachInstance((int*)nullptr, instruction, CurrentInstrInfo);
         return;
@@ -806,7 +939,8 @@ void VectorModule::move(BasePointersStruct* RightOperand, const EngineInstr & in
             }
             else{
                 cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                    << "Cannot execute any instructions if only the right operand is of a string type.\n";
+                    << "Cannot execute any instructions if only the right operand is of a string "
+                    << "type.\n";
             }
             return;
         default:
@@ -817,7 +951,9 @@ void VectorModule::move(BasePointersStruct* RightOperand, const EngineInstr & in
 }
 
 template<typename LeftType>
-void checkTypeAndMove(vector<LeftType> & LeftOperand, VectorModule* RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void checkTypeAndMove(vector<LeftType> & LeftOperand, VectorModule* RightOperand,
+    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
+){
     bool incLeftIdx = false, incRightIdx = false;
     unsigned maxIndex = 0;
     switch(RightOperand->getType()){
@@ -828,11 +964,14 @@ void checkTypeAndMove(vector<LeftType> & LeftOperand, VectorModule* RightOperand
                 return;
             }
             short boolSubstitute = 0;
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 boolSubstitute = RightOperand->vBool[rightIndex].value;
-                executeMoveTypeInstruction2(&LeftOperand[leftIndex], &boolSubstitute, instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&LeftOperand[leftIndex], &boolSubstitute, instruction,
+                    CurrentInstrInfo
+                );
             }
             return;}
         case 'i':
@@ -841,10 +980,13 @@ void checkTypeAndMove(vector<LeftType> & LeftOperand, VectorModule* RightOperand
             ){
                 return;
             }
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
-                executeMoveTypeInstruction2(&LeftOperand[leftIndex], &RightOperand->vInt[rightIndex], instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&LeftOperand[leftIndex],
+                    &RightOperand->vInt[rightIndex], instruction, CurrentInstrInfo
+                );
             }
             return;
         case 'd':
@@ -853,19 +995,25 @@ void checkTypeAndMove(vector<LeftType> & LeftOperand, VectorModule* RightOperand
             ){
                 return;
             }
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
-                executeMoveTypeInstruction2(&LeftOperand[leftIndex], &RightOperand->vDouble[rightIndex], instruction, CurrentInstrInfo);
+                executeMoveTypeInstruction2(&LeftOperand[leftIndex], 
+                    &RightOperand->vDouble[rightIndex], instruction, CurrentInstrInfo
+                );
             }
             return;
         default:
             cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                << "About the right operand: \'" << RightOperand->getType() << "\' type is not valid.\n";
+                << "About the right operand: \'" << RightOperand->getType()
+                << "\' type is not valid.\n";
             return;
     }
 }
-void moveString(vector<string> & leftOperand, VectorModule* RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void moveString(vector<string> & leftOperand, VectorModule* RightOperand,
+    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
+){
     if(RightOperand->getType() == 's'){
         bool incLeftIdx = false, incRightIdx = false;
         unsigned maxIndex = 0;
@@ -875,14 +1023,16 @@ void moveString(vector<string> & leftOperand, VectorModule* RightOperand, const 
             return;
         }
         if(instruction == EngineInstr::move){
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 leftOperand[leftIndex] = RightOperand->vString[rightIndex];
             }
         }
         else if(instruction == EngineInstr::add_move){
-            for(unsigned leftIndex = 0, rightIndex = 0; leftIndex < maxIndex && rightIndex < maxIndex;
+            for(unsigned leftIndex = 0, rightIndex = 0;
+                leftIndex < maxIndex && rightIndex < maxIndex;
                 leftIndex+=incLeftIdx, rightIndex+=incRightIdx
             ){
                 leftOperand[leftIndex] += RightOperand->vString[rightIndex];
@@ -899,7 +1049,9 @@ void moveString(vector<string> & leftOperand, VectorModule* RightOperand, const 
             << "Cannot execute any instructions if only the right operand is of a string type.\n";
     }
 }
-void VectorModule::move(VectorModule* RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void VectorModule::move(VectorModule* RightOperand, const EngineInstr & instruction,
+    const InstrDescription & CurrentInstrInfo
+){
     if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         moveValueToEachInstance((int*)nullptr, instruction, CurrentInstrInfo);
         return;
@@ -930,7 +1082,9 @@ void VectorModule::move(VectorModule* RightOperand, const EngineInstr & instruct
             return;
     }
 }
-void VectorModule::moveFrom(VariableModule * LeftOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void VectorModule::moveFrom(VariableModule * LeftOperand, const EngineInstr & instruction,
+    const InstrDescription & CurrentInstrInfo
+){
     if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         LeftOperand->moveFromTemp((int*)nullptr, instruction, CurrentInstrInfo);
         return;
@@ -974,7 +1128,8 @@ void VectorModule::moveFrom(VariableModule * LeftOperand, const EngineInstr & in
             }
             else{
                 cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                    << "Cannot execute any instructions if only the right operand is of a string type.\n";
+                    << "Cannot execute any instructions if only the right operand is of a string "
+                    << "type.\n";
             }
             return;
         default:
@@ -983,7 +1138,9 @@ void VectorModule::moveFrom(VariableModule * LeftOperand, const EngineInstr & in
             return;
     }
 }
-void VectorModule::moveFrom(BasePointersStruct * LeftPointer, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
+void VectorModule::moveFrom(BasePointersStruct * LeftPointer, const EngineInstr & instruction,
+    const InstrDescription & CurrentInstrInfo
+){
     if(instruction == EngineInstr::inc || instruction == EngineInstr::dec){
         LeftPointer->moveFromTemp((int*)nullptr, instruction);
         return;
@@ -1027,7 +1184,8 @@ void VectorModule::moveFrom(BasePointersStruct * LeftPointer, const EngineInstr 
             }
             else{
                 cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
-                    << "Cannot execute any instructions if only the right operand is of a string type.\n";
+                    << "Cannot execute any instructions if only the right operand is of a string "
+                    << "type.\n";
             }
             return;
         default:
@@ -1113,7 +1271,8 @@ VariableModule VectorModule::getValue(AttributeType attribute, size_t index) con
             case 's':
                 return VariableModule::newString(getLastString());
             default:
-                cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Type '" << type << "' is not valid for last value extraction.\n";
+                cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Type '" << type
+                    << "' is not valid for last value extraction.\n";
                 break;
         }
     }
@@ -1142,7 +1301,7 @@ VariableModule VectorModule::getValue(AttributeType attribute, size_t index) con
     }
     return VariableModule::newBool(false, "null");
 }
-vector<VariableModule> VectorModule::getValues() const{
+vector<VariableModule> VectorModule::getValues() const {
     vector<VariableModule> Vector;
     switch(type){
         case 'b':
@@ -1168,11 +1327,12 @@ vector<VariableModule> VectorModule::getValues() const{
         case 'n':
             return Vector;
         default:
-            cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Type '" << type << "' is not valid.\n";
+            cout << "Warning: In " << __PRETTY_FUNCTION__ << ": Type '" << type
+                << "' is not valid.\n";
             return Vector;
     }
 }
-ReturnType VectorModule::getValuesIntoContext(vector<VariableModule> & Values) const{
+ReturnType VectorModule::getValuesIntoContext(vector<VariableModule> & Values) const {
     switch(type){
         case 'b':
             for(const stupidBool & value : vBool){
@@ -1197,7 +1357,8 @@ ReturnType VectorModule::getValuesIntoContext(vector<VariableModule> & Values) c
         case 'n':
             return ReturnType::NULL_VAL;
         default:
-            cout << "Error: In " << __PRETTY_FUNCTION__ << ": Type '" << type << "' is not valid.\n";
+            cout << "Error: In " << __PRETTY_FUNCTION__ << ": Type '" << type
+                << "' is not valid.\n";
             return ReturnType::INVALID_TYPE;
     }
     return ReturnType::INVALID_TYPE;
@@ -1499,7 +1660,8 @@ void VectorModule::getContext(AttributeType attribute, vector<BasePointersStruct
     BasePointers.emplace_back(BasePointersStruct());
     if(attribute == id){
         if(isStringInVector(reservedIDs, ID)){
-            cerr << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID << "\' address was denied.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Access to the reserved ID \'" << ID
+                << "\' address was denied.\n";
             BasePointers.pop_back();
             return;
         }
@@ -1560,7 +1722,8 @@ void VectorModule::getContext(AttributeType attribute, vector<BasePointersStruct
             cerr << "Error: In " << __FUNCTION__ << ": Vector '" << ID << "' is empty.\n";
         }
         else{
-            cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute << "' is not valid.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": Attribute '" << attribute
+                << "' is not valid.\n";
         }
     }
 }
@@ -1592,7 +1755,8 @@ BasePointersStruct VectorModule::getBasePointersStruct(const unsigned & index){
             break;
         default:
             NewPointer.type = null_bt;
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Type \'" << type << "\' is not a valid.\n";
+            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Type \'" << type
+                << "\' is not a valid.\n";
             break;
     }
 

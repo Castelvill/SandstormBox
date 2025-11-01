@@ -548,8 +548,12 @@ DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSo
     }
 }
 
-ConditionClass::ConditionClass(unsigned int newID) : Literal(newID, nullptr, "", ""){}
-ConditionClass::ConditionClass(string newID) : Literal(newID, nullptr, "", ""){}
+ConditionClass::ConditionClass(unsigned int newID){
+    Literal.setID(std::to_string(newID), nullptr);
+}
+ConditionClass::ConditionClass(string newID){
+    Literal.setID(newID, nullptr);
+}
 ConditionClass::ConditionClass() : Literal(){}
 
 OperationClass::OperationClass(){}
@@ -700,10 +704,11 @@ void OperationClass::addEmptyParameter(){
     Parameters.back().type = 'e';
     ++rootParametersSize;
 }
-bool OperationClass::addLiteralOrVectorOrVariableToParameters(
-    const string &scriptName, const unsigned lineNumber, string &error, vector<WordStruct> words,
-    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
-    unsigned &index, char type, string name, bool optional, bool canCreateNewVariable, const bool &forbidVectors
+bool OperationClass::addLiteralOrVectorOrVariableToParameters(const string &scriptName,
+    const unsigned lineNumber, string &error, vector<WordStruct> words,
+    vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables,
+    unsigned & topAddress, unsigned & index, char type, const string & name, bool optional,
+    bool canCreateNewVariable, bool forbidVectors
 ){
     auto printError = [](string scriptName, unsigned lineNumber, string instruction, std::string error){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -978,25 +983,29 @@ void OperationClass::addLiteralParameter(const VariableModule & Variable){
     ++rootParametersSize;
 }
 
-void EventModule::clone(const EventModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+void EventModule::clone(const EventModule &Original, PrimaryData & initData, bool changeOldID){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+
+    initData.newID = Original.getID(); 
+    setAllIDs(initData, changeOldID);
 }
 void EventModule::setUpNewInstance(){
     willBeDeleted = false;
 }
-EventModule::EventModule(){
-    primaryConstructor("", nullptr, "", "");
+EventModule::EventModule(){}
+EventModule::EventModule(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
     setUpNewInstance();
 }
-EventModule::EventModule(unsigned int eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
-    setUpNewInstance();
-}
-EventModule::EventModule(string eventModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(eventModuleID, listOfIDs, newLayerID, newObjectID);
+EventModule::EventModule(PrimaryData & initData){
+    primaryConstructor(initData);
     setUpNewInstance();
 }
 EventModule::~EventModule(){

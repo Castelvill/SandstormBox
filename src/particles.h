@@ -72,13 +72,15 @@ private:
     double maxTimeToSpawn;
     short spawnKeyBind;
     bool spawnOnKeyRelease;
+    void setDefaultValues();
 public:
-    void setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID);
-    ParticleEffectModule();
-    ParticleEffectModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    ParticleEffectModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    void setUpNewInstance(size_t & topModuleUniqueIndex);
+    void setUpNewInstance(PrimaryData & initData);
+    ParticleEffectModule(size_t & topModuleUniqueIndex);
+    ParticleEffectModule(PrimaryData & initData);
     ~ParticleEffectModule();
-    void clone(const ParticleEffectModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const ParticleEffectModule & Original, PrimaryData & initData, 
+        bool changeOldID);
     void clear();
     void spawnParticles(vec2d objPos); //Particles spawn in a point or a rectangle.
     void killParticles();

@@ -13,9 +13,9 @@ end
 start each_iteration()
     print "each_iteration\n"
     -- countdown
-    if(countdown 0 <=)
-        delete_this_event
-    end
+    if(countdown 0 <)
+	    exit
+    end_if
 end
 
 @trigger each_second

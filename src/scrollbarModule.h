@@ -21,11 +21,10 @@ public:
     bool mousePressed;
     double mouseWheelSpeed;
     void clear();
-    ScrollbarModule();
-    ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    ScrollbarModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ScrollbarModule(size_t & topModuleUniqueIndex);
+    ScrollbarModule(PrimaryData & initData);
     ~ScrollbarModule();
-    void clone(const ScrollbarModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const ScrollbarModule &Original, PrimaryData & initData, bool changeOldID);
 
     void draw(vec2d basePos, const vector <ImageModule> & ImageContainer, Camera2D Camera) const;
     bool startDragging(vec2d basePos, const MouseClass & Mouse, Camera2D * Camera);
@@ -48,8 +47,8 @@ public:
     void addRealScrollingArea(double x, double y);
     void setDragStaringPos(vec2d newValue);
     void setMousePressed(bool newValue);
-    void setThumbImageID(string newValue);
-    void setTrackImageID(string newValue);
+    void setThumbImageID(const string & newValue);
+    void setTrackImageID(const string & newValue);
 
     vec2d getThumbPos();
     vec2d getThumbSize();

@@ -64,16 +64,19 @@ private:
     bool moveOnMouseRelease;
     bool resetDirectionAfterCollision;
 
-    bool isMovingUp, isMovingRight, isMovingDown, isMovingLeft, isJumping, isFalling, isRunning; //Next action
+    //Next action
+
+    bool isMovingUp, isMovingRight, isMovingDown, isMovingLeft, isJumping, isFalling, isRunning;
     short upKey, rightKey, downKey, leftKey, jumpKey, runningKey;
 
+    void setDefaultValues();
 public:
-    void setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID);
-    MovementModule();
-    MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    void setUpNewInstance(size_t & topModuleUniqueIndex);
+    void setUpNewInstance(PrimaryData & initData);
+    MovementModule(size_t & topModuleUniqueIndex);
+    MovementModule(PrimaryData & initData);
     ~MovementModule();
-    void clone(const MovementModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const MovementModule & Original, PrimaryData & initData, bool changeOldID);
     void clear();
 
     void changeJumpParameters(double newJumpSpeed, short newAllowedJumps, double newJumpCooldownDuration, double newGravitation, double newMinMomentumY, double newMaxMomentumY, bool newResetMomentumWhenJumping);

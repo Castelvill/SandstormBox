@@ -1,6 +1,9 @@
 #include "layerClass.h"
 
-void LayerClass::setUpNewInstance(const string &newID, vector<string> &layersIDs, const bool &activate, const vec2d &bufferPos, const vec2i &bufferSize){
+void LayerClass::setUpNewInstance(const string &newID, vector<string> &layersIDs, bool activate,
+    const vec2d &bufferPos, const vec2i &bufferSize, size_t & topLayerIndex
+){
+    uniqueIndex = topLayerIndex++;
     setID(newID, layersIDs);
     isActive = activate;
     deleted = false;
@@ -9,17 +12,18 @@ void LayerClass::setUpNewInstance(const string &newID, vector<string> &layersIDs
     size.y = bufferSize.y;
 }
 LayerClass::LayerClass(){
-    ID = "";
     isActive = false;
     deleted = false;
     pos.set(0.0, 0.0);
     size.set(0.0, 0.0);
 }
-LayerClass::LayerClass(string newID, vector <string> & layersIDs, bool activate, vec2d bufferPos, vec2i bufferSize){
-    setUpNewInstance(newID, layersIDs, activate, bufferPos, bufferSize);
+LayerClass::LayerClass(const string & newID, vector<string> & layersIDs, size_t & topLayerIndex,
+    bool activate, vec2d bufferPos, vec2i bufferSize
+){
+    setUpNewInstance(newID, layersIDs, activate, bufferPos, bufferSize, topLayerIndex);
 }
-LayerClass::LayerClass(string newID, vector <string> & layersIDs){
-    setUpNewInstance(newID, layersIDs, false, vec2d(0.0, 0.0), vec2i(0, 0));
+LayerClass::LayerClass(const string & newID, vector<string> & layersIDs, size_t & topLayerIndex){
+    setUpNewInstance(newID, layersIDs, false, vec2d(0.0, 0.0), vec2i(0, 0), topLayerIndex);
 }
 LayerClass::~LayerClass(){
 
@@ -37,7 +41,9 @@ bool LayerClass::isObjectsUniquenessViolated(){
     bool violated = false;
     for(i = 0; i < Objects.size(); i++){
         for(j = 0; j < Objects.size(); j++){
-            if(i == j || Objects[i].getID() != Objects[j].getID()){
+            if(i == j || Objects[i].getID() != Objects[j].getID()
+                || Objects[i].getUniqueIndex()!= Objects[j].getUniqueIndex()
+            ){
                 continue;
             }
             if(!violated){
@@ -55,16 +61,24 @@ bool LayerClass::isObjectsUniquenessViolated(){
     return violated;
 }
 
-void LayerClass::setID(string newID, vector <string> & layersIDs){
+void LayerClass::setUniqueIndex(size_t value){
+    uniqueIndex = value;
+}
+size_t LayerClass::getUniqueIndex() const{
+    return uniqueIndex;
+}
+
+void LayerClass::setID(const string & newID, vector<string> & layersIDs){
     if(isStringInVector(reservedIDs, ID)){
-        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID
+            << "\' cannot be changed.\n";
         return;
     }
     removeFromStringVector(layersIDs, ID);
     ID = findNewUniqueID(layersIDs, newID);
     for(AncestorObject & Object : Objects){
         Object.setLayerID(ID);
-        Object.propagateLayerID();
+        Object.propagateLayer();
     }
     layersIDs.push_back(ID);
 }
@@ -128,15 +142,17 @@ VariableModule LayerClass::getValue(AttributeType attribute, string option) cons
             return VariableModule();
     }
 }
-void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs,
-    const bool &changeOldID, size_t & topUniqueIndex
+void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs, bool changeOldID,
+    size_t & topObjectUniqueIndex, size_t & topModuleUniqueIndex
 ){
     if(isStringInVector(reservedIDs, Original.ID)){
-        cerr << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << Original.ID
+            << "\' cannot be cloned.\n";
         return;
     }
     if(isStringInVector(reservedIDs, ID)){
-        cerr << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Layer with a reserved ID \'" << ID
+            << "\' cannot be changed.\n";
         return;
     }
     string oldID = ID;
@@ -153,8 +169,8 @@ void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs,
     size.set(Original.size);
 
     for(const AncestorObject & Object : Original.Objects){
-        Objects.emplace_back(AncestorObject());
-        Objects.back().clone(Object, objectsIDs, ID, true, topUniqueIndex);
+        Objects.emplace_back(AncestorObject(topObjectUniqueIndex));
+        Objects.back().clone(Object, objectsIDs, getUniqueIndex(), ID, true, topModuleUniqueIndex);
     }
 
     objectsOrder = Original.objectsOrder;
@@ -165,56 +181,6 @@ void LayerClass::clone(const LayerClass &Original, vector<string> &layersIDs,
             << ") is not equal to the number of objects inside their drawing order ("
             << objectsOrder.size() << ").\n";
     }
-
-    /*for(AncestorObject & Object : Objects){
-        Object.setLayerID(getID());
-        for(TextModule & Text : Object.TextContainer){
-            Text.setLayerID(getID());
-        }
-        for(EditableTextModule & EditableText : Object.EditableTextContainer){
-            EditableText.setLayerID(getID());
-        }
-        for(ImageModule & Image : Object.ImageContainer){
-            Image.setLayerID(getID());
-        }
-        for(MovementModule & Movement : Object.MovementContainer){
-            Movement.setLayerID(getID());
-        }
-        for(CollisionModule & Collision : Object.CollisionContainer){
-            Collision.setLayerID(getID());
-        }
-        for(ParticleEffectModule & Particle : Object.ParticlesContainer){
-            Particle.setLayerID(getID());
-        }
-        for(EventModule & Event : Object.EventContainer){
-            Event.setLayerID(getID());
-            for(ConditionClass & Trigger : Event.ConditionalChain){
-                if(Trigger.Location.layerID == Original.getID()){
-                    Trigger.Location.layerID = getID();
-                }
-            }
-            for(OperaClass & Operation : Event.DependentOperations){
-                for(ConditionClass & Trigger : Operation.ConditionalChain){
-                    if(Trigger.Location.layerID == Original.getID()){
-                        Trigger.Location.layerID = getID();
-                    }
-                }
-            }
-            for(OperaClass & Operation : Event.PostOperations){
-                for(ConditionClass & Trigger : Operation.ConditionalChain){
-                    if(Trigger.Location.layerID == Original.getID()){
-                        Trigger.Location.layerID = getID();
-                    }
-                }
-            }
-        }
-        for(VariableModule & Variable : Object.VariablesContainer){
-            Variable.setLayerID(getID());
-        }
-        for(ScrollbarModule & Scrollbar : Object.ScrollbarContainer){
-            Scrollbar.setLayerID(getID());
-        }
-    }*/
 }
 
 void LayerClass::addGroup(string newGroup){
@@ -229,7 +195,7 @@ void LayerClass::clearGroups(){
 bool LayerClass::isInAGroup(string findGroup) const{
     return isStringInVector(groups, findGroup);
 }
-vector <string> LayerClass::getGroups(){
+vector<string> LayerClass::getGroups(){
     return groups;
 }
 vector<string> &LayerClass::getGroupsAddr(){

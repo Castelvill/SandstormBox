@@ -30,25 +30,33 @@ void SuperTextModule::setUpNewInstance(){
     updated = false;
 }
 SuperTextModule::SuperTextModule(){
-    primaryConstructor("", nullptr, "", "");
+
+}
+SuperTextModule::SuperTextModule(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
     setUpNewInstance();
 }
-SuperTextModule::SuperTextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    setUpNewInstance();
-}
-SuperTextModule::SuperTextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+SuperTextModule::SuperTextModule(PrimaryData & initData){
+    primaryConstructor(initData);
     setUpNewInstance();
 }
 SuperTextModule::~SuperTextModule(){
 
 }
-void SuperTextModule::clone(const SuperTextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
+void SuperTextModule::clone(const SuperTextModule & Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+
+    initData.newID = Original.getID();
+    setAllIDs(initData, changeOldID);
 }
 void SuperTextModule::clear(){
     setUpNewInstance();
@@ -1274,26 +1282,31 @@ void SuperEditableTextModule::setUpNewInstance(){
     lastInputedKey = -1;
     currentInputDelay = 0.0;
 }
-SuperEditableTextModule::SuperEditableTextModule(){
-    primaryConstructor("", nullptr, "", "");
+SuperEditableTextModule::SuperEditableTextModule(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
     setUpNewInstance();
 }
-SuperEditableTextModule::SuperEditableTextModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    setUpNewInstance();
-}
-SuperEditableTextModule::SuperEditableTextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+SuperEditableTextModule::SuperEditableTextModule(PrimaryData & initData){
+    primaryConstructor(initData);
     setUpNewInstance();
 }
 SuperEditableTextModule::~SuperEditableTextModule(){
 
 }
-void SuperEditableTextModule::clone(const SuperEditableTextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
+void SuperEditableTextModule::clone(const SuperEditableTextModule &Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+
+    initData.newID = Original.getID();
+    setAllIDs(initData, changeOldID);
 }
 void SuperEditableTextModule::clear(){
     textLines.clear();
@@ -1309,7 +1322,9 @@ void SuperEditableTextModule::clear(){
     futureFormatting.clear();
     blockedKeys.clear();
 }
-VariableModule SuperEditableTextModule::getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const{
+VariableModule SuperEditableTextModule::getAttributeValue(const AttributeType &attribute, 
+    const string &detail, const InstrDescription & CurrentInstr
+) const {
     switch(attribute){
         case original_content:
             if(previousContent.size() > 0){

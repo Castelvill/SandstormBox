@@ -13,16 +13,20 @@ public:
 };
 
 template<typename LeftType, typename RightType>
-void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, 
+    const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
 
 class VariableModule: public UniversalVariable{
+    size_t uniqueIndex = 0;
+    size_t objectUniqueIndex = 0;
+    size_t layerUniqueIndex = 0;
     bool deleted = false;
     string ID;
     string layerID; //This ID is needed in events' trigger detection.
     string objectID;
 public:
-    VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
-    VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    VariableModule(PrimaryData & initData);
+    VariableModule(size_t & topModuleUniqueIndex);
     VariableModule();
     VariableModule(bool value);
     VariableModule(int value);
@@ -37,8 +41,14 @@ public:
     void deleteLater();
     bool getIsDeleted() const;
     void clear();
-    void clone(const VariableModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
-    void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const VariableModule & Original, PrimaryData & initData, bool changeOldID);
+    void setAllIDs(PrimaryData & initData, bool changeOldID);
+    void setUniqueIndex(size_t value);
+    size_t getUniqueIndex() const;
+    void setObjectUniqueIndex(size_t value);
+    size_t getObjectUniqueIndex() const;
+    void setLayerUniqueIndex(size_t value);
+    size_t getLayerUniqueIndex() const;
     string getID() const;
     string getLayerID() const;
     string getObjectID() const;
@@ -76,9 +86,12 @@ public:
     void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
     template <typename condValueType>
     bool isConditionMet(condValueType condVal, EngineInstr operatorType, char valType);
-    std::pair<bool, ReturnType> isConditionMet(const string & condVal, EngineInstr operatorType, char valType);
-    std::pair<bool, ReturnType> isConditionMet(EngineInstr operatorType, VariableModule * OtherVariable);
-    std::pair<bool, ReturnType> isConditionMet(EngineInstr operatorType, const BasePointersStruct & OtherVariable);
+    std::pair<bool, ReturnType> isConditionMet(const string & condVal, EngineInstr operatorType, 
+        char valType);
+    std::pair<bool, ReturnType> isConditionMet(EngineInstr operatorType, 
+        VariableModule * OtherVariable);
+    std::pair<bool, ReturnType> isConditionMet(EngineInstr operatorType,
+        const BasePointersStruct & OtherVariable);
     double floatingOperation(EngineInstr operatorType, VariableModule * OtherVariable);
     double floatingOperation(EngineInstr operatorType, BasePointersStruct * OtherVariable);
     int intOperation(EngineInstr operatorType, VariableModule * OtherVariable);
@@ -86,9 +99,12 @@ public:
     string stringOperation(EngineInstr operatorType, VariableModule * OtherVariable);
     string stringOperation(EngineInstr operatorType, BasePointersStruct * RightOperand);
     template<typename RightType>
-    void moveFromTemp(RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
-    void move(VariableModule * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
-    void move(const BasePointersStruct *RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
+    void moveFromTemp(RightType * RightOperand, const EngineInstr & instruction,
+        const InstrDescription & CurrentInstrInfo);
+    void move(VariableModule * RightOperand, const EngineInstr & instruction, 
+        const InstrDescription & CurrentInstrInfo);
+    void move(const BasePointersStruct *RightOperand, const EngineInstr & instruction, 
+        const InstrDescription & CurrentInstrInfo);
     BaseVariableStruct getBaseVariableStruct() const;
     BasePointersStruct getBasePointersStruct();
     template <typename T>
@@ -96,14 +112,14 @@ public:
     void setValueFromPointer(const BasePointersStruct & BasePointer);
     void set(const BaseVariableStruct & BaseVariable);
     static VariableModule newBool(bool);
-    static VariableModule newBool(bool val, string newID);
-    static VariableModule newBool(bool val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    static VariableModule newBool(bool val, const string & newID);
+    static VariableModule newBool(bool val, PrimaryData & initData);
     static VariableModule newInt(int);
-    static VariableModule newInt(int val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    static VariableModule newInt(int val, PrimaryData & initData);
     static VariableModule newDouble(double);
-    static VariableModule newDouble(double val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    static VariableModule newDouble(double val, PrimaryData & initData);
     static VariableModule newString(const string & val);
-    static VariableModule newString(const string & val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    static VariableModule newString(const string & val, PrimaryData & initData);
     bool isNumeric() const;
 };
 

@@ -364,7 +364,7 @@ void EngineClass::exitAllegro(){
     if(display != nullptr){
         al_unregister_event_source(eventQueue, al_get_display_event_source(display));
         al_destroy_display(display);
-        cout << "Display destroyed.\n";
+        //cout << "Display destroyed.\n";
     }
     al_unregister_event_source(eventQueue, al_get_keyboard_event_source());
     al_unregister_event_source(eventQueue, al_get_timer_event_source(timer));

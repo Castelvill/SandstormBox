@@ -41,11 +41,10 @@ public:
     float getLightLevel() const;
 
     void setUpNewInstance();
-    ImageModule();
-    ImageModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    ImageModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    ImageModule(size_t & topModuleUniqueIndex);
+    ImageModule(PrimaryData & initData);
     ~ImageModule();
-    void clone(const ImageModule& Image, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const ImageModule& Image, PrimaryData & initData, bool changeOldID);
 
     void connectBitmap(vector <SingleBitmap> & BitmapContainer, string newFilePath, string newImageID, string workingDirectory);
     void checkImage(ALLEGRO_DISPLAY * display, string workingDirectory);

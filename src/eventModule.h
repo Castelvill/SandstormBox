@@ -169,9 +169,10 @@ public:
     );
     void addEmptyParameter();
     bool addLiteralOrVectorOrVariableToParameters(
-        const string &scriptName, const unsigned lineNumber, string &error, vector<WordStruct> words,
-        vector<vector<VariableLocationStruct>> & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
-        unsigned &index, char type, string name, bool optional, bool canCreateNewVariable, const bool &forbidVectors
+        const string &scriptName, const unsigned lineNumber, string & error,
+        vector<WordStruct> words, vector<vector<VariableLocationStruct>> & Scopes,
+        vector<VariableInfo> & NewLocalVariables, unsigned & topAddress, unsigned & index,
+        char type, const string & name, bool optional, bool canCreateNewVariable, bool forbidVectors
     );
     bool addVectorOrVariableToParameters(
         const string & scriptName, const unsigned lineNumber, string &error,
@@ -222,10 +223,10 @@ public:
     bool isFunction = true; //True if the event has not been connected to any trigger. It will stay false even if on_init trigger is removed. Currently it's only used in the "tree" instruction.
 
     EventModule();
-    EventModule(unsigned int textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
-    EventModule(string textModuleID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
+    EventModule(size_t & topModuleUniqueIndex);
+    EventModule(PrimaryData & initData);
     ~EventModule();
-    void clone(const EventModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const EventModule &Original, PrimaryData & initData, bool changeOldID);
 
     void setUpNewInstance();
     void clear();

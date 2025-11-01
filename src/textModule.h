@@ -33,10 +33,10 @@ public:
 
     void setUpNewInstance();
     TextModule();
-    TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    TextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    TextModule(size_t & topModuleUniqueIndex);
+    TextModule(PrimaryData & initData);
     ~TextModule();
-    void clone(const TextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const TextModule & Original, PrimaryData & initData, bool changeOldID);
     void adjustCursorPos();
     void fitSizeToText(vector <SingleFont> FontContainer);
     void addNewContent(string newContent);
@@ -105,10 +105,9 @@ public:
     bool ignoreVerticalArrows; //Terminal history requires disabled arrows.
 
     void setUpNewInstance();
-    EditableTextModule();
-    EditableTextModule(unsigned EditableTextModuleID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    EditableTextModule(string EditableTextModuleID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    void clone(const EditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    EditableTextModule(size_t & topObjectUniqueIndex);
+    EditableTextModule(PrimaryData & initData);
+    void clone(const EditableTextModule & Original, PrimaryData & initData, bool changeOldID);
     void setCanBeEdited(bool newCanBeEdited);
     void setEditingIsActive(bool newEditingIsActive);
     void setCanUseSpace(bool newCanUseSpace);

@@ -35,25 +35,31 @@ void TextModule::setUpNewInstance(){
     secondCursorPos = 0;
 }
 TextModule::TextModule(){
-    primaryConstructor("", nullptr, "", "");
+    
+}
+TextModule::TextModule(size_t & topObjectUniqueIndex){
+    primaryConstructor(topObjectUniqueIndex);
     setUpNewInstance();
 }
-TextModule::TextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    setUpNewInstance();
-}
-TextModule::TextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+TextModule::TextModule(PrimaryData & initData){
+    primaryConstructor(initData);
     setUpNewInstance();
 }
 TextModule::~TextModule(){
 
 }
-void TextModule::clone(const TextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
+void TextModule::clone(const TextModule &Original, PrimaryData & initData, bool changeOldID){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+
+    initData.newID = Original.getID();
+    setAllIDs(initData, changeOldID);
 }
 void TextModule::adjustCursorPos(){
     if(cursorPos < 0){
@@ -815,23 +821,28 @@ void EditableTextModule::setUpNewInstance(){
     lastInputedKey = -1;
     protectedArea = 0;
 }
-EditableTextModule::EditableTextModule(){
-    primaryConstructor("", nullptr, "", "");
+EditableTextModule::EditableTextModule(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
     setUpNewInstance();
 }
-EditableTextModule::EditableTextModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+EditableTextModule::EditableTextModule(PrimaryData & data){
+    primaryConstructor(data);
     setUpNewInstance();
 }
-EditableTextModule::EditableTextModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    setUpNewInstance();
-}
-void EditableTextModule::clone(const EditableTextModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+void EditableTextModule::clone(const EditableTextModule &Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+    
+    initData.newID = Original.getID();
+    setAllIDs(initData, changeOldID);
 }
 void EditableTextModule::setCanBeEdited(bool newCanBeEdited){
     canBeEdited = newCanBeEdited;

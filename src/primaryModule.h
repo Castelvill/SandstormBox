@@ -340,40 +340,67 @@ inline void printLogMessage(const string & messageType, const string & fileName,
     cerr << "In " << fileName << ":" << uIntToStr(lineNumber) << ":" << functionName << ":\n"
         << NEW_LINE_PADDING << message;
 }
-string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType = "Error");
+string instructionError(const InstrDescription & Description, const string & functionName,
+    const string & messageType = "Error");
 string instructionWarning(const InstrDescription & Description, const string & functionName);
 
+struct PrimaryData{
+    size_t * topIndex = nullptr;
+    size_t objectUniqueIndex = 0;
+    size_t layerUniqueIndex = 0;
+    string newID;
+    vector<string> * listOfIDs = nullptr;
+    string newLayerID;
+    string newObjectID;
+};
+
 class PrimaryModule{
-    //List of inheriting classes: ImageModule, TextModule, CollisionModule, EventModule, ParticleEffectModule, MovementModule
+    //This index is set only when the entity is created.
+    size_t uniqueIndex = 0;
+    size_t objectUniqueIndex = 0;
+    size_t layerUniqueIndex = 0;
+    
     protected:
 
     string ID;
     string layerID; //This ID is needed in events' trigger detection.
     string objectID;
-    vector <string> groups;
+    vector<string> groups;
     vec2d pos, size, scale;
 
-    bool isActive; //Deactivated entity doesn't interact with the program, you can only activate it.
-    bool deleted;
-    bool isScaledFromCenter;
-    bool isScrollable; //If true, the vision shift and zoom from the cameras will affect the entity. Setting this variable for the object propagates its value onto all modules. New modules copy this value from their object.
-    bool canBeSelected;
+    //If false entity doesn't interact with other entities, you can only activate it.
+    bool isActive = true;
+    //If true entity stops any interaction and will be deleted as soon as possible.
+    bool deleted = false;
+    bool isScaledFromCenter = false;
+    //If true, the vision shift and zoom from the cameras will affect this entity. Changing this
+    //variable for an object entity propagates its value onto all its modules. New modules copy
+    //this value from their object.
+    bool isScrollable = true;
+    //If true an entity can interact with the mouse.
+    bool canBeSelected = true;
 
     public:
-    void primaryConstructor(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    void primaryConstructor(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    void clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
-    void setID(string newID, vector<string> & listOfIDs);
-    void setLayerID(string newLayerID);
-    void setObjectID(string newOwnerID);
-    void setAllIDs(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void setUniqueIndex(size_t value);
+    size_t getUniqueIndex() const;
+    void setObjectUniqueIndex(size_t value);
+    size_t getObjectUniqueIndex() const;
+    void setLayerUniqueIndex(size_t value);
+    size_t getLayerUniqueIndex() const;
+    void primaryConstructor(size_t & topObjectUniqueIndex);
+    void primaryConstructor(PrimaryData & initData);
+    void clone(const PrimaryModule & Original, PrimaryData & initData, bool changeOldID);
+    void setID(const string & newID, vector<string> & listOfIDs);
+    void setLayerID(const string & newLayerID);
+    void setObjectID(const string & newOwnerID);
+    void setAllIDs(PrimaryData & initData, bool changeOldID);
 
-    void addGroup(string newGroup);
-    void removeGroup(string selectedGroup);
+    void addGroup(const string & newGroup);
+    void removeGroup(const string & selectedGroup);
     void clearGroups();
-    bool isInAGroup(string findGroup) const;
-    vector <string> getGroups() const;
-    vector <string> & getGroupsAddr();
+    bool isInAGroup(const string & findGroup) const;
+    vector<string> getGroups() const;
+    vector<string> & getGroupsAddr();
 
     void control(AttributeType attribute, bool value, unsigned paramCount);
 
@@ -414,11 +441,11 @@ class PrimaryModule{
     bool getIsScaledFromCenter() const;
     bool getIsScrollable() const;
     bool getCanBeSelected();
-    void getPrimaryContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
+    void getPrimaryContext(AttributeType attribute, vector<BasePointersStruct> & BasePointers);
 };
 
 template<class SearchModule>
-SearchModule * findByIDAndReturnPointer(vector <SearchModule> & Container, string ID) {
+SearchModule * findByIDAndReturnPointer(vector<SearchModule> & Container, const string & ID) {
     for(SearchModule & Instance : Container) {
         if (Instance.getID() == ID) {
             return &Instance;

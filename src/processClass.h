@@ -4,7 +4,8 @@
 #include "engineClass.h"
 #include <chrono>
 
-enum CameraMoveType: unsigned char{NONE, CAMERA_FULL, CAMERA_N, CAMERA_NE, CAMERA_E, CAMERA_SE, CAMERA_S, CAMERA_SW, CAMERA_W, CAMERA_NW};
+enum CameraMoveType: unsigned char{NONE, CAMERA_FULL, CAMERA_N, CAMERA_NE, CAMERA_E, CAMERA_SE,
+    CAMERA_S, CAMERA_SW, CAMERA_W, CAMERA_NW};
 
 void freeFontsFromContainer(vector <SingleFont> & FontContainer);
 
@@ -193,7 +194,7 @@ struct PointerRecalculator{
     bool didActiveEditableTextExist;
     ModuleIndex ActiveEditableTextIndex = {0, 0, 0};
 
-    string eventIdCheck;
+    size_t currentEventUniqueIndex = 0;
 
     void clear();
     void findIndexesForCameras(vector<Camera2D> &Cameras, ObjectMemoryStruct & ObjectMemory, Camera2D *& SelectedCamera);
@@ -303,7 +304,12 @@ public:
     vector <unsigned> layersOrder;
     InstrDescription CurrentInstr;
     std::unordered_map<size_t, ObjectMemoryStruct> ProcessMemory;
-    size_t topUniqueIndex = 0;
+
+    size_t topLayerUniqueIndex = 1;
+    //If entity has unique index equal to 0, it's not initialized.
+    //If sub-container has parent's index equal to 0, it's either not initialized or abandoned.
+    size_t topObjectUniqueIndex = 1;
+    size_t topModuleUniqueIndex = 1;
 
     std::unordered_map<string, TimePoint> userDefinedTimers;
 
@@ -311,14 +317,13 @@ public:
 
     string getID() const;
     void setID(string newID, vector<string> & listOfIDs);
-    void allocateBuiltInVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object, LayerClass &Layer);
+    void allocateBuiltInVariables(ObjectMemoryStruct &CurrentMap, AncestorObject &Object,
+        LayerClass &Layer);
     void allocatePredefinedMemberParameters(ObjectMemoryStruct &CurrentMap, AncestorObject &Object);
     //Return true if new memory was allocated.
-    bool allocateRealMemory(const std::string &variableId, const DataType &variableType,
-        const bool &readOnly, const bool &isLocal, const bool &isReference,
-        const unsigned int &newRealAddress, const unsigned int &localIndex,
-        ObjectMemoryStruct &CurrentMap
-    );
+    bool allocateRealMemory(const string & variableId, const DataType &variableType, bool readOnly,
+        bool isLocal, bool isReference, unsigned newRealAddress, unsigned localIndex,
+        ObjectMemoryStruct & CurrentMap);
     void allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap, const vector<EventModule> & EventContainer);
     void create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
     void clear();
@@ -356,10 +361,12 @@ public:
     void aggregatePointers(ContextClass & NewContext, vector <BasePointersStruct> & AggregatedPointers, bool onlyFirstRequired);
     void aggregateVariables(ContextClass & NewContext, vector <VariableModule> & AggregatedVariables, bool onlyFirstRequired);
     void findContextInCamera(AttributeType attribute, ContextClass & NewContext, Camera2D * Camera);
-    void findContextInLayer(ValueLocation Location, ContextClass & NewContext, LayerClass * Layer);
+    void findContextInLayer(const ValueLocation & Location, ContextClass & NewContext,
+        LayerClass * Layer);
     template <class Module>
     void findContextInModuleVector(const ValueLocation & Location, ContextClass & NewContext, vector<Module> & Source);
-    void findContextInObject(ValueLocation Location, ContextClass & NewContext, AncestorObject * Object);
+    void findContextInObject(const ValueLocation & Location, ContextClass & NewContext,
+        AncestorObject * Object);
     bool findLayerAndObject(ValueLocation & Location, AncestorObject * Owner, LayerClass * OwnerLayer,
         LayerClass *& CurrentLayer, AncestorObject *& CurrentObject);
     void aggregateCamerasAndLayersById(ValueLocation & Location, ContextClass & NewVariable,
@@ -401,7 +408,9 @@ public:
     void createLiteral(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void checkIfVectorContainsVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     bool prepareVectorSizeAndIDsForNew(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, unsigned & newVectorSize, vector <string> & newIDs);
-    bool prepareDestinationForNew(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, string & layerID, string & objectID, vector<LayerClass> &Layers);
+    bool prepareDestinationForNew(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
+        LayerClass *& CurrentLayer, AncestorObject *& CurrentObject, PrimaryData & initData,
+        vector<LayerClass> &Layers);
     void assignEntities(ObjectMemoryStruct & ObjectMemory,
         ContextClass & NewValue, OutputParameterStruct & Output
     );

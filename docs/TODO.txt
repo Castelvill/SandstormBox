@@ -1,4 +1,10 @@
--Instead of comparing string ids use unique numbers to recalculate indexes etc.
+-Fix [TODO_0]: binding and rebuilding an object is undefined behavior - note program.
+-Fix: When you create a Note window, open it in the mover and close the Note from whatever place, then program will crash.
+-Fix the rest of "terminal test" 
+-Check if any module is using string ids instead of unique indexes.
+-Add perm_new instruction - it creates new entity that cannot be removed - delete instruction will fail and output an error.
+-Add allegro key bindings translations into sandscript, while keeping the possibility of dynamic rebinding. 
+-In collisionModule.h in struct DetectedCollision change string ids to new unique indexes.
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
 -Fix terminal: Clicking tab while the cursor is inside the text will color the rest of the line to the right.
@@ -36,6 +42,8 @@
 -Fix creating variables in interpreter.sand.
 -Separate Sand compiler from the ancestorObject.cpp and event.cpp.
 -Create "print_table" instruction based on printing style of "dump_memory" instruction. 
+-Add groups to vectorModule.
+-Test groups.
 
 -Update documentation.
 -Optimize EditableSuperText.

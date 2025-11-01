@@ -153,8 +153,15 @@ double SingleParticle::getRadius(){
     return radius;
 }
 
-void ParticleEffectModule::setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+void ParticleEffectModule::setUpNewInstance(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
+    setDefaultValues();
+}
+void ParticleEffectModule::setUpNewInstance(PrimaryData & initData){
+    primaryConstructor(initData);
+    setDefaultValues();
+}
+void ParticleEffectModule::setDefaultValues(){
     environment.set(0.0, 0.0);
     environmentSpeed.set(0.0, 0.0);
     minSpeed = 0.0;
@@ -196,23 +203,29 @@ void ParticleEffectModule::setUpNewInstance(const string & newID, vector<string>
     spawnKeyBind = ALLEGRO_KEY_P;
     spawnOnKeyRelease = false;
 }
-ParticleEffectModule::ParticleEffectModule(){
-    setUpNewInstance("", nullptr, "", "");
+ParticleEffectModule::ParticleEffectModule(size_t & topModuleUniqueIndex){
+    setUpNewInstance(topModuleUniqueIndex);
 }
-ParticleEffectModule::ParticleEffectModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    setUpNewInstance(newID, listOfIDs, newLayerID, newObjectID);
-}
-ParticleEffectModule::ParticleEffectModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    setUpNewInstance(intToStr(newID), listOfIDs, newLayerID, newObjectID);
+ParticleEffectModule::ParticleEffectModule(PrimaryData & initData){
+    setUpNewInstance(initData);
 }
 ParticleEffectModule::~ParticleEffectModule(){
 
 }
-void ParticleEffectModule::clone(const ParticleEffectModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
+void ParticleEffectModule::clone(const ParticleEffectModule &Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+    
+    initData.newID = Original.getID();
+    setAllIDs(initData, changeOldID);
 }
 void ParticleEffectModule::clear(){
     particleEffect.clear();

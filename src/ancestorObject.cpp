@@ -2,7 +2,15 @@
 
 AncestorObject::AncestorObject(){
     deleted = false;
-    isActive = false;
+    isActive = true;
+    canBeMovedWithMouse = false;
+    canDrawSelectionBorder = false;
+    hasInvalidatedMemory = true;
+}
+AncestorObject::AncestorObject(size_t & topObjectUniqueIndex){
+    setUniqueIndex(topObjectUniqueIndex++);
+    deleted = false;
+    isActive = true;
     canBeMovedWithMouse = false;
     canDrawSelectionBorder = false;
     hasInvalidatedMemory = true;
@@ -51,74 +59,102 @@ void AncestorObject::deleteLater(){
     }
 }
 void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, 
-    string newLayerID, const bool & changeOldID, size_t & topUniqueIndex){
+    size_t layerUniqueIndex, const string & newLayerID, bool changeOldID,
+    size_t & topModuleUniqueIndex
+){
     if(isStringInVector(reservedIDs, Original.ID)){
-        cerr << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID << "\' cannot be cloned.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID 
+            << "\' cannot be cloned.\n";
         return;
     }
     if(isStringInVector(reservedIDs, ID)){
-        cerr << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << ID 
+            << "\' cannot be changed.\n";
         return;
     }
     clearVectorsOfIDs();
     clear();
-    PrimaryModule::clone(Original, listOfUniqueIDs, newLayerID, "", changeOldID);
-    uniqueIndex = topUniqueIndex++;
+    
+    PrimaryData initData = {
+        .objectUniqueIndex = getUniqueIndex(),
+        .layerUniqueIndex = layerUniqueIndex,
+        .listOfIDs = &listOfUniqueIDs,
+        .newLayerID = newLayerID
+    };
+    PrimaryModule::clone(Original, initData, changeOldID);
+
+    initData.newObjectID = ID;
+
     hasInvalidatedMemory = true;
     for(const TextModule & Text : Original.TextContainer){
-        TextContainer.emplace_back(TextModule());
-        TextContainer.back().clone(Text, textContainerIDs, newLayerID, getID(), true);
+        TextContainer.emplace_back(TextModule(topModuleUniqueIndex));
+        initData.listOfIDs = &textContainerIDs;
+        TextContainer.back().clone(Text, initData, true);
     }
     for(const EditableTextModule & Editable : Original.EditableTextContainer){
-        EditableTextContainer.emplace_back(EditableTextModule());
-        EditableTextContainer.back().clone(Editable, editableTextContainerIDs, newLayerID, getID(), true);
+        EditableTextContainer.emplace_back(EditableTextModule(topModuleUniqueIndex));
+        initData.listOfIDs = &editableTextContainerIDs;
+        EditableTextContainer.back().clone(Editable, initData, true);
     }
     for(const SuperTextModule & SuperText : Original.SuperTextContainer){
-        SuperTextContainer.emplace_back(SuperTextModule());
-        SuperTextContainer.back().clone(SuperText, superTextContainerIDs, newLayerID, getID(), true);
+        SuperTextContainer.emplace_back(SuperTextModule(topModuleUniqueIndex));
+        initData.listOfIDs = &superTextContainerIDs;
+        SuperTextContainer.back().clone(SuperText, initData, true);
     }
     for(const SuperEditableTextModule & SuperEditableText : Original.SuperEditableTextContainer){
-        SuperEditableTextContainer.emplace_back(SuperEditableTextModule());
-        SuperEditableTextContainer.back().clone(SuperEditableText, superEditableTextContainerIDs, newLayerID, getID(), true);
+        SuperEditableTextContainer.emplace_back(SuperEditableTextModule(topModuleUniqueIndex));
+        initData.listOfIDs = &superEditableTextContainerIDs;
+        SuperEditableTextContainer.back().clone(SuperEditableText, initData, true);
     }
     for(const ImageModule & Image : Original.ImageContainer){
-        ImageContainer.emplace_back(ImageModule());
-        ImageContainer.back().clone(Image, imageContainerIDs, newLayerID, getID(), true);
+        ImageContainer.emplace_back(ImageModule(topModuleUniqueIndex));
+        initData.listOfIDs = &imageContainerIDs;
+        ImageContainer.back().clone(Image, initData, true);
     }
     for(const MovementModule & Movement : Original.MovementContainer){
-        MovementContainer.emplace_back(MovementModule());
-        MovementContainer.back().clone(Movement, movementContainerIDs, newLayerID, getID(), true);
+        MovementContainer.emplace_back(MovementModule(topModuleUniqueIndex));
+        initData.listOfIDs = &movementContainerIDs;
+        MovementContainer.back().clone(Movement, initData, true);
     }
     for(const CollisionModule & Collision : Original.CollisionContainer){
-        CollisionContainer.emplace_back(CollisionModule());
-        CollisionContainer.back().clone(Collision, collisionContainerIDs, newLayerID, getID(), true);
+        CollisionContainer.emplace_back(CollisionModule(topModuleUniqueIndex));
+        initData.listOfIDs = &collisionContainerIDs;
+        CollisionContainer.back().clone(Collision, initData, true);
     }
     for(const ParticleEffectModule & Particle : Original.ParticlesContainer){
-        ParticlesContainer.emplace_back(ParticleEffectModule());
-        ParticlesContainer.back().clone(Particle, particlesContainerIDs, newLayerID, getID(), true);
+        ParticlesContainer.emplace_back(ParticleEffectModule(topModuleUniqueIndex));
+        initData.listOfIDs = &particlesContainerIDs;
+        ParticlesContainer.back().clone(Particle, initData, true);
     }
     for(const EventModule & Event : Original.EventContainer){
-        EventContainer.emplace_back(EventModule());
-        EventContainer.back().clone(Event, eventContainerIDs, newLayerID, getID(), true);
+        EventContainer.emplace_back(EventModule(topModuleUniqueIndex));
+        initData.listOfIDs = &eventContainerIDs;
+        EventContainer.back().clone(Event, initData, true);
     }
     for(const VariableModule & Variable : Original.VariablesContainer){
-        VariablesContainer.emplace_back(VariableModule());
-        VariablesContainer.back().clone(Variable, variablesContainerIDs, newLayerID, getID(), true);
+        VariablesContainer.emplace_back(VariableModule(topModuleUniqueIndex));
+        initData.listOfIDs = &variablesContainerIDs;
+        VariablesContainer.back().clone(Variable, initData, true);
     }
     for(const ScrollbarModule & Scrollbar : Original.ScrollbarContainer){
-        ScrollbarContainer.emplace_back(ScrollbarModule());
-        ScrollbarContainer.back().clone(Scrollbar, scrollbarContainerIDs, newLayerID, getID(), true);
+        ScrollbarContainer.emplace_back(ScrollbarModule(topModuleUniqueIndex));
+        initData.listOfIDs = &scrollbarContainerIDs;
+        ScrollbarContainer.back().clone(Scrollbar, initData, true);
     }
     for(const PrimitivesModule & Primitives : Original.PrimitivesContainer){
-        PrimitivesContainer.emplace_back(PrimitivesModule());
-        PrimitivesContainer.back().clone(Primitives, primitivesContainerIDs, newLayerID, getID(), true);
+        PrimitivesContainer.emplace_back(PrimitivesModule(topModuleUniqueIndex));
+        initData.listOfIDs = &primitivesContainerIDs;
+        PrimitivesContainer.back().clone(Primitives, initData, true);
     }
     for(const VectorModule & Vector : Original.VectorContainer){
-        VectorContainer.emplace_back(VectorModule());
-        VectorContainer.back().clone(Vector, vectorContainerIDs, newLayerID, getID(), true);
+        VectorContainer.emplace_back(VectorModule(topModuleUniqueIndex));
+        initData.listOfIDs = &vectorContainerIDs;
+        VectorContainer.back().clone(Vector, initData, true);
     }
 
-    bindedScripts.insert(bindedScripts.end(), Original.bindedScripts.begin(), Original.bindedScripts.end());
+    bindedScripts.insert(bindedScripts.end(), Original.bindedScripts.begin(), 
+        Original.bindedScripts.end()
+    );
     canBeMovedWithMouse = Original.canBeMovedWithMouse;
 }
 void AncestorObject::clearVectorsOfIDs(){
@@ -193,12 +229,14 @@ void AncestorObject::clear(){
     VectorContainer.clear();
     bindedScripts.clear();
 }
-void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText, vector <AncestorObject> & Objects,
-    vector <SingleBitmap> & BitmapContainer, vector <string> & listOfAncestorIDs, string workingDirectory
+void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText,
+    vector<AncestorObject> & Objects, vector<SingleBitmap> & BitmapContainer,
+    vector<string> & listOfAncestorIDs, string workingDirectory
 ){
     for(AncestorObject & Object : Objects){
         if(EditableText.connectedObject == Object.getID()
-           || Object.isInAGroup(EditableText.connectedGroup)){
+           || Object.isInAGroup(EditableText.connectedGroup)
+        ){
             bool success = false;
             if(EditableText.connectedModule == "ancestor"){
                 if(EditableText.connectedVariable == "is_scrollable"){
@@ -342,15 +380,12 @@ vec2d AncestorObject::getPosOnCamera(Camera2D * SelectedCamera){
     return finalPos;
 }
 
-void AncestorObject::setID(string newID, vector<string> &listOfIDs){
+void AncestorObject::setID(const string & newID, vector<string> &listOfIDs){
     PrimaryModule::setID(newID, listOfIDs);
 }
 
-void AncestorObject::primaryConstructor(string newID, vector<string> *listOfIDs, string newLayerID, 
-    string newObjectID, size_t & topUniqueIndex
-){
-    PrimaryModule::primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    uniqueIndex = topUniqueIndex++;
+void AncestorObject::primaryConstructor(PrimaryData & data){
+    PrimaryModule::primaryConstructor(data);
     hasInvalidatedMemory = true;
 }
 
@@ -465,8 +500,9 @@ inline void printBasicFile(){
         << "end\n\n";
 }
 
-void AncestorObject::translateAllScripts(const string & exePath, bool clearEvents, bool allowNotAscii,
-    vector<VariableLocationStruct> & globalScope, unsigned & topMemoryAddress
+void AncestorObject::translateAllScripts(const string & exePath, bool clearEvents,
+    bool allowNotAscii, vector<VariableLocationStruct> & globalScope, unsigned & topMemoryAddress,
+    size_t & topModuleUniqueIndex
 ){
     if(clearEvents){
         clearAllEvents();
@@ -479,17 +515,18 @@ void AncestorObject::translateAllScripts(const string & exePath, bool clearEvent
 
     removeStringDuplicatesFromVector(bindedScripts);
 
-    auto [status, anyAssembledEvents] = compile (
-        exePath, bindedScripts, allowNotAscii, EventContainer, eventContainerIDs, globalScope,
-        topMemoryAddress, layerID, ID
+    auto [status, anyAssembledEvents] = compile (exePath, bindedScripts, allowNotAscii,
+        EventContainer, eventContainerIDs, globalScope, topMemoryAddress, getLayerUniqueIndex(),
+        layerID, getUniqueIndex(), ID, topModuleUniqueIndex
     );
 
     if(!anyAssembledEvents){
         printBasicFile();
     }
 }
-void AncestorObject::translateScriptsFromPaths(const string & exePath, bool clearEvents, vector<string> scriptsPaths,
-    bool allowNotAscii, vector<VariableLocationStruct> & globalScope, unsigned & topMemoryAddress
+void AncestorObject::translateScriptsFromPaths(const string & exePath, bool clearEvents,
+    vector<string> scriptsPaths, bool allowNotAscii, vector<VariableLocationStruct> & globalScope,
+    unsigned & topMemoryAddress, size_t & topModuleUniqueIndex
 ){
     if(clearEvents){
         clearAllEvents();
@@ -497,17 +534,18 @@ void AncestorObject::translateScriptsFromPaths(const string & exePath, bool clea
 
     removeStringDuplicatesFromVector(scriptsPaths);
 
-    auto [status, anyAssembledEvents] = compile (
-        exePath, scriptsPaths, allowNotAscii, EventContainer, eventContainerIDs, globalScope,
-        topMemoryAddress, layerID, ID
+    auto [status, anyAssembledEvents] = compile (exePath, scriptsPaths, allowNotAscii,
+        EventContainer, eventContainerIDs, globalScope, topMemoryAddress, getLayerUniqueIndex(),
+        layerID, getUniqueIndex(), ID, topModuleUniqueIndex
     );
 
     if(!anyAssembledEvents){
         printBasicFile();
     }
 }
-void AncestorObject::translateSubsetBindedScripts(const string & exePath, bool clearEvents, vector<string> scripts, bool allowNotAscii,
-    vector<VariableLocationStruct> & globalScope, unsigned & topMemoryAddress
+void AncestorObject::translateSubsetBindedScripts(const string & exePath, bool clearEvents,
+    vector<string> scripts, bool allowNotAscii, vector<VariableLocationStruct> & globalScope,
+    unsigned & topMemoryAddress, size_t & topModuleUniqueIndex
 ){
     if(clearEvents){
         clearAllEvents();
@@ -523,34 +561,45 @@ void AncestorObject::translateSubsetBindedScripts(const string & exePath, bool c
         }
     }
 
-    auto [status, anyAssembledEvents] = compile (
-        exePath, selectedBindedScripts, allowNotAscii, EventContainer, eventContainerIDs, globalScope,
-        topMemoryAddress, layerID, ID
+    auto [status, anyAssembledEvents] = compile (exePath, selectedBindedScripts, allowNotAscii,
+        EventContainer, eventContainerIDs, globalScope, topMemoryAddress, getLayerUniqueIndex(),
+        layerID, getUniqueIndex(), ID, topModuleUniqueIndex
     );
 
     if(!anyAssembledEvents){
         printBasicFile();
     }
 }
-void AncestorObject::injectCode(bool clearEvents, vector<string> code, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress){
+void AncestorObject::injectCode(bool clearEvents, vector<string> code,
+    vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress,
+    size_t & topModuleUniqueIndex
+){
     if(clearEvents){
         clearAllEvents();
     }
 
     code = removeComments(code);
+
+    code = divideStringVectorIntoLines(code);
     
     if(!code.empty()){
-        size_t preAssemblyEventCount = EventContainer.size();
-        ReturnType assemblyStatus = assembleEvents(EventContainer, eventContainerIDs, layerID,
-            ID, code, "<injection>", GlobalScope, topMemoryAddress
+        const size_t preAssemblyEventCount = EventContainer.size();
+        const size_t preAssemblyModuleUniqueIndex = topModuleUniqueIndex;
+        ReturnType assemblyStatus = assembleEvents(EventContainer, eventContainerIDs,
+            getLayerUniqueIndex(), layerID, getUniqueIndex(), ID, code,
+            "<injection>", GlobalScope, topMemoryAddress, topModuleUniqueIndex
         );
         if(assemblyStatus == ReturnType::ERROR){
             EventContainer.resize(preAssemblyEventCount);
+            topModuleUniqueIndex = preAssemblyModuleUniqueIndex;
             return;
         }
     }
 }
-void AncestorObject::injectInstructions(bool clearEvents, vector<string> instructions, vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress){
+void AncestorObject::injectInstructions(bool clearEvents, const vector<string> & instructions,
+    vector<VariableLocationStruct> & GlobalScope, unsigned & topMemoryAddress,
+    size_t & topModuleUniqueIndex
+){
     if(clearEvents){
         clearAllEvents();
     }
@@ -576,53 +625,69 @@ void AncestorObject::injectInstructions(bool clearEvents, vector<string> instruc
     preprocessed.emplace_back("delete_this_event");
     preprocessed.emplace_back("end");
     size_t preAssemblyEventCount = EventContainer.size();
-    ReturnType assemblyStatus = assembleEvents(EventContainer, eventContainerIDs, layerID,
-        ID, preprocessed, "<injection>", GlobalScope, topMemoryAddress
+    size_t preAssemblyModuleUniqueIndex = topModuleUniqueIndex;
+    ReturnType assemblyStatus = assembleEvents(EventContainer, eventContainerIDs,
+        getLayerUniqueIndex(), layerID, getUniqueIndex(), ID, preprocessed, "<injection>",
+        GlobalScope, topMemoryAddress, topModuleUniqueIndex
     );
     if(assemblyStatus == ReturnType::ERROR){
         EventContainer.resize(preAssemblyEventCount);
+        topModuleUniqueIndex = preAssemblyModuleUniqueIndex;
         return;
     }
 }
 
-void AncestorObject::propagateLayerID(){
+void AncestorObject::propagateLayer(){
     for(TextModule & Text : TextContainer){
+        Text.setLayerUniqueIndex(getLayerUniqueIndex());
         Text.setLayerID(layerID);
     }
     for(EditableTextModule & EditableText : EditableTextContainer){
+        EditableText.setLayerUniqueIndex(getLayerUniqueIndex());
         EditableText.setLayerID(layerID);
     }
     for(SuperTextModule & SuperText : SuperTextContainer){
+        SuperText.setLayerUniqueIndex(getLayerUniqueIndex());
         SuperText.setLayerID(layerID);
     }
     for(SuperEditableTextModule & SuperEditableText : SuperEditableTextContainer){
+        SuperEditableText.setLayerUniqueIndex(getLayerUniqueIndex());
         SuperEditableText.setLayerID(layerID);
     }
     for(ImageModule & Image : ImageContainer){
+        Image.setLayerUniqueIndex(getLayerUniqueIndex());
         Image.setLayerID(layerID);
     }
     for(MovementModule & Movement : MovementContainer){
+        Movement.setLayerUniqueIndex(getLayerUniqueIndex());
         Movement.setLayerID(layerID);
     }
     for(CollisionModule & Collision : CollisionContainer){
+        Collision.setLayerUniqueIndex(getLayerUniqueIndex());
         Collision.setLayerID(layerID);
     }
     for(ParticleEffectModule & Particles : ParticlesContainer){
+        Particles.setLayerUniqueIndex(getLayerUniqueIndex());
         Particles.setLayerID(layerID);
     }
     for(EventModule & Event : EventContainer){
+        Event.setLayerUniqueIndex(getLayerUniqueIndex());
         Event.setLayerID(layerID);
     }
     for(VariableModule & Variable : VariablesContainer){
+        Variable.setLayerUniqueIndex(getLayerUniqueIndex());
         Variable.setLayerID(layerID);
     }
     for(ScrollbarModule & Scrollbar : ScrollbarContainer){
+        Scrollbar.setLayerUniqueIndex(getLayerUniqueIndex());
         Scrollbar.setLayerID(layerID);
     }
     for(PrimitivesModule & Primitives : PrimitivesContainer){
+        Primitives.setLayerUniqueIndex(getLayerUniqueIndex());
         Primitives.setLayerID(layerID);
     }
     for(VectorModule & Vector : VectorContainer){
+        Vector.setLayerUniqueIndex(getLayerUniqueIndex());
         Vector.setLayerID(layerID);
     }
 }
@@ -666,6 +731,9 @@ void AncestorObject::propagateObjectID(){
     for(VectorModule & Vector : VectorContainer){
         Vector.setObjectID(ID);
     }
+}
+string AncestorObject::getObjectID(){
+    return ID;
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule() const{

@@ -17,31 +17,39 @@ void ScrollbarModule::clear(){
     mousePressed = false;
     mouseWheelSpeed = 5.0;
 }
-ScrollbarModule::ScrollbarModule(){
+ScrollbarModule::ScrollbarModule(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
     clear();
 }
-ScrollbarModule::ScrollbarModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    clear();
-}
-ScrollbarModule::ScrollbarModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+ScrollbarModule::ScrollbarModule(PrimaryData & initData){
+    primaryConstructor(initData);
     clear();
 }
 ScrollbarModule::~ScrollbarModule(){
 
 }
 
-void ScrollbarModule::clone(const ScrollbarModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+void ScrollbarModule::clone(const ScrollbarModule &Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     TrackImage = nullptr;
     ThumbImage = nullptr;
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+    
+    initData.newID = Original.getID(); 
+    setAllIDs(initData, changeOldID);
 }
 
-void ScrollbarModule::draw(vec2d basePos, const vector <ImageModule> & ImageContainer, Camera2D Camera) const{
+void ScrollbarModule::draw(vec2d basePos, const vector <ImageModule> & ImageContainer,
+    Camera2D Camera
+) const {
     vec2d newPos(basePos+pos);
     if(TrackImage != nullptr && TrackImage->getID() == trackImageID){
         TrackImage->draw(newPos, Camera, true);
@@ -138,7 +146,10 @@ bool ScrollbarModule::dragThumb(vec2d basePos, const MouseClass &Mouse){
         return false;
     }
     if(isScrollable){
-        thumbPos.set(Mouse.getZoomedPos(FocusedCamera)-FocusedCamera->visionShift-basePos-pos-dragStartingPos);
+        thumbPos.set(
+            Mouse.getZoomedPos(FocusedCamera) - FocusedCamera->visionShift - basePos - pos
+            - dragStartingPos
+        );
         correctThumbPosition();
     }
     else{
@@ -220,7 +231,9 @@ void ScrollbarModule::getContext(AttributeType attribute, vector<BasePointersStr
             return;
     }
 }
-VariableModule ScrollbarModule::getValue(const AttributeType &attribute, const InstrDescription & CurrentInstr) const{
+VariableModule ScrollbarModule::getValue(const AttributeType &attribute,
+    const InstrDescription & CurrentInstr
+) const {
     switch(attribute){
         case scroll_shift_x:
             return VariableModule::newDouble(scrollShift.x);
@@ -264,8 +277,8 @@ VariableModule ScrollbarModule::getValue(const AttributeType &attribute, const I
             break;
     }
     
-    cerr << instructionError(CurrentInstr, __FUNCTION__)
-        << "Attribute '" << attribute << "' is not valid.\n";
+    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '" << attribute
+        << "' is not valid.\n";
     return VariableModule::newBool(false);
 }
 vec2d ScrollbarModule::getThumbPos(){
@@ -332,10 +345,10 @@ void ScrollbarModule::setDragStaringPos(vec2d newValue){
 void ScrollbarModule::setMousePressed(bool newValue){
     mousePressed = newValue;
 }
-void ScrollbarModule::setThumbImageID(string newValue){
+void ScrollbarModule::setThumbImageID(const string & newValue){
     thumbImageID = newValue;
 }
-void ScrollbarModule::setTrackImageID(string newValue){
+void ScrollbarModule::setTrackImageID(const string & newValue){
     trackImageID = newValue;
 }
 void ScrollbarModule::nullifyFocusedCameraPointer(){

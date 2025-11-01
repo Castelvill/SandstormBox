@@ -42,14 +42,15 @@ public:
     float lineWidthToCursor, lineWidthToSecondCursor;
     bool updated;
 
-    bool drawSelectionFirst; //If true, whole text content is rendered twice, first - only the selection, second - only the text.  
+    //If true, whole text content is rendered twice, first - only the selection, second - only the text.  
+    bool drawSelectionFirst; 
 
     void setUpNewInstance();
     SuperTextModule();
-    SuperTextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    SuperTextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    SuperTextModule(size_t & topUniqueIndex);
+    SuperTextModule(PrimaryData & initData);
     ~SuperTextModule();
-    void clone(const SuperTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const SuperTextModule & Original, PrimaryData & initData, bool changeOldID);
     void clear();
 
     void mergeFormatting();
@@ -145,11 +146,10 @@ public:
     float currentInputDelay;
 
     void setUpNewInstance();
-    SuperEditableTextModule();
-    SuperEditableTextModule(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
-    SuperEditableTextModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID);
+    SuperEditableTextModule(size_t & topModuleUniqueIndex);
+    SuperEditableTextModule(PrimaryData & initData);
     ~SuperEditableTextModule();
-    void clone(const SuperEditableTextModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void clone(const SuperEditableTextModule & Original, PrimaryData & initData, bool changeOldID);
     void clear();
 
     VariableModule getAttributeValue(const AttributeType &attribute, const string &detail, const InstrDescription & CurrentInstr) const;

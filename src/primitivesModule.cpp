@@ -6,11 +6,12 @@ void PrimitivesModule::setUpNewInstance(){
     thickness = 1.0;
     radius = 1.0;
 }
-PrimitivesModule::PrimitivesModule(){
+PrimitivesModule::PrimitivesModule(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
     setUpNewInstance();
 }
-PrimitivesModule::PrimitivesModule(string newAlias, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newAlias, listOfIDs, newLayerID, newObjectID);
+PrimitivesModule::PrimitivesModule(PrimaryData & initData){
+    primaryConstructor(initData);
     setUpNewInstance();
 }
 PrimitivesModule::~PrimitivesModule(){
@@ -19,11 +20,20 @@ PrimitivesModule::~PrimitivesModule(){
 void PrimitivesModule::clear(){
     points.clear();
 }
-void PrimitivesModule::clone(const PrimitivesModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, bool changeOldID){
+void PrimitivesModule::clone(const PrimitivesModule &Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+    
+    initData.newID = Original.getID(); 
+    setAllIDs(initData, changeOldID);
 }
 void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const{
     base.translate(pos);

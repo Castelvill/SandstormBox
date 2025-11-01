@@ -32,9 +32,10 @@ struct InstrParser{
     ReturnType parseAnnotations();
     ReturnType parseOverrideAnnotation();
     ReturnType parseTriggersAnnotation();
-    ReturnType parseStartAndOverride(vector<string> & allAvailableEventIDs,
-        const string & layerId, const string & objectId, vector<EventModule> &eventContainer, vector<string> &eventContainerIds
-    );
+    ReturnType parseStartAndOverride(vector<string> & allAvailableEventIDs, const size_t layerIndex,
+        const string & layerId, const size_t objectIndex, const string & objectId,
+        vector<EventModule> &eventContainer, vector<string> &eventContainerIds,
+        size_t & topModuleUniqueIndex);
     ReturnType parseEnd(vector<EventModule> &eventContainer);
     ReturnType parseEmpty();
     ReturnType parseIf(BranchingStackStruct & BranchingStack);

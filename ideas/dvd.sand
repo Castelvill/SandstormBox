@@ -1,0 +1,65 @@
+@trigger on_init
+void putRectangleOnScreen(){
+    var DISPLAY_W = 640
+    var DISPLAY_H = 480
+    create_display(DISPLAY_W, DISPLAY_H, DISPLAY_W, DISPLAY_H)
+
+    Camera camera = cameras.new("camera")
+    camera.resize(DISPLAY_W, DISPLAY_H)
+    camera.add_visible_layer(me.layer)
+    
+    final var SIZE_X = 120
+    final var SIZE_Y = 100
+    final var velX = 4.0
+    final var velY = 4.0
+
+    var x = 10.0
+	var y = 10.0
+
+    Primitive rectangle = me.primitives.new("rectangle")
+    rectangle.set_type(Primitive.filled_rectangle)
+    rectangle.set_color(1.0, 0.0, 0.0, 1.0)
+    rectangle.set_pos(x, y)
+    rectangle.set_size(SIZE_X, SIZE_Y)
+    rectangle.update_with_size()
+}
+
+@trigger each_iteration
+void moveRectangle(){
+    final double xs = x + SIZE_X
+    final double ys = y + SIZE_Y
+
+    if(x <= 0 || xs >= DISPLAY_W){
+        velX *= -1.0
+    }
+    if(y <= 0 || ys >= DISPLAY_H){
+        velY *= -1.0
+    }
+
+	x += velX
+	y += velY
+
+    // 1. version
+    Primitive rectangle = me.primitives.find("rectangle")
+    rectangle.set_pos(x, y)
+
+    // 2. version
+    rectangle = me.primitives[0]
+    rectangle.set_pos(x, y)
+
+    // 3. version
+    me.primitives.find("rectangle").set_pos(x, y)
+
+    // 4. version
+    me.primitives[0].set_pos(x, y)
+
+    // 5. version
+    me.primitives.rectangle.set_pos(x, y)
+}
+
+@trigger on_key_press
+void exitProgram(){
+    if(key_pressed(KEY_LCTRL) && key_pressed(KEY_ESC)){
+        exit
+    }
+}

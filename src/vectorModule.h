@@ -14,6 +14,10 @@ bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t leftSize,
 );
 
 class VectorModule{
+    size_t uniqueIndex = 0;
+    size_t objectUniqueIndex = 0;
+    size_t layerUniqueIndex = 0;
+
     bool deleted = false;
     string ID;
     string layerID;
@@ -24,19 +28,26 @@ public:
     vector <int> vInt;
 	vector <double> vDouble;
 	vector <string> vString;
-    VectorModule();
+    VectorModule(size_t & topModuleUniqueIndex);
+    void setAllIndexes(size_t index, size_t layerIndex, size_t objectIndex);
     VectorModule(const VectorModule & Original);
     VectorModule & operator=(const VectorModule& Original);
-    VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID);
-    VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, string newType);
-    VectorModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, char newType);
+    VectorModule(PrimaryData & initData);
+    VectorModule(PrimaryData & initData, const string & newType);
+    VectorModule(PrimaryData & initData, char newType);
     void clear();
-    void setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
-    void clone(const VectorModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID);
+    void setAllIDs(PrimaryData & initData, bool  changeOldID);
+    void clone(const VectorModule &Original, PrimaryData & initData, bool changeOldID);
     void deleteLater();
+    void setUniqueIndex(size_t value);
+    size_t getUniqueIndex() const;
+    void setObjectUniqueIndex(size_t value);
+    size_t getObjectUniqueIndex() const;
+    void setLayerUniqueIndex(size_t value);
+    size_t getLayerUniqueIndex() const;
     void setID(string newID, vector<string> * listOfIDs);
-    void setLayerID(string);
-    void setObjectID(string);
+    void setLayerID(const string & newID);
+    void setObjectID(const string & newID);
     bool setType(char newType);
     bool pushBool(bool newValue);
     void pushBoolUnsafe(bool newValue);
@@ -49,7 +60,7 @@ public:
     bool setBool(size_t index, bool newValue);
     bool setInt(size_t index, int newValue);
     bool setDouble(size_t index, double newValue);
-    bool setString(size_t index, string newValue);
+    bool setString(size_t index, const string & newValue);
     template<typename RightType>
     void moveValueToEachInstance(RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);
     void move(VariableModule* Variables, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo);

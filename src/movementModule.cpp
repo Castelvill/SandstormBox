@@ -13,7 +13,10 @@ RandomAction::RandomAction(){
     areBreaksAllowed = true;
     chanceForBreak = 0.5;
 }
-void RandomAction::changeRandomActionsSettings(bool newAreRandomActionsEnabled, double newMinTimeOfAction, double newMaxTimeOfAction, double newMinMoveDistance, double newMaxMoveDistance, bool newAreBreaksAllowed, double newChanceForBreak){
+void RandomAction::changeRandomActionsSettings(bool newAreRandomActionsEnabled,
+    double newMinTimeOfAction, double newMaxTimeOfAction, double newMinMoveDistance, 
+    double newMaxMoveDistance, bool newAreBreaksAllowed, double newChanceForBreak
+){
     areRandomActionsEnabled = newAreRandomActionsEnabled;
     timeWhenActionPersists = 0.0;
     minTimeOfAction = newMinTimeOfAction;
@@ -51,10 +54,12 @@ vec2d RandomAction::chooseRandomDirection(vec2d objectPos, vec2d & objectDestina
         }
     }
     if(timeWhenActionPersists > 0.0){
-        if(savedAction == 0){ //when object doesn't move
+        //when object is still
+        if(savedAction == 0){
             return vec2d(0.0, 0.0);
         }
-        else if(savedAction == 1 && !objectPos.isEqual(objectDestination)){ //when object is moving about
+        //when object is moving
+        else if(savedAction == 1 && !objectPos.isEqual(objectDestination)){
             savedDirection.set(objectPos.x, objectPos.y, objectDestination.x, objectDestination.y);
             savedDirection.normalize();
             return savedDirection;
@@ -77,7 +82,10 @@ vec2d RandomAction::chooseRandomDirection(vec2d objectPos, vec2d & objectDestina
     savedDirection.normalize();
     savedDirection.setLength(randomDouble(minMoveDistance, maxMoveDistance));
     objectDestination.set(objectPos);
-    objectDestination.translate(savedDirection.x * savedDirection.length, savedDirection.y * savedDirection.length);
+    objectDestination.translate(
+        savedDirection.x * savedDirection.length,
+        savedDirection.y * savedDirection.length
+    );
     return savedDirection;
 }
 
@@ -85,8 +93,15 @@ void ChainMovement::clearChain(){
     posChain.clear();
 }
 
-void MovementModule::setUpNewInstance(const string & newID, vector<string> * listOfIDs, const string & newLayerID, const string & newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+void MovementModule::setUpNewInstance(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
+    setDefaultValues();
+}
+void MovementModule::setUpNewInstance(PrimaryData & initData){
+    primaryConstructor(initData);
+    setDefaultValues();
+}
+void MovementModule::setDefaultValues(){
     movementType = 0;
     allowedJumps = 0;
     jumpsCount = 0;
@@ -122,23 +137,29 @@ void MovementModule::setUpNewInstance(const string & newID, vector<string> * lis
     mouseButton = 0;
     moveOnMouseRelease = true;
 }
-MovementModule::MovementModule(){
-    setUpNewInstance("", nullptr, "", "");
+MovementModule::MovementModule(size_t & topModuleUniqueIndex){
+    setUpNewInstance(topModuleUniqueIndex);
 }
-MovementModule::MovementModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    setUpNewInstance(newID, listOfIDs, newLayerID, newObjectID);
-}
-MovementModule::MovementModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    setUpNewInstance(intToStr(newID), listOfIDs, newLayerID, newObjectID);
+MovementModule::MovementModule(PrimaryData & initData){
+    setUpNewInstance(initData);
 }
 MovementModule::~MovementModule(){
 
 }
-void MovementModule::clone(const MovementModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
+void MovementModule::clone(const MovementModule &Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+    
+    initData.newID = Original.getID(); 
+    setAllIDs(initData, changeOldID);
 }
 
 void MovementModule::clear(){

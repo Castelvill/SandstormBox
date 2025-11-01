@@ -1,7 +1,9 @@
 #include "collisionModule.h"
 
 bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2){
-    //Function has two "unnecessary" parameters, because each hitbox can be placed in different position in relation to object's real position.
+    //Function has two "unnecessary" parameters, because each hitbox can be placed in different 
+    //position in relation to object's real position.
+
     vec2d pos1s(pos1+size1);
     vec2d pos2s(pos2+size2);
     bool canOverlap = false;
@@ -22,47 +24,55 @@ bool areObjectsOverlaping(vec2d pos1, vec2d size1, vec2d pos2, vec2d size2){
     return false;
 }
 
-void CollisionModule::setUpNewInstance(const string & newID, const vec2d & size, vector<string> *listOfIDs, const string & newLayerID, const string & newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+void CollisionModule::setUpNewInstance(PrimaryData & initData, const vec2d & size){
+    primaryConstructor(initData);
     setSize(size);
     isSolid = true;
     canPenetrateSolids = false;
     mouseCollision = 'n';
     isCircle = false;
 }
-CollisionModule::CollisionModule(){
-    setUpNewInstance("", vec2d(0.0, 0.0), nullptr, "", "");
+CollisionModule::CollisionModule(size_t & topModuleUniqueIndex){
+    PrimaryData initData = {.topIndex = &topModuleUniqueIndex};
+    setUpNewInstance(initData, vec2d(0.0, 0.0));
 }
-CollisionModule::CollisionModule(string newID, vec2d size, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    setUpNewInstance(newID, size, listOfIDs, newLayerID, newObjectID);
+CollisionModule::CollisionModule(PrimaryData & initData, vec2d size){
+    setUpNewInstance(initData, size);
 }
-CollisionModule::CollisionModule(unsigned newID, vec2d size, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    setUpNewInstance(intToStr(newID), size, listOfIDs, newLayerID, newObjectID);
-}
-CollisionModule::CollisionModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    setUpNewInstance(newID, vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
-}
-CollisionModule::CollisionModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    setUpNewInstance(intToStr(newID), vec2d(0.0, 0.0), listOfIDs, newLayerID, newObjectID);
+CollisionModule::CollisionModule(PrimaryData & initData){
+    setUpNewInstance(initData, vec2d(0.0, 0.0));
 }
 CollisionModule::~CollisionModule(){
 
 }
-void CollisionModule::clone(const CollisionModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
+void CollisionModule::clone(const CollisionModule & Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    setObjectUniqueIndex(initData.objectUniqueIndex);
+    setLayerUniqueIndex(initData.layerUniqueIndex);
+
+    initData.newID = Original.getID(); 
+    setAllIDs(initData, changeOldID);
 }
 
-void CollisionModule::detectOverlaping(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum){
+void CollisionModule::detectOverlaping(const string & solidID, const string & collisionID,
+    vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum
+){
     //Check if object is in other object
     if(areObjectsOverlaping(solidPos, solidSize, pos + movPos, size)){
         Detected.emplace_back(DetectedCollision{solidID, collisionID, 4, momentum});
     }
 }
 
-void CollisionModule::detectCollision(string solidID, string collisionID, vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum){
+void CollisionModule::detectCollision(const string & solidID, const string & collisionID,
+    vec2d solidPos, vec2d solidSize, vec2d movPos, vec2d momentum
+){
     vec2d mPos, mPos2;
     mPos = pos + movPos;
 
@@ -72,7 +82,8 @@ void CollisionModule::detectCollision(string solidID, string collisionID, vec2d 
         return;
     }
 
-    //Find the smallest momentum needed to reach collision (without it, object with enough speed would ignore some collisions)
+    //Find the smallest momentum needed to reach collision (without it, object with enough speed
+    //would ignore some collisions)
     vec2d minMomentum = countMinimalDistanceBetween(solidPos, solidSize, mPos, size, -1.0);
 
     mPos2 = mPos + momentum;
@@ -106,7 +117,9 @@ void CollisionModule::detectCollision(string solidID, string collisionID, vec2d 
         Detected.emplace_back(DetectedCollision{solidID, collisionID, 3, momentum});
     }
 }
-vec2d CollisionModule::countMinimalDistanceBetween(vec2d sPos, vec2d sSize, vec2d mPos, vec2d mSize, double precision){
+vec2d CollisionModule::countMinimalDistanceBetween(vec2d sPos, vec2d sSize, vec2d mPos, vec2d mSize,
+    double precision
+){
     vec2d distance(0.0, 0.0), sPos2(sPos + sSize), mPos2(mPos + mSize);
     if(mPos2.x < sPos.x){
         distance.x = sPos.x-precision-mSize.x-mPos.x;
@@ -122,8 +135,12 @@ vec2d CollisionModule::countMinimalDistanceBetween(vec2d sPos, vec2d sSize, vec2
     }
     return distance;
 }
-bool CollisionModule::isCloseEnough(vec2d solidPos, string solidName, vec2d movingPos, vec2d movingMomentum, CollisionModule * movingColl){
-    //This is optimalization function. It tells if object can be checked for collision with moving objects. Using this function can speed up games with complex collisions or too many distant objects.
+bool CollisionModule::isCloseEnough(vec2d solidPos, string solidName, vec2d movingPos,
+    vec2d movingMomentum, CollisionModule * movingColl
+){
+    //This is optimalization function. It tells if object can be checked for collision with moving
+    //objects. Using this function can speed up games with complex collisions or too many distant
+    //objects.
     double x = solidPos.x+pos.x+size.x/2;
     double y = solidPos.y+pos.y+size.y/2;
     double x2 = movingPos.x+movingColl->pos.x+movingColl->size.x/2;
@@ -131,7 +148,8 @@ bool CollisionModule::isCloseEnough(vec2d solidPos, string solidName, vec2d movi
     double distance = countDistance(x, y, x2, y2); //distance from centers
 
     double radiusOfSolid = 2+sqrt(pow(size.x, 2) + pow(size.y, 2)) / 2.0;
-    double radiusOfMoving = 2+sqrt(pow(movingColl->size.x + abs(movingMomentum.x), 2) + pow(movingColl->size.y + abs(movingMomentum.y), 2)) / 2.0;
+    double radiusOfMoving = 2+sqrt(pow(movingColl->size.x + abs(movingMomentum.x), 2)
+        + pow(movingColl->size.y + abs(movingMomentum.y), 2)) / 2.0;
     if(distance <= radiusOfSolid + radiusOfMoving)
         return true;
     return false;
@@ -214,13 +232,18 @@ void CollisionModule::removeImaginaryCollisions(){
         return;
     }
 
-    //Remove collision walls of the same type placed further from the moving object's collision boxes
+    //Remove collision walls of the same type placed further from the moving object's collision
+    //boxes
     for(unsigned int i = 0; i < Detected.size(); i++){
-        if(Detected[i].collisionType == 0 || Detected[i].collisionType == 4 || Detected[i].collisionType == 3){
+        if(Detected[i].collisionType == 0 || Detected[i].collisionType == 4
+            || Detected[i].collisionType == 3
+        ){
             continue;
         }
         for(unsigned int j = 0; j < Detected.size(); j++){
-            if(i == j || Detected[j].collisionType == 0 || Detected[j].collisionType == 4 || Detected[i].collisionType == 3){
+            if(i == j || Detected[j].collisionType == 0 || Detected[j].collisionType == 4 
+                || Detected[i].collisionType == 3
+            ){
                 continue;
             }
             if(Detected[i].collisionType == Detected[j].collisionType){
@@ -245,11 +268,15 @@ void CollisionModule::removeImaginaryCollisions(){
                     || Detected[j].collisionType == 3){
                 continue;
             }
-            if(Detected[j].collisionType == 1 && fabs(Detected[i].momentum.x) >= fabs(Detected[j].momentum.x)){
+            if(Detected[j].collisionType == 1
+                && fabs(Detected[i].momentum.x) >= fabs(Detected[j].momentum.x)
+            ){
                 Detected[i].collisionType = 0;
                 break;
             }
-            if(Detected[j].collisionType == 2 && fabs(Detected[i].momentum.y) >= fabs(Detected[j].momentum.y)){
+            if(Detected[j].collisionType == 2 
+                && fabs(Detected[i].momentum.y) >= fabs(Detected[j].momentum.y)
+            ){
                 Detected[i].collisionType = 0;
                 break;
             }
@@ -268,7 +295,7 @@ void CollisionModule::removeImaginaryCollisions(){
         }
     }
 }
-void CollisionModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
+void CollisionModule::getContext(AttributeType attribute, vector<BasePointersStruct> &BasePointers){
     if(attribute == is_solid){
         BasePointers.emplace_back(BasePointersStruct());
         BasePointers.back().setPointer(&isSolid);

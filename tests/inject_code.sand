@@ -1,0 +1,26 @@
+import "tests/test_template.sand"
+
+@trigger on_init
+start main()
+    run startTest()
+
+    string program "
+        @trigger on_init
+        start injection()
+            double a 10
+    "
+
+    int i 0
+    while(i 5 <)
+        += program "+= a 13.3\n"
+        next i
+    end_while
+
+    += program "
+            assert a 76.5
+            run endTest()
+        end
+    "
+
+    inject_code me program
+end

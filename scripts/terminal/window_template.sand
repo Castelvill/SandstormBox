@@ -3,8 +3,8 @@ start onInit()
     var KEY_F11 57
 end
 
+@trigger on_mouse_pressing
 start checkIfWindowMoved()
-	@trigger on_mouse_pressing
 	if (mouse_moved isBorderless ! &&)
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
@@ -13,8 +13,8 @@ start checkIfWindowMoved()
     end_if
 end
 
+@trigger on_display_resize
 start checkIfDisplayResize()
-	@trigger on_display_resize
 	if (isMaxed)
 	    run refreshWindowWithDisplay()
     end_if

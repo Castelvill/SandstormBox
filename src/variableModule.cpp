@@ -1,16 +1,16 @@
 #include "variableModule.h"
 
-VariableModule::VariableModule(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
+VariableModule::VariableModule(PrimaryData & initData){
+    uniqueIndex = *initData.topIndex++;
+    objectUniqueIndex = initData.objectUniqueIndex;
+    layerUniqueIndex = initData.layerUniqueIndex;
     deleted = false;
-    setAllIDs(newID, listOfIDs, newLayerID, newObjectID, true);
+    setAllIDs(initData, true);
     clear();
 }
-VariableModule::VariableModule(unsigned newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    deleted = false;
-    setAllIDs(std::to_string(newID), listOfIDs, newLayerID, newObjectID, true);
-    clear();
+VariableModule::VariableModule(size_t & topModuleUniqueIndex){
+    uniqueIndex = topModuleUniqueIndex++;
 }
-
 VariableModule::VariableModule(){}
 VariableModule::VariableModule(bool value){
     type = 'b';
@@ -29,6 +29,9 @@ VariableModule::VariableModule(string value){
     vString = value;
 }
 VariableModule::VariableModule(const VariableModule &Original){
+    uniqueIndex = Original.uniqueIndex;
+    objectUniqueIndex = Original.objectUniqueIndex;
+    layerUniqueIndex = Original.layerUniqueIndex;
     deleted = Original.deleted;
     ID = Original.ID;
     layerID = Original.layerID;
@@ -51,6 +54,9 @@ VariableModule::VariableModule(const VariableModule &Original){
     }
 }
 VariableModule & VariableModule::operator=(const VariableModule& Original){
+    uniqueIndex = Original.uniqueIndex;
+    objectUniqueIndex = Original.objectUniqueIndex;
+    layerUniqueIndex = Original.layerUniqueIndex;
     deleted = Original.deleted;
     ID = Original.ID;
     layerID = Original.layerID;
@@ -143,18 +149,47 @@ void VariableModule::clear(){
     }
     type = 'n';
 }
-void VariableModule::clone(const VariableModule &Original, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+void VariableModule::clone(const VariableModule &Original, PrimaryData & initData,
+    bool changeOldID
+){
+    size_t oldIndex = getUniqueIndex();
     string oldID = ID;
     *this = Original;
+    setUniqueIndex(oldIndex);
     ID = oldID;
-    setAllIDs(Original.getID(), &listOfIDs, newLayerID, newObjectID, changeOldID);
+
+    objectUniqueIndex = initData.objectUniqueIndex;
+    layerUniqueIndex = initData.layerUniqueIndex;
+
+    initData.newID = Original.getID();
+    setAllIDs(initData, changeOldID);
 }
-void VariableModule::setAllIDs(string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+
+void VariableModule::setUniqueIndex(size_t value){
+    uniqueIndex = value;
+}
+size_t VariableModule::getUniqueIndex() const{
+    return uniqueIndex;
+}
+void VariableModule::setObjectUniqueIndex(size_t value){
+    objectUniqueIndex = value;
+}
+size_t VariableModule::getObjectUniqueIndex() const{
+    return objectUniqueIndex;
+}
+void VariableModule::setLayerUniqueIndex(size_t value){
+    layerUniqueIndex = value;
+}
+size_t VariableModule::getLayerUniqueIndex() const{
+    return layerUniqueIndex;
+}
+
+void VariableModule::setAllIDs(PrimaryData & initData, bool changeOldID){
     if(changeOldID){
-        setID(newID, listOfIDs);
+        setID(initData.newID, initData.listOfIDs);
     }
-    setLayerID(newLayerID);
-    setObjectID(newObjectID);
+    setLayerID(initData.newLayerID);
+    setObjectID(initData.newObjectID);
 }
 string VariableModule::getID() const{
     return ID;
@@ -1091,14 +1126,14 @@ VariableModule VariableModule::newBool(bool val){
     newVariable.setBool(val);
     return newVariable;
 }
-VariableModule VariableModule::newBool(bool val, string newID){
+VariableModule VariableModule::newBool(bool val, const string & newID){
     VariableModule newVariable;
     newVariable.ID = newID;
     newVariable.setBool(val);
     return newVariable;
 }
-VariableModule VariableModule::newBool(bool val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
+VariableModule VariableModule::newBool(bool val, PrimaryData & initData){
+    VariableModule newVariable(initData);
     newVariable.setBool(val);
     return newVariable;
 }
@@ -1108,8 +1143,8 @@ VariableModule VariableModule::newInt(int val)
     newVariable.setInt(val);
     return newVariable;
 }
-VariableModule VariableModule::newInt(int val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
+VariableModule VariableModule::newInt(int val, PrimaryData & initData){
+    VariableModule newVariable(initData);
     newVariable.setInt(val);
     return newVariable;
 }
@@ -1118,8 +1153,8 @@ VariableModule VariableModule::newDouble(double val){
     newVariable.setDouble(val);
     return newVariable;
 }
-VariableModule VariableModule::newDouble(double val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
+VariableModule VariableModule::newDouble(double val, PrimaryData & initData){
+    VariableModule newVariable(initData);
     newVariable.setDouble(val);
     return newVariable;
 }
@@ -1129,8 +1164,8 @@ VariableModule VariableModule::newString(const string & val){
     return newVariable;
 }
 
-VariableModule VariableModule::newString(const string & val, string newID, vector<string> *listOfIDs, string newLayerID, string newObjectID){
-    VariableModule newVariable(newID, listOfIDs, newLayerID, newObjectID);
+VariableModule VariableModule::newString(const string & val, PrimaryData & initData){
+    VariableModule newVariable(initData);
     newVariable.setString(val);
     return newVariable;
 }

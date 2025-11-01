@@ -799,60 +799,93 @@ string instrToStr(const EngineInstr & instruction){
         case any:
             return "any";
         default:
-            cerr << "Error: In " << __FUNCTION__ << ": EngineInstr with code: '" << instruction << "' is undefined.\n"; 
+            cerr << "Error: In " << __FUNCTION__ << ": EngineInstr with code: '" << instruction 
+                << "' is undefined.\n"; 
         return "undefined";
     }
 }
-string instructionError(const InstrDescription & Description, const string & functionName, const string & messageType){
+string instructionError(const InstrDescription & Description, const string & functionName, 
+    const string & messageType
+){
     if(Description.scriptName == ""){
         if(Description.layerID == ""){
             return messageType + ": In " + functionName + ":\n"
                 + NEW_LINE_PADDING;
         }
-        return messageType + ": In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
-            + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ":\n"
-            + NEW_LINE_PADDING;
+        return messageType + ": In " + Description.layerID + "::" + Description.objectID + "::" 
+            + Description.eventID + ": In the '" + instrToStr(Description.instruction)
+            + "' instruction: In " + functionName + ":\n" + NEW_LINE_PADDING;
     }
-    return messageType + ": In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) + ":\n"
-        + NEW_LINE_PADDING + "In " + Description.layerID + "::" + Description.objectID + "::" + Description.eventID
-        + ": In the '" + instrToStr(Description.instruction) + "' instruction: In " + functionName + ":\n"
-        + NEW_LINE_PADDING;
+    return messageType + ": In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) 
+        + ":\n" + NEW_LINE_PADDING + "In " + Description.layerID + "::" + Description.objectID
+        + "::" + Description.eventID + ": In the '" + instrToStr(Description.instruction) 
+        + "' instruction: In " + functionName + ":\n" + NEW_LINE_PADDING;
 }
 string instructionWarning(const InstrDescription & Description, const string & functionName){
     return instructionError(Description, functionName, "Warning");
 }
 
-void PrimaryModule::primaryConstructor(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    if(listOfIDs != nullptr){
-        setAllIDs(newID, *listOfIDs, newLayerID, newObjectID, true);
-    }
-    else{
-        ID = newID;
-    }
-    
+void PrimaryModule::primaryConstructor(size_t & topObjectUniqueIndex){
+    uniqueIndex = topObjectUniqueIndex++;
     pos.set(0.0, 0.0);
     size.set(100.0, 100.0);
     scale.set(0.0, 0.0);
+}
+void PrimaryModule::primaryConstructor(PrimaryData & initData){
+    primaryConstructor(*initData.topIndex);
 
-    isActive = true;
-    deleted = false;
-    isScaledFromCenter = false;
-    isScrollable = true;
-    canBeSelected = true;
+    objectUniqueIndex = initData.objectUniqueIndex;
+    layerUniqueIndex = initData.layerUniqueIndex;
+
+    if(initData.listOfIDs != nullptr){
+        setAllIDs(initData, true);
+    }
+    else{
+        ID = initData.newID;
+    }
 }
-void PrimaryModule::primaryConstructor(unsigned newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(intToStr(newID), listOfIDs, newLayerID, newObjectID);
-}
-void PrimaryModule::clone(const PrimaryModule & Original, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
-    string oldID = ID;
-    *this = Original;
-    ID = oldID;
-    setAllIDs(Original.getID(), listOfIDs, newLayerID, newObjectID, changeOldID);
+void PrimaryModule::clone(const PrimaryModule & Original, PrimaryData & initData, bool changeOldID){
+    objectUniqueIndex = initData.objectUniqueIndex;
+    layerUniqueIndex = initData.layerUniqueIndex;
+    
+    initData.newID = Original.getID();
+    setAllIDs(initData, changeOldID);
+
+    groups = Original.groups;
+    pos = Original.pos;
+    size = Original.size;
+    scale = Original.scale;
+
+    isActive = Original.isActive;
+    deleted = Original.deleted;
+    isScaledFromCenter = Original.isScaledFromCenter;
+    isScrollable = Original.isScrollable;
+    canBeSelected = Original.canBeSelected;
 }
 
-void PrimaryModule::setID(string newID, vector<string> & listOfIDs){
+void PrimaryModule::setUniqueIndex(size_t value){
+    uniqueIndex = value;
+}
+size_t PrimaryModule::getUniqueIndex() const{
+    return uniqueIndex;
+}
+void PrimaryModule::setObjectUniqueIndex(size_t value){
+    objectUniqueIndex = value;
+}
+size_t PrimaryModule::getObjectUniqueIndex() const{
+    return objectUniqueIndex;
+}
+void PrimaryModule::setLayerUniqueIndex(size_t value){
+    layerUniqueIndex = value;
+}
+size_t PrimaryModule::getLayerUniqueIndex() const{
+    return layerUniqueIndex;
+}
+
+void PrimaryModule::setID(const string & newID, vector<string> & listOfIDs){
     if(isStringInVector(reservedIDs, ID)){
-        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID << "\' cannot be changed.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": reserved ID \'" << ID
+            << "\' cannot be changed.\n";
         return;
     }
     removeFromStringVector(listOfIDs, ID);
@@ -860,32 +893,32 @@ void PrimaryModule::setID(string newID, vector<string> & listOfIDs){
     listOfIDs.push_back(ID);
 }
 
-void PrimaryModule::setLayerID(string newLayerID){
+void PrimaryModule::setLayerID(const string & newLayerID){
     layerID = newLayerID;
 }
 
-void PrimaryModule::setObjectID(string newOwnerID){
+void PrimaryModule::setObjectID(const string & newOwnerID){
     objectID = newOwnerID;
 }
 
-void PrimaryModule::setAllIDs(string newID, vector<string> & listOfIDs, string newLayerID, string newObjectID, const bool & changeOldID){
+void PrimaryModule::setAllIDs(PrimaryData & initData, bool changeOldID){
     if(changeOldID){
-        setID(newID, listOfIDs);
+        setID(initData.newID, *initData.listOfIDs);
     }
-    setLayerID(newLayerID);
-    setObjectID(newObjectID);
+    setLayerID(initData.newLayerID);
+    setObjectID(initData.newObjectID);
 }
 
-void PrimaryModule::addGroup(string newGroup){
+void PrimaryModule::addGroup(const string & newGroup){
     addUniqueToStringVector(groups, newGroup);
 }
-void PrimaryModule::removeGroup(string selectedGroup){
+void PrimaryModule::removeGroup(const string & selectedGroup){
     removeFromStringVector(groups, selectedGroup);
 }
 void PrimaryModule::clearGroups(){
     groups.clear();
 }
-bool PrimaryModule::isInAGroup(string findGroup) const{
+bool PrimaryModule::isInAGroup(const string & findGroup) const{
     return isStringInVector(groups, findGroup);
 }
 vector <string> PrimaryModule::getGroups() const{
@@ -1271,7 +1304,9 @@ void BasePointersStruct::clear(){
     pString = nullptr;
 }
 template<typename LeftType, typename RightType>
-void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, const RightType * RightOperand, const EngineInstr & instruction){
+void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand,
+    const RightType * RightOperand, const EngineInstr & instruction
+){
     if(instruction == EngineInstr::inc){
         (*LeftOperand)++;
         return;
@@ -1281,11 +1316,13 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
         return;
     }
     if(LeftOperand == nullptr){
-        cerr << "Error: In " << __FUNCTION__ << ": Left operand of \'" << baseTypeToStr(type) << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Left operand of \'" << baseTypeToStr(type)
+            << "\' type does not exist.\n";
         return;
     }
     if(RightOperand == nullptr){
-        cerr << "Error: In " << __FUNCTION__ << ": Right operand of \'" << baseTypeToStr(type) << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Right operand of \'" << baseTypeToStr(type)
+            << "\' type does not exist.\n";
         return;
     }
     switch (instruction) {
@@ -1311,7 +1348,8 @@ void BasePointersStruct::executeMoveTypeInstruction(LeftType * LeftOperand, cons
             }
             return;
         default:
-            cerr << "Error: In " << __FUNCTION__ << ": \'" << instrToStr(instruction) << "\' is not a valid instruction.\n";
+            cerr << "Error: In " << __FUNCTION__ << ": \'" << instrToStr(instruction)
+                << "\' is not a valid instruction.\n";
             return;
     }
 }
@@ -1505,7 +1543,8 @@ void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
                 *pString = RightOperand.getString();
             }
             else{
-                cerr << "Error: In " << __FUNCTION__ << ": Cannot assign a non string value to a string variable.\n";
+                cerr << "Error: In " << __FUNCTION__
+                    << ": Cannot assign a non string value to a string variable.\n";
             }
             return;
         case null_bt:
@@ -1520,7 +1559,9 @@ void BasePointersStruct::tryToSetValue(const BaseVariableStruct & RightOperand){
     }
 }
 template<typename RightType>
-void BasePointersStruct::moveFromTemp(const RightType * RightOperand, const EngineInstr & instruction){
+void BasePointersStruct::moveFromTemp(const RightType * RightOperand,
+    const EngineInstr & instruction
+){
     if(readOnly){
         cerr << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
@@ -1555,7 +1596,8 @@ void BasePointersStruct::moveFromTemp(const RightType * RightOperand, const Engi
         case string_bt:
         case null_bt:
             cerr << "Error: In " << __PRETTY_FUNCTION__
-                << ": Cannot move numeric value to a pointer of the '" << baseTypeToStr(type) << "' type.\n";
+                << ": Cannot move numeric value to a pointer of the '" << baseTypeToStr(type)
+                << "' type.\n";
             return;
         default:
             cerr << "Error: In " << __PRETTY_FUNCTION__ << ": BaseType with code: "
@@ -1564,7 +1606,9 @@ void BasePointersStruct::moveFromTemp(const RightType * RightOperand, const Engi
             return;
     }
 }
-void BasePointersStruct::move(const BasePointersStruct &RightOperand, const EngineInstr & instruction){
+void BasePointersStruct::move(const BasePointersStruct &RightOperand,
+    const EngineInstr & instruction
+){
     if(readOnly){
         cerr << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
@@ -1614,7 +1658,8 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, const Engi
             }
             else{
                 cerr << "Error: In " << __FUNCTION__
-                    << ": Cannot execute any instructions if only the left operand is of a string type.\n";
+                    << ": Cannot execute any instructions if only the left operand is "
+                    << "of a string type.\n";
             }
             return;
         default:
@@ -1622,14 +1667,17 @@ void BasePointersStruct::move(const BasePointersStruct &RightOperand, const Engi
     }
     if(RightOperand.type == null_bt){
         cerr << "Error: In " << __PRETTY_FUNCTION__
-            << ": Cannot move value of the 'null' type to a pointer of the '" << baseTypeToStr(type) << "' type.\n";
+            << ": Cannot move value of the 'null' type to a pointer of the '" << baseTypeToStr(type)
+            << "' type.\n";
     }
     else{
         cerr << "Error: In " << __PRETTY_FUNCTION__
             << ": BaseType with the code: " << RightOperand.type << " is not valid.\n";
     }
 }
-void BasePointersStruct::move(const BaseVariableStruct & RightOperand, const EngineInstr & instruction){
+void BasePointersStruct::move(const BaseVariableStruct & RightOperand, 
+    const EngineInstr & instruction
+){
     if(readOnly){
         cerr << "Error: In " << __FUNCTION__ << ": This pointer is read-only.\n";
         return;
@@ -1678,12 +1726,14 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, const Eng
                 }
             }
             else{
-                cerr << "Error: In " << __FUNCTION__ << ": Cannot execute any instructions if only the left operand is of a string type.\n";
+                cerr << "Error: In " << __FUNCTION__ << ": Cannot execute any instructions if only"
+                    << " the left operand is of a string type.\n";
             }
             return;
         case null_bt:
             cerr << "Error: In " << __PRETTY_FUNCTION__
-                << ": Cannot move value of the 'null' type to a pointer of the '" << baseTypeToStr(type) << "' type.\n";
+                << ": Cannot move value of the 'null' type to a pointer of the '"
+                << baseTypeToStr(type) << "' type.\n";
             return;
         default:
             cerr << "Error: In " << __PRETTY_FUNCTION__
@@ -1692,13 +1742,17 @@ void BasePointersStruct::move(const BaseVariableStruct & RightOperand, const Eng
     }
 }
 template<typename LeftType, typename RightType>
-LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand, const EngineInstr & instruction){
+LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightType * RightOperand,
+    const EngineInstr & instruction
+){
     if(LeftOperand == nullptr){
-        cerr << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Left operand of \'" << type
+            << "\' type does not exist.\n";
         return 0;
     }
     if(RightOperand == nullptr){
-        cerr << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type << "\' type does not exist.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Right operand of \'" << type
+            << "\' type does not exist.\n";
         return 0;
     }
     if(instruction == EngineInstr::add){
@@ -1719,12 +1773,15 @@ LeftType BasePointersStruct::tryArithmetics(LeftType * LeftOperand, const RightT
         }
     }
     else{
-        cerr << "Error: In " << __FUNCTION__ << ": \'" << instrToStr(instruction) << "\' is not a valid instruction.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": \'" << instrToStr(instruction)
+            << "\' is not a valid instruction.\n";
     }
     return 0;
 }
 template<typename LeftType>
-LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOperand, const BasePointersStruct & RightOperand, const EngineInstr & instruction){
+LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOperand,
+    const BasePointersStruct & RightOperand, const EngineInstr & instruction
+){
     switch (RightOperand.type) {
         case bool_bt:{
             short right = *RightOperand.pBool;
@@ -1757,7 +1814,9 @@ LeftType BasePointersStruct::callTryArithmeticsForEveryType(LeftType * LeftOpera
     }
     return 0;
 }
-BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStruct &RightOperand, const EngineInstr & instruction){
+BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStruct &RightOperand,
+    const EngineInstr & instruction
+){
     BaseVariableStruct result;
     result.type = type;
 
@@ -1812,7 +1871,9 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BasePointersStru
     return result;
 }
 template<typename LeftType>
-LeftType BasePointersStruct::callTryArithmetics(LeftType * LeftOperand, const BaseVariableStruct & RightOperand, const EngineInstr & instruction){
+LeftType BasePointersStruct::callTryArithmetics(LeftType * LeftOperand,
+    const BaseVariableStruct & RightOperand, const EngineInstr & instruction
+){
     switch (RightOperand.type) {
         case bool_bt:{
             short right = RightOperand.vBool;
@@ -1845,7 +1906,9 @@ LeftType BasePointersStruct::callTryArithmetics(LeftType * LeftOperand, const Ba
     }
     return 0;
 }
-BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStruct & RightOperand, const EngineInstr & instruction){
+BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStruct & RightOperand,
+    const EngineInstr & instruction
+){
     BaseVariableStruct result;
     result.type = type;
     
@@ -1881,7 +1944,8 @@ BaseVariableStruct BasePointersStruct::executeArithmetics(const BaseVariableStru
             }
             else{
                 result.type = null_bt;
-                cerr << "Error: In " << __FUNCTION__ << ": Cannot execute arithmetic operations with string type values. The only exception is addition on two strings.\n";
+                cerr << "Error: In " << __FUNCTION__ << ": Cannot execute arithmetic operations"
+                    << " with string type values. The only exception is addition on two strings.\n";
             }
             break;
         case null_bt:
@@ -1955,7 +2019,9 @@ void BasePointersStruct::setPointer(string * pointer){
     pString = pointer;
     type = string_bt;
 }
-ReturnType BasePointersStruct::setPointer(const BasePointersStruct & Pointers, const InstrDescription & CurrentInstr){
+ReturnType BasePointersStruct::setPointer(const BasePointersStruct & Pointers,
+    const InstrDescription & CurrentInstr
+){
     if(readOnly){
         cout << instructionError(CurrentInstr, __FUNCTION__)
             << "Pointer is read-only and cannot be reassigned.\n";
@@ -1973,7 +2039,8 @@ ReturnType BasePointersStruct::setPointer(const BasePointersStruct & Pointers, c
 
 bool BasePointersStruct::areEqual(BasePointersStruct *OtherVariable){
     if(type != OtherVariable->type){
-        cerr << "Error: In " << __FUNCTION__ << ":Pointers of built-in types have different types.\n";
+        cerr << "Error: In " << __FUNCTION__ << ":Pointers of built-in types have different types."
+            << "\n";
         return false;
     }
     switch (type) {
@@ -2010,7 +2077,8 @@ bool BasePointersStruct::areEqual(BasePointersStruct *OtherVariable){
 }
 bool BasePointersStruct::areEqual(BaseVariableStruct *OtherVariable){
     if(type != OtherVariable->type){
-        cerr << "Error: In " << __FUNCTION__ << ": Pointers of built-in types have different types.\n";
+        cerr << "Error: In " << __FUNCTION__ << ": Pointers of built-in types have different types."
+            << "\n";
         return false;
     }
     switch (type) {
@@ -2066,8 +2134,7 @@ bool BasePointersStruct::getBool() const{
             return *pDouble;
         case string_bt:
         case null_bt:
-            cerr << "Error: In " << __PRETTY_FUNCTION__
-                << ": Operand is of the invalid type: '"
+            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Operand is of the invalid type: '"
                 << baseTypeToStr(type) << "'.\n";
             return false;
         default:

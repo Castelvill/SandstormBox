@@ -91,23 +91,19 @@ void ImageModule::setUpNewInstance(){
     image = nullptr;
     lightBitmap = nullptr;
 }
-ImageModule::ImageModule(){
-    primaryConstructor("", nullptr, "", "");
+ImageModule::ImageModule(size_t & topModuleUniqueIndex){
+    primaryConstructor(topModuleUniqueIndex);
     setUpNewInstance();
 }
-ImageModule::ImageModule(string newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
-    setUpNewInstance();
-}
-ImageModule::ImageModule(unsigned int newID, vector<string> * listOfIDs, string newLayerID, string newObjectID){
-    primaryConstructor(newID, listOfIDs, newLayerID, newObjectID);
+ImageModule::ImageModule(PrimaryData & initData){
+    primaryConstructor(initData);
     setUpNewInstance();
 }
 ImageModule::~ImageModule(){
 
 }
-void ImageModule::clone(const ImageModule &Image, vector<string> &listOfIDs, string newLayerID, string newObjectID, const bool &changeOldID){
-    PrimaryModule::clone(Image, listOfIDs, newLayerID, newObjectID, changeOldID);
+void ImageModule::clone(const ImageModule& Image, PrimaryData & initData, bool changeOldID){
+    PrimaryModule::clone(Image, initData, changeOldID);
     rotPos = Image.rotPos;
     start = Image.start;
     frameSize = Image.frameSize;

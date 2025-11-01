@@ -1,0 +1,13 @@
+//Example of compiling code at runtime
+
+@trigger on_init
+start main()
+    string program "
+        @trigger on_init
+        start injection()
+            print \"Hello, World!\n\"
+            exit
+        end
+    " 
+    inject_code me program
+end

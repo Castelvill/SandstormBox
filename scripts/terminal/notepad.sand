@@ -23,6 +23,8 @@ end
 start refreshWindowWithDisplayNotepad()
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
+    int sx 0
+    int sy 0
     access sx [display_w]
     access sy [display_h]
     fun Camera resize sx sy
@@ -32,6 +34,8 @@ end
 start refreshWindowWithCameraNotepad()
     all Cameras _ camera _ Cameras
     find_by_id_2 Cameras cameraID Camera
+    int sx 0
+    int sy 0
     access sx [Camera.size_x]
     access sy [Camera.size_y]
     run refreshWindowNotepad(sx, sy)
@@ -63,6 +67,8 @@ start resizeObjectWhenMaxed()
         if(MaxCollision.release_on)
             all Cameras _ camera _ Cameras
             find_by_id_2 Cameras cameraID Camera
+            int sx 0
+            int sy 0
             access sx [Camera.size_x]
             access sy [Camera.size_y]
             index my_layer [0 0] object WindowObject
@@ -86,6 +92,8 @@ end
 
 start resizeObjectForBorderlessMode(Camera &Camera)
     if (isBorderless)
+        int cpx 0
+        int cpy 0
         access cpx [Camera.size_x]
         access cpy [Camera.size_y]
         int shiftX 10
@@ -102,6 +110,8 @@ start resizeObjectForBorderlessMode(Camera &Camera)
 end
 
 start resizeObjectFromBorderlessMode(Camera &Camera)
+    int cpx 0
+    int cpy 0
     access cpx [Camera.size_x]
     access cpy [Camera.size_y]
     index my_layer [0 0] object WindowObject
