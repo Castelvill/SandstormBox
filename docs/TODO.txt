@@ -1,4 +1,3 @@
--Fix [TODO_0]: binding and rebuilding an object is undefined behavior - note program.
 -Fix: When you create a Note window, open it in the mover and close the Note from whatever place, then program will crash.
 -Fix the rest of "terminal test" 
 -Check if any module is using string ids instead of unique indexes.

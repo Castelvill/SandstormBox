@@ -28,9 +28,6 @@ start onInit
 end
 
 start runAfterInit()
-    //cd scripts
-    note()
-
 	forceRefresh()
 end
 
@@ -114,7 +111,7 @@ start buildTerminal()
     new Images me 1 "background" background
     fun background connect_bitmap_via_alias "background"
     fun background resize ww wh
-    fun background set_color 0.3 0.3 0.3 0.3
+    fun background set_color 0.3 0.3 0.3 0.6
     fun background disable_scrolling
 
     var terminalColorR "0.988235294"
@@ -207,8 +204,7 @@ start buildTerminal()
 
     new STexts me 1 "EditorLines" EditorLines
     fun EditorLines add_format "cascadia_code" 1
-    fun EditorLines set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
-    fun EditorLines set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
+    fun EditorLines set_last_color 0.3 0.45 0.5 1.0
     fun EditorLines set_content ""
     fun EditorLines deactivate
     fun EditorLines update
@@ -643,10 +639,6 @@ start spawnNotepad(Layer & NewWindowLayer, string & fileName)
     fun TextEditor set_content ""
     fun TextEditor activate
     fun Object set_size 640 480
-    
-    //TODO_0: Fix: bind + build...true doesn't reset the entire memory map causing undefined behavior 
-    //bind Object ["scripts/terminal/notepad.sand"]
-    //build Object true
     
     load_build Object ["scripts/terminal/notepad.sand"]
     loadTextFromFile(TextEditor, fileName)

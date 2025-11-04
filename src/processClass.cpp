@@ -17870,6 +17870,10 @@ void ObjectMemoryStruct::clear(){
         Context.clear();
     }
     MemoryMap.clear();
+    DynamicMemory.clear();
+    MemberVarsScope.clear();
+    topAddress = 0;
+    topFreeDynamicAddress = 0;
 }
 
 void EventCallStateStruct::clear(){

@@ -77,7 +77,7 @@ start startGame()
     end_while
 end
 
-start drawScene(SText TextField)
+start drawScene(SText & TextField)
     if(gameState 1 !=)
         return
     end_if
@@ -95,7 +95,7 @@ start drawScene(SText TextField)
     //exit
 end
 
-start drawItems(SText TextField)
+start drawItems(SText & TextField)
     int index -1
     while(index GAME_MAP_SIZE <)
         int item 0

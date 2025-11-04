@@ -1,3 +1,6 @@
+4.11.2025
+-Fixed rebuilding events with "bind" and "build" instructions - updated ObjectMemoryStruct::clear method.
+
 1.11.2025
 -Fixed "inject_code" instruction and created a new test for it - new line and strings didn't work.
 -Updated examples.
