@@ -7,47 +7,46 @@ start nextTest
     run newLine()
 end
 start testSpawn
-    string param1 "elephant"
+    = param1 "elephant"
     run spawn()
 end
 start testNote
-    //string param1 "history.txt"
-    string param1 "examples/hello.sand"
+    = param1 "examples/hello.sand"
     run note()
 end
 start testMover
-    string param1 "KERNEL"
+    = param1 "KERNEL"
     run mover()
 end
 start testCat
-    string param1 ".config"
+    = param1 ".config"
     run cat()
 end
 start testPrint
-    string param1 "TEST TEST TEST\n"
+    = param1 "TEST TEST TEST\n"
     run print()
 end
 start testEdit
-    string param1 "docs/TODO.txt"
+    = param1 "docs/TODO.txt"
     run edit()
 end
 start testSand
-    string param1 "scripts/terminal/lorem.sand"
+    = param1 "scripts/terminal/lorem.sand"
     run sand()
 end
 start testCd
-    string param1 "scripts"
+    = param1 "scripts"
     run cd()
 end
 start testCd2
-    string param1 ""
+    = param1 ""
     run cd()
 end
 start testSaveLoadTerminal
     mkdir "temp"
-    string param1 "temp/test.ft"
+    = param1 "temp/test.ft"
     run save_terminal()
-    run load_terminal
+    run load_terminal()
 end
 start dvd
     = param1 "scripts/terminal/dvd.sand"
