@@ -1,3 +1,8 @@
+11.11.2025
+-Fixed: When Note window is created, then opened by the Mover program and finally closed from whatever place, engine will crash.
+-Added is-empty check before accessing any single-element member variables.
+-Added unique indexes to the output of "dump_local_memory" instruction.
+
 4.11.2025
 -Fixed rebuilding events with "bind" and "build" instructions - updated ObjectMemoryStruct::clear method.
 

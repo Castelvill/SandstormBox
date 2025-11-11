@@ -82,6 +82,7 @@ public:
     void clearState();
     void clearPointers();
     size_t getVectorSize() const;
+    string getUniqueIndexes() const;
     string getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting) const;
     ReturnType getAllValues(vector<VariableModule> & NewValues);
     ReturnType getValue(VariableModule & NewValue);
@@ -299,19 +300,20 @@ private:
     EngineInstr interruptInstruction = null;
     vector<DynamicVariableInfo> LocalToGlobalTranslation;
     EventCallStateStruct EventCallState;
-public:
-    vector <unsigned> camerasOrder;
-    vector <unsigned> layersOrder;
-    InstrDescription CurrentInstr;
-    std::unordered_map<size_t, ObjectMemoryStruct> ProcessMemory;
 
     size_t topLayerUniqueIndex = 1;
     //If entity has unique index equal to 0, it's not initialized.
     //If sub-container has parent's index equal to 0, it's either not initialized or abandoned.
     size_t topObjectUniqueIndex = 1;
     size_t topModuleUniqueIndex = 1;
+    vector <unsigned> camerasOrder;
+    vector <unsigned> layersOrder;
+    InstrDescription CurrentInstr;
+    std::unordered_map<size_t, ObjectMemoryStruct> ProcessMemory;
 
     std::unordered_map<string, TimePoint> userDefinedTimers;
+public:
+    
 
     void printProfiler();
 

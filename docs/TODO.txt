@@ -1,9 +1,7 @@
--Fix: When you create a Note window, open it in the mover and close the Note from whatever place, then program will crash.
 -Fix the rest of "terminal test" 
 -Check if any module is using string ids instead of unique indexes.
--Add perm_new instruction - it creates new entity that cannot be removed - delete instruction will fail and output an error.
--Add allegro key bindings translations into sandscript, while keeping the possibility of dynamic rebinding. 
 -In collisionModule.h in struct DetectedCollision change string ids to new unique indexes.
+-Add allegro key bindings translations into sandscript, while keeping the possibility of dynamic rebinding. 
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
 -Fix terminal: Clicking tab while the cursor is inside the text will color the rest of the line to the right.
@@ -17,29 +15,21 @@
 -Create "."/extract instuction which will use/merge accessor functionalities from: first, all, last and random instructions. Add filter instruction that will use filtering functionality of first, all, last and random instructions.
 -Compress all id vectors in ancestorObject to a single set if the order of these ids is not important. Thanks to that user will be able to access module instances without mentioning their types and imporove performance. 
 -Change me and my_layer to "this" and "layer"/"this_layer".
--Make Rule 110 program in text mode.
--Make game of life in text mode.
+-Make Rule 110 program in the ext mode.
+-Make game of life in the text mode.
 -Make all/first/last/random more humane.
 -Test the communication between different objects and make it easier.
 -Build programs and windows as modules that can be injected anywhere.
--Recalculate pointers of all objects when creating new layers.
--Change ObjectMemory 
 -Remove pointers: "Owner, TriggeredObjects, SelectedLayer, SelectedObject" from the main recalculator - calculate them separately, because sometimes we have to recalculate memory for the whole vector of objects.  
 -Recalculate pointers when adding new Processes.
--Recalculate events in customBuildEventsInObjects for every single recompiled object.
 -Move "access" into "=" instruction with accessors like "Window.attribute", "Sys.attribute", etc.
 -Move "fun" instructions into "variable.function_name([params])" syntax.
--Remove it_StartingEvent.
 -Remove inline events - now we can easily create new scopes so it's current version is not needed anymore.
--Make it possible to pass literals to functions - for example add VariableModule to PassingVariableInfo.
 -Create printCompilationError function that returns a string beginning with "Compilation Error" or "Compilation Warning".
--Make LocalToGlobalTranslation vector persistent for not recurrent functions.
 -Either add to objects a vector with indexes of all triggerable (you will still have to run isEventTriggered because it filters out false positives) events or divide EventContainer to EventContainer and FunctionContainer - it would save a lot of time by ignoring functions in findNextEvent.
 -Use Shunting Yard Algorithm to convert normal conditional expression to Reverse Polish Notation.
 -Use curly brackets instead of "end", "end_if" and "end_while"
 -Create a translation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
--Fix creating variables in interpreter.sand.
--Separate Sand compiler from the ancestorObject.cpp and event.cpp.
 -Create "print_table" instruction based on printing style of "dump_memory" instruction. 
 -Add groups to vectorModule.
 -Test groups.
@@ -50,6 +40,7 @@
     -Implement lazy updates for SuperEditableText::update - calling update method causes only max one real update during the entire frame (so update can happen only once per few iterations). Update happens on the last iteration of the frame and the process keeps the info which text field needs to be updated.
     -Optimize the text module: Moving with arrows and adding new letters cannot update the whole text. Selecting text with mouse needs only one update somehow, but still creates a lag. Test everything on the code in scripts/terminal.sand.
 
+-Add perm_new instruction - it creates new entity that cannot be removed - delete instruction will fail and output an error.
 -Add "throw_error [message]" and "throw_warning [message]" instructions - they will just write an error or warning message on the standard output.
 -Create "struct/class" scope - basically on_init events but without any logic, only declarations.
     -IMPORTANT: Read this before any other points: Classes are just instances of AncestorObject not used in a game - in other words they are templates for other classes. Namespaces are probably not even needed - you just have to access other Ancestor Objects for other private and unique scopes.

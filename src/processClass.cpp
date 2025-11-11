@@ -1299,7 +1299,69 @@ size_t ContextClass::getVectorSize() const{
     }
     return 0;
 }
-inline string shortenText(const string & text, const int & textLimit){
+template <typename T>
+inline string getAllIndexes(const vector<T*> & entityVec){
+    string allIndexes;
+    for(const T * entity : entityVec){
+        if(entity != nullptr){
+            allIndexes += std::to_string(entity->getUniqueIndex());
+        }
+        allIndexes += ", ";
+    }
+    return allIndexes;
+}
+string ContextClass::getUniqueIndexes() const{
+    switch(type){
+        case variable_mod:
+        case variable_mod_vec:
+            return getAllIndexes(Modules.Variables);
+        case layer_inst:
+        case layer_vec:
+            return getAllIndexes(Layers);
+        case object_inst:
+        case object_vec:
+            return getAllIndexes(Objects);
+        case text_mod:
+        case text_mod_vec:
+            return getAllIndexes(Modules.Texts);
+        case editable_text_mod:
+        case editable_text_mod_vec:
+            return getAllIndexes(Modules.EditableTexts);
+        case super_text_mod:
+        case super_text_mod_vec:
+            return getAllIndexes(Modules.SuperTexts);
+        case super_editable_text_mod:
+        case super_editable_text_mod_vec:
+            return getAllIndexes(Modules.SuperEditableTexts);
+        case image_mod:
+        case image_mod_vec:
+            return getAllIndexes(Modules.Images);
+        case movement_mod:
+        case movement_mod_vec:
+            return getAllIndexes(Modules.Movements);
+        case collision_mod:
+        case collision_mod_vec:
+            return getAllIndexes(Modules.Collisions);
+        case particles_mod:
+        case particles_mod_vec:
+            return getAllIndexes(Modules.Particles);
+        case event_mod:
+        case event_mod_vec:
+            return getAllIndexes(Modules.Events);
+        case scrollbar_mod:
+        case scrollbar_mod_vec:
+            return getAllIndexes(Modules.Scrollbars);
+        case primitives_mod:
+        case primitives_mod_vec:
+            return getAllIndexes(Modules.Primitives);
+        case vector_mod:
+        case vector_mod_vec:
+            return getAllIndexes(Modules.Vectors);
+        default:
+            return "";
+    }
+}
+inline string shortenText(const string & text, const int textLimit){
     string newText = text;
     if(textLimit >= 0 && text.size() > unsigned(textLimit)){
         newText = text.substr(0, textLimit);
@@ -1370,10 +1432,13 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
                 if(Modules.Variables[0] == nullptr){
                     buffer += "nullptr";
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "In the context \'" << ID << "\' the pointer to the variable has a nullptr value.\n";
+                        << "In the context \'" << ID
+                        << "\' the pointer to the variable has a nullptr value.\n";
                 }
                 else{
-                    buffer += shortenText(Modules.Variables[0]->getStringUnsafe(), maxLengthOfValuesPrinting);
+                    buffer += shortenText(Modules.Variables[0]->getAnyValue(),
+                        maxLengthOfValuesPrinting
+                    );
                 }
             }
             else{
@@ -1386,10 +1451,11 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
                 if(Variable == nullptr){
                     buffer += "<nullptr>, ";
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "In the context \'" << ID << "\' the pointer to the variable has a nullptr value.\n";
+                        << "In the context \'" << ID
+                        << "\' the pointer to the variable has a nullptr value.\n";
                     continue;
                 }
-                buffer += shortenText(Variable->getStringUnsafe(), maxLengthOfValuesPrinting);
+                buffer += shortenText(Variable->getAnyValue(), maxLengthOfValuesPrinting);
                 buffer += ", ";
             }
             buffer += "]<";
@@ -1401,12 +1467,14 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
                 if(Modules.Vectors[0] == nullptr){
                     buffer += "nullptr";
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "In the context \'" << ID << "\' the pointer to the vector has a nullptr value.\n";
+                        << "In the context \'" << ID
+                        << "\' the pointer to the vector has a nullptr value.\n";
                 }
                 else{
                     buffer += "[";
                     for(size_t i = 0; i < Modules.Vectors[0]->getSize(); i++){
-                        buffer += shortenText(Modules.Vectors[0]->getAnyStringValueUnsafe(i), maxLengthOfValuesPrinting) + ", ";
+                        buffer += shortenText(Modules.Vectors[0]->getAnyStringValueUnsafe(i),
+                            maxLengthOfValuesPrinting) + ", ";
                     }
                     buffer += "]<";
                     buffer += uIntToStr(Modules.Vectors[0]->getSize());
@@ -1423,12 +1491,14 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
                 if(Vector == nullptr){
                     buffer += "<nullptr>, ";
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "In the context \'" << ID << "\' the pointer to the vector has a nullptr value.\n";
+                        << "In the context \'" << ID
+                        << "\' the pointer to the vector has a nullptr value.\n";
                     continue;
                 }
                 buffer += "[";
                 for(size_t i = 0; i < Vector->getSize(); i++){
-                    buffer += shortenText(Vector->getAnyStringValueUnsafe(i), maxLengthOfValuesPrinting) + ", ";
+                    buffer += shortenText(Vector->getAnyStringValueUnsafe(i),
+                        maxLengthOfValuesPrinting) + ", ";
                 }
                 buffer += "]<";
                 buffer += uIntToStr(Vector->getSize());
@@ -9043,7 +9113,7 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
             for(const unsigned & i : indexes){
                 cout << i << ", ";
             }
-            cout << "]\n";
+            cout << "] " << Operation.Output.variableID << "\n";
         }
 
         if(Operation.Location.source == ValueSource::camera){
@@ -9164,7 +9234,7 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
             for(const unsigned & i : indexes){
                 cout << i << ", ";
             }
-            cout << "]\n";
+            cout << "] " << Operation.Output.variableID << "\n";
         }
         
         getReferenceFromContextByIndex(Operation, SourceContext, indexes, NewContext);
@@ -12318,21 +12388,28 @@ void ProcessClass::loadFontFromContext(OperationClass & Operation, ObjectMemoryS
 
     Engine.loadNewFont(pathToTheFont, fontSize, fontID);
 }
-void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
+void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
+    ObjectMemoryStruct & ObjectMemory
+){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Instruction requires 2 parameters.\n";
         return;
     }
 
     ContextClass SourceContext;
-    if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
+    if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, 0, true
+    )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a context from the parameter 1.\n";
         return;
     }
     
     string entityID = "";
-    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, entityID, true)){
+    if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
+        Operation.Parameters, 1, entityID, true
+    )){;
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
@@ -12348,11 +12425,26 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
     NewContext.type = instantiateEntityDataType(CurrentInstr, SourceContext.type);
 
     if(printOutInstructions){
-        cerr << instrToStr(Operation.instruction) << " " << SourceContext.ID << " " << entityID << " " << Operation.Output.variableID << "\n";
+        cerr << instrToStr(Operation.instruction) << " " << SourceContext.ID << " " << entityID
+            << " " << Operation.Output.variableID << "\n";
     }
+
+    auto ifEmpty = [](bool isEmpty, const DataType type,
+        const InstrDescription & CurrentInstr
+    ){
+        if(isEmpty){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "There are no instances of '" << dataTypeToStr(type)
+                << "' type in the context.\n";
+            return true;
+        }
+        return false;
+    };
     
     switch(SourceContext.type){
         case variable_mod:
+            if(ifEmpty(SourceContext.Modules.Variables.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Variables[0]->getID() == entityID){
                 SourceContext.Modules.Variables.push_back(SourceContext.Modules.Variables[0]);
             }
@@ -12366,6 +12458,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case camera_inst:
+            if(ifEmpty(SourceContext.Cameras.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Cameras[0]->getID() == entityID){
                 NewContext.Cameras.push_back(SourceContext.Cameras[0]);
             }
@@ -12379,6 +12473,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case layer_inst:
+            if(ifEmpty(SourceContext.Layers.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Layers[0]->getID() == entityID){
                 NewContext.Layers.push_back(SourceContext.Layers[0]);
             }
@@ -12392,6 +12488,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case object_inst:
+            if(ifEmpty(SourceContext.Objects.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Objects[0]->getID() == entityID){
                 NewContext.Objects.push_back(SourceContext.Objects[0]);
             }
@@ -12405,6 +12503,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case text_mod:
+            if(ifEmpty(SourceContext.Modules.Texts.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Texts[0]->getID() == entityID){
                 NewContext.Modules.Texts.push_back(SourceContext.Modules.Texts[0]);
             }
@@ -12418,6 +12518,9 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case editable_text_mod:
+            if(ifEmpty(SourceContext.Modules.EditableTexts.empty(), SourceContext.type,
+                CurrentInstr
+            )) return;
             if(SourceContext.Modules.EditableTexts[0]->getID() == entityID){
                 NewContext.Modules.EditableTexts.push_back(SourceContext.Modules.EditableTexts[0]);
             }
@@ -12431,6 +12534,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case super_text_mod:
+            if(ifEmpty(SourceContext.Modules.SuperTexts.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.SuperTexts[0]->getID() == entityID){
                 NewContext.Modules.SuperTexts.push_back(SourceContext.Modules.SuperTexts[0]);
             }
@@ -12444,6 +12549,9 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case super_editable_text_mod:
+            if(ifEmpty(SourceContext.Modules.SuperEditableTexts.empty(), SourceContext.type,
+                CurrentInstr
+            )) return;
             if(SourceContext.Modules.SuperEditableTexts[0]->getID() == entityID){
                 NewContext.Modules.SuperEditableTexts.push_back(SourceContext.Modules.SuperEditableTexts[0]);
             }
@@ -12457,6 +12565,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case image_mod:
+            if(ifEmpty(SourceContext.Modules.Images.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Images[0]->getID() == entityID){
                 NewContext.Modules.Images.push_back(SourceContext.Modules.Images[0]);
             }
@@ -12470,6 +12580,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case movement_mod:
+            if(ifEmpty(SourceContext.Modules.Movements.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Movements[0]->getID() == entityID){
                 NewContext.Modules.Movements.push_back(SourceContext.Modules.Movements[0]);
             }
@@ -12483,6 +12595,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case collision_mod:
+            if(ifEmpty(SourceContext.Modules.Collisions.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Collisions[0]->getID() == entityID){
                 NewContext.Modules.Collisions.push_back(SourceContext.Modules.Collisions[0]);
             }
@@ -12496,6 +12610,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case particles_mod:
+            if(ifEmpty(SourceContext.Modules.Particles.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Particles[0]->getID() == entityID){
                 NewContext.Modules.Particles.push_back(SourceContext.Modules.Particles[0]);
             }
@@ -12509,6 +12625,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case event_mod:
+            if(ifEmpty(SourceContext.Modules.Events.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Events[0]->getID() == entityID){
                 NewContext.Modules.Events.push_back(SourceContext.Modules.Events[0]);
             }
@@ -12522,6 +12640,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case scrollbar_mod:
+            if(ifEmpty(SourceContext.Modules.Scrollbars.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Scrollbars[0]->getID() == entityID){
                 NewContext.Modules.Scrollbars.push_back(SourceContext.Modules.Scrollbars[0]);
             }
@@ -12535,6 +12655,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case primitives_mod:
+            if(ifEmpty(SourceContext.Modules.Primitives.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Primitives[0]->getID() == entityID){
                 NewContext.Modules.Primitives.push_back(SourceContext.Modules.Primitives[0]);
             }
@@ -12548,6 +12670,8 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation, ObjectMemo
             }
             break;
         case vector_mod:
+            if(ifEmpty(SourceContext.Modules.Vectors.empty(), SourceContext.type, CurrentInstr))
+                return;
             if(SourceContext.Modules.Vectors[0]->getID() == entityID){
                 NewContext.Modules.Vectors.push_back(SourceContext.Modules.Vectors[0]);
             }
@@ -13243,20 +13367,23 @@ inline void ProcessClass::dumpLocalMemory(MemoryMapType & MemoryMap){
     auto normalize = [](const size_t & valueSize, const size_t & TAB_SIZE){
         return (valueSize / TAB_SIZE) + 1;
     };
-    const size_t labelNumber = 5;
-    size_t maxFieldPadding[labelNumber] = {1, 1, 1, 1, 1};
-    string labels[labelNumber] = {"LOC_ADDR", "REAL_ADDR", "NAME", "TYPE", "VALUE"};
+    const size_t labelNumber = 6;
+    size_t maxFieldPadding[labelNumber] = {1, 1, 1, 1, 1, 1};
+    string labels[labelNumber] = {"LOC_ADDR", "REAL_ADDR", "IDX", "NAME", "TYPE", "VALUE"};
     for(size_t labelIdx = 0; labelIdx < labelNumber; ++labelIdx){
-        maxFieldPadding[labelIdx] = std::max(maxFieldPadding[labelIdx], normalize(labels[labelIdx].size(), TAB_SIZE));
+        maxFieldPadding[labelIdx] = std::max(maxFieldPadding[labelIdx],
+            normalize(labels[labelIdx].size(), TAB_SIZE)
+        );
     }
     for(unsigned localAddress = 0; localAddress < LocalToGlobalTranslation.size(); ++localAddress){
         unsigned globalAddress =  LocalToGlobalTranslation[localAddress].dynamicAddress;
         const ContextClass & Variable = MemoryMap[globalAddress];
         maxFieldPadding[0] = std::max(maxFieldPadding[0], normalize(std::to_string(localAddress).size(), TAB_SIZE));
         maxFieldPadding[1] = std::max(maxFieldPadding[1], normalize(std::to_string(globalAddress).size(), TAB_SIZE));
-        maxFieldPadding[2] = std::max(maxFieldPadding[2], normalize(Variable.ID.size(), TAB_SIZE));
-        maxFieldPadding[3] = std::max(maxFieldPadding[3], normalize(dataTypeToStr(Variable.type).size(), TAB_SIZE));
-        maxFieldPadding[4] = std::max(maxFieldPadding[4], normalize(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting).size(), TAB_SIZE));
+        maxFieldPadding[2] = std::max(maxFieldPadding[2], normalize(Variable.getUniqueIndexes().size(), TAB_SIZE));
+        maxFieldPadding[3] = std::max(maxFieldPadding[3], normalize(Variable.ID.size(), TAB_SIZE));
+        maxFieldPadding[4] = std::max(maxFieldPadding[4], normalize(dataTypeToStr(Variable.type).size(), TAB_SIZE));
+        maxFieldPadding[5] = std::max(maxFieldPadding[5], normalize(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting).size(), TAB_SIZE));
     }
     string buffor = "\n";
     for(size_t labelIdx = 0; labelIdx < labelNumber; ++labelIdx){
@@ -13268,9 +13395,10 @@ inline void ProcessClass::dumpLocalMemory(MemoryMapType & MemoryMap){
         const ContextClass & Variable = MemoryMap[globalAddress];
         buffor += getFieldWithPadding(std::to_string(localAddress), maxFieldPadding[0])
             + getFieldWithPadding(std::to_string(globalAddress), maxFieldPadding[1])
-            + getFieldWithPadding(Variable.ID, maxFieldPadding[2])
-            + getFieldWithPadding(dataTypeToStr(Variable.type), maxFieldPadding[3])
-            + getFieldWithPadding(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting), maxFieldPadding[4]) + "\n";
+            + getFieldWithPadding(Variable.getUniqueIndexes(), maxFieldPadding[2])
+            + getFieldWithPadding(Variable.ID, maxFieldPadding[3])
+            + getFieldWithPadding(dataTypeToStr(Variable.type), maxFieldPadding[4])
+            + getFieldWithPadding(Variable.getValue(CurrentInstr, maxLengthOfValuesPrinting), maxFieldPadding[5]) + "\n";
     }
     buffor += "\n";
     printInColor(buffor, 11);
@@ -14222,23 +14350,39 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
     }
 
 
-    auto printTooManyInstancesWarning = [](const unsigned & vecSize, const DataType & type, const InstrDescription & CurrentInstr){
+    auto printTooManyInstancesWarning = [](const unsigned vecSize, const DataType type,
+        const InstrDescription & CurrentInstr
+    ){
         if(vecSize != 1){
             cerr << instructionWarning(CurrentInstr, __FUNCTION__)
-                << "There are several instances of '" << dataTypeToStr(type)
+                << "There is more than one instance of '" << dataTypeToStr(type)
                 << "' in the context. Only the first instance will be used.\n";
         }
     };
-    auto printEmptyError = [](const unsigned & vecSize, const DataType & type, VariableModule & NewValue, const InstrDescription & CurrentInstr){
-        if(vecSize == 0){
-            // cerr << instructionError(CurrentInstr, __FUNCTION__)
-            //     << "There are no instances of '" << type << "' type in the context.\n";
+    auto abortIfEmpty = [](bool isEmpty, const DataType type,
+        VariableModule & NewValue, const InstrDescription & CurrentInstr
+    ){
+        if(isEmpty){
             NewValue.setBool(false);
             return true;
         }
         return false;
     };
-    auto printIncorrectAttributeError = [](const AttributeType & attribute, const DataType & type, VariableModule & NewValue, const InstrDescription & CurrentInstr){
+    auto printErrorIfEmpty = [](bool isEmpty, const DataType type,
+        VariableModule & NewValue, const InstrDescription & CurrentInstr
+    ){
+        if(isEmpty){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "There are no instances of '" << dataTypeToStr(type)
+                << "' type in the context.\n";
+            NewValue.setBool(false);
+            return true;
+        }
+        return false;
+    };
+    auto printIncorrectAttributeError = [](const AttributeType attribute, const DataType type,
+        VariableModule & NewValue, const InstrDescription & CurrentInstr
+    ){
         cerr << instructionError(CurrentInstr, __FUNCTION__) 
             << "Instances of '" << dataTypeToStr(type) << "' does not support the '"
             << attributeToStr(attribute) <<  "' attribute.\n";
@@ -14251,7 +14395,7 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
                 NewValue.setInt(Context->Values.size());
                 return;
             }
-            if(printEmptyError(Context->Values.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Values.empty(), Context->type, NewValue, CurrentInstr)){
                 return;
             }
             if(Condition.Location.attribute == back_a){
@@ -14260,6 +14404,9 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             }
             printTooManyInstancesWarning(Context->Values.size(), Context->type, CurrentInstr);
         case value_inst:
+            if(printErrorIfEmpty(Context->Values.empty(), Context->type, NewValue, CurrentInstr)){
+                return;
+            }
             NewValue.copyValue(Context->Values[0]);
             return;
         case pointer_vec:
@@ -14267,7 +14414,7 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
                 NewValue.setInt(Context->BasePointers.size());
                 return;
             }
-            if(printEmptyError(Context->BasePointers.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->BasePointers.empty(), Context->type, NewValue, CurrentInstr)){
                 return;
             }
             if(Condition.Location.attribute == back_a){
@@ -14276,6 +14423,11 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             }
             printTooManyInstancesWarning(Context->BasePointers.size(), Context->type, CurrentInstr);
         case pointer_inst:
+            if(printErrorIfEmpty(Context->BasePointers.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
             NewValue.setValueFromPointer(Context->BasePointers[0]);
             return;
         case variable_mod_vec:
@@ -14283,15 +14435,24 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
                 NewValue.setInt(Context->Modules.Variables.size());
                 return;
             }
-            if(printEmptyError(Context->Modules.Variables.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Modules.Variables.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
                 return;
             }
             if(Condition.Location.attribute == back_a){
                 NewValue.copyValue(Context->Modules.Variables.back());
                 return;
             }
-            printTooManyInstancesWarning(Context->Modules.Variables.size(), Context->type, CurrentInstr);
+            printTooManyInstancesWarning(Context->Modules.Variables.size(), Context->type,
+                CurrentInstr
+            );
         case variable_mod:
+            if(printErrorIfEmpty(Context->Modules.Variables.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
             if(Condition.Location.attribute == size_a){
                 NewValue.setInt(Context->Modules.Variables[0]->getString().size());
                 return;
@@ -14299,11 +14460,20 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             NewValue.copyValue(Context->Modules.Variables[0]);
             return;
         case collision_mod_vec:
-            if(printEmptyError(Context->Modules.Collisions.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Modules.Collisions.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
                 return;
             }
-            printTooManyInstancesWarning(Context->Modules.Collisions.size(), Context->type, CurrentInstr);
+            printTooManyInstancesWarning(Context->Modules.Collisions.size(), Context->type,
+                CurrentInstr
+            );
         case collision_mod:
+            if(printErrorIfEmpty(Context->Modules.Collisions.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
             if(Condition.Location.attribute == detected){
                 for(const DetectedCollision & Detected : Context->Modules.Collisions[0]->Detected){
                     if(Detected.collisionType == Condition.Literal.getIntUnsafe()){
@@ -14318,14 +14488,25 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
                 NewValue.setBool(Context->Modules.Collisions[0]->getMouseCollision() == 'r');
                 return;
             }
-            printIncorrectAttributeError(Condition.Location.attribute, Context->type, NewValue, CurrentInstr);
+            printIncorrectAttributeError(Condition.Location.attribute, Context->type, NewValue,
+                CurrentInstr
+            );
             return;
         case primitives_mod_vec:
-            if(printEmptyError(Context->Modules.Primitives.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Modules.Primitives.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
                 return;
             }
-            printTooManyInstancesWarning(Context->Modules.Primitives.size(), Context->type, CurrentInstr);
+            printTooManyInstancesWarning(Context->Modules.Primitives.size(), Context->type,
+                CurrentInstr
+            );
         case primitives_mod:
+            if(printErrorIfEmpty(Context->Modules.Primitives.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
             if(Condition.Location.attribute == pos_x){
                 NewValue.setDouble(Context->Modules.Primitives[0]->getPos().x);
                 return;
@@ -14334,83 +14515,132 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
                 NewValue.setDouble(Context->Modules.Primitives[0]->getPos().y);
                 return;
             }
-            printIncorrectAttributeError(Condition.Location.attribute, Context->type, NewValue, CurrentInstr);
+            printIncorrectAttributeError(Condition.Location.attribute, Context->type, NewValue,
+                CurrentInstr
+            );
             return;
         case editable_text_mod_vec:
-            if(printEmptyError(Context->Modules.EditableTexts.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Modules.EditableTexts.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
                 return;
             }
-            printTooManyInstancesWarning(Context->Modules.EditableTexts.size(), Context->type, CurrentInstr);
-        case editable_text_mod:
-            NewValue.copyValue(Context->Modules.EditableTexts[0]
-                -> getAttributeValue(Condition.Location.attribute, Condition.Location.spareID)
+            printTooManyInstancesWarning(Context->Modules.EditableTexts.size(), Context->type,
+                CurrentInstr
             );
+        case editable_text_mod:
+            if(printErrorIfEmpty(Context->Modules.EditableTexts.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
+            NewValue.copyValue(Context->Modules.EditableTexts[0]->getAttributeValue(
+                Condition.Location.attribute, Condition.Location.spareID
+            ));
             return;
         case super_text_mod_vec:
-            if(printEmptyError(Context->Modules.SuperTexts.size(), Context->type, NewValue, CurrentInstr)){
-                return;
-            }
-            printTooManyInstancesWarning(Context->Modules.SuperTexts.size(), Context->type, CurrentInstr);
-        case super_text_mod:
-            if(Context->Modules.SuperTexts[0]->getComplexAttributeValue(Condition.Location.attribute,
-                Condition.Location.spareID, CurrentInstr, NewValueVec
+            if(abortIfEmpty(Context->Modules.SuperTexts.empty(), Context->type, NewValue,
+                CurrentInstr
             )){
                 return;
             }
-            NewValue.copyValue(Context->Modules.SuperTexts[0]
-                -> getAttributeValue(Condition.Location.attribute, Condition.Location.spareID, CurrentInstr)
+            printTooManyInstancesWarning(Context->Modules.SuperTexts.size(), Context->type,
+                CurrentInstr
             );
+        case super_text_mod:
+            if(printErrorIfEmpty(Context->Modules.SuperTexts.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
+            if(Context->Modules.SuperTexts[0]->getComplexAttributeValue(
+                Condition.Location.attribute, Condition.Location.spareID, CurrentInstr, NewValueVec
+            )){
+                return;
+            }
+            NewValue.copyValue(Context->Modules.SuperTexts[0]->getAttributeValue(
+                Condition.Location.attribute, Condition.Location.spareID, CurrentInstr
+            ));
             return;
         case super_editable_text_mod_vec:
-            if(printEmptyError(Context->Modules.SuperEditableTexts.size(), Context->type, NewValue, CurrentInstr)){
-                return;
-            }
-            printTooManyInstancesWarning(Context->Modules.SuperEditableTexts.size(), Context->type, CurrentInstr);
-        case super_editable_text_mod:
-            if(Context->Modules.SuperEditableTexts[0]->getComplexAttributeValue(Condition.Location.attribute,
-                Condition.Location.spareID, CurrentInstr, NewValueVec
+            if(abortIfEmpty(Context->Modules.SuperEditableTexts.empty(), Context->type, NewValue,
+                CurrentInstr
             )){
                 return;
             }
-            NewValue.copyValue(Context->Modules.SuperEditableTexts[0]
-                -> getAttributeValue(Condition.Location.attribute, Condition.Location.spareID, CurrentInstr)
+            printTooManyInstancesWarning(Context->Modules.SuperEditableTexts.size(), Context->type,
+                CurrentInstr
             );
-            return;
-        case vector_mod_vec:
-            if(printEmptyError(Context->Modules.Vectors.size(), Context->type, NewValue, CurrentInstr)){
+        case super_editable_text_mod:
+            if(printErrorIfEmpty(Context->Modules.SuperEditableTexts.empty(), Context->type,
+                NewValue, CurrentInstr
+            )){
                 return;
             }
-            printTooManyInstancesWarning(Context->Modules.Vectors.size(), Context->type, CurrentInstr);
-        case vector_mod:
-            NewValue.copyValue(Context->Modules.Vectors.back()
-                -> getValue(Condition.Location.attribute, Context->Modules.Vectors.back()->getSize() - 1)
+            if(Context->Modules.SuperEditableTexts[0]->getComplexAttributeValue(
+                Condition.Location.attribute, Condition.Location.spareID, CurrentInstr, NewValueVec
+            )){
+                return;
+            }
+            NewValue.copyValue(Context->Modules.SuperEditableTexts[0]->getAttributeValue(
+                Condition.Location.attribute, Condition.Location.spareID, CurrentInstr
+            ));
+            return;
+        case vector_mod_vec:
+            if(abortIfEmpty(Context->Modules.Vectors.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
+            printTooManyInstancesWarning(Context->Modules.Vectors.size(), Context->type,
+                CurrentInstr
             );
+        case vector_mod:
+            if(printErrorIfEmpty(Context->Modules.Vectors.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
+            NewValue.copyValue(Context->Modules.Vectors.back()->getValue(
+                Condition.Location.attribute, Context->Modules.Vectors.back()->getSize() - 1
+            ));
             return;
         case object_vec:
-            if(printEmptyError(Context->Objects.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Objects.empty(), Context->type, NewValue, CurrentInstr)){
                 return;
             }
             printTooManyInstancesWarning(Context->Objects.size(), Context->type, CurrentInstr);
         case object_inst:
+            if(printErrorIfEmpty(Context->Objects.empty(), Context->type, NewValue, CurrentInstr)){
+                return;
+            }
             Condition.Location.layerID = Context->Objects[0]->getLayerID();
             Condition.Location.objectID = Context->Objects[0]->getID();
             NewValue.copyValue(findNextValueAmongObjects(Condition, Owner, OwnerLayer, Mouse));
             return;
         case layer_vec:
-            if(printEmptyError(Context->Layers.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Layers.empty(), Context->type, NewValue, CurrentInstr)){
                 return;
             }
             printTooManyInstancesWarning(Context->Layers.size(), Context->type, CurrentInstr);
         case layer_inst:
-            NewValue.copyValue(Context->Layers[0]->getValue(Condition.Location.attribute, Condition.Location.spareID));
+            if(printErrorIfEmpty(Context->Layers.empty(), Context->type, NewValue, CurrentInstr)){
+                return;
+            }
+            NewValue.copyValue(Context->Layers[0]->getValue(Condition.Location.attribute,
+                Condition.Location.spareID
+            ));
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
             return;
         case camera_vec:
-            if(printEmptyError(Context->Cameras.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Cameras.empty(), Context->type, NewValue, CurrentInstr)){
                 return;
             }
             printTooManyInstancesWarning(Context->Cameras.size(), Context->type, CurrentInstr);
         case camera_inst:
+            if(printErrorIfEmpty(Context->Cameras.empty(), Context->type, NewValue, CurrentInstr)){
+                return;
+            }
             if(Condition.Location.attribute == is_selected){
                 NewValue.setBool(SelectedCamera == Context->Cameras[0]);
             }
@@ -14420,18 +14650,30 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             NewValue.setID(Condition.Location.source + "_" + Condition.Location.attribute, nullptr);
             return;
         case scrollbar_mod_vec:
-            if(printEmptyError(Context->Modules.Scrollbars.size(), Context->type, NewValue, CurrentInstr)){
+            if(abortIfEmpty(Context->Modules.Scrollbars.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
                 return;
             }
-            printTooManyInstancesWarning(Context->Modules.Scrollbars.size(), Context->type, CurrentInstr);
+            printTooManyInstancesWarning(Context->Modules.Scrollbars.size(), Context->type,
+                CurrentInstr
+            );
         case scrollbar_mod:
-            NewValue.copyValue(Context->Modules.Scrollbars[0]->getValue(Condition.Location.attribute, CurrentInstr));
+            if(printErrorIfEmpty(Context->Modules.Scrollbars.empty(), Context->type, NewValue,
+                CurrentInstr
+            )){
+                return;
+            }
+            NewValue.copyValue(Context->Modules.Scrollbars[0]->getValue(
+                Condition.Location.attribute, CurrentInstr
+            ));
             return;
         default:
             break;
     }
     
-    cerr << instructionError(CurrentInstr, __FUNCTION__) << "No value can be extracted from the context.\n";
+    cerr << instructionError(CurrentInstr, __FUNCTION__)
+        << "No value can be extracted from the context.\n";
     return;
 }
 void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Owner, LayerClass * OwnerLayer,
@@ -15044,20 +15286,25 @@ bool ProcessClass::deleteEntities(){
         }
     }
     entityIndex = 0;
+    //When using erase, iterators and references to the elements at or after the point of the erase
+    //are invalidated. ~ https://en.cppreference.com/w/cpp/container/vector/erase.html
+    bool invalidateFollowingLayers = false;
     for(auto Layer = Layers.begin(); Layer != Layers.end(); entityIndex++){
         if(Layer->getIsDeleted()){
-            for(const AncestorObject & Object : Layer->Objects){
-                ProcessMemory[Object.getUniqueIndex()].clear();
-                ProcessMemory.erase(Object.getUniqueIndex());
+            for(const AncestorObject & objectIt : Layer->Objects){
+                ProcessMemory[objectIt.getUniqueIndex()].clear();
+                ProcessMemory.erase(objectIt.getUniqueIndex());
             }
             removeFromVector(layersIDs, Layer->getID());
             wereLayersModified = true;
             Layer->clear();
             Layer = Layers.erase(Layer);
             removeIndexFromOrder(CurrentInstr, layersOrder, entityIndex);
+            invalidateFollowingLayers = true;
         }
         else{
             unsigned objectIndex = 0;
+            bool invalidateFollowingObjects = false;
             for(vector<AncestorObject>::iterator objectIt = Layer->Objects.begin(); 
                 objectIt != Layer->Objects.end(); objectIndex++
             ){
@@ -15069,8 +15316,12 @@ bool ProcessClass::deleteEntities(){
                     objectIt->clear();
                     objectIt = Layer->Objects.erase(objectIt);
                     removeIndexFromOrder(CurrentInstr, Layer->objectsOrder, objectIndex);
+                    invalidateFollowingObjects = true;
                 }
                 else{
+                    if(invalidateFollowingLayers || invalidateFollowingObjects){
+                        objectIt->hasInvalidatedMemory = true;
+                    }
                     deleteModuleInstance(objectIt->TextContainer, objectIt->textContainerIDs,
                         wereLayersModified
                     );
@@ -15107,19 +15358,22 @@ bool ProcessClass::deleteEntities(){
                     deleteModuleInstance(objectIt->PrimitivesContainer, 
                         objectIt->primitivesContainerIDs, wereLayersModified
                     );
-                    vector<size_t> deletedParametersIndexes = deleteModuleInstanceAndReturnIndexes(
+                    vector<size_t> deletedVariableIndexes = deleteModuleInstanceAndReturnIndexes(
                         objectIt->VariablesContainer, objectIt->variablesContainerIDs, 
                         wereLayersModified
                     );
                     fixIndexesAfterDeletion(ProcessMemory[objectIt->getUniqueIndex()].MemoryMap,
-                        deletedParametersIndexes, DataType::variable_mod
+                        deletedVariableIndexes, DataType::variable_mod
                     );
-                    vector<size_t> deletedVectorParametersIndexes = deleteModuleInstanceAndReturnIndexes(
+                    vector<size_t> deletedVectorIndexes = deleteModuleInstanceAndReturnIndexes(
                         objectIt->VectorContainer, objectIt->vectorContainerIDs, wereLayersModified
                     );
                     fixIndexesAfterDeletion(ProcessMemory[objectIt->getUniqueIndex()].MemoryMap, 
-                        deletedVectorParametersIndexes, DataType::vector_mod
+                        deletedVectorIndexes, DataType::vector_mod
                     );
+                    if(!deletedVariableIndexes.empty() || !deletedVectorIndexes.empty()){
+                        objectIt->hasInvalidatedMemory = true;
+                    }
                     ++objectIt;
                 }
             }
@@ -15582,7 +15836,9 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
                 Processes, startingEventIt, eventIt, EventStack, Engine, runChildEventWithIndex
             );
 
-            if(interruptInstruction == EngineInstr::exit_i || interruptInstruction == EngineInstr::assert){
+            if(interruptInstruction == EngineInstr::exit_i
+                || interruptInstruction == EngineInstr::assert
+            ){
                 Engine.closeProgram = true;
                 return flow_abort;
             }

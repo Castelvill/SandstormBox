@@ -655,7 +655,6 @@ start mover()
     spawnMover(NewWindowCamera, NewWindowLayer, selectedLayerID)
 end
 start spawnMover(Camera & NewWindowCamera, Layer & NewWindowLayer, string & selectedLayerID)
-    index me [0 1] super_editable_text Editable
     index NewWindowLayer [0 0] object NewObject
     first NewObject _ _ Variables has_friends bool _ has_friends
     = has_friends true

@@ -148,7 +148,6 @@ start exitWindow()
         index Layer [0 0 0] collision ExitCollision
         
         if(ExitCollision.release_on)
-            //dump_local_memory
             = delete true
         end_if
     end_if
