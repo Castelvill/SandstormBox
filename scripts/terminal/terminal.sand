@@ -69,21 +69,6 @@ start createEditorCommandLine()
 end
 
 start buildTerminal()
-    var KEY_LCTRL 217
-    var KEY_ESC 59
-    var KEY_SHIFT 215
-    var KEY_C 3
-    var KEY_TAB 64
-    var KEY_L 12
-    var KEY_F12 58
-    var KEY_ENTER 67
-    var KEY_ARROW_UP 84
-    var KEY_ARROW_DOWN 85
-    var KEY_I 9
-    var KEY_Q 17
-    var KEY_S 19
-    var KEY_N 14
-
     access ww [display_w]
     access wh [display_h]
 
@@ -285,8 +270,9 @@ end
 @trigger on_key_press
 start onKeyPress()
     fs_click()
+    exitTerminal()
+    rebootTerminal()
     if(program "edit" !=)
-        exitProgram()
         interrupt()
         autoComplete()
         clearOnShortcut()
@@ -298,9 +284,15 @@ start onKeyPress()
     end_if
 end
 
-start exitProgram()
+start exitTerminal()
     if(key_pressed(KEY_LCTRL) key_pressed(KEY_ESC) &&)
         exit
+    end_if
+end
+
+start rebootTerminal()
+    if(key_pressed(KEY_LCTRL) key_pressed(KEY_LSHIFT) key_pressed(KEY_R) && &&)
+        reboot
     end_if
 end
 
@@ -343,7 +335,7 @@ start onMousePressing()
 end
 
 start toggleLineNumbering()
-    if(key_pressed(KEY_SHIFT) ! key_pressed(KEY_LCTRL) && key_pressed(KEY_N) &&)
+    if(key_pressed(KEY_LSHIFT) ! key_pressed(KEY_LCTRL) && key_pressed(KEY_N) &&)
         if(showLineNumbering)
             = showLineNumbering false
             index me [0 0] super_text lineNumberingText
@@ -357,7 +349,7 @@ start toggleLineNumbering()
 end
 
 start toggleRelativeNumbering()
-    if(key_pressed(KEY_SHIFT) key_pressed(KEY_LCTRL) && key_pressed(KEY_N) &&)
+    if(key_pressed(KEY_LSHIFT) key_pressed(KEY_LCTRL) && key_pressed(KEY_N) &&)
         if(relativeNumbering)
             = relativeNumbering false
         else
@@ -687,7 +679,7 @@ end
 
 
 start interrupt()
-    if (key_pressed(KEY_SHIFT) ! key_pressed(KEY_LCTRL) && key_pressed(KEY_C) &&)
+    if (key_pressed(KEY_LSHIFT) ! key_pressed(KEY_LCTRL) && key_pressed(KEY_C) &&)
         = program ""
         string result "^C\n"
         printOnTerminal(result)
@@ -1086,7 +1078,7 @@ start moveInHistory()
 end
 
 start upArrow(Camera & Camera)
-    if (Camera.is_selected key_pressed(KEY_ARROW_UP) program "sleep" == currentCommandNumber 0 > && && &&)
+    if (Camera.is_selected key_pressed(KEY_UP) program "sleep" == currentCommandNumber 0 > && && &&)
         index me [0 0] super_editable_text EditableText
         first EditableText _ _ _ _ content _ userInput
         first EditableText _ _ _ _ protected_area _ protectedArea
@@ -1108,7 +1100,7 @@ end
 
 
 start downArrow(Camera & Camera)
-    if (Camera.is_selected key_pressed(KEY_ARROW_DOWN) program "sleep" == currentCommandNumber commandNumber < && && &&)
+    if (Camera.is_selected key_pressed(KEY_DOWN) program "sleep" == currentCommandNumber commandNumber < && && &&)
         index me [0 0] super_editable_text EditableText
         first EditableText _ _ _ _ content _ userInput
         first EditableText _ _ _ _ protected_area _ protectedArea

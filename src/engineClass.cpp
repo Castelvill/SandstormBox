@@ -161,7 +161,6 @@ void EngineClass::resetState(bool resetScreen){
     }
     closeProgram = false;
     if(reboot){
-        cout << "Rebooted\n";
         cout.flush();
     }
     reboot = false;
@@ -411,16 +410,6 @@ void EngineClass::updateEvents(){
             releasedKeys = getReleasedKeys(key, pressedKeys);
             pressedKeys.clear();
             pressedKeys = getPressedKeys(key);
-            if(key[ALLEGRO_KEY_LCTRL] && key[ALLEGRO_KEY_LSHIFT] && key[ALLEGRO_KEY_R]){
-                reboot = true;
-                key[ALLEGRO_KEY_LCTRL] = false;
-                key[ALLEGRO_KEY_LSHIFT] = false;
-                key[ALLEGRO_KEY_R] = false;
-                cout << "Rebooting...";
-            }
-            else if(key[ALLEGRO_KEY_LCTRL] && key[ALLEGRO_KEY_ESCAPE]){
-                //closeProgram = true;
-            }
             break;
         case ALLEGRO_EVENT_MOUSE_AXES:
             Mouse.updateAxes(event, fullscreen);

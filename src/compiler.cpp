@@ -1,6 +1,7 @@
 #include "compiler.h"
 #include <regex>
 #include <queue>
+#include "keymap.h"
 
 bool canStringBeDouble(string text){
     if(text[0] == '.'){
@@ -102,6 +103,14 @@ vector <string> mergeStrings(vector <string> code){
         merged.push_back(buffor);
     }
     return merged;
+}
+
+inline string mapEngineKeysToAllegroKeys(const string & key){
+    auto it = engineKeysToAllegroKeys.find(key);
+    if(it != engineKeysToAllegroKeys.end()){
+        return it->second;;
+    } 
+    return "";
 }
 
 std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
@@ -210,6 +219,13 @@ std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
         if(output[i] == "false"){
             mergedOutput.emplace_back(WordStruct(TokenType::bool_tk, "0", false));
             continue;
+        }
+        if(output[i].starts_with("KEY_")){
+            const string & allegroMapping = mapEngineKeysToAllegroKeys(output[i]);
+            if(!allegroMapping.empty()){
+                mergedOutput.emplace_back(WordStruct(TokenType::int_tk, allegroMapping, false));
+                continue;
+            }
         }
         if(canStringBeDouble(output[i])){
             cstod(output[i], error);

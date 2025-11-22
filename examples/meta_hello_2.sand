@@ -1,22 +1,28 @@
-//Example of compiling code at runtime
+//Example of cloning events
 
 @trigger on_init
-start main()
-    string program "
-        @trigger on_init
-        start injection()
-    "
+start test()
+    var a 0
+
+    Event originalHello
+    all me _ _ Events _ _ _ allEvents
+    find_by_id_2 allEvents "hello" originalHello
 
     int i 0
-    while(i 5 <)
-        += program "print \"Hello, World!\n\"\n"
+    while(i 4 <)
+        new Events me 1 "hello0" newEvent
+        clone newEvent originalHello false
         next i
-    end_while
+    end_while()
+end
 
-    += program "
-            exit
-        end
-    "
+@trigger on_init
+start hello()
+    print "hello " a "\n"
+    ++ a
+end
 
-    inject_code me program
+@trigger on_idle
+start exit()
+    exit
 end

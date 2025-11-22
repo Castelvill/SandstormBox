@@ -181,9 +181,7 @@ inline bool getLocalAddressWithError(unsigned & localAddress, const string & var
         case ReturnType::UNDEFINED:
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": "
-                << "Index (" << localAddress
-                << ") of a variable '" << variableId
-                << "' is out of scope (" << NewLocalVariables.size() << ").\n";
+                << "Variable '" << variableId << "' is undefined.\n";
             localAddress = 0;
             return true;
         default:
@@ -2847,7 +2845,9 @@ ReturnType InstrParser::parseRun(){
 
     Operation->specialValue = NewEvent.Children.size();
 
-    NewEvent.Children.emplace_back(ChildStruct(words[1].value, vector<PassingVariableInfo>(), 0, scriptName, lineNumber));
+    NewEvent.Children.emplace_back(ChildStruct(0, words[1].value, vector<PassingVariableInfo>(), 0,
+        scriptName, lineNumber
+    ));
 
     cursor = 2;
 
@@ -2870,7 +2870,9 @@ ReturnType InstrParser::parseAutoRun(){
             return ReturnType::ERROR;
         }
         Operation->specialValue = NewEvent.Children.size();
-        NewEvent.Children.emplace_back(ChildStruct(words[0].value, vector<PassingVariableInfo>(), 0, scriptName, lineNumber));
+        NewEvent.Children.emplace_back(ChildStruct(0, words[0].value, vector<PassingVariableInfo>(),
+            0, scriptName, lineNumber
+        ));
         cursor = 1;
 
         if(NewEvent.getPassingVariables(NewEvent.Children.back().Arguments,

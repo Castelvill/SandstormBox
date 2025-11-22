@@ -111,6 +111,7 @@ public:
     void propagateLayer();
     void propagateObjectID();
     string getObjectID();
+    void findIndexesOfEventChildren(bool postDelete = false);
 };
 
 #endif // ALLOBJECTS_H_INCLUDED

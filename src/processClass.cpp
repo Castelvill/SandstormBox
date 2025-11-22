@@ -35,33 +35,6 @@ void ProcessClass::setID(string newID, vector<string> &listOfIDs){
     ID = findNewUniqueID(listOfIDs, newID);
     listOfIDs.push_back(ID);
 }
-void findIndexesOfEventChildren(vector<EventModule> & EventContainer, const InstrDescription & CurrentInstr, bool postDelete = false){
-    for(EventModule & ParentEvent : EventContainer){
-        for(ChildStruct & Child : ParentEvent.Children){
-            unsigned childEventIdx = 0;
-            for(; childEventIdx < EventContainer.size(); childEventIdx++){
-                if(Child.ID == EventContainer[childEventIdx].getID()){
-                    Child.containerIndex = childEventIdx;
-                    break;
-                }
-            }
-            if(childEventIdx == EventContainer.size()){
-                if(!postDelete){
-                    printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
-                        "Child '" + Child.ID + "' of the event '" + ParentEvent.getID()
-                        + "' does not exist in the event container.\n"
-                    );
-                }
-                else{
-                    printLogMessage("Warning", __FILE__, __LINE__, __FUNCTION__,
-                        "Child '" + Child.ID + "' of the event '" + ParentEvent.getID()
-                        + "' has been deleted.\n"
-                    );
-                }  
-            }
-        }
-    }
-}
 void detectRecursionWithRecursion(vector<EventModule> & EventContainer, vector<string> & calledEvents, EventModule & Event){
     calledEvents.push_back(Event.getID());
     for(ChildStruct & Child : Event.Children){
@@ -299,7 +272,7 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
             CurrentMap.topAddress, topModuleUniqueIndex
         );
         allocateAllLocalVariables(CurrentMap, InitObject.EventContainer);
-        findIndexesOfEventChildren(InitObject.EventContainer, CurrentInstr);
+        InitObject.findIndexesOfEventChildren();
         detectRecursionInEvents(InitObject.EventContainer, CurrentInstr);
     }
     
@@ -440,8 +413,6 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
             }
             firstIteration = false;
             if(Engine.reboot){
-                //rebooted = false;
-                //firstIteration = true;
                 return;
             }
             break;
@@ -3612,167 +3583,221 @@ ModuleClass * findLastModule(vector<ModuleClass*> & Vector, const string & modul
     }
     return nullptr;
 }
-void ProcessClass::aggregateModules(OperationClass & Operation, ContextClass & NewContext, ContextClass * OldContext,
-    ObjectMemoryStruct & ObjectMemory, const EngineClass & Engine
+void ProcessClass::aggregateModules(OperationClass & Operation, ContextClass & NewContext,
+    ContextClass * OldContext, ObjectMemoryStruct & ObjectMemory, const EngineClass & Engine
 ){
     ModulesPointers * AggregatedModules = &OldContext->Modules;
-    if(Operation.ConditionalChain.size() == 0 && Operation.instruction == EngineInstr::last){
+    if(Operation.ConditionalChain.empty() && Operation.instruction == EngineInstr::last){
         switch(OldContext->type){
             case text_mod:
-                if(AggregatedModules->Texts.size() == 0){
+                if(AggregatedModules->Texts.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Texts[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Texts[0]
+                );
                 break;
             case text_mod_vec: 
-                if(AggregatedModules->Texts.size() == 0){
+                if(AggregatedModules->Texts.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Texts, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Texts, Operation.Location.moduleID)
+                );
                 break;
             case editable_text_mod:
-                if(AggregatedModules->EditableTexts.size() == 0){
+                if(AggregatedModules->EditableTexts.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->EditableTexts[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->EditableTexts[0]
+                );
                 break;
             case editable_text_mod_vec:
-                if(AggregatedModules->EditableTexts.size() == 0){
+                if(AggregatedModules->EditableTexts.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->EditableTexts, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->EditableTexts, Operation.Location.moduleID)
+                );
                 break;
             case super_text_mod:
-                if(AggregatedModules->SuperTexts.size() == 0){
+                if(AggregatedModules->SuperTexts.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->SuperTexts[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->SuperTexts[0]
+                );
                 break;
             case super_text_mod_vec:
-                if(AggregatedModules->SuperTexts.size() == 0){
+                if(AggregatedModules->SuperTexts.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->SuperTexts, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->SuperTexts, Operation.Location.moduleID)
+                );
                 break;
             case super_editable_text_mod:
-                if(AggregatedModules->SuperEditableTexts.size() == 0){
+                if(AggregatedModules->SuperEditableTexts.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->SuperEditableTexts[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->SuperEditableTexts[0]
+                );
                 break;
             case super_editable_text_mod_vec:
-                if(AggregatedModules->SuperEditableTexts.size() == 0){
+                if(AggregatedModules->SuperEditableTexts.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->SuperEditableTexts, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->SuperEditableTexts,
+                        Operation.Location.moduleID
+                    )
+                );
                 break;
             case image_mod:
-                if(AggregatedModules->Images.size() == 0){
+                if(AggregatedModules->Images.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Images[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Images[0]
+                );
                 break;
             case image_mod_vec:
-                if(AggregatedModules->Images.size() == 0){
+                if(AggregatedModules->Images.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Images, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Images, Operation.Location.moduleID)
+                );
                 break;
             case movement_mod:
-                if(AggregatedModules->Movements.size() == 0){
+                if(AggregatedModules->Movements.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Movements[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Movements[0]
+                );
                 break;
             case movement_mod_vec:
-                if(AggregatedModules->Movements.size() == 0){
+                if(AggregatedModules->Movements.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Movements, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Movements, Operation.Location.moduleID)
+                );
                 break;
             case collision_mod:
-                if(AggregatedModules->Collisions.size() == 0){
+                if(AggregatedModules->Collisions.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Collisions[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Collisions[0]
+                );
                 break;
             case collision_mod_vec:
-                if(AggregatedModules->Collisions.size() == 0){
+                if(AggregatedModules->Collisions.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Collisions, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Collisions, Operation.Location.moduleID)
+                );
                 break;
             case particles_mod:
-                if(AggregatedModules->Particles.size() == 0){
+                if(AggregatedModules->Particles.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Particles[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Particles[0]
+                );
                 break;
             case particles_mod_vec:
-                if(AggregatedModules->Particles.size() == 0){
+                if(AggregatedModules->Particles.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Particles, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Particles, Operation.Location.moduleID)
+                );
                 break;
             case event_mod:
-                if(AggregatedModules->Events.size() == 0){
+                if(AggregatedModules->Events.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Events[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Events[0]
+                );
                 break;
             case event_mod_vec:
-                if(AggregatedModules->Events.size() == 0){
+                if(AggregatedModules->Events.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Events, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Events, Operation.Location.moduleID)
+                );
                 break;
             case variable_mod:
-                if(AggregatedModules->Variables.size() == 0){
+                if(AggregatedModules->Variables.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Variables[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Variables[0]
+                );
                 break;
             case variable_mod_vec:
-                if(AggregatedModules->Variables.size() == 0){
+                if(AggregatedModules->Variables.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Variables, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Variables, Operation.Location.moduleID)
+                );
                 break;
             case scrollbar_mod:
-                if(AggregatedModules->Scrollbars.size() == 0){
+                if(AggregatedModules->Scrollbars.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Scrollbars[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Scrollbars[0]
+                );
                 break;
             case scrollbar_mod_vec:
-                if(AggregatedModules->Scrollbars.size() == 0){
+                if(AggregatedModules->Scrollbars.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Scrollbars, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Scrollbars, Operation.Location.moduleID)
+                );
                 break;
             case primitives_mod:
-                if(AggregatedModules->Primitives.size() == 0){
+                if(AggregatedModules->Primitives.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Primitives[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Primitives[0]
+                );
                 break;
             case primitives_mod_vec:
-                if(AggregatedModules->Primitives.size() == 0){
+                if(AggregatedModules->Primitives.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Primitives, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Primitives, Operation.Location.moduleID)
+                );
                 break;
             case vector_mod:
-                if(AggregatedModules->Vectors.size() == 0){
+                if(AggregatedModules->Vectors.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, AggregatedModules->Vectors[0]);
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    AggregatedModules->Vectors[0]
+                );
                 break;
             case vector_mod_vec:
-                if(AggregatedModules->Vectors.size() == 0){
+                if(AggregatedModules->Vectors.empty()){
                     break;
                 }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext, findLastModule(AggregatedModules->Vectors, Operation.Location.moduleID));
+                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
+                    findLastModule(AggregatedModules->Vectors, Operation.Location.moduleID)
+                );
                 break;
             default:
                 break;
@@ -3783,82 +3808,134 @@ void ProcessClass::aggregateModules(OperationClass & Operation, ContextClass & N
     AncestorObject * EmptyObject = new AncestorObject();
     switch(OldContext->type){
         case text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation,
+                NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation,
+                NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case editable_text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case editable_text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case super_text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case super_text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case super_editable_text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->SuperEditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->SuperEditableTexts,
+                OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case super_editable_text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->SuperEditableTexts, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->SuperEditableTexts,
+                OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case image_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case image_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Images, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case movement_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Movements, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Movements, OldContext->type, 
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case movement_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Movements, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Movements, OldContext->type, 
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case collision_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Collisions, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Collisions, OldContext->type, 
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case collision_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Collisions, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Collisions, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case particles_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Particles, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Particles, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case particles_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Particles, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Particles, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case event_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Events, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Events, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case event_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Events, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Events, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case variable_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Variables, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Variables, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case variable_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Variables, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Variables, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case scrollbar_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Scrollbars, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Scrollbars, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case scrollbar_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Scrollbars, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Scrollbars, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case primitives_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Primitives, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Primitives, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case primitives_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Primitives, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Primitives, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         case vector_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, true);
+            aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
+            );
             break;
         case vector_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type, Operation, NewContext, EmptyObject, Engine, ObjectMemory, false);
+            aggregateModuleContextFromVectors(AggregatedModules->Vectors, OldContext->type,
+                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
+            );
             break;
         default:
             cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -9513,7 +9590,7 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation,
             CurrentMap.MemberVarsScope, CurrentMap.topAddress, topModuleUniqueIndex
         );
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-        findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+        Object->findIndexesOfEventChildren();
         detectRecursionInEvents(Object->EventContainer, CurrentInstr);
         wasAnyEventUpdated = true;
     }
@@ -9665,7 +9742,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
         }
 
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-        findIndexesOfEventChildren(Object->EventContainer, CurrentInstr);
+        Object->findIndexesOfEventChildren();
         detectRecursionInEvents(Object->EventContainer, CurrentInstr);
 
         wasAnyEventUpdated = true;
@@ -10501,10 +10578,6 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
     }
 
     vector<VariableModule> Variables;
-
-    // if(Operation.Parameters.size() == 3 && Operation.Parameters[1].variableID == "x" && Operation.Parameters[2].variableID == "y"){
-    //     raise(SIGINT);
-    // }
 
     //Get values from all parameters of this instruction
     for(unsigned index = 1; index < Operation.rootParametersSize; index++){
@@ -12203,7 +12276,7 @@ void ProcessClass::printTree(OperationClass & Operation, ObjectMemoryStruct & Ob
                     }
                     buffor += "\n";
                     for(const ChildStruct & Child : Event.Children){
-                        buffor += "\t\t\t\tEvent::Child " + Child.ID;
+                        buffor += "\t\t\t\tEvent::Child " + Child.id;
                         buffor += "\n";
                     }
                 }
@@ -15155,23 +15228,28 @@ std::pair<vector<EventModule>::iterator, ChildStruct*> ProcessClass::findChildEv
         return {Event, nullptr};
     }
 
-    vector<EventModule>::iterator ChildEvent = EventContainer.begin() + SelectedChild->containerIndex;
+    vector<EventModule>::iterator ChildEvent = EventContainer.begin()
+        + SelectedChild->containerIndex;
 
-    if(ChildEvent->getID() != SelectedChild->ID){
+    if(ChildEvent->getUniqueIndex() != SelectedChild->uniqueIndex){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Event '" << ChildEvent->getID() << "' was found in place of event '" << SelectedChild->ID
-            << "'. Index " << SelectedChild->containerIndex << " is incorrect. Check if the event '" << SelectedChild->ID << "' was defined.\n";
+            << "Event '" << ChildEvent->getID() << "' was found in place of event '"
+            << SelectedChild->id << "'. Index " << SelectedChild->containerIndex
+            << " is incorrect. Check if the event '" << SelectedChild->id << "' was defined.\n";
         return {Event, nullptr};
     }
 
     if(ChildEvent->getIsDeleted() || !ChildEvent->getIsActive()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Event '" << SelectedChild->ID << "' does not exist.\n";
+        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Event '" << SelectedChild->id
+            << "' does not exist.\n";
         return {Event, nullptr};
     }
     return {ChildEvent, SelectedChild};
 }
 template <class Module>
-void deleteModuleInstance(vector<Module> & Container, vector<string> & IDs, bool & layersWereModified){
+void deleteModuleInstance(vector<Module> & Container, vector<string> & IDs,
+    bool & layersWereModified
+){
     for(auto Instance = Container.begin(); Instance != Container.end();){
         if(Instance->getIsDeleted()){
             removeFromVector(IDs, Instance->getID());
@@ -15349,7 +15427,7 @@ bool ProcessClass::deleteEntities(){
                     if(deleteEventInstance(objectIt->EventContainer, objectIt->eventContainerIDs,
                         wereLayersModified, ProcessMemory[objectIt->getUniqueIndex()]
                     )){
-                        findIndexesOfEventChildren(objectIt->EventContainer, CurrentInstr, true);
+                        objectIt->findIndexesOfEventChildren(true);
                         detectRecursionInEvents(objectIt->EventContainer, CurrentInstr);
                     }
                     deleteModuleInstance(objectIt->ScrollbarContainer, 
@@ -15856,7 +15934,9 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
 
             ChildStruct * SelectedChild = nullptr;
 
-            std::tie(eventIt, SelectedChild) = findChildEventToRun(Triggered->EventContainer, eventIt, runChildEventWithIndex);
+            std::tie(eventIt, SelectedChild) = findChildEventToRun(Triggered->EventContainer,
+                eventIt, runChildEventWithIndex
+            );
             
             if(SelectedChild == nullptr){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -16280,7 +16360,7 @@ void ProcessClass::updateCamerasPositions(const EngineClass & Engine){
             break;
     }
 }
-bool isALeaf(string leafID, string rootID, const vector<Camera2D> & Cameras){
+bool isALeaf(const string & leafID, const string & rootID, const vector<Camera2D> & Cameras){
     if(leafID == "" || rootID == ""){
         return false;
     }
@@ -16317,7 +16397,8 @@ void ProcessClass::bringCameraForward(unsigned index, Camera2D * ChosenCamera){
     
     for(unsigned orderIndex = 0; orderIndex < index;){
         if(camerasOrder[orderIndex] >= Cameras.size()){
-            cerr << "Error: Camera index <" << camerasOrder[orderIndex] << "> in the cameras' order is out of scope of camera's Container<"
+            cerr << "Error: Camera index <" << camerasOrder[orderIndex]
+                << "> in the cameras' order is out of scope of camera's Container<"
                 << Cameras.size() << ">.\n";
             orderIndex++;
             continue;

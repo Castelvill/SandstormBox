@@ -58,6 +58,34 @@ void AncestorObject::deleteLater(){
         Vector.deleteLater();
     }
 }
+void AncestorObject::findIndexesOfEventChildren(bool postDelete){
+    for(EventModule & ParentEvent : EventContainer){
+        for(ChildStruct & Child : ParentEvent.Children){
+            unsigned childEventIdx = 0;
+            for(; childEventIdx < EventContainer.size(); childEventIdx++){
+                if(Child.id == EventContainer[childEventIdx].getID()){
+                    Child.uniqueIndex = EventContainer[childEventIdx].getUniqueIndex();
+                    Child.containerIndex = childEventIdx;
+                    break;
+                }
+            }
+            if(childEventIdx == EventContainer.size()){
+                if(!postDelete){
+                    printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
+                        "Child '" + Child.id + "' of the event '" + ParentEvent.getID()
+                        + "' does not exist in the event container.\n"
+                    );
+                }
+                else{
+                    printLogMessage("Warning", __FILE__, __LINE__, __FUNCTION__,
+                        "Child '" + Child.id + "' of the event '" + ParentEvent.getID()
+                        + "' has been deleted.\n"
+                    );
+                }  
+            }
+        }
+    }
+}
 void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, 
     size_t layerUniqueIndex, const string & newLayerID, bool changeOldID,
     size_t & topModuleUniqueIndex
@@ -156,6 +184,8 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         Original.bindedScripts.end()
     );
     canBeMovedWithMouse = Original.canBeMovedWithMouse;
+
+    findIndexesOfEventChildren();
 }
 void AncestorObject::clearVectorsOfIDs(){
     textContainerIDs.clear();

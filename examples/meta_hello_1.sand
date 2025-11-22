@@ -1,0 +1,22 @@
+//Example of compiling code at runtime
+
+@trigger on_init
+start main()
+    string program "
+        @trigger on_init
+        start injection()
+    "
+
+    int i 0
+    while(i 5 <)
+        += program "print \"Hello, World!\n\"\n"
+        next i
+    end_while
+
+    += program "
+            exit
+        end
+    "
+
+    inject_code me program
+end

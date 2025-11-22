@@ -101,6 +101,35 @@ After meeting these conditions you can build the engine with:
 
 Alternatively (less cooler approach) you can use Visual Studio Code to compile the engine with the CTRL+SHIFT+B shortcut and clicking "Compile Engine".
 
+## Keyboard bindings
+
+Following built-in functions:
+    
+    key_pressed, key_pressing, key_released
+
+return true in different stages of clicking a keyboard key. Each function takes one number that correspondes to the numeric representation of one chosen key. At its core the engine uses keyboard mappings from the allegro5 library, but it also has a custom mapping defined in the src/keymap.h header file. Each key in this mapping starts with the "KEY_" prefix and the engine translates them into allegro5 mappings at compile-time. Important note: You can read states of several keys at the same time.
+
+Syntax:
+
+    key_pressed(key)
+    key_pressing(key)
+    key_released(key)
+
+Parameters:
+
+    key - number coresponding to a keyboard key, which state will be read.
+
+Examples:
+
+    - key_pressed(KEY_W) - returns true every time the user presses 'W' key - only once per press;
+    - key_pressed(23) - returns true every time the user presses 'W' key; 
+    - key_pressing(KEY_LSHIFT) - returns true every engine iteration user is pressing left shift key.
+    - key_released(KEY_ESC) - returns true only once when 'ESC' key is released from being pressed.
+
+You can also look at examples/keys.sand or any use of above-mentioned built-in functions.
+
+Warning: As of the time of writing this section you can use these functions only in the if statements and while loops - returning values from user defined functions is not yet implemented :(
+
 ## Troubleshooting
 
 - If the rendered text has a glitched font, you can change the antialiasing samples to 1 in the .config file.

@@ -190,7 +190,8 @@ public:
 };
 
 struct ChildStruct{
-    string ID;
+    size_t uniqueIndex = 0;
+    string id;
     vector<PassingVariableInfo> Arguments;
     unsigned containerIndex = 0;
     string callingScript;

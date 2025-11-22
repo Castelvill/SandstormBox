@@ -1,6 +1,3 @@
--Check if any module is using string ids instead of unique indexes.
--In collisionModule.h in struct DetectedCollision change string ids to new unique indexes.
--Add allegro key bindings translations into sandscript, while keeping the possibility of dynamic rebinding. 
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
 -Fix terminal: Clicking tab while the cursor is inside the text will color the rest of the line to the right.

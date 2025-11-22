@@ -12,7 +12,7 @@ end
 
 @trigger on_key_press
 start exitProgram()
-    if(key_pressed(KEY_LCTRL) key_pressed (KEY_ESC) &&)
+    if(key_pressed(KEY_LCTRL) key_pressed(KEY_ESC) &&)
         exit
     end_if
 end
