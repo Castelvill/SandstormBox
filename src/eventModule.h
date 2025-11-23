@@ -33,7 +33,7 @@ enum DataType: char{
     //Compile-time inference not implemented yet 
     any_dt
 };
-DataType strToDataType(string dataType);
+DataType strToDataType(const string & dataType);
 string dataTypeToStr(DataType dataType);
 DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSource & source);
 

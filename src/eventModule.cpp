@@ -264,7 +264,7 @@ string sourceToStr(ValueSource source){
     return "undefined";
 }
 
-DataType strToDataType(string dataType){
+DataType strToDataType(const string & dataType){
     if(dataType == "Null"){
         return null_dt;
     }
@@ -403,7 +403,6 @@ DataType strToDataType(string dataType){
     else if(dataType == "any"){
         return any_dt;
     }
-    cerr << "Error: In " << __FUNCTION__ << ": DataType '" << dataType << "' is undefined.\n";
     return null_dt;
 }
 
@@ -1014,7 +1013,7 @@ EventModule::~EventModule(){
 void EventModule::clear(){
     Children.clear();
 }
-DataType strToDataTypeWithoutPrimaryTypes(string dataType){
+DataType strToDataTypeWithoutPrimaryTypes(const string & dataType){
     if(dataType == "bool" || dataType == "int" || dataType == "double" || dataType == "string"){
         return value_inst;
     }
@@ -1096,6 +1095,14 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
         }
         
         DataType variableType = strToDataTypeWithoutPrimaryTypes(words[cursor].value);
+
+        if(variableType == DataType::null_dt){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": DataType '" << words[cursor].value << "' is undefined.\n";
+            return true;
+        }
+
         string variableID = words[cursor + 1 + isReference].value;
         cursor += 2 + isReference;
 

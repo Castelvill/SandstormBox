@@ -43,16 +43,15 @@ start printOnTerminalUnprotected(string & textToPrint)
 end
 
 start cout(string & result)
-    index me [0 0] super_editable_text EditableText
-    fun EditableText add_content result
-    putCursorOnTop()
+    index me [0 0] super_editable_text editableText
+    fun editableText add_content result
+    putCursorOnTop(editableText)
 end
 
-start putCursorOnTop()
-    index me [0 0] super_editable_text EditableText
-    access history [EditableText.content]
+start putCursorOnTop(SEditText & editableText)
+    access history [editableText.content]
     len history historySize
-    fun EditableText set_cursor_pos historySize
+    fun editableText set_cursor_pos historySize
 end
 
 start updateTerminal()

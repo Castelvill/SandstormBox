@@ -1,6 +1,6 @@
+-Replace all compile time errors with one function.
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
--Fix terminal: Clicking tab while the cursor is inside the text will color the rest of the line to the right.
 -Changing the position of the cursor in the text should update currentLine and currentChar parameters in the editor's command line - expand access instruction.
 -Add a build restriction keyword to forbid given scripts from being built and/or executed in a specified way.
 -Remove the need to manually add points to the primitives, unless we want to add polygons - in that case adding points should be optional and all of them will be used only if the primitive is of "polygon" type.

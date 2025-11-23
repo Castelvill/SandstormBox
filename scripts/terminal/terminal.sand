@@ -694,16 +694,23 @@ start autoComplete()
     if (!Camera.is_selected)
         return
     end_if
+
     index me [0 0] super_editable_text EditableText
+    string userInput ""
+    access userInput [EditableText.content]
+    int userInputSize 0
+    len userInput userInputSize
+    fun EditableText set_cursor_pos userInputSize
+
     fun EditableText set_last_color 1.0 0.8 0.0 1.0
     fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
-    first EditableText _ _ _ _ content _ userInput
-    first EditableText _ _ _ _ protected_area _ protectedArea
-    len userInput userInputSize
+
+    int protectedArea 0
+    access protectedArea [EditableText.protected_area]
     substr userInput protectedArea userInputSize command
     ValVec params
     tokenize " " command params
-    autoCompletePrograms(params, command)
+    autoCompleteProgramsOrFiles(params, command)
 end
 
 start autoCompleteFiles(string & command, ValVec & params)
@@ -726,8 +733,9 @@ start autoCompleteFiles(string & command, ValVec & params)
     replaceWithAutoComplete(command, params, completes, commonPart, lastParameter)
 end
 
-start autoCompletePrograms(ValVec & params, string & command)
+start autoCompleteProgramsOrFiles(ValVec & params, string & command)
     if(params.size == 1)
+        //Auto complete programs
         ValVec completes
         similar command allowedPrograms false completes
         similar command allowedPrograms true commonPart
