@@ -1,9 +1,9 @@
 @trigger on_init
 start main()
     int i 0
-    while(i 10 <)
+    while(i < 10)
         int j i
-        while(j 10 <)
+        while(j < 10)
             print "*"
             ++ j
         end_while

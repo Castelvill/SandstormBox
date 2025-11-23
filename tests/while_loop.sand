@@ -2,16 +2,16 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     int sum 0
     int x 23
     int y 7
     int i 0
     int j 0
-    while(i x <)
+    while(i < x)
         = j 0
-        while(j y <)
+        while(j < y)
             ++ sum
             ++ j
         end_while
@@ -25,19 +25,19 @@ start main()
     = y 25
     = sum 0
 
-    while(i x <)
+    while(i < x)
         = j 0
-        run test_loop(sum, j, y)
+        test_loop(sum, j, y)
         ++ i
     end_while
 
     assert sum 1700
 
-    run endTest()
+    endTest()
 end
 
 start test_loop(int & sum, int & j, int & y)
-    while(j y <)
+    while(j < y)
         ++ sum
         ++ j
     end_while

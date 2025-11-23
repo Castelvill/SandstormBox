@@ -13,7 +13,7 @@ end
 start each_iteration()
     print "each_iteration\n"
     -- countdown
-    if(countdown 0 <)
+    if(countdown < 0)
 	    exit
     end_if
 end

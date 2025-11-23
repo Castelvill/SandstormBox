@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     fun my_layer set_id "TestLayer"
     access my_layer_id [me.layer_id]
@@ -33,5 +33,5 @@ start main()
     access objectsN [Processes.number_of_objects]
     assert objectsN objectsN_2
 
-    run endTest()
+    endTest()
 end

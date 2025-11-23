@@ -58,19 +58,19 @@ end
 start eachIteration
     index me [0 0] super_text TextField
     
-    run startGame()
-    run drawScene(TextField)
+    startGame()
+    drawScene(TextField)
 end
 
 start startGame()
-    if(gameState 0 !=)
+    if(gameState != 0)
         return
     end_if
     = gameState 1
     int index 0
     fun nonKittenPos clear
     
-    while(index MAX_ITEMS <)
+    while(index < MAX_ITEMS)
         random_int 0 GAME_MAP_SIZE randomPos
         fun nonKittenPos push_back randomPos
         next index
@@ -78,13 +78,13 @@ start startGame()
 end
 
 start drawScene(SText & TextField)
-    if(gameState 1 !=)
+    if(gameState != 1)
         return
     end_if
 
     fun TextField set_content "robotfindskitten-sand\n\n_______________________________________________________________________"
     
-    run drawItems(TextField)
+    drawItems(TextField)
 
     print "Iteration number: " counter "\n"
     fun TextField set_size SCREEN_W SCREEN_H
@@ -97,20 +97,20 @@ end
 
 start drawItems(SText & TextField)
     int index -1
-    while(index GAME_MAP_SIZE <)
+    while(index < GAME_MAP_SIZE)
         int item 0
         bool hit false
-        while(item MAX_ITEMS <)
+        while(item < MAX_ITEMS)
             index_vec nonKittenPos item pos
             next counter
-            if(pos index ==)
+            if(pos == index)
                 fun TextField add_content "X"
                 = hit true
                 break
             end_if
             next item
         end_while
-        if(hit !)
+        if(!hit)
             fun TextField add_content " "
         end_if
         next index

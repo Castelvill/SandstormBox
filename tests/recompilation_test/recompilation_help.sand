@@ -2,5 +2,5 @@
 start checkAlreadyDefinedVariables()
     assert localVariable NULL
     assert globalVariable 555
-    run endTest()
+    endTest()
 end

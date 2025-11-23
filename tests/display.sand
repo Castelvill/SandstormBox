@@ -2,9 +2,9 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     create_display 640 480 640 480
 
-    run endTest()
+    endTest()
 end

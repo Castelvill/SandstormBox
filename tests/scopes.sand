@@ -2,21 +2,21 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     int a 2
     assert a 2
-    if()
+    if
         int a 5
         assert a 5
     end_if
     assert a 2
     assert b NULL
-    run changeA(a)
+    changeA(a)
     assert a 10
     assert b NULL
     
-    run endTest()
+    endTest()
 end
 
 start changeA(int & a)

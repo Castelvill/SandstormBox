@@ -5,9 +5,6 @@ start helloWorldEvent()
     create_display 640 480 640 480
 
     print "To close the program use the CTRL+ESC shortcut or just click the exit button.\n"
-    
-    var KEY_LCTRL 217
-    var KEY_ESC 59
 end
 
 @trigger on_key_press

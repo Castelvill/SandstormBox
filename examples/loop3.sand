@@ -1,12 +1,12 @@
 @trigger on_init
 start main()
     int i 0
-    while(i 10 <)
+    while(i < 10)
         print "i = " i 
-        if(i 5 == i 8 == ||)
+        if(i == 5 || i == 8)
             int j 0
             print " -> "
-            while(j 5 <)
+            while(j < 5)
                 print j " "
                 ++ j
             end_while

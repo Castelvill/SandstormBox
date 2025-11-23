@@ -9,7 +9,7 @@ start test()
     find_by_id_2 allEvents "hello" originalHello
 
     int i 0
-    while(i 4 <)
+    while(i < 4)
         new Events me 1 "hello0" newEvent
         clone newEvent originalHello false
         next i

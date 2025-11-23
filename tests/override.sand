@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
     assert 0 1 //Fail on purpose
     exit
 end
@@ -10,11 +10,11 @@ end
 @trigger on_init
 @override
 start main()
-    run startTest()
+    startTest()
 
-    run func()
+    func()
 
-    run endTest()
+    endTest()
 end
 
 start func()

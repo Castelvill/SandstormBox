@@ -21,7 +21,7 @@ enum EngineInstr : unsigned char{
     load_text, save_text, ls, lse, new_proc, var, vec, tokenize, tree, len, size_i, substr,
     load_font, restart_drag, cd, pwd, similar, count, create_display, console_input, start_timer,
     stop_timer, compiler_breakpoint, breakpoint, assert, type, load_i, import, resume_assembling,
-    stop_assembling, start_printing_tokens, stop_printing_tokens,
+    stop_assembling, start_printing_tokens, stop_printing_tokens, start_expr,
     //instance declarations
     Val, ValVec, Pointer, PointerVec, Camera, CameraVec, Layer, LayerVec, Object, ObjectVec, Var,
     VarVec, Vec, VecVec, Text, TextVec, EditText, EditTextVec, SText, STextVec, SEditText,

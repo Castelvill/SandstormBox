@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
     
     new Objects my_layer 1 "otherObject" otherObject
     new Variables otherObject 1 "p0" p0
@@ -19,6 +19,6 @@ start onIdle()
     first my_layer _ "otherObject" Variables "p0" _ _ p0 //Access variable from object inside a layer
     assert p0 16
 
-    run endTest()
+    endTest()
     delete_this_event
 end

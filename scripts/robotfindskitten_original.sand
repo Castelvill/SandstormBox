@@ -56,30 +56,30 @@ end
 @trigger each_iteration
 start eachIteration
     index me [0 0] super_text TextField
-    run startGame()
-    run drawScene(TextField)
+    startGame()
+    drawScene(TextField)
 end
 
 start startGame 
-    if([gameState] [0] ==)
+    if(gameState == 0)
     = gameState 1
     int index 0
     fun nonKittenPos clear
-    run generateItems(index)
+    generateItems(index)
 end
 
 loop generateItems(int & index)
-    if([index] [MAX_ITEMS] <)
+    if(index < MAX_ITEMS)
     random_int 0 GAME_MAP_SIZE randomPos
     fun nonKittenPos push_back randomPos
     ++ index
 end
 
 start drawScene(super_editable_text & TextField)
-    if([gameState] [1] ==)
+    if(gameState == 1)
     fun TextField set_content "robotfindskitten v1600005.334b\n\n_______________________________________________________________________"
     int index -1
-    run drawItems(TextField, index)
+    drawItems(TextField, index)
 after
     print counter "\n"
     fun TextField set_size SCREEN_W SCREEN_H
@@ -90,30 +90,30 @@ after
 end
 
 loop drawItems(super_editable_text & TextField, int & index)
-    if([index] [GAME_MAP_SIZE] <)
+    if(index < GAME_MAP_SIZE)
     ++ index
     int item 0
     bool hit false
-    run checkItems(TextField, item, index, hit)
-    run addSpace(TextField, hit)
+    checkItems(TextField, item, index, hit)
+    addSpace(TextField, hit)
 end
 
 loop checkItems(super_editable_text & TextField, int & item, int & index, bool & hit)
-    if([item] [MAX_ITEMS] <)
+    if(item < MAX_ITEMS)
     index_vec nonKittenPos [0 item] value pos
     ++ counter
     ++ item
-    run checkSingleItem(TextField, index, hit, pos)
+    checkSingleItem(TextField, index, hit, pos)
 end
 
 start checkSingleItem(super_editable_text & TextField, int & index, bool & hit, int & pos)
-    if([pos] [index] ==)
+    if(pos == index)
     fun TextField add_content "X"
     = hit true
     break
 end
 
 start addSpace(super_editable_text & TextField, bool & hit)
-    if([hit] !)
+    if(!hit)
     fun TextField add_content " "
 end

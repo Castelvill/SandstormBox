@@ -2,15 +2,15 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     string varType ""
 
     Val val
     type val varType
     assert varType "Val"
-    run setVal(val)
-    run checkVal(val)
+    setVal(val)
+    checkVal(val)
 
     Pointer ptr
     type ptr varType
@@ -24,7 +24,7 @@ start main()
     type anyVar varType
     assert varType "any"
     
-    run endTest()
+    endTest()
 end
 
 start setVal(Val & val)

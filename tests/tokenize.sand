@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     tokenize " " "a b c d e" xd
     print_v output0 "-" xd "\n"
@@ -12,5 +12,5 @@ start main()
     print_v output1 "+" varA varB varC varD varE "\n"
     assert output1 "a+b+c+d+e+\n"
 
-    run endTest()
+    endTest()
 end

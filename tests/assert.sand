@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     assert NULL NULL
     assert a NULL
@@ -17,5 +17,5 @@ start main()
     assert a 12
     assert 12 a
 
-    run endTest()
+    endTest()
 end

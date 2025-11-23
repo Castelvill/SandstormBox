@@ -4,11 +4,11 @@
 
     @trigger on_init
     start main()
-        run startTest()
+        startTest()
 
         //Here goes the testing code
 
-        run endTest()
+        endTest()
     end
 */
 
@@ -17,7 +17,7 @@ start initTest()
     env can_exit_on_idle 1
     access testCaseName [me.id]
     //By default first automatically created object is called "Init"
-    if(testCaseName "Init" ==)
+    if(testCaseName == "Init")
         fun me set_id "TEST"
     end_if
 end
@@ -28,14 +28,14 @@ start startTest()
 end
 
 start endTest()
-    run incrementPassedTests()
+    incrementPassedTests()
     access testCaseName [me.id]
     print testCaseName " - PASSED\n"
 end
 
 start incrementPassedTests()
     access myName [me.id]
-    if(myName "TEST" ==)
+    if(myName == "TEST")
         return
     end_if
     all Layers _ _ _ _ _ _ layers

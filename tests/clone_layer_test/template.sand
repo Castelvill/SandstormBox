@@ -1,14 +1,14 @@
 @trigger on_init
 start onInit()
     access myName [me.id]
-    if(myName "Template" ==)
+    if(myName == "Template")
         assert 1 0
     end_if
 
     ++ var0
     assert var0 16
 
-    run decrementLock()
+    decrementLock()
 
     //print "Hello from " my_layer ":" myName ": " var0 "\n"
 end

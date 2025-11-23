@@ -6,6 +6,5 @@ end
 start main()
     string hello "Hello from a function!";
     println(hello)
-
     exit
 end

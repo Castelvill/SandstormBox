@@ -53,7 +53,7 @@ int return15()
 end
 
 int doubleNumber(int start, int n)
-    if(n 0 <=)
+    if(n <= 0)
         return start
     end_if
     -- n

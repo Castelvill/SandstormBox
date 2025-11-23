@@ -10,7 +10,7 @@ start each_second()
     = idleCounter 1
     ++ counter
     print "\nSecond has passed..." counter "\n"
-    if(counter 3 ==)
+    if(counter == 3)
         exit
     end_if
 end
@@ -21,7 +21,7 @@ start on_idle()
     ++ idleCounter
     int modulo 0
     % idleCounter 11 modulo
-    if(modulo 0 ==)
+    if(modulo == 0)
         print "\n"
     end_if
 end

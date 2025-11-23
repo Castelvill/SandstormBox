@@ -1,6 +1,6 @@
 @trigger on_mouse_pressing
 start checkIfWindowMoved()
-	if (mouse_moved isBorderless ! &&)
+	if (mouse_moved && !isBorderless)
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
         run revertWindowIfMoved(Camera)
@@ -16,7 +16,7 @@ start checkIfDisplayResize()
 end
 
 start revertWindowIfMoved(Camera & Camera)
-	if (isMaxed Camera.grabbed &&)
+	if (isMaxed && Camera.grabbed)
         = isMaxed false
         fun Camera set_can_mouse_resize true
         access MouseX [mouse_x]
@@ -34,7 +34,7 @@ end
 
 
 start revertBorderIfPossible()
-	if (isBorderless ! isMaxed ! &&)
+	if (!isBorderless && !isMaxed)
         all Layers _ _ _ _ _ _ Layers
         access myLayerID [me.layer_id]
         find_by_id_2 Layers myLayerID Layer
@@ -119,7 +119,7 @@ start refreshWindow(Camera & Camera, double & sx, double & sy)
     index Layer [0 0 2] collision MinCollision
     fun MinCollision set_pos sxShift height
 
-    if(isMaxed !)
+    if(!isMaxed)
         = sizeX sx
         = sizeY sy
         access cpx [Camera.pos_x]
@@ -150,7 +150,7 @@ end
 
 @trigger each_iteration
 start deleteWindow()
-    if (delete has_friends ! deleted_friends || &&)
+    if (delete && (!has_friends || deleted_friends))
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
         delete Camera
@@ -230,7 +230,7 @@ start switchBorderlessMode
 end
 
 start switchToBorderless()
-    if (isBorderless !)
+    if (!isBorderless)
         run switchFromBorderless()
         return
     end_if

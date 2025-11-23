@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start onInit()
-    run startTest()
+    startTest()
 
     access thisName [me.id]
 
@@ -19,7 +19,7 @@ start onInit()
     int i 0
     var idleLock 0
     
-    while(i 200 <)
+    while(i < 200)
         new Objects my_layer 1 "Clone0" Clone0
         clone Clone0 Template false
         fun Clone0 activate
@@ -31,9 +31,9 @@ end
 
 @trigger each_iteration
 start waitForOtherObjects()
-    if(idleLock 0 >)
+    if(idleLock > 0)
         return
     end_if
-    run endTest()
+    endTest()
     delete_this_event
 end

@@ -4,7 +4,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     new STexts me 1 "text" text
 
@@ -16,7 +16,7 @@ start main()
     assert textSize 1
     = textSize 0
 
-    run fun0()
+    fun0()
 
     print_v text_id _ text
     assert text_id "text"
@@ -24,7 +24,7 @@ start main()
     assert textSize 1
     = textSize 0
 
-    run fun1(text)
+    fun1(text)
 
     print_v text_id _ text
     assert text_id "text"
@@ -32,7 +32,7 @@ start main()
     assert textSize 1
     = textSize 0
 
-    run fun2(text)
+    fun2(text)
 
     print_v text_id _ text
     assert text_id "text"
@@ -40,7 +40,7 @@ start main()
     assert textSize 1
     = textSize 0
 
-    run endTest()
+    endTest()
 end
 
 start fun0()

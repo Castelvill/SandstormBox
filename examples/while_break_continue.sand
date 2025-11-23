@@ -2,27 +2,38 @@
 start main()
     int i 0
     int j 0
-    while(i 10 <)
+    while(i < 10)
         print i " -> "
-        if(i 3 ==)
+
+        if(i == 3)
             ++ i
-            print "\n"
+            print "(continue 1)\n"
             continue
         end_if
+
         = j 0
-        while(j 10 <)
-            if(i 5 == j 3 < &&)
+
+        while(j < 10)
+
+            if(i == 5 && j < 3)
                 ++ j
+                print "(continue 2)"
                 continue
             end_if
+
             print j " "
-            if(j 8 ==)
+
+            if(j == 8)
+                print "(break)"
                 break
             end_if
+
             ++ j
         end_while
+
         print "\n"
         ++ i
     end_while
+
     exit
 end

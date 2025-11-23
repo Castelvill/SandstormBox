@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     int a 5
     assert a 5
@@ -10,14 +10,14 @@ start main()
     var b 10
     assert b 10
     
-    run incA(a)
+    incA(a)
     assert a 5
-    run incB()
+    incB()
     assert b 11
-    run incB2(b)
+    incB2(b)
     assert b 11
 
-    run endTest()
+    endTest()
 end
 
 start incA(int a)

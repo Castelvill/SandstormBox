@@ -1,8 +1,5 @@
 @trigger on_init
 start putRectangleOnScreen
-    var KEY_LCTRL 217
-    var KEY_ESC 59
-
     int windowWidth 640
     int windowHeight 480
     create_display windowWidth windowHeight windowWidth windowHeight
@@ -34,7 +31,7 @@ end
 
 @trigger on_key_press
 start exitProgram
-    if(key_pressed(KEY_LCTRL) key_pressed(KEY_ESC) &&)
+    if(key_pressed(KEY_LCTRL) && key_pressed(KEY_ESC))
         exit
     end_if
 end

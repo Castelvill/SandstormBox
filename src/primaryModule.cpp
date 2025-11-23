@@ -726,6 +726,8 @@ string instrToStr(const EngineInstr & instruction){
             return "start_printing_tokens";
         case stop_printing_tokens:
             return "stop_printing_tokens";
+        case start_expr:
+            return "(";
         case Val:
             return "Val";
         case ValVec:

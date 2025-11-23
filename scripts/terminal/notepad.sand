@@ -1,21 +1,21 @@
 @override
 start additionalUpdate()
-    run refreshWindowWithCameraNotepad()
+    refreshWindowWithCameraNotepad()
 end
 
 @trigger on_mouse_pressing
 start _checkIfWindowMovedNotepad()
-    if (mouse_moved mouse_pressing(0) &&)
+    if (mouse_moved && mouse_pressing(0))
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
-        run refreshWindowWithCameraNotepad()
+        refreshWindowWithCameraNotepad()
     end_if
 end
 
 @trigger on_display_resize
 start checkIfDisplayResizeNotepad()
     if (isMaxed)
-        run refreshWindowWithDisplayNotepad()
+        refreshWindowWithDisplayNotepad()
     end_if
 end
 
@@ -28,7 +28,7 @@ start refreshWindowWithDisplayNotepad()
     access sx [display_w]
     access sy [display_h]
     fun Camera resize sx sy
-    run refreshWindowNotepad(sx, sy)
+    refreshWindowNotepad(sx, sy)
 end
 
 start refreshWindowWithCameraNotepad()
@@ -38,7 +38,7 @@ start refreshWindowWithCameraNotepad()
     int sy 0
     access sx [Camera.size_x]
     access sy [Camera.size_y]
-    run refreshWindowNotepad(sx, sy)
+    refreshWindowNotepad(sx, sy)
 end
 
 
@@ -49,11 +49,11 @@ start refreshWindowNotepad(double &sx, double &sy)
     index Layer [0 0 0] super_editable_text Notepad
     fun Notepad set_size sx sy
     //fun Notepad update
-    run resizeObjectWhenNotBorderless(sx, sy)
+    resizeObjectWhenNotBorderless(sx, sy)
 end
 
 start resizeObjectWhenNotBorderless(double &sx, double &sy)
-    if (isBorderless !)
+    if (!isBorderless)
         index my_layer [0 0] object WindowObject
         fun WindowObject set_size sx sy
         //fun Notepad update
@@ -85,7 +85,7 @@ start resizeObjectWhenSwitchingToBorderlessMode()
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
         if(Camera.is_focused)
-            run resizeObjectForBorderlessMode(Camera)
+            resizeObjectForBorderlessMode(Camera)
         end_if
     end_if
 end
@@ -105,7 +105,7 @@ start resizeObjectForBorderlessMode(Camera &Camera)
         index my_layer [0 0 0] super_editable_text Notepad
         fun Notepad update
     else 
-        run resizeObjectFromBorderlessMode(Camera)
+        resizeObjectFromBorderlessMode(Camera)
     end_if
 end
 

@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     var var0 5
     var var1 10
@@ -32,7 +32,7 @@ start main()
     assert var3 NULL
     assert var4 25
 
-    run endTest()
+    endTest()
 end
 
 @trigger on_init

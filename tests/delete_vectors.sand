@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     vec int vec0 [5]
     vec int vec1 [10]
@@ -40,7 +40,7 @@ start onInit()
     assert vec2 15
     assert vec3 NULL
     assert vec4 25
-    run endTest()
+    endTest()
     delete_this_event
 end
 

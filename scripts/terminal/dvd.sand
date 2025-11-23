@@ -64,10 +64,10 @@ start moveRectangle
     double ys 0.0
     + x SIZE_X xs
     + y SIZE_Y ys
-    if(x 0 <= xs DISPLAY_W >= ||)
+    if(x <= 0 || xs >= DISPLAY_W)
         *= velX -1.0
     end_if
-    if(y 0 <= ys DISPLAY_H >= ||)
+    if(y <= 0 || ys >= DISPLAY_H)
         *= velY -1.0
     end_if
 	+= x velX

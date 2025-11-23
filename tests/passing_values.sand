@@ -2,13 +2,13 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     var a 10
-    run passA(a)
-    run passA2(a)
+    passA(a)
+    passA2(a)
 
-    run endTest()
+    endTest()
 end
 
 start passA(int localA)

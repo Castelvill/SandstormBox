@@ -2,20 +2,23 @@
 start main()
     int height 5
     int i 0
-    while(i height <)
+    while(i < height)
         int space height
         -= space i
         -- space
         int j 0
-        while(j space <)
+
+        while(j < space)
             print " "
             ++ j
         end_while
+
         int stars 2
         *= stars i
         += stars 1
         int k 0
-        while(k stars <)
+
+        while(k < stars)
             print "*"
             ++ k
         end_while
@@ -26,14 +29,16 @@ start main()
 
     // Tree trunk
     int t 0
-    while(t 2 <)
+    while(t < 2)
         int s 0
         int heigh_minus height
         -- heigh_minus
-        while(s heigh_minus <)
+
+        while(s < heigh_minus)
             print " "
             ++ s
         end_while
+        
         print "*\n"
         ++ t
     end_while

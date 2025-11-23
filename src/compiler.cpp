@@ -189,7 +189,9 @@ std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
         }
         if(output[i] == "("){
             triggerPreprocessor = false;
-            mergedOutput.emplace_back(WordStruct(TokenType::start_expr_tk, output[i], false));
+            mergedOutput.emplace_back(WordStruct(TokenType::start_expr_tk, output[i], false,
+                EngineInstr::start_expr
+            ));
             continue;
         }
         if(output[i] == ")"){

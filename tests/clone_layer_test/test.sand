@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start onInit()
-    run startTest()
+    startTest()
 
     access thisName [me.id]
     access thisLayerName [my_layer.id]
@@ -21,7 +21,7 @@ start onInit()
 
     int i 0
     var idleLock 0
-    while(i 200 <)
+    while(i < 200)
         new Layers 1 "NewLayer0" NewLayer
         clone NewLayer TemplateLayer false
         fun NewLayer activate
@@ -33,9 +33,9 @@ end
 
 @trigger each_iteration
 start waitForOtherObjects()
-    if(idleLock 0 >)
+    if(idleLock > 0)
         return
     end_if
-    run endTest()
+    endTest()
     delete_this_event
 end

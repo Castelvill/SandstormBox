@@ -2,7 +2,7 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     //normal definitions from constants
 
@@ -50,5 +50,5 @@ start main()
     string double_to_str double_l
     assert double_to_str "791.430000"
 
-    run endTest()
+    endTest()
 end

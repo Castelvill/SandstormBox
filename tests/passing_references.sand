@@ -2,24 +2,24 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     int x 0
     assert x 0
-    run val(x)
+    val(x)
     assert x 0
-    run ref(x)
+    ref(x)
     assert x 2
-    run valToVal(x)
+    valToVal(x)
     assert x 2
-    run valToRef(x)
+    valToRef(x)
     assert x 2
-    run refToVal(x)
+    refToVal(x)
     assert x 5
-    run refToRef(x)
+    refToRef(x)
     assert x 8
 
-    run endTest()
+    endTest()
 end
 
 start val(int x)
@@ -38,7 +38,7 @@ start valToVal(int x)
     assert x 2
     = x 3
     assert x 3
-    run val2(x)
+    val2(x)
     assert x 3
 end
 
@@ -46,7 +46,7 @@ start valToRef(int x)
     assert x 2
     = x 4
     assert x 4
-    run ref2(x)
+    ref2(x)
     assert x 8
 end
 
@@ -54,7 +54,7 @@ start refToVal(int & x)
     assert x 2
     = x 5
     assert x 5
-    run val2(x)
+    val2(x)
     assert x 5
 end
 
@@ -62,7 +62,7 @@ start refToRef(int & x)
     assert x 5
     = x 6
     assert x 6
-    run ref2(x)
+    ref2(x)
     assert x 8
 end
 

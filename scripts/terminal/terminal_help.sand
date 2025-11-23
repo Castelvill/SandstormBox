@@ -14,7 +14,7 @@ start printOnTerminal(string & textToPrint)
     index me [0 0] super_editable_text TerminalTextField
     access TerminalSizeY [TerminalTextField.size_y]
 
-    if(TerminalSizeY h < )
+    if(TerminalSizeY < h)
         fun TerminalTextField set_size w h
     end_if
     run refreshScrollbar()
@@ -36,7 +36,7 @@ start printOnTerminalUnprotected(string & textToPrint)
     index me [0 0] super_editable_text TerminalTextField
     access TerminalSizeY [TerminalTextField.size_y]
 
-    if(TerminalSizeY h < )
+    if(TerminalSizeY < h)
         fun TerminalTextField set_size w h
     end_if
     run refreshScrollbar()
@@ -71,7 +71,7 @@ end
 
 
 start mv()
-    if (exists(param1) param2 "" != &&)
+    if (exists(param1) && param2 != "")
         mv param1 param2
         = program ""
     else
@@ -83,7 +83,7 @@ end
 
 
 start ls
-    if (exists(param1) param1 "" == ||)
+    if (exists(param1) || param1 == "")
         string result ""
         ls param1 result
         ValVec files
@@ -98,7 +98,7 @@ start ls
 end
 start lsColoringLoop(SEditText & EditableText, ValVec & files)
 	int fileIndex 0
-    while (fileIndex files.size <)
+    while (fileIndex < files.size)
         index files [fileIndex] value file
         len file fileNameLength
         int length 5
@@ -124,13 +124,13 @@ start colorIfDirectory(SEditText & EditableText, string & file, int & fileNameLe
     end_if
 end
 start colorIfSandScript(SEditText & EditableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
-    if(fileNameLength 0 >)
+    if(fileNameLength > 0)
         substr file fileNameLength length extension
         substr file fileNameLengthFT lengthFT extensionFT
-        if(extension ".sand" ==)
+        if(extension == ".sand")
             fun EditableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
         else //Color if the file is of formatted text format
-            if(extensionFT ".ft" ==)
+            if(extensionFT == ".ft")
                 fun EditableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
             else
                 run colorIfNormalFile(EditableText)
@@ -394,7 +394,7 @@ end
 
 
 start cd
-    if (exists(param1) param1 "" == ||)
+    if (exists(param1) || param1 == "")
         = program ""
         cd param1
     else
@@ -419,7 +419,7 @@ end
 start printHistory(int & commandHistorySize)
     int i 0
     index me [0 0] super_editable_text EditableText
-    while (i commandHistorySize <)
+    while (i < commandHistorySize)
         string result ""
         int j 0
         = j i
@@ -442,19 +442,19 @@ end
 
 @trigger each_second
 start executeWaiting()
-    if (program "wait" == second_passed &&)
+    if (program == "wait" && second_passed)
         index me [0 0] super_editable_text Terminal
         fun Terminal cut_unprotected_area
         fun Terminal update
-        if(waitingTime 0 ==)
+        if(waitingTime == 0)
             string result "||||||||||||||||||||"
             ++ waitingTime
             run printOnTerminalUnprotected(result)
-        else_if(waitingTime 1 ==)
+        else_if(waitingTime == 1)
             string result "********************"
             ++ waitingTime
             run printOnTerminalUnprotected(result)
-        else_if(waitingTime 2 ==)
+        else_if(waitingTime == 2)
             string result "--------------------"
             = waitingTime 0
             run printOnTerminalUnprotected(result)
@@ -463,7 +463,7 @@ start executeWaiting()
 end
 
 start sudo()
-    if (param1 "rm" == param2 "-rf" == param3 "--no-preserve-root" == param4 "/" == && && &&)
+    if (param1 == "rm" && param2 == "-rf" && param3 == "--no-preserve-root" && param4 == "/")
         string result "Haha. No."
         = program "_enter"
         run cout(result)

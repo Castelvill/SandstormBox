@@ -43,9 +43,9 @@ start main()
     fun textField add_format "cascadia_code" 50
     fun textField set_last_color textColorR textColorG textColorB textColorA
     fun textField set_last_accent_color accentTextColorR accentTextColorG accentTextColorB accentTextColorA
-    fun textField set_offset 2 0 10
+    fun textField set_offset 2 0 0 //Try to set the second and third number to offsets in x and y axises
     fun textField add_format "cascadia_code" 74
-    fun textField set_offset 3 0 0
+    fun textField set_offset 3 0 0 
     fun textField set_last_color textColorR textColorG textColorB textColorA
     fun textField set_last_accent_color accentTextColorR accentTextColorG accentTextColorB accentTextColorA
 

@@ -1,19 +1,19 @@
 import "tests/test_template.sand"
 
 start printNumbers(int n)
-    if(n 0 <=)
+    if(n <= 0)
         return
     end_if
     -- n
-    run printNumbers(n)
+    printNumbers(n)
 end
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     int n 5
-    run printNumbers(n)
+    printNumbers(n)
     assert n 5
     load n3 10
     load n4 11
@@ -30,5 +30,5 @@ start main()
     assert n8 0
     assert n9 0
 
-    run endTest()
+    endTest()
 end

@@ -2,11 +2,11 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
 
     var a 10
     assert a 10
-    run subFun()
+    subFun()
     assert a 15
 end
 
@@ -19,10 +19,10 @@ end
 @trigger on_init
 start main1()
     assert a 15
-    run subFun2()
+    subFun2()
     assert a 20
 
-    run endTest()
+    endTest()
 end
 
 start subFun2()

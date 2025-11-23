@@ -2,39 +2,55 @@ import "tests/test_template.sand"
 
 @trigger on_init
 start main()
-    run startTest()
+    startTest()
+
+    if(true && false || true == false)
+        assert 0 1
+    end_if
+
+    if(!true && false)
+        assert 0 1
+    end_if
+
+    if (!(true || false && false))
+        assert 0 1
+    end_if
+
+    if ((true || false) && false)
+        assert 0 1
+    end_if
     
     int x 0
-    run test_if(x)
+    test_if(x)
     assert x 10
     = x 20
-    run test_if(x)
+    test_if(x)
     assert x 50
     = x 70
-    run test_if(x)
+    test_if(x)
     assert x 100
     = x 40
-    run test_if(x)
+    test_if(x)
     assert x 400
     = x 150
-    run test_if(x)
+    test_if(x)
     assert x 1500
 
-    run endTest()
+    endTest()
 end
 
 start test_if(int & x)
     //print "for x=" x ": "
-    if (x 10 <)
+    if (x < 10)
         = x 10
-    else_if (x 50 <)
-        if (x 40 ==)
+    else_if (x < 50)
+        if (x == 40)
             = x 400
         else
             = x 50
         end_if
     else
-        if(x 150 ==)
+        if(x == 150)
             = x 1500
             //print x "\n"
             return

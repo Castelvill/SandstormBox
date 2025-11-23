@@ -610,10 +610,30 @@ ReturnType parseExpression(const vector<WordStruct> & words, unsigned & cursor, 
     }
 }
 
-ReturnType createExpression(const vector<WordStruct> & words, unsigned & cursor, vector<ConditionClass> & Expression,
-    vector<VariableModule> & resultStack, unsigned lineNumber, string scriptName, bool isConditionalExpression,
-    ScopeType & Scopes, vector<VariableInfo> & NewLocalVariables, unsigned & topAddress,
-    bool canCreateNewVariable
+constexpr int getPrecedence(EngineInstr op){
+    switch(op){
+        case EngineInstr::not_i:
+            return 4;
+        case EngineInstr::equal:
+        case EngineInstr::not_equal:
+        case EngineInstr::less:
+        case EngineInstr::less_equal:
+        case EngineInstr::more:
+        case EngineInstr::more_equal:
+            return 3;
+        case EngineInstr::and_i:
+            return 2;
+        case EngineInstr::or_i:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+ReturnType createConditionalExpression(const vector<WordStruct> & words, unsigned & cursor,
+    vector<ConditionClass> & Expression, vector<VariableModule> & resultStack, unsigned lineNumber,
+    const string & scriptName, ScopeType & Scopes, vector<VariableInfo> & NewLocalVariables,
+    unsigned & topAddress, bool canCreateNewVariable
 ){
     if(cursor >= words.size()){
         return ReturnType::OK;
@@ -623,23 +643,122 @@ ReturnType createExpression(const vector<WordStruct> & words, unsigned & cursor,
         return ReturnType::OK;
     }
 
-    TokenType scopeType = TokenType::end_expr_tk;
-    if(isConditionalExpression){
-        if(words[cursor].type != TokenType::start_expr_tk){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Every expression must begin with parentheses.\n";
-            return ReturnType::ERROR;
-        }
-    }
-    else{
-        scopeType = TokenType::close_brackets_tk;
-        if(words[cursor].type != TokenType::open_brackets_tk){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor << " must begin with square brackets.\n";
-            return ReturnType::ERROR;
-        }
+    if(words[cursor].type != TokenType::start_expr_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Every expression must begin with parentheses.\n";
+        return ReturnType::ERROR;
     }
     
+    cursor++;
+    if(cursor >= words.size()){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression is too short.\n";
+        return ReturnType::ERROR;
+    }
+    WordStruct firstWord;
+    vector<EngineInstr> operatorsStack;
+    bool isParenthesisOpen = false;
+    
+    while(isParenthesisOpen || words[cursor].type != TokenType::end_expr_tk){
+        if(cursor >= words.size()){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression is too short.\n";
+            return ReturnType::ERROR;
+        }
+        if(words[cursor].type == TokenType::start_expr_tk){
+            isParenthesisOpen = true;
+            operatorsStack.push_back(EngineInstr::start_expr);
+            cursor++;
+        }
+        else if(words[cursor].type == TokenType::end_expr_tk){
+            isParenthesisOpen = false;
+            while(!operatorsStack.empty() && operatorsStack.back() != EngineInstr::start_expr){
+                Expression.back().operators.push_back(operatorsStack.back());
+                operatorsStack.pop_back();
+            }
+            if(operatorsStack.empty()){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Missing a ')'.\n";
+                return ReturnType::ERROR;
+            }
+            operatorsStack.pop_back();
+            cursor++;
+        }
+        else if(words[cursor].type == TokenType::keyword_tk
+            && isLogicInstr(words[cursor].instruction)
+        ){
+            if(Expression.empty() && !operatorsStack.empty()
+                && getPrecedence(operatorsStack.back()) > getPrecedence(words[cursor].instruction)
+            ){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__
+                    << ": Operator '" << words[cursor].value
+                    << "' cannot be added to an empty expression.\n";
+                return ReturnType::ERROR;
+            }
+            
+            while(!operatorsStack.empty()
+                && getPrecedence(operatorsStack.back()) > getPrecedence(words[cursor].instruction)
+            ){
+                Expression.back().operators.push_back(operatorsStack.back());
+                operatorsStack.pop_back();
+            }
+
+            operatorsStack.push_back(words[cursor].instruction);
+
+            cursor++;
+        }
+        else{
+            ReturnType status = parseExpression(words, cursor, Expression, lineNumber, scriptName,
+                Scopes, NewLocalVariables, topAddress, canCreateNewVariable, firstWord
+            );
+            if(status == ReturnType::CONTINUE){
+                continue;
+            }
+            if(status == ReturnType::ERROR){
+                return ReturnType::ERROR;
+            }
+        }
+        if(cursor >= words.size()){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Command is too short.\n";
+            return ReturnType::ERROR;
+        }
+    }
+    while(!operatorsStack.empty()){
+        Expression.back().operators.push_back(operatorsStack.back());
+        operatorsStack.pop_back();
+    }
+
+    cursor++;
+    resultStack.reserve(Expression.size());
+    for(unsigned i = 0; i < Expression.size(); ++i){
+        resultStack.push_back(VariableModule());
+    }
+    return ReturnType::OK;
+}
+
+ReturnType createNonConditionalExpression(const vector<WordStruct> & words, unsigned & cursor,
+    vector<ConditionClass> & Expression, vector<VariableModule> & resultStack, unsigned lineNumber,
+    const string & scriptName, ScopeType & Scopes, vector<VariableInfo> & NewLocalVariables,
+    unsigned & topAddress, bool canCreateNewVariable
+){
+    if(cursor >= words.size()){
+        return ReturnType::OK;
+    }
+    if(words[cursor].type == TokenType::empty_tk){
+        cursor++;
+        return ReturnType::OK;
+    }
+
+    if(words[cursor].type != TokenType::open_brackets_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Parameter " << cursor << " must begin with square brackets.\n";
+        return ReturnType::ERROR;
+    }
+
     cursor++;
     if(cursor >= words.size()){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -648,31 +767,22 @@ ReturnType createExpression(const vector<WordStruct> & words, unsigned & cursor,
     }
     WordStruct firstWord;
     
-    while(words[cursor].type != scopeType){
+    while(words[cursor].type != TokenType::close_brackets_tk){
         if(cursor >= words.size()){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Command is too short.\n";
             return ReturnType::ERROR;
         }
         if(words[cursor].type == TokenType::keyword_tk && isLogicInstr(words[cursor].instruction)){
-            if(!isConditionalExpression){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__
-                    << ": Cannot use operators inside not conditional expression. Correct syntax: [[source_0] [source_1] ...]\n";
-                return ReturnType::ERROR;
-            }
-            if(Expression.size() == 0){
-                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                    << NEW_LINE_PADDING << "In " << __FUNCTION__
-                    << ": Operator '" << words[cursor].value << "' cannot be added to an empty expression.\n";
-                return ReturnType::ERROR;
-            }
-            Expression.back().operators.emplace_back(words[cursor].instruction);
-            cursor++;
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": Cannot use operators inside not conditional expression."
+                << "Correct syntax: [[source_0] [source_1] ...]\n";
+            return ReturnType::ERROR;
         }
         else{
-            ReturnType status = parseExpression(words, cursor, Expression, lineNumber, scriptName, Scopes,
-                NewLocalVariables, topAddress, canCreateNewVariable, firstWord
+            ReturnType status = parseExpression(words, cursor, Expression, lineNumber, scriptName,
+                Scopes, NewLocalVariables, topAddress, canCreateNewVariable, firstWord
             );
             if(status == ReturnType::CONTINUE){
                 continue;
@@ -743,7 +853,7 @@ bool optionalOutput(const string & scriptName, const unsigned & lineNumber, stri
     
     if(instructionOutput.type != TokenType::empty_tk && instructionOutput.type != TokenType::identifier_tk){
         error = "Parameter 'output' (" + intToStr(cursor);
-        error += ") must be a context.";
+        error += ") must be a variable name";
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << words[0].value << "' instruction: " << error << "\n";
@@ -883,8 +993,9 @@ ReturnType InstrParser::parseIf(BranchingStackStruct & BranchingStack){
         return ReturnType::ERROR;
     
     Scopes.emplace_back(vector<VariableLocationStruct>());
-    if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-        lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+    if(ReturnType::OK != createConditionalExpression(words, cursor, Operation->ConditionalChain,
+        Operation->resultStack, lineNumber, scriptName, Scopes, NewEvent.LocalVariables, topAddress,
+        false
     )){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
@@ -903,8 +1014,9 @@ ReturnType InstrParser::parseElseIf(BranchingStackStruct & BranchingStack){
     Scopes.pop_back();
     Scopes.emplace_back(vector<VariableLocationStruct>());
 
-    if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-        lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+    if(ReturnType::OK != createConditionalExpression(words, cursor, Operation->ConditionalChain,
+        Operation->resultStack, lineNumber, scriptName, Scopes, NewEvent.LocalVariables, topAddress,
+        false
     )){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
@@ -1012,8 +1124,9 @@ ReturnType InstrParser::parseWhile(BranchingStackStruct & BranchingStack){
         return ReturnType::ERROR;
 
     Scopes.emplace_back(vector<VariableLocationStruct>());
-    if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-        lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+    if(ReturnType::OK != createConditionalExpression(words, cursor, Operation->ConditionalChain,
+        Operation->resultStack, lineNumber, scriptName, Scopes, NewEvent.LocalVariables, topAddress,
+        false
     )){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
@@ -1198,8 +1311,9 @@ ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEv
     if(Operation->Location.source == ValueSource::camera){
         if(optional(words, cursor, Operation->Location.cameraID)){ return ReturnType::OK; }
         if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
-        if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-            lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+        if(ReturnType::OK != createConditionalExpression(words, cursor, Operation->ConditionalChain,
+            Operation->resultStack, lineNumber, scriptName, Scopes, NewEvent.LocalVariables,
+            topAddress, false
         )){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
@@ -1225,8 +1339,9 @@ ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEv
         if(optional(words, cursor, Operation->Location.moduleType)){ return ReturnType::OK; }
         if(optional(words, cursor, Operation->Location.moduleID)){ return ReturnType::OK; }
         if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
-        if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-            lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+        if(ReturnType::OK != createConditionalExpression(words, cursor, Operation->ConditionalChain,
+            Operation->resultStack, lineNumber, scriptName, Scopes, NewEvent.LocalVariables,
+            topAddress, false
         )){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
@@ -1311,8 +1426,9 @@ ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEv
         if(optional(words, cursor, Operation->Location.moduleType)){ return ReturnType::OK; }
         if(optional(words, cursor, Operation->Location.moduleID)){ return ReturnType::OK; }
         if(optional(words, cursor, Operation->Location.attribute)){ return ReturnType::OK; }
-        if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-            lineNumber, scriptName, true, Scopes, NewEvent.LocalVariables, topAddress, false
+        if(ReturnType::OK != createConditionalExpression(words, cursor, Operation->ConditionalChain,
+            Operation->resultStack, lineNumber, scriptName, Scopes, NewEvent.LocalVariables,
+            topAddress, false
         )){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
@@ -1653,8 +1769,9 @@ ReturnType InstrParser::parseAccess(){
             return ReturnType::ERROR;
     }
 
-    if(ReturnType::OK != createExpression(words, cursor, Operation->ConditionalChain, Operation->resultStack,
-        lineNumber, scriptName, false, Scopes, NewEvent.LocalVariables, topAddress, false
+    if(ReturnType::OK != createNonConditionalExpression(words, cursor, Operation->ConditionalChain,
+        Operation->resultStack, lineNumber, scriptName, Scopes, NewEvent.LocalVariables, topAddress,
+        false
     )){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Expression creation failed.\n";
