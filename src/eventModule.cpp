@@ -3420,6 +3420,20 @@ void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType
             }
             Primitives->points.emplace_back(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
             return;
+        case set_point:
+            if(Values.size() < 3){
+                return;
+            }
+            if((size_t)Values[0].getIntUnsafe() >= Primitives->points.size()){
+                cerr << "Error: Primitive point with index " << Values[0].getIntUnsafe()
+                    << " does not exist. Index is out of bounds (" << Primitives->points.size()
+                    << ").\n";
+                return;
+            }
+            Primitives->points[Values[0].getIntUnsafe()].set(Values[1].getDoubleUnsafe(),
+                Values[2].getDoubleUnsafe()
+            );
+            return;
         case set_color:
             if(Values.size() < 4){
                 return;
@@ -3437,6 +3451,19 @@ void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType
                 return;
             }
             Primitives->radius = Values[0].getDoubleUnsafe();
+            return;
+        case set_line_join_type:
+            if(Values.size() < 1){
+                return;
+            }
+            Primitives->setLineJoinType(Values[0].getIntUnsafe());
+            return;
+        case create:
+            if(Values.size() < 1){
+                return;
+            }
+            Primitives->type = getPrimitiveType(Values[0].getStringUnsafe());
+            Primitives->initPrimitiveByType();
             return;
         default:{
             bool temp = false;

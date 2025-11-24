@@ -2471,6 +2471,7 @@ string attributeToStr(const AttributeType &attribute){
         case allow_movement: return "allow_movement";
         case set_is_env_sync: return "set_is_env_sync";
         case set_radius: return "set_radius";
+        case set_line_join_type: return "set_line_join_type";
         case set_time_to_death: return "set_time_to_death";
         case set_shape_rotation_speed: return "set_shape_rotation_speed";
         case set_color_intensity: return "set_color_intensity";
@@ -2535,7 +2536,9 @@ string attributeToStr(const AttributeType &attribute){
         case update_with_size: return "update_with_size";
         case set_type: return "set_type";
         case add_point: return "add_point";
+        case set_point: return "set_point";
         case set_thickness: return "set_thickness";
+        case create: return "create";
         case push_back_a: return "push_back";
         case pop_back_a: return "pop_back";
         case clear_a: return "clear";
@@ -3059,6 +3062,7 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "allow_movement") return allow_movement;
     else if(attribute == "set_is_env_sync") return set_is_env_sync;
     else if(attribute == "set_radius") return set_radius;
+    else if(attribute == "set_line_join_type") return set_line_join_type;
     else if(attribute == "set_time_to_death") return set_time_to_death;
     else if(attribute == "set_shape_rotation_speed") return set_shape_rotation_speed;
     else if(attribute == "set_color_intensity") return set_color_intensity;
@@ -3123,7 +3127,9 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "update_with_size") return update_with_size;
     else if(attribute == "set_type") return set_type;
     else if(attribute == "add_point") return add_point;
+    else if(attribute == "set_point") return set_point;
     else if(attribute == "set_thickness") return set_thickness;
+    else if(attribute == "create") return create;
     else if(attribute == "push_back") return push_back_a;
     else if(attribute == "pop_back") return pop_back_a;
     else if(attribute == "clear") return clear_a;

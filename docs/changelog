@@ -1,4 +1,10 @@
+24.11.2025
+-Fixed drawing filled polygons.
+
 23.11.2025
+-Added polygon primitives.
+-Added 'set_point' function to primitives module - updating positions of existing points.
+-Added 'create' function to primitives module - new function initializes points.
 -Fixed in terminal: Clicking tab while the cursor is inside the text will color the rest of the line to the right.
 -Updated ifs and while loops in all sand examples.
 

@@ -1,0 +1,53 @@
+@trigger on_init
+start createLines
+    int windowWidth 640
+    int windowHeight 480
+    create_display windowWidth windowHeight windowWidth windowHeight
+
+    new Cameras 1 "Camera" Camera
+    fun Camera resize windowWidth windowHeight
+    fun Camera add_visible_layer "KERNEL"
+
+    new Primitives me 1 "line0" line0
+    fun line0 create "line"
+    fun line0 set_color 1.0 0.0 0.0 1.0
+    fun line0 set_point 0 20 20
+    fun line0 set_point 1 100 100
+
+    new Primitives me 1 "line1" line1
+    fun line1 create "line"
+    fun line1 set_color 0.0 1.0 0.0 1.0
+    fun line1 set_point 0 150 50
+    fun line1 set_point 1 200 250
+
+    new Primitives me 1 "line2" line2
+    fun line2 create "line"
+    fun line2 set_color 0.0 0.0 1.0 1.0
+
+    var mode true
+    var up 300
+    var down 400
+end
+
+@trigger each_iteration
+start moveLine
+    if(mode)
+        if(up < 400)
+            ++ up
+            -- down
+        else
+            = mode false
+        end_if
+    else
+        if(up > 300)
+            -- up
+            ++ down
+        else
+            = mode true
+        end_if
+    end_if
+
+    index me [0 2] primitives line2
+    fun line2 set_point 0 up 50
+    fun line2 set_point 1 down 150
+end

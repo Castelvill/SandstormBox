@@ -1,0 +1,45 @@
+@trigger on_init
+start createLines
+    int windowWidth 640
+    int windowHeight 480
+    create_display windowWidth windowHeight windowWidth windowHeight
+
+    new Cameras 1 "Camera" Camera
+    fun Camera resize windowWidth windowHeight
+    fun Camera add_visible_layer "KERNEL"
+
+    new Primitives me 1 "polygon" polygon
+    fun polygon set_type "polygon"
+    fun polygon set_color 1.0 0.0 0.0 1.0
+    fun polygon add_point 20 20
+    fun polygon add_point 100 100
+    fun polygon add_point 70 200
+    fun polygon add_point 30 150
+
+    double_vec hexagonPoints [1 0 0.5 0.8660254038 -0.5 0.8660254038 -1 0 -0.5 -0.8660254038 0.5 -0.8660254038]
+    *= hexagonPoints 50
+
+    new Primitives me 1 "hexagon" hexagon
+    fun hexagon set_type "polygon"
+    fun hexagon set_thickness 10
+    fun hexagon set_line_join_type 1
+    fun hexagon set_color 0.0 1.0 0.0 1.0
+    fun hexagon set_pos 200 100
+
+    new Primitives me 1 "filledHexagon" filledHexagon
+    fun filledHexagon set_type "filled_polygon"
+    fun filledHexagon set_color 0.0 0.0 1.0 1.0
+    fun filledHexagon set_pos 350 100
+
+    int i 0
+    double x 0
+    double y 0
+    while(i < 12)
+        index_vec hexagonPoints i x
+        next i
+        index_vec hexagonPoints i y
+        fun hexagon add_point x y
+        fun filledHexagon add_point x y
+        next i
+    end_while
+end

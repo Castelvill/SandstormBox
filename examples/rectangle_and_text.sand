@@ -8,14 +8,12 @@ start putRectangleOnScreen
     fun Camera resize windowWidth windowHeight
     fun Camera add_visible_layer "KERNEL"
 
-    new Primitives me 1 "Rectangle" Rectangle
-    fun Rectangle set_type "filled_rectangle"
-    fun Rectangle add_point 0.0 0.0
-    fun Rectangle add_point 1.0 1.0
-    fun Rectangle set_color 1.0 0.0 0.0 1.0
-    fun Rectangle set_pos 50 100
-    fun Rectangle set_size 200 200
-    fun Rectangle update_with_size
+    new Primitives me 1 "rectangle" rectangle
+    fun rectangle create "filled_rectangle"
+    fun rectangle set_color 1.0 0.0 0.0 1.0
+    fun rectangle set_pos 50 100
+    fun rectangle set_size 200 200
+    fun rectangle update_with_size
 
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
 

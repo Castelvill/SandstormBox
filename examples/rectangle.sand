@@ -1,5 +1,5 @@
 @trigger on_init
-start putRectangleOnScreen
+start createRectangles
     int windowWidth 640
     int windowHeight 480
     create_display windowWidth windowHeight windowWidth windowHeight
@@ -8,14 +8,21 @@ start putRectangleOnScreen
     fun Camera resize windowWidth windowHeight
     fun Camera add_visible_layer "KERNEL"
 
-    new Primitives me 1 "Rectangle" Rectangle
-    fun Rectangle set_type "filled_rectangle"
-    fun Rectangle add_point 0.0 0.0
-    fun Rectangle add_point 1.0 1.0
-    fun Rectangle set_color 1.0 0.0 0.0 1.0
-    fun Rectangle set_pos 50 50
-    fun Rectangle set_size 200 200
-    fun Rectangle update_with_size
+    //Create rectangle by adding points
+    new Primitives me 1 "rectangle0" rectangle0
+    fun rectangle0 set_type "filled_rectangle"
+    fun rectangle0 add_point 20.0 20.0
+    fun rectangle0 add_point 150.0 120.0
+    fun rectangle0 set_color 1.0 0.0 0.0 1.0
+
+    //Create rectangle with the 'create' function - simpler version
+    new Primitives me 1 "rectangle1" rectangle1
+    fun rectangle1 create "filled_rectangle"
+    fun rectangle1 set_color 0.0 1.0 0.0 1.0
+    fun rectangle1 set_pos 200 50
+    fun rectangle1 set_size 200 150
+    //Map primitive's points positions to the module's position and size
+    fun rectangle1 update_with_size
 
     print "To close the program use the CTRL+ESC shortcut or just click the exit button.\n"
 end

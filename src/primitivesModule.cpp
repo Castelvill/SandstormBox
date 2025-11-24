@@ -122,6 +122,23 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
                 return;
             }
             al_draw_filled_ellipse(base.x + points[0].x, base.y + points[0].y, points[1].x, points[1].y, color);
+        case prim_polygon:{
+            float vertices[points.size()*2];
+            for(size_t v = 0; v < points.size(); ++v){
+                vertices[v*2] = base.x + points[v].x;
+                vertices[v*2+1] = base.y + points[v].y;
+            }
+            al_draw_polygon(vertices, points.size(), lineJoinType, color, thickness,
+                radius
+            );}
+            break;
+        case prim_filled_polygon:{
+            float vertices[points.size()*2];
+            for(size_t v = 0; v < points.size(); ++v){
+                vertices[v*2] = base.x + points[points.size() - (v + 1)].x;
+                vertices[v*2+1] = base.y + points[points.size() - (v + 1)].y;
+            }
+            al_draw_filled_polygon(vertices, points.size(), color);}
             break;
         default:
             cerr << "Error: In " << __FUNCTION__ << ": Cannot draw primitive of '"
@@ -133,35 +150,95 @@ void PrimitivesModule::updateWithSize(){
     if(points.size() == 0){
         return;
     }
-    if(type == prim_line || type == prim_rectangle || type == prim_filled_rectangle){
-        if(points.size() == 1){
-            points.emplace_back(vec2d());
-        }
-        points[1].x = points[0].x + size.x;
-        points[1].y = points[0].y + size.y;
+    switch(type){
+        case prim_line:
+        case prim_rectangle:
+        case prim_filled_rectangle:
+            if(points.size() == 1){
+                points.emplace_back(vec2d());
+            }
+            points[1].x = points[0].x + size.x;
+            points[1].y = points[0].y + size.y;
+            return;
+        case prim_rounded_rectangle:
+        case prim_filled_rounded_rectangle:
+            if(points.size() == 1){
+                points.emplace_back(vec2d());
+            }
+            points[1].x = points[0].x + size.x;
+            points[1].y = points[0].y + size.y;
+            if(points.size() == 2){
+                points.emplace_back(vec2d());
+            }
+            return;
+        case prim_circle:
+        case prim_filled_circle:
+            radius = std::min(size.x / 2, size.y / 2);
+            return;
+        case prim_ellipse:
+        case prim_filled_ellipse:
+            if(points.size() == 1){
+                points.emplace_back(vec2d());
+            }
+            points[1].x = size.x / 2;
+            points[1].y = size.y / 2;
+            return;
+        case prim_triangle:
+        case prim_filled_triangle:
+            cerr << "Error: In " << __FUNCTION__
+                << ": Cannot update the size of triangle primitive.\n";
+            return;
+        case prim_polygon:
+        case prim_filled_polygon:
+            cerr << "Error: In " << __FUNCTION__
+                << ": Cannot update the size of polygon primitive.\n";
+            return;
+        default:
+            return;
     }
-    else if(type == prim_rounded_rectangle || type == prim_filled_rounded_rectangle){
-        if(points.size() == 1){
-            points.emplace_back(vec2d());
-        }
-        points[1].x = points[0].x + size.x;
-        points[1].y = points[0].y + size.y;
-        if(points.size() == 2){
-            points.emplace_back(vec2d());
-        }
-    }
-    else if(type == prim_circle || type == prim_filled_circle){
-        radius = std::min(size.x / 2, size.y / 2);
-    }
-    else if(type == prim_ellipse || type == prim_filled_ellipse){
-        if(points.size() == 1){
-            points.emplace_back(vec2d());
-        }
-        points[1].x = size.x / 2;
-        points[1].y = size.y / 2;
-    }
-    else if(type == prim_triangle || type == prim_filled_triangle){
-        cerr << "Error: In " << __FUNCTION__ << ": Cannot calculate points of triangle primitive.\n";
+}
+void PrimitivesModule::initPrimitiveByType(){
+    points.clear();
+    switch(type){
+        case prim_line:
+            points = {vec2d(), vec2d()};
+            break;
+        case prim_triangle:
+            points = {vec2d(), vec2d(), vec2d()};
+            break;
+        case prim_filled_triangle:
+            points = {vec2d(), vec2d(), vec2d()};
+            break;
+        case prim_rectangle:
+            points = {vec2d(), vec2d()};
+            break;
+        case prim_filled_rectangle:
+            points = {vec2d(), vec2d()};
+            break;
+        case prim_rounded_rectangle:
+            points = {vec2d(), vec2d(), vec2d()};
+            break;
+        case prim_filled_rounded_rectangle:
+            points = {vec2d(), vec2d(), vec2d()};
+            break;
+        case prim_circle:
+            points = {vec2d()};
+            break;
+        case prim_filled_circle:
+            points = {vec2d()};
+            break;
+        case prim_ellipse:
+            points = {vec2d(), vec2d()};
+            break;
+        case prim_filled_ellipse:
+            points = {vec2d(), vec2d()};
+        case prim_polygon:
+        case prim_filled_polygon:
+            return;
+        default:
+            cerr << "Error: In " << __FUNCTION__ << ": Primitive of '"
+                << transPrimitiveTypeToString(type) << "' type does not exist.\n";
+            break;
     }
 }
 void PrimitivesModule::getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers){
@@ -174,7 +251,32 @@ void PrimitivesModule::getContext(AttributeType attribute, vector <BasePointersS
         getPrimaryContext(attribute, BasePointers);
     }
 }
-PrimitiveShapeType getPrimitiveType(string type){
+void PrimitivesModule::setLineJoinType(int type){
+    switch(type){
+        case 0:
+            lineJoinType = ALLEGRO_LINE_JOIN::ALLEGRO_LINE_JOIN_NONE;
+            return;
+        case 1:
+            lineJoinType = ALLEGRO_LINE_JOIN::ALLEGRO_LINE_JOIN_BEVEL;
+            return;
+        case 2:
+            lineJoinType = ALLEGRO_LINE_JOIN::ALLEGRO_LINE_JOIN_ROUND;
+            return;
+        case 3:
+            lineJoinType = ALLEGRO_LINE_JOIN::ALLEGRO_LINE_JOIN_MITER;
+            return;
+        default:
+            cerr << "Error: Line join type with number " << type << " is not valid. "
+                << "Choose type from the following:\n"
+                << " - 0 - no line joining,\n"
+                << " - 1 - bevel line joining,\n"
+                << " - 2 - round line joining,\n"
+                << " - 3 - miter line joining.\n";
+            lineJoinType = ALLEGRO_LINE_JOIN::ALLEGRO_LINE_JOIN_NONE;
+            return;
+    }
+}
+PrimitiveShapeType getPrimitiveType(const string & type){
     if(type == "line"){
         return prim_line;
     }
@@ -207,6 +309,12 @@ PrimitiveShapeType getPrimitiveType(string type){
     }
     else if(type == "filled_ellipse"){
         return prim_filled_ellipse;
+    }
+    else if(type == "polygon"){
+        return prim_polygon;
+    }
+    else if(type == "filled_polygon"){
+        return prim_filled_polygon;
     }
     else{
         return prim_null;
