@@ -303,10 +303,8 @@ start spawn()
     fun NewWindowObject set_can_be_selected false
 
     new Primitives NewWindowObject 1 "background" border1
-    fun border1 set_type "filled_rounded_rectangle"
-    fun border1 add_point 0.0 0.0
-    fun border1 add_point 880 980
-    fun border1 add_point roundingSize roundingSize
+    fun border1 create "filled_rounded_rectangle"
+    fun border1 set_point 2 roundingSize roundingSize
     fun border1 set_color 0.0 0.0 0.0 0.7
     fun border1 set_thickness 10.0
     fun border1 set_size 640 480

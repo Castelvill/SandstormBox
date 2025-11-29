@@ -3418,7 +3418,21 @@ void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType
             if(Values.size() < 2){
                 return;
             }
-            Primitives->points.emplace_back(vec2d(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe()));
+            Primitives->points.emplace_back(vec2d(Values[0].getDoubleUnsafe(),
+                Values[1].getDoubleUnsafe()
+            ));
+            return;
+        case remove_point:
+            if(Values.size() < 1){
+                return;
+            }
+            if((size_t)Values[0].getIntUnsafe() >= Primitives->points.size()){
+                cerr << "Error: Primitive point with index " << Values[0].getIntUnsafe()
+                    << " does not exist. Index is out of bounds (" << Primitives->points.size()
+                    << ").\n";
+                return;
+            }
+            Primitives->points.erase(Primitives->points.begin() + Values[0].getIntUnsafe());
             return;
         case set_point:
             if(Values.size() < 3){
@@ -3434,11 +3448,32 @@ void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType
                 Values[2].getDoubleUnsafe()
             );
             return;
+        case move_point:
+            if(Values.size() < 3){
+                return;
+            }
+            {
+                int pointIdx = Values[0].getIntUnsafe();
+                if(pointIdx < 0 || (size_t)pointIdx >= Primitives->points.size()){
+                    cerr << "Error: Primitive point with index " << pointIdx
+                        << " does not exist. Index is out of bounds (" << Primitives->points.size()
+                        << ").\n";
+                    return;
+                }
+                Primitives->points[pointIdx].set(
+                    Primitives->points[pointIdx].x + Values[1].getDoubleUnsafe(),
+                    Primitives->points[pointIdx].y + Values[2].getDoubleUnsafe()
+                );
+            }
+            return;
         case set_color:
             if(Values.size() < 4){
                 return;
             }
-            Primitives->color = al_map_rgba_f(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe());
+            Primitives->color = al_map_rgba_f(Values[0].getDoubleUnsafe(),
+                Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(),
+                Values[3].getDoubleUnsafe()
+            );
             return;
         case set_thickness:
             if(Values.size() < 1){

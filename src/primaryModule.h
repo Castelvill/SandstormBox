@@ -115,7 +115,8 @@ enum AttributeType: short{
     scroll_to_the_beginning, scroll_to_the_end, scroll_by_distance,
     add_camera, remove_camera, clear_cameras,
     //primitives
-    update_with_size, set_type, set_line_join_type, add_point, set_point, set_thickness, create,
+    update_with_size, set_type, set_line_join_type, add_point, remove_point, set_point, move_point,
+    set_thickness, create,
     //vector
     push_back_a, pop_back_a, clear_a, remove_a, set_a,
     //misc
@@ -321,6 +322,7 @@ public:
     void setPointer(double*);
     void setPointer(string*);
     ReturnType setPointer(const BasePointersStruct & Pointers, const InstrDescription & CurrentInstr);
+    void negate();
     bool areEqual(BasePointersStruct *OtherVariable);
     bool areEqual(BaseVariableStruct *OtherVariable);
 

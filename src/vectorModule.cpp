@@ -1332,7 +1332,10 @@ vector<VariableModule> VectorModule::getValues() const {
             return Vector;
     }
 }
-ReturnType VectorModule::getValuesIntoContext(vector<VariableModule> & Values) const {
+ReturnType VectorModule::getValuesIntoContext(vector<VariableModule> & Values, bool negate) const {
+    if(negate){
+        return getNegatedValuesIntoContext(Values);
+    }
     switch(type){
         case 'b':
             for(const stupidBool & value : vBool){
@@ -1352,6 +1355,37 @@ ReturnType VectorModule::getValuesIntoContext(vector<VariableModule> & Values) c
         case 's':
             for(const string & value : vString){
                 Values.emplace_back(VariableModule(value));
+            }
+            return ReturnType::OK;
+        case 'n':
+            return ReturnType::NULL_VAL;
+        default:
+            cout << "Error: In " << __PRETTY_FUNCTION__ << ": Type '" << type
+                << "' is not valid.\n";
+            return ReturnType::INVALID_TYPE;
+    }
+    return ReturnType::INVALID_TYPE;
+}
+ReturnType VectorModule::getNegatedValuesIntoContext(vector<VariableModule> & Values) const {
+    switch(type){
+        case 'b':
+            for(const stupidBool & value : vBool){
+                Values.emplace_back(VariableModule(value.value).negate());
+            }
+            return ReturnType::OK;
+        case 'i':
+            for(const int & value : vInt){
+                Values.emplace_back(VariableModule(value).negate());
+            }
+            return ReturnType::OK;
+        case 'd':
+            for(const double & value : vDouble){
+                Values.emplace_back(VariableModule(value).negate());
+            }
+            return ReturnType::OK;
+        case 's':
+            for(const string & value : vString){
+                Values.emplace_back(VariableModule(value).negate());
             }
             return ReturnType::OK;
         case 'n':

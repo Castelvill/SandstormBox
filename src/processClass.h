@@ -84,7 +84,8 @@ public:
     size_t getVectorSize() const;
     string getUniqueIndexes() const;
     string getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting) const;
-    ReturnType getAllValues(vector<VariableModule> & NewValues);
+    ReturnType getAllValues(vector<VariableModule> & NewValues, bool negate = false) const;
+    ReturnType getAllNegatedValues(vector<VariableModule> & NewValues) const;
     ReturnType getValue(VariableModule & NewValue);
     bool getUnsignedOrAbort(unsigned & number, const InstrDescription & CurrentInstr);
     bool getIntOrAbort(int & number, const InstrDescription & CurrentInstr);
@@ -113,13 +114,12 @@ public:
     bool copyFromTheParameter(
         std::vector<ContextClass> & MemoryMap, const vector<DynamicVariableInfo> & EventLocalVariables,
         const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
-        const unsigned & index, const bool & printErrors
+        bool & negateAfterCopy, unsigned index, bool printErrors
     );
     void copyOnlyCurrentType(const ContextClass *Original);
-
     void leaveOneRandomBasePointer();
-
     void printOutObjects();
+    ReturnType collapseToValue();
 
     unsigned size() const;
     bool empty() const;

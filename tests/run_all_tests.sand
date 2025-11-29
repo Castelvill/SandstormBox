@@ -21,6 +21,9 @@ start testRunnerEvent()
     = path "arithmetics"
     scheduleTest(path)
 
+    = path "minus"
+    scheduleTest(path)
+
     = path "on_init/test"
     scheduleTest(path)
 

@@ -8,7 +8,7 @@ start createRectangles
     fun Camera resize windowWidth windowHeight
     fun Camera add_visible_layer "KERNEL"
 
-    //Create rectangle by adding points
+    //Create rectangle by adding points - adding points by hand should be only used for polygons
     new Primitives me 1 "rectangle0" rectangle0
     fun rectangle0 set_type "filled_rectangle"
     fun rectangle0 add_point 20.0 20.0

@@ -1,4 +1,3 @@
--Add 'remove_point' and 'move_point' functions to primitives module.
 -Add 'pixels' primitive type - use al_draw_prim with type=ALLEGRO_PRIM_POINT_LIST.
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.

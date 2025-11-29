@@ -1,3 +1,14 @@
+29.11.2025
+-Simplified implementation of arithmetic instructions.
+-Added "minus" test.
+-Fixed using minus sign on variables.
+
+26.11.2025
+-Added 'move_point' function to primitives module.
+
+25.11.2025
+-Added 'remove_point' function to primitives module.
+
 24.11.2025
 -Fixed drawing filled polygons.
 

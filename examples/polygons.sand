@@ -8,6 +8,7 @@ start createLines
     fun Camera resize windowWidth windowHeight
     fun Camera add_visible_layer "KERNEL"
 
+    //Create random polygon
     new Primitives me 1 "polygon" polygon
     fun polygon set_type "polygon"
     fun polygon set_color 1.0 0.0 0.0 1.0
@@ -16,9 +17,11 @@ start createLines
     fun polygon add_point 70 200
     fun polygon add_point 30 150
 
+    //Define points for a hexagon
     double_vec hexagonPoints [1 0 0.5 0.8660254038 -0.5 0.8660254038 -1 0 -0.5 -0.8660254038 0.5 -0.8660254038]
     *= hexagonPoints 50
 
+    //Create hexagon
     new Primitives me 1 "hexagon" hexagon
     fun hexagon set_type "polygon"
     fun hexagon set_thickness 10
@@ -26,20 +29,56 @@ start createLines
     fun hexagon set_color 0.0 1.0 0.0 1.0
     fun hexagon set_pos 200 100
 
-    new Primitives me 1 "filledHexagon" filledHexagon
-    fun filledHexagon set_type "filled_polygon"
-    fun filledHexagon set_color 0.0 0.0 1.0 1.0
-    fun filledHexagon set_pos 350 100
-
     int i 0
-    double x 0
-    double y 0
+    double x 0.0
+    double y 0.0
     while(i < 12)
         index_vec hexagonPoints i x
         next i
         index_vec hexagonPoints i y
         fun hexagon add_point x y
+        next i
+    end_while
+
+    //Create filled hexagon
+    new Primitives me 1 "filledHexagon" filledHexagon
+    fun filledHexagon set_type "filled_polygon"
+    fun filledHexagon set_color 0.0 0.0 1.0 1.0
+    fun filledHexagon set_pos 350 100
+
+    = i 0
+    = x 0.0
+    = y 0.0
+    while(i < 12)
+        index_vec hexagonPoints i x
+        next i
+        index_vec hexagonPoints i y
         fun filledHexagon add_point x y
+        next i
+    end_while
+
+
+    //Create pyramid
+    new Primitives me 1 "pyramid" pyramid
+    fun pyramid set_type "polygon"
+    fun pyramid set_thickness 1
+    fun pyramid set_line_join_type 1
+    fun pyramid set_color 1.0 1.0 0.0 1.0
+    fun pyramid set_pos 200 250
+    
+    = i 0
+    = x 0
+    bool mode false
+    while(i < 25)
+        fun pyramid add_point 0 x
+        if(mode)
+            fun pyramid move_point i x 0
+            = mode false
+        else
+            fun pyramid move_point i -x 0
+            = mode true
+        end_if
+        += x 6
         next i
     end_while
 end

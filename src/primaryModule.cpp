@@ -2038,6 +2038,36 @@ ReturnType BasePointersStruct::setPointer(const BasePointersStruct & Pointers,
     *this = Pointers;
     return OK;
 }
+void BasePointersStruct::negate(){
+    switch (type) {
+        case bool_bt:
+            *pBool = !*pBool;
+            return;
+        case char_bt:
+            *pChar = !*pChar;
+            return;
+        case short_bt:
+            *pShort = !*pShort;
+            return;
+        case u_short_bt:
+            *pUShort = !*pUShort;
+            return;
+        case int_bt:
+            *pInt = !*pInt;
+            return;
+        case u_int_bt:
+            *pUInt = !*pUInt;
+            return;
+        case float_bt:
+            *pFloat = !*pFloat;
+            return;
+        case double_bt:
+            *pDouble = !*pDouble;
+            return;
+        default:
+            return;
+    }
+}
 
 bool BasePointersStruct::areEqual(BasePointersStruct *OtherVariable){
     if(type != OtherVariable->type){
@@ -2536,7 +2566,9 @@ string attributeToStr(const AttributeType &attribute){
         case update_with_size: return "update_with_size";
         case set_type: return "set_type";
         case add_point: return "add_point";
+        case remove_point: return "remove_point";
         case set_point: return "set_point";
+        case move_point: return "move_point";
         case set_thickness: return "set_thickness";
         case create: return "create";
         case push_back_a: return "push_back";
@@ -3127,7 +3159,9 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "update_with_size") return update_with_size;
     else if(attribute == "set_type") return set_type;
     else if(attribute == "add_point") return add_point;
+    else if(attribute == "remove_point") return remove_point;
     else if(attribute == "set_point") return set_point;
+    else if(attribute == "move_point") return move_point;
     else if(attribute == "set_thickness") return set_thickness;
     else if(attribute == "create") return create;
     else if(attribute == "push_back") return push_back_a;

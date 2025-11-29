@@ -89,7 +89,8 @@ public:
 
     VariableModule getValue(AttributeType attribute, size_t index) const;
     vector<VariableModule> getValues() const;
-    ReturnType getValuesIntoContext(vector<VariableModule> & Values) const;
+    ReturnType getValuesIntoContext(vector<VariableModule> & Values, bool negate = false) const;
+    ReturnType getNegatedValuesIntoContext(vector<VariableModule> & Values) const;
     string getAnyStringValue(size_t index) const;
     string getAnyStringValueUnsafe(long index) const;
     vector <string> getAllValuesAsStringVector() const;

@@ -41,9 +41,7 @@ start createEditorCommandLine()
     var cmdLineH 450
 
     new Primitives commandLineObj 1 "background" background
-    fun background set_type "filled_rectangle"
-    fun background add_point 0 0
-    fun background add_point 0 0
+    fun background create "filled_rectangle"
     fun background set_color 0.0 0.0 0.0 0.9
     fun background set_pos 0 cmdLineH
     fun background set_size 920 30
@@ -501,9 +499,7 @@ start createWindowTemplate()
     fun newVal set_bool false
 
     new Primitives NewWindowObject 1 "background" border1
-    fun border1 set_type "filled_rectangle"
-    fun border1 add_point 0.0 0.0
-    fun border1 add_point 640 480
+    fun border1 create "filled_rectangle"
     fun border1 set_color 0.0 0.0 0.0 1.0
     fun border1 set_size 640 480
     fun border1 update_with_size
@@ -524,9 +520,7 @@ start createWindowTemplate()
     fun border3 update_with_size
 
     new Primitives NewWindowObject 1 "exitButton" exitButton
-    fun exitButton set_type "filled_circle"
-    fun exitButton add_point 0.0 0.0
-    fun exitButton add_point 5 5
+    fun exitButton create "filled_circle"
     fun exitButton set_color 1.0 0.0 0.0 1.0
     fun exitButton set_pos 620 15
     fun exitButton set_size 20 20

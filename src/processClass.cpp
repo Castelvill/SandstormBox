@@ -2228,7 +2228,7 @@ ContextClass * getVariableByAddress(const InstrDescription & CurrentInstr,
 bool ContextClass::copyFromTheParameter(
     std::vector<ContextClass> & MemoryMap, const vector<DynamicVariableInfo> & EventLocalVariables,
     const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
-    const unsigned & index, const bool & printErrors
+    bool & negateAfterCopy, unsigned index, bool printErrors
 ){
     clear();
     unsigned realIndex = 0;
@@ -2253,14 +2253,20 @@ bool ContextClass::copyFromTheParameter(
         );
         if(TempContext == nullptr){ 
             printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Variable '" << CurrentParameter.variableID << "' from the parameter " << index+2 << " does not exist.\n";
+                << "Variable '" << CurrentParameter.variableID << "' from the parameter "
+                << index + 2 << " does not exist.\n";
             return true;
         }
         *this = *TempContext;
+        //Can't negate a value in a possible pointer since it's not temporary.
+        //Also remember that lvalues/outputs can't be negated from obvious reasons.
+        negateAfterCopy = CurrentParameter.negateVariable;
     }
     else if(CurrentParameter.type == 'l'){
         type = value_inst;
         Values.push_back(CurrentParameter.Literal);
+        if(CurrentParameter.negateVariable)
+            Values.back().negate();
     }
     else if(CurrentParameter.type == 'v'){
         type = value_vec;
@@ -2271,6 +2277,8 @@ bool ContextClass::copyFromTheParameter(
             }
             if(parameterIt.type == 'l'){
                 Values.push_back(parameterIt.Literal);
+                if(parameterIt.negateVariable)
+                    Values.back().negate();
                 continue;
             }
             if(parameterIt.type != 'c'){
@@ -2293,38 +2301,58 @@ bool ContextClass::copyFromTheParameter(
                 case value_inst:
                     if(TempContext->Values.size() > 0){
                         Values.push_back(TempContext->Values[0]);
+                        if(parameterIt.negateVariable)
+                            Values.back().negate();
                     }
                     break;
                 case value_vec:
-                    Values.insert(Values.end(), TempContext->Values.begin(), TempContext->Values.end());
+                    if(!parameterIt.negateVariable){
+                        Values.insert(Values.end(), TempContext->Values.begin(),
+                            TempContext->Values.end()
+                        );
+                    }
+                    else{
+                        for(const VariableModule & var : TempContext->Values){
+                            Values.push_back(var);
+                            Values.back().negate();
+                        }
+                    }
                     break;
                 case pointer_inst:
-                    if(TempContext->BasePointers.size() > 0){
+                    if(!TempContext->BasePointers.empty()){
                         Values.emplace_back(VariableModule());
-                        Values[0].move(&TempContext->BasePointers[0], CurrentInstr.instruction, CurrentInstr);
+                        Values.back().move(&TempContext->BasePointers[0], CurrentInstr.instruction, CurrentInstr);
+                        if(parameterIt.negateVariable)
+                            Values.back().negate();
                     }
                     break;
                 case pointer_vec:
                     for(const BasePointersStruct & Pointer : TempContext->BasePointers){
                         Values.emplace_back(VariableModule());
                         Values.back().move(&Pointer, CurrentInstr.instruction, CurrentInstr);
+                        if(parameterIt.negateVariable)
+                            Values.back().negate();
                     }
                     break;
                 case variable_mod:
                     if(TempContext->Modules.Variables.size() > 0){
                         Values.emplace_back(VariableModule());
-                        Values[0].copyValue(TempContext->Modules.Variables[0]);
+                        Values.back().copyValue(TempContext->Modules.Variables[0]);
+                        if(parameterIt.negateVariable)
+                            Values.back().negate();
                     }
                     break;
                 case variable_mod_vec:
                     for(const VariableModule * Variable : TempContext->Modules.Variables){
                         Values.emplace_back(VariableModule());
                         Values.back().copyValue(Variable);
+                        if(parameterIt.negateVariable)
+                            Values.back().negate();
                     }
                     break;
                 case vector_mod:
                     for(VectorModule * Vector: TempContext->Modules.Vectors){
-                        Vector->getValuesIntoContext(Values);
+                        Vector->getValuesIntoContext(Values, parameterIt.negateVariable);
                     }
                     break;
                 default:
@@ -2597,7 +2625,10 @@ unsigned ContextClass::size() const{
 bool ContextClass::empty() const{
     return Cameras.empty() && Layers.empty() && Objects.empty() && Modules.empty() && Values.empty() && BasePointers.empty();
 }
-ReturnType ContextClass::getAllValues(vector<VariableModule> & NewValues){
+ReturnType ContextClass::getAllValues(vector<VariableModule> & NewValues, bool negate) const {
+    if(negate){
+        return getAllNegatedValues(NewValues);
+    }
     switch(type){
         case value_inst:
             if(Values.size() > 0){
@@ -2639,6 +2670,63 @@ ReturnType ContextClass::getAllValues(vector<VariableModule> & NewValues){
         case vector_mod_vec:
             for(const VectorModule * Vector : Modules.Vectors){
                 Vector->getValuesIntoContext(NewValues);
+            }
+            break;
+        default:
+            return ReturnType::INVALID_TYPE;
+    }
+    return ReturnType::OK;
+}
+ReturnType ContextClass::getAllNegatedValues(vector<VariableModule> & NewValues) const {
+    switch(type){
+        case value_inst:
+            if(Values.size() > 0){
+                NewValues.emplace_back();
+                NewValues.back().copyValue(Values[0]);
+                NewValues.back().negate();
+            }
+            break;
+        case value_vec:
+            for(const VariableModule & var : Values){
+                NewValues.push_back(var);
+                NewValues.back().negate();
+            }
+            break;
+        case pointer_inst:
+            if(BasePointers.size() > 0){
+                NewValues.emplace_back();
+                NewValues.back().setValueFromPointer(BasePointers[0]);
+                NewValues.back().negate();
+            }
+            break;
+        case pointer_vec:
+            for(const BasePointersStruct & Pointer : BasePointers){
+                NewValues.emplace_back(VariableModule());
+                NewValues.back().setValueFromPointer(Pointer);
+                NewValues.back().negate();
+            }
+            break;
+        case variable_mod:
+            if(Modules.Variables.size() > 0){
+                NewValues.emplace_back();
+                NewValues.back().copyValue(Modules.Variables[0]);
+                NewValues.back().negate();
+            }
+            break;
+        case variable_mod_vec:
+            for(const VariableModule * Variable : Modules.Variables){
+                NewValues.push_back(*Variable);
+                NewValues.back().negate();
+            }
+            break;
+        case vector_mod:
+            if(Modules.Vectors.size() > 0){
+                Modules.Vectors[0]->getValuesIntoContext(NewValues, true);
+            }
+            break;
+        case vector_mod_vec:
+            for(const VectorModule * Vector : Modules.Vectors){
+                Vector->getValuesIntoContext(NewValues, true);
             }
             break;
         default:
@@ -2688,6 +2776,62 @@ ReturnType ContextClass::getValue(VariableModule & NewValue){
     }
     return ReturnType::OK;
 }
+ReturnType ContextClass::collapseToValue(){
+    switch(type){
+        case value_inst:
+        case value_vec:
+            return ReturnType::OK;
+        case pointer_inst:
+            type = DataType::value_inst;
+            Values.clear();
+            Values.emplace_back();
+            if(!BasePointers.empty()){
+                Values.back().setValueFromPointer(BasePointers[0]);
+            }
+            break;
+        case pointer_vec:
+            type = DataType::value_vec;
+            Values.clear();
+            for(const BasePointersStruct & Pointer : BasePointers){
+                Values.emplace_back();
+                Values.back().setValueFromPointer(Pointer);
+            }
+            break;
+        case variable_mod:
+            type = DataType::value_inst;
+            Values.clear();
+            Values.emplace_back();
+            if(Modules.Variables.size() > 0){
+                Values.back().copyValue(Modules.Variables[0]);
+            }
+            break;
+        case variable_mod_vec:
+            type = DataType::value_vec;
+            Values.clear();
+            for(const VariableModule * Variable : Modules.Variables){
+                Values.push_back(*Variable);
+            }
+            break;
+        case vector_mod:
+            type = DataType::value_inst;
+            Values.clear();
+            if(Modules.Vectors.size() > 0){
+                Modules.Vectors[0]->getValuesIntoContext(Values);
+            }
+            break;
+        case vector_mod_vec:
+            type = DataType::value_vec;
+            Values.clear();
+            for(const VectorModule * Vector : Modules.Vectors){
+                Vector->getValuesIntoContext(Values, true);
+            }
+            break;
+        default:
+            type = DataType::value_inst;
+            return ReturnType::INVALID_TYPE;
+    }
+    return ReturnType::OK;
+}
 bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & EventLocalVariables,
     ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
     unsigned index, vector<VariableModule> & NewValues, bool printErrors
@@ -2706,6 +2850,8 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
     }
     if(CurrentParameter.type == 'l'){
         NewValues.push_back(CurrentParameter.Literal);
+        if(CurrentParameter.negateVariable)
+            NewValues.back().negate();
         return false;
     }
     else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
@@ -2717,9 +2863,10 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
     }
 
     //Parameter is a variable or a vector
+    bool negateWholeContextAfterCopy = false;
     HelpContext.clear();
-    if(HelpContext.copyFromTheParameter(ObjectMemory.MemoryMap,
-        EventLocalVariables, CurrentInstr, Parameters, index, printErrors
+    if(HelpContext.copyFromTheParameter(ObjectMemory.MemoryMap, EventLocalVariables, CurrentInstr,
+        Parameters, negateWholeContextAfterCopy, index, printErrors
     )){
         if(printErrors){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -2728,7 +2875,7 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
         return true;
     }
 
-    ReturnType response = HelpContext.getAllValues(NewValues);
+    ReturnType response = HelpContext.getAllValues(NewValues, negateWholeContextAfterCopy);
     if(response == ReturnType::INVALID_TYPE){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " has an invalid type: " << dataTypeToStr(HelpContext.type) << ".\n";
@@ -2764,10 +2911,11 @@ bool getSingleValueFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vec
         return true;
     }
 
-    //Parameter is a variable or a vector
+    bool negateWholeContextAfterCopy = false;
     HelpContext.clear();
+    //Parameter is a variable or a vector
     if(HelpContext.copyFromTheParameter(ObjectMemory.MemoryMap, EventLocalVariables,
-        CurrentInstr, Parameters, index, true
+        CurrentInstr, Parameters, negateWholeContextAfterCopy, index, true
     )){
         if(printErrors){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
@@ -2787,6 +2935,8 @@ bool getSingleValueFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vec
             << "Parameter " << index+1 << " is empty.\n";
         return true;
     }
+    if(negateWholeContextAfterCopy)
+        NewValue.negate();
     return false;
 }
 bool getValueFromParameter(ObjectMemoryStruct & ObjectMemory, vector<DynamicVariableInfo> & DynamicLocalVariables, ContextClass & HelpContext,
@@ -4785,11 +4935,15 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStru
     ContextClass LeftOperand;
     ContextClass RightOperand;
 
-    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
+    bool negateWholeContextAfterCopy = false;
+    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateWholeContextAfterCopy, 0, true
+    )){
         return;
     }
 
-    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
+    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateWholeContextAfterCopy, 1, true)){
         return;
     }
 
@@ -4802,8 +4956,14 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStru
     }
 
     if(LeftOperand.type != RightOperand.type){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Right operand has a different type than the left operand.\n";
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Right operand has a different type than the left operand.\n";
         return;
+    }
+
+    if(negateWholeContextAfterCopy){
+        cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+            << "This instruction ignores negating values, because it can copy pointers.\n";
     }
 
     NewContext.type = LeftOperand.type;
@@ -4816,7 +4976,9 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStru
             break;
         case pointer_inst:
         case pointer_vec:
-            executeOperationsOnSets(NewContext.BasePointers, LeftOperand.BasePointers, RightOperand.BasePointers);
+            executeOperationsOnSets(NewContext.BasePointers, LeftOperand.BasePointers,
+                RightOperand.BasePointers
+            );
             NewContext.type = pointer_vec;
             break;
         case camera_inst:
@@ -4836,67 +4998,93 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStru
             break;
         case text_mod:
         case text_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Texts, LeftOperand.Modules.Texts, RightOperand.Modules.Texts);
+            executeOperationsOnSets(NewContext.Modules.Texts, LeftOperand.Modules.Texts,
+                RightOperand.Modules.Texts
+            );
             NewContext.type = text_mod_vec;
             break;
         case editable_text_mod:
         case editable_text_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.EditableTexts, LeftOperand.Modules.EditableTexts, RightOperand.Modules.EditableTexts);
+            executeOperationsOnSets(NewContext.Modules.EditableTexts,
+                LeftOperand.Modules.EditableTexts, RightOperand.Modules.EditableTexts
+            );
             NewContext.type = editable_text_mod_vec;
             break;
         case super_text_mod:
         case super_text_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.SuperTexts, LeftOperand.Modules.SuperTexts, RightOperand.Modules.SuperTexts);
+            executeOperationsOnSets(NewContext.Modules.SuperTexts, LeftOperand.Modules.SuperTexts,
+                RightOperand.Modules.SuperTexts
+            );
             NewContext.type = super_text_mod_vec;
             break;
         case super_editable_text_mod:
         case super_editable_text_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.SuperEditableTexts, LeftOperand.Modules.SuperEditableTexts, RightOperand.Modules.SuperEditableTexts);
+            executeOperationsOnSets(NewContext.Modules.SuperEditableTexts,
+                LeftOperand.Modules.SuperEditableTexts, RightOperand.Modules.SuperEditableTexts
+            );
             NewContext.type = super_editable_text_mod_vec;
             break;
         case image_mod:
         case image_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Images, LeftOperand.Modules.Images, RightOperand.Modules.Images);
+            executeOperationsOnSets(NewContext.Modules.Images, LeftOperand.Modules.Images,
+                RightOperand.Modules.Images
+            );
             NewContext.type = image_mod_vec;
             break;
         case movement_mod:
         case movement_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Movements, LeftOperand.Modules.Movements, RightOperand.Modules.Movements);
+            executeOperationsOnSets(NewContext.Modules.Movements, LeftOperand.Modules.Movements,
+                RightOperand.Modules.Movements
+            );
             NewContext.type = movement_mod_vec;
             break;
         case collision_mod:
         case collision_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Collisions, LeftOperand.Modules.Collisions, RightOperand.Modules.Collisions);
+            executeOperationsOnSets(NewContext.Modules.Collisions, LeftOperand.Modules.Collisions,
+                RightOperand.Modules.Collisions
+            );
             NewContext.type = collision_mod_vec;
             break;
         case particles_mod:
         case particles_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Particles, LeftOperand.Modules.Particles, RightOperand.Modules.Particles);
+            executeOperationsOnSets(NewContext.Modules.Particles, LeftOperand.Modules.Particles,
+                RightOperand.Modules.Particles
+            );
             NewContext.type = particles_mod_vec;
             break;
         case event_mod:
         case event_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Events, LeftOperand.Modules.Events, RightOperand.Modules.Events);
+            executeOperationsOnSets(NewContext.Modules.Events, LeftOperand.Modules.Events,
+                RightOperand.Modules.Events
+            );
             NewContext.type = event_mod_vec;
             break;
         case variable_mod:
         case variable_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Variables, LeftOperand.Modules.Variables, RightOperand.Modules.Variables);
+            executeOperationsOnSets(NewContext.Modules.Variables, LeftOperand.Modules.Variables,
+                RightOperand.Modules.Variables
+            );
             NewContext.type = variable_mod_vec;
             break;
         case scrollbar_mod:
         case scrollbar_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Scrollbars, LeftOperand.Modules.Scrollbars, RightOperand.Modules.Scrollbars);
+            executeOperationsOnSets(NewContext.Modules.Scrollbars, LeftOperand.Modules.Scrollbars,
+                RightOperand.Modules.Scrollbars
+            );
             NewContext.type = scrollbar_mod_vec;
             break;
         case primitives_mod:
         case primitives_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Primitives, LeftOperand.Modules.Primitives, RightOperand.Modules.Primitives);
+            executeOperationsOnSets(NewContext.Modules.Primitives, LeftOperand.Modules.Primitives,
+                RightOperand.Modules.Primitives
+            );
             NewContext.type = primitives_mod_vec;
             break;
         case vector_mod:
         case vector_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Vectors, LeftOperand.Modules.Vectors, RightOperand.Modules.Vectors);
+            executeOperationsOnSets(NewContext.Modules.Vectors, LeftOperand.Modules.Vectors,
+                RightOperand.Modules.Vectors
+            );
             NewContext.type = vector_mod_vec;
             break;
         default:
@@ -6291,16 +6479,24 @@ void ProcessClass::moveValues(OperationClass & Operation, ObjectMemoryStruct & O
             return;
     }
 
+    bool negateAfterCopy = false;
     if(Operation.instruction == EngineInstr::inc || Operation.instruction == EngineInstr::dec){
         //Cloning the left operand allows to reuse this function for incrementing and decrementing.
         RightOperand.copyOnlyCurrentType(LeftOperand); 
     }
-    else if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-        CurrentInstr, Operation.Parameters, 1, true
-    )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) <<
-            "Parameter 2 does not exist.\n";
-        return;
+    else{
+        if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+            CurrentInstr, Operation.Parameters, negateAfterCopy, 1, true
+        )){
+            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Parameter 2 does not exist.\n";
+            return;
+        }
+        if(negateAfterCopy){
+            RightOperand.collapseToValue();
+            for(VariableModule & var : RightOperand.Values){
+                var.negate();
+            }
+        }
     }
 
     if(printOutInstructions){
@@ -6787,23 +6983,60 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     }
 }
 void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemoryStruct& ObjectMemory){
-    ContextClass LeftOperand;
-    ContextClass RightOperand;
-
-    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-        CurrentInstr, Operation.Parameters, 0, true
+    vector<VariableModule> leftValues;
+    if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
+        Operation.Parameters, 0, leftValues, true
     )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Failed to get context from the parameter 1.\n";
+            << "Failed to get values from the parameter 1.\n";
         return;
     }
 
-    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-        CurrentInstr, Operation.Parameters, 1, true
+    if(leftValues.empty()){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Parameter 1 is empty. Aborting.\n";
+        return;
+    }
+
+    vector<VariableModule> rightValues;
+    if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
+        Operation.Parameters, 1, rightValues, true
     )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Failed to get context from the parameter 2.\n";
+            << "Failed to get values from the parameter 2.\n";
         return;
+    }
+
+    if(rightValues.empty()){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Parameter 2 is empty. Aborting.\n";
+        return;
+    }
+
+    if(printOutInstructions){
+        cout << instrToStr(Operation.instruction) << " ";
+        if(leftValues.size() == 1){
+            cout << leftValues[0].getAnyValue();
+        }
+        else{
+            cout << "[";
+            for(const VariableModule & val : leftValues){
+                cout << val.getAnyValue() << ", ";
+            }
+            cout << "]";
+        }
+        cout << " ";
+        if(rightValues.size() == 1){
+            cout << rightValues[0].getAnyValue();
+        }
+        else{
+            cout << "[";
+            for(const VariableModule & val : rightValues){
+                cout << val.getAnyValue() << ", ";
+            }
+            cout << "]";
+        }
+        cout << " " << Operation.Output.variableID << "\n";
     }
 
     NewContext.clear();
@@ -6811,276 +7044,33 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemorySt
     unsigned i = 0, j = 0;
     bool sameSize = false;
 
-    if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " " << LeftOperand.ID << ":"
-            << dataTypeToStr(LeftOperand.type)
-            << ":" << LeftOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting)
-            << " " << RightOperand.ID << ":" << dataTypeToStr(RightOperand.type)
-            << ":" << RightOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
+    if(!checkForVectorSize(CurrentInstr, leftValues.size(),
+        rightValues.size(), sameSize, __FUNCTION__
+    )){
+        return;
     }
 
-    switch(LeftOperand.type){
-        case value_inst:
-        case value_vec:
-            switch(RightOperand.type){
-                case value_inst:
-                case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(),
-                        RightOperand.Values.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-                        if(LeftOperand.Values[i].getType() == 'd'
-                            || RightOperand.Values[j].getType() == 'd'
-                        ){
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setDouble(LeftOperand.Values[i].floatingOperation(Operation.instruction, &RightOperand.Values[j]));
-                        }
-                        else if(LeftOperand.Values[i].getType() != 's' || RightOperand.Values[j].getType() != 's'){
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setInt(LeftOperand.Values[i].intOperation(Operation.instruction, &RightOperand.Values[j]));
-                        }
-                        else{
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setString(LeftOperand.Values[i].stringOperation(Operation.instruction, &RightOperand.Values[j]));
-                        }
-                    }
-                    break;
-                case pointer_inst:
-                case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
-                        return;
-                    }
-                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-                        if(LeftOperand.Values[i].getType() == 'd' || RightOperand.BasePointers[j].type == float_bt
-                            || RightOperand.BasePointers[j].type == double_bt
-                        ){
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setDouble(LeftOperand.Values[i].floatingOperation(Operation.instruction, &RightOperand.BasePointers[j]));
-                        }
-                        else{
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setInt(LeftOperand.Values[i].intOperation(Operation.instruction, &RightOperand.BasePointers[j]));
-                        }
-                    }
-                    break;
-                case variable_mod:
-                case variable_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << ": Not implemented yet arithmetic operation between types: '"
-                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                    return;
-                case vector_mod:
-                case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << ": Not implemented yet arithmetic operation between types: '"
-                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                    return;
-                default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << ": Cannot execute arithmetic equation on variables of types: '"
-                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                    return;
-            }
-            break;
-        case pointer_inst:
-        case pointer_vec:
-            switch(RightOperand.type){
-                case value_inst:
-                case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
-                        return;
-                    }
-                    {BaseVariableStruct RightVariable;
-                    for(; i < LeftOperand.BasePointers.size(); i++){
-                        if(sameSize || i == 0){
-                            RightVariable = RightOperand.Values[i].getBaseVariableStruct();
-                            if(RightVariable.type == null_bt){
-                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
-                                if(!sameSize){
-                                    return;
-                                }
-                                continue;
-                            }
-                        }
-                        
-                        result = LeftOperand.BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
-
-                        if(result.type == null_bt){
-                            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to execute arithmetic equation.\n";
-                            continue;
-                        }
-                        NewContext.Values.emplace_back(VariableModule());
-                        NewContext.Values.back().set(result);
-                        result.type = null_bt;
-                    }}
-                    break;
-                case pointer_inst:
-                case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
-                        return;
-                    }
-                    for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-                        result = LeftOperand.BasePointers[i].executeArithmetics(RightOperand.BasePointers[j], Operation.instruction);
-                        if(result.type == null_bt){
-                            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                                << "Failed to execute arithmetic equation.\n";
-                            continue;
-                        }
-                        NewContext.Values.emplace_back(VariableModule());
-                        NewContext.Values.back().set(result);
-                        result.type = null_bt;
-                    }
-                    break;
-                case variable_mod:
-                case variable_mod_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
-                        return;
-                    }
-
-                    {BaseVariableStruct RightVariable; 
-                    for(; i < LeftOperand.BasePointers.size(); i++){
-                        if(sameSize || i == 0){
-                            RightVariable = RightOperand.Modules.Variables[i]->getBaseVariableStruct();
-                            if(RightVariable.type == null_bt){
-                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
-                                if(!sameSize){
-                                    return;
-                                }
-                                continue;
-                            }
-                        }
-                        
-                        result = LeftOperand.BasePointers[i].executeArithmetics(RightVariable, Operation.instruction);
-
-                        if(result.type == null_bt){
-                            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to execute arithmetic equation.\n";
-                            continue;
-                        }
-                        NewContext.Values.emplace_back(VariableModule());
-                        NewContext.Values.back().set(result);
-                        result.type = null_bt;
-                    }}
-                    break;
-                case vector_mod:
-                case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << ": Not implemented yet arithmetic operation between types: '"
-                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                    return;
-                default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << ": Cannot execute arithmetic equation on variables of types: '"
-                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                    return;
-            }
-            break;
-        case variable_mod:
-        case variable_mod_vec:
-            switch(RightOperand.type){
-                case value_inst:
-                case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
-                        return;
-                    }
-                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        if(LeftOperand.Modules.Variables[i]->getType() == 'd' || RightOperand.Values[j].getType() == 'd'){
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setDouble(
-                                LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, &RightOperand.Values[j])
-                            );
-                        }
-                        else if(LeftOperand.Modules.Variables[i]->getType() != 's' || RightOperand.Values[j].getType() != 's'){
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setInt(
-                                LeftOperand.Modules.Variables[i]->intOperation(Operation.instruction, &RightOperand.Values[j])
-                            );
-                        }
-                        else{
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setString(LeftOperand.Modules.Variables[i]->stringOperation(
-                                Operation.instruction, &RightOperand.Values[j]
-                            ));
-                        }
-                    }
-                    break;
-                case pointer_inst:
-                case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
-                        return;
-                    }
-                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        if(LeftOperand.Modules.Variables[i]->getType() == 'd' || RightOperand.BasePointers[j].type == float_bt
-                            || RightOperand.BasePointers[j].type == double_bt
-                        ){
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setDouble(
-                                LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, &RightOperand.BasePointers[j])
-                            );
-                        }
-                        else{
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setInt(LeftOperand.Modules.Variables[i]->intOperation(Operation.instruction, &RightOperand.BasePointers[j]));
-                        }
-                    }
-                    break;
-                case variable_mod:
-                case variable_mod_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
-                        return;
-                    }
-                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        if(LeftOperand.Modules.Variables[i]->getType() == 'd' || RightOperand.Modules.Variables[j]->getType() == 'd'){
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setDouble(LeftOperand.Modules.Variables[i]->floatingOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
-                        }
-                        else if(LeftOperand.Modules.Variables[i]->getType() != 's' || RightOperand.Modules.Variables[j]->getType() != 's'){
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setInt(LeftOperand.Modules.Variables[i]->intOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
-                        }
-                        else{
-                            NewContext.Values.emplace_back(VariableModule());
-                            NewContext.Values.back().setString(LeftOperand.Modules.Variables[i]->stringOperation(Operation.instruction, RightOperand.Modules.Variables[j]));
-                        }
-                    }
-                    break;
-                case vector_mod:
-                case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << ": Not implemented yet arithmetic operation between types: '"
-                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                    return;
-                default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << ": Cannot execute arithmetic equation on variables of types: '"
-                        << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                    return;
-            }
-            break;
-        case vector_mod:
-        case vector_mod_vec:
-            switch(RightOperand.type){
-                case value_inst:
-                case value_vec:
-                case pointer_inst:
-                case pointer_vec:
-                case variable_mod:
-                case variable_mod_vec:
-                case vector_mod:
-                case vector_mod_vec:
-                default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << ": Cannot execute arithmetic equation on variables of types: '"
-                    << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-                return;
-            }
-            break;
-        default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << ": Cannot execute arithmetic equation on variables of types: '"
-                << dataTypeToStr(RightOperand.type) << "' and '" << dataTypeToStr(LeftOperand.type) << "'.\n";
-            return;
+    for(; i < leftValues.size(); i++, j+=sameSize){
+        if(leftValues[i].getType() == 'd'
+            || rightValues[j].getType() == 'd'
+        ){
+            NewContext.Values.emplace_back(VariableModule());
+            NewContext.Values.back().setDouble(leftValues[i].floatingOperation(
+                Operation.instruction, &rightValues[j]
+            ));
+        }
+        else if(leftValues[i].getType() != 's' || rightValues[j].getType() != 's'){
+            NewContext.Values.emplace_back(VariableModule());
+            NewContext.Values.back().setInt(leftValues[i].intOperation(
+                Operation.instruction, &rightValues[j]
+            ));
+        }
+        else{
+            NewContext.Values.emplace_back(VariableModule());
+            NewContext.Values.back().setString(leftValues[i].stringOperation(Operation.instruction,
+                &rightValues[j]
+            ));
+        }
     }
 
     NewContext.type = value_inst;
@@ -7089,7 +7079,9 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemorySt
     }
     moveToVariable(ObjectMemory, Operation.Output);
 }
-void ProcessClass::createLiteral(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
+void ProcessClass::createLiteral(const OperationClass & Operation,
+    ObjectMemoryStruct & ObjectMemory
+){
     NewContext.clear();
     vector<VariableModule> NewVariables;
 
@@ -7102,7 +7094,9 @@ void ProcessClass::createLiteral(const OperationClass & Operation, ObjectMemoryS
     }   
 
     for(unsigned index = 0; index < Operation.rootParametersSize; index++){
-        if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, index, NewVariables, true)){
+        if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext,
+            CurrentInstr, Operation.Parameters, index, NewVariables, true
+        )){
             return;
         }
         if(printOutInstructions){
@@ -7153,17 +7147,30 @@ void ProcessClass::createLiteral(const OperationClass & Operation, ObjectMemoryS
     }
     assignVariable(ObjectMemory, Operation.Output);
 }
+inline int randomIntWithNegation(int minValue, int maxValue, bool negateMin, bool negateMax){
+    if(negateMin)
+        minValue *= -1;
+    if(negateMax)
+        maxValue *= -1;
+    return randomInt(minValue, maxValue);
+}
 void ProcessClass::generateRandomVariable(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass LeftOperand;
     ContextClass RightOperand;
     
-    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
+    bool negateMin = false;
+    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateMin, 0, true
+    )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 1.\n";
         return;
     }
 
-    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
+    bool negateMax = false;
+    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateMax, 1, true
+    )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 2.\n";
         return;
@@ -7188,42 +7195,64 @@ void ProcessClass::generateRandomVariable(const OperationClass & Operation, Obje
             switch(RightOperand.type){
                 case value_inst:
                 case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(),
+                        RightOperand.Values.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.Values[j].getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.Values[i].getInt(), RightOperand.Values[j].getInt(),
+                            negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case pointer_inst:
                 case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(),
+                        RightOperand.BasePointers.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.BasePointers[j].getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.Values[i].getInt(), RightOperand.BasePointers[j].getInt(),
+                            negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case variable_mod:
                 case variable_mod_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(),
+                        RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.Values[i].getInt(), RightOperand.Modules.Variables[j]->getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.Values[i].getInt(),
+                            RightOperand.Modules.Variables[j]->getInt(), negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case vector_mod:
                 case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Not implemented. Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Not implemented. Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
                     return;
             }
             break;
@@ -7232,42 +7261,64 @@ void ProcessClass::generateRandomVariable(const OperationClass & Operation, Obje
             switch(RightOperand.type){
                 case value_inst:
                 case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(),
+                        RightOperand.Values.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.Values[j].getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.BasePointers[i].getInt(), RightOperand.Values[j].getInt(),
+                            negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case pointer_inst:
                 case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(),
+                        RightOperand.BasePointers.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.BasePointers[j].getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.BasePointers[i].getInt(),
+                            RightOperand.BasePointers[j].getInt(), negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case variable_mod:
                 case variable_mod_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(),
+                        RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.BasePointers[i].getInt(), RightOperand.Modules.Variables[j]->getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.BasePointers[i].getInt(),
+                            RightOperand.Modules.Variables[j]->getInt(), negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case vector_mod:
                 case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Not implemented. Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Not implemented. Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
                     return;
             }
             break;
@@ -7276,42 +7327,64 @@ void ProcessClass::generateRandomVariable(const OperationClass & Operation, Obje
             switch(RightOperand.type){
                 case value_inst:
                 case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Values.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(),
+                        RightOperand.Values.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.Values[j].getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.Modules.Variables[i]->getInt(),
+                            RightOperand.Values[j].getInt(), negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case pointer_inst:
                 case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.BasePointers.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(),
+                        RightOperand.BasePointers.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.BasePointers[j].getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.Modules.Variables[i]->getInt(),
+                            RightOperand.BasePointers[j].getInt(), negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case variable_mod:
                 case variable_mod_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(), RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__)){
+                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(),
+                        RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__
+                    )){
                         return;
                     }
                     for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        Result.setInt(randomInt(LeftOperand.Modules.Variables[i]->getInt(), RightOperand.Modules.Variables[j]->getInt()));
+                        const int randomValue = randomIntWithNegation(
+                            LeftOperand.Modules.Variables[i]->getInt(),
+                            RightOperand.Modules.Variables[j]->getInt(), negateMin, negateMax
+                        );
+                        Result.setInt(randomValue);
                         NewContext.Values.push_back(Result);
                     }
                     break;
                 case vector_mod:
                 case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Not implemented. Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Not implemented. Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
                     return;
             }
             break;
@@ -7326,18 +7399,24 @@ void ProcessClass::generateRandomVariable(const OperationClass & Operation, Obje
                 case variable_mod_vec:
                 case vector_mod:
                 case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Not implemented. Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Not implemented. Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "Cannot generate a random number from values of \'"
+                        << dataTypeToStr(RightOperand.type) << "\' and \'"
+                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
                     return;
             }
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot generate a random number from values of \'"
-                << dataTypeToStr(RightOperand.type) << "\' and \'" << dataTypeToStr(LeftOperand.type) << "\' types.\n";
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Cannot generate a random number from values of \'"
+                << dataTypeToStr(RightOperand.type) << "\' and \'"
+                << dataTypeToStr(LeftOperand.type) << "\' types.\n";
             return;
     }
 
@@ -7369,7 +7448,9 @@ bool containsTheSameModule(const vector<Module> & LeftModules, const vector<Modu
     }
     return false;
 }
-inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand, ContextClass & RightOperand, bool & result, const InstrDescription & CurrentInstr){
+inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand,
+    ContextClass & RightOperand, bool & result, const InstrDescription & CurrentInstr
+){
     unsigned i = 0, j = 0;
     switch(LeftOperand.type){
         case pointer_inst:
@@ -7499,7 +7580,9 @@ inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand,
             break;
     }
 }
-inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperand, ContextClass & RightOperand, bool & result, const InstrDescription & CurrentInstr){
+inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperand,
+    ContextClass & RightOperand, bool & result, const InstrDescription & CurrentInstr
+){
     unsigned i = 0, j = 0;
     switch(LeftOperand.type){
         case value_inst:
@@ -7694,17 +7777,24 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
             break;
     }
 }
-void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
+void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation,
+    ObjectMemoryStruct & ObjectMemory
+){
     ContextClass LeftOperand;
     ContextClass RightOperand;
 
-    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
+    bool negateAfterCopy = false; //ignore
+    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
+    )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 1.\n";
         return;
     }
 
-    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, true)){
+    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 1, true
+    )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 2.\n";
         return;
@@ -7837,8 +7927,9 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation,
     }
     else if(Operation.Parameters[0].Literal.getString() == "variable"){
         ContextClass Context;
+        bool negateAfterCopy = false; //ignore
         if(Context.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-            CurrentInstr, Operation.Parameters, 1, true
+            CurrentInstr, Operation.Parameters, negateAfterCopy, 1, true
         )){
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "No context found.\n";
             return false;
@@ -9287,7 +9378,10 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
     }
     else{
         ContextClass SourceContext;
-        if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
+        bool negateAfterCopy = false; //ignore
+        if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+            CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
+        )){
             cerr << instructionError(CurrentInstr, __FUNCTION__) << "No context found.\n";
             return;
         }
@@ -9438,8 +9532,12 @@ void printStringVectorForInstruction(const vector<string> & values, int maxLengt
 void ProcessClass::bindFilesToObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass ObjectContext;
 
-    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter.\n";
+    bool negateAfterCopy = false; //ignore
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
+    )){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to get any objects from the first parameter.\n";
         return;
     }
 
@@ -9481,10 +9579,16 @@ void ProcessClass::bindFilesToObjects(OperationClass & Operation, ObjectMemorySt
         }
     }
 }
-void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
+void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation,
+    ObjectMemoryStruct & ObjectMemory
+){
     ContextClass ObjectContext;
-    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter.\n";
+    bool negateAfterCopy = false; //ignore
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
+    )){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to get any objects from the first parameter.\n";
         return;
     }
 
@@ -9519,8 +9623,9 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation,
     vector<EventStackStruct> & MemoryStack, bool allowNotAscii
 ){
     ContextClass ObjectContext;
+    bool negateAfterCopy = false; //ignore
     if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-        CurrentInstr, Operation.Parameters, 0, true
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get any objects from the first parameter.\n";
@@ -9608,8 +9713,13 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
     vector<EventStackStruct> & MemoryStack, const EngineInstr & mode, bool allowNotAscii
 ){
     ContextClass ObjectContext;
-    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter. Instruction requires two parameters.\n";
+    bool negateAfterCopy = false; //object
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
+    )){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to get any objects from the first parameter. "
+            << "Instruction requires two parameters.\n";
         return false;
     }
 
@@ -9755,10 +9865,17 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
 
     return myEventsAreDeleted;
 }
-void ProcessClass::clearEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner){
+void ProcessClass::clearEventsInObjects(OperationClass & Operation,
+    ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner
+){
     ContextClass ObjectContext;
-    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get any objects from the first parameter. Instruction requires one parameter.\n";
+    bool negateAfterCopy = false; //ignore
+    if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
+    )){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to get any objects from the first parameter. "
+            << "Instruction requires one parameter.\n";
         return;
     }
 
@@ -11452,8 +11569,10 @@ void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct &
     vector<ContextClass> ValueContexts;
     for(unsigned index = 1; index < Operation.rootParametersSize; index++){
         ValueContexts.emplace_back(ContextClass());
-        if(ValueContexts.back().copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-            CurrentInstr, Operation.Parameters, index, true
+        bool negateAfterCopy = false; //ignore
+        if(ValueContexts.back().copyFromTheParameter(ObjectMemory.MemoryMap,
+            LocalToGlobalTranslation, CurrentInstr, Operation.Parameters,
+            negateAfterCopy, index, true
         )){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Failed to get the context from the parameter " << index+2 << ".\n";
@@ -12471,8 +12590,9 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
     }
 
     ContextClass SourceContext;
+    bool negateAfterCopy = false; //it's only searching
     if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-        CurrentInstr, Operation.Parameters, 0, true
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
             << "Failed to get a context from the parameter 1.\n";
@@ -13201,7 +13321,8 @@ void ProcessClass::stopTimer(OperationClass & Operation, ObjectMemoryStruct & Ob
 }
 bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Instruction requires 2 parameters.\n";
         return true;
     }
     
@@ -13210,14 +13331,19 @@ bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct &
     }
 
     ContextClass LeftVariable;
-    LeftVariable.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, false);
+    bool negateAfterCopy = false; //ignore
+    LeftVariable.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 0, false
+    );
 
     if(printOutInstructions){
         cout << Operation.Parameters[0].getVariableIdOrValue() << " ";
     }
 
     ContextClass RightVariable;
-    RightVariable.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, false);
+    RightVariable.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, negateAfterCopy, 1, false
+    );
 
     if(printOutInstructions){
         cout << Operation.Parameters[1].getVariableIdOrValue() << "\n";

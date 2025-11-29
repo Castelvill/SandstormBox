@@ -123,6 +123,11 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
             }
             al_draw_filled_ellipse(base.x + points[0].x, base.y + points[0].y, points[1].x, points[1].y, color);
         case prim_polygon:{
+            if(points.empty()){
+                cerr << "Error: In " << __FUNCTION__
+                    << ": Polygon primitive requires at least 1 point.\n";
+                return;
+            }
             float vertices[points.size()*2];
             for(size_t v = 0; v < points.size(); ++v){
                 vertices[v*2] = base.x + points[v].x;
@@ -133,6 +138,11 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
             );}
             break;
         case prim_filled_polygon:{
+            if(points.empty()){
+                cerr << "Error: In " << __FUNCTION__
+                    << ": Polygon primitive requires at least 1 point.\n";
+                return;
+            }
             float vertices[points.size()*2];
             for(size_t v = 0; v < points.size(); ++v){
                 vertices[v*2] = base.x + points[points.size() - (v + 1)].x;
