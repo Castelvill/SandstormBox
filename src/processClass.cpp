@@ -6470,7 +6470,10 @@ void ProcessClass::moveToVariable(ObjectMemoryStruct & ObjectMemory,
     if(Variable->type == null_dt){
         Variable->type = NewContext.type;   
     }
-    Variable->isPointingToMember = NewContext.isPointingToMember;
+
+    //TODO: Remove next line if nothing breaks. This flag should be changed only when assigning a variable
+    //Variable->isPointingToMember = NewContext.isPointingToMember;
+
     Variable->containerIndex = NewContext.containerIndex;
     moveRightToLeft(CurrentInstr, EngineInstr::move, Variable, NewContext);        
 }
@@ -7415,10 +7418,6 @@ void ProcessClass::generateRandomValue(const OperationClass & Operation,
     NewContext.clear();
     VariableModule Result;
     unsigned i = 0, j = 0;
-
-    ContextClass * Variable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
-        LocalToGlobalTranslation[Operation.Output.localAddress], Operation.Output.variableID, false
-    );
 
     if(!isDouble){
         Result.setType('i');
@@ -16168,7 +16167,7 @@ inline bool findNextEvent(const Triggers & CurrentTriggers, vector<EventModule>:
 void collectGarbage(AncestorObject *& TriggeredObject, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject*> &TriggeredObjects){
     if(TriggeredObject->executeGarbageCollector){
         TriggeredObject->executeGarbageCollector = false;
-        for(size_t varIdx = 3; varIdx < ObjectMemory.MemoryMap.size(); ++varIdx){
+        for(size_t varIdx = builtInVarAddr::MAX_bv; varIdx < ObjectMemory.MemoryMap.size(); ++varIdx){
             if(ObjectMemory.MemoryMap[varIdx].isPointingToMember){ continue; }
             ObjectMemory.MemoryMap[varIdx].clearPointers();
         }

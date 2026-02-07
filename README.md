@@ -3,7 +3,7 @@ Graphical Engine / 2D Game Engine written in c++ and Allegro5 graphical library.
 
 It's my hobby project and will not be "production ready" any time soon. And if it ever gets finished its use will be purely recreational - I hope.
 
-SandstormBox engine uses Sand - it's my custom scripting language closely integrated into the engine. You can find all implemented instructions in the /docs/instructions.md file. To learn more about Sand read the /docs/language.md file (it's probably outdated tho). All programs and utilities that work inside the engine are written in the Sand language.
+SandstormBox engine uses Sand - it's my custom scripting language closely integrated into the engine. You can find all implemented instructions in the /docs/instructions.md file. All programs and utilities that work inside the engine are written in the Sand language.
 
 ## Implemented functionality
 

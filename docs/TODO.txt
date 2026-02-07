@@ -1,6 +1,3 @@
--Fix in interpreter: Outputing modulo value to a variable sets it to null. 
--Add 'pixels' primitive type - use al_draw_prim with type=ALLEGRO_PRIM_POINT_LIST.
--Remove all 'end_if' and 'end_while' from existing scripts.
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
 -Changing the position of the cursor in the text should update currentLine and currentChar parameters in the editor's command line - expand access instruction.

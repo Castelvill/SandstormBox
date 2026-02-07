@@ -243,7 +243,7 @@ enum EventControlFlow: char{
 };
 
 enum builtInVarAddr : unsigned{
-    NULL_bv = 0, me_bv = 1, my_layer_bv = 2
+    NULL_bv = 0, me_bv = 1, my_layer_bv = 2, MAX_bv = 3
 };
 
 using TimePoint = std::chrono::steady_clock::time_point;
