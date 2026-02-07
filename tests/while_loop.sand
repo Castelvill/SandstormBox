@@ -14,9 +14,9 @@ start main()
         while(j < y)
             ++ sum
             ++ j
-        end_while
+        end
         ++ i
-    end_while
+    end
     assert sum 161
 
     = i 0
@@ -29,7 +29,7 @@ start main()
         = j 0
         test_loop(sum, j, y)
         ++ i
-    end_while
+    end
 
     assert sum 1700
 
@@ -40,5 +40,5 @@ start test_loop(int & sum, int & j, int & y)
     while(j < y)
         ++ sum
         ++ j
-    end_while
+    end
 end

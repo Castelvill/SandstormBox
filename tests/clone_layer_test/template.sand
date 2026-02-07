@@ -3,7 +3,7 @@ start onInit()
     access myName [me.id]
     if(myName == "Template")
         assert 1 0
-    end_if
+    end
 
     ++ var0
     assert var0 16

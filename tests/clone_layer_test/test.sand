@@ -28,14 +28,14 @@ start onInit()
         ++ idleLock
         next i
         //print i "\n"
-    end_while
+    end
 end
 
 @trigger each_iteration
 start waitForOtherObjects()
     if(idleLock > 0)
         return
-    end_if
+    end
     endTest()
     delete_this_event
 end

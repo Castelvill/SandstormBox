@@ -16,7 +16,7 @@ start main()
     fun c set_double_interval -10 -5
     if(c >= -4)
         assert 0 1
-    end_if
+    end
 
     var d -5
     var e -5

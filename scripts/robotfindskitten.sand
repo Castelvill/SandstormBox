@@ -65,7 +65,7 @@ end
 start startGame()
     if(gameState != 0)
         return
-    end_if
+    end
     = gameState 1
     int index 0
     fun nonKittenPos clear
@@ -74,13 +74,13 @@ start startGame()
         random_int 0 GAME_MAP_SIZE randomPos
         fun nonKittenPos push_back randomPos
         next index
-    end_while
+    end
 end
 
 start drawScene(SText & TextField)
     if(gameState != 1)
         return
-    end_if
+    end
 
     fun TextField set_content "robotfindskitten-sand\n\n_______________________________________________________________________"
     
@@ -107,12 +107,12 @@ start drawItems(SText & TextField)
                 fun TextField add_content "X"
                 = hit true
                 break
-            end_if
+            end
             next item
-        end_while
+        end
         if(!hit)
             fun TextField add_content " "
-        end_if
+        end
         next index
-    end_while
+    end
 end

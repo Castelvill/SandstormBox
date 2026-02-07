@@ -5,7 +5,7 @@ start deleteFriends
         find_by_id_2 Cameras insideCameraID InsideCamera
         delete InsideCamera
         = deleted_friends true
-    end_if
+    end
 end
 
 @trigger on_mouse_pressing
@@ -19,5 +19,5 @@ start checkIfMouseMoved()
         -= sx 10
         find_by_id_2 Cameras insideCameraID InsideCamera
         fun InsideCamera resize sx sy
-    end_if
+    end
 end

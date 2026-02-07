@@ -19,7 +19,7 @@ start initTest()
     //By default first automatically created object is called "Init"
     if(testCaseName == "Init")
         fun me set_id "TEST"
-    end_if
+    end
 end
 
 start startTest()
@@ -37,7 +37,7 @@ start incrementPassedTests()
     access myName [me.id]
     if(myName == "TEST")
         return
-    end_if
+    end
     all Layers _ _ _ _ _ _ layers
     index layers [0 0] object MainTest
     first MainTest _ _ Variables passedTests _ _ passedTests

@@ -64,10 +64,10 @@ start moveRectangle
     + y SIZE_Y ys
     if(x <= 0 || xs >= DISPLAY_W)
         *= velX -1.0
-    end_if
+    end
     if(y <= 0 || ys >= DISPLAY_H)
         *= velY -1.0
-    end_if
+    end
 	+= x velX
 	+= y velY
     //index me 0 0 primitives Rectangle

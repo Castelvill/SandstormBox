@@ -25,7 +25,7 @@ start onInit()
         fun Clone0 activate
         ++ idleLock
         next i
-    end_while
+    end
 
 end
 
@@ -33,7 +33,7 @@ end
 start waitForOtherObjects()
     if(idleLock > 0)
         return
-    end_if
+    end
     endTest()
     delete_this_event
 end

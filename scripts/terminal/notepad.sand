@@ -9,14 +9,14 @@ start _checkIfWindowMovedNotepad()
         all Cameras _ camera _ Cameras
         find_by_id_2 Cameras cameraID Camera
         refreshWindowWithCameraNotepad()
-    end_if
+    end
 end
 
 @trigger on_display_resize
 start checkIfDisplayResizeNotepad()
     if (isMaxed)
         refreshWindowWithDisplayNotepad()
-    end_if
+    end
 end
 
 
@@ -57,7 +57,7 @@ start resizeObjectWhenNotBorderless(double &sx, double &sy)
         index my_layer [0 0] object WindowObject
         fun WindowObject set_size sx sy
         //fun Notepad update
-    end_if
+    end
 end
 
 @trigger on_mouse_release
@@ -75,8 +75,8 @@ start resizeObjectWhenMaxed()
             fun WindowObject set_size sx sy
             index my_layer [0 0 0] super_editable_text Notepad
             fun Notepad update
-        end_if
-    end_if
+        end
+    end
 end
 
 @trigger on_key_press
@@ -86,8 +86,8 @@ start resizeObjectWhenSwitchingToBorderlessMode()
         find_by_id_2 Cameras cameraID Camera
         if(Camera.is_focused)
             resizeObjectForBorderlessMode(Camera)
-        end_if
-    end_if
+        end
+    end
 end
 
 start resizeObjectForBorderlessMode(Camera &Camera)
@@ -106,7 +106,7 @@ start resizeObjectForBorderlessMode(Camera &Camera)
         fun Notepad update
     else 
         resizeObjectFromBorderlessMode(Camera)
-    end_if
+    end
 end
 
 start resizeObjectFromBorderlessMode(Camera &Camera)

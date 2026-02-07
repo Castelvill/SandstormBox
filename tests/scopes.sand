@@ -9,7 +9,7 @@ start main()
     if
         int a 5
         assert a 5
-    end_if
+    end
     assert a 2
     assert b NULL
     changeA(a)

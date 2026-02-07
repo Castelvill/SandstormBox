@@ -6,19 +6,19 @@ start main()
 
     if(true && false || true == false)
         assert 0 1
-    end_if
+    end
 
     if(!true && false)
         assert 0 1
-    end_if
+    end
 
     if (!(true || false && false))
         assert 0 1
-    end_if
+    end
 
     if ((true || false) && false)
         assert 0 1
-    end_if
+    end
     
     int x 0
     test_if(x)
@@ -48,14 +48,14 @@ start test_if(int & x)
             = x 400
         else
             = x 50
-        end_if
+        end
     else
         if(x == 150)
             = x 1500
             //print x "\n"
             return
-        end_if
+        end
         = x 100
-    end_if
+    end
     //print x "\n"
 end

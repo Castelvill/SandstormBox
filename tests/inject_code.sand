@@ -14,7 +14,7 @@ start main()
     while(i < 5)
         += program "+= a 13.3\n"
         next i
-    end_while
+    end
 
     += program "
             assert a 76.5

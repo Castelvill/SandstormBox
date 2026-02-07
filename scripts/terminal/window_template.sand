@@ -5,14 +5,14 @@ start checkIfWindowMoved()
         find_by_id_2 Cameras cameraID Camera
         run revertWindowIfMoved(Camera)
         run refreshWindowWithCamera()
-    end_if
+    end
 end
 
 @trigger on_display_resize
 start checkIfDisplayResize()
 	if (isMaxed)
 	    run refreshWindowWithDisplay()
-    end_if
+    end
 end
 
 start revertWindowIfMoved(Camera & Camera)
@@ -29,7 +29,7 @@ start revertWindowIfMoved(Camera & Camera)
         -= posY 10
         run revertBorderIfPossible()
         run revertWindowFromMax()
-    end_if
+    end
 end
 
 
@@ -40,7 +40,7 @@ start revertBorderIfPossible()
         find_by_id_2 Layers myLayerID Layer
         index Layer [0 0 2] primitives Border
         fun Border activate
-    end_if
+    end
 end
 
 start refreshWindowWithDisplay()
@@ -126,7 +126,7 @@ start refreshWindow(Camera & Camera, double & sx, double & sy)
         access cpy [Camera.pos_y]
         = posX cpx
         = posY cpy
-    end_if
+    end
     run additionalUpdate()
 end
 
@@ -144,8 +144,8 @@ start exitWindow()
         
         if(ExitCollision.release_on)
             = delete true
-        end_if
-    end_if
+        end
+    end
 end
 
 @trigger each_iteration
@@ -155,7 +155,7 @@ start deleteWindow()
         find_by_id_2 Cameras cameraID Camera
         delete Camera
         delete my_layer
-    end_if
+    end
 end
 
 @trigger on_mouse_release
@@ -169,8 +169,8 @@ start maxWindow()
             fun isMaxed toggle_bool
             run maxWindowIfTrue()
             run refreshWindowWithCamera()
-        end_if
-    end_if
+        end
+    end
 end
 
 start maxWindowIfTrue()
@@ -189,7 +189,7 @@ start maxWindowIfTrue()
         fun Camera set_relative_position 0 0
     else
         run revertWindowFromMax()
-    end_if
+    end
 end
 
 start revertWindowFromMax()
@@ -213,8 +213,8 @@ start minimizeWindow
         find_by_id_2 Cameras cameraID Camera
         if(MinCollision.release_on)
             fun Camera minimize
-        end_if
-    end_if
+        end
+    end
 end
 
 @trigger on_key_press
@@ -225,15 +225,15 @@ start switchBorderlessMode
         if(Camera.is_focused)
             fun isBorderless toggle_bool
             run switchToBorderless()
-        end_if
-    end_if
+        end
+    end
 end
 
 start switchToBorderless()
     if (!isBorderless)
         run switchFromBorderless()
         return
-    end_if
+    end
     fun me set_pos -5 -30
     all Layers _ _ _ _ _ _ Layers
     access myLayerID [me.layer_id]

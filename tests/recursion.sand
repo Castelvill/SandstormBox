@@ -3,7 +3,7 @@ import "tests/test_template.sand"
 start printNumbers(int n)
     if(n <= 0)
         return
-    end_if
+    end
     -- n
     printNumbers(n)
 end

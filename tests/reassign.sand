@@ -14,7 +14,7 @@ start main()
     if
         int a 100
         assert a 100
-    end_if
+    end
 
     assert a 50
 
