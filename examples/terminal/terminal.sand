@@ -562,7 +562,7 @@ start createWindowTemplate()
 
     //In this situation, window_template.sand script uses variables that should be already defined.
     //For this reason we have to first define them all here and only then build the script. 
-    bind NewWindowObject ["scripts/terminal/window_template.sand"]
+    bind NewWindowObject ["examples/terminal/window_template.sand"]
     build NewWindowObject true
 end
 
@@ -626,7 +626,7 @@ start spawnNotepad(Layer & NewWindowLayer, string & fileName)
     fun TextEditor activate
     fun Object set_size 640 480
     
-    load_build Object ["scripts/terminal/notepad.sand"]
+    load_build Object ["examples/terminal/notepad.sand"]
     loadTextFromFile(TextEditor, fileName)
 end
 
@@ -666,9 +666,9 @@ start spawnMover(Camera & NewWindowCamera, Layer & NewWindowLayer, string & sele
     new Variables NewObject 1 "insideCameraID" cameraID
     fun cameraID set_string newCameraID
 
-    //bind NewObject ["scripts/terminal/mover.sand"]
+    //bind NewObject ["examples/terminal/mover.sand"]
     //build_subset NewObject false
-    load_build NewObject ["scripts/terminal/mover.sand"]
+    load_build NewObject ["examples/terminal/mover.sand"]
 end
 
 
