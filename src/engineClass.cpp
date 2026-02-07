@@ -330,14 +330,8 @@ void EngineClass::createDisplay(){
     if(samples > 8){
         samples = 8;
     }
-    if(backbufferSize.x > 3840){
-        backbufferSize.x = 3840;
-    }
     if(backbufferSize.x < 10){
         backbufferSize.x = 10;
-    }
-    if(backbufferSize.y > 2160){
-        backbufferSize.y = 2160;
     }
     if(backbufferSize.y < 10){
         backbufferSize.y = 10;

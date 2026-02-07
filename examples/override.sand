@@ -1,3 +1,7 @@
+// We can replace existing, already compiled functions/events with their new versions (same names)
+// by using the @override annotation. Without the override annotation the engine will abort the
+// compilation if it encounters a second function/event with the same name.
+
 @trigger on_init
 start main()
     print "Apple\n"

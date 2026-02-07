@@ -1,7 +1,7 @@
 start printNumbers(int n)
     if(n <= 0)
         return
-    end_if
+    end
     print n "\n"
     -- n
     run printNumbers(n)

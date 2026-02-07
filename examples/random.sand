@@ -1,0 +1,19 @@
+@trigger on_init
+start main
+    print "Random integers: "
+    int i 0
+    while(i < 10)
+        random_int 0 10 value
+        print value " "
+        next i
+    end
+    print "\nRandom doubles: "
+    = i 0
+    while(i < 10)
+        random_double 0 10 value
+        print value " "
+        next i
+    end
+    print "\n"
+    exit
+end

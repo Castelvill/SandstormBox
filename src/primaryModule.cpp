@@ -208,6 +208,9 @@ EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "random_int"){
         return EngineInstr::rand_int;
     }
+    if(instruction == "random_double"){
+        return EngineInstr::rand_double;
+    }
     if(instruction == "find_by_id"){
         return EngineInstr::find_by_id;
     }
@@ -620,6 +623,8 @@ string instrToStr(const EngineInstr & instruction){
             return "string_vec";
         case rand_int:
             return "random_int";
+        case rand_double:
+            return "random_double";
         case find_by_id:
             return "find_by_id";
         case clone_i:

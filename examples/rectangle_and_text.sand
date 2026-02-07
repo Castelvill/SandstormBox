@@ -23,7 +23,7 @@ start putRectangleOnScreen
     fun Text add_format "cascadia_code" 1
     fun Text set_color 0 0.0 1.0 0.0 1.0
     fun Text set_wrapping "n"
-    fun Text set_content "To exit the program use the CTRL+ESC shortcut or just click\nthe exit button."
+    fun Text set_content "To exit this program use the CTRL+ESC shortcut or just click\nthe exit button."
     fun Text update
 end
 
@@ -31,5 +31,5 @@ end
 start exitProgram
     if(key_pressed(KEY_LCTRL) && key_pressed(KEY_ESC))
         exit
-    end_if
+    end
 end

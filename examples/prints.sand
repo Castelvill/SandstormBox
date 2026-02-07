@@ -6,19 +6,27 @@ start main()
     int b 10
     double c 20.20
     string d "hello"
+    // The simplest print instruction. It prints every passed argument one by one on the standard
+    // output (terminal).
     print "Normal print with few values: " a " " b " " c " " d "\n"
 
     int_vec arrInt [0 1 2 3 4 5 6]
-    print_d _ "Print with delimeter: ["
+    // The first argument of the print_d instruction is a delimeter, which is inserted after every
+    // other argument or every element of each passed vector.
+    print_d _ "Print with a delimeter: ["
     print_d ", " arrInt
     print_d _ "]\n"
 
     double_vec arrDouble [0.1 0.2 0.3 0.4]
-    print_v strStart _ "Print with output to variable: ["
+    print_v strStart _ "Print that moves its output text to a variable: ["
     print_v strMiddle ", " arrDouble
     print_v strEnd _ "]\n"
+    // The first argument of the print_v instruction is the variable name where we want to store the
+    // text output of the print_v instruction, which would be normally printed to the standard
+    // output (terminal). The second argument is a delimeter, which can be skipped with the _ sign.
     print_v strConnected _ strStart strMiddle strEnd
-    print_v _ _ strConnected
+    // Here we print the text inside the strConnected variable created with the print_v instruction.
+    print strConnected
 
     exit
 end

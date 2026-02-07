@@ -91,6 +91,8 @@ public:
     vector<VariableModule> getValues() const;
     ReturnType getValuesIntoContext(vector<VariableModule> & Values, bool negate = false) const;
     ReturnType getNegatedValuesIntoContext(vector<VariableModule> & Values) const;
+    ReturnType getDoubles(vector<double> & Values, bool negate = false) const;
+    ReturnType getNegatedDoubles(vector<double> & Values) const;
     string getAnyStringValue(size_t index) const;
     string getAnyStringValueUnsafe(long index) const;
     vector <string> getAllValuesAsStringVector() const;

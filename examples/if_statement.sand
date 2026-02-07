@@ -7,7 +7,7 @@ start main()
         print "Good\n"
     else
         print "Bad\n"
-    end_if
+    end
     
     exit
 end

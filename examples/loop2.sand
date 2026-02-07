@@ -6,9 +6,9 @@ start main()
         while(j < 10)
             print "*"
             ++ j
-        end_while
+        end
         print "\n"
         ++ i
-    end_while
+    end
     exit
 end

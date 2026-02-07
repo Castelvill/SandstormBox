@@ -7,7 +7,7 @@ start main
     while(iterator < 10)
         ++ iterator
         print iterator ", "
-    end_while
+    end
     
     print "\n"
     exit

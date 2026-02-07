@@ -973,7 +973,22 @@ ReturnType InstrParser::parseStartAndOverride(vector<string> & allAvailableEvent
     
     return ReturnType::OK;
 }
-ReturnType InstrParser::parseEnd(vector<EventModule> &eventContainer){
+ReturnType InstrParser::parseEnd(vector<EventModule> &eventContainer,
+    BranchingStackStruct & BranchingStack
+){
+    if(!BranchingStack.openScopes.empty()){
+        if(BranchingStack.openScopes.back() == EngineInstr::if_i){
+            words[0].instruction = EngineInstr::end_if;
+            words[0].value = instrToStr(EngineInstr::end_if);
+            return parseEndIf(BranchingStack);
+        }
+        if(BranchingStack.openScopes.back() == EngineInstr::while_i){
+            words[0].instruction = EngineInstr::end_while;
+            words[0].value = instrToStr(EngineInstr::end_while);
+            return parseEndWhile(BranchingStack);
+        }
+        return ReturnType::ERROR;
+    }
     if(NewEvent.isInline){
         NewEvent.Parameters.clear();
     }
@@ -1005,6 +1020,7 @@ ReturnType InstrParser::parseIf(BranchingStackStruct & BranchingStack){
     BranchingStack.usedElseStatements.push_back(0);
     BranchingStack.ifEndJumpStack.push_back(vector<unsigned>());
     BranchingStack.ifEndJumpStack.back().push_back(NewEvent.Operations.size()-1);
+    BranchingStack.openScopes.emplace_back(EngineInstr::if_i);
     return ReturnType::OK;
 }
 ReturnType InstrParser::parseElseIf(BranchingStackStruct & BranchingStack){
@@ -1023,7 +1039,7 @@ ReturnType InstrParser::parseElseIf(BranchingStackStruct & BranchingStack){
         return ReturnType::ERROR;
     }
     
-    if(BranchingStack.ifElseJumpStack.size() == 0){
+    if(BranchingStack.ifElseJumpStack.empty()){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
             << words[0].value << "' outside the if statement scope.\n";
@@ -1034,7 +1050,7 @@ ReturnType InstrParser::parseElseIf(BranchingStackStruct & BranchingStack){
 
     BranchingStack.ifElseJumpStack.pop_back();
     BranchingStack.ifElseJumpStack.push_back(NewEvent.Operations.size()-1);
-    if(BranchingStack.ifEndJumpStack.size() == 0){
+    if(BranchingStack.ifEndJumpStack.empty()){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Cannot use '"
             << words[0].value << "' outside the if statement scope.\n";
@@ -1116,6 +1132,7 @@ ReturnType InstrParser::parseEndIf(BranchingStackStruct & BranchingStack){
         BranchingStack.ifEndJumpStack.back().clear();
         BranchingStack.ifEndJumpStack.pop_back();
     }
+    BranchingStack.openScopes.pop_back();
 
     return ReturnType::OK;
 }
@@ -1136,6 +1153,7 @@ ReturnType InstrParser::parseWhile(BranchingStackStruct & BranchingStack){
     BranchingStack.whileStartStack.push_back(NewEvent.Operations.size()-1);
     BranchingStack.whileEndStack.push_back(vector<unsigned>());
     BranchingStack.whileEndStack.back().push_back(NewEvent.Operations.size()-1);
+    BranchingStack.openScopes.emplace_back(EngineInstr::while_i);
     return ReturnType::OK;
 }
 ReturnType InstrParser::parseEndWhile(BranchingStackStruct & BranchingStack){
@@ -1158,6 +1176,7 @@ ReturnType InstrParser::parseEndWhile(BranchingStackStruct & BranchingStack){
     }
     BranchingStack.whileEndStack.back().clear();
     BranchingStack.whileEndStack.pop_back();
+    BranchingStack.openScopes.pop_back();
 
     return ReturnType::OK;
 }

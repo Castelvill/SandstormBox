@@ -15,10 +15,10 @@ enum EngineInstr : unsigned char{
     index_vec, sum, intersection, diff, add, sub, mul, div_i, mod, pow_i, assign, move, add_move,
     sub_move, mul_move, div_move, equal, not_equal, more, less, more_equal, less_equal, not_i,
     and_i, or_i, igT, igF, in, find_by_id_2, inc, next, dec, del, demolish, access_i, bool_i, int_i,
-    double_i, string_i, bool_vec_i, int_vec_i, double_vec_i, string_vec_i, rand_int, find_by_id,
-    clone_i, new_i, bind_i, rbind_i, build, load_build, build_subset, inject_code, inject_instr,
-    fun, env, edit_proc, load_bitmap, mkdir_i, rm, rmll, mv_i, print_v_i, print_d_i, print_i,
-    load_text, save_text, ls, lse, new_proc, var, vec, tokenize, tree, len, size_i, substr,
+    double_i, string_i, bool_vec_i, int_vec_i, double_vec_i, string_vec_i, rand_int, rand_double,
+    find_by_id, clone_i, new_i, bind_i, rbind_i, build, load_build, build_subset, inject_code,
+    inject_instr, fun, env, edit_proc, load_bitmap, mkdir_i, rm, rmll, mv_i, print_v_i, print_d_i,
+    print_i, load_text, save_text, ls, lse, new_proc, var, vec, tokenize, tree, len, size_i, substr,
     load_font, restart_drag, cd, pwd, similar, count, create_display, console_input, start_timer,
     stop_timer, compiler_breakpoint, breakpoint, assert, type, load_i, import, resume_assembling,
     stop_assembling, start_printing_tokens, stop_printing_tokens, start_expr,
@@ -31,7 +31,7 @@ enum EngineInstr : unsigned char{
 EngineInstr strToInstr(const string & instruction, bool printError = true);
 string instrToStr(const EngineInstr & instruction);
 
-enum AttributeType: short{
+enum AttributeType: short {
     //text
     null_a, set_id, set_pos, set_size, set_scale, add_scale, set_color,
     set_color_r, set_color_g, set_color_b, set_color_a, set_random_color,

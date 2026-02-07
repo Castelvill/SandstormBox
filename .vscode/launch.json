@@ -10,7 +10,7 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}${pathSeparator}SandstormBox",
-        "args": ["./examples/polygons.sand"],
+        "args": ["./examples/random.sand"],
         //"args": ["./tests/run_all_tests.sand"],
         //"args": ["-i"],
         "stopAtEntry": false,

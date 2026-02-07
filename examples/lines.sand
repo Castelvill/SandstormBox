@@ -37,15 +37,15 @@ start moveLine
             -- down
         else
             = mode false
-        end_if
+        end
     else
         if(up > 300)
             -- up
             ++ down
         else
             = mode true
-        end_if
-    end_if
+        end
+    end
 
     index me [0 2] primitives line2
     fun line2 set_point 0 up 50

@@ -9,7 +9,7 @@ start main()
             ++ i
             print "(continue 1)\n"
             continue
-        end_if
+        end
 
         = j 0
 
@@ -19,21 +19,21 @@ start main()
                 ++ j
                 print "(continue 2)"
                 continue
-            end_if
+            end
 
             print j " "
 
             if(j == 8)
                 print "(break)"
                 break
-            end_if
+            end
 
             ++ j
-        end_while
+        end
 
         print "\n"
         ++ i
-    end_while
+    end
 
     exit
 end

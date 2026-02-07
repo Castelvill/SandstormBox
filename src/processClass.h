@@ -86,6 +86,9 @@ public:
     string getValue(const InstrDescription & CurrentInstr, int maxLengthOfValuesPrinting) const;
     ReturnType getAllValues(vector<VariableModule> & NewValues, bool negate = false) const;
     ReturnType getAllNegatedValues(vector<VariableModule> & NewValues) const;
+    ReturnType moveAllValues(vector<VariableModule> & NewValues, bool negate, unsigned realIndex) const;
+    ReturnType getDoubleValues(vector<double> & NewValues, bool negate) const;
+    ReturnType getNegatedDoubleValues(vector<double> & NewValues) const;
     ReturnType getValue(VariableModule & NewValue);
     bool getUnsignedOrAbort(unsigned & number, const InstrDescription & CurrentInstr);
     bool getIntOrAbort(int & number, const InstrDescription & CurrentInstr);
@@ -406,7 +409,9 @@ public:
         vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack
     );
     void executeArithmetics(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
-    void generateRandomVariable(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
+    void generateRandomValue(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
+        bool isDouble = false
+    );
     void createLiteral(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     void checkIfVectorContainsVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory);
     bool prepareVectorSizeAndIDsForNew(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, unsigned & newVectorSize, vector <string> & newIDs);
@@ -449,19 +454,19 @@ public:
         vector<EventStackStruct> & MemoryStack, const EngineInstr & mode, bool allowNotAscii
     );
     void clearEventsInObjects(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, AncestorObject * Owner);
-    void executeFunctionForCameras(OperationClass & Operation, vector <VariableModule> & Variables,
+    void executeFunctionForCameras(OperationClass & Operation, const vector<VariableModule> & Variables,
         vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera, string & focusedProcessID
     );
     void moveLayerInDrawingOrder(LayerClass * Layer, unsigned newIndex);
     void minimizeLayerInDrawingOrder(LayerClass * Layer);
     void bringForwardLayerInDrawingOrder(LayerClass * Layer);
-    void executeFunctionForLayers(OperationClass & Operation, vector <VariableModule> & Variables, vector<LayerClass*> & Layers);
+    void executeFunctionForLayers(OperationClass & Operation, const vector<VariableModule> & Variables, vector<LayerClass*> & Layers);
     inline bool getLayerOfTheObject(LayerClass *& ObjectLayer, AncestorObject * Objec, string functionName);
     inline bool findCurrentIndexInObjectsDrawingOrder(LayerClass * ObjectLayer, AncestorObject * Object, string functionName, unsigned & currentIndex);
     void moveObjectInDrawingOrder(AncestorObject * Object, unsigned newIndex);
     void minimizeObjectInDrawingOrder(AncestorObject * Object);
     void bringForwardObjectInDrawingOrder(AncestorObject * Object);
-    void executeFunctionForObjects(OperationClass & Operation, vector <VariableModule> & Variables, vector<AncestorObject*> & Objects);
+    void executeFunctionForObjects(OperationClass & Operation, const vector<VariableModule> & Variables, vector<AncestorObject*> & Objects);
     void executeFunction(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
         vector<EventModule>::iterator & Event, EngineClass & Engine
     );

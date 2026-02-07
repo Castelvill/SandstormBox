@@ -1,0 +1,93 @@
+@trigger on_init
+start main()
+    var STEPS_TO_SIMULATE 200
+    var OUTPUT_LENGTH 100
+
+    var state 0
+    var patternSize 0
+    vec int pattern []
+
+    int i 0
+    while(i < OUTPUT_LENGTH)
+        fun pattern push_back 0
+        next i
+    end
+
+    fun pattern push_back 1
+
+    print pattern "\n"
+    size pattern patternSize
+end
+
+@trigger each_iteration
+start next()
+    if(state == STEPS_TO_SIMULATE)
+        exit
+    end
+    ++ state
+
+    int_vec newPattern []
+
+    int cell 0
+    int limit patternSize
+    
+    int pointer 0
+    bool left false
+    bool middle false
+    bool right false
+    bool alive false
+
+    //update first cell
+    -- limit
+    index_vec pattern limit left //last cell
+    index_vec pattern 0 middle
+    index_vec pattern 1 right
+    lightUp(alive, left, middle, right)
+    fun newPattern push_back alive
+
+    //update all cells in the middle
+    -- limit
+    while(cell < limit)
+        = pointer cell
+        index_vec pattern pointer left
+        ++ pointer
+        index_vec pattern pointer middle
+        ++ pointer
+        index_vec pattern pointer right
+        lightUp(alive, left, middle, right)
+        fun newPattern push_back alive
+        next cell
+    end
+
+    //update last cell
+    index_vec pattern limit left //cell before the last cell
+    ++ limit
+    index_vec pattern limit middle //last cell
+    index_vec pattern 0 right //first cell
+    lightUp(alive, left, middle, right)
+    fun newPattern push_back alive
+
+    = pattern newPattern
+    
+    print pattern "\n"
+end
+
+start lightUp(bool & isLightUp, bool & left, bool & middle, bool & right)
+    if(left && middle && right)
+        = isLightUp false
+    else_if(left && middle && !right)
+        = isLightUp true
+    else_if(left && !middle && right)
+        = isLightUp true
+    else_if(left && !middle && !right)
+        = isLightUp false
+    else_if(!left && middle && right)
+        = isLightUp true
+    else_if(!left && middle && !right)
+        = isLightUp true
+    else_if(!left && !middle && right)
+        = isLightUp true
+    else_if(!left && !middle && !right)
+        = isLightUp false
+    end
+end

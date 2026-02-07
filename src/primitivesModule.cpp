@@ -44,7 +44,7 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
                 return;
             }
             al_draw_line(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y, color, thickness);
-            break;
+            return;
         case prim_triangle:
             if(points.size() < 3){
                 cerr << "Error: In " << __FUNCTION__ << ": Triangle primitive requires 3 points.\n";
@@ -53,7 +53,7 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
             al_draw_triangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
                 base.x + points[2].x, base.y + points[2].y, color, thickness
             );
-            break;
+            return;
         case prim_filled_triangle:
             if(points.size() < 3){
                 cerr << "Error: In " << __FUNCTION__ << ": Triangle primitive requires two points.\n";
@@ -62,21 +62,21 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
             al_draw_filled_triangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
                 base.x + points[2].x, base.y + points[2].y, color
             );
-            break;
+            return;
         case prim_rectangle:
             if(points.size() < 2){
                 cerr << "Error: In " << __FUNCTION__ << ": Rectangle primitive requires 2 points.\n";
                 return;
             }
             al_draw_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y, color, thickness);
-            break;
+            return;
         case prim_filled_rectangle:
             if(points.size() < 2){
                 cerr << "Error: In " << __FUNCTION__ << ": Rectangle primitive requires 2 points.\n";
                 return;
             }
             al_draw_filled_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y, color);
-            break;
+            return;
         case prim_rounded_rectangle:
             if(points.size() < 3){
                 cerr << "Error: In " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
@@ -85,7 +85,7 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
             al_draw_rounded_rectangle(base.x + points[0].x, base.y + points[0].y, base.x + points[1].x, base.y + points[1].y,
                 points[2].x, points[2].y, color, thickness
             );
-            break;
+            return;
         case prim_filled_rounded_rectangle:
             if(points.size() < 3){
                 cerr << "Error: In " << __FUNCTION__ << ": Rounded rectangle primitive requires 3 points.\n";
@@ -94,34 +94,35 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
             al_draw_filled_rounded_rectangle(base.x + points[0].x, base.y + points[0].y,
                 base.x + points[1].x, base.y + points[1].y, points[2].x, points[2].y, color
             );
-            break;
+            return;
         case prim_circle:
             if(points.size() < 1){
                 cerr << "Error: In " << __FUNCTION__ << ": Circle primitive requires 1 point.\n";
                 return;
             }
             al_draw_circle(base.x + points[0].x, base.y + points[0].y, radius, color, thickness);
-            break;
+            return;
         case prim_filled_circle:
             if(points.size() < 1){
                 cerr << "Error: In " << __FUNCTION__ << ": Circle primitive requires 1 points.\n";
                 return;
             }
             al_draw_filled_circle(base.x + points[0].x, base.y + points[0].y, radius, color);
-            break;
+            return;
         case prim_ellipse:
             if(points.size() < 2){
                 cerr << "Error: In " << __FUNCTION__ << ": Ellipse primitive requires 2 points.\n";
                 return;
             }
             al_draw_ellipse(base.x + points[0].x, base.y + points[0].y, points[1].x, points[1].y, color, thickness);
-            break;
+            return;
         case prim_filled_ellipse:
             if(points.size() < 2){
                 cerr << "Error: In " << __FUNCTION__ << ": Ellipse primitive requires 2 points.\n";
                 return;
             }
             al_draw_filled_ellipse(base.x + points[0].x, base.y + points[0].y, points[1].x, points[1].y, color);
+            return;
         case prim_polygon:{
             if(points.empty()){
                 cerr << "Error: In " << __FUNCTION__
@@ -136,7 +137,7 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
             al_draw_polygon(vertices, points.size(), lineJoinType, color, thickness,
                 radius
             );}
-            break;
+            return;
         case prim_filled_polygon:{
             if(points.empty()){
                 cerr << "Error: In " << __FUNCTION__
@@ -149,11 +150,11 @@ void PrimitivesModule::draw(vec2d base, Camera2D Camera, bool outSourcing) const
                 vertices[v*2+1] = base.y + points[points.size() - (v + 1)].y;
             }
             al_draw_filled_polygon(vertices, points.size(), color);}
-            break;
+            return;
         default:
             cerr << "Error: In " << __FUNCTION__ << ": Cannot draw primitive of '"
                 << transPrimitiveTypeToString(type) << "' type.\n";
-            break;
+            return;
     }
 }
 void PrimitivesModule::updateWithSize(){

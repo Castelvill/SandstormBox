@@ -14,10 +14,12 @@ struct BranchingStackStruct{
     
     vector<unsigned> whileStartStack; //Indexes of operations that will store line number for jumping from "end_while" and "continue" labels to the "while" instruction.
     vector<vector<unsigned>> whileEndStack; //Indexes of operations that will store line number for jumping from "break" and "while" instructions to the "end_while" label.
+
+    vector<EngineInstr> openScopes;
 };
 
 struct InstrParser{
-    const vector<WordStruct> & words;
+    vector<WordStruct> & words;
     const string & scriptName;
     const unsigned & lineNumber;
     EventModule & NewEvent;
@@ -36,7 +38,7 @@ struct InstrParser{
         const string & layerId, const size_t objectIndex, const string & objectId,
         vector<EventModule> &eventContainer, vector<string> &eventContainerIds,
         size_t & topModuleUniqueIndex);
-    ReturnType parseEnd(vector<EventModule> &eventContainer);
+    ReturnType parseEnd(vector<EventModule> &eventContainer, BranchingStackStruct & BranchingStack);
     ReturnType parseEmpty();
     ReturnType parseIf(BranchingStackStruct & BranchingStack);
     ReturnType parseElseIf(BranchingStackStruct & BranchingStack);

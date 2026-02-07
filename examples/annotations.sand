@@ -15,7 +15,7 @@ start each_iteration()
     -- countdown
     if(countdown < 0)
 	    exit
-    end_if
+    end
 end
 
 @trigger each_second

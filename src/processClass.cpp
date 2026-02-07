@@ -1254,8 +1254,13 @@ size_t ContextClass::getVectorSize() const{
         case primitives_mod_vec:
             return Modules.Primitives.size();
         case vector_mod:
-        case vector_mod_vec:
-            return Modules.Vectors.size();
+        case vector_mod_vec:{ //Should we also add Modules.Vectors.size()? 
+            size_t finalSize = 0;
+            for(const VectorModule * vec : Modules.Vectors){
+                if(vec != nullptr)
+                    finalSize += vec->getSize();
+            }
+            return finalSize;}
         case any_dt:
             return Values.size() + BasePointers.size() + Modules.Variables.size()
             + Cameras.size() + Layers.size() + Objects.size() + Modules.Texts.size()
@@ -2173,7 +2178,7 @@ void ContextClass::addModule(VectorModule * Module){
         updateType(Modules.Vectors.size());
     }
 }
-bool translateIndexToTreeRoots(const vector<ParameterStruct> & Parameters, const unsigned & index, unsigned & realIndex){
+bool translateIndexToTreeRoots(const vector<ParameterStruct> & Parameters, unsigned index, unsigned & realIndex){
     unsigned rootIndex = 0;
     for(realIndex = 0; realIndex < Parameters.size(); ++realIndex){
         if(Parameters[realIndex].treeLevel != 0){
@@ -2734,6 +2739,123 @@ ReturnType ContextClass::getAllNegatedValues(vector<VariableModule> & NewValues)
     }
     return ReturnType::OK;
 }
+ReturnType ContextClass::moveAllValues(vector<VariableModule> & NewValues, bool negate, unsigned realIndex) const {
+    if(negate){
+        return getAllNegatedValues(NewValues);
+    }
+    switch(type){
+        case value_inst:
+            if(Values.size() > 0){
+                NewValues.emplace_back();
+                NewValues.back().copyValue(Values[0]);
+            }
+            break;
+        case value_vec:
+            NewValues.insert(NewValues.end(), Values.begin(), Values.end());
+            break;
+        case pointer_inst:
+            if(BasePointers.size() > 0){
+                NewValues.emplace_back();
+                NewValues.back().setValueFromPointer(BasePointers[0]);
+            }
+            break;
+        case pointer_vec:
+            for(const BasePointersStruct & Pointer : BasePointers){
+                NewValues.emplace_back(VariableModule());
+                NewValues.back().setValueFromPointer(Pointer);
+            }
+            break;
+        case variable_mod:
+            if(Modules.Variables.size() > 0){
+                NewValues.emplace_back();
+                NewValues.back().copyValue(Modules.Variables[0]);
+            }
+            break;
+        case variable_mod_vec:
+            for(const VariableModule * Variable : Modules.Variables){
+                NewValues.push_back(*Variable);
+            }
+            break;
+        case vector_mod:
+            if(Modules.Vectors.size() > 0){
+                Modules.Vectors[0]->getValuesIntoContext(NewValues);
+            }
+            break;
+        case vector_mod_vec:
+            for(const VectorModule * Vector : Modules.Vectors){
+                Vector->getValuesIntoContext(NewValues);
+            }
+            break;
+        default:
+            return ReturnType::INVALID_TYPE;
+    }
+    return ReturnType::OK;
+}
+ReturnType ContextClass::getDoubleValues(vector<double> & NewValues, bool negate) const {
+    if(negate){
+        return getNegatedDoubleValues(NewValues);
+    }
+    switch(type){
+        case value_inst:
+        case value_vec:
+            for(const VariableModule & val : Values){
+                NewValues.push_back(val.getDouble());
+            }
+            break;
+        case pointer_inst:
+        case pointer_vec:
+            for(const BasePointersStruct & ptr : BasePointers){
+                NewValues.push_back(ptr.getDouble());
+            }
+            break;
+        case variable_mod:
+        case variable_mod_vec:
+            for(const VariableModule * var : Modules.Variables){
+                NewValues.push_back(var->getDouble());
+            }
+            break;
+        case vector_mod:
+        case vector_mod_vec:
+            for(const VectorModule * vec : Modules.Vectors){
+                vec->getDoubles(NewValues);
+            }
+            break;
+        default:
+            return ReturnType::INVALID_TYPE;
+    }
+    return ReturnType::OK;
+}
+ReturnType ContextClass::getNegatedDoubleValues(vector<double> & NewValues) const {
+    switch(type){
+        case value_inst:
+        case value_vec:
+            for(const VariableModule & val : Values){
+                NewValues.push_back(-val.getDouble());
+            }
+            break;
+        case pointer_inst:
+        case pointer_vec:
+            for(const BasePointersStruct & ptr : BasePointers){
+                NewValues.push_back(-ptr.getDouble());
+            }
+            break;
+        case variable_mod:
+        case variable_mod_vec:
+            for(const VariableModule * var : Modules.Variables){
+                NewValues.push_back(-var->getDouble());
+            }
+            break;
+        case vector_mod:
+        case vector_mod_vec:
+            for(const VectorModule * vec : Modules.Vectors){
+                vec->getDoubles(NewValues, true);
+            }
+            break;
+        default:
+            return ReturnType::INVALID_TYPE;
+    }
+    return ReturnType::OK;
+}
 ReturnType ContextClass::getValue(VariableModule & NewValue){
     NewValue.clear();
     switch(type){
@@ -2849,9 +2971,12 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
         return false;
     }
     if(CurrentParameter.type == 'l'){
-        NewValues.push_back(CurrentParameter.Literal);
+        if(NewValues.size() <= realIndex)
+            NewValues.push_back(CurrentParameter.Literal);
+        else
+            NewValues[realIndex].copyValue(CurrentParameter.Literal);
         if(CurrentParameter.negateVariable)
-            NewValues.back().negate();
+            NewValues[realIndex].negate();
         return false;
     }
     else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
@@ -2875,7 +3000,58 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
         return true;
     }
 
-    ReturnType response = HelpContext.getAllValues(NewValues, negateWholeContextAfterCopy);
+    ReturnType response = HelpContext.moveAllValues(NewValues, negateWholeContextAfterCopy, realIndex);
+    if(response == ReturnType::INVALID_TYPE){
+        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Parameter " << index+1 << " has an invalid type: " << dataTypeToStr(HelpContext.type) << ".\n";
+        return true;
+    }
+    return false;
+}
+bool getDoubleVectorFromTheParameterV2(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & EventLocalVariables,
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+    unsigned index, vector<double> & NewValues, bool printErrors
+){
+    unsigned realIndex = 0;
+    if(translateIndexToTreeRoots(Parameters, index, realIndex)){
+        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Parameter " << index+1 << " does not exist.\n";
+        return true;
+    }
+
+    const ParameterStruct & CurrentParameter = Parameters[realIndex];
+    
+    if(CurrentParameter.type == 'e'){
+        return false;
+    }
+    if(CurrentParameter.type == 'l'){
+        NewValues.push_back(CurrentParameter.Literal.getDouble());
+        if(CurrentParameter.negateVariable)
+            NewValues.back() *= -1;
+        return false;
+    }
+    else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
+        if(printErrors){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Parameter " << index+1 << " has an invalid type: " << CurrentParameter.type << ".\n";
+        }
+        return true;
+    }
+
+    //Parameter is a variable or a vector
+    bool negateWholeContextAfterCopy = false;
+    HelpContext.clear();
+    if(HelpContext.copyFromTheParameter(ObjectMemory.MemoryMap, EventLocalVariables, CurrentInstr,
+        Parameters, negateWholeContextAfterCopy, index, printErrors
+    )){
+        if(printErrors){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Failed to find context in the parameter " << index+1 << ".\n";
+        }
+        return true;
+    }
+
+    ReturnType response = HelpContext.getDoubleValues(NewValues, negateWholeContextAfterCopy);
     if(response == ReturnType::INVALID_TYPE){
         printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " has an invalid type: " << dataTypeToStr(HelpContext.type) << ".\n";
@@ -2974,6 +3150,26 @@ bool getUnsignedVectorFromTheParameter(ObjectMemoryStruct & ObjectMemory, const 
             return true;
         }
         NewUnsignedIntegers.emplace_back(Integer.getInt());
+    }
+    return false;
+}
+bool getDoubleVectorFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & DynamicLocalVariables,
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+    unsigned index, vector<double> & newDoubles
+){
+    vector<VariableModule> Literals;
+    if(getValuesFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literals, true)){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to get value from the parameter " << index+1 << ".\n";
+        return true;
+    }
+    for(const VariableModule & val : Literals){
+        // if(val.getType() != 'd'){
+        //     cerr << instructionError(CurrentInstr, __FUNCTION__)
+        //         << "Type " << val.getType() << "' is invalid in the parameter " << index+1 << ". Double was expected.\n";
+        //     return true;
+        // }
+        newDoubles.emplace_back(val.vDouble);
     }
     return false;
 }
@@ -3206,6 +3402,26 @@ bool getIntFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<Dyna
         return true;
     }
     newInteger = Literal.getIntUnsafe();
+    return false;
+}
+bool getDoubleFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<DynamicVariableInfo> & DynamicLocalVariables,
+    ContextClass & HelpContext, const InstrDescription & CurrentInstr, const vector<ParameterStruct> & Parameters,
+    unsigned index, double & newDouble, bool printErrors
+){
+    VariableModule Literal;
+    if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext,
+        CurrentInstr, Parameters, index, Literal, printErrors
+    )){
+        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Failed to get a value from the parameter " << index+1 << ".\n";
+        return true;
+    }
+    if(Literal.getType() != 'd' && Literal.getType() != 'i'){
+        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "No double value in the parameter " << index+1 << ".\n";
+        return true;
+    }
+    newDouble = Literal.getDoubleUnsafe();
     return false;
 }
 
@@ -6982,6 +7198,30 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
         cloneEntitiesOfDifferentType(LeftOperand, RightOperand, CurrentInstr);
     }
 }
+inline void printValuesForDebug(const vector<VariableModule> & values){
+    if(values.size() == 1){
+        cout << values[0].getAnyValue();
+    }
+    else{
+        cout << "[";
+        for(const VariableModule & val : values){
+            cout << val.getAnyValue() << ", ";
+        }
+        cout << "]";
+    }
+}
+inline void printValuesForDebug(const vector<double> & values){
+    if(values.size() == 1){
+        cout << values[0];
+    }
+    else{
+        cout << "[";
+        for(const double & val : values){
+            cout << val << ", ";
+        }
+        cout << "]";
+    }
+}
 void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemoryStruct& ObjectMemory){
     vector<VariableModule> leftValues;
     if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
@@ -7015,27 +7255,9 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemorySt
 
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " ";
-        if(leftValues.size() == 1){
-            cout << leftValues[0].getAnyValue();
-        }
-        else{
-            cout << "[";
-            for(const VariableModule & val : leftValues){
-                cout << val.getAnyValue() << ", ";
-            }
-            cout << "]";
-        }
+        printValuesForDebug(leftValues);
         cout << " ";
-        if(rightValues.size() == 1){
-            cout << rightValues[0].getAnyValue();
-        }
-        else{
-            cout << "[";
-            for(const VariableModule & val : rightValues){
-                cout << val.getAnyValue() << ", ";
-            }
-            cout << "]";
-        }
+        printValuesForDebug(rightValues);
         cout << " " << Operation.Output.variableID << "\n";
     }
 
@@ -7154,276 +7376,66 @@ inline int randomIntWithNegation(int minValue, int maxValue, bool negateMin, boo
         maxValue *= -1;
     return randomInt(minValue, maxValue);
 }
-void ProcessClass::generateRandomVariable(const OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
-    ContextClass LeftOperand;
-    ContextClass RightOperand;
-    
-    bool negateMin = false;
-    if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-        CurrentInstr, Operation.Parameters, negateMin, 0, true
+void ProcessClass::generateRandomValue(const OperationClass & Operation,
+    ObjectMemoryStruct & ObjectMemory, bool isDouble
+){
+    vector<double> minValues;
+    if(getDoubleVectorFromTheParameterV2(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
+        Operation.Parameters, 0, minValues, false
     )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Failed to get the parameter 1.\n";
+            << "Failed to get value from the parameter 1.\n";
         return;
     }
 
-    bool negateMax = false;
-    if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
-        CurrentInstr, Operation.Parameters, negateMax, 1, true
+    vector<double> maxValues;
+    if(getDoubleVectorFromTheParameterV2(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
+        Operation.Parameters, 1, maxValues, false
     )){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Failed to get the parameter 2.\n";
+            << "Failed to get value from the parameter 1.\n";
+        return;
+    }
+
+    if(printOutInstructions){
+        cout << instrToStr(Operation.instruction) << " ";
+        printValuesForDebug(minValues);
+        cout << " ";
+        printValuesForDebug(maxValues);
+        cout << " " << Operation.Output.variableID << "\n";
+    }
+
+    bool sameSize = false;
+    if(!checkForVectorSize(CurrentInstr, minValues.size(), maxValues.size(), sameSize,
+        __FUNCTION__
+    )){
         return;
     }
 
     NewContext.clear();
     VariableModule Result;
     unsigned i = 0, j = 0;
-    bool sameSize = false;
 
-    if(printOutInstructions){
-        cout << instrToStr(Operation.instruction) << " " << LeftOperand.ID << ":"
-            << dataTypeToStr(LeftOperand.type)
-            << ":" << LeftOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting)
-            << " " << RightOperand.ID << ":" << dataTypeToStr(RightOperand.type)
-            << ":" << RightOperand.getValue(CurrentInstr, maxLengthOfValuesPrinting) << "\n";
+    ContextClass * Variable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+        LocalToGlobalTranslation[Operation.Output.localAddress], Operation.Output.variableID, false
+    );
+
+    if(!isDouble){
+        Result.setType('i');
+        for(; i < minValues.size(); i++, j+=sameSize){
+            Result.vInt = randomInt(minValues[i], maxValues[j]);
+            NewContext.Values.push_back(Result);
+        }
+    }
+    else{
+        Result.setType('d');
+        for(; i < minValues.size(); i++, j+=sameSize){
+            Result.vDouble = randomDouble(minValues[i], maxValues[j]);
+            NewContext.Values.push_back(Result);
+        }
     }
 
-    switch(LeftOperand.type){
-        case value_inst:
-        case value_vec:
-            switch(RightOperand.type){
-                case value_inst:
-                case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(),
-                        RightOperand.Values.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.Values[i].getInt(), RightOperand.Values[j].getInt(),
-                            negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case pointer_inst:
-                case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(),
-                        RightOperand.BasePointers.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.Values[i].getInt(), RightOperand.BasePointers[j].getInt(),
-                            negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case variable_mod:
-                case variable_mod_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Values.size(),
-                        RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.Values.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.Values[i].getInt(),
-                            RightOperand.Modules.Variables[j]->getInt(), negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case vector_mod:
-                case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Not implemented. Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'"
-                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-                    break;
-                default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'"
-                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-                    return;
-            }
-            break;
-        case pointer_inst:
-        case pointer_vec:
-            switch(RightOperand.type){
-                case value_inst:
-                case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(),
-                        RightOperand.Values.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.BasePointers[i].getInt(), RightOperand.Values[j].getInt(),
-                            negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case pointer_inst:
-                case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(),
-                        RightOperand.BasePointers.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.BasePointers[i].getInt(),
-                            RightOperand.BasePointers[j].getInt(), negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case variable_mod:
-                case variable_mod_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.BasePointers.size(),
-                        RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.BasePointers.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.BasePointers[i].getInt(),
-                            RightOperand.Modules.Variables[j]->getInt(), negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case vector_mod:
-                case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Not implemented. Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'"
-                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-                    break;
-                default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'"
-                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-                    return;
-            }
-            break;
-        case variable_mod:
-        case variable_mod_vec:
-            switch(RightOperand.type){
-                case value_inst:
-                case value_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(),
-                        RightOperand.Values.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.Modules.Variables[i]->getInt(),
-                            RightOperand.Values[j].getInt(), negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case pointer_inst:
-                case pointer_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(),
-                        RightOperand.BasePointers.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.Modules.Variables[i]->getInt(),
-                            RightOperand.BasePointers[j].getInt(), negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case variable_mod:
-                case variable_mod_vec:
-                    if(!checkForVectorSize(CurrentInstr, LeftOperand.Modules.Variables.size(),
-                        RightOperand.Modules.Variables.size(), sameSize, __FUNCTION__
-                    )){
-                        return;
-                    }
-                    for(; i < LeftOperand.Modules.Variables.size(); i++, j+=sameSize){
-                        const int randomValue = randomIntWithNegation(
-                            LeftOperand.Modules.Variables[i]->getInt(),
-                            RightOperand.Modules.Variables[j]->getInt(), negateMin, negateMax
-                        );
-                        Result.setInt(randomValue);
-                        NewContext.Values.push_back(Result);
-                    }
-                    break;
-                case vector_mod:
-                case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Not implemented. Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'"
-                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-                    break;
-                default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'"
-                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-                    return;
-            }
-            break;
-        case vector_mod:
-        case vector_mod_vec:
-            switch(RightOperand.type){
-                case value_inst:
-                case value_vec:
-                case pointer_inst:
-                case pointer_vec:
-                case variable_mod:
-                case variable_mod_vec:
-                case vector_mod:
-                case vector_mod_vec:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Not implemented. Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'"
-                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-                    break;
-                default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
-                        << "Cannot generate a random number from values of \'"
-                        << dataTypeToStr(RightOperand.type) << "\' and \'"
-                        << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-                    return;
-            }
-            break;
-        default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Cannot generate a random number from values of \'"
-                << dataTypeToStr(RightOperand.type) << "\' and \'"
-                << dataTypeToStr(LeftOperand.type) << "\' types.\n";
-            return;
-    }
-
-    NewContext.type = value_inst;
-    if(NewContext.Values.size() > 1){
-        NewContext.type = value_vec;
-    }
+    NewContext.type = NewContext.Values.size() <= 1 ? value_inst : value_vec;
 
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " "
@@ -9511,7 +9523,8 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemor
     }
 
     if(NewContext.type != null_dt){
-        assignVariable(ObjectMemory, Operation.Output);
+        moveToVariable(ObjectMemory, Operation.Output);
+        //assignVariable(ObjectMemory, Operation.Output);
     }
     else{
         cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed.\n";
@@ -9923,7 +9936,7 @@ bool findObjectForFunction(AncestorObject *& ModuleObject, vector<LayerClass> &L
     }
     return true;
 }
-void ProcessClass::executeFunctionForCameras(OperationClass & Operation, vector<VariableModule> & Variables,
+void ProcessClass::executeFunctionForCameras(OperationClass & Operation, const vector<VariableModule> & Variables,
     vector<Camera2D*> CamerasFromContext, Camera2D *& SelectedCamera, string & focusedProcessID
 ){
     for(Camera2D * Camera : CamerasFromContext){
@@ -10384,7 +10397,7 @@ void ProcessClass::bringForwardLayerInDrawingOrder(LayerClass * Layer){
         std::swap(layersOrder[oldIndex], layersOrder[oldIndex + 1]);
     }
 }
-void ProcessClass::executeFunctionForLayers(OperationClass & Operation, vector<VariableModule> & Variables, vector<LayerClass*> & ContextLayers){
+void ProcessClass::executeFunctionForLayers(OperationClass & Operation, const vector<VariableModule> & Variables, vector<LayerClass*> & ContextLayers){
     for(LayerClass * Layer : ContextLayers){
         if(Layer->getIsDeleted()){
             continue;
@@ -10555,7 +10568,7 @@ void ProcessClass::bringForwardObjectInDrawingOrder(AncestorObject * Object){
         std::swap(ObjectLayer->objectsOrder[currentIndex], ObjectLayer->objectsOrder[currentIndex + 1]);
     }
 }
-void ProcessClass::executeFunctionForObjects(OperationClass & Operation, vector<VariableModule> & Variables, vector<AncestorObject*> & Objects){
+void ProcessClass::executeFunctionForObjects(OperationClass & Operation, const vector<VariableModule> & Variables, vector<AncestorObject*> & Objects){
     if(Operation.Location.attribute == set_id && Variables.size() > 0){
         LayerClass * ObjectsLayer = nullptr;
         for(AncestorObject * Object : Objects){
@@ -10689,16 +10702,21 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
 ){
     ContextClass * Context = nullptr;
 
-    if(getContextPointerFromTheParameter(Context, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Function requires at least one context.\n";
+    if(getContextPointerFromTheParameter(Context, ObjectMemory, LocalToGlobalTranslation,
+        CurrentInstr, Operation.Parameters, 0, true
+    )){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Function requires at least one context.\n";
         return;
     }
 
-    vector<VariableModule> Variables;
+    vector<VariableModule> functionArguments;
 
     //Get values from all parameters of this instruction
     for(unsigned index = 1; index < Operation.rootParametersSize; index++){
-        if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, index, Variables, true)){
+        if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext,
+            CurrentInstr, Operation.Parameters, index, functionArguments, true
+        )){
             cerr << instructionError(CurrentInstr, __FUNCTION__)
                 << "Failed to get value from the parameter " << index+1 << ".\n";
             return;
@@ -10708,12 +10726,12 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
     if(printOutInstructions){
         cout << instrToStr(Operation.instruction) << " " << Context->ID
             << "." << attributeToStr(Operation.Location.attribute) << "()";
-        if(Variables.size() > 0){
+        if(functionArguments.size() > 0){
             cout << "[";
-            for(const VariableModule & Var : Variables){
+            for(const VariableModule & Var : functionArguments){
                 cout << shortenText(Var.getAnyValue(), maxLengthOfValuesPrinting) << ", ";
             }
-            cout << "]<" << Variables.size() << ">";
+            cout << "]<" << functionArguments.size() << ">";
         }
         cout << "\n";
     }
@@ -10725,61 +10743,78 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
     switch(Context->type){
         case camera_inst:
         case camera_vec:
-            executeFunctionForCameras(Operation, Variables, Context->Cameras, SelectedCamera, Engine.focusedProcessID);
+            executeFunctionForCameras(Operation, functionArguments, Context->Cameras,
+                SelectedCamera, Engine.focusedProcessID
+            );
             break;
         case layer_inst:
         case layer_vec:
-            executeFunctionForLayers(Operation, Variables, Context->Layers);
+            executeFunctionForLayers(Operation, functionArguments, Context->Layers);
             break;
         case object_inst:
         case object_vec:
-            executeFunctionForObjects(Operation, Variables, Context->Objects);
+            executeFunctionForObjects(Operation, functionArguments, Context->Objects);
             break;
         case text_mod:
         case text_mod_vec:
             if(Operation.Location.attribute == set_id){
                 for(TextModule * Text : Context->Modules.Texts){
-                    if(!findObjectForFunction(ModulesObject, Layers, Text->getObjectID(), Text->getLayerID())){
+                    if(!findObjectForFunction(ModulesObject, Layers, Text->getObjectID(),
+                        Text->getLayerID()
+                    )){
                         continue;
                     }
-                    Event->controlText(Text, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs, Engine.FontContainer);
+                    Event->controlText(Text, Operation.Location.attribute, functionArguments,
+                        ModulesObject->textContainerIDs, Engine.FontContainer
+                    );
                 }
                 return;
             }
             for(TextModule * Text : Context->Modules.Texts){
-                Event->controlText(Text, Operation.Location.attribute, Variables, emptyString, Engine.FontContainer);
+                Event->controlText(Text, Operation.Location.attribute, functionArguments,
+                    emptyString, Engine.FontContainer
+                );
             }
             break;
         case editable_text_mod:
         case editable_text_mod_vec:
             if(Operation.Location.attribute == set_id){
                 for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
-                    if(!findObjectForFunction(ModulesObject, Layers, EditableText->getObjectID(), EditableText->getLayerID())){
+                    if(!findObjectForFunction(ModulesObject, Layers, EditableText->getObjectID(),
+                        EditableText->getLayerID()
+                    )){
                         continue;
                     }
-                    Event->controlEditableText(EditableText, Operation.Location.attribute, Variables, ModulesObject->textContainerIDs, Engine.FontContainer);
+                    Event->controlEditableText(EditableText, Operation.Location.attribute,
+                        functionArguments, ModulesObject->textContainerIDs, Engine.FontContainer
+                    );
                 }
                 return;
             }
             for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
-                Event->controlEditableText(EditableText, Operation.Location.attribute, Variables, emptyString, Engine.FontContainer);
+                Event->controlEditableText(EditableText, Operation.Location.attribute,
+                    functionArguments, emptyString, Engine.FontContainer
+                );
             }
             break;
         case super_text_mod:
         case super_text_mod_vec:
             if(Operation.Location.attribute == set_id){
                 for(SuperTextModule * SuperText : Context->Modules.SuperTexts){
-                    if(!findObjectForFunction(ModulesObject, Layers, SuperText->getObjectID(), SuperText->getLayerID())){
+                    if(!findObjectForFunction(ModulesObject, Layers, SuperText->getObjectID(),
+                        SuperText->getLayerID()
+                    )){
                         continue;
                     }
-                    Event->controlSuperText(SuperText, Operation.Location.attribute, Variables,
-                        ModulesObject->superTextContainerIDs, Engine.FontContainer, EXE_PATH, workingDirectory
+                    Event->controlSuperText(SuperText, Operation.Location.attribute,
+                        functionArguments, ModulesObject->superTextContainerIDs,
+                        Engine.FontContainer, EXE_PATH, workingDirectory
                     );
                 }
                 return;
             }
             for(SuperTextModule * SuperText : Context->Modules.SuperTexts){
-                Event->controlSuperText(SuperText, Operation.Location.attribute, Variables,
+                Event->controlSuperText(SuperText, Operation.Location.attribute, functionArguments,
                     emptyString, Engine.FontContainer, EXE_PATH, workingDirectory
                 );
             }
@@ -10791,14 +10826,14 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(!findObjectForFunction(ModulesObject, Layers, SuperEditableText->getObjectID(), SuperEditableText->getLayerID())){
                         continue;
                     }
-                    Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables,
+                    Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, functionArguments,
                         ModulesObject->superEditableTextContainerIDs, Engine.FontContainer, ActiveEditableText, EXE_PATH, workingDirectory
                     );
                 }
                 return;
             }
             for(SuperEditableTextModule *& SuperEditableText : Context->Modules.SuperEditableTexts){
-                Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, Variables,
+                Event->controlSuperEditableText(SuperEditableText, Operation.Location.attribute, functionArguments,
                     emptyString, Engine.FontContainer, ActiveEditableText, EXE_PATH, workingDirectory
                 );
             }
@@ -10816,7 +10851,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                         if(!findObjectForFunction(ModulesObject, Layers, Image->getObjectID(), Image->getLayerID())){
                             continue;
                         }
-                        Event->controlImage(Image, Operation.Location.attribute, Variables,
+                        Event->controlImage(Image, Operation.Location.attribute, functionArguments,
                             ModulesObject->imageContainerIDs, Engine.BitmapContainer, EXE_PATH + workingDirectory
                         );
                         if(Operation.Location.attribute != set_id){
@@ -10826,7 +10861,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     return;
                 default:
                     for(ImageModule * Image : Context->Modules.Images){
-                        Event->controlImage(Image, Operation.Location.attribute, Variables, emptyString,
+                        Event->controlImage(Image, Operation.Location.attribute, functionArguments, emptyString,
                             Engine.BitmapContainer, EXE_PATH + workingDirectory
                         );
                     }
@@ -10840,12 +10875,12 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(!findObjectForFunction(ModulesObject, Layers, Movement->getObjectID(), Movement->getLayerID())){
                         continue;
                     }
-                    Event->controlMovement(Movement, Operation.Location.attribute, Variables, ModulesObject->movementContainerIDs);
+                    Event->controlMovement(Movement, Operation.Location.attribute, functionArguments, ModulesObject->movementContainerIDs);
                 }
                 return;
             }
             for(MovementModule * Movement : Context->Modules.Movements){
-                Event->controlMovement(Movement, Operation.Location.attribute, Variables, emptyString);
+                Event->controlMovement(Movement, Operation.Location.attribute, functionArguments, emptyString);
             }
             break;
         case collision_mod:
@@ -10855,12 +10890,12 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(!findObjectForFunction(ModulesObject, Layers, Collision->getObjectID(), Collision->getLayerID())){
                         continue;
                     }
-                    Event->controlCollision(Collision, Operation.Location.attribute, Variables, ModulesObject->collisionContainerIDs);
+                    Event->controlCollision(Collision, Operation.Location.attribute, functionArguments, ModulesObject->collisionContainerIDs);
                 }
                 return;
             }
             for(CollisionModule * Collision : Context->Modules.Collisions){
-                Event->controlCollision(Collision, Operation.Location.attribute, Variables, emptyString);
+                Event->controlCollision(Collision, Operation.Location.attribute, functionArguments, emptyString);
             }
             break;
         case particles_mod:
@@ -10870,12 +10905,12 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(!findObjectForFunction(ModulesObject, Layers, Particles->getObjectID(), Particles->getLayerID())){
                         continue;
                     }
-                    Event->controlParticles(Particles, Operation.Location.attribute, Variables, ModulesObject->particlesContainerIDs);
+                    Event->controlParticles(Particles, Operation.Location.attribute, functionArguments, ModulesObject->particlesContainerIDs);
                 }
                 return;
             }
             for(ParticleEffectModule * Particles : Context->Modules.Particles){
-                Event->controlParticles(Particles, Operation.Location.attribute, Variables, emptyString);
+                Event->controlParticles(Particles, Operation.Location.attribute, functionArguments, emptyString);
             }
             break;
         case event_mod:
@@ -10901,12 +10936,12 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(!findObjectForFunction(ModulesObject, Layers, Variable->getObjectID(), Variable->getLayerID())){
                         continue;
                     }
-                    Event->controlVariables(Variable, Operation.Location.attribute, Variables, ModulesObject->variablesContainerIDs);
+                    Event->controlVariables(Variable, Operation.Location.attribute, functionArguments, ModulesObject->variablesContainerIDs);
                 }
                 return;
             }
             for(VariableModule * Variable : Context->Modules.Variables){
-                Event->controlVariables(Variable, Operation.Location.attribute, Variables, emptyString);
+                Event->controlVariables(Variable, Operation.Location.attribute, functionArguments, emptyString);
             }
             break;
         case scrollbar_mod:
@@ -10916,12 +10951,12 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(!findObjectForFunction(ModulesObject, Layers, Scrollbar->getObjectID(), Scrollbar->getLayerID())){
                         continue;
                     }
-                    Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables, ModulesObject->scrollbarContainerIDs);
+                    Event->controlScrollbar(Scrollbar, Operation.Location.attribute, functionArguments, ModulesObject->scrollbarContainerIDs);
                 }
                 return;
             }
             for(ScrollbarModule * Scrollbar : Context->Modules.Scrollbars){
-                Event->controlScrollbar(Scrollbar, Operation.Location.attribute, Variables, emptyString);
+                Event->controlScrollbar(Scrollbar, Operation.Location.attribute, functionArguments, emptyString);
             }
             break;
         case primitives_mod:
@@ -10931,12 +10966,12 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(!findObjectForFunction(ModulesObject, Layers, Primitives->getObjectID(), Primitives->getLayerID())){
                         continue;
                     }
-                    Event->controlPrimitives(Primitives, Operation.Location.attribute, Variables, ModulesObject->primitivesContainerIDs);
+                    Event->controlPrimitives(Primitives, Operation.Location.attribute, functionArguments, ModulesObject->primitivesContainerIDs);
                 }
                 return;
             }
             for(PrimitivesModule * Primitives : Context->Modules.Primitives){
-                Event->controlPrimitives(Primitives, Operation.Location.attribute, Variables, emptyString);
+                Event->controlPrimitives(Primitives, Operation.Location.attribute, functionArguments, emptyString);
             }
             break;
         case vector_mod:
@@ -10946,12 +10981,12 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(!findObjectForFunction(ModulesObject, Layers, Vector->getObjectID(), Vector->getLayerID())){
                         continue;
                     }
-                    Event->controlVector(Vector, Operation.Location.attribute, Variables, ModulesObject->vectorContainerIDs);
+                    Event->controlVector(Vector, Operation.Location.attribute, functionArguments, ModulesObject->vectorContainerIDs);
                 }
                 return;
             }
             for(VectorModule * Vector : Context->Modules.Vectors){
-                Event->controlVector(Vector, Operation.Location.attribute, Variables, emptyString);
+                Event->controlVector(Vector, Operation.Location.attribute, functionArguments, emptyString);
             }
             break;
         case value_vec:
@@ -10963,10 +10998,24 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                 }
                 Context->Values.pop_back();
             }
-            else if(Operation.Location.attribute == push_back_a && Variables.size() > 0){
-                Context->Values.reserve(Context->Values.size() + Variables.size());
-                for(const VariableModule & Value : Variables){
+            else if(Operation.Location.attribute == push_back_a && functionArguments.size() > 0){
+                Context->Values.reserve(Context->Values.size() + functionArguments.size());
+                for(const VariableModule & Value : functionArguments){
                     Context->Values.push_back(Value);
+                }
+            }
+            else if(Operation.Location.attribute == set_a && functionArguments.size() >= 2){
+                if((size_t)functionArguments[0].getIntUnsafe() >= Context->Values.size() || 
+                    functionArguments[0].getIntUnsafe() + (functionArguments.size()-1) > Context->Values.size()
+                ){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        << "In function " << attributeToStr(Operation.Location.attribute)
+                        << " index " << functionArguments[0].getIntUnsafe() << " is out of scope.\n";
+                    return;
+                }
+                
+                for(size_t valIdx = 0; valIdx < functionArguments.size()-1; ++valIdx){
+                    Context->Values[functionArguments[0].getIntUnsafe()+valIdx].copyValue(functionArguments[valIdx+1]);
                 }
             }
             else if(Operation.Location.attribute == clear_a){
@@ -10975,44 +11024,44 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
             else{
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Function " << attributeToStr(Operation.Location.attribute)
-                    << "<" << Variables.size() << "> does not exist.\n";
+                    << "<" << functionArguments.size() << "> does not exist.\n";
             }
             break;
         case value_inst:
             if(Context->Values.size() == 0){
                 Context->Values.push_back(VariableModule());
             }
-            if(Operation.Location.attribute == set_bool && Variables.size() > 0){
-                if(!Variables[0].isNumeric()){
+            if(Operation.Location.attribute == set_bool && functionArguments.size() > 0){
+                if(!functionArguments[0].isNumeric()){
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
                         << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
                     return;
                 }
-                Context->Values[0].setBool(Variables[0].getBoolUnsafe());
+                Context->Values[0].setBool(functionArguments[0].getBoolUnsafe());
             }
-            else if(Operation.Location.attribute == set_int && Variables.size() > 0){
-                if(!Variables[0].isNumeric()){
+            else if(Operation.Location.attribute == set_int && functionArguments.size() > 0){
+                if(!functionArguments[0].isNumeric()){
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
                         << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
                     return;
                 }
-                Context->Values[0].setInt(Variables[0].getIntUnsafe());
+                Context->Values[0].setInt(functionArguments[0].getIntUnsafe());
             }
-            else if(Operation.Location.attribute == set_double && Variables.size() > 0){
-                if(!Variables[0].isNumeric()){
+            else if(Operation.Location.attribute == set_double && functionArguments.size() > 0){
+                if(!functionArguments[0].isNumeric()){
                     cerr << instructionError(CurrentInstr, __FUNCTION__)
                         << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
                     return;
                 }
-                Context->Values[0].setDouble(Variables[0].getDoubleUnsafe());
+                Context->Values[0].setDouble(functionArguments[0].getDoubleUnsafe());
             }
-            else if(Operation.Location.attribute == set_string && Variables.size() > 0){
-                Context->Values[0].setString(Variables[0].getStringUnsafe());
+            else if(Operation.Location.attribute == set_string && functionArguments.size() > 0){
+                Context->Values[0].setString(functionArguments[0].getStringUnsafe());
             }
             else{
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
                     << "Function " << attributeToStr(Operation.Location.attribute)
-                    << "<" << Variables.size() << "> does not exist.\n";
+                    << "<" << functionArguments.size() << "> does not exist.\n";
             }
             break;
         default:
@@ -13743,7 +13792,10 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                 createLiteral(Operation, ObjectMemory); //Get literals prepared in the event.
                 break;
             case rand_int: //Generate random int value between
-                generateRandomVariable(Operation, ObjectMemory);
+                generateRandomValue(Operation, ObjectMemory);
+                break;
+            case rand_double: //Generate random int value between
+                generateRandomValue(Operation, ObjectMemory, true);
                 break;
             case find_by_id: //Aggregate context only by id.
                 aggregateOnlyById(ObjectMemory, Operation, OwnerLayer, Owner);

@@ -11,5 +11,5 @@ end
 start exitProgram()
     if(key_pressed(KEY_LCTRL) key_pressed(KEY_ESC) &&)
         exit
-    end_if
+    end
 end

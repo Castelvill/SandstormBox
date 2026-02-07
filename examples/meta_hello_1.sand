@@ -1,4 +1,5 @@
-//Example of compiling code at runtime
+// Example of compiling code at runtime. In this example the print instruction will be added 5 times
+// to the injection event.
 
 @trigger on_init
 start main()
@@ -11,7 +12,7 @@ start main()
     while(i < 5)
         += program "print \"Hello, World!\n\"\n"
         next i
-    end_while
+    end
 
     += program "
             exit

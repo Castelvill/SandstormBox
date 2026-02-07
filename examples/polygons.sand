@@ -38,7 +38,7 @@ start createLines
         index_vec hexagonPoints i y
         fun hexagon add_point x y
         next i
-    end_while
+    end
 
     //Create filled hexagon
     new Primitives me 1 "filledHexagon" filledHexagon
@@ -55,7 +55,7 @@ start createLines
         index_vec hexagonPoints i y
         fun filledHexagon add_point x y
         next i
-    end_while
+    end
 
 
     //Create pyramid
@@ -77,8 +77,8 @@ start createLines
         else
             fun pyramid move_point i -x 0
             = mode true
-        end_if
+        end
         += x 6
         next i
-    end_while
+    end
 end

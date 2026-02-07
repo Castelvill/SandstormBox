@@ -11,7 +11,7 @@ start main()
         while(j < space)
             print " "
             ++ j
-        end_while
+        end
 
         int stars 2
         *= stars i
@@ -21,11 +21,11 @@ start main()
         while(k < stars)
             print "*"
             ++ k
-        end_while
+        end
 
         print "\n"
         ++ i
-    end_while
+    end
 
     // Tree trunk
     int t 0
@@ -37,11 +37,11 @@ start main()
         while(s < heigh_minus)
             print " "
             ++ s
-        end_while
+        end
         
         print "*\n"
         ++ t
-    end_while
+    end
 
     exit
 end

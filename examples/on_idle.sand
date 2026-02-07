@@ -1,3 +1,7 @@
+// Present the on_idle trigger. Events/functions with this annotation will be called if there's no other
+// event triggerd in the current engine iteration.
+// This program will exit after 3 seconds will pass.
+
 @trigger on_init
 start on_init()
     var counter 0
@@ -12,7 +16,7 @@ start each_second()
     print "\nSecond has passed..." counter "\n"
     if(counter == 3)
         exit
-    end_if
+    end
 end
 
 @trigger on_idle
@@ -23,5 +27,5 @@ start on_idle()
     % idleCounter 11 modulo
     if(modulo == 0)
         print "\n"
-    end_if
+    end
 end

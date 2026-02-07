@@ -10,10 +10,13 @@ start test()
 
     int i 0
     while(i < 4)
+        //Create a new event. It will be automatically added to the current runtime as a blank function (event without a trigger annotation)
         new Events me 1 "hello0" newEvent
+        //Take the definition of the existing hello() function and copy it into a newly created event
         clone newEvent originalHello false
+        //Do everything 4 times - we will end up with 5 hello functions - each function name will be incremented by 1 automatically
         next i
-    end_while()
+    end
 end
 
 @trigger on_init

@@ -24,12 +24,12 @@ start createRectangles
     //Map primitive's points positions to the module's position and size
     fun rectangle1 update_with_size
 
-    print "To close the program use the CTRL+ESC shortcut or just click the exit button.\n"
+    print "To close this program use the CTRL+ESC shortcut or just click the exit button.\n"
 end
 
 @trigger on_key_press
 start exitProgram
     if(key_pressed(KEY_LCTRL) && key_pressed(KEY_ESC))
         exit
-    end_if
+    end
 end

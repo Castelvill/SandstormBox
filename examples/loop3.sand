@@ -9,10 +9,10 @@ start main()
             while(j < 5)
                 print j " "
                 ++ j
-            end_while
-        end_if
+            end
+        end
         print "\n"
         ++ i
-    end_while
+    end
     exit
 end

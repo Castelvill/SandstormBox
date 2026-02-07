@@ -297,7 +297,7 @@ vector<string> removeComments(const vector<string> & lines){
             }
             if(line[cursor] == '*' && cursor < line.size() + 2 && line[cursor + 1] == '/'){
                 if(!commentSection){
-                    cout << "Syntax error. (in line: " << lineNumber << ")\n";
+                    cout << "Error: Syntax error in line " << lineNumber << ".\n";
                     return newLines;
                 }
                 commentSection = false;
@@ -470,7 +470,7 @@ ReturnType addImportsToBindedScripts(const string & exePath, const vector<string
 
 ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer,
     vector<string> &eventContainerIds, const size_t layerIndex, const string & layerId,
-    const size_t objectIndex, const string & objectId, const vector<WordStruct> & words,
+    const size_t objectIndex, const string & objectId, vector<WordStruct> & words,
     const string & scriptName, unsigned lineNumber, ScopeType & Scopes, unsigned & topAddress,
     bool & triggerBreakpoint, EventModule & NewEvent, vector<string> & allAvailableEventIDs,
     BranchingStackStruct & BranchingStack, Annotations & annotations, size_t & topModuleUniqueIndex
@@ -497,7 +497,7 @@ ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer,
 
     switch(words[0].instruction){
         case import:
-        return ReturnType::OK;
+            return ReturnType::OK;
         case compiler_breakpoint:
             return instrParser.parseCompilerBreakpoint(triggerBreakpoint);
         case annotation_i:
@@ -507,7 +507,7 @@ ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer,
                 objectIndex, objectId, eventContainer, eventContainerIds, topModuleUniqueIndex
             );
         case end_i:
-            return instrParser.parseEnd(eventContainer);
+            return instrParser.parseEnd(eventContainer, BranchingStack);
         case if_i:
             return instrParser.parseIf(BranchingStack);
         case else_if:
@@ -551,6 +551,7 @@ ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer,
         case mod:
         case pow_i:
         case rand_int:
+        case rand_double:
             return instrParser.parseAddSubMulDivModPowRand();
         case assert:
             return instrParser.parseAssert();

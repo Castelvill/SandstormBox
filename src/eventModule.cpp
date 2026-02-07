@@ -3385,7 +3385,9 @@ void EventModule::controlScrollbar(ScrollbarModule * Scrollbar, AttributeType at
         }
     }
 }
-void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType attribute,
+    const vector<VariableModule> & Values, vector<string> & IDs
+){
     switch(attribute){
         case update_with_size:
             Primitives->updateWithSize();
@@ -3418,9 +3420,9 @@ void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType
             if(Values.size() < 2){
                 return;
             }
-            Primitives->points.emplace_back(vec2d(Values[0].getDoubleUnsafe(),
-                Values[1].getDoubleUnsafe()
-            ));
+                Primitives->points.emplace_back(vec2d(Values[0].getDoubleUnsafe(),
+                    Values[1].getDoubleUnsafe()
+                ));
             return;
         case remove_point:
             if(Values.size() < 1){
@@ -3470,10 +3472,10 @@ void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType
             if(Values.size() < 4){
                 return;
             }
-            Primitives->color = al_map_rgba_f(Values[0].getDoubleUnsafe(),
-                Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(),
-                Values[3].getDoubleUnsafe()
-            );
+                Primitives->color = al_map_rgba_f(Values[0].getDoubleUnsafe(),
+                    Values[1].getDoubleUnsafe(), Values[2].getDoubleUnsafe(),
+                    Values[3].getDoubleUnsafe()
+                );
             return;
         case set_thickness:
             if(Values.size() < 1){
@@ -3558,20 +3560,28 @@ void EventModule::controlVector(VectorModule * Vector, AttributeType attribute, 
             Vector->removeIndex(Values[0].getIntUnsafe());
             return;
         case set_a:
-            if(Values.size() < 2){
+            if(Values.size() < 2 || Values[0].getIntUnsafe() + (Values.size()-1) > Vector->getSize()){
                 return;
             }
             if(Values[1].getType() == 'b'){
-                Vector->setBool(Values[0].getIntUnsafe(), Values[1].getBoolUnsafe());
+                for(size_t valIdx = 0; valIdx < Values.size()-1; ++valIdx){
+                    Vector->vBool[Values[0].getIntUnsafe()+valIdx].value = Values[valIdx+1].getBool();
+                }
             }
             else if(Values[1].getType() == 'i'){
-                Vector->setInt(Values[0].getIntUnsafe(), Values[1].getIntUnsafe());
+                for(size_t valIdx = 0; valIdx < Values.size()-1; ++valIdx){
+                    Vector->vInt[Values[0].getIntUnsafe()+valIdx] = Values[valIdx+1].getIntUnsafe();
+                }
             }
             else if(Values[1].getType() == 'd'){
-                Vector->setDouble(Values[0].getIntUnsafe(), Values[1].getDoubleUnsafe());
+                for(size_t valIdx = 0; valIdx < Values.size()-1; ++valIdx){
+                    Vector->vDouble[Values[0].getIntUnsafe()+valIdx] = Values[valIdx+1].getDoubleUnsafe();
+                }
             }
             else if(Values[1].getType() == 's'){
-                Vector->setString(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
+                for(size_t valIdx = 0; valIdx < Values.size()-1; ++valIdx){
+                    Vector->vString[Values[0].getIntUnsafe()+valIdx] = Values[valIdx+1].getStringUnsafe();
+                }
             }
             else{
                 cerr << "Error: In " << __FUNCTION__ << ": Value of '" << Values[0].getType()

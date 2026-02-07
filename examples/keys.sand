@@ -1,39 +1,40 @@
 @trigger on_init
 start on_init()
     create_display 640 480 640 480
+    print "Options:\n- Press H key\n- Press A key\n- Press left shift + A keys\n- Hold S key\n\n"
 end
 
 @trigger on_key_press
 start printHello()
     if(key_pressed(KEY_H))
         print "Hello"
-    end_if
+    end
 end
 
 @trigger on_key_press
 start printSmallA()
     if(!key_pressed(KEY_LSHIFT) && key_pressed(KEY_A))
         print "a"
-    end_if
+    end
 end
 
 @trigger on_key_press
 start printCapitalA()
     if(key_pressed(KEY_LSHIFT) && key_pressed(KEY_A))
         print "A"
-    end_if
+    end
 end
 
 @trigger on_key_pressing
 start printS()
     if(key_pressing(KEY_S))
         print "s"
-    end_if
+    end
 end
 
 @trigger on_key_release
 start printR()
     if(key_released(KEY_R))
         print "r"
-    end_if
+    end
 end

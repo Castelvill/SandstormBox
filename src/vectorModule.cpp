@@ -1397,6 +1397,63 @@ ReturnType VectorModule::getNegatedValuesIntoContext(vector<VariableModule> & Va
     }
     return ReturnType::INVALID_TYPE;
 }
+ReturnType VectorModule::getDoubles(vector<double> & Values, bool negate) const {
+    if(negate){
+        return getNegatedDoubles(Values);
+    }
+    switch(type){
+        case 'b':
+            for(stupidBool value : vBool){
+                Values.push_back(value.value);
+            }
+            return ReturnType::OK;
+        case 'i':
+            for(int value : vInt){
+                Values.push_back(value);
+            }
+            return ReturnType::OK;
+        case 'd':
+            for(double value : vDouble){
+                Values.push_back(value);
+            }
+            return ReturnType::OK;
+        case 'n':
+            return ReturnType::NULL_VAL;
+        case 's':
+        default:
+            cout << "Error: In " << __PRETTY_FUNCTION__ << ": Type '" << type
+                << "' is not valid.\n";
+            return ReturnType::INVALID_TYPE;
+    }
+    return ReturnType::INVALID_TYPE;
+}
+ReturnType VectorModule::getNegatedDoubles(vector<double> & Values) const {
+    switch(type){
+        case 'b':
+            for(stupidBool value : vBool){
+                Values.push_back(!value.value);
+            }
+            return ReturnType::OK;
+        case 'i':
+            for(int value : vInt){
+                Values.push_back(-value);
+            }
+            return ReturnType::OK;
+        case 'd':
+            for(double value : vDouble){
+                Values.push_back(-value);
+            }
+            return ReturnType::OK;
+        case 'n':
+            return ReturnType::NULL_VAL;
+        case 's':
+        default:
+            cout << "Error: In " << __PRETTY_FUNCTION__ << ": Type '" << type
+                << "' is not valid.\n";
+            return ReturnType::INVALID_TYPE;
+    }
+    return ReturnType::INVALID_TYPE;
+}
 string VectorModule::getAnyStringValue(size_t index) const{
     if(type == 'b' && index < vBool.size()){
         if(vBool[index].value){
