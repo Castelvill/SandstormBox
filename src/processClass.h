@@ -100,8 +100,6 @@ public:
     template<typename T>
     void setFirstBasePointer(T * pointer);
     void updateType(size_t vecSize);
-    void addModule(TextModule * Module);
-    void addModule(EditableTextModule * Module);
     void addModule(SuperTextModule * Module);
     void addModule(SuperEditableTextModule * Module);
     void addModule(ImageModule * Module);
@@ -611,8 +609,6 @@ public:
     void moveObjects(const vector<short> & pressedKeys, const MouseClass & Mouse);
     void moveParticles(const vector<short> & pressedKeys, const vector<short> & releasedKeys);
     void moveSelectedObject(const MouseClass & Mouse);
-    void delayEditableTextFields();
-    void updateEditableTextFields(EngineClass & Engine);
     void selectObject(const MouseClass & Mouse);
     void unselectObject();
     void drawSelectionBorder(Camera2D Camera);

@@ -677,10 +677,6 @@ ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer,
         case VarVec:
         case Vec:
         case VecVec:
-        case Text:
-        case TextVec:
-        case EditText:
-        case EditTextVec:
         case SText:
         case STextVec:
         case SEditText:

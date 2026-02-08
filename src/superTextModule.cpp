@@ -1,5 +1,23 @@
 #include "superTextModule.h"
 
+SingleFont * findFontByID(vector <SingleFont> & FontContainer, string fontID){
+    for(SingleFont & font : FontContainer){
+        if(fontID == font.ID){
+            if(!font.font){
+                cerr << "Error: In " << __FUNCTION__ << ": Font '" << fontID << "' does not exist.\n";
+                return nullptr;
+            }
+            return &font;
+        }
+    }
+    cerr << "Error: In " << __FUNCTION__ << ": Font '" << fontID << "' does not exist.\n";
+    return nullptr;
+}
+
+double getFontHeight(vector <SingleFont> FontContainer, string fontID){
+    return al_get_font_line_height(findFontByID(FontContainer, fontID)->font);
+}
+
 bool FormatClass::isTheSame(const FormatClass &other){
     return color.r == other.color.r && color.g == other.color.g
         && color.b == other.color.b && color.a == other.color.a

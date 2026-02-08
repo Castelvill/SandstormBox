@@ -1,8 +1,20 @@
 #ifndef SUPERTEXTMODULE_H_INCLUDED
 #define SUPERTEXTMODULE_H_INCLUDED
 
-#include "textModule.h"
+#include <allegro5/allegro_ttf.h>
 #include <fstream>
+#include "particles.h"
+
+class SingleFont{
+public:
+    string ID;
+    ALLEGRO_FONT * font;
+    short height;
+    short size;
+};
+
+SingleFont * findFontByID(vector <SingleFont> & FontContainer, string fontID);
+double getFontHeight(vector <SingleFont> FontContainer, string fontID);
 
 class FormatClass{
 public:

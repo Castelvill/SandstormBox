@@ -6,8 +6,6 @@ DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const Da
 
 //Struct of vectors
 struct ModulesPointers{
-    vector<TextModule*> Texts;
-    vector<EditableTextModule*> EditableTexts;
     vector<SuperTextModule*> SuperTexts;
     vector<SuperEditableTextModule*> SuperEditableTexts;
     vector<ImageModule*> Images;
@@ -30,8 +28,6 @@ The most important class, a container for all modules that make an object.
 */
 class AncestorObject: public PrimaryModule{
 public:
-    vector<TextModule> TextContainer;
-    vector<EditableTextModule> EditableTextContainer;
     vector<SuperTextModule> SuperTextContainer;
     vector<SuperEditableTextModule> SuperEditableTextContainer;
     vector<ImageModule> ImageContainer;
@@ -44,8 +40,6 @@ public:
     vector<ScrollbarModule> ScrollbarContainer;
     vector<PrimitivesModule> PrimitivesContainer;
     vector<VectorModule> VectorContainer;
-    vector<string> textContainerIDs;
-    vector<string> editableTextContainerIDs;
     vector<string> superTextContainerIDs;
     vector<string> superEditableTextContainerIDs;
     vector<string> imageContainerIDs;
@@ -80,10 +74,6 @@ public:
         size_t & topModuleUniqueIndex);
     void clearVectorsOfIDs();
     void clear();
-    void operateTextFieldUpdate(EditableTextModule & EditableText, vector<AncestorObject> & Objects,
-        vector<SingleBitmap> & BitmapContainer, vector<string> & listOfAncestorIDs,
-        string workingDirectory
-    );
     void refreshPositionsAndSizesOfObjectAndItsImages();
     void createVectorsOfIds();
     vec2d getPosOnCamera(Camera2D * SelectedCamera);

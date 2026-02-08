@@ -392,7 +392,6 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
     Engine.Mouse.translateAllPos(-windowPos);
     switch(Engine.event.type){
         case ALLEGRO_EVENT_TIMER:
-            delayEditableTextFields();
             if(ActiveEditableText != nullptr && ActiveEditableText->isEditingActive
                 && ActiveEditableText->currentInputDelay > 0.0
             ){
@@ -486,8 +485,7 @@ void ProcessClass::executeIteration(EngineClass & Engine, vector<ProcessClass> &
                         }
                     }
                 }
-            }
-            updateEditableTextFields(Engine);
+            } 
         }
 
         if(Engine.Mouse.didMouseMove && SelectedCamera != nullptr && SelectedCamera->getIsActive() && !SelectedCamera->getIsMinimized()
@@ -1040,14 +1038,6 @@ void ContextClass::clearState(){
         case vector_mod_vec:
             Modules.Vectors.clear();
             return;
-        case text_mod:
-        case text_mod_vec:
-            Modules.Texts.clear();
-            return;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            Modules.EditableTexts.clear();
-            return;
         case super_text_mod:
         case super_text_mod_vec:
             Modules.SuperTexts.clear();
@@ -1092,8 +1082,6 @@ void ContextClass::clearState(){
             Objects.clear();
             Modules.Variables.clear();
             Modules.Vectors.clear();
-            Modules.Texts.clear();
-            Modules.EditableTexts.clear();
             Modules.SuperTexts.clear();
             Modules.SuperEditableTexts.clear();
             Modules.Images.clear();
@@ -1133,14 +1121,6 @@ void ContextClass::clearPointers(){
         case vector_mod:
         case vector_mod_vec:
             Modules.Vectors.clear();
-            return;
-        case text_mod:
-        case text_mod_vec:
-            Modules.Texts.clear();
-            return;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            Modules.EditableTexts.clear();
             return;
         case super_text_mod:
         case super_text_mod_vec:
@@ -1184,8 +1164,6 @@ void ContextClass::clearPointers(){
             Objects.clear();
             Modules.Variables.clear();
             Modules.Vectors.clear();
-            Modules.Texts.clear();
-            Modules.EditableTexts.clear();
             Modules.SuperTexts.clear();
             Modules.SuperEditableTexts.clear();
             Modules.Images.clear();
@@ -1220,12 +1198,6 @@ size_t ContextClass::getVectorSize() const{
         case object_inst:
         case object_vec:
             return Objects.size();
-        case text_mod:
-        case text_mod_vec:
-            return Modules.Texts.size();
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            return Modules.EditableTexts.size();
         case super_text_mod:
         case super_text_mod_vec:
             return Modules.SuperTexts.size();
@@ -1263,9 +1235,8 @@ size_t ContextClass::getVectorSize() const{
             return finalSize;}
         case any_dt:
             return Values.size() + BasePointers.size() + Modules.Variables.size()
-            + Cameras.size() + Layers.size() + Objects.size() + Modules.Texts.size()
-            + Modules.EditableTexts.size() + Modules.SuperTexts.size()
-            + Modules.SuperEditableTexts.size() + Modules.Images.size()
+            + Cameras.size() + Layers.size() + Objects.size()
+            + Modules.SuperTexts.size() + Modules.SuperEditableTexts.size() + Modules.Images.size()
             + Modules.Movements.size() + Modules.Collisions.size()
             + Modules.Particles.size() + Modules.Events.size()
             + Modules.Scrollbars.size() + Modules.Primitives.size() + Modules.Vectors.size();
@@ -1297,12 +1268,6 @@ string ContextClass::getUniqueIndexes() const{
         case object_inst:
         case object_vec:
             return getAllIndexes(Objects);
-        case text_mod:
-        case text_mod_vec:
-            return getAllIndexes(Modules.Texts);
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            return getAllIndexes(Modules.EditableTexts);
         case super_text_mod:
         case super_text_mod_vec:
             return getAllIndexes(Modules.SuperTexts);
@@ -1843,30 +1808,6 @@ ContextClass::ContextClass(const ContextClass &Original){
         case vector_mod_vec:
             Modules.Vectors = Original.Modules.Vectors;
             break;
-        case text_mod:
-            if(Original.Modules.Texts.size() == 0){
-                return;
-            }
-            if(Modules.Texts.size() == 0){
-                Modules.Texts.emplace_back(nullptr);
-            }
-            Modules.Texts[0] = Original.Modules.Texts[0];
-            break;
-        case text_mod_vec:
-            Modules.Texts = Original.Modules.Texts;
-            break;
-        case editable_text_mod:
-            if(Original.Modules.EditableTexts.size() == 0){
-                return;
-            }
-            if(Modules.EditableTexts.size() == 0){
-                Modules.EditableTexts.emplace_back(nullptr);
-            }
-            Modules.EditableTexts[0] = Original.Modules.EditableTexts[0];
-            break;
-        case editable_text_mod_vec:
-            Modules.EditableTexts = Original.Modules.EditableTexts;
-            break;
         case super_text_mod:
             if(Original.Modules.SuperTexts.size() == 0){
                 return;
@@ -2020,14 +1961,6 @@ ContextClass &ContextClass::operator=(const ContextClass &Original){
         case vector_mod_vec:
             Modules.Vectors = Original.Modules.Vectors;
             break;
-        case text_mod:
-        case text_mod_vec:
-            Modules.Texts = Original.Modules.Texts;
-            break;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            Modules.EditableTexts = Original.Modules.EditableTexts;
-            break;
         case super_text_mod:
         case super_text_mod_vec:
             Modules.SuperTexts = Original.Modules.SuperTexts;
@@ -2097,18 +2030,6 @@ void ContextClass::setFirstBasePointer(T * pointer){
 void ContextClass::updateType(size_t vecSize){
     if(vecSize > 1){
         type = vectorizeEntityDataType(InstrDescription(), type);
-    }
-}
-void ContextClass::addModule(TextModule *Module){
-    if(Module != nullptr){
-        Modules.Texts.push_back(Module);
-        updateType(Modules.Texts.size());
-    }
-}
-void ContextClass::addModule(EditableTextModule * Module){
-    if(Module != nullptr){
-        Modules.EditableTexts.push_back(Module);
-        updateType(Modules.EditableTexts.size());
     }
 }
 void ContextClass::addModule(SuperTextModule *Module){
@@ -2520,14 +2441,6 @@ void ContextClass::copyOnlyCurrentType(const ContextClass *Original){
         case object_inst:
         case object_vec:
             Objects = Original->Objects;
-            break;
-        case text_mod:
-        case text_mod_vec:
-            Modules.Texts = Original->Modules.Texts;
-            break;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            Modules.EditableTexts = Original->Modules.EditableTexts;
             break;
         case super_text_mod:
         case super_text_mod_vec:
@@ -3444,16 +3357,6 @@ bool checkIfContainerIsNotEmpty(vector<Entity*> & Vector){
 }
 bool ProcessClass::chooseRandomModuleInstance(ContextClass & NewContext){
     switch(NewContext.type){
-        case text_mod:
-            return checkIfContainerIsNotEmpty(NewContext.Modules.Texts);
-        case text_mod_vec:
-            chooseRandomEntity(NewContext.Modules.Texts);
-            return true;
-        case editable_text_mod:
-            return checkIfContainerIsNotEmpty(NewContext.Modules.EditableTexts);
-        case editable_text_mod_vec:
-            chooseRandomEntity(NewContext.Modules.EditableTexts);
-            return true;
         case super_text_mod:
             return checkIfContainerIsNotEmpty(NewContext.Modules.SuperTexts);
         case super_text_mod_vec:
@@ -3865,8 +3768,6 @@ void ProcessClass::findContextInModule(DataType type, AttributeType attribute, C
     }
     switch(attribute){
         case null_a:
-        case text_a:
-        case editable_text_a:
         case super_text_a:
         case super_editable_text_a:
         case image_a:
@@ -3955,38 +3856,6 @@ void ProcessClass::aggregateModules(OperationClass & Operation, ContextClass & N
     ModulesPointers * AggregatedModules = &OldContext->Modules;
     if(Operation.ConditionalChain.empty() && Operation.instruction == EngineInstr::last){
         switch(OldContext->type){
-            case text_mod:
-                if(AggregatedModules->Texts.empty()){
-                    break;
-                }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
-                    AggregatedModules->Texts[0]
-                );
-                break;
-            case text_mod_vec: 
-                if(AggregatedModules->Texts.empty()){
-                    break;
-                }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
-                    findLastModule(AggregatedModules->Texts, Operation.Location.moduleID)
-                );
-                break;
-            case editable_text_mod:
-                if(AggregatedModules->EditableTexts.empty()){
-                    break;
-                }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
-                    AggregatedModules->EditableTexts[0]
-                );
-                break;
-            case editable_text_mod_vec:
-                if(AggregatedModules->EditableTexts.empty()){
-                    break;
-                }
-                findContextInModule(OldContext->type, Operation.Location.attribute, NewContext,
-                    findLastModule(AggregatedModules->EditableTexts, Operation.Location.moduleID)
-                );
-                break;
             case super_text_mod:
                 if(AggregatedModules->SuperTexts.empty()){
                     break;
@@ -4173,26 +4042,6 @@ void ProcessClass::aggregateModules(OperationClass & Operation, ContextClass & N
 
     AncestorObject * EmptyObject = new AncestorObject();
     switch(OldContext->type){
-        case text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation,
-                NewContext, EmptyObject, Engine, ObjectMemory, true
-            );
-            break;
-        case text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->Texts, OldContext->type, Operation,
-                NewContext, EmptyObject, Engine, ObjectMemory, false
-            );
-            break;
-        case editable_text_mod:
-            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type,
-                Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
-            );
-            break;
-        case editable_text_mod_vec:
-            aggregateModuleContextFromVectors(AggregatedModules->EditableTexts, OldContext->type,
-                Operation, NewContext, EmptyObject, Engine, ObjectMemory, false
-            );
-            break;
         case super_text_mod:
             aggregateModuleContextFromVectors(AggregatedModules->SuperTexts, OldContext->type,
                 Operation, NewContext, EmptyObject, Engine, ObjectMemory, true
@@ -4564,10 +4413,6 @@ inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr,
             return layer_inst;
         case object_vec:
             return object_inst;
-        case text_mod_vec:
-            return text_mod;
-        case editable_text_mod_vec:
-            return editable_text_mod;
         case super_text_mod_vec:
             return super_text_mod;
         case super_editable_text_mod_vec:
@@ -4597,8 +4442,6 @@ inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr,
         case camera_inst:
         case layer_inst:
         case object_inst:
-        case text_mod:
-        case editable_text_mod:
         case super_text_mod:
         case super_editable_text_mod:
         case image_mod:
@@ -4645,12 +4488,6 @@ void ProcessClass::findContextInObject(const ValueLocation & Location, ContextCl
     }
     if(Location.moduleType != null_s){
         switch(Location.moduleType){
-            case text:
-                findContextInModuleVector(Location, NewContext, Object->TextContainer);
-                break;
-            case editable_text:
-                findContextInModuleVector(Location, NewContext, Object->EditableTextContainer);
-                break;
             case super_text:
                 findContextInModuleVector(Location, NewContext, Object->SuperTextContainer);
                 break;
@@ -4788,30 +4625,6 @@ void ProcessClass::aggregateModulesById(DataType moduleType, string moduleID, At
     ContextClass & NewContext, ModulesPointers & AggregatedModules
 ){
     switch (moduleType){
-        case text_mod:
-            if(AggregatedModules.Texts.size() == 0){
-                break;
-            }
-            getContextFromModuleVectorById<TextModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Texts, true);
-            break;
-        case text_mod_vec:
-            if(AggregatedModules.Texts.size() == 0){
-                break;
-            }
-            getContextFromModuleVectorById<TextModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.Texts, false);
-            break;
-        case editable_text_mod:
-            if(AggregatedModules.EditableTexts.size() == 0){
-                break;
-            }
-            getContextFromModuleVectorById<EditableTextModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.EditableTexts, true);
-            break;
-        case editable_text_mod_vec:
-            if(AggregatedModules.EditableTexts.size() == 0){
-                break;
-            }
-            getContextFromModuleVectorById<EditableTextModule>(moduleType, moduleID, attribute, NewContext, AggregatedModules.EditableTexts, false);
-            break;
         case super_text_mod:
             if(AggregatedModules.SuperTexts.size() == 0){
                 break;
@@ -5212,20 +5025,6 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStru
             executeOperationsOnSets(NewContext.Objects, LeftOperand.Objects, RightOperand.Objects);
             NewContext.type = object_vec;
             break;
-        case text_mod:
-        case text_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.Texts, LeftOperand.Modules.Texts,
-                RightOperand.Modules.Texts
-            );
-            NewContext.type = text_mod_vec;
-            break;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            executeOperationsOnSets(NewContext.Modules.EditableTexts,
-                LeftOperand.Modules.EditableTexts, RightOperand.Modules.EditableTexts
-            );
-            NewContext.type = editable_text_mod_vec;
-            break;
         case super_text_mod:
         case super_text_mod_vec:
             executeOperationsOnSets(NewContext.Modules.SuperTexts, LeftOperand.Modules.SuperTexts,
@@ -5458,24 +5257,6 @@ bool isEntityTypeEqual(DataType leftType, DataType rightType){
             switch(rightType){
                 case object_inst:
                 case object_vec:
-                    return true;
-                default:
-                    return false;
-            }
-        case text_mod:
-        case text_mod_vec:
-            switch(rightType){
-                case text_mod:
-                case text_mod_vec:
-                    return true;
-                default:
-                    return false;
-            }
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            switch(rightType){
-                case editable_text_mod:
-                case editable_text_mod_vec:
                     return true;
                 default:
                     return false;
@@ -6626,13 +6407,7 @@ void cloneRightToLeft(vector<Module*> & LeftOperand, vector<Module*> & RightOper
 }
 template<class Module>
 inline vector<string> & getModuleIdList(AncestorObject & object){
-    if constexpr (std::is_same<Module, TextModule>::value){
-        return object.textContainerIDs;
-    }
-    else if constexpr (std::is_same<Module, EditableTextModule>::value){
-        return object.editableTextContainerIDs;
-    }
-    else if constexpr (std::is_same<Module, SuperTextModule>::value){
+    if constexpr (std::is_same<Module, SuperTextModule>::value){
         return object.superTextContainerIDs;
     }
     else if constexpr (std::is_same<Module, SuperEditableTextModule>::value){
@@ -7054,19 +6829,6 @@ void ProcessClass::cloneEntitiesOfTheSameType(ObjectMemoryStruct & ObjectMemory,
             }
             wasNewExecuted = true;
             } break;
-        case text_mod:
-        case text_mod_vec:
-            cloneRightToLeft(LeftOperand->Modules.Texts, RightOperand->Modules.Texts, Layers,
-                changeOldID, CurrentInstr, topModuleUniqueIndex
-            );
-            break;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            cloneRightToLeft(LeftOperand->Modules.EditableTexts,
-                RightOperand->Modules.EditableTexts, Layers, changeOldID, CurrentInstr,
-                topModuleUniqueIndex
-            );
-            break;
         case super_text_mod:
         case super_text_mod_vec:
             cloneRightToLeft(LeftOperand->Modules.SuperTexts, RightOperand->Modules.SuperTexts,
@@ -7532,14 +7294,6 @@ inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand,
                     break;
                 }
             }
-            break;
-        case text_mod:
-        case text_mod_vec:
-            result = containsTheSameModule(LeftOperand.Modules.Texts, RightOperand.Modules.Texts);
-            break;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            result = containsTheSameModule(LeftOperand.Modules.EditableTexts, RightOperand.Modules.EditableTexts);
             break;
         case super_text_mod:
         case super_text_mod_vec:
@@ -8045,18 +7799,6 @@ void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClas
                 Variable->Objects.push_back(Object);
             }
             break;
-        case text_mod:
-        case text_mod_vec:
-            for(TextModule * Text : NewValue.Modules.Texts){
-                Variable->Modules.Texts.push_back(Text);
-            }
-            break;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            for(EditableTextModule * EditableText : NewValue.Modules.EditableTexts){
-                Variable->Modules.EditableTexts.push_back(EditableText);
-            }
-            break;
         case super_text_mod:
         case super_text_mod_vec:
             for(SuperTextModule * SuperText : NewValue.Modules.SuperTexts){
@@ -8254,8 +7996,6 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
     }
 
     switch(Operation.Location.source){
-        case text:
-        case editable_text:
         case super_text:
         case super_editable_text:
         case image:
@@ -8330,32 +8070,6 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
                 
                 CurrentLayer->Objects.back().primaryConstructor(initData);
                 NewContext.Objects.push_back(&CurrentLayer->Objects.back());
-            }
-            break;
-        case text:
-            initData.listOfIDs = &CurrentObject->textContainerIDs;
-            createNewModule(CurrentObject->TextContainer, NewContext.Modules.Texts, initData,
-                newVectorSize, newIDs, Layers, ObjectMemory, startingEventIt, eventIt, MemoryStack,
-                reservationMultiplier, ActiveEditableText, CurrentInstr
-            );
-            for(long i = CurrentObject->TextContainer.size() - 1; 
-                i >= long(CurrentObject->TextContainer.size() - newVectorSize); i--
-            ){
-                CurrentObject->TextContainer[i].setIsScrollable(CurrentObject->getIsScrollable());
-            }
-            break;
-        case editable_text:
-            initData.listOfIDs = &CurrentObject->editableTextContainerIDs;
-            createNewModule(CurrentObject->EditableTextContainer, NewContext.Modules.EditableTexts, 
-                initData, newVectorSize, newIDs, Layers, ObjectMemory, startingEventIt, eventIt,
-                MemoryStack, reservationMultiplier, ActiveEditableText, CurrentInstr
-            );
-            for(long i = CurrentObject->EditableTextContainer.size() - 1;
-                i >= long(CurrentObject->EditableTextContainer.size() - newVectorSize); i--
-            ){
-                CurrentObject->EditableTextContainer[i].setIsScrollable(
-                    CurrentObject->getIsScrollable()
-                );
             }
             break;
         case super_text:
@@ -8583,26 +8297,6 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ObjectMem
                 }
             }
             break;
-        case text_mod:
-            DeletedContext->Modules.Texts[0]->deleteLater();
-            break;
-        case text_mod_vec:
-            for(TextModule * Text : DeletedContext->Modules.Texts){
-                if(Text != nullptr){
-                    Text->deleteLater();
-                }
-            }
-            break;
-        case editable_text_mod:
-            DeletedContext->Modules.EditableTexts[0]->deleteLater();
-            break;
-        case editable_text_mod_vec:
-            for(EditableTextModule * EditableText : DeletedContext->Modules.EditableTexts){
-                if(EditableText != nullptr){
-                    EditableText->deleteLater();
-                }
-            }
-            break;
         case super_text_mod:
             DeletedContext->Modules.SuperTexts[0]->deleteLater();
             break;
@@ -8746,10 +8440,6 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ObjectMem
         case layer_vec:
         case object_inst:
         case object_vec:
-        case text_mod:
-        case text_mod_vec:
-        case editable_text_mod:
-        case editable_text_mod_vec:
         case super_text_mod:
         case super_text_mod_vec:
         case super_editable_text_mod:
@@ -8774,14 +8464,6 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ObjectMem
         case vector_mod_vec:
             for(ContextClass & Context : ObjectMemory.MemoryMap){
                 switch(Context.type){
-                    case text_mod:
-                    case text_mod_vec:
-                        clearDeletedPointersFromVector(Context.Modules.Texts);
-                        break;
-                    case editable_text_mod:
-                    case editable_text_mod_vec:
-                        clearDeletedPointersFromVector(Context.Modules.EditableTexts);
-                        break;
                     case super_text_mod:
                     case super_text_mod_vec:
                         clearDeletedPointersFromVector(Context.Modules.SuperTexts);
@@ -8947,10 +8629,6 @@ void ProcessClass::getIndexes(ObjectMemoryStruct & ObjectMemory, const vector<Pa
 }
 ValueSource attributeToSource(const AttributeType & attribute){
     switch(attribute){
-        case text_a:
-            return text;
-        case editable_text_a:
-            return editable_text;
         case super_text_a:
             return super_text;
         case super_editable_text_a:
@@ -8988,10 +8666,6 @@ inline DataType attributeToVecDataType(const InstrDescription & CurrentInstr, co
             return layer_vec;
         case object_a:
             return object_vec;
-        case text_a:
-            return text_mod_vec;
-        case editable_text_a:
-            return editable_text_mod_vec;
         case super_text_a:
             return super_text_mod_vec;
         case super_editable_text_a:
@@ -9027,12 +8701,6 @@ void findInstanceInModuleVectors(const OperationClass & Operation, AncestorObjec
     DataType instType = instantiateEntityDataType(CurrentInstr, vectorDataType);
 
     switch(vectorDataType){
-        case text_mod_vec:
-            findInstanceInVectorByIndex(indexes, Object->TextContainer, instType, NewContext.Modules.Texts, NewContext.type, CurrentInstr);
-            break;
-        case editable_text_mod_vec:
-            findInstanceInVectorByIndex(indexes, Object->EditableTextContainer, instType, NewContext.Modules.EditableTexts, NewContext.type, CurrentInstr);
-            break;
         case super_text_mod_vec:
             findInstanceInVectorByIndex(indexes, Object->SuperTextContainer, instType, NewContext.Modules.SuperTexts, NewContext.type, CurrentInstr);
             break;
@@ -9175,14 +8843,6 @@ void ProcessClass::getReferenceFromContextByIndex(OperationClass & Operation, Co
         case object_vec:
             getReferenceFromObject(Operation, SourceContext, indexes, NewContext);
             break;
-        case text_mod:
-        case text_mod_vec:
-            findInstanceInVectorByIndex(indexes, SourceContext.Modules.Texts, instType, NewContext.Modules.Texts, NewContext.type, CurrentInstr);
-            break;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            findInstanceInVectorByIndex(indexes, SourceContext.Modules.EditableTexts, instType, NewContext.Modules.EditableTexts, NewContext.type, CurrentInstr);
-            break;
         case super_text_mod:
         case super_text_mod_vec:
             findInstanceInVectorByIndex(indexes, SourceContext.Modules.SuperTexts, instType, NewContext.Modules.SuperTexts, NewContext.type, CurrentInstr);
@@ -9305,8 +8965,6 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
                     findInstanceInVectorByIndex(indexes, Layers, layer_inst, NewContext.Layers, NewContext.type, CurrentInstr);
                     break;
                 case object_a:
-                case text_a:
-                case editable_text_a:
                 case super_text_a:
                 case super_editable_text_a:
                 case image_a:
@@ -10754,48 +10412,6 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
         case object_vec:
             executeFunctionForObjects(Operation, functionArguments, Context->Objects);
             break;
-        case text_mod:
-        case text_mod_vec:
-            if(Operation.Location.attribute == set_id){
-                for(TextModule * Text : Context->Modules.Texts){
-                    if(!findObjectForFunction(ModulesObject, Layers, Text->getObjectID(),
-                        Text->getLayerID()
-                    )){
-                        continue;
-                    }
-                    Event->controlText(Text, Operation.Location.attribute, functionArguments,
-                        ModulesObject->textContainerIDs, Engine.FontContainer
-                    );
-                }
-                return;
-            }
-            for(TextModule * Text : Context->Modules.Texts){
-                Event->controlText(Text, Operation.Location.attribute, functionArguments,
-                    emptyString, Engine.FontContainer
-                );
-            }
-            break;
-        case editable_text_mod:
-        case editable_text_mod_vec:
-            if(Operation.Location.attribute == set_id){
-                for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
-                    if(!findObjectForFunction(ModulesObject, Layers, EditableText->getObjectID(),
-                        EditableText->getLayerID()
-                    )){
-                        continue;
-                    }
-                    Event->controlEditableText(EditableText, Operation.Location.attribute,
-                        functionArguments, ModulesObject->textContainerIDs, Engine.FontContainer
-                    );
-                }
-                return;
-            }
-            for(EditableTextModule * EditableText : Context->Modules.EditableTexts){
-                Event->controlEditableText(EditableText, Operation.Location.attribute,
-                    functionArguments, emptyString, Engine.FontContainer
-                );
-            }
-            break;
         case super_text_mod:
         case super_text_mod_vec:
             if(Operation.Location.attribute == set_id){
@@ -11701,14 +11317,6 @@ void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct &
             case object_vec:
                 buffer += getStringOfIDs(Value.Objects, delimeter);
                 break;
-            case text_mod:
-            case text_mod_vec:
-                buffer += getStringOfIDs(Value.Modules.Texts, delimeter);
-                break;
-            case editable_text_mod:
-            case editable_text_mod_vec:
-                buffer += getStringOfIDs(Value.Modules.EditableTexts, delimeter);
-                break;
             case super_text_mod:
             case super_text_mod_vec:
                 buffer += getStringOfIDs(Value.Modules.SuperTexts, delimeter);
@@ -12375,20 +11983,6 @@ void ProcessClass::printTree(OperationClass & Operation, ObjectMemoryStruct & Ob
                     buffor += " (disabled)";
                 }
                 buffor += "\n";
-                for(const TextModule & Text : Object.TextContainer){
-                    buffor += "\t\t\tText " + Text.getID();
-                    if(!Text.getIsActive()){
-                        buffor += " (disabled)";
-                    }
-                    buffor += "\n";
-                }
-                for(const EditableTextModule & Text : Object.EditableTextContainer){
-                    buffor += "\t\t\tEditableText " + Text.getID();
-                    if(!Text.getIsActive()){
-                        buffor += " (disabled)";
-                    }
-                    buffor += "\n";
-                }
                 for(const SuperTextModule & SuperText : Object.SuperTextContainer){
                     buffor += "\t\t\tSuperText " + SuperText.getID();
                     if(!SuperText.getIsActive()){
@@ -12739,37 +12333,6 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
             for(AncestorObject * Object : SourceContext.Objects){
                 if(Object->getID() == entityID){
                     NewContext.Objects.push_back(Object);
-                    break;
-                }
-            }
-            break;
-        case text_mod:
-            if(ifEmpty(SourceContext.Modules.Texts.empty(), SourceContext.type, CurrentInstr))
-                return;
-            if(SourceContext.Modules.Texts[0]->getID() == entityID){
-                NewContext.Modules.Texts.push_back(SourceContext.Modules.Texts[0]);
-            }
-            break;
-        case text_mod_vec:
-            for(TextModule * Text : SourceContext.Modules.Texts){
-                if(Text->getID() == entityID){
-                    NewContext.Modules.Texts.push_back(Text);
-                    break;
-                }
-            }
-            break;
-        case editable_text_mod:
-            if(ifEmpty(SourceContext.Modules.EditableTexts.empty(), SourceContext.type,
-                CurrentInstr
-            )) return;
-            if(SourceContext.Modules.EditableTexts[0]->getID() == entityID){
-                NewContext.Modules.EditableTexts.push_back(SourceContext.Modules.EditableTexts[0]);
-            }
-            break;
-        case editable_text_mod_vec:
-            for(EditableTextModule * EditableText : SourceContext.Modules.EditableTexts){
-                if(EditableText->getID() == entityID){
-                    NewContext.Modules.EditableTexts.push_back(EditableText);
                     break;
                 }
             }
@@ -14375,28 +13938,6 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
             break;
         case movement:
             return findNextValueInMovementModule(Condition, CurrentObject);
-        case text:
-            for(const TextModule & Text : CurrentObject->TextContainer){
-                if(Text.getID() == Condition.Location.moduleID){
-                    if(Text.getIsDeleted()){
-                        break;
-                    }
-                    return Text.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
-                }
-            }
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
-            break;
-        case editable_text:
-            for(const EditableTextModule & EditableText : CurrentObject->EditableTextContainer){
-                if(EditableText.getID() == Condition.Location.moduleID){
-                    if(EditableText.getIsDeleted()){
-                        break;
-                    }
-                    return EditableText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe());
-                }
-            }
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "There is no editable text with id: \'" << Condition.Location.moduleID << "\'.\n";
-            break;
         case super_text:
             for(const SuperTextModule & SuperText : CurrentObject->SuperTextContainer){
                 if(SuperText.getID() == Condition.Location.moduleID){
@@ -14768,25 +14309,6 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             printIncorrectAttributeError(Condition.Location.attribute, Context->type, NewValue,
                 CurrentInstr
             );
-            return;
-        case editable_text_mod_vec:
-            if(abortIfEmpty(Context->Modules.EditableTexts.empty(), Context->type, NewValue,
-                CurrentInstr
-            )){
-                return;
-            }
-            printTooManyInstancesWarning(Context->Modules.EditableTexts.size(), Context->type,
-                CurrentInstr
-            );
-        case editable_text_mod:
-            if(printErrorIfEmpty(Context->Modules.EditableTexts.empty(), Context->type, NewValue,
-                CurrentInstr
-            )){
-                return;
-            }
-            NewValue.copyValue(Context->Modules.EditableTexts[0]->getAttributeValue(
-                Condition.Location.attribute, Condition.Location.spareID
-            ));
             return;
         case super_text_mod_vec:
             if(abortIfEmpty(Context->Modules.SuperTexts.empty(), Context->type, NewValue,
@@ -15577,12 +15099,6 @@ bool ProcessClass::deleteEntities(){
                     if(invalidateFollowingLayers || invalidateFollowingObjects){
                         objectIt->hasInvalidatedMemory = true;
                     }
-                    deleteModuleInstance(objectIt->TextContainer, objectIt->textContainerIDs,
-                        wereLayersModified
-                    );
-                    deleteModuleInstance(objectIt->EditableTextContainer,
-                        objectIt->editableTextContainerIDs, wereLayersModified
-                    );
                     deleteModuleInstance(objectIt->SuperTextContainer, 
                         objectIt->superTextContainerIDs, wereLayersModified
                     );
@@ -15747,8 +15263,6 @@ inline bool areTypesCompatible(const DataType & leftOperand, const DataType & ri
         case object_inst:
         case variable_mod:
         case vector_mod:
-        case text_mod:
-        case editable_text_mod:
         case super_text_mod:
         case super_editable_text_mod:
         case image_mod:
@@ -15763,8 +15277,6 @@ inline bool areTypesCompatible(const DataType & leftOperand, const DataType & ri
         case object_vec:
         case variable_mod_vec:
         case vector_mod_vec:
-        case text_mod_vec:
-        case editable_text_mod_vec:
         case super_text_mod_vec:
         case super_editable_text_mod_vec:
         case image_mod_vec:
@@ -15849,8 +15361,6 @@ inline bool areTypesCompatibleWithReference(const DataType & leftOperand, const 
         case object_inst:
         case variable_mod:
         case vector_mod:
-        case text_mod:
-        case editable_text_mod:
         case super_text_mod:
         case super_editable_text_mod:
         case image_mod:
@@ -15865,8 +15375,6 @@ inline bool areTypesCompatibleWithReference(const DataType & leftOperand, const 
         case object_vec:
         case variable_mod_vec:
         case vector_mod_vec:
-        case text_mod_vec:
-        case editable_text_mod_vec:
         case super_text_mod_vec:
         case super_editable_text_mod_vec:
         case image_mod_vec:
@@ -17366,39 +16874,6 @@ void ProcessClass::drawModules(const AncestorObject & Object, Camera2D & Camera,
         numberOfDrawnObjects++;
     }
 
-    for(const TextModule & Text : Object.TextContainer){
-        if(!Text.getIsActive()){
-            continue;
-        }
-        if(drawOnlyVisibleObjects && Text.getIsScrollable()){
-            newPos.set(Object.getPos());
-            newPos.translate(Text.getPos());
-            objectSize.set(Text.getSize());
-            scaledObjectSize.set(objectSize);
-            scaledObjectSize.multiply(Text.getScale());
-            if(!Text.getIsScaledFromCenter()){
-                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
-            }
-            else{
-                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
-            }
-
-            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
-                continue;
-            }
-        }
-
-        //If a font exists in FontContainer, draw the text on screen.
-        for(SingleFont font : FontContainer){
-            if(Text.getFontID() == font.ID){
-                Text.draw(Object.getPos()+Camera.pos, font.font, drawTextFieldBorders, Camera, 0, 0, false);
-                break;
-            }
-        }
-
-        numberOfDrawnObjects++;
-    }
-
     for(const SuperTextModule & SuperText : Object.SuperTextContainer){
         if(!SuperText.getIsActive()){
             continue;
@@ -17450,39 +16925,6 @@ void ProcessClass::drawModules(const AncestorObject & Object, Camera2D & Camera,
 
         SuperEditableText.draw(Object.getPos()+Camera.pos, drawTextFieldBorders, Camera, 0, 0, false, displaySize);
 
-        numberOfDrawnObjects++;
-    }
-
-    for(const EditableTextModule & Editable : Object.EditableTextContainer){
-        if(!Editable.getIsActive()){
-            continue;
-        }
-        if(drawOnlyVisibleObjects && Editable.getIsScrollable()){
-            newPos.set(Object.getPos());
-            newPos.translate(Editable.getPos());
-            objectSize.set(Editable.getSize());
-            scaledObjectSize.set(objectSize);
-            scaledObjectSize.multiply(Editable.getScale());
-            if(!Editable.getIsScaledFromCenter()){
-                newPos.set(newPos.x+scaledObjectSize.x/2, newPos.y+scaledObjectSize.y/2);
-            }
-            else{
-                newPos.set(newPos.x+objectSize.x/2, newPos.y+objectSize.y/2);
-            }
-
-            if(!Camera.isOnScreenWithRadius(newPos, scaledObjectSize)){
-                continue;
-            }
-        }
-
-        //If a font exists in FontContainer, draw the text on screen.
-        for(auto Font : FontContainer){
-            if(Editable.getFontID() == Font.ID){
-                Editable.draw(Object.getPos()+Camera.pos, Font.font, drawTextFieldBorders,
-                    Camera, Editable.getCursorPos(), Editable.secondCursorPos, Editable.getEditingIsActive()
-                );
-            }
-        }
         numberOfDrawnObjects++;
     }
 
@@ -17553,101 +16995,6 @@ void ProcessClass::drawModules(const AncestorObject & Object, Camera2D & Camera,
         }
         ParticleEffect.draw(Object.ImageContainer, displaySize, Camera);
         numberOfDrawnObjects++;
-    }
-}
-void ProcessClass::delayEditableTextFields(){
-    for(LayerClass & Layer : Layers){
-        if(!Layer.getIsActive()){
-            continue;
-        }
-        for(AncestorObject & Object : Layer.Objects){
-            if(!Object.getIsActive()){
-                continue;
-            }
-            for(EditableTextModule & TextField : Object.EditableTextContainer){
-                if(!TextField.getIsActive() || !TextField.getCanBeEdited() || !TextField.getEditingIsActive() || TextField.currentInputDelay == 0.0){
-                    continue;
-                }
-                TextField.currentInputDelay -= 1/FPS; 
-            }
-        }
-    }
-}
-void ProcessClass::updateEditableTextFields(EngineClass & Engine){
-    if(SelectedCamera == nullptr || !SelectedCamera->getIsActive()
-        || SelectedCamera->getIsMinimized() || !SelectedCamera->canEditText){
-        return;
-    }
-    if(Engine.Mouse.isPressed()){
-        vec2d finalPos, finalSize;
-        for(LayerClass & Layer : Layers){
-            if(!Layer.getIsActive()){
-                continue;
-            }
-            for(AncestorObject & Object : Layer.Objects){
-                if(!Object.getIsActive()){
-                    continue;
-                }
-                for(EditableTextModule & TextField : Object.EditableTextContainer){
-                    if(!TextField.getIsActive()){
-                        continue;
-                    }
-                    if(SelectedCamera->isLayerAccessible(Layer.getID()) && TextField.getCanBeEdited()){
-                        finalPos.set(Object.getPos());
-                        finalPos.translate(TextField.getPos());
-                        if(TextField.getIsScrollable()){
-                            finalPos.translate(SelectedCamera->pos / SelectedCamera->zoom + SelectedCamera->visionShift);
-                        }
-                        else{
-                            finalPos.translate(SelectedCamera->pos);
-                        }
-                        finalSize.set(TextField.getSize());
-                        finalSize.multiply(TextField.getScale());
-                        if(Engine.Mouse.firstPositionInRectangle(finalPos, finalSize, 0, TextField.getIsScrollable(), SelectedCamera)){
-                            TextField.setEditingIsActive(true);
-                            TextField.setCursorPos(finalPos, finalSize, Engine.FontContainer, Engine.Mouse, *SelectedCamera);
-                            if(Engine.Mouse.firstPressedInRectangle(finalPos, finalSize, 0, TextField.getIsScrollable(), SelectedCamera)){
-                                TextField.secondCursorPos = TextField.cursorPos;
-                            }
-                            
-                            //TextField.setCursorPos(TextField.getCurrentContent().size());
-                            continue;
-                        }
-                    }
-                    if(TextField.getEditingIsActive()){
-                        //Object.operateTextFieldUpdate(TextField, Layer.Objects, Engine.BitmapContainer, Layer.objectsIDs, EXE_PATH + workingDirectory);
-                    }
-                    TextField.setEditingIsActive(false);
-                }
-            }
-        }
-    }
-    else{
-        for(LayerClass & Layer : Layers){
-            if(!Layer.getIsActive()){
-                continue;
-            }
-            for(AncestorObject & Object : Layer.Objects){
-                if(!Object.getIsActive()){
-                    continue;
-                }
-                for(EditableTextModule & TextField : Object.EditableTextContainer){
-                    if(!TextField.getIsActive() || !TextField.getCanBeEdited() || !TextField.getEditingIsActive()){
-                        continue;
-                    }
-                    TextField.editText(Engine.releasedKeys, Engine.pressedKeys, Engine.FontContainer, Engine.display);
-                    if(!TextField.getUpdateConnectedVariable()){
-                        continue;
-                    }
-                    Object.operateTextFieldUpdate(TextField, Layer.Objects, Engine.BitmapContainer, Layer.objectsIDs, EXE_PATH + workingDirectory);
-                    TextField.setUpdateConnectedVariable(false);
-
-                    if(SelectedLayer != nullptr && SelectedObject != nullptr && Object.getID() == "editor_window"){
-                        Object.EditableTextContainer[0].modifyContent(0, SelectedObject->getID());
-                    }
-                }
-            }
-        }
     }
 }
 void ProcessClass::selectObject(const MouseClass & Mouse){
@@ -17774,21 +17121,7 @@ Module * ModuleIndex::getModulePointer(vector<LayerClass> &Layers){
         cerr << "Error: In " << __PRETTY_FUNCTION__ << ": objectIndex goes out of scope of Layers[].Objects.\n";
         return nullptr;
     }
-    if constexpr (std::is_same<Module, TextModule>::value){
-        if(Layers[layerIndex].Objects[objectIndex].TextContainer.size() <= moduleIndex){
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
-            return nullptr;
-        }
-        return &Layers[layerIndex].Objects[objectIndex].TextContainer[moduleIndex];
-    }
-    else if constexpr (std::is_same<Module, EditableTextModule>::value){
-        if(Layers[layerIndex].Objects[objectIndex].EditableTextContainer.size() <= moduleIndex){
-            cerr << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
-            return nullptr;
-        }
-        return &Layers[layerIndex].Objects[objectIndex].EditableTextContainer[moduleIndex];
-    }
-    else if constexpr (std::is_same<Module, SuperTextModule>::value){
+    if constexpr (std::is_same<Module, SuperTextModule>::value){
         if(Layers[layerIndex].Objects[objectIndex].SuperTextContainer.size() <= moduleIndex){
             cerr << "Error: In " << __PRETTY_FUNCTION__ << ": moduleIndex goes out of scope of Layers[].Objects.<Module>\n";
             return nullptr;
@@ -18002,13 +17335,7 @@ ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass>
             if(Layers[layer].Objects[object].getUniqueIndex() != Instance->getObjectUniqueIndex()){
                 continue;
             }
-            if constexpr (std::is_same<Module, TextModule>::value){
-                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].TextContainer[0]);
-            }
-            else if constexpr (std::is_same<Module, EditableTextModule>::value){
-                return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].EditableTextContainer[0]);
-            }
-            else if constexpr (std::is_same<Module, SuperTextModule>::value){
+            if constexpr (std::is_same<Module, SuperTextModule>::value){
                 return ModuleIndex(layer, object, Instance - &Layers[layer].Objects[object].SuperTextContainer[0]);
             }
             else if constexpr (std::is_same<Module, SuperEditableTextModule>::value){
@@ -18112,14 +17439,6 @@ void PointerRecalculator::findIndexesForModules(vector<LayerClass> & Layers,
     for(size_t contextIdx = 0; contextIdx < ObjectMemory.MemoryMap.size(); ++contextIdx){
         ContextClass & Context = ObjectMemory.MemoryMap[contextIdx];
         switch(Context.type){
-            case text_mod:
-            case text_mod_vec:
-                findIndexesInModule(Context.Modules.Texts, Layers, CurrentInstr, contextIdx);
-                break;
-            case editable_text_mod:
-            case editable_text_mod_vec:
-                findIndexesInModule(Context.Modules.EditableTexts, Layers, CurrentInstr, contextIdx);
-                break;
             case super_text_mod:
             case super_text_mod_vec:
                 findIndexesInModule(Context.Modules.SuperTexts, Layers, CurrentInstr, contextIdx);
@@ -18303,14 +17622,6 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers,
             ContextClass & CurrentContext = ObjectMemory.MemoryMap[IndexPair.first];
 
             switch(CurrentContext.type){
-                case text_mod:
-                case text_mod_vec:
-                    CurrentContext.Modules.Texts[module] = &(*Object).TextContainer[Index.moduleIndex];
-                    break;
-                case editable_text_mod:
-                case editable_text_mod_vec:
-                    CurrentContext.Modules.EditableTexts[module] = &(*Object).EditableTextContainer[Index.moduleIndex];
-                    break;
                 case super_text_mod:
                 case super_text_mod_vec:
                     CurrentContext.Modules.SuperTexts[module] = &(*Object).SuperTextContainer[Index.moduleIndex];

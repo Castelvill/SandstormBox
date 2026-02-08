@@ -9,7 +9,7 @@ SRC_DIR := src
 SRC := $(SRC_DIR)/vectors.cpp $(SRC_DIR)/usefull.cpp $(SRC_DIR)/primaryModule.cpp $(SRC_DIR)/collisionModule.cpp \
        $(SRC_DIR)/movementModule.cpp $(SRC_DIR)/variableModule.cpp $(SRC_DIR)/camera.cpp $(SRC_DIR)/primitivesModule.cpp \
        $(SRC_DIR)/mouse.cpp $(SRC_DIR)/imageModule.cpp $(SRC_DIR)/scrollbarModule.cpp $(SRC_DIR)/particles.cpp \
-       $(SRC_DIR)/textModule.cpp $(SRC_DIR)/superTextModule.cpp $(SRC_DIR)/vectorModule.cpp $(SRC_DIR)/eventModule.cpp \
+       $(SRC_DIR)/superTextModule.cpp $(SRC_DIR)/vectorModule.cpp $(SRC_DIR)/eventModule.cpp \
        $(SRC_DIR)/parser.cpp $(SRC_DIR)/compiler.cpp $(SRC_DIR)/ancestorObject.cpp $(SRC_DIR)/layerClass.cpp \
        $(SRC_DIR)/processClass.cpp $(SRC_DIR)/engineClass.cpp $(SRC_DIR)/main.cpp
 

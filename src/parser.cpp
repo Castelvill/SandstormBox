@@ -241,14 +241,6 @@ DataType instrToDataType(EngineInstr instruction){
             return DataType::vector_mod;
         case VecVec:
             return DataType::vector_mod_vec;
-        case Text:
-            return DataType::text_mod;
-        case TextVec:
-            return DataType::text_mod_vec;
-        case EditText:
-            return DataType::editable_text_mod;
-        case EditTextVec:
-            return DataType::editable_text_mod_vec;
         case SText:
             return DataType::super_text_mod;
         case STextVec:
@@ -396,8 +388,6 @@ inline void prepareObjectSource(const vector<string> & attributes, const vector<
 
     switch(Expression.Location.moduleType){
         case ancestor:
-        case text:
-        case editable_text:
             setOptionalAttributeValueInCond(0, 's', attributeArgs, Expression.Literal, scriptName, lineNumber);
             return;
         case mouse:
@@ -1217,10 +1207,6 @@ DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const Da
             return layer_vec;
         case object_inst:
             return object_vec;
-        case text_mod:
-            return text_mod_vec;
-        case editable_text_mod:
-            return editable_text_mod_vec;
         case super_text_mod:
             return super_text_mod_vec;
         case super_editable_text_mod:
@@ -1261,10 +1247,6 @@ inline DataType attributeToInstDataType(const InstrDescription & CurrentInstr, c
             return layer_inst;
         case object_a:
             return object_inst;
-        case text_a:
-            return text_mod;
-        case editable_text_a:
-            return editable_text_mod;
         case super_text_a:
             return super_text_mod;
         case super_editable_text_a:
@@ -1379,12 +1361,6 @@ ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEv
         else{
             if(Operation->Location.moduleType != null_s){
                 switch(Operation->Location.moduleType){
-                    case text:
-                        outputType = text_mod;
-                        break;
-                    case editable_text:
-                        outputType = editable_text_mod;
-                        break;
                     case super_text:
                         outputType = super_text_mod;
                         break;

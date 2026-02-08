@@ -78,7 +78,7 @@ start test
     run testPrint()
     run nextTest()
     run testEdit()
-    run triggerEditorExit()
+    run triggerEditorExit(program)
     run testSand()
     run nextTest()
     run testCd()

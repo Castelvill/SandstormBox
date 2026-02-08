@@ -18,12 +18,6 @@ AncestorObject::AncestorObject(size_t & topObjectUniqueIndex){
 void AncestorObject::deleteLater(){
     deleted = true;
     deactivate();
-    for(TextModule & Text : TextContainer){
-        Text.deleteLater();
-    }
-    for(EditableTextModule & EditableText : EditableTextContainer){
-        EditableText.deleteLater();
-    }
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.deleteLater();
     }
@@ -114,16 +108,6 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     initData.newObjectID = ID;
 
     hasInvalidatedMemory = true;
-    for(const TextModule & Text : Original.TextContainer){
-        TextContainer.emplace_back(TextModule(topModuleUniqueIndex));
-        initData.listOfIDs = &textContainerIDs;
-        TextContainer.back().clone(Text, initData, true);
-    }
-    for(const EditableTextModule & Editable : Original.EditableTextContainer){
-        EditableTextContainer.emplace_back(EditableTextModule(topModuleUniqueIndex));
-        initData.listOfIDs = &editableTextContainerIDs;
-        EditableTextContainer.back().clone(Editable, initData, true);
-    }
     for(const SuperTextModule & SuperText : Original.SuperTextContainer){
         SuperTextContainer.emplace_back(SuperTextModule(topModuleUniqueIndex));
         initData.listOfIDs = &superTextContainerIDs;
@@ -188,8 +172,6 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     findIndexesOfEventChildren();
 }
 void AncestorObject::clearVectorsOfIDs(){
-    textContainerIDs.clear();
-    editableTextContainerIDs.clear();
     superTextContainerIDs.clear();
     superEditableTextContainerIDs.clear();
     imageContainerIDs.clear();
@@ -203,12 +185,6 @@ void AncestorObject::clearVectorsOfIDs(){
     vectorContainerIDs.clear();
 }
 void AncestorObject::clear(){
-    for(TextModule & Text : TextContainer){
-        Text.clear();
-    }
-    for(EditableTextModule & Editable : EditableTextContainer){
-        Editable.clear();
-    }
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.clear();
     }
@@ -245,8 +221,6 @@ void AncestorObject::clear(){
 
     clearVectorsOfIDs();
     groups.clear();
-    TextContainer.clear();
-    EditableTextContainer.clear();
     SuperTextContainer.clear();
     SuperEditableTextContainer.clear();
     ImageContainer.clear();
@@ -258,70 +232,6 @@ void AncestorObject::clear(){
     PrimitivesContainer.clear();
     VectorContainer.clear();
     bindedScripts.clear();
-}
-void AncestorObject::operateTextFieldUpdate(EditableTextModule & EditableText,
-    vector<AncestorObject> & Objects, vector<SingleBitmap> & BitmapContainer,
-    vector<string> & listOfAncestorIDs, string workingDirectory
-){
-    for(AncestorObject & Object : Objects){
-        if(EditableText.connectedObject == Object.getID()
-           || Object.isInAGroup(EditableText.connectedGroup)
-        ){
-            bool success = false;
-            if(EditableText.connectedModule == "ancestor"){
-                if(EditableText.connectedVariable == "is_scrollable"){
-                    Object.setIsScrollable(stringToBool(EditableText.getCurrentContent()));
-                    success = true;
-                }
-                else{
-                    success = EditableText.controlAncestor(Object, listOfAncestorIDs);
-                }
-            }
-            else if(EditableText.connectedModule == "text"){
-                for(auto & Text : Object.TextContainer){
-                    if(EditableText.connectedModuleID == Text.getID()){
-                        success = EditableText.controlText(Text, Object.textContainerIDs);
-                    }
-                }
-            }
-            else if(EditableText.connectedModule == "image"){
-                for(auto & Image : Object.ImageContainer){
-                    if(EditableText.connectedModuleID == Image.getID()){
-                        success = EditableText.controlImage(Image, BitmapContainer, Object.imageContainerIDs, workingDirectory);
-                    }
-                }
-            }
-            else if(EditableText.connectedModule == "movement"){
-                for(auto & Movement : Object.MovementContainer){
-                    if(EditableText.connectedModuleID == Movement.getID()){
-                        success = EditableText.controlMovement(Movement, Object.movementContainerIDs);
-                    }
-                }
-            }
-            else if(EditableText.connectedModule == "collision"){
-                for(auto & Collision : Object.CollisionContainer){
-                    if(EditableText.connectedModuleID == Collision.getID()){
-                        success = EditableText.controlCollision(Collision, Object.collisionContainerIDs);
-                    }
-                }
-            }
-            else if(EditableText.connectedModule == "particles"){
-                for(auto & Particles : Object.ParticlesContainer){
-                    if(EditableText.connectedModuleID == Particles.getID()){
-                        success = EditableText.controlParticles(Particles, Object.particlesContainerIDs);
-                    }
-                }
-            }
-            else if(EditableText.connectedModule == "variable"){
-                for(auto & Variable : Object.VariablesContainer){
-                    if(EditableText.connectedModuleID == Variable.getID()){
-                        success = EditableText.controlVariable(Variable, Object.variablesContainerIDs);
-                    }
-                }
-            }
-            EditableText.clearContentAfterSuccess(success);
-        }
-    }
 }
 void AncestorObject::refreshPositionsAndSizesOfObjectAndItsImages(){
     // cerr << "Error: Method is currently deprecated.\n"; // Idk what was the reason of this "deprecation". For now will ignore it.
@@ -359,12 +269,6 @@ void AncestorObject::refreshPositionsAndSizesOfObjectAndItsImages(){
 }
 void AncestorObject::createVectorsOfIds(){
     clearVectorsOfIDs();
-    for(const TextModule & content : TextContainer){
-        textContainerIDs.emplace_back(content.getID());
-    }
-    for(const EditableTextModule & content : EditableTextContainer){
-        editableTextContainerIDs.emplace_back(content.getID());
-    }
     for(const SuperTextModule & content : SuperTextContainer){
         superTextContainerIDs.emplace_back(content.getID());
     }
@@ -421,12 +325,6 @@ void AncestorObject::primaryConstructor(PrimaryData & data){
 
 void AncestorObject::setIsScrollable(bool newValue){
     isScrollable = newValue;
-    for(TextModule & Text : TextContainer){
-        Text.setIsScrollable(isScrollable);
-    }
-    for(EditableTextModule & Editable : EditableTextContainer){
-        Editable.setIsScrollable(isScrollable);
-    }
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.setIsScrollable(isScrollable);
     }
@@ -668,14 +566,6 @@ void AncestorObject::injectInstructions(bool clearEvents, const vector<string> &
 }
 
 void AncestorObject::propagateLayer(){
-    for(TextModule & Text : TextContainer){
-        Text.setLayerUniqueIndex(getLayerUniqueIndex());
-        Text.setLayerID(layerID);
-    }
-    for(EditableTextModule & EditableText : EditableTextContainer){
-        EditableText.setLayerUniqueIndex(getLayerUniqueIndex());
-        EditableText.setLayerID(layerID);
-    }
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.setLayerUniqueIndex(getLayerUniqueIndex());
         SuperText.setLayerID(layerID);
@@ -722,12 +612,6 @@ void AncestorObject::propagateLayer(){
     }
 }
 void AncestorObject::propagateObjectID(){
-    for(TextModule & Text : TextContainer){
-        Text.setObjectID(ID);
-    }
-    for(EditableTextModule & EditableText : EditableTextContainer){
-        EditableText.setObjectID(ID);
-    }
     for(SuperTextModule & SuperText : SuperTextContainer){
         SuperText.setObjectID(ID);
     }
@@ -767,24 +651,21 @@ string AncestorObject::getObjectID(){
 }
 
 bool ModulesPointers::hasInstanceOfAnyModule() const{
-    return Texts.size() > 0 || EditableTexts.size() > 0 || SuperTexts.size() > 0
-        || SuperEditableTexts.size() > 0 || Images.size() > 0
+    return SuperTexts.size() > 0 || SuperEditableTexts.size() > 0 || Images.size() > 0
         || Movements.size() > 0 || Collisions.size() > 0 || Particles.size() > 0
         || Events.size() > 0 || Variables.size() > 0 || Scrollbars.size() > 0
         || Primitives.size() > 0 || Vectors.size() > 0;
 }
 unsigned ModulesPointers::size() const{
-    return Texts.size() + EditableTexts.size() + SuperTexts.size()
-        + SuperEditableTexts.size()  + Images.size() +
-        Movements.size() + Collisions.size() + Particles.size() +
-        Events.size() + Variables.size() + Scrollbars.size()
+    return SuperTexts.size() + SuperEditableTexts.size() + Images.size()
+        + Movements.size() + Collisions.size() + Particles.size()
+        + Events.size() + Variables.size() + Scrollbars.size()
         + Primitives.size() + Vectors.size();
 }
 
 bool ModulesPointers::empty() const{
-    return Texts.empty() && EditableTexts.empty() && SuperTexts.empty()
-        && SuperEditableTexts.empty()  && Images.empty() &&
-        Movements.empty() && Collisions.empty() && Particles.empty() &&
-        Events.empty() && Variables.empty() && Scrollbars.empty()
+    return SuperTexts.empty() && SuperEditableTexts.empty() && Images.empty()
+        && Movements.empty() && Collisions.empty() && Particles.empty()
+        && Events.empty() && Variables.empty() && Scrollbars.empty()
         && Primitives.empty() && Vectors.empty();
 }

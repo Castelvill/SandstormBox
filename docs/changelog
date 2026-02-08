@@ -1,4 +1,5 @@
 8.02.2026
+-Removed old text modules.
 -Separated command line from the text in the text editor.
 -Moved text editor code into a separate file.
 

@@ -11,7 +11,7 @@ enum ValueSource: char{
     ancestor, object, display_resized, vector_s, mouse_x, mouse_y,
     display_w, display_h, number_of_processes, number_of_cameras,
     number_of_layers, number_of_objects, booting, process, context,
-    text, editable_text, super_text, super_editable_text, image, movement,
+    super_text, super_editable_text, image, movement,
     collision, particles, event, scrollbar, primitives, variable, exists
 };
 ValueSource strToSource(const string & source, string & error);
@@ -24,8 +24,7 @@ enum DataType: char{
     //Engine container
     camera_inst, camera_vec, layer_inst, layer_vec, object_inst, object_vec,
     //Object's module container
-    variable_mod, variable_mod_vec, vector_mod, vector_mod_vec, text_mod, text_mod_vec,
-    editable_text_mod, editable_text_mod_vec, super_text_mod, super_text_mod_vec,
+    variable_mod, variable_mod_vec, vector_mod, vector_mod_vec, super_text_mod, super_text_mod_vec,
     super_editable_text_mod, super_editable_text_mod_vec, image_mod, image_mod_vec,
     movement_mod, movement_mod_vec, collision_mod, collision_mod_vec, particles_mod,
     particles_mod_vec, event_mod, event_mod_vec, scrollbar_mod, scrollbar_mod_vec,
@@ -239,8 +238,6 @@ public:
         unsigned &cursor, const unsigned &lineNumber, const string &scriptName,
         vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
     );
-    void controlText(TextModule * Text, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer);
-    void controlEditableText(EditableTextModule * Text, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs, const vector<SingleFont> & FontContainer);
     void controlSuperText(SuperTextModule * SuperText, AttributeType attribute, const vector<VariableModule> & Values,
         vector <string> & IDs, vector<SingleFont> & FontContainer, string EXE_PATH, string workingDirectory
     );

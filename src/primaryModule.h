@@ -24,7 +24,7 @@ enum EngineInstr : unsigned char{
     stop_assembling, start_printing_tokens, stop_printing_tokens, start_expr,
     //instance declarations
     Val, ValVec, Pointer, PointerVec, Camera, CameraVec, Layer, LayerVec, Object, ObjectVec, Var,
-    VarVec, Vec, VecVec, Text, TextVec, EditText, EditTextVec, SText, STextVec, SEditText,
+    VarVec, Vec, VecVec, SText, STextVec, SEditText,
     SEditTextVec, Image, ImageVec, Movement, MovementVec, Collision, CollisionVec, Particles, Event,
     EventVec, Scrollbar, ScrollbarVec, Primitive, PrimitiveVec, any 
 };
@@ -149,7 +149,7 @@ enum AttributeType: short {
     set_grabbing_area_size, set_can_draw_on_camera, set_can_clear_bitmap,
     set_keep_inside_screen, set_can_mouse_resize, focus, unfocus,
     //entities
-    layer_a, object_a, text_a, editable_text_a, super_text_a, super_editable_text_a, image_a,
+    layer_a, object_a, super_text_a, super_editable_text_a, image_a,
     movement_a, collision_a, particles_a, event_a, variable_a, scrollbar_a,
     primitives_a, vector_a, context_a, memory_address_a, literal_a,
     //layer

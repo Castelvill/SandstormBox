@@ -113,12 +113,6 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "context"){
         return ValueSource::context;
     }
-    if(source == "Texts"){
-        return ValueSource::text;
-    }
-    if(source == "EditTexts"){
-        return ValueSource::editable_text;
-    }
     if(source == "STexts"){
         return ValueSource::super_text;
     }
@@ -235,10 +229,6 @@ string sourceToStr(ValueSource source){
             return "Processes";
         case context:
             return "context";
-        case text:
-            return "Texts";
-        case editable_text:
-            return "EditTexts";
         case super_text:
             return "STexts";
         case super_editable_text:
@@ -333,18 +323,6 @@ DataType strToDataType(const string & dataType){
     }
     else if(dataType == "VecVec"){
         return vector_mod_vec;
-    }
-    else if(dataType == "Text"){
-        return text_mod;
-    }
-    else if(dataType == "TextVec"){
-        return text_mod_vec;
-    }
-    else if(dataType == "EditText"){
-        return editable_text_mod;
-    }
-    else if(dataType == "EditTextVec"){
-        return editable_text_mod_vec;
     }
     else if(dataType == "SText"){
         return super_text_mod;
@@ -454,14 +432,6 @@ string dataTypeToStr(DataType dataType){
             return "Vec";
         case vector_mod_vec:
             return "VecVec";
-        case text_mod:
-            return "Text";
-        case text_mod_vec:
-            return "TextVec";
-        case editable_text_mod:
-            return "EditText";
-        case editable_text_mod_vec:
-            return "EditTextVec";
         case super_text_mod:
             return "SText";
         case super_text_mod_vec:
@@ -514,10 +484,6 @@ DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSo
             return layer_inst;
         case object:
             return object_inst;
-        case text:
-            return text_mod;
-        case editable_text:
-            return editable_text_mod;
         case super_text:
             return super_text_mod;
         case super_editable_text:
@@ -1469,347 +1435,6 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments,
     }
     cursor++;
     return false;
-}
-
-void EventModule::controlText(TextModule *Text, AttributeType attribute, 
-    const vector<VariableModule> &Values, vector<string> &IDs,
-    const vector<SingleFont> &FontContainer
-){
-    switch(attribute){
-        case set_id:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->setID(Values[0].getStringUnsafe(), IDs);
-            break;
-        case set_pos:
-            if(Values.size() < 2){
-                break;
-            }
-            Text->setPos(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
-            break;
-        case set_size:
-            if(Values.size() < 2){
-                break;
-            }
-            Text->setSize(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
-            break;
-        case set_scale:
-            if(Values.size() < 2){
-                break;
-            }
-            Text->setScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
-            break;
-        case add_scale:
-            if(Values.size() < 2){
-                break;
-            }
-            Text->addScale(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe());
-            break;
-        case set_color:
-            if(Values.size() < 4){
-                break;
-            }
-            Text->setColors(Values[0].getDoubleUnsafe(), Values[1].getDoubleUnsafe(), 
-                Values[2].getDoubleUnsafe(), Values[3].getDoubleUnsafe()
-            );
-            break;
-        case set_color_r:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->color.r = Values[0].getDoubleUnsafe();
-            break;
-        case set_color_g:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->color.g = Values[0].getDoubleUnsafe();
-            break;
-        case set_color_b:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->color.b = Values[0].getDoubleUnsafe();
-            break;
-        case set_color_a:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->color.a = Values[0].getDoubleUnsafe();
-            break;
-        case set_random_color:
-            Text->setRandomColors();
-            break;
-        case increment_random_color:
-            Text->incrementRandomColor();
-            break;
-        case set_rotation:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->setRotation(Values[0].getDoubleUnsafe());
-            break;
-        case set_random_change_speed:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->randomChangeSpeed = Values[0].getDoubleUnsafe();
-            break;
-        case set_min_color:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->minColorValue = Values[0].getDoubleUnsafe();
-            break;
-        case set_max_color:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->maxColorValue = Values[0].getDoubleUnsafe();
-            break;
-        case rotate:
-            if(Values.size() < 1){
-                break;
-            }
-            Text->addRotation(Values[0].getDoubleUnsafe());
-            break;
-        case set_font:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->setFontID(Values[0].getStringUnsafe());
-            break;
-        case add_new_content:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->addNewContent(Values[0].getStringUnsafe());
-            break;
-        case add_new_and_update:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->addNewContentAndResize(Values[0].getStringUnsafe(), FontContainer);
-            break;
-        case update_size:
-            Text->fitSizeToText(FontContainer);
-            break;
-        case select_content:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->chooseContent(Values[0].getIntUnsafe());
-            break;
-        case delete_a:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->deleteContent(Values[0].getIntUnsafe());
-            break;
-        case add_text:
-            if(Values.size() < 2){
-                break;
-            }
-            Text->addTextToContent(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
-            break;
-        case set_text:
-            if(Values.size() < 2){
-                break;
-            }
-            Text->modifyContent(Values[0].getIntUnsafe(), Values[1].getStringUnsafe());
-            break;
-        case set_resize_text:
-            if(Values.size() < 2){
-                break;
-            }
-            Text->modifyContentAndResize(Values[0].getIntUnsafe(), Values[1].getStringUnsafe(),
-                FontContainer
-            );
-            break;
-        case set_wrapping:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->setWrapping(Values[0].getIntUnsafe());
-            break;
-        case set_horizontal_align:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->setHorizontalAlign(Values[0].getIntUnsafe());
-            break;
-        case set_vertical_align:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->setVerticalAlign(Values[0].getIntUnsafe());
-            break;
-        case set_cursor_pos:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->setCursorPos(Values[0].getIntUnsafe());
-            break;
-        case set_second_cursor_pos:
-            if(Values.size() == 0){
-                break;
-            }
-            Text->setSecondCursorPos(Values[0].getIntUnsafe());
-            break;
-        default:
-            bool temp = false;
-            if(Values.size() > 0){
-                temp = Values[0].getBoolUnsafe();
-            }
-            Text->control(attribute, temp, Values.size());
-            return;
-    }
-}
-void EventModule::controlEditableText(EditableTextModule *EditableText, AttributeType attribute,
-    const vector<VariableModule> &Values, vector<string> &IDs, 
-    const vector<SingleFont> &FontContainer
-){
-    switch(attribute){
-        case set_editable:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setCanBeEdited(Values[0].getBoolUnsafe());
-            return;
-        case set_space_use:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setCanUseSpace(Values[0].getBoolUnsafe());
-            return;
-        case set_enter_use:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setCanUseEnter(Values[0].getBoolUnsafe());
-            return;
-        case set_can_enter_accept:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setCanEnterAcceptChanges(Values[0].getBoolUnsafe());
-            return;
-        case set_numerical:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setIsNumerical(Values[0].getBoolUnsafe());
-            return;
-        case set_floating_point:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setHasFloatingPoint(Values[0].getBoolUnsafe());
-            return;
-        case set_can_update_variable:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setUpdateConnectedVariable(Values[0].getBoolUnsafe());
-            return;
-        case set_auto_cleaning:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setCanClearContentAfterSuccess(Values[0].getBoolUnsafe());
-            return;
-        case set_use_tabs:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setUseTabs(Values[0].getBoolUnsafe());
-            return;
-        case set_min_content_length:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setMinContentSize(Values[0].getIntUnsafe());
-            return;
-        case set_max_content_length:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setMaxContentSize(Values[0].getIntUnsafe());
-            return;
-        case set_input_delay:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setInputDelay(Values[0].getDoubleUnsafe());
-            return;
-        case set_repetition_delay:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setRepetitionDelay(Values[0].getDoubleUnsafe());
-            return;
-        case connect_object:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->connectedObject = Values[0].getStringUnsafe();
-            return;
-        case connect_group:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->connectedGroup = Values[0].getStringUnsafe();
-            return;
-        case connect_module:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->connectedModule = Values[0].getStringUnsafe();
-            return;
-        case connect_module_id:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->connectedModuleID = Values[0].getStringUnsafe();
-            return;
-        case connect_variable:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->connectedVariable = Values[0].getStringUnsafe();
-            return;
-        case set_protected_area:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setProtectedArea(Values[0].getIntUnsafe());
-            return;
-        case cut_unprotected_area:
-            EditableText->cutCurrentContent(EditableText->getProtectedArea());
-            return;
-        case stop_editing:
-            EditableText->setEditingIsActive(false);
-            return;
-        case start_editing:
-            EditableText->setEditingIsActive(true);
-            return;
-        case set_ignore_vertical_arrows:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->ignoreVerticalArrows = Values[0].getBoolUnsafe();
-            return;
-        case set_can_auto_resize_axis_y:
-            if(Values.size() == 0){
-                return;
-            }
-            EditableText->setAutoResizeAxisY(Values[0].getBoolUnsafe());
-            return;
-        default:
-            controlText(EditableText, attribute, Values, IDs, FontContainer);
-            return;
-    }
 }
 void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType attribute,
     const vector<VariableModule> & Values, vector<string> & IDs,

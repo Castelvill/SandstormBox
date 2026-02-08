@@ -412,18 +412,6 @@ EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "VecVec"){
         return EngineInstr::VecVec;
     }
-    if(instruction == "Text"){
-        return EngineInstr::Text;
-    }
-    if(instruction == "TextVec"){
-        return EngineInstr::TextVec;
-    }
-    if(instruction == "EditText"){
-        return EngineInstr::EditText;
-    }
-    if(instruction == "EditTextVec"){
-        return EngineInstr::EditTextVec;
-    }
     if(instruction == "SText"){
         return EngineInstr::SText;
     }
@@ -761,14 +749,6 @@ string instrToStr(const EngineInstr & instruction){
             return "Vec";
         case VecVec:
             return "VecVec";
-        case Text:
-            return "Text";
-        case TextVec:
-            return "TextVec";
-        case EditText:
-            return "EditText";
-        case EditTextVec:
-            return "EditTextVec";
         case SText:
             return "SText";
         case STextVec:
@@ -2677,8 +2657,6 @@ string attributeToStr(const AttributeType &attribute){
         case unfocus: return "unfocus";
         case layer_a: return "layer";
         case object_a: return "object";
-        case text_a: return "text";
-        case editable_text_a: return "editable_text";
         case super_text_a: return "super_text";
         case super_editable_text_a: return "super_editable_text";
         case image_a: return "image";
@@ -3276,8 +3254,6 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "unfocus") return unfocus;
     else if(attribute == "layer") return layer_a;
     else if(attribute == "object") return object_a;
-    else if(attribute == "text") return text_a;
-    else if(attribute == "editable_text") return editable_text_a;
     else if(attribute == "super_text") return super_text_a;
     else if(attribute == "super_editable_text") return super_editable_text_a;
     else if(attribute == "image") return image_a;
