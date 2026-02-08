@@ -1,4 +1,8 @@
-7.02.2025
+8.02.2026
+-Separated command line from the text in the text editor.
+-Moved text editor code into a separate file.
+
+7.02.2026
 -Fixed modulo in the interpreter.
 -Added comments and update examples.
 

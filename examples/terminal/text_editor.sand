@@ -1,0 +1,478 @@
+@trigger on_init
+start configureTextEditor()
+    var BASE_SCROLLBAR_HEIGHT 476.0
+    var COMMAND_LINE_BACKGROUND_HEIGHT 30
+
+    var showLineNumbering true
+    var relativeNumbering false
+    var scrollbarHeight BASE_SCROLLBAR_HEIGHT
+    var minScrollbarThumbHeight 24
+
+    var EDITOR_OBJ_IDX 0
+    var EDITOR_TEXT_FIELD_IDX 1
+    var EDITOR_SCROLLBAR_IDX 1
+    var EDITOR_CMD_LYR_IDX 0
+    var EDITOR_CMD_OBJ_IDX 2
+end
+
+start setupTextEditor(SEditText & terminalTextField)
+    new SEditTexts me 1 "TextEditor" textField
+    clone textField terminalTextField false
+    fun textField add_format "cascadia_code_bold" 1
+    fun textField set_color 0 0.2 0.74 0.7 1.0 //[0.0 0.7 0.0 1.0]
+	fun textField set_accent_color 0 0.0 0.0 0.0 1.0 //[0.0 0.2 0.0 1.0]
+    fun textField set_protected_area 0
+    fun textField set_can_use_enter true
+    fun textField set_content ""
+    fun textField set_ignore_vertical_arrows false
+    fun textField set_can_use_tabs true
+    fun textField deactivate
+
+    new STexts me 1 "EditorLines" linesNumbering
+    fun linesNumbering add_format "cascadia_code" 1
+    fun linesNumbering set_last_color 0.3 0.45 0.5 1.0
+    fun linesNumbering set_content ""
+    fun linesNumbering deactivate
+    fun linesNumbering update
+
+    new Scrollbars me 1 "TextEditorScrollbar" scrollbar
+    fun scrollbar disable_scrolling
+    fun scrollbar set_can_be_drawn true
+    fun scrollbar set_pos 884 0
+    fun scrollbar set_thumb_position 450 0//450
+    fun scrollbar set_thumb_size 12 BASE_SCROLLBAR_HEIGHT
+    fun scrollbar set_scrolling_area 12 BASE_SCROLLBAR_HEIGHT
+    fun scrollbar set_real_scrolling_area 0 0
+    fun scrollbar set_thumb_image_id "thumb"
+    fun scrollbar set_track_image_id "thumb_track"
+    fun scrollbar set_mouse_wheel_speed 40.0
+    fun scrollbar deactivate
+    fun scrollbar add_camera "Desktop"
+end
+
+start createEditorCommandLine()
+    new Objects my_layer 1 "commandLine" commandLineObj
+    fun commandLineObj deactivate
+    fun commandLineObj disable_scrolling
+    fun commandLineObj set_can_be_moved_with_mouse false
+
+    new Primitives commandLineObj 1 "background" commandLineBackground
+    fun commandLineBackground create "filled_rectangle"
+    fun commandLineBackground set_color 0.05 0.06 0.12 1.0
+    fun commandLineBackground set_pos 0 0
+    fun commandLineBackground set_size 920 COMMAND_LINE_BACKGROUND_HEIGHT
+    fun commandLineBackground update_with_size
+
+    index me [0 0] super_editable_text mainTerminalTextField
+
+    var cmdLineColorR 0.4
+    var cmdLineColorG 0.463
+    var cmdLineColorB 0.639
+    var cmdLineColorA 1.0
+
+    new SEditTexts commandLineObj 1 "commandLine" commandLineTextField
+    clone commandLineTextField mainTerminalTextField false
+    fun commandLineTextField disable_scrolling
+    fun commandLineTextField stop_editing
+    fun commandLineTextField set_pos 5 5
+    fun commandLineTextField set_protected_area 0
+    fun commandLineTextField set_last_color cmdLineColorR cmdLineColorG cmdLineColorB cmdLineColorA
+end
+
+start toggleLineNumbering()
+    if(!key_pressed(KEY_LSHIFT) && key_pressed(KEY_LCTRL) && key_pressed(KEY_N))
+        if(showLineNumbering)
+            = showLineNumbering false
+            index me [0 0] super_text lineNumberingText
+            fun lineNumberingText deactivate
+        else
+            = showLineNumbering true
+            index me [0 0] super_text lineNumberingText
+            fun lineNumberingText activate
+        end
+    end
+end
+
+start checkIfInsertPressed(bool & isEditing)
+    if(isEditing)
+        return
+    end
+    reset_keyboard
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text editableText
+    fun editableText start_editing
+end
+
+start textEditorInsert()
+    if(key_pressed(KEY_LCTRL) && key_pressed(KEY_I))
+        bool isEditing false
+        first Layers KERNEL KERNEL SEditTexts TextEditor is_editing_active _ isEditing
+        checkIfInsertPressed(isEditing)
+    end
+end
+
+start triggerEditorExit(Var & currentProgram)
+    = currentProgram ""
+    index me [0 0] super_editable_text terminalTextField
+    fun terminalTextField activate
+    fun terminalTextField start_editing
+
+    index me [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] scrollbar textEditorScrollbar
+    fun textEditorScrollbar deactivate
+
+    index me [0 0] scrollbar mainScrollbar
+    fun mainScrollbar activate
+    fun mainScrollbar scroll_to_the_end
+    fun me update_scrollbars
+
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text textEditor
+    fun textEditor deactivate
+    fun textEditor stop_editing
+
+    index my_layer [EDITOR_CMD_LYR_IDX EDITOR_CMD_OBJ_IDX] object commandLineObj
+    fun commandLineObj deactivate
+
+    index me [0 0] super_text lineNumberingText
+    fun lineNumberingText deactivate
+end
+
+start textEditorExit(Var & currentProgram)
+    if(key_pressed(KEY_LCTRL) && key_pressed(KEY_Q))
+        triggerEditorExit(currentProgram)
+    end
+end
+
+start textEditorSave(Var & openFilePath)
+    if(key_pressed(KEY_LCTRL) && key_pressed(KEY_S))
+        index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text TextEditor
+        first TextEditor _ _ _ _ content _ writtenText
+        save_text openFilePath writtenText
+    end
+end
+
+start editorOnKeyPress(Var & currentProgram, Var & openFilePath)
+    if(currentProgram != "edit")
+        return
+    end
+    toggleLineNumbering()
+    textEditorInsert()
+    textEditorSave(openFilePath)
+    textEditorExit(currentProgram)
+end
+
+start resetTextEditorScrollbar()
+    index me [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] scrollbar EditorScrollbar
+    
+    double currentThumbHeight BASE_SCROLLBAR_HEIGHT
+    = currentThumbHeight scrollbarHeight
+    fun EditorScrollbar set_thumb_size 12 currentThumbHeight
+    fun me update_scrollbars
+end
+
+
+
+start refreshTextEditorScrollbarCheck(double editorSizeY, double windowHeight)
+    if(editorSizeY <= 0)
+        resetTextEditorScrollbar()
+        return
+    end
+    index me [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] scrollbar editorScrollbar
+    fun editorScrollbar set_real_scrolling_area 0 editorSizeY
+    += editorSizeY windowHeight
+    
+    double currentThumbHeight BASE_SCROLLBAR_HEIGHT
+    = currentThumbHeight scrollbarHeight
+    access windowH [display_h]
+    double divide 1.0
+    = divide windowH
+    /= divide editorSizeY
+    *= currentThumbHeight divide
+    fun editorScrollbar set_thumb_size 12 currentThumbHeight
+    //fun editorScrollbar scroll_to_the_end
+    fun me update_scrollbars
+    if(currentThumbHeight < minScrollbarThumbHeight)
+        = currentThumbHeight minScrollbarThumbHeight
+        fun editorScrollbar set_thumb_size 12 currentThumbHeight
+        fun me update_scrollbars
+    end
+end
+start refreshTextEditorScrollbar(SEditText & editorTextField, double & windowWidth, double windowHeight)
+    access editorSizeY [editorTextField.size_y]
+    = scrollbarHeight windowHeight
+    index me [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] scrollbar editorScrollbar
+    int scrollbarWidth 16
+    -= windowWidth scrollbarWidth
+    fun editorScrollbar set_pos windowWidth 0
+    fun editorScrollbar resize scrollbarWidth windowHeight
+    int thumbWidth 12
+    fun editorScrollbar set_scrolling_area thumbWidth windowHeight
+
+    all me _ _ Images _ _ _ AllImages
+    find_by_id_2 AllImages "thumb_track" TrackImage
+    fun TrackImage resize scrollbarWidth windowHeight
+    fun me update_scrollbars
+
+    -= editorSizeY windowHeight
+    += editorSizeY COMMAND_LINE_BACKGROUND_HEIGHT
+    refreshTextEditorScrollbarCheck(editorSizeY, windowHeight)
+end
+
+start refreshCommandLine(double & windowWidth, double & windowHeight)
+    index my_layer [EDITOR_CMD_LYR_IDX EDITOR_CMD_OBJ_IDX] object commandLineObj
+
+    double commandLineY windowHeight
+    -= commandLineY COMMAND_LINE_BACKGROUND_HEIGHT
+    fun commandLineObj set_pos 0 commandLineY
+
+    index commandLineObj [0 0] primitives commandLineBackground
+    fun commandLineBackground set_size windowWidth COMMAND_LINE_BACKGROUND_HEIGHT
+    fun commandLineBackground update_with_size
+end
+
+start refreshTextEditorScrollbarAndCommandLine(SEditText & editorTextField, double & windowWidth, double & windowHeight)
+    refreshLineNumbering(editorTextField)
+    refreshTextEditorScrollbar(editorTextField, windowWidth, windowHeight)
+    refreshCommandLine(windowWidth, windowHeight)
+end
+
+start adjustTextEditorToDisplay()
+    access windowWidth [display_w]
+    access windowHeight [display_h]
+
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text editorTextField
+    fun editorTextField set_size windowWidth windowHeight
+    fun editorTextField update
+    fun editorTextField crop_height_to_text
+
+    refreshTextEditorScrollbarAndCommandLine(editorTextField, windowWidth, windowHeight)
+end
+
+start adjustTextEditorToDisplayWithoutUpdatingSize()
+    access windowWidth [display_w]
+    access windowHeight [display_h]
+
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text editorTextField
+
+    //TODO: Fix: This breaks the formatting somehow
+    //fun editorTextField set_size windowWidth windowHeight
+    //fun editorTextField update
+
+    fun editorTextField crop_height_to_text
+
+    refreshTextEditorScrollbarAndCommandLine(editorTextField, windowWidth, windowHeight)
+end
+
+start moveScrollbarBySelectingText(SEditText & TextField, double & cursorPosY, double & windowLimitYDown, double & windowLimitYUp)
+    if (TextField.is_editing_active && cursorPosY > windowLimitYDown)
+        index me [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] scrollbar scrollbar
+        fun scrollbar scroll_by_distance 0 8
+        fun me update_scrollbars
+    else_if (TextField.is_editing_active && cursorPosY < windowLimitYUp)
+        index me [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] scrollbar scrollbar
+        fun scrollbar scroll_by_distance 0 -8
+        fun me update_scrollbars
+    end
+end
+
+start selectTextWithKeys()
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text textField
+    access cursorPosY [textField.cursor_pos_y]
+    index me [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] scrollbar Scrollbar
+    access scrollShiftY [Scrollbar.scroll_shift_y]
+    -= cursorPosY scrollShiftY
+    access windowH [display_h]
+    double windowLimitYDown -20.0
+    += windowLimitYDown windowH
+    -= windowLimitYDown COMMAND_LINE_BACKGROUND_HEIGHT
+    double windowLimitYUp 0.0
+    moveScrollbarBySelectingText(textField, cursorPosY, windowLimitYDown, windowLimitYUp)
+end
+
+start editorOnKeyPressing()
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text editorTextField
+    refreshLineNumbering(editorTextField)
+    toggleRelativeNumbering()
+    adjustTextEditorToDisplayWithoutUpdatingSize()
+    selectTextWithKeys()
+end
+
+start openTextEditor(Var & currentProgram, Var & openFilePath)
+    if(openFilePath == "")
+        informNonEmptyFileName(currentProgram)
+        return
+    end
+
+    = currentProgram "edit"
+
+    index me [0 0] super_editable_text TerminalTextField
+    fun TerminalTextField deactivate
+
+    index me [0 0] scrollbar MainScrollbar
+    fun MainScrollbar deactivate
+
+    index me [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] scrollbar TextEditorScrollbar
+    fun TextEditorScrollbar activate
+    fun TextEditorScrollbar scroll_to_the_beginning //scroll_to_the_end
+    fun me update_scrollbars
+
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text TextEditor
+    fun TextEditor set_content ""
+    fun TextEditor set_cursor_pos 0
+    fun TextEditor activate
+    fun TextEditor update
+    string filePath ""
+    = filePath openFilePath
+    loadTextFromFile(TextEditor, filePath)
+
+    tokenize "/" filePath filePathTokenized
+    access fileName [filePathTokenized.back] 
+
+    index my_layer [EDITOR_CMD_LYR_IDX EDITOR_CMD_OBJ_IDX] object commandLineObj
+    fun commandLineObj activate
+    index commandLineObj [0 0] super_editable_text commandLineText
+    fun commandLineText set_content fileName
+    fun commandLineText update
+
+    if(showLineNumbering)
+        index me [0 0] super_text lineNumberingText
+        fun lineNumberingText activate
+    end
+end
+
+start informFileDoesNotExist(string & fileName)
+    string result "Warning: File '"
+    += result fileName
+    += result "' does not exist.\n"
+    printOnTerminal(result)
+end
+
+start informNonEmptyFileName(Var & currentProgram)
+    = currentProgram "_enter"
+    string result "Error: Edit program requires a name of the file."
+    printOnTerminal(result)
+end
+
+start refreshLineNumbering(SEditText & editorTextField)
+    updateCurrentLineNumber(editorTextField)
+    
+    if(!showLineNumbering)
+        fun editorTextField set_pos 0 0
+        return
+    end
+
+    index me [0 0] super_text lineNumberingText
+    fun lineNumberingText set_content ""
+    ValVec wrappedLines
+    access wrappedLines [editorTextField.wrapped_lines]
+    int linesCount 0
+    size wrappedLines linesCount
+
+
+    if(!relativeNumbering)
+        int i 0
+        while(i < linesCount)
+            int nr i
+            ++ nr
+            fun lineNumberingText add_content nr
+            int wrapsCount 0
+            index_vec wrappedLines i wrapsCount
+            int wrap 0
+            while(wrap <= wrapsCount)
+                fun lineNumberingText add_content "\n"
+                next wrap
+            end
+
+            next i
+        end
+    else
+        access currentLine [editorTextField.current_line]
+
+        int counterForWraps 0
+        int i currentLine
+        while(i >= 0)
+            fun lineNumberingText add_content i
+            int wrapsCount 0
+            index_vec wrappedLines counterForWraps wrapsCount
+            int wrap 0
+            while(wrap <= wrapsCount)
+                fun lineNumberingText add_content "\n"
+                next wrap
+            end
+            -- i
+            next counterForWraps
+        end
+
+        int secondHalf linesCount
+        -= secondHalf currentLine
+        = i 1
+        while(i < secondHalf)
+            fun lineNumberingText add_content i
+            int wrapsCount 0
+            index_vec wrappedLines counterForWraps wrapsCount
+            int wrap 0
+            while(wrap <= wrapsCount)
+                fun lineNumberingText add_content "\n"
+                next wrap
+            end
+            ++ i
+            next counterForWraps
+        end
+    end
+
+    fun lineNumberingText update
+    
+    //Move editor's text field to the right
+    string linesCountStr ""
+    = linesCountStr linesCount
+    int counterLength 0
+    len linesCountStr counterLength
+    *= counterLength 10
+    += counterLength 10
+    fun editorTextField set_pos counterLength 0
+end
+
+start updateCurrentLineNumber(SEditText & editorTextField)
+    access currentLine [editorTextField.current_line]
+    ++ currentLine
+
+    index my_layer [EDITOR_CMD_LYR_IDX EDITOR_CMD_OBJ_IDX] object commandLineObj
+    fun commandLineObj activate
+    index commandLineObj [0 0] super_editable_text commandLineText
+    access commandLineContent [commandLineText.content]
+    tokenize "," commandLineContent tokens
+    string fileName ""
+    index_vec tokens 0 fileName
+    += fileName ", Ln "
+    += fileName currentLine
+    fun commandLineText set_content fileName
+    fun commandLineText update
+end
+
+start loadTextFromFile(SEditText & textEditor, string & fileName)
+    if (exists(fileName))
+        load_text fileName loadedText
+        fun textEditor set_content loadedText
+        len loadedText loadedTextSize
+        //fun textEditor set_cursor_pos loadedTextSize
+        fun textEditor update
+        fun textEditor crop_height_to_text
+
+        access windowWidth [display_w]
+        access windowHeight [display_h]
+        refreshTextEditorScrollbarAndCommandLine(textEditor, windowWidth, windowHeight)
+    else 
+        informFileDoesNotExist(fileName)
+    end
+end
+
+start selectTextWithMouse(SEditText & textField)
+    access cursorPosY [textField.cursor_pos_y]
+    index me [EDITOR_OBJ_IDX 1] scrollbar Scrollbar
+    access scrollShiftY [Scrollbar.scroll_shift_y]
+    -= cursorPosY scrollShiftY
+    access windowH [display_h]
+    double windowLimitYDown -30.0
+    += windowLimitYDown windowH
+    -= windowLimitYDown COMMAND_LINE_BACKGROUND_HEIGHT
+    double windowLimitYUp 10.0
+    moveScrollbarBySelectingText(textField, cursorPosY, windowLimitYDown, windowLimitYUp)
+end

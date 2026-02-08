@@ -74,7 +74,6 @@ public:
     ) const;
 
     void fitFormattingToContent();
-    void cutFormattingToContent();
     void setContent(string newContent);
     void addContent(string newContent);
     void addNewTextLine(string newLine);

@@ -1,3 +1,5 @@
+import "examples/terminal/text_editor.sand" 
+
 @trigger on_init
 start onInit
     create_display 920 480 1920 1080 false
@@ -31,41 +33,6 @@ start runAfterInit()
 	forceRefresh()
 end
 
-
-start createEditorCommandLine()
-    new Objects my_layer 1 "commandLine" commandLineObj
-    fun commandLineObj deactivate
-    fun commandLineObj disable_scrolling
-    fun commandLineObj set_can_be_moved_with_mouse false
-
-    var cmdLineH 450
-
-    new Primitives commandLineObj 1 "background" background
-    fun background create "filled_rectangle"
-    fun background set_color 0.0 0.0 0.0 0.9
-    fun background set_pos 0 cmdLineH
-    fun background set_size 920 30
-    fun background update_with_size
-
-    index me [0 0] super_editable_text mainTerminalTextField
-
-    var cmdLineTextH cmdLineH
-    += cmdLineTextH 5
-
-    var cmdLineColorR 0.4
-    var cmdLineColorG 0.463
-    var cmdLineColorB 0.639
-    var cmdLineColorA 1.0
-
-    new SEditTexts commandLineObj 1 "commandLine" commandLineTextField
-    clone commandLineTextField mainTerminalTextField false
-    fun commandLineTextField disable_scrolling
-    fun commandLineTextField stop_editing
-    fun commandLineTextField set_pos 5 cmdLineTextH
-    fun commandLineTextField set_protected_area 0
-    fun commandLineTextField set_last_color cmdLineColorR cmdLineColorG cmdLineColorB cmdLineColorA
-end
-
 start buildTerminal()
     access ww [display_w]
     access wh [display_h]
@@ -96,6 +63,7 @@ start buildTerminal()
     fun background resize ww wh
     fun background set_color 0.3 0.3 0.3 0.6
     fun background disable_scrolling
+    fun background deactivate
 
     var terminalColorR "0.988235294"
     var terminalColorG "0.909803922"
@@ -138,8 +106,6 @@ start buildTerminal()
     //fun TerminalTextField set_last_background_color 0.5 0.5 0.5 1.0
     //fun TerminalTextField set_last_background_color_drawing false
 
-    var minScrollbarThumbHeight 24
-
     new Images me 1 "thumb" thumb
     fun thumb deactivate
     fun thumb set_pos 2 2
@@ -155,8 +121,6 @@ start buildTerminal()
     fun thumbTrack connect_bitmap_via_alias "sand_thumb_track"
     fun thumbTrack disable_scrolling
 
-    var scrollbarHeight 476.0
-
     new Scrollbars me 1 "MainScrollbar" MainScrollbar
     fun MainScrollbar disable_scrolling
     //fun MainScrollbar deactivate
@@ -171,42 +135,9 @@ start buildTerminal()
     fun MainScrollbar set_mouse_wheel_speed 40.0
     fun MainScrollbar add_camera "Desktop"
 
-    var commandLineHeight 30
+    setupTextEditor(TerminalTextField)
 
-    new SEditTexts me 1 "TextEditor" TextEditor
-    clone TextEditor TerminalTextField false
-    fun TextEditor add_format "cascadia_code_bold" 1
-    fun TextEditor set_color 0 0.2 0.74 0.7 1.0 //[0.0 0.7 0.0 1.0]
-	fun TextEditor set_accent_color 0 0.0 0.0 0.0 1.0 //[0.0 0.2 0.0 1.0]
-    fun TextEditor set_protected_area 0
-    fun TextEditor set_can_use_enter true
-    fun TextEditor set_content ""
-    fun TextEditor set_ignore_vertical_arrows false
-    fun TextEditor set_can_use_tabs true
-    fun TextEditor deactivate
-
-    new STexts me 1 "EditorLines" EditorLines
-    fun EditorLines add_format "cascadia_code" 1
-    fun EditorLines set_last_color 0.3 0.45 0.5 1.0
-    fun EditorLines set_content ""
-    fun EditorLines deactivate
-    fun EditorLines update
-
-    new Scrollbars me 1 "TextEditorScrollbar" TextEditorScrollbar
-    fun TextEditorScrollbar disable_scrolling
-    fun TextEditorScrollbar set_can_be_drawn true
-    fun TextEditorScrollbar set_pos 884 0
-    fun TextEditorScrollbar set_thumb_position 450 0//450
-    fun TextEditorScrollbar set_thumb_size 12 476
-    fun TextEditorScrollbar set_scrolling_area 12 476
-    fun TextEditorScrollbar set_real_scrolling_area 0 0
-    fun TextEditorScrollbar set_thumb_image_id "thumb"
-    fun TextEditorScrollbar set_track_image_id "thumb_track"
-    fun TextEditorScrollbar set_mouse_wheel_speed 40.0
-    fun TextEditorScrollbar deactivate
-    fun TextEditorScrollbar add_camera "Desktop"
-
-    new Particles me 1 "Particles" Particles
+    /*new Particles me 1 "Particles" Particles
     fun Particles set_pos 200 200
     fun Particles set_size 10 10
     fun Particles deactivate
@@ -231,7 +162,7 @@ start buildTerminal()
     fun Particles set_shape 0
     fun Particles set_use_images false
     fun Particles set_drawing_details false
-    fun Particles set_is_static false
+    fun Particles set_is_static false*/
     //fun Particles bind_key "p"
     //fun Particles add_image "insane"
     
@@ -257,10 +188,6 @@ start buildTerminal()
 
     var waitingTime 0
 
-    var showLineNumbering true
-
-    var relativeNumbering true
-
     string fileName "history.txt"
     loadCommandHistory(fileName)
 end
@@ -278,7 +205,7 @@ start onKeyPress()
         moveInHistory()
         format()
     else
-        editorOnKeyPress()
+        editorOnKeyPress(program, param1)
     end
 end
 
@@ -292,13 +219,6 @@ start rebootTerminal()
     if(key_pressed(KEY_LCTRL) && key_pressed(KEY_LSHIFT) && key_pressed(KEY_R))
         reboot
     end
-end
-
-start editorOnKeyPress()
-    toggleLineNumbering()
-    textEditorInsert()
-    textEditorExit()
-    textEditorSave()
 end
 
 @trigger on_key_pressing
@@ -315,35 +235,14 @@ start onKeyRelease()
     end
 end
 
-start editorOnKeyPressing()
-    index me [0 1] super_editable_text editorTextField
-    refreshLineNumbering(editorTextField)
-    toggleRelativeNumbering()
-    autoUpdateScrollbarForTextEditor()
-    selectTextWithKeys()
-end
-
 @trigger on_mouse_pressing
 start onMousePressing()
     if (program != "edit" || !mouse_pressing(0))
         return
     end
-    index me [0 1] super_editable_text editorTextField
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text editorTextField
+    selectTextWithMouse(editorTextField)
     refreshLineNumbering(editorTextField)
-end
-
-start toggleLineNumbering()
-    if(!key_pressed(KEY_LSHIFT) && key_pressed(KEY_LCTRL) && key_pressed(KEY_N))
-        if(showLineNumbering)
-            = showLineNumbering false
-            index me [0 0] super_text lineNumberingText
-            fun lineNumberingText deactivate
-        else
-            = showLineNumbering true
-            index me [0 0] super_text lineNumberingText
-            fun lineNumberingText activate
-        end
-    end
 end
 
 start toggleRelativeNumbering()
@@ -382,46 +281,6 @@ start loadCommandHistory(string & fileName)
     -- newSize
     = commandNumber newSize
     = currentCommandNumber newSize
-end
-
-@trigger on_mouse_pressing
-start selectTextWithMouse()
-    if (!mouse_pressing(0))
-        return
-    end
-    index me [0 1] super_editable_text TextField
-    access cursorPosY [TextField.cursor_pos_y]
-    index me [0 1] scrollbar Scrollbar
-    access scrollShiftY [Scrollbar.scroll_shift_y]
-    -= cursorPosY scrollShiftY
-    access windowH [display_h]
-    double windowLimitYDown -30.0
-    += windowLimitYDown windowH
-    double windowLimitYUp 10.0
-    moveScrollbarBySelectingText(TextField, cursorPosY, windowLimitYDown, windowLimitYUp)
-end
-start selectTextWithKeys()
-    index me [0 1] super_editable_text TextField
-    access cursorPosY [TextField.cursor_pos_y]
-    index me [0 1] scrollbar Scrollbar
-    access scrollShiftY [Scrollbar.scroll_shift_y]
-    -= cursorPosY scrollShiftY
-    access windowH [display_h]
-    double windowLimitYDown -20.0
-    += windowLimitYDown windowH
-    double windowLimitYUp 0.0
-    moveScrollbarBySelectingText(TextField, cursorPosY, windowLimitYDown, windowLimitYUp)
-end
-start moveScrollbarBySelectingText(SEditText & TextField, double & cursorPosY, double & windowLimitYDown, double & windowLimitYUp)
-    if (TextField.is_editing_active && cursorPosY > windowLimitYDown)
-        index me [0 1] scrollbar Scrollbar
-        fun Scrollbar scroll_by_distance 0 8
-        fun me update_scrollbars
-    else_if (TextField.is_editing_active && cursorPosY < windowLimitYUp)
-        index me [0 1] scrollbar Scrollbar
-        fun Scrollbar scroll_by_distance 0 -8
-        fun me update_scrollbars
-    end
 end
 
 start spawnParticles()
@@ -612,7 +471,7 @@ start note()
     spawnNotepad(NewWindowLayer, fileName)
 end
 start spawnNotepad(Layer & NewWindowLayer, string & fileName)
-    index me [0 1] super_editable_text Editable
+    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text Editable
     index NewWindowLayer [0 0] object Object
     index NewWindowLayer [0 0 0] primitives Background
     fun Background set_color 0.0 0.0 0.0 1.0
@@ -887,41 +746,42 @@ start setFullscreen()
     end
 end
 
-@trigger on_display_resize
-start refresh()
-    forceRefresh()
-end
-
-start forceRefresh()
-    access w [display_w]
-    access h [display_h]
+start adjustTerminalToDisplay()
+    access windowWidth [display_w]
+    access windowHeight [display_h]
+    
     index Cameras [0] camera Cam0
-    fun Cam0 resize w h
+    fun Cam0 resize windowWidth windowHeight
     index me [0 0] image background
-    fun background resize w h
-
-    index me [0 1] super_editable_text EditProgramTextField
-    access EditorSizeY [EditProgramTextField.size_y]
-    int textHeight 476
-    = textHeight h
-    -= textHeight commandLineHeight
-    fun EditProgramTextField set_size w h
-    fun EditProgramTextField update
-    fun EditProgramTextField crop_height_to_text
+    fun background resize windowWidth windowHeight
 
     index me [0 0] super_editable_text TerminalTextField
     access TerminalSizeY [TerminalTextField.size_y]
-    fun TerminalTextField set_size w TerminalSizeY
+    fun TerminalTextField set_size windowWidth TerminalSizeY
     fun TerminalTextField update
     fun TerminalTextField crop_height_to_text
     access TerminalSizeY [TerminalTextField.size_y]
-    if(TerminalSizeY < h)
-        fun TerminalTextField set_size w h
+    if(TerminalSizeY < windowHeight)
+        fun TerminalTextField set_size windowWidth windowHeight
     end
+    
     refreshScrollbar()
-    if (program == "edit")
-        refreshTextEditorScrollbar()
+end
+
+start forceRefresh()
+    //TODO: Extract common part because there must be something in common or it stops working
+    adjustTerminalToDisplay()
+    
+    if (program != "edit")
+        
+    else
+        adjustTextEditorToDisplay()
     end
+end
+
+@trigger on_display_resize
+start refresh()
+    forceRefresh()
 end
 
 start refreshScrollbar()
@@ -954,7 +814,7 @@ start refreshScrollbarCheck(double & height, double & TerminalSizeY)
         index me [0 0] scrollbar MainScrollbar
         fun MainScrollbar set_real_scrolling_area 0 TerminalSizeY
         += TerminalSizeY height
-        double currentThumbHeight 476.0
+        double currentThumbHeight BASE_SCROLLBAR_HEIGHT
         = currentThumbHeight scrollbarHeight
         access windowH [display_h]
         double divide 1.0
@@ -980,7 +840,7 @@ end
 
 start resetScrollbar()
     index me [0 0] scrollbar MainScrollbar
-    double currentThumbHeight 476.0
+    double currentThumbHeight BASE_SCROLLBAR_HEIGHT
     = currentThumbHeight scrollbarHeight
     fun MainScrollbar set_thumb_size 12 currentThumbHeight
     fun me update_scrollbars
@@ -1091,6 +951,7 @@ start upArrow(Camera & Camera)
         -- currentCommandNumber
         //dump_memory
         fun EditableText cut_unprotected_area
+        string diffCommand ""
         index_vec commandHistory currentCommandNumber diffCommand
         fun EditableText add_content diffCommand
         fun EditableText update
@@ -1113,6 +974,7 @@ start downArrow(Camera & Camera)
         ++ currentCommandNumber
 
         fun EditableText cut_unprotected_area
+        string diffCommand ""
         index_vec commandHistory currentCommandNumber diffCommand
         fun EditableText add_content diffCommand
         fun EditableText update
@@ -1130,292 +992,8 @@ start programNotFound()
     end
 end
 
-
 start edit()
-    if(param1 == "")
-        informNonEmptyFileName()
-        return
-    end
-
-    = program "edit"
-
-    index me [0 0] super_editable_text TerminalTextField
-    fun TerminalTextField deactivate
-
-    index me [0 0] scrollbar MainScrollbar
-    fun MainScrollbar deactivate
-
-    index me [0 1] scrollbar TextEditorScrollbar
-    fun TextEditorScrollbar activate
-    fun TextEditorScrollbar scroll_to_the_beginning //scroll_to_the_end
-    fun me update_scrollbars
-
-    index me [0 1] super_editable_text TextEditor
-    fun TextEditor set_content ""
-    fun TextEditor set_cursor_pos 0
-    fun TextEditor activate
-    fun TextEditor update
-    string filePath ""
-    = filePath param1
-    loadTextFromFile(TextEditor, filePath)
-
-    tokenize "/" filePath filePathTokenized
-    access fileName [filePathTokenized.back] 
-
-    index my_layer [0 2] object commandLineObj
-    fun commandLineObj activate
-    index commandLineObj [0 0] super_editable_text commandLineText
-    fun commandLineText set_content fileName
-    fun commandLineText update
-
-    if(showLineNumbering)
-        index me [0 0] super_text lineNumberingText
-        fun lineNumberingText activate
-    end
-end
-
-start loadTextFromFile(SEditText & TextEditor, string & fileName)
-    if (exists(fileName))
-        load_text fileName loadedText
-        fun TextEditor set_content loadedText
-        len loadedText loadedTextSize
-        //fun TextEditor set_cursor_pos loadedTextSize
-        fun TextEditor update
-        fun TextEditor crop_height_to_text
-        refreshTextEditorScrollbar()
-    else 
-        informFileDoesNotExist(fileName)
-    end
-end
-
-start informFileDoesNotExist(string & fileName)
-    string result "Warning: File '"
-    += result fileName
-    += result "' does not exist.\n"
-    printOnTerminal(result)
-end
-
-start informNonEmptyFileName()
-    = program "_enter"
-    string result "Error: Edit program requires a name of the file."
-    printOnTerminal(result)
-end
-
-start autoUpdateScrollbarForTextEditor()
-    index me [0 1] super_editable_text editorTextField
-    //fun TextEditor update
-    fun editorTextField crop_height_to_text
-    refreshTextEditorScrollbar()
-end
-
-start refreshTextEditorScrollbar()
-    index me [0 1] super_editable_text editorTextField
-    access EditorSizeY [editorTextField.size_y]
-    access h [display_h]
-
-    = scrollbarHeight h
-    index me [0 1] scrollbar EditorScrollbar
-    access windowW [display_w]
-    int scrollbarWidth 16
-    -= windowW scrollbarWidth
-    fun EditorScrollbar set_pos windowW 0
-    fun EditorScrollbar resize scrollbarWidth h
-    int thumbWidth 12
-    fun EditorScrollbar set_scrolling_area thumbWidth h
-
-    all me _ _ Images _ _ _ AllImages
-    find_by_id_2 AllImages "thumb_track" TrackImage
-    fun TrackImage resize scrollbarWidth h
-    fun me update_scrollbars
-
-    -= EditorSizeY h
-    refreshTextEditorScrollbarCheck(EditorSizeY, h)
-end
-
-start refreshLineNumbering(SEditText & editorTextField)
-    updateCurrentLineNumber(editorTextField)
-    
-    if(!showLineNumbering)
-        fun editorTextField set_pos 0 0
-        return
-    end
-
-    index me [0 0] super_text lineNumberingText
-    fun lineNumberingText set_content ""
-    ValVec wrappedLines
-    access wrappedLines [editorTextField.wrapped_lines]
-    int linesCount 0
-    size wrappedLines linesCount
-
-
-    if(!relativeNumbering)
-        int i 0
-        while(i < linesCount)
-            int nr i
-            ++ nr
-            fun lineNumberingText add_content nr
-            int wrapsCount 0
-            index_vec wrappedLines i wrapsCount
-            int wrap 0
-            while(wrap <= wrapsCount)
-                fun lineNumberingText add_content "\n"
-                next wrap
-            end
-
-            next i
-        end
-    else
-        access currentLine [editorTextField.current_line]
-
-        int counterForWraps 0
-        int i currentLine
-        while(i >= 0)
-            fun lineNumberingText add_content i
-            int wrapsCount 0
-            index_vec wrappedLines counterForWraps wrapsCount
-            int wrap 0
-            while(wrap <= wrapsCount)
-                fun lineNumberingText add_content "\n"
-                next wrap
-            end
-            -- i
-            next counterForWraps
-        end
-
-        int secondHalf linesCount
-        -= secondHalf currentLine
-        = i 1
-        while(i < secondHalf)
-            fun lineNumberingText add_content i
-            int wrapsCount 0
-            index_vec wrappedLines counterForWraps wrapsCount
-            int wrap 0
-            while(wrap <= wrapsCount)
-                fun lineNumberingText add_content "\n"
-                next wrap
-            end
-            ++ i
-            next counterForWraps
-        end
-    end
-
-    fun lineNumberingText update
-    
-    //Move editor's text field to the right
-    string linesCountStr ""
-    = linesCountStr linesCount
-    int counterLength 0
-    len linesCountStr counterLength
-    *= counterLength 10
-    += counterLength 10
-    fun editorTextField set_pos counterLength 0
-end
-
-start updateCurrentLineNumber(SEditText & editorTextField)
-    access currentLine [editorTextField.current_line]
-    ++ currentLine
-
-    index my_layer [0 2] object commandLineObj
-    fun commandLineObj activate
-    index commandLineObj [0 0] super_editable_text commandLineText
-    access commandLineContent [commandLineText.content]
-    tokenize "," commandLineContent tokens
-    string fileName ""
-    index_vec tokens 0 fileName
-    += fileName ", Ln "
-    += fileName currentLine
-    fun commandLineText set_content fileName
-    fun commandLineText update
-end
-
-start refreshTextEditorScrollbarCheck(double & EditorSizeY, double & height)
-    if(EditorSizeY > 0)
-        index me [0 1] scrollbar EditorScrollbar
-        fun EditorScrollbar set_real_scrolling_area 0 EditorSizeY
-        += EditorSizeY height
-        
-        double currentThumbHeight 476.0
-        = currentThumbHeight scrollbarHeight
-        access windowH [display_h]
-        double divide 1.0
-        = divide windowH
-        /= divide EditorSizeY
-        *= currentThumbHeight divide
-        fun EditorScrollbar set_thumb_size 12 currentThumbHeight
-        //fun EditorScrollbar scroll_to_the_end
-        fun me update_scrollbars
-        if(currentThumbHeight < minScrollbarThumbHeight)
-            = currentThumbHeight minScrollbarThumbHeight
-            fun EditorScrollbar set_thumb_size 12 currentThumbHeight
-            fun me update_scrollbars
-        end
-    else
-        resetTextEditorScrollbar()
-    end
-end
-start resetTextEditorScrollbar()
-    index me [0 1] scrollbar EditorScrollbar
-    
-    double currentThumbHeight 476.0
-    = currentThumbHeight scrollbarHeight
-    fun EditorScrollbar set_thumb_size 12 currentThumbHeight
-    fun me update_scrollbars
-end
-
-start textEditorInsert()
-    if(program == "edit" && key_pressed(KEY_LCTRL) && key_pressed(KEY_I))
-        bool isEditing false
-        first Layers KERNEL KERNEL SEditTexts TextEditor is_editing_active _ isEditing
-        checkIfInsertPressed(isEditing)
-    end
-end
-
-start checkIfInsertPressed(bool & isEditing)
-    if(isEditing)
-        return
-    end
-    reset_keyboard
-    index me [0 1] super_editable_text EditableText
-    fun EditableText start_editing
-end
-
-start triggerEditorExit()
-    = program ""
-    index me [0 0] super_editable_text TerminalTextField
-    fun TerminalTextField activate
-    fun TerminalTextField start_editing
-
-    index me [0 1] scrollbar TextEditorScrollbar
-    fun TextEditorScrollbar deactivate
-
-    index me [0 0] scrollbar MainScrollbar
-    fun MainScrollbar activate
-    fun MainScrollbar scroll_to_the_end
-    fun me update_scrollbars
-
-    index me [0 1] super_editable_text TextEditor
-    fun TextEditor deactivate
-    fun TextEditor stop_editing
-
-    index my_layer [0 2] object commandLineObj
-    fun commandLineObj deactivate
-
-    index me [0 0] super_text lineNumberingText
-    fun lineNumberingText deactivate
-end
-
-start textEditorExit()
-    if(program == "edit" && key_pressed(KEY_LCTRL) && key_pressed(KEY_Q))
-        triggerEditorExit()
-    end
-end
-
-start textEditorSave()
-    if(program == "edit" && key_pressed(KEY_LCTRL) && key_pressed(KEY_S))
-        index me [0 1] super_editable_text TextEditor
-        first TextEditor _ _ _ _ content _ writtenText
-        save_text param1 writtenText
-    end
+    openTextEditor(program, param1)
 end
 
 start sand()
@@ -1455,7 +1033,7 @@ start format()
         index me [0 0] super_editable_text Terminal
         access cursorPos [Terminal.cursor_pos]
         access secondCursorPos [Terminal.second_cursor_pos]
-        formatCheck()
+        formatCheck(cursorPos, secondCursorPos)
     end
 end 
 
@@ -1472,13 +1050,6 @@ start formatCheck(int & cursorPos, int & secondCursorPos)
     injectFormat(startFragment, endFragment)
 end
 
-/*
-@trigger each_iteration
-start lol()
-    string param1 "xd"
-    edit()
-    delete_this_event
-end*/
 
 start save_terminal()
     index me [0 0] super_editable_text TerminalTextField
