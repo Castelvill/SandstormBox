@@ -7,7 +7,7 @@ start main()
     var globalVariable 555
     int localVariable 42
 
-    load_build me ["tests/recompilation_test/recompilation_help.sand"]
+    load_build self ["tests/recompilation_test/recompilation_help.sand"]
 
     assert globalVariable 555
     assert localVariable 42

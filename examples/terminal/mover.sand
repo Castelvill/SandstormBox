@@ -1,9 +1,9 @@
 @trigger each_iteration
 start deleteFriends
-    if (delete)
-        all Cameras _ camera _ Cameras
-        find_by_id_2 Cameras insideCameraID InsideCamera
-        delete InsideCamera
+    if (removeWindow)
+        all Camera _ camera _ cameras
+        find_by_id_2 cameras insideCameraID insideCamera
+        delete insideCamera
         = deleted_friends true
     end
 end
@@ -11,13 +11,13 @@ end
 @trigger on_mouse_pressing
 start checkIfMouseMoved()
     if (mouse_moved || display_resized)
-        all Cameras _ camera _ Cameras
-        find_by_id_2 Cameras cameraID MainCamera
-        access sx [MainCamera.size_x]
-        access sy [MainCamera.size_y]
+        all Camera _ camera _ cameras
+        find_by_id_2 cameras cameraID mainCamera
+        access sx [mainCamera.size_x]
+        access sy [mainCamera.size_y]
         -= sy 35
         -= sx 10
-        find_by_id_2 Cameras insideCameraID InsideCamera
-        fun InsideCamera resize sx sy
+        find_by_id_2 cameras insideCameraID insideCamera
+        fun insideCamera resize sx sy
     end
 end

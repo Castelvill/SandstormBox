@@ -1,4 +1,4 @@
-start println(Val & output)
+start println(val & output)
     print output "\n"
 end
 

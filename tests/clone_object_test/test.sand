@@ -4,12 +4,12 @@ import "tests/test_template.sand"
 start onInit()
     startTest()
 
-    access thisName [me.id]
+    access thisName [self.id]
 
-    new Objects my_layer 1 "Template" Template
-    new Variables Template 1 "var0" var0
+    new Object self_layer 1 "Template" Template
+    new var Template 1 "var0" var0
     fun var0 set_int 15
-    new Variables Template 1 "testObjName" testObjName
+    new var Template 1 "testObjName" testObjName
     fun testObjName set_string thisName
 
     bind Template ["tests/clone_object_test/template.sand"]
@@ -20,7 +20,7 @@ start onInit()
     var idleLock 0
     
     while(i < 200)
-        new Objects my_layer 1 "Clone0" Clone0
+        new Object self_layer 1 "Clone0" Clone0
         clone Clone0 Template false
         fun Clone0 activate
         ++ idleLock

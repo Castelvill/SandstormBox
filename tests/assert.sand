@@ -4,9 +4,9 @@ import "tests/test_template.sand"
 start main()
     startTest()
 
-    assert NULL NULL
-    assert a NULL
-    assert NULL a
+    assert null null
+    assert a null
+    assert null a
     assert 0 0
     assert 5 5
     

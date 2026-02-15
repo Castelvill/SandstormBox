@@ -23,12 +23,14 @@ enum EngineInstr : unsigned char{
     stop_timer, compiler_breakpoint, breakpoint, assert, type, load_i, import, resume_assembling,
     stop_assembling, start_printing_tokens, stop_printing_tokens, start_expr,
     //instance declarations
-    Val, ValVec, Pointer, PointerVec, Camera, CameraVec, Layer, LayerVec, Object, ObjectVec, Var,
-    VarVec, Vec, VecVec, SText, STextVec, SEditText,
-    SEditTextVec, Image, ImageVec, Movement, MovementVec, Collision, CollisionVec, Particles, Event,
-    EventVec, Scrollbar, ScrollbarVec, Primitive, PrimitiveVec, any 
+    Val, Pointer, Camera, Layer, Object, Var, Vec, SText, SEditText,
+    Image, Movement, Collision, Particles, Event, Scrollbar, Primitive, any,
+    //keywords that aren't instructions:
+    reference_k, comma_k, trigger_k, override_k, process_k, context_k
 };
 EngineInstr strToInstr(const string & instruction, bool printError = true);
+
+//Do not use to redefine instructions
 string instrToStr(const EngineInstr & instruction);
 
 enum AttributeType: short {
@@ -242,6 +244,7 @@ enum AttributeType: short {
 AttributeType strToAttribute(const string & attribute, string & error);
 AttributeType strToAttribute(const string & attribute);
 string attributeToStr(const AttributeType & attribute);
+AttributeType instrToAttribute(const EngineInstr instruction);
 
 enum BaseType: char {
     null_bt, bool_bt, char_bt, short_bt, u_short_bt, int_bt, u_int_bt,

@@ -6,13 +6,13 @@ import "tests/test_template.sand"
 start main()
     startTest()
 
-    new STexts me 1 "text" text
+    new TextField self 1 "text" text
 
     var textSize 0
 
     print_v text_id _ text
     assert text_id "text"
-    size text textSize
+    sizeof text textSize
     assert textSize 1
     = textSize 0
 
@@ -20,7 +20,7 @@ start main()
 
     print_v text_id _ text
     assert text_id "text"
-    size text textSize
+    sizeof text textSize
     assert textSize 1
     = textSize 0
 
@@ -28,7 +28,7 @@ start main()
 
     print_v text_id _ text
     assert text_id "text"
-    size text textSize
+    sizeof text textSize
     assert textSize 1
     = textSize 0
 
@@ -36,7 +36,7 @@ start main()
 
     print_v text_id _ text
     assert text_id "text"
-    size text textSize
+    sizeof text textSize
     assert textSize 1
     = textSize 0
 
@@ -47,18 +47,18 @@ start fun0()
     return
 end
 
-start fun1(SText text)
+start fun1(TextField text)
     print_v text_id _ text
     assert text_id "text"
-    size text textSize
+    sizeof text textSize
     assert textSize 1
     = textSize 0
 end
 
-start fun2(SText & text)
+start fun2(TextField & text)
     print_v text_id _ text
     assert text_id "text"
-    size text textSize
+    sizeof text textSize
     assert textSize 1
     = textSize 0
 end

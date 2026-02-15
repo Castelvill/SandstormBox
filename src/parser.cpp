@@ -211,71 +211,52 @@ inline string getStringByIndex(const vector<string> & strVec, const size_t & ind
     }
     return strVec[index];
 }
-DataType instrToDataType(EngineInstr instruction){
+DataType instrToDataType(EngineInstr instruction, bool singleInstance){
     switch(instruction){
-        case Val:
-            return DataType::value_inst;
-        case ValVec:
+        case EngineInstr::bool_i:
+        case EngineInstr::int_i: 
+        case EngineInstr::double_i: 
+        case EngineInstr::string_i:
+        case EngineInstr::Val:
+            return singleInstance ? DataType::value_inst : DataType::value_vec;
+        case EngineInstr::bool_vec_i: 
+        case EngineInstr::int_vec_i: 
+        case EngineInstr::double_vec_i: 
+        case EngineInstr::string_vec_i: 
             return DataType::value_vec;
-        case Pointer:
-            return DataType::pointer_inst;
-        case PointerVec:
-            return DataType::pointer_vec;
-        case Camera:
-            return DataType::camera_inst;
-        case CameraVec:
-            return DataType::camera_vec;
-        case Layer:
-            return DataType::layer_inst;
-        case LayerVec:
-            return DataType::layer_vec;
-        case Object:
-            return DataType::object_inst;
-        case ObjectVec:
-            return DataType::object_vec;
-        case Var:
-            return DataType::variable_mod;
-        case VarVec:
-            return DataType::variable_mod_vec;
-        case Vec:
-            return DataType::vector_mod;
-        case VecVec:
-            return DataType::vector_mod_vec;
-        case SText:
-            return DataType::super_text_mod;
-        case STextVec:
-            return DataType::super_text_mod_vec;
-        case SEditText:
-            return DataType::super_editable_text_mod;
-        case SEditTextVec:
-            return DataType::super_editable_text_mod_vec;
-        case Image:
-            return DataType::image_mod;
-        case ImageVec:
-            return DataType::image_mod_vec;
-        case Movement:
-            return DataType::movement_mod;
-        case MovementVec:
-            return DataType::movement_mod_vec;
-        case Collision:
-            return DataType::collision_mod;
-        case CollisionVec:
-            return DataType::collision_mod_vec;
-        case Particles:
-            return DataType::particles_mod;
-        case Event:
-            return DataType::event_mod;
-        case EventVec:
-            return DataType::event_mod_vec;
-        case Scrollbar:
-            return DataType::scrollbar_mod;
-        case ScrollbarVec:
-            return DataType::scrollbar_mod_vec;
-        case Primitive:
-            return DataType::primitives_mod;
-        case PrimitiveVec:
-            return DataType::primitives_mod_vec;
-        case any:
+        case EngineInstr::Pointer:
+            return singleInstance ? DataType::pointer_inst : DataType::pointer_vec;
+        case EngineInstr::Camera:
+            return singleInstance ? DataType::camera_inst : DataType::camera_vec;
+        case EngineInstr::Layer:
+            return singleInstance ? DataType::layer_inst : DataType::layer_vec;
+        case EngineInstr::Object:
+            return singleInstance ? DataType::object_inst : DataType::object_vec;
+        case EngineInstr::Var:
+        case EngineInstr::var:
+            return singleInstance ? DataType::variable_mod : DataType::variable_mod_vec;
+        case EngineInstr::vec:
+        case EngineInstr::Vec:
+            return singleInstance ? DataType::vector_mod : DataType::vector_mod_vec;
+        case EngineInstr::SText:
+            return singleInstance ? DataType::super_text_mod : DataType::super_text_mod_vec;
+        case EngineInstr::SEditText:
+            return singleInstance ? DataType::super_editable_text_mod : DataType::super_editable_text_mod_vec;
+        case EngineInstr::Image:
+            return singleInstance ? DataType::image_mod : DataType::image_mod_vec;
+        case EngineInstr::Movement:
+            return singleInstance ? DataType::movement_mod : DataType::movement_mod_vec;
+        case EngineInstr::Collision:
+            return singleInstance ? DataType::collision_mod : DataType::collision_mod_vec;
+        case EngineInstr::Particles:
+            return singleInstance ? DataType::particles_mod : DataType::particles_mod_vec;
+        case EngineInstr::Event:
+            return singleInstance ? DataType::event_mod : DataType::event_mod_vec;
+        case EngineInstr::Scrollbar:
+            return singleInstance ? DataType::scrollbar_mod : DataType::scrollbar_mod_vec;
+        case EngineInstr::Primitive:
+            return singleInstance ? DataType::primitives_mod : DataType::primitives_mod_vec;
+        case EngineInstr::any:
             return DataType::any_dt;
         default:
             return DataType::null_dt;
@@ -809,7 +790,10 @@ bool optional(const vector<WordStruct> & words, unsigned & cursor, AttributeType
     if(words.size() < cursor + 1){
         return true;
     }
-    if(words[cursor].type != TokenType::empty_tk){
+    if(words[cursor].type == TokenType::keyword_tk){
+        attribute = instrToAttribute(words[cursor].instruction);
+    }
+    else if(words[cursor].type != TokenType::empty_tk){
         attribute = strToAttribute(words[cursor].value);
     }
     cursor++;
@@ -842,8 +826,11 @@ bool optionalOutput(const string & scriptName, const unsigned & lineNumber, stri
     const WordStruct & instructionOutput = words[cursor];
     
     if(instructionOutput.type != TokenType::empty_tk && instructionOutput.type != TokenType::identifier_tk){
-        error = "Parameter 'output' (" + intToStr(cursor);
-        error += ") must be a variable name";
+        error = "Parameter 'output' (" + intToStr(cursor) + ") ";
+        if(instructionOutput.type == TokenType::keyword_tk)
+            error += "cannot be a keyword.";
+        else
+            error += "must be a variable name.";
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << words[0].value << "' instruction: " << error << "\n";
@@ -894,12 +881,10 @@ ReturnType InstrParser::parseAnnotations(){
             << ": Invalid annotation syntax. Correct syntax is: @*annotation_name* [args...]\n";
         return ReturnType::ERROR;
     }
-    if(words[1].value == "trigger"){
+    if(words[1].instruction == EngineInstr::trigger_k)
         return parseTriggersAnnotation();
-    }
-    else if(words[1].value == "override"){
+    else if(words[1].instruction == EngineInstr::override_k)
         return parseOverrideAnnotation();
-    }
     else{
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
@@ -978,9 +963,6 @@ ReturnType InstrParser::parseEnd(vector<EventModule> &eventContainer,
             return parseEndWhile(BranchingStack);
         }
         return ReturnType::ERROR;
-    }
-    if(NewEvent.isInline){
-        NewEvent.Parameters.clear();
     }
     Scopes.pop_back(); //Remove the scope of the last event
     eventContainer.push_back(NewEvent);
@@ -1277,19 +1259,20 @@ ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEv
     if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName)){
         return ReturnType::ERROR;
     }
-    if(words[1].type != TokenType::identifier_tk){
+    if(words[1].type != TokenType::identifier_tk && words[1].type != TokenType::keyword_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
-            << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
-        return ReturnType::ERROR;
+            << ": In the '" << words[0].value
+            << "' instruction: The first parameter must be a keyword or variable.\n";
+            return ReturnType::ERROR;
     }
 
     string error = "";
 
-    if(words[1].value == "Layers"){
+    if(words[1].instruction == EngineInstr::Layer){
         Operation->Location.source = ValueSource::layer;
     }
-    else if(words[1].value == "Cameras"){
+    else if(words[1].instruction == EngineInstr::Camera){
         Operation->Location.source = ValueSource::camera;
     }
     else if(words[1].value != ""){
@@ -1324,7 +1307,7 @@ ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEv
         if(Operation->Location.attribute != null_a && Operation->Location.attribute != camera_a){
             outputType = pointer_inst;
         }
-        if(words[0].value == "all"){
+        if(words[0].instruction == EngineInstr::all){
             outputType = vectorizeEntityDataType(InstrDescription(), outputType);
         }
         if(optionalOutput(scriptName, lineNumber, error, words, cursor,
@@ -1405,7 +1388,7 @@ ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEv
                 outputType = pointer_inst;
             }
         }
-        if(words[0].value == "all"){
+        if(words[0].instruction == EngineInstr::all){
             outputType = vectorizeEntityDataType(InstrDescription(), outputType);
         }
         if(optionalOutput(scriptName, lineNumber, error, words, cursor,
@@ -1433,7 +1416,7 @@ ReturnType InstrParser::parseFirstLastAllRandom(vector <string> & allAvailableEv
         if(outputType == null_dt){
             outputType = any_dt;
         }
-        if(words[0].value == "all"){
+        if(words[0].instruction == EngineInstr::all){
             outputType = vectorizeEntityDataType(InstrDescription(), outputType);
         }
         if(optionalOutput(scriptName, lineNumber, error, words, cursor,
@@ -1455,23 +1438,23 @@ ReturnType InstrParser::parseIndex(){
     if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
         return ReturnType::ERROR;
 
-    if(words[1].type != TokenType::identifier_tk){
+    if(words[1].type != TokenType::identifier_tk && words[1].type != TokenType::keyword_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << words[0].value
-            << "' instruction: The first two parameters are not of a context type.\n";
+            << "' instruction: The first parameter must be a keyword or variable.\n";
         return ReturnType::ERROR;
     }
 
     string error = "";
 
-    if(words[1].value == "Processes"){
+    if(words[1].instruction == EngineInstr::process_k){
         Operation->Location.source = ValueSource::process;
     }
-    else if(words[1].value == "Layers"){
+    else if(words[1].instruction == EngineInstr::Layer){
         Operation->Location.source = ValueSource::layer;
     }
-    else if(words[1].value == "Cameras"){
+    else if(words[1].instruction == EngineInstr::Camera){
         Operation->Location.source = ValueSource::camera;
     }
     else if(words[1].value != ""){
@@ -1780,16 +1763,18 @@ ReturnType InstrParser::parseBoolIntDoubleStringAndTheirVectors(){
         return ReturnType::ERROR;
     
     DataType newVariableType = value_inst;
-    
-    switch(Operation->instruction){
-        case bool_vec_i:
-        case int_vec_i:
-        case double_vec_i:
-        case string_vec_i:
-            newVariableType = value_vec;
-            break;
-        default:
-            break;
+
+    //Detect if it's a vector declaration
+    if(words[cursor].type == TokenType::open_brackets_tk){
+        if(words[cursor + 1].type != TokenType::close_brackets_tk){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": In the '" << words[0].value << "' instruction: "
+                << "Brackets were not closed.\n";
+            return ReturnType::ERROR;
+        }
+        newVariableType = value_vec;
+        cursor += 2;
     }
 
     bool makeOutputGlobal = false;
@@ -1804,51 +1789,31 @@ ReturnType InstrParser::parseBoolIntDoubleStringAndTheirVectors(){
     
     switch(Operation->instruction){
         case bool_i:
-            if(Operation->addLiteralOrVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'b', "value", false, false, true
-            )){ return ReturnType::ERROR; }
-            break;
         case bool_vec_i:
             if(Operation->addLiteralOrVectorOrVariableToParameters(
                 scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'b', "values", false, false, false
+                cursor, 'b', "value", false, false, newVariableType == value_inst
             )){ return ReturnType::ERROR; }
             break;
         case int_i:
-            if(Operation->addLiteralOrVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'i', "value", false, false, true
-            )){ return ReturnType::ERROR; }
-            break;
         case int_vec_i:
             if(Operation->addLiteralOrVectorOrVariableToParameters(
                 scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'i', "values", false, false, false
+                cursor, 'i', "value", false, false, newVariableType == value_inst
             )){ return ReturnType::ERROR; }
             break;
         case double_i:
-            if(Operation->addLiteralOrVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'd', "value", false, false, true
-            )){ return ReturnType::ERROR; }
-            break;
         case double_vec_i:
             if(Operation->addLiteralOrVectorOrVariableToParameters(
                 scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 'd', "values", false, false, false
+                cursor, 'd', "value", false, false, newVariableType == value_inst
             )){ return ReturnType::ERROR; }
             break;
         case string_i:
-            if(Operation->addLiteralOrVectorOrVariableToParameters(
-                scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 's', "value", false, false, true
-            )){ return ReturnType::ERROR; }
-            break;
         case string_vec_i:
             if(Operation->addLiteralOrVectorOrVariableToParameters(
                 scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-                cursor, 's', "values", false, false, false
+                cursor, 's', "value", false, false, newVariableType == value_inst
             )){ return ReturnType::ERROR; }
             break;
         default:
@@ -1863,15 +1828,19 @@ ReturnType InstrParser::parseFindById(){
     if(!prepareNewInstruction(words, NewEvent, Operation, 2, lineNumber, scriptName))
         return ReturnType::ERROR;
     
-    if(words[1].type != TokenType::identifier_tk){
+    if(words[1].type != TokenType::identifier_tk && words[1].type != TokenType::keyword_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
-            << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+            << ": In the '" << words[0].value
+            << "' instruction: The first parameter must be a keyword or variable.\n";
         return ReturnType::ERROR;
     }
 
     string error = "";
-    Operation->Location.source = strToSource(words[1].value, error);
+    if(words[1].type != TokenType::keyword_tk)
+        Operation->Location.source = instrToSource(words[1].instruction);
+    else
+        Operation->Location.source = strToSource(words[1].value, error);
 
     if(error.size() > 0){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -1882,7 +1851,7 @@ ReturnType InstrParser::parseFindById(){
 
     cursor = 2;
 
-    if(words[1].value == "Cameras"){
+    if(words[1].instruction == EngineInstr::Camera){
         if(words.size() < 4){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__
@@ -1899,7 +1868,7 @@ ReturnType InstrParser::parseFindById(){
             return ReturnType::ERROR;
         }
     }
-    else if(words[1].value == "Layers"){
+    else if(words[1].instruction == EngineInstr::Layer){
         if(words.size() < 7){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__
@@ -1919,7 +1888,7 @@ ReturnType InstrParser::parseFindById(){
             return ReturnType::ERROR;
         }
     }
-    else if(words[1].value == "context" || words[1].value == "c" || words[1].type == TokenType::empty_tk){
+    else if(words[1].instruction == EngineInstr::context_k || words[1].type == TokenType::empty_tk){
         if(Operation->addVectorOrVariableToParameters(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
             cursor, 'c', "scripts", false, false
@@ -1974,15 +1943,19 @@ ReturnType InstrParser::parseNew(){
     if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
         return ReturnType::ERROR;
 
-    if(words[1].type != TokenType::identifier_tk){
+    if(words[1].type != TokenType::identifier_tk && words[1].type != TokenType::keyword_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
-            << ": In the '" << words[0].value << "' instruction: The first parameter is not of a context type.\n";
+            << ": In the '" << words[0].value
+            << "' instruction: The first parameter must be a keyword or variable.\n";
         return ReturnType::ERROR;
     }
 
     string error = "";
-    Operation->Location.source = strToSource(words[1].value, error);
+    if(words[1].type != TokenType::keyword_tk)
+        Operation->Location.source = instrToSource(words[1].instruction);
+    else
+        Operation->Location.source = strToSource(words[1].value, error);
     
     if(error.size() > 0){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -1993,7 +1966,7 @@ ReturnType InstrParser::parseNew(){
     
     //If the destination is provided as a variable, skip one parameter in the instruction.
     if(words[2].type == TokenType::identifier_tk){
-        Operation->addLiteralParameter(VariableModule::newString("variable"));
+        Operation->addLiteralParameter(VariableModule::newString("var"));
     }
     else{
         Operation->addLiteralParameter(VariableModule::newString("location"));
@@ -2513,7 +2486,7 @@ ReturnType InstrParser::parseNewProc(){
 
     if(Operation->addParameter(
         scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
-        2, 's', "layer", true, false, false
+        2, 's', "Layer", true, false, false
     )){
         if(error.empty()){ return ReturnType::OK; }
         return ReturnType::ERROR;
@@ -2560,10 +2533,11 @@ ReturnType InstrParser::parseVec(){
     if(!prepareNewInstruction(words, NewEvent, Operation, 3, lineNumber, scriptName))
         return ReturnType::ERROR;
         
-    if(words[1].type != TokenType::identifier_tk){
+    if(words[1].type != TokenType::keyword_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
-            << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+            << ": In the '" << words[0].value
+            << "' instruction: The first parameter is not a keyword.\n";
         return ReturnType::ERROR;
     }
 
@@ -2582,25 +2556,25 @@ ReturnType InstrParser::parseVec(){
         return ReturnType::OK;
     }
 
-    if(words[1].value == "bool"){
+    if(words[1].instruction == EngineInstr::bool_i){
         if(Operation->addVectorOrVariableToParameters(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
             cursor, 'b', "scripts", false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[1].value == "int"){
+    else if(words[1].instruction == EngineInstr::int_i){
         if(Operation->addVectorOrVariableToParameters(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
             cursor, 'i', "scripts", false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[1].value == "double"){
+    else if(words[1].instruction == EngineInstr::double_i){
         if(Operation->addVectorOrVariableToParameters(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
             cursor, 'd', "scripts", false, false
         )){ return ReturnType::ERROR; }
     }
-    else if(words[1].value == "string"){
+    else if(words[1].instruction == EngineInstr::string_i){
         if(Operation->addVectorOrVariableToParameters(
             scriptName, lineNumber, error, words, Scopes, NewEvent.LocalVariables, topAddress,
             cursor, 's', "scripts", false, false
@@ -2917,11 +2891,13 @@ bool prepareNewVariableDeclaration(const vector<WordStruct> & words, unsigned mi
     if(words.size() < minLength){
         if(minLength == 2){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least 1 parameter.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'"
+                << words[0].value << "\' requires at least 1 parameter.\n";
         }
         else{
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' requires at least " << minLength-1 << " parameters.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'"
+                << words[0].value << "\' requires at least " << minLength-1 << " parameters.\n";
         }
         return false;
     }
@@ -2930,10 +2906,32 @@ bool prepareNewVariableDeclaration(const vector<WordStruct> & words, unsigned mi
 ReturnType InstrParser::parseVarDefinition(){
     if(!prepareNewVariableDeclaration(words, 2, lineNumber, scriptName))
         return ReturnType::ERROR;
-        
+    
+    bool singleInstance = true;
+
+    //Detect if it's a vector declaration
+    if(words[cursor].type == TokenType::open_brackets_tk){
+        if(words.size() < 3){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": In the '" << words[0].value << "' instruction: "
+                << "Too few arguments for a vector declaration. Correct syntax: 'type[] name'\n";
+            return ReturnType::ERROR;
+        }
+        if(words[cursor + 1].type != TokenType::close_brackets_tk){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": In the '" << words[0].value << "' instruction: "
+                << "Brackets were not closed.\n";
+            return ReturnType::ERROR;
+        }
+        singleInstance = false;
+        cursor += 2;
+    }
+
     auto[localAddress, result] = getLocalAddress(
-        words[1].value, instrToDataType(words[0].instruction), Scopes, NewEvent.LocalVariables,
-        topAddress, true, false, false, true
+        words[cursor].value, instrToDataType(words[0].instruction, singleInstance), Scopes,
+        NewEvent.LocalVariables, topAddress, true, false, false, true
     );
 
     if(result != ReturnType::OK){

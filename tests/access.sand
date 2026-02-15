@@ -4,34 +4,37 @@ import "tests/test_template.sand"
 start main()
     startTest()
 
-    fun my_layer set_id "TestLayer"
-    access my_layer_id [me.layer_id]
-    assert my_layer_id "TestLayer"
+    fun self_layer set_id "TestLayer"
+    access self_layer_id [self.layer_id]
+    assert self_layer_id "TestLayer"
 
     access display [display_w display_h]
     type display variableType
-    assert variableType "ValVec"
+    assert variableType "val[]"
 
-    int_vec size [640 480]
+    int[] size [640 480]
     assert display size
 
-    int_vec vec [10 20 30 40]
-    access vectorBack [vec.back]
+    int[] vector [10 20 30 40]
+    access vectorBack [vector.back]
     assert vectorBack 40
+    type vectorBack vectorBackType
+    assert vectorBackType "val"
 
-    access objectsN [my_layer.number_of_objects]
+    access objectsN [self_layer.number_of_objects]
 
-    new Objects my_layer 1 "TestObj" TestObj
+    new Object self_layer 1 "TestObj" TestObj
 
-    access objectsN_2 [my_layer.number_of_objects]
+    access objectsN_2 [self_layer.number_of_objects]
     ++ objectsN
     assert objectsN objectsN_2
 
-    access layersN [Processes.number_of_layers]
+    access layersN [Process.number_of_layers]
     assert layersN 1
 
-    access objectsN [Processes.number_of_objects]
+    access objectsN [Process.number_of_objects]
     assert objectsN objectsN_2
 
     endTest()
 end
+

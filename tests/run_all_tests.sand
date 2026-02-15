@@ -63,7 +63,7 @@ start testRunnerEvent()
     = path "global"
     scheduleTest(path)
 
-    = path "recursion"
+    = path "recursion_0"
     scheduleTest(path)
 
     = path "recursion_1"
@@ -101,7 +101,7 @@ start testRunnerEvent()
 end
 
 start scheduleTest(string & path)
-    new Objects my_layer 1 path testCase
+    new Object self_layer 1 path testCase
     string fullPath "tests/"
     += fullPath path
     += fullPath ".sand"

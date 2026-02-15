@@ -8,7 +8,7 @@ start main()
     assert mVar0 30
     ++ mVar0
 
-    int_vec mVec0 [0 1 2 3]
+    int[] mVec0 [0 1 2 3]
 
     assert mVar0 31
 end

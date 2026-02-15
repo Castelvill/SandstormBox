@@ -1,17 +1,17 @@
 start printOnTerminal(string & textToPrint)
-    index me [0 0] super_editable_text EditableText
-    fun EditableText add_content textToPrint
-    fun EditableText update
-    fun EditableText crop_height_to_text
+    index self [0 0] EditableText editableText
+    fun editableText add_content textToPrint
+    fun editableText update
+    fun editableText crop_height_to_text
 
-    access history [EditableText.content]
+    access history [editableText.content]
     len history historySize
-    fun EditableText set_protected_area historySize
-    fun EditableText set_cursor_pos historySize
+    fun editableText set_protected_area historySize
+    fun editableText set_cursor_pos historySize
 
     access w [display_w]
     access h [display_h]
-    index me [0 0] super_editable_text TerminalTextField
+    index self [0 0] EditableText TerminalTextField
     access TerminalSizeY [TerminalTextField.size_y]
 
     if(TerminalSizeY < h)
@@ -21,19 +21,19 @@ start printOnTerminal(string & textToPrint)
 end
 
 start printOnTerminalUnprotected(string & textToPrint)
-    index me [0 0] super_editable_text EditableText
-    fun EditableText add_content textToPrint
-    fun EditableText update
-    fun EditableText crop_height_to_text
+    index self [0 0] EditableText editableText
+    fun editableText add_content textToPrint
+    fun editableText update
+    fun editableText crop_height_to_text
 
-    access history [EditableText.content]
+    access history [editableText.content]
     len history historySize
-    //fun EditableText set_protected_area historySize
-    //fun EditableText set_cursor_pos historySize
+    //fun editableText set_protected_area historySize
+    //fun editableText set_cursor_pos historySize
 
     access w [display_w]
     access h [display_h]
-    index me [0 0] super_editable_text TerminalTextField
+    index self [0 0] EditableText TerminalTextField
     access TerminalSizeY [TerminalTextField.size_y]
 
     if(TerminalSizeY < h)
@@ -43,12 +43,12 @@ start printOnTerminalUnprotected(string & textToPrint)
 end
 
 start cout(string & result)
-    index me [0 0] super_editable_text editableText
+    index self [0 0] EditableText editableText
     fun editableText add_content result
     putCursorOnTop(editableText)
 end
 
-start putCursorOnTop(SEditText & editableText)
+start putCursorOnTop(EditableText & editableText)
     access history [editableText.content]
     len history historySize
     fun editableText set_cursor_pos historySize
@@ -62,8 +62,8 @@ end
 
 start help()
     print_v result " " allowedPrograms
-    index me [0 0] super_editable_text EditableText
-    fun EditableText modify_last_format colorGoldR colorGoldG colorGoldB colorGoldA 0.0 0.0 0.0 1.0 "cascadia_code" 1
+    index self [0 0] EditableText editableText
+    fun editableText modify_last_format colorGoldR colorGoldG colorGoldB colorGoldA 0.0 0.0 0.0 1.0 "cascadia_code" 1
     = program "_enter"
     run cout(result)
 end
@@ -85,9 +85,9 @@ start ls
     if (exists(param1) || param1 == "")
         string result ""
         ls param1 result
-        ValVec files
+        val[] files
         tokenize " " result files
-        index me [0 0] super_editable_text terminalTextField
+        index self [0 0] EditableText terminalTextField
         = result ""
         run lsColoringLoop(terminalTextField, files)
         = program "_enter"
@@ -95,7 +95,7 @@ start ls
         run informFileDoesNotExistForCD()
     end
 end
-start lsColoringLoop(SEditText & EditableText, ValVec & files)
+start lsColoringLoop(EditableText & editableText, val[] & files)
 	int fileIndex 0
     while (fileIndex < files.size)
         index files [fileIndex] value file
@@ -108,39 +108,39 @@ start lsColoringLoop(SEditText & EditableText, ValVec & files)
         -= fileNameLengthFT lengthFT
 
         ++ fileIndex
-        run colorIfDirectory(EditableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
+        run colorIfDirectory(editableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
         run printFileNameOnTerminal(file)
     end
 end
-start colorIfDirectory(SEditText & EditableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
+start colorIfDirectory(EditableText & editableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
     string fullPath param1
     += fullPath "/"
     += fullPath file
     if (is_directory(fullPath))
-        fun EditableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
+        fun editableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
     else
-        run colorIfSandScript(EditableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
+        run colorIfSandScript(editableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
     end
 end
-start colorIfSandScript(SEditText & EditableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
+start colorIfSandScript(EditableText & editableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
     if(fileNameLength > 0)
         substr file fileNameLength length extension
         substr file fileNameLengthFT lengthFT extensionFT
         if(extension == ".sand")
-            fun EditableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
+            fun editableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
         else //Color if the file is of formatted text format
             if(extensionFT == ".ft")
-                fun EditableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
+                fun editableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
             else
-                run colorIfNormalFile(EditableText)
+                run colorIfNormalFile(editableText)
             end
         end
     else
-        run colorIfNormalFile(EditableText)
+        run colorIfNormalFile(editableText)
     end
 end
-start colorIfNormalFile(SEditText & EditableText)
-	fun EditableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
+start colorIfNormalFile(EditableText & editableText)
+	fun editableText modify_last_format 0.86 0.85 0.86 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
 end
 start printFileNameOnTerminal(string & file)
     string result file
@@ -151,7 +151,7 @@ end
 
 
 start cls()
-    index me [0 0] super_editable_text History
+    index self [0 0] EditableText History
     fun History set_content ""
     = program ""
 end
@@ -176,8 +176,8 @@ start neofetch()
  └────────────────────┘                                  
 
 "
-    index me [0 0] super_editable_text EditableText
-    fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
+    index self [0 0] EditableText editableText
+    fun editableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     = program ""
     run cout(result)
 end
@@ -193,8 +193,8 @@ start xd()
  @     @   @     @@ 
 @       @  @@@@@@   
 "
-    index me [0 0] super_editable_text EditableText
-    fun EditableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
+    index self [0 0] EditableText editableText
+    fun editableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     = program ""
     run cout(result)
 end
@@ -208,8 +208,8 @@ start sel_col()
 end
 
 start v4()
-    int_vec x [1 2 3 4]
-    int_vec y [2 2 1 1]
+    int[] x [1 2 3 4]
+    int[] y [2 2 1 1]
     += x x
     print_v result " " x
     += result "\n"
@@ -274,11 +274,11 @@ end
 
 
 start spawn()
-    new Layers 1 "SpawnLayer" SpawnLayer
+    new Layer 1 "SpawnLayer" SpawnLayer
     fun SpawnLayer activate
     access newLayerID [SpawnLayer.id]
 
-    new Cameras 1 "SpawnWindow0" NewWindow
+    new Camera 1 "SpawnWindow0" NewWindow
     fun NewWindow set_pos 0 0
     fun NewWindow set_active true
     fun NewWindow resize 640 480
@@ -299,10 +299,10 @@ start spawn()
     fun NewWindow activate_pin
     access newWindowID [NewWindow.id]
 
-    new Objects SpawnLayer 1 "Window" NewWindowObject
-    fun NewWindowObject set_can_be_selected false
+    new Object SpawnLayer 1 "Window" newWindowObject
+    fun newWindowObject set_can_be_selected false
 
-    new Primitives NewWindowObject 1 "background" border1
+    new Primitive newWindowObject 1 "background" border1
     fun border1 create "filled_rounded_rectangle"
     fun border1 set_point 2 roundingSize roundingSize
     fun border1 set_color 0.0 0.0 0.0 0.7
@@ -310,13 +310,13 @@ start spawn()
     fun border1 set_size 640 480
     fun border1 update_with_size
 
-    new Primitives NewWindowObject 1 "toolbar" border2
+    new Primitive newWindowObject 1 "toolbar" border2
     clone border2 border1 false
     fun border2 set_color 0.0 0.0 0.0 0.8
     fun border2 set_size 640 50
     fun border2 update_with_size
 
-    new STexts NewWindowObject 1 "title" title
+    new TextField newWindowObject 1 "title" title
     fun title set_pos 10 10
     fun title set_size 400 50
     fun title add_format "cascadia_code_bold" 8
@@ -324,9 +324,9 @@ start spawn()
     fun title set_wrapping "n"
     fun title set_content param1
 
-    new Objects SpawnLayer 1 "Amongus" NewAmo
+    new Object SpawnLayer 1 "Amongus" NewAmo
     fun NewAmo set_pos 0 80
-    new Images NewAmo 1 "amongus" redAstronaut
+    new Image NewAmo 1 "amongus" redAstronaut
     fun redAstronaut connect_bitmap_via_alias param1
     fun redAstronaut set_scale 0.6 0.6
     = program ""
@@ -350,7 +350,7 @@ start sh()
     += instruction param7
 
     = program ""
-    inject_instr me instruction
+    inject_instr self instruction
 end
 
 
@@ -358,8 +358,8 @@ start cat()
     if (exists(param1))
         load_text param1 result
         = program ""
-        index me [0 0] super_editable_text EditableText
-        fun EditableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
+        index self [0 0] EditableText editableText
+        fun editableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
         run cout(result)
     else
         run printNoSuchFile()
@@ -407,7 +407,7 @@ start informFileDoesNotExistForCD()
 end
 
 start history()
-    access commandHistorySize [Vectors.commandHistory.size]
+    access commandHistorySize [vec.commandHistory.size]
     -- commandHistorySize
     = program ""
     run printHistory(commandHistorySize)
@@ -415,7 +415,7 @@ end
 
 start printHistory(int & commandHistorySize)
     int i 0
-    index me [0 0] super_editable_text EditableText
+    index self [0 0] EditableText editableText
     while (i < commandHistorySize)
         string result ""
         int j 0
@@ -427,7 +427,7 @@ start printHistory(int & commandHistorySize)
         += result nextCommand
         += result "\n"
         ++ i
-        fun EditableText add_content result
+        fun editableText add_content result
     end
 end
 
@@ -440,9 +440,9 @@ end
 @trigger each_second
 start executeWaiting()
     if (program == "wait" && second_passed)
-        index me [0 0] super_editable_text Terminal
-        fun Terminal cut_unprotected_area
-        fun Terminal update
+        index self [0 0] EditableText terminal
+        fun terminal cut_unprotected_area
+        fun terminal update
         if(waitingTime == 0)
             string result "||||||||||||||||||||"
             ++ waitingTime

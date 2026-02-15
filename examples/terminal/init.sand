@@ -1,8 +1,8 @@
 @trigger on_init
 start init
     edit_proc print_instructions 0
-    fun me set_can_be_selected false
-    new Objects my_layer 1 "KERNEL" First
+    fun self set_can_be_selected false
+    new Object self_layer 1 "KERNEL" First
     fun First set_can_be_selected true
     fun First set_can_be_moved_with_mouse true
     fun First enable_selection_border

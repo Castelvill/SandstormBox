@@ -56,28 +56,28 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "mouse_released"){
         return ValueSource::mouse_released;
     }
-    if(source == "Literals"){
+    if(source == "val"){
         return ValueSource::literal;
     }
-    if(source == "Variables"){
+    if(source == "var"){
         return ValueSource::variable;
     }
-    if(source == "Cameras"){
+    if(source == "Camera"){
         return ValueSource::camera;
     }
-    if(source == "Layers"){
+    if(source == "Layer"){
         return ValueSource::layer;
     }
-    if(source == "Ancestors"){
+    if(source == "ObjectBase"){
         return ValueSource::ancestor;
     }
-    if(source == "Objects"){
+    if(source == "Object"){
         return ValueSource::object;
     }
     if(source == "display_resized"){
         return ValueSource::display_resized;
     }
-    if(source == "Vectors"){
+    if(source == "vec"){
         return ValueSource::vector_s;
     }
     if(source == "mouse_x"){
@@ -107,37 +107,37 @@ ValueSource strToSource(const string & source, string & error){
     if(source == "booting"){
         return ValueSource::booting;
     }
-    if(source == "Processes"){
+    if(source == "Process"){
         return ValueSource::process;
     }
     if(source == "context"){
         return ValueSource::context;
     }
-    if(source == "STexts"){
+    if(source == "TextField"){
         return ValueSource::super_text;
     }
-    if(source == "SEditTexts"){
+    if(source == "EditableText"){
         return ValueSource::super_editable_text;
     }
-    if(source == "Images"){
+    if(source == "Image"){
         return ValueSource::image;
     }
-    if(source == "Movements"){
+    if(source == "Movement"){
         return ValueSource::movement;
     }
-    if(source == "Collisions"){
+    if(source == "Collision"){
         return ValueSource::collision;
     }
     if(source == "Particles"){
         return ValueSource::particles;
     }
-    if(source == "Events"){
+    if(source == "Event"){
         return ValueSource::event;
     }
-    if(source == "Scrollbars"){
+    if(source == "Scrollbar"){
         return ValueSource::scrollbar;
     }
-    if(source == "Primitives"){
+    if(source == "Primitive"){
         return ValueSource::primitives;
     }
     if(source == "exists"){
@@ -192,21 +192,21 @@ string sourceToStr(ValueSource source){
         case mouse_released:
             return "mouse_released";
         case literal:
-            return "Literals";
+            return "val";
         case variable:
-            return "Variables";
+            return "var";
         case camera:
-            return "Cameras";
+            return "Camera";
         case layer:
-            return "Layers";
+            return "Layer";
         case ancestor:
-            return "Ancestors";
+            return "ObjectBase";
         case object:
-            return "Objects";
+            return "Object";
         case display_resized:
             return "display_resized";
         case vector_s:
-            return "Vectors";
+            return "vec";
         case mouse_x:
             return "mouse_x";
         case mouse_y:
@@ -226,27 +226,27 @@ string sourceToStr(ValueSource source){
         case booting:
             return "booting";
         case process:
-            return "Processes";
+            return "Process";
         case context:
             return "context";
         case super_text:
-            return "STexts";
+            return "TextField";
         case super_editable_text:
-            return "SEditTexts";
+            return "EditableText";
         case image:
-            return "Images";
+            return "Image";
         case movement:
-            return "Movements";
+            return "Movement";
         case collision:
-            return "Collisions";
+            return "Collision";
         case particles:
             return "Particles";
         case event:
-            return "Events";
+            return "Event";
         case scrollbar:
-            return "Scrollbars";
+            return "Scrollbar";
         case primitives:
-            return "Primitives";
+            return "Primitive";
         case exists:
             return "exists";
     }
@@ -254,128 +254,169 @@ string sourceToStr(ValueSource source){
     return "undefined";
 }
 
+ValueSource instrToSource(EngineInstr instruction){
+    switch (instruction){
+        case EngineInstr::Val:
+            return ValueSource::literal;
+        case EngineInstr::var:
+            return ValueSource::variable;
+        case EngineInstr::Camera:
+            return ValueSource::camera;
+        case EngineInstr::Layer:
+            return ValueSource::layer;
+        case EngineInstr::Object:
+            return ValueSource::object;
+        case EngineInstr::vec:
+            return ValueSource::vector_s;
+        case EngineInstr::process_k:
+            return ValueSource::process;
+        case EngineInstr::context_k:
+            return ValueSource::context;
+        case EngineInstr::SText:
+            return ValueSource::super_text;
+        case EngineInstr::SEditText:
+            return ValueSource::super_editable_text;
+        case EngineInstr::Image:
+            return ValueSource::image;
+        case EngineInstr::Movement:
+            return ValueSource::movement;
+        case EngineInstr::Collision:
+            return ValueSource::collision;
+        case EngineInstr::Particles:
+            return ValueSource::particles;
+        case EngineInstr::Event:
+            return ValueSource::event;
+        case EngineInstr::Scrollbar:
+            return ValueSource::scrollbar;
+        case EngineInstr::Primitive:
+            return ValueSource::primitives;
+        default:
+            return ValueSource::null_s;
+    }
+}
+
 DataType strToDataType(const string & dataType){
-    if(dataType == "Null"){
+    if(dataType == "null"){
         return null_dt;
     }
     else if(dataType == "bool"){
         return bool_inst;
     }
-    else if(dataType == "boolVec"){
+    else if(dataType == "bool[]"){
         return bool_vec;
     }
     else if(dataType == "int"){
         return int_inst;
     }
-    else if(dataType == "intVec"){
+    else if(dataType == "int[]"){
         return int_vec;
     }
     else if(dataType == "double"){
         return double_inst;
     }
-    else if(dataType == "doubleVec"){
+    else if(dataType == "double[]"){
         return double_vec;
     }
     else if(dataType == "string"){
         return string_inst;
     }
-    else if(dataType == "stringVec"){
+    else if(dataType == "string[]"){
         return string_vec;
     }
-    else if(dataType == "Val"){
+    else if(dataType == "val"){
         return value_inst;
     }
-    else if(dataType == "ValVec"){
+    else if(dataType == "val[]"){
         return value_vec;
     }
-    else if(dataType == "Pointer"){
+    else if(dataType == "ptr"){
         return pointer_inst;
     }
-    else if(dataType == "PointerVec"){
+    else if(dataType == "ptr[]"){
         return pointer_vec;
     }
     else if(dataType == "Camera"){
         return camera_inst;
     }
-    else if(dataType == "CameraVec"){
+    else if(dataType == "Camera[]"){
         return camera_vec;
     }
     else if(dataType == "Layer"){
         return layer_inst;
     }
-    else if(dataType == "LayerVec"){
+    else if(dataType == "Layer[]"){
         return layer_vec;
     }
     else if(dataType == "Object"){
         return object_inst;
     }
-    else if(dataType == "ObjectVec"){
+    else if(dataType == "Object[]"){
         return object_vec;
     }
-    else if(dataType == "Var"){
+    else if(dataType == "var"){
         return variable_mod;
     }
-    else if(dataType == "VarVec"){
+    else if(dataType == "var[]"){
         return variable_mod_vec;
     }
-    else if(dataType == "Vec"){
+    else if(dataType == "vec"){
         return vector_mod;
     }
-    else if(dataType == "VecVec"){
+    else if(dataType == "vec[]"){
         return vector_mod_vec;
     }
-    else if(dataType == "SText"){
+    else if(dataType == "TextField"){
         return super_text_mod;
     }
-    else if(dataType == "STextVec"){
+    else if(dataType == "TextField[]"){
         return super_text_mod_vec;
     }
-    else if(dataType == "SEditText"){
+    else if(dataType == "EditableText"){
         return super_editable_text_mod;
     }
-    else if(dataType == "SEditTextVec"){
+    else if(dataType == "EditableText[]"){
         return super_editable_text_mod_vec;
     }
     else if(dataType == "Image"){
         return image_mod;
     }
-    else if(dataType == "ImageVec"){
+    else if(dataType == "Image[]"){
         return image_mod_vec;
     }
     else if(dataType == "Movement"){
         return movement_mod;
     }
-    else if(dataType == "MovementVec"){
+    else if(dataType == "Movement[]"){
         return movement_mod_vec;
     }
     else if(dataType == "Collision"){
         return collision_mod;
     }
-    else if(dataType == "CollisionVec"){
+    else if(dataType == "Collision[]"){
         return collision_mod_vec;
     }
     else if(dataType == "Particles"){
         return particles_mod;
     }
-    else if(dataType == "ParticlesVec"){
+    else if(dataType == "Particles[]"){
         return particles_mod_vec;
     }
     else if(dataType == "Event"){
         return event_mod;
     }
-    else if(dataType == "EventVec"){
+    else if(dataType == "Event[]"){
         return event_mod_vec;
     }
     else if(dataType == "Scrollbar"){
         return scrollbar_mod;
     }
-    else if(dataType == "ScrollbarVec"){
+    else if(dataType == "Scrollbar[]"){
         return scrollbar_mod_vec;
     }
     else if(dataType == "Primitive"){
         return primitives_mod;
     }
-    else if(dataType == "PrimitiveVec"){
+    else if(dataType == "Primitive[]"){
         return primitives_mod_vec;
     }
     else if(dataType == "any"){
@@ -387,87 +428,87 @@ DataType strToDataType(const string & dataType){
 string dataTypeToStr(DataType dataType){
     switch (dataType){
         case null_dt:
-            return "Null";
+            return "null";
         case bool_inst:
             return "bool";
         case bool_vec:
-            return "boolVec";
+            return "bool[]";
         case int_inst:
             return "int";
         case int_vec:
-            return "intVec";
+            return "int[]";
         case double_inst:
             return "double";
         case double_vec:
-            return "doubleVec";
+            return "double[]";
         case string_inst:
             return "string";
         case string_vec:
-            return "stringVec";
+            return "string[]";
         case value_inst:
-            return "Val";
+            return "val";
         case value_vec:
-            return "ValVec";
+            return "val[]";
         case pointer_inst:
-            return "Pointer";
+            return "ptr";
         case pointer_vec:
-            return "PointerVec";
+            return "ptr[]";
         case camera_inst:
             return "Camera";
         case camera_vec:
-            return "CameraVec";
+            return "Camera[]";
         case layer_inst:
             return "Layer";
         case layer_vec:
-            return "LayerVec";
+            return "Layer[]";
         case object_inst:
             return "Object";
         case object_vec:
-            return "ObjectVec";
+            return "Object[]";
         case variable_mod:
-            return "Var";
+            return "var";
         case variable_mod_vec:
-            return "VarVec";
+            return "var[]";
         case vector_mod:
-            return "Vec";
+            return "vec";
         case vector_mod_vec:
-            return "VecVec";
+            return "vec[]";
         case super_text_mod:
-            return "SText";
+            return "TextField";
         case super_text_mod_vec:
-            return "STextVec";
+            return "TextField[]";
         case super_editable_text_mod:
-            return "SEditText";
+            return "EditableText";
         case super_editable_text_mod_vec:
-            return "SEditTextVec";
+            return "EditableText[]";
         case image_mod:
             return "Image";
         case image_mod_vec:
-            return "ImageVec";
+            return "Image[]";
         case movement_mod:
             return "Movement";
         case movement_mod_vec:
-            return "MovementVec";
+            return "Movement[]";
         case collision_mod:
             return "Collision";
         case collision_mod_vec:
-            return "CollisionVec";
+            return "Collision[]";
         case particles_mod:
             return "Particles";
         case particles_mod_vec:
-            return "ParticlesVec";
+            return "Particles[]";
         case event_mod:
             return "Event";
         case event_mod_vec:
-            return "EventVec";
+            return "Event[]";
         case scrollbar_mod:
             return "Scrollbar";
         case scrollbar_mod_vec:
-            return "ScrollbarVec";
+            return "Scrollbar[]";
         case primitives_mod:
             return "Primitive";
         case primitives_mod_vec:
-            return "PrimitiveVec";
+            return "Primitive[]";
         case any_dt:
             return "any";
         default:
@@ -528,7 +569,7 @@ string ParameterStruct::getVariableIdOrValue(){
     }
     switch (type){
         case 'e':
-            return "NULL";
+            return "null";
         case 'l':
             return Literal.getAnyValue();
         case 'c':
@@ -979,15 +1020,6 @@ EventModule::~EventModule(){
 void EventModule::clear(){
     Children.clear();
 }
-DataType strToDataTypeWithoutPrimaryTypes(const string & dataType){
-    if(dataType == "bool" || dataType == "int" || dataType == "double" || dataType == "string"){
-        return value_inst;
-    }
-    if(dataType == "boolVec" || dataType == "intVec" || dataType == "doubleVec" || dataType == "stringVec"){
-        return value_vec;
-    }
-    return strToDataType(dataType);
-}
 bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned & cursor, const unsigned & lineNumber,
     const string & scriptName, vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
 ){
@@ -1029,7 +1061,7 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
             }
-            else if(words[cursor + 1].value == "&"){
+            else if(words[cursor + 1].instruction == EngineInstr::reference_k){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Passed by reference variable requires a name.\n";
             }
@@ -1041,26 +1073,45 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
             }
             return true;
         }
+
+        int isVector = 0;
+        if(words[cursor + 1].type == TokenType::open_brackets_tk){
+            if(words[cursor + 2].type != TokenType::close_brackets_tk){
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__
+                    << ": In the '" << words[0].value << "' instruction: "
+                    << "Brackets were not closed.\n";
+                return true;
+            }
+            isVector = 2;
+        }
         
         bool isReference = false;
-        if(words[cursor + 1].value == "&"){
+        if(words[cursor + isVector + 1].instruction == EngineInstr::reference_k){
             isReference = true;
         }
 
-        if(words[cursor + 2 + isReference].type != TokenType::end_expr_tk){ //[')'], [',']
-            if(words[cursor + 2 + isReference].value != ","){
+        if(words[cursor + isVector + isReference + 2].type != TokenType::end_expr_tk){ //[')'], [',']
+            if(words[cursor + isVector + isReference + 2].instruction != EngineInstr::comma_k){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variables must be divided by commas.\n";
                 return true;
             }
-            if(cursor + 3 + isReference >= words.size()){
+            if(cursor + isVector + isReference + 3 >= words.size()){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
                 return true;
             }
         }
+
+        if(words[cursor].type != TokenType::keyword_tk){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": Data type expected at " << cursor << ". token.\n";
+            return true;
+        }
         
-        DataType variableType = strToDataTypeWithoutPrimaryTypes(words[cursor].value);
+        DataType variableType = instrToDataType(words[cursor].instruction, isVector == 0);
 
         if(variableType == DataType::null_dt){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -1069,10 +1120,10 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
             return true;
         }
 
-        string variableID = words[cursor + 1 + isReference].value;
-        cursor += 2 + isReference;
+        string variableID = words[cursor + isVector + isReference + 1].value;
+        cursor += isVector + isReference + 2;
 
-        if(words[cursor].value == ","){
+        if(words[cursor].instruction == EngineInstr::comma_k){
             cursor++;
         }
 
@@ -1252,7 +1303,7 @@ std::pair<unsigned, ReturnType> findExistingVariableOrCreateNew(const string & s
     }
     else if(result == ReturnType::UNDEFINED){
         if(ignoreUndefinedVariable){
-            return getLocalAddress("NULL", null_dt, Scopes, NewLocalVariables, topAddress,
+            return getLocalAddress("null", null_dt, Scopes, NewLocalVariables, topAddress,
                 canCreateNewVariable
             );
         }
@@ -1371,7 +1422,7 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments,
                 return true;
             }
             if(words[cursor + 1].type != TokenType::end_expr_tk){
-                if(words[cursor + 1].value != ","){
+                if(words[cursor + 1].instruction != EngineInstr::comma_k){
                     cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                         << NEW_LINE_PADDING << "In " << __FUNCTION__
                         << ": Variables must be divided by commas.\n";
@@ -1426,12 +1477,10 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments,
         const VariableInfo & Variable = LocalVariables[localAddress];
         Arguments.emplace_back(Variable.isReference, Variable.type, localAddress, variableId);
 
-        if(words[cursor + 1].value == ","){
+        if(words[cursor + 1].instruction == EngineInstr::comma_k)
             cursor += 2;
-        }
-        else{
+        else
             cursor++;
-        }
     }
     cursor++;
     return false;

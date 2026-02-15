@@ -1,5 +1,7 @@
+-Add null checks like: "if(a == null)".
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.
+-Implement enums.
 -Instead of creating structs or classes maybe implement "bundle" instruction which sole reason would be to move several variables between functions as one parameter, something like javascript objects.
 -Changing the position of the cursor in the text should update currentLine and currentChar parameters in the editor's command line - expand access instruction.
 -Add a build restriction keyword to forbid given scripts from being built and/or executed in a specified way.
@@ -7,7 +9,6 @@
 -Maybe use reversed version of Shunting Yard Algorithm on arithmetic instructions like: "a += b" -> "+= a b".
 -Create "."/extract instuction which will use/merge accessor functionalities from: first, all, last and random instructions. Add filter instruction that will use filtering functionality of first, all, last and random instructions.
 -Compress all id vectors in ancestorObject to a single set if the order of these ids is not important. Thanks to that user will be able to access module instances without mentioning their types and imporove performance. 
--Change me and my_layer to "this" and "layer"/"this_layer".
 -Make game of life in the text mode.
 -Make all/first/last/random more humane.
 -Test the communication between different objects and make it easier.
@@ -19,7 +20,7 @@
 -Remove inline events - now we can easily create new scopes so it's current version is not needed anymore.
 -Create printCompilationError function that returns a string beginning with "Compilation Error" or "Compilation Warning".
 -Either add to objects a vector with indexes of all triggerable (you will still have to run isEventTriggered because it filters out false positives) events or divide EventContainer to EventContainer and FunctionContainer - it would save a lot of time by ignoring functions in findNextEvent.
--Use curly brackets instead of "end", "end_if" and "end_while"
+-Use curly brackets instead of "end".
 -Create a translation layer for translating c-like code into sand instructions: c-like -> divide code into "lines" based on symbols, curly brackets and semicolons -> turn each "line" into one or more lines of sand instructions.
 -Create "print_table" instruction based on printing style of "dump_memory" instruction. 
 -Add groups to vectorModule.

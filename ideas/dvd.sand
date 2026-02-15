@@ -4,9 +4,9 @@ void putRectangleOnScreen(){
     var DISPLAY_H = 480
     create_display(DISPLAY_W, DISPLAY_H, DISPLAY_W, DISPLAY_H)
 
-    Camera camera = cameras.new("camera")
+    Camera camera = cameras.new("Camera")
     camera.resize(DISPLAY_W, DISPLAY_H)
-    camera.add_visible_layer(me.layer)
+    camera.add_visible_layer(self.layer)
     
     final var SIZE_X = 120
     final var SIZE_Y = 100
@@ -16,7 +16,7 @@ void putRectangleOnScreen(){
     var x = 10.0
 	var y = 10.0
 
-    Primitive rectangle = me.primitives.new("rectangle")
+    Primitive rectangle = self.primitives.new("rectangle")
     rectangle.set_type(Primitive.filled_rectangle)
     rectangle.set_color(1.0, 0.0, 0.0, 1.0)
     rectangle.set_pos(x, y)
@@ -40,21 +40,21 @@ void moveRectangle(){
 	y += velY
 
     // 1. version
-    Primitive rectangle = me.primitives.find("rectangle")
+    Primitive rectangle = self.primitives.find("rectangle")
     rectangle.set_pos(x, y)
 
     // 2. version
-    rectangle = me.primitives[0]
+    rectangle = self.primitives[0]
     rectangle.set_pos(x, y)
 
     // 3. version
-    me.primitives.find("rectangle").set_pos(x, y)
+    self.primitives.find("rectangle").set_pos(x, y)
 
     // 4. version
-    me.primitives[0].set_pos(x, y)
+    self.primitives[0].set_pos(x, y)
 
     // 5. version
-    me.primitives.rectangle.set_pos(x, y)
+    self.primitives.rectangle.set_pos(x, y)
 }
 
 @trigger on_key_press

@@ -15,32 +15,32 @@
 @trigger on_init
 start initTest()
     env can_exit_on_idle 1
-    access testCaseName [me.id]
+    access testCaseName [self.id]
     //By default first automatically created object is called "Init"
     if(testCaseName == "Init")
-        fun me set_id "TEST"
+        fun self set_id "TEST"
     end
 end
 
 start startTest()
-    access testCaseName [me.id]
+    access testCaseName [self.id]
     //print testCaseName " - START\n"
 end
 
 start endTest()
     incrementPassedTests()
-    access testCaseName [me.id]
+    access testCaseName [self.id]
     print testCaseName " - PASSED\n"
 end
 
 start incrementPassedTests()
-    access myName [me.id]
+    access myName [self.id]
     if(myName == "TEST")
         return
     end
-    all Layers _ _ _ _ _ _ layers
-    index layers [0 0] object MainTest
-    first MainTest _ _ Variables passedTests _ _ passedTests
+    all Layer _ _ _ _ _ _ layers
+    index layers [0 0] Object MainTest
+    first MainTest _ _ var passedTests _ _ passedTests
     ++ passedTests
 end
 

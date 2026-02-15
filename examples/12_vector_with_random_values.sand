@@ -1,6 +1,6 @@
 @trigger on_init
 start main()
-    int_vec colors []
+    int[] colors []
 
     int i 0
     while(i < 100)

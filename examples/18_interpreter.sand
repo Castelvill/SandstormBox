@@ -3,5 +3,5 @@ start interpreter
     pwd path
     print path ">> "
     console_input input
-    inject_instr me input
+    inject_instr self input
 end

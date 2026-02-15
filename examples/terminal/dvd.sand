@@ -15,7 +15,7 @@ start putRectangleOnScreen
     var velX 4.0
     var velY 4.0
 
-    new Primitives me 1 "Rectangle" Rectangle
+    new Primitive self 1 "Rectangle" Rectangle
     fun Rectangle create "filled_rectangle"
     fun Rectangle set_color 1.0 0.0 0.0 1.0
     fun Rectangle set_pos x y
@@ -24,7 +24,7 @@ start putRectangleOnScreen
 
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code_2" true
 
-    new STexts me 1 "Fps" FpsText
+    new TextField self 1 "Fps" FpsText
     fun FpsText disable_scrolling
     fun FpsText set_pos 400 0
     fun FpsText set_size 400 50
@@ -47,8 +47,8 @@ end
 
 @trigger each_second
 start printFPS
-    all me _ _ STexts _ _ _ Texts
-    find_by_id_2 Texts "Fps" FpsText
+    all self _ _ TextField _ _ _ texts
+    find_by_id_2 texts "Fps" FpsText
     access fpsValue [fps]
     string fpsString "FPS: "
     += fpsString fpsValue
@@ -70,9 +70,9 @@ start moveRectangle
     end
 	+= x velX
 	+= y velY
-    //index me 0 0 primitives Rectangle
-    all me _ _ Primitives _ _ _ Primitives
-	find_by_id_2 Primitives "Rectangle" Rectangle
+    //index self 0 0 primitives Rectangle
+    all self _ _ Primitive _ _ _ primitives
+	find_by_id_2 primitives "Rectangle" Rectangle
     fun Rectangle set_pos x y
 end
 

@@ -16,7 +16,7 @@ start main()
     fun pattern push_back 1
 
     print pattern "\n"
-    size pattern patternSize
+    sizeof pattern patternSize
 end
 
 @trigger each_iteration
@@ -26,7 +26,7 @@ start next()
     end
     ++ state
 
-    int_vec newPattern []
+    int[] newPattern []
 
     int cell 0
     int limit patternSize

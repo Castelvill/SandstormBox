@@ -9,5 +9,5 @@ start main()
             exit
         end
     " 
-    inject_code me program
+    inject_code self program
 end

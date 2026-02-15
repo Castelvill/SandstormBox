@@ -108,11 +108,11 @@ void ProcessClass::allocateBuiltInVariables(ObjectMemoryStruct &CurrentMap, Ance
     const bool & isLocal = false;
     const bool & isReference = true;
 
-    allocateRealMemory("NULL", null_dt, isReadOnly, isLocal, isReference, builtInVarAddr::NULL_bv, 0, CurrentMap);
-    if(allocateRealMemory("me", object_inst, writable, isLocal, isReference, builtInVarAddr::me_bv, 0, CurrentMap)){
+    allocateRealMemory("null", null_dt, isReadOnly, isLocal, isReference, builtInVarAddr::NULL_bv, 0, CurrentMap);
+    if(allocateRealMemory("self", object_inst, writable, isLocal, isReference, builtInVarAddr::me_bv, 0, CurrentMap)){
         CurrentMap.MemoryMap.back().Objects.push_back(&Object);
     }
-    if(allocateRealMemory("my_layer", layer_inst, writable, isLocal, isReference, builtInVarAddr::my_layer_bv, 0, CurrentMap)){
+    if(allocateRealMemory("self_layer", layer_inst, writable, isLocal, isReference, builtInVarAddr::my_layer_bv, 0, CurrentMap)){
         CurrentMap.MemoryMap.back().Layers.push_back(&Layer);
     }
     CurrentMap.topAddress = 3;
@@ -622,7 +622,7 @@ void focusCamera(vector<Camera2D> & Cameras, Camera2D *& SelectedCamera, string 
     SelectedCamera = NewSelectedCamera;
     SelectedCamera->isFocused = true;
     
-    //Focus all cameras from the selected camera to the root camera.
+    //Focus all Camera from the selected camera to the root camera.
     Camera2D * LeafCamera = SelectedCamera;
     bool isRoot = true;
     while(LeafCamera->pinnedCameraID != "" && LeafCamera->pinnedCameraID != LeafCamera->getID()){
@@ -6252,10 +6252,10 @@ void ProcessClass::moveToVariable(ObjectMemoryStruct & ObjectMemory,
         Variable->type = NewContext.type;   
     }
 
-    //TODO: Remove next line if nothing breaks. This flag should be changed only when assigning a variable
+    //TODO: Remove next two lines if nothing breaks. This flag should be changed only when assigning a variable
     //Variable->isPointingToMember = NewContext.isPointingToMember;
+    //Variable->containerIndex = NewContext.containerIndex;
 
-    Variable->containerIndex = NewContext.containerIndex;
     moveRightToLeft(CurrentInstr, EngineInstr::move, Variable, NewContext);        
 }
 void ProcessClass::aggregateValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory,
@@ -7624,7 +7624,7 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(OperationClass & Operation,
 ){
     bool skipOneParameter = false;
     
-    if(Operation.Parameters[0].Literal.getString() == "variable"){
+    if(Operation.Parameters[0].Literal.getString() == "var"){
         skipOneParameter = true;
     }
 
@@ -7690,7 +7690,7 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation,
             }
         }   
     }
-    else if(Operation.Parameters[0].Literal.getString() == "variable"){
+    else if(Operation.Parameters[0].Literal.getString() == "var"){
         ContextClass Context;
         bool negateAfterCopy = false; //ignore
         if(Context.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
@@ -11493,7 +11493,7 @@ void ProcessClass::listOutEntities(OperationClass & Operation, ObjectMemoryStruc
         cout << instrToStr(Operation.instruction) << " " << source << " " << printDetails << "\n";
     }
 
-    if(source == "processes"){
+    if(source == "Process"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tLayers\tCameras\n";
@@ -11511,7 +11511,7 @@ void ProcessClass::listOutEntities(OperationClass & Operation, ObjectMemoryStruc
             }
         }
     }
-    else if(source == "layers"){
+    else if(source == "Layer"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tProcess\tActive\tObjects\n";
@@ -11535,7 +11535,7 @@ void ProcessClass::listOutEntities(OperationClass & Operation, ObjectMemoryStruc
             }
         }
     }
-    else if(source == "cameras"){
+    else if(source == "Camera"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tProcess\tActive\tMinimized\tPinned\n";
@@ -11560,7 +11560,7 @@ void ProcessClass::listOutEntities(OperationClass & Operation, ObjectMemoryStruc
             }
         }
     }
-    else if(source == "bitmaps"){
+    else if(source == "bitmap"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tPath\n";
@@ -11576,7 +11576,7 @@ void ProcessClass::listOutEntities(OperationClass & Operation, ObjectMemoryStruc
             }
         }
     }
-    else if(source == "fonts"){
+    else if(source == "font"){
         if(printDetails){
             int i = 0;
             cout << "Nr\tID\tSize\n";
@@ -12960,16 +12960,16 @@ bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct &
         cout << Operation.Parameters[1].getVariableIdOrValue() << "\n";
     }
     
-    if(LeftVariable.ID == "NULL" || RightVariable.ID == "NULL"){
-        if((LeftVariable.type == null_dt && RightVariable.ID == "NULL")
-            || (LeftVariable.ID == "NULL" && RightVariable.type == null_dt)
+    if(LeftVariable.ID == "null" || RightVariable.ID == "null"){
+        if((LeftVariable.type == null_dt && RightVariable.ID == "null")
+            || (LeftVariable.ID == "null" && RightVariable.type == null_dt)
         ){
             return true;
         }
         cerr << "Error: In " + CurrentInstr.scriptName + ":" + uIntToStr(CurrentInstr.lineNumber) + ":\n"
             << NEW_LINE_PADDING << "Assertion failed: ";
-        if(LeftVariable.ID == "NULL"){
-            cerr << "NULL != ";
+        if(LeftVariable.ID == "null"){
+            cerr << "null != ";
             if(RightVariable.getValue(RightOperandProc) != ReturnType::INVALID_TYPE){
                 cerr << RightOperandProc.getAnyValue();
             }
@@ -12984,7 +12984,7 @@ bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct &
             else{
                 cerr << LeftVariable.ID;
             }
-            cerr << " != NULL";
+            cerr << " != null";
         }
         cerr << "\n";
         return false;
@@ -13838,7 +13838,7 @@ VariableModule ProcessClass::getValueFromObjectInCollision(ConditionClass &Condi
             case hitbox_can_penetrate:
                 return VariableModule::newBool(Collision.getCanPenetrateSolids());
             case hitbox_ignores_object:
-                return VariableModule::newBool(Collision.ignores("object", Condition.Literal.getStringUnsafe()));
+                return VariableModule::newBool(Collision.ignores("Object", Condition.Literal.getStringUnsafe()));
             case hitbox_ignores_object_group:
                 for(const PrimaryModule & Primary : CurrentLayer->Objects){
                     if(Primary.getID() != Condition.Literal.getStringUnsafe()){
@@ -15639,9 +15639,7 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<P
             printInColor("---go_back\n", 14);
         }
 
-        if(!eventIt->isInline){
-            interruptInstruction = EngineInstr::null;
-        }
+        interruptInstruction = EngineInstr::null;
 
         if(EventCallState.isCurrentCallRecursive){
             deallocateDynamicallyAllocatedMemory(ObjectMemory.DynamicMemory, ObjectMemory.topFreeDynamicAddress);

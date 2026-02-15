@@ -6,18 +6,18 @@ start main()
 
     string varType ""
 
-    Val val
-    type val varType
-    assert varType "Val"
-    setVal(val)
-    checkVal(val)
+    val value
+    type value varType
+    assert varType "val"
+    setVal(value)
+    checkVal(value)
 
-    Pointer ptr
-    type ptr varType
-    assert varType "Pointer"
+    ptr pointer
+    type pointer varType
+    assert varType "ptr"
 
-    Object Obj
-    type Obj varType
+    Object object
+    type object varType
     assert varType "Object"
 
     any anyVar
@@ -27,10 +27,10 @@ start main()
     endTest()
 end
 
-start setVal(Val & val)
-    fun val set_int 5
+start setVal(val & value)
+    fun value set_int 5
 end
 
-start checkVal(Val & val)
-    assert val 5
+start checkVal(val & value)
+    assert value 5
 end

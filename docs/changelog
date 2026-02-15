@@ -1,3 +1,8 @@
+15.02.2026
+-Replaced "me" and "my_layer" with "self" and "self_layer".
+-Unified type names in variable definitions, function parameters and attributs - keywords can now be everythere (with some exceptions).
+-Replaced "_vec" prefix with "[]".
+
 8.02.2026
 -Removed old text modules.
 -Separated command line from the text in the text editor.

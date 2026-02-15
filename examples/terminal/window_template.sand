@@ -1,9 +1,9 @@
 @trigger on_mouse_pressing
 start checkIfWindowMoved()
 	if (mouse_moved && !isBorderless)
-        all Cameras _ camera _ Cameras
-        find_by_id_2 Cameras cameraID Camera
-        run revertWindowIfMoved(Camera)
+        all Camera _ camera _ cameras
+        find_by_id_2 cameras cameraID camera
+        run revertWindowIfMoved(camera)
         run refreshWindowWithCamera()
     end
 end
@@ -15,73 +15,73 @@ start checkIfDisplayResize()
     end
 end
 
-start revertWindowIfMoved(Camera & Camera)
-	if (isMaxed && Camera.grabbed)
+start revertWindowIfMoved(Camera & camera)
+	if (isMaxed && camera.grabbed)
         = isMaxed false
-        fun Camera set_can_mouse_resize true
-        access MouseX [mouse_x]
-        access MouseY [mouse_y]
-        = posX MouseX
-        = posY MouseY
+        fun camera set_can_mouse_resize true
+        access mouseX [mouse_x]
+        access mouseY [mouse_y]
+        = posX mouseX
+        = posY mouseY
         access sizeXTemp [sizeX]
         /= sizeXTemp 2
         -= posX sizeXTemp
         -= posY 10
-        run revertBorderIfPossible()
+        run revertborderIfPossible()
         run revertWindowFromMax()
     end
 end
 
 
-start revertBorderIfPossible()
+start revertborderIfPossible()
 	if (!isBorderless && !isMaxed)
-        all Layers _ _ _ _ _ _ Layers
-        access myLayerID [me.layer_id]
-        find_by_id_2 Layers myLayerID Layer
-        index Layer [0 0 2] primitives Border
-        fun Border activate
+        all Layer _ _ _ _ _ _ layers
+        access myLayerID [self.layer_id]
+        find_by_id_2 layers myLayerID layer
+        index layer [0 0 2] Primitive border
+        fun border activate
     end
 end
 
 start refreshWindowWithDisplay()
-	all Cameras _ camera _ Cameras
-	find_by_id_2 Cameras cameraID Camera
+	all Camera _ camera _ cameras
+	find_by_id_2 cameras cameraID camera
 	access sx [display_w]
 	access sy [display_h]
-	fun Camera resize sx sy
-	run refreshWindow(Camera, sx, sy)
+	fun camera resize sx sy
+	run refreshWindow(camera, sx, sy)
 end
 
 start refreshWindowWithCamera()
-	all Cameras _ camera _ Cameras
-	find_by_id_2 Cameras cameraID Camera
-	access sx [Camera.size_x]
-	access sy [Camera.size_y]
-	run refreshWindow(Camera, sx, sy)
+	all Camera _ camera _ cameras
+	find_by_id_2 cameras cameraID camera
+	access sx [camera.size_x]
+	access sy [camera.size_y]
+	run refreshWindow(camera, sx, sy)
 end
 
 
-start refreshWindow(Camera & Camera, double & sx, double & sy)
+start refreshWindow(Camera & camera, double & sx, double & sy)
 	int sxShift -100
 	+= sxShift sx
 	int height 30
 
-    fun Camera set_grabbing_area_size sxShift height
+    fun camera set_grabbing_area_size sxShift height
 
-    access myLayerID [me.layer_id]
-    all Layers _ _ _ _ _ _ Layers
-    find_by_id_2 Layers myLayerID Layer
+    access myLayerID [self.layer_id]
+    all Layer _ _ _ _ _ _ layers
+    find_by_id_2 layers myLayerID layer
 
-    index Layer [0 0 0] primitives border1
+    index layer [0 0 0] Primitive border1
     fun border1 set_size sx sy
     fun border1 update_with_size
 
-    index Layer [0 0 1] primitives border2
+    index layer [0 0 1] Primitive border2
     = height 30
     fun border2 set_size sx height
     fun border2 update_with_size
 
-    index Layer [0 0 2] primitives border3
+    index layer [0 0 2] Primitive border3
     = sxShift -4
     int syShift -4
     += sxShift sx
@@ -89,41 +89,41 @@ start refreshWindow(Camera & Camera, double & sx, double & sy)
     fun border3 set_size sxShift syShift
     fun border3 update_with_size
 
-    index Layer [0 0 3] primitives exitButton
+    index layer [0 0 3] Primitive exitButton
     = sxShift -20
     = height 15
     += sxShift sx
     fun exitButton set_pos sxShift height
     fun exitButton update_with_size
 
-    index Layer [0 0 0] collision ExitCollision
-    fun ExitCollision set_pos sxShift height
+    index layer [0 0 0] Collision exitCollision
+    fun exitCollision set_pos sxShift height
 
-    index Layer [0 0 4] primitives maxButton
+    index layer [0 0 4] Primitive maxButton
     = sxShift -50
     = height 15
     += sxShift sx
     fun maxButton set_pos sxShift height
     fun maxButton update_with_size
 
-    index Layer [0 0 1] collision MaxCollision
-    fun MaxCollision set_pos sxShift height
+    index layer [0 0 1] Collision maxCollision
+    fun maxCollision set_pos sxShift height
 
-    index Layer [0 0 5] primitives minimizeButton
+    index layer [0 0 5] Primitive minimizeButton
     = sxShift -80
     = height 15
     += sxShift sx
     fun minimizeButton set_pos sxShift height
     fun minimizeButton update_with_size
 
-    index Layer [0 0 2] collision MinCollision
-    fun MinCollision set_pos sxShift height
+    index layer [0 0 2] Collision minCollision
+    fun minCollision set_pos sxShift height
 
     if(!isMaxed)
         = sizeX sx
         = sizeY sy
-        access cpx [Camera.pos_x]
-        access cpy [Camera.pos_y]
+        access cpx [camera.pos_x]
+        access cpy [camera.pos_y]
         = posX cpx
         = posY cpy
     end
@@ -137,35 +137,35 @@ end
 @trigger on_mouse_release
 start exitWindow()
     if (mouse_released(0))
-        access myLayerID [me.layer_id]
-        all Layers _ _ _ _ _ _ Layers
-        find_by_id_2 Layers myLayerID Layer
-        index Layer [0 0 0] collision ExitCollision
+        access myLayerID [self.layer_id]
+        all Layer _ _ _ _ _ _ layers
+        find_by_id_2 layers myLayerID layer
+        index layer [0 0 0] Collision exitCollision
         
-        if(ExitCollision.release_on)
-            = delete true
+        if(exitCollision.release_on)
+            = removeWindow true
         end
     end
 end
 
 @trigger each_iteration
 start deleteWindow()
-    if (delete && (!has_friends || deleted_friends))
-        all Cameras _ camera _ Cameras
-        find_by_id_2 Cameras cameraID Camera
-        delete Camera
-        delete my_layer
+    if (removeWindow && (!has_friends || deleted_friends))
+        all Camera _ camera _ cameras
+        find_by_id_2 cameras cameraID camera
+        delete camera
+        delete self_layer
     end
 end
 
 @trigger on_mouse_release
 start maxWindow()
     if (mouse_released(0))
-        access myLayerID [me.layer_id]
-        all Layers _ _ _ _ _ _ Layers
-        find_by_id_2 Layers myLayerID Layer
-        index Layer [0 0 1] collision MaxCollision
-        if(MaxCollision.release_on)
+        access myLayerID [self.layer_id]
+        all Layer _ _ _ _ _ _ layers
+        find_by_id_2 layers myLayerID layer
+        index layer [0 0 1] Collision maxCollision
+        if(maxCollision.release_on)
             fun isMaxed toggle_bool
             run maxWindowIfTrue()
             run refreshWindowWithCamera()
@@ -175,124 +175,124 @@ end
 
 start maxWindowIfTrue()
     if(isMaxed)
-        all Layers _ _ _ _ _ _ Layers
-        access myLayerID [me.layer_id]
-        find_by_id_2 Layers myLayerID Layer
-        index Layer [0 0 2] primitives Border
-        fun Border deactivate
-        all Cameras _ camera _ Cameras
-        find_by_id_2 Cameras cameraID Camera
-        fun Camera set_can_mouse_resize false
+        all Layer _ _ _ _ _ _ layers
+        access myLayerID [self.layer_id]
+        find_by_id_2 layers myLayerID layer
+        index layer [0 0 2] Primitive border
+        fun border deactivate
+        all Camera _ camera _ cameras
+        find_by_id_2 cameras cameraID camera
+        fun camera set_can_mouse_resize false
         access ww [display_w]
         access wh [display_h]
-        fun Camera resize ww wh
-        fun Camera set_relative_position 0 0
+        fun camera resize ww wh
+        fun camera set_relative_position 0 0
     else
         run revertWindowFromMax()
     end
 end
 
 start revertWindowFromMax()
-    all Cameras _ camera _ Cameras
-    find_by_id_2 Cameras cameraID Camera
-    fun Camera set_can_mouse_resize true
-    fun Camera resize sizeX sizeY
-    fun Camera set_relative_position posX posY
+    all Camera _ camera _ cameras
+    find_by_id_2 cameras cameraID camera
+    fun camera set_can_mouse_resize true
+    fun camera resize sizeX sizeY
+    fun camera set_relative_position posX posY
     restart_drag
-    run revertBorderIfPossible()
+    run revertborderIfPossible()
 end
 
 @trigger on_mouse_release
 start minimizeWindow
     if (mouse_released(0))
-        access myLayerID [me.layer_id]
-        all Layers _ _ _ _ _ _ Layers
-        find_by_id_2 Layers myLayerID Layer
-        index Layer [0 0 2] collision MinCollision
-        all Cameras _ camera _ Cameras
-        find_by_id_2 Cameras cameraID Camera
-        if(MinCollision.release_on)
-            fun Camera minimize
+        access myLayerID [self.layer_id]
+        all Layer _ _ _ _ _ _ Layers
+        find_by_id_2 Layers myLayerID layer
+        index layer [0 0 2] Collision minCollision
+        all Camera _ camera _ cameras
+        find_by_id_2 cameras cameraID camera
+        if(minCollision.release_on)
+            fun camera minimize
         end
     end
 end
 
 @trigger on_key_press
-start switchBorderlessMode
+start switchborderlessMode
     if (key_pressed(KEY_F11))
-        all Cameras _ camera _ Cameras
-        find_by_id_2 Cameras cameraID Camera
-        if(Camera.is_focused)
+        all Camera _ camera _ cameras
+        find_by_id_2 cameras cameraID camera
+        if(camera.is_focused)
             fun isBorderless toggle_bool
-            run switchToBorderless()
+            run switchToborderless()
         end
     end
 end
 
-start switchToBorderless()
+start switchToborderless()
     if (!isBorderless)
-        run switchFromBorderless()
+        run switchFromborderless()
         return
     end
-    fun me set_pos -5 -30
-    all Layers _ _ _ _ _ _ Layers
-    access myLayerID [me.layer_id]
-    find_by_id_2 Layers myLayerID Layer
-    index Layer [0 0 1] primitives Toolbar
-    fun Toolbar deactivate
-    index Layer [0 0 2] primitives Border
-    fun Border deactivate
-    index Layer [0 0 3] primitives ExitButton
-    fun ExitButton deactivate
-    index Layer [0 0 4] primitives MaxButton
-    fun MaxButton deactivate
-    index Layer [0 0 5] primitives MinButton
-    fun MinButton deactivate
-    index Layer [0 0 0] super_text Title
-    fun Title deactivate
-    index Layer [0 0 0] collision ExitCollision
-    fun ExitCollision deactivate
-    index Layer [0 0 1] collision MaxCollision
-    fun MaxCollision deactivate
-    index Layer [0 0 2] collision MinCollision
-    fun MinCollision deactivate
-    all Cameras _ camera _ Cameras
-    find_by_id_2 Cameras cameraID Camera
-    fun Camera set_can_be_grabbed false
-    fun Camera set_can_mouse_resize false
-    access cpx [Camera.size_x]
-    access cpy [Camera.size_y]
+    fun self set_pos -5 -30
+    all Layer _ _ _ _ _ _ layers
+    access myLayerID [self.layer_id]
+    find_by_id_2 layers myLayerID layer
+    index layer [0 0 1] Primitive toolbar
+    fun toolbar deactivate
+    index layer [0 0 2] Primitive border
+    fun border deactivate
+    index layer [0 0 3] Primitive exitButton
+    fun exitButton deactivate
+    index layer [0 0 4] Primitive maxButton
+    fun maxButton deactivate
+    index layer [0 0 5] Primitive minButton
+    fun minButton deactivate
+    index layer [0 0 0] TextField title
+    fun title deactivate
+    index layer [0 0 0] Collision exitCollision
+    fun exitCollision deactivate
+    index layer [0 0 1] Collision maxCollision
+    fun maxCollision deactivate
+    index layer [0 0 2] Collision minCollision
+    fun minCollision deactivate
+    all Camera _ camera _ cameras
+    find_by_id_2 cameras cameraID camera
+    fun camera set_can_be_grabbed false
+    fun camera set_can_mouse_resize false
+    access cpx [camera.size_x]
+    access cpy [camera.size_y]
     += cpx 10
     += cpy 80
-    index Layer [0 0 0] primitives Background
-    fun Background set_size cpx cpy
-    fun Background update_with_size
+    index Layer [0 0 0] Primitive background
+    fun background set_size cpx cpy
+    fun background update_with_size
 end
 
-start switchFromBorderless()
-    all Layers _ _ _ _ _ _ Layers
-    fun me set_pos 0 0
-    access myLayerID [me.layer_id]
-    find_by_id_2 Layers myLayerID Layer
-    index Layer [0 0 1] primitives Toolbar
-    fun Toolbar activate
-    index Layer [0 0 3] primitives ExitButton
-    fun ExitButton activate
-    index Layer [0 0 4] primitives MaxButton
-    fun MaxButton activate
-    index Layer [0 0 5] primitives MinButton
-    fun MinButton activate
-    index Layer [0 0 0] super_text Title
-    fun Title activate
-    index Layer [0 0 0] collision ExitCollision
-    fun ExitCollision activate
-    index Layer [0 0 1] collision MaxCollision
-    fun MaxCollision activate
-    index Layer [0 0 2] collision MinCollision
-    fun MinCollision activate
-    all Cameras _ camera _ Cameras
-    find_by_id_2 Cameras cameraID Camera
-    fun Camera set_can_be_grabbed true
-    fun Camera set_can_mouse_resize true
-    run revertBorderIfPossible()
+start switchFromborderless()
+    all Layer _ _ _ _ _ _ layers
+    fun self set_pos 0 0
+    access myLayerID [self.layer_id]
+    find_by_id_2 layers myLayerID layer
+    index layer [0 0 1] Primitive toolbar
+    fun toolbar activate
+    index layer [0 0 3] Primitive exitButton
+    fun exitButton activate
+    index layer [0 0 4] Primitive maxButton
+    fun maxButton activate
+    index layer [0 0 5] Primitive minButton
+    fun minButton activate
+    index layer [0 0 0] TextField title
+    fun title activate
+    index layer [0 0 0] Collision exitCollision
+    fun exitCollision activate
+    index layer [0 0 1] Collision maxCollision
+    fun maxCollision activate
+    index layer [0 0 2] Collision minCollision
+    fun minCollision activate
+    all Camera _ camera _ cameras
+    find_by_id_2 cameras cameraID camera
+    fun camera set_can_be_grabbed true
+    fun camera set_can_mouse_resize true
+    run revertborderIfPossible()
 end

@@ -15,26 +15,26 @@ start onInit
     print GAME_MAP_SIZE "\n"
     var MAX_ITEMS 200
 
-    fun me set_can_be_selected false
+    fun self set_can_be_selected false
 
-    new Cameras 1 "Camera" Camera
-    //fun Camera set_active true
-    fun Camera resize SCREEN_W SCREEN_H
-    fun Camera set_zoom 1.0
-    fun Camera set_speed 0
-    fun Camera add_visible_layer "KERNEL"
-    fun Camera add_accessible_layer "KERNEL"
-    fun Camera set_tint 1.0 1.0 1.0 1.0
-    fun Camera set_is_vision_affected_by_mouse false
-    fun Camera set_can_zoom_with_mouse false
-    fun Camera set_can_move_with_keyboard false
-    fun Camera set_can_zoom_with_keyboard false
-    fun Camera set_drawing_borders false
-    fun Camera focus
+    new Camera 1 "Camera" camera
+    //fun camera set_active true
+    fun camera resize SCREEN_W SCREEN_H
+    fun camera set_zoom 1.0
+    fun camera set_speed 0
+    fun camera add_visible_layer "KERNEL"
+    fun camera add_accessible_layer "KERNEL"
+    fun camera set_tint 1.0 1.0 1.0 1.0
+    fun camera set_is_vision_affected_by_mouse false
+    fun camera set_can_zoom_with_mouse false
+    fun camera set_can_move_with_keyboard false
+    fun camera set_can_zoom_with_keyboard false
+    fun camera set_drawing_borders false
+    fun camera focus
 
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
 
-    new STexts me 1 "TextField" TextField
+    new TextField self 1 "TextField" TextField
     fun TextField set_size SCREEN_W SCREEN_H
     fun TextField add_format "cascadia_code" 1
     fun TextField set_last_color 0.8 0.8 0.8 1.0
@@ -55,7 +55,7 @@ end
 //@trigger on_key_press
 @trigger each_iteration
 start eachIteration
-    index me [0 0] super_text TextField
+    index self [0 0] TextField TextField
     startGame()
     drawScene(TextField)
 end
@@ -75,45 +75,45 @@ loop generateItems(int & index)
     ++ index
 end
 
-start drawScene(super_editable_text & TextField)
+start drawScene(EditableText & textField)
     if(gameState == 1)
-    fun TextField set_content "robotfindskitten v1600005.334b\n\n_______________________________________________________________________"
+    fun textField set_content "robotfindskitten v1600005.334b\n\n_______________________________________________________________________"
     int index -1
-    drawItems(TextField, index)
+    drawItems(textField, index)
 after
     print counter "\n"
-    fun TextField set_size SCREEN_W SCREEN_H
-    fun TextField update
+    fun textField set_size SCREEN_W SCREEN_H
+    fun textField update
     stop_timer "fullProgramTimer" seconds
     print "Total time of processing: " seconds "s.\n"
     exit
 end
 
-loop drawItems(super_editable_text & TextField, int & index)
+loop drawItems(EditableText & textField, int & index)
     if(index < GAME_MAP_SIZE)
     ++ index
     int item 0
     bool hit false
-    checkItems(TextField, item, index, hit)
-    addSpace(TextField, hit)
+    checkItems(textField, item, index, hit)
+    addSpace(textField, hit)
 end
 
-loop checkItems(super_editable_text & TextField, int & item, int & index, bool & hit)
+loop checkItems(EditableText & textField, int & item, int & index, bool & hit)
     if(item < MAX_ITEMS)
     index_vec nonKittenPos [0 item] value pos
     ++ counter
     ++ item
-    checkSingleItem(TextField, index, hit, pos)
+    checkSingleItem(textField, index, hit, pos)
 end
 
-start checkSingleItem(super_editable_text & TextField, int & index, bool & hit, int & pos)
+start checkSingleItem(EditableText & textField, int & index, bool & hit, int & pos)
     if(pos == index)
-    fun TextField add_content "X"
+    fun textField add_content "X"
     = hit true
     break
 end
 
-start addSpace(super_editable_text & TextField, bool & hit)
+start addSpace(EditableText & textField, bool & hit)
     if(!hit)
-    fun TextField add_content " "
+    fun textField add_content " "
 end

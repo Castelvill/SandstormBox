@@ -79,7 +79,7 @@ EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "index_vec"){
         return EngineInstr::index_vec;
     }
-    if(instruction == "sum"){
+    if(instruction == "sum_of"){
         return EngineInstr::sum;
     }
     if(instruction == "intersection"){
@@ -193,18 +193,6 @@ EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "string"){
         return EngineInstr::string_i;
     }
-    if(instruction == "bool_vec"){
-        return EngineInstr::bool_vec_i;
-    }
-    if(instruction == "int_vec"){
-        return EngineInstr::int_vec_i;
-    }
-    if(instruction == "double_vec"){
-        return EngineInstr::double_vec_i;
-    }
-    if(instruction == "string_vec"){
-        return EngineInstr::string_vec_i;
-    }
     if(instruction == "random_int"){
         return EngineInstr::rand_int;
     }
@@ -304,7 +292,7 @@ EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "len"){
         return EngineInstr::len;
     }
-    if(instruction == "size"){
+    if(instruction == "sizeof"){
         return EngineInstr::size_i;
     }
     if(instruction == "substr"){
@@ -370,77 +358,41 @@ EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "stop_printing_tokens"){
         return EngineInstr::stop_printing_tokens;
     }
-    if(instruction == "Val"){
+    if(instruction == "val"){
         return EngineInstr::Val;
     }
-    if(instruction == "ValVec"){
-        return EngineInstr::ValVec;
-    }
-    if(instruction == "Pointer"){
+    if(instruction == "ptr"){
         return EngineInstr::Pointer;
-    }
-    if(instruction == "PointerVec"){
-        return EngineInstr::PointerVec;
     }
     if(instruction == "Camera"){
         return EngineInstr::Camera;
     }
-    if(instruction == "CameraVec"){
-        return EngineInstr::CameraVec;
-    }
     if(instruction == "Layer"){
         return EngineInstr::Layer;
-    }
-    if(instruction == "LayerVec"){
-        return EngineInstr::LayerVec;
     }
     if(instruction == "Object"){
         return EngineInstr::Object;
     }
-    if(instruction == "ObjectVec"){
-        return EngineInstr::ObjectVec;
-    }
-    if(instruction == "Var"){
+    if(instruction == "var"){
         return EngineInstr::Var;
     }
-    if(instruction == "VarVec"){
-        return EngineInstr::VarVec;
-    }
-    if(instruction == "Vec"){
+    if(instruction == "vec"){
         return EngineInstr::Vec;
     }
-    if(instruction == "VecVec"){
-        return EngineInstr::VecVec;
-    }
-    if(instruction == "SText"){
+    if(instruction == "TextField"){
         return EngineInstr::SText;
     }
-    if(instruction == "STextVec"){
-        return EngineInstr::STextVec;
-    }
-    if(instruction == "SEditText"){
+    if(instruction == "EditableText"){
         return EngineInstr::SEditText;
-    }
-    if(instruction == "SEditTextVec"){
-        return EngineInstr::SEditTextVec;
     }
     if(instruction == "Image"){
         return EngineInstr::Image;
     }
-    if(instruction == "ImageVec"){
-        return EngineInstr::ImageVec;
-    }
     if(instruction == "Movement"){
         return EngineInstr::Movement;
     }
-    if(instruction == "MovementVec"){
-        return EngineInstr::MovementVec;
-    }
     if(instruction == "Collision"){
         return EngineInstr::Collision;
-    }
-    if(instruction == "CollisionVec"){
-        return EngineInstr::CollisionVec;
     }
     if(instruction == "Particles"){
         return EngineInstr::Particles;
@@ -448,23 +400,32 @@ EngineInstr strToInstr(const string & instruction, bool printError){
     if(instruction == "Event"){
         return EngineInstr::Event;
     }
-    if(instruction == "EventVec"){
-        return EngineInstr::EventVec;
-    }
     if(instruction == "Scrollbar"){
         return EngineInstr::Scrollbar;
-    }
-    if(instruction == "ScrollbarVec"){
-        return EngineInstr::ScrollbarVec;
     }
     if(instruction == "Primitive"){
         return EngineInstr::Primitive;
     }
-    if(instruction == "PrimitiveVec"){
-        return EngineInstr::PrimitiveVec;
-    }
     if(instruction == "any"){
         return EngineInstr::any;
+    }
+    if(instruction == "&"){
+        return EngineInstr::reference_k;
+    }
+    if(instruction == ","){
+        return EngineInstr::comma_k;
+    }
+    if(instruction == "trigger"){
+        return EngineInstr::trigger_k;
+    }
+    if(instruction == "override"){
+        return EngineInstr::override_k;
+    }
+    if(instruction == "Process"){
+        return EngineInstr::process_k;
+    }
+    if(instruction == "context"){
+        return EngineInstr::context_k;
     }
     printError && cerr << "Error: In " << __FUNCTION__ << ": instruction '" << instruction << "' does not exist.\n"; 
     return EngineInstr::null;
@@ -526,7 +487,7 @@ string instrToStr(const EngineInstr & instruction){
         case index_vec:
             return "index_vec";
         case sum:
-            return "sum";
+            return "sum_of";
         case intersection:
             return "intersection";
         case diff:
@@ -602,13 +563,13 @@ string instrToStr(const EngineInstr & instruction){
         case string_i:
             return "string";
         case bool_vec_i:
-            return "bool_vec";
+            return "bool[]";
         case int_vec_i:
-            return "int_vec";
+            return "int[]";
         case double_vec_i:
-            return "double_vec";
+            return "double[]";
         case string_vec_i:
-            return "string_vec";
+            return "string[]";
         case rand_int:
             return "random_int";
         case rand_double:
@@ -676,7 +637,7 @@ string instrToStr(const EngineInstr & instruction){
         case len:
             return "len";
         case size_i:
-            return "size";
+            return "sizeof";
         case substr:
             return "substr";
         case load_font:
@@ -722,69 +683,51 @@ string instrToStr(const EngineInstr & instruction){
         case start_expr:
             return "(";
         case Val:
-            return "Val";
-        case ValVec:
-            return "ValVec";
+            return "val";
         case Pointer:
-            return "Pointer";
-        case PointerVec:
-            return "PointerVec";
+            return "ptr";
         case Camera:
             return "Camera";
-        case CameraVec:
-            return "CameraVec";
         case Layer:
             return "Layer";
-        case LayerVec:
-            return "LayerVec";
         case Object:
             return "Object";
-        case ObjectVec:
-            return "ObjectVec";
         case Var:
-            return "Var";
-        case VarVec:
-            return "VarVec";
+            return "var";
         case Vec:
-            return "Vec";
-        case VecVec:
-            return "VecVec";
+            return "vec";
         case SText:
-            return "SText";
-        case STextVec:
-            return "STextVec";
+            return "TextField";
         case SEditText:
-            return "SEditText";
-        case SEditTextVec:
-            return "SEditTextVec";
+            return "EditableText";
         case Image:
             return "Image";
-        case ImageVec:
-            return "ImageVec";
         case Movement:
             return "Movement";
-        case MovementVec:
-            return "MovementVec";
         case Collision:
             return "Collision";
-        case CollisionVec:
-            return "CollisionVec";
         case Particles:
             return "Particles";
         case Event:
             return "Event";
-        case EventVec:
-            return "EventVec";
         case Scrollbar:
             return "Scrollbar";
-        case ScrollbarVec:
-            return "ScrollbarVec";
         case Primitive:
             return "Primitive";
-        case PrimitiveVec:
-            return "PrimitiveVec";
         case any:
             return "any";
+        case reference_k:
+            return "&";
+        case comma_k:
+            return ",";
+        case trigger_k:
+            return "trigger";
+        case override_k:
+            return "override";
+        case process_k:
+            return "Process";
+        case context_k:
+            return "context";
         default:
             cerr << "Error: In " << __FUNCTION__ << ": EngineInstr with code: '" << instruction 
                 << "' is undefined.\n"; 
@@ -2567,7 +2510,7 @@ string attributeToStr(const AttributeType &attribute){
         case number_of_cameras_a: return "number_of_cameras";
         case number_of_layers_a: return "number_of_layers";
         case number_of_objects_a: return "number_of_objects";
-        case camera_a: return "camera";
+        case camera_a: return "Camera";
         case is_active: return "is_active";
         case id: return "id";
         case pos_x: return "pos_x";
@@ -2655,22 +2598,22 @@ string attributeToStr(const AttributeType &attribute){
         case set_can_mouse_resize: return "set_can_mouse_resize";
         case focus: return "focus";
         case unfocus: return "unfocus";
-        case layer_a: return "layer";
-        case object_a: return "object";
-        case super_text_a: return "super_text";
-        case super_editable_text_a: return "super_editable_text";
-        case image_a: return "image";
-        case movement_a: return "movement";
-        case collision_a: return "collision";
-        case particles_a: return "particles";
-        case event_a: return "event";
-        case variable_a: return "variable";
-        case scrollbar_a: return "scrollbar";
-        case primitives_a: return "primitives";
-        case vector_a: return "vector";
+        case layer_a: return "Layer";
+        case object_a: return "Object";
+        case super_text_a: return "TextField";
+        case super_editable_text_a: return "EditableText";
+        case image_a: return "Image";
+        case movement_a: return "Movement";
+        case collision_a: return "Collision";
+        case particles_a: return "Particles";
+        case event_a: return "Event";
+        case variable_a: return "Variable";
+        case scrollbar_a: return "Scrollbar";
+        case primitives_a: return "Primitive";
+        case vector_a: return "vec";
         case context_a: return "context";
         case memory_address_a: return "memory_address";
-        case literal_a: return "literal";
+        case literal_a: return "val";
         case set_is_active: return "set_is_active";
         case add_group: return "add_group";
         case remove_group: return "remove_group";
@@ -3162,7 +3105,7 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "int") return int_a;
     else if(attribute == "double") return double_a;
     else if(attribute == "string") return string_a;
-    else if(attribute == "camera") return camera_a;
+    else if(attribute == "Camera") return camera_a;
     else if(attribute == "is_active") return is_active;
     else if(attribute == "id") return id;
     else if(attribute == "pos_x") return pos_x;
@@ -3252,22 +3195,22 @@ AttributeType strToAttribute(const string &attribute, string & error){
     else if(attribute == "set_can_mouse_resize") return set_can_mouse_resize;
     else if(attribute == "focus") return focus;
     else if(attribute == "unfocus") return unfocus;
-    else if(attribute == "layer") return layer_a;
-    else if(attribute == "object") return object_a;
-    else if(attribute == "super_text") return super_text_a;
-    else if(attribute == "super_editable_text") return super_editable_text_a;
-    else if(attribute == "image") return image_a;
-    else if(attribute == "movement") return movement_a;
-    else if(attribute == "collision") return collision_a;
-    else if(attribute == "particles") return particles_a;
-    else if(attribute == "event") return event_a;
-    else if(attribute == "variable") return variable_a;
-    else if(attribute == "scrollbar") return scrollbar_a;
-    else if(attribute == "primitives") return primitives_a;
-    else if(attribute == "vector") return vector_a;
+    else if(attribute == "Layer") return layer_a;
+    else if(attribute == "Object") return object_a;
+    else if(attribute == "TextField") return super_text_a;
+    else if(attribute == "EditableText") return super_editable_text_a;
+    else if(attribute == "Image") return image_a;
+    else if(attribute == "Movement") return movement_a;
+    else if(attribute == "Collision") return collision_a;
+    else if(attribute == "Particles") return particles_a;
+    else if(attribute == "Event") return event_a;
+    else if(attribute == "Variable") return variable_a;
+    else if(attribute == "Scrollbar") return scrollbar_a;
+    else if(attribute == "Primitive") return primitives_a;
+    else if(attribute == "vec") return vector_a;
     else if(attribute == "context") return context_a;
     else if(attribute == "memory_address") return memory_address_a;
-    else if(attribute == "literal") return literal_a;
+    else if(attribute == "val") return literal_a;
     else if(attribute == "set_is_active") return set_is_active;
     else if(attribute == "add_group") return add_group;
     else if(attribute == "remove_group") return remove_group;
@@ -3501,4 +3444,43 @@ AttributeType strToAttribute(const string &attribute, string & error){
 AttributeType strToAttribute(const string &attribute){
     string dummyString;
     return strToAttribute(attribute, dummyString);
+}
+
+AttributeType instrToAttribute(const EngineInstr instruction){
+    switch(instruction){
+        case EngineInstr::Camera:
+            return AttributeType::camera_a;
+        case EngineInstr::Layer:
+            return AttributeType::layer_a;
+        case EngineInstr::Object:
+            return AttributeType::object_a;
+        case EngineInstr::SText:
+            return AttributeType::super_text_a;
+        case EngineInstr::SEditText:
+            return AttributeType::super_editable_text_a;
+        case EngineInstr::Image:
+            return AttributeType::image_a;
+        case EngineInstr::Movement:
+            return AttributeType::movement_a;
+        case EngineInstr::Collision:
+            return AttributeType::collision_a;
+        case EngineInstr::Particles:
+            return AttributeType::particles_a;
+        case EngineInstr::Event:
+            return AttributeType::event_a;
+        case EngineInstr::var:
+            return AttributeType::variable_a;
+        case EngineInstr::Scrollbar:
+            return AttributeType::scrollbar_a;
+        case EngineInstr::Primitive:
+            return AttributeType::primitives_a;
+        case EngineInstr::vec:
+            return AttributeType::vector_a;
+        case EngineInstr::context_k:
+            return AttributeType::context_a;
+        case EngineInstr::Val:
+            return AttributeType::literal_a;
+        default:
+            return AttributeType::null_a;
+    }
 }

@@ -4,13 +4,13 @@ start main()
     int windowHeight 480
     create_display windowWidth windowHeight windowWidth windowHeight
 
-    fun me set_size windowWidth windowHeight
+    fun self set_size windowWidth windowHeight
 
-    new Cameras 1 "Camera" Camera
-    fun Camera resize windowWidth windowHeight
-    fun Camera add_visible_layer "KERNEL"
-    fun Camera add_accessible_layer "KERNEL"
-    fun Camera focus
+    new Camera 1 "Camera" camera
+    fun camera resize windowWidth windowHeight
+    fun camera add_visible_layer "KERNEL"
+    fun camera add_accessible_layer "KERNEL"
+    fun camera focus
 
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
 
@@ -27,7 +27,7 @@ start main()
     string text "Lorem Ipsum is simply dummy text of the printing and typesetting industry.\nLorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.\nIt has survived not only five centuries,\nbut also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
 
     //Basic setup
-    new SEditTexts me 1 "edi" textField
+    new EditableText self 1 "edi" textField
     fun textField set_size windowWidth windowHeight
     fun textField set_wrapping "w"
     fun textField set_input_delay 0.3

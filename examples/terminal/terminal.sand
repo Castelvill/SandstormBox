@@ -37,28 +37,28 @@ start buildTerminal()
     access ww [display_w]
     access wh [display_h]
 
-    new Cameras 1 "Desktop" Cam
-    fun Cam set_active true
-    fun Cam resize ww wh
-    fun Cam set_zoom 1.0
-    fun Cam set_speed 20
-    fun Cam set_key_zoom_in 15
-    fun Cam set_key_zoom_out 21
-    fun Cam set_zoom_increase 0.02
-    fun Cam add_visible_layer "KERNEL"
-    fun Cam add_accessible_layer "KERNEL"
-    fun Cam set_tint 1.0 1.0 1.0 1.0
-    fun Cam set_is_vision_affected_by_mouse false
-    fun Cam set_can_zoom_with_mouse false
-    fun Cam set_can_move_with_keyboard false
-    fun Cam set_can_zoom_with_keyboard false
-    fun Cam set_drawing_borders false
-    fun Cam focus
+    new Camera 1 "Desktop" camera
+    fun camera set_active true
+    fun camera resize ww wh
+    fun camera set_zoom 1.0
+    fun camera set_speed 20
+    fun camera set_key_zoom_in 15
+    fun camera set_key_zoom_out 21
+    fun camera set_zoom_increase 0.02
+    fun camera add_visible_layer "KERNEL"
+    fun camera add_accessible_layer "KERNEL"
+    fun camera set_tint 1.0 1.0 1.0 1.0
+    fun camera set_is_vision_affected_by_mouse false
+    fun camera set_can_zoom_with_mouse false
+    fun camera set_can_move_with_keyboard false
+    fun camera set_can_zoom_with_keyboard false
+    fun camera set_drawing_borders false
+    fun camera focus
 
-    //fun Cam set_can_edit_text false
-    fun Cam set_can_move_objects false
+    //fun camera set_can_edit_text false
+    fun camera set_can_move_objects false
 
-    new Images me 1 "background" background
+    new Image self 1 "background" background
     fun background connect_bitmap_via_alias "background"
     fun background resize ww wh
     fun background set_color 0.3 0.3 0.3 0.6
@@ -80,33 +80,33 @@ start buildTerminal()
     var colorGoldB 0.0
     var colorGoldA 1.0
 
-    int_vec editableTextPos [0 0]
+    int[] editableTextPos [0 0]
 
-    new SEditTexts me 1 "edi" TerminalTextField
-    fun TerminalTextField set_pos editableTextPos
-    fun TerminalTextField set_size ww wh
-    //fun TerminalTextField set_size 884 480
-    fun TerminalTextField add_format "cascadia_code" 1
-    fun TerminalTextField set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
-    fun TerminalTextField set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
-    //fun TerminalTextField set_last_background_color_drawing true
-    //fun TerminalTextField set_last_background_color 0.0 0.0 1.0 1.0
-    fun TerminalTextField set_wrapping "w"
-    fun TerminalTextField set_can_be_edited true
-    fun TerminalTextField set_can_use_space true
-    fun TerminalTextField set_content "Welcome in the SandstormBox terminal!"
-    fun TerminalTextField set_input_delay 0.3
-    fun TerminalTextField set_repetition_delay 0.05
-    fun TerminalTextField set_can_use_tabs false
-    fun TerminalTextField set_can_use_enter false
-    fun TerminalTextField set_protected_area 37
-    fun TerminalTextField set_ignore_vertical_arrows true
-    fun TerminalTextField set_can_copy_format true
-    fun TerminalTextField start_editing
-    //fun TerminalTextField set_last_background_color 0.5 0.5 0.5 1.0
-    //fun TerminalTextField set_last_background_color_drawing false
+    new EditableText self 1 "edi" terminalTextField
+    fun terminalTextField set_pos editableTextPos
+    fun terminalTextField set_size ww wh
+    //fun terminalTextField set_size 884 480
+    fun terminalTextField add_format "cascadia_code" 1
+    fun terminalTextField set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
+    fun terminalTextField set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
+    //fun terminalTextField set_last_background_color_drawing true
+    //fun terminalTextField set_last_background_color 0.0 0.0 1.0 1.0
+    fun terminalTextField set_wrapping "w"
+    fun terminalTextField set_can_be_edited true
+    fun terminalTextField set_can_use_space true
+    fun terminalTextField set_content "Welcome in the SandstormBox terminal!"
+    fun terminalTextField set_input_delay 0.3
+    fun terminalTextField set_repetition_delay 0.05
+    fun terminalTextField set_can_use_tabs false
+    fun terminalTextField set_can_use_enter false
+    fun terminalTextField set_protected_area 37
+    fun terminalTextField set_ignore_vertical_arrows true
+    fun terminalTextField set_can_copy_format true
+    fun terminalTextField start_editing
+    //fun terminalTextField set_last_background_color 0.5 0.5 0.5 1.0
+    //fun terminalTextField set_last_background_color_drawing false
 
-    new Images me 1 "thumb" thumb
+    new Image self 1 "thumb" thumb
     fun thumb deactivate
     fun thumb set_pos 2 2
     fun thumb set_size 16 16
@@ -114,14 +114,14 @@ start buildTerminal()
     fun thumb connect_bitmap_via_alias "sand_thumb"
     fun thumb disable_scrolling
 
-    new Images me 1 "thumb_track" thumbTrack
+    new Image self 1 "thumb_track" thumbTrack
     fun thumbTrack deactivate
     fun thumbTrack set_size 100 500
     fun thumbTrack resize 16 480
     fun thumbTrack connect_bitmap_via_alias "sand_thumb_track"
     fun thumbTrack disable_scrolling
 
-    new Scrollbars me 1 "MainScrollbar" MainScrollbar
+    new Scrollbar self 1 "MainScrollbar" MainScrollbar
     fun MainScrollbar disable_scrolling
     //fun MainScrollbar deactivate
     fun MainScrollbar set_can_be_drawn true
@@ -135,36 +135,36 @@ start buildTerminal()
     fun MainScrollbar set_mouse_wheel_speed 40.0
     fun MainScrollbar add_camera "Desktop"
 
-    setupTextEditor(TerminalTextField)
+    setupTextEditor(terminalTextField)
 
-    /*new Particles me 1 "Particles" Particles
-    fun Particles set_pos 200 200
-    fun Particles set_size 10 10
-    fun Particles deactivate
-    fun Particles set_block_spawning true
-    fun Particles spawn_on_key_release false
-    fun Particles set_spawn_rate 100 100
-    fun Particles set_spawn_cap 500
-    fun Particles set_max_time_to_spawn 0.05
-    fun Particles set_basic_speed 0.1 1.0
-    fun Particles set_speed 0.1 1.0
-    fun Particles set_environment 0.0 0.0
-    fun Particles set_environment_speed 0.0 0.0
-    fun Particles set_acceleration 0.0 0.0
-    fun Particles set_mass 0.4 0.7
-    fun Particles set_directional_degree 0.0 360.0
-    fun Particles set_rotation_speed 0.0 0.0
-    fun Particles set_time_to_negate_rotation 0.0 0.0
-    fun Particles set_radius 1.0 1.0
-    fun Particles set_time_to_death 0.2 0.2
-    fun Particles set_color_intensity 0.8 1.0
-    fun Particles set_shape_rotation_speed -2.0 2.0
-    fun Particles set_shape 0
-    fun Particles set_use_images false
-    fun Particles set_drawing_details false
-    fun Particles set_is_static false*/
-    //fun Particles bind_key "p"
-    //fun Particles add_image "insane"
+    /*new Particles self 1 "Particles" particles
+    fun particles set_pos 200 200
+    fun particles set_size 10 10
+    fun particles deactivate
+    fun particles set_block_spawning true
+    fun particles spawn_on_key_release false
+    fun particles set_spawn_rate 100 100
+    fun particles set_spawn_cap 500
+    fun particles set_max_time_to_spawn 0.05
+    fun particles set_basic_speed 0.1 1.0
+    fun particles set_speed 0.1 1.0
+    fun particles set_environment 0.0 0.0
+    fun particles set_environment_speed 0.0 0.0
+    fun particles set_acceleration 0.0 0.0
+    fun particles set_mass 0.4 0.7
+    fun particles set_directional_degree 0.0 360.0
+    fun particles set_rotation_speed 0.0 0.0
+    fun particles set_time_to_negate_rotation 0.0 0.0
+    fun particles set_radius 1.0 1.0
+    fun particles set_time_to_death 0.2 0.2
+    fun particles set_color_intensity 0.8 1.0
+    fun particles set_shape_rotation_speed -2.0 2.0
+    fun particles set_shape 0
+    fun particles set_use_images false
+    fun particles set_drawing_details false
+    fun particles set_is_static false*/
+    //fun particles bind_key "p"
+    //fun particles add_image "insane"
     
 
     var program "_enter"
@@ -240,7 +240,7 @@ start onMousePressing()
     if (program != "edit" || !mouse_pressing(0))
         return
     end
-    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text editorTextField
+    index self [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] EditableText editorTextField
     selectTextWithMouse(editorTextField)
     refreshLineNumbering(editorTextField)
 end
@@ -273,7 +273,7 @@ start loadCommandHistory(string & fileName)
         return
     end
     load_text fileName loadedText
-    ValVec loadedTextTokenized
+    val[] loadedTextTokenized
     tokenize "\n" loadedText loadedTextTokenized
     fun commandHistory clear
     fun commandHistory push_back loadedTextTokenized
@@ -287,89 +287,89 @@ start spawnParticles()
     //@trigger each_iteration
     //@trigger on_key_pressing
     //if ([any_key_pressing])
-    /*index me [0 0] particles Particles
-    index me [0 1] super_editable_text TextField
-    access cursorPos [TextField.cursor_pos_x TextField.cursor_pos_y]
-    index me [0 1] scrollbar Scrollbar
+    /*index self [0 0] Particles particles
+    index self [0 1] EditableText textField
+    access cursorPos [textField.cursor_pos_x textField.cursor_pos_y]
+    index self [0 1] Scrollbar Scrollbar
     access scrollShift [Scrollbar.scroll_shift_x Scrollbar.scroll_shift_y]
     -= cursorPos scrollShift
-    fun Particles set_pos cursorPos
-    fun Particles allow_spawning*/
+    fun particles set_pos cursorPos
+    fun particles allow_spawning*/
 end
 
 
 start createWindowTemplate()
-    new Layers 1 "WindowLayer" WindowLayer
-    fun WindowLayer deactivate
-    access newLayerID [WindowLayer.id]
+    new Layer 1 "windowLayer" windowLayer
+    fun windowLayer deactivate
+    access newLayerID [windowLayer.id]
 
-    new Cameras 1 "WindowCamera" WindowCamera
-    fun WindowCamera set_pos 0 0
-    fun WindowCamera set_active true
-    fun WindowCamera resize 640 480
-    fun WindowCamera set_zoom 1.0
-    fun WindowCamera set_speed 20
-    fun WindowCamera set_key_zoom_in 15
-    fun WindowCamera set_key_zoom_out 21
-    fun WindowCamera set_zoom_increase 0.02
-    fun WindowCamera bind_keys 15 21 13 9 12 11 10
-    fun WindowCamera set_tint 1.0 1.0 1.0 1.0
-    fun WindowCamera set_drawing_borders false
-    fun WindowCamera set_can_be_modified_by_mouse true
-    fun WindowCamera set_is_vision_affected_by_mouse true
-    //fun WindowCamera add_visible_layer "WindowLayer"
-    //fun WindowCamera add_accessible_layer "WindowLayer"
-    fun WindowCamera set_grabbing_area_size 540 50
-    fun WindowCamera pin_to_camera "Desktop"
-    fun WindowCamera activate_pin
-    fun WindowCamera set_min_size 300 34
-    fun WindowCamera set_keep_inside_screen false
-    fun WindowCamera deactivate
-    fun WindowCamera forbid_drawing_object_borders
+    new Camera 1 "windowCamera" windowCamera
+    fun windowCamera set_pos 0 0
+    fun windowCamera set_active true
+    fun windowCamera resize 640 480
+    fun windowCamera set_zoom 1.0
+    fun windowCamera set_speed 20
+    fun windowCamera set_key_zoom_in 15
+    fun windowCamera set_key_zoom_out 21
+    fun windowCamera set_zoom_increase 0.02
+    fun windowCamera bind_keys 15 21 13 9 12 11 10
+    fun windowCamera set_tint 1.0 1.0 1.0 1.0
+    fun windowCamera set_drawing_borders false
+    fun windowCamera set_can_be_modified_by_mouse true
+    fun windowCamera set_is_vision_affected_by_mouse true
+    //fun windowCamera add_visible_layer "windowLayer"
+    //fun windowCamera add_accessible_layer "windowLayer"
+    fun windowCamera set_grabbing_area_size 540 50
+    fun windowCamera pin_to_camera "Desktop"
+    fun windowCamera activate_pin
+    fun windowCamera set_min_size 300 34
+    fun windowCamera set_keep_inside_screen false
+    fun windowCamera deactivate
+    fun windowCamera forbid_drawing_object_borders
 
-    new Objects WindowLayer 1 "WindowObject" NewWindowObject
-    //fun NewWindowObject set_can_be_selected true
-    fun NewWindowObject disable_scrolling
-    fun NewWindowObject set_can_be_moved_with_mouse false
+    new Object windowLayer 1 "WindowObject" newWindowObject
+    //fun newWindowObject set_can_be_selected true
+    fun newWindowObject disable_scrolling
+    fun newWindowObject set_can_be_moved_with_mouse false
     
-    new Variables NewWindowObject 1 "cameraID" objectsCameraID
-    fun objectsCameraID set_string "WindowCamera"
+    new var newWindowObject 1 "cameraID" objectsCameraID
+    fun objectsCameraID set_string "windowCamera"
 
-    new Variables NewWindowObject 1 "isMaxed" isMaxed
+    new var newWindowObject 1 "isMaxed" isMaxed
     fun isMaxed set_bool false
-    new Variables NewWindowObject 1 "sizeX" sizeX
+    new var newWindowObject 1 "sizeX" sizeX
     fun sizeX set_double 640
-    new Variables NewWindowObject 1 "sizeY" sizeY
+    new var newWindowObject 1 "sizeY" sizeY
     fun sizeY set_double 480
-    new Variables NewWindowObject 1 "posX" posX
+    new var newWindowObject 1 "posX" posX
     fun posX set_double 0.0
-    new Variables NewWindowObject 1 "posY" posY
+    new var newWindowObject 1 "posY" posY
     fun posY set_double 0
-    new Variables NewWindowObject 1 "isBorderless" isBorderless
+    new var newWindowObject 1 "isBorderless" isBorderless
     fun isBorderless set_bool false
 
-    new Variables NewWindowObject 1 "delete" newVal
+    new var newWindowObject 1 "removeWindow" newVal
     fun newVal set_bool false
 
-    new Variables NewWindowObject 1 "has_friends" newVal
+    new var newWindowObject 1 "has_friends" newVal
     fun newVal set_bool false
 
-    new Variables NewWindowObject 1 "deleted_friends" newVal
+    new var newWindowObject 1 "deleted_friends" newVal
     fun newVal set_bool false
 
-    new Primitives NewWindowObject 1 "background" border1
+    new Primitive newWindowObject 1 "background" border1
     fun border1 create "filled_rectangle"
     fun border1 set_color 0.0 0.0 0.0 1.0
     fun border1 set_size 640 480
     fun border1 update_with_size
 
-    new Primitives NewWindowObject 1 "toolbar" border2
+    new Primitive newWindowObject 1 "toolbar" border2
     clone border2 border1 false
     fun border2 set_color 0.109 0.537 0.2039 1.0
     fun border2 set_size 640 30
     fun border2 update_with_size
 
-    new Primitives NewWindowObject 1 "border" border3
+    new Primitive newWindowObject 1 "border" border3
     clone border3 border1 false
     fun border3 set_type "rectangle"
     fun border3 set_color 0.109 0.537 0.2039 1.0
@@ -378,39 +378,39 @@ start createWindowTemplate()
     fun border3 set_thickness 5.0
     fun border3 update_with_size
 
-    new Primitives NewWindowObject 1 "exitButton" exitButton
+    new Primitive newWindowObject 1 "exitButton" exitButton
     fun exitButton create "filled_circle"
     fun exitButton set_color 1.0 0.0 0.0 1.0
     fun exitButton set_pos 620 15
     fun exitButton set_size 20 20
     fun exitButton update_with_size
 
-    new Collisions NewWindowObject 1 "ExitCollision" ExitCollision
-    fun ExitCollision set_pos 620 15
-    fun ExitCollision set_size 10 10
-    fun ExitCollision set_is_circle true
+    new Collision newWindowObject 1 "exitCollision" exitCollision
+    fun exitCollision set_pos 620 15
+    fun exitCollision set_size 10 10
+    fun exitCollision set_is_circle true
 
-    new Primitives NewWindowObject 1 "MaxButton" MaxButton
-    clone MaxButton exitButton false
-    fun MaxButton set_pos 590 15
-    fun MaxButton set_color 1.0 1.0 0.0 1.0
+    new Primitive newWindowObject 1 "maxButton" maxButton
+    clone maxButton exitButton false
+    fun maxButton set_pos 590 15
+    fun maxButton set_color 1.0 1.0 0.0 1.0
 
-    new Collisions NewWindowObject 1 "MaxCollision" MaxCollision
-    fun MaxCollision set_pos 590 15
-    fun MaxCollision set_size 10 10
-    fun MaxCollision set_is_circle true
+    new Collision newWindowObject 1 "maxCollision" maxCollision
+    fun maxCollision set_pos 590 15
+    fun maxCollision set_size 10 10
+    fun maxCollision set_is_circle true
 
-    new Primitives NewWindowObject 1 "minimizeButton" minimizeButton
+    new Primitive newWindowObject 1 "minimizeButton" minimizeButton
     clone minimizeButton exitButton false
     fun minimizeButton set_pos 560 15
     fun minimizeButton set_color 0.0 1.0 0.0 1.0
 
-    new Collisions NewWindowObject 1 "MinCollision" MinCollision
-    fun MinCollision set_pos 560 15
-    fun MinCollision set_size 10 10
-    fun MinCollision set_is_circle true
+    new Collision newWindowObject 1 "minCollision" minCollision
+    fun minCollision set_pos 560 15
+    fun minCollision set_size 10 10
+    fun minCollision set_is_circle true
 
-    new STexts NewWindowObject 1 "title" title
+    new TextField newWindowObject 1 "title" title
     fun title set_pos 10 2
     fun title set_size 400 50
     fun title add_format "cascadia_code_bold" 8
@@ -421,113 +421,114 @@ start createWindowTemplate()
 
     //In this situation, window_template.sand script uses variables that should be already defined.
     //For this reason we have to first define them all here and only then build the script. 
-    bind NewWindowObject ["examples/terminal/window_template.sand"]
-    build NewWindowObject true
+    bind newWindowObject ["examples/terminal/window_template.sand"]
+    build newWindowObject true
 end
 
 
 start nw()
-    Camera NewCamera
-    Layer NewLayer
-    spawnNewWindow(NewCamera, NewLayer)
+    Camera newCamera
+    Layer newLayer
+    spawnNewWindow(newCamera, newLayer)
 end
 
-start spawnNewWindow(Camera & NewWindowCamera, Layer & NewWindowLayer)
-    all Cameras _ camera _ Cameras
-    find_by_id_2 Cameras "WindowCamera" TemplateCamera
-    all Layers _ _ _ _ _ _ Layers
-    Layer TemplateLayer
-    find_by_id_2 Layers "WindowLayer" TemplateLayer
+start spawnNewWindow(Camera & newWindowCamera, Layer & newWindowLayer)
+    all Camera _ camera _ cameras
+    find_by_id_2 cameras "windowCamera" templateCamera
+    all Layer _ _ _ _ _ _ layers
+    Layer templateLayer
+    find_by_id_2 layers "windowLayer" templateLayer
 
-    new Layers 1 param1 NewWindowLayer
-    clone NewWindowLayer TemplateLayer false
-    access newLayerID [NewWindowLayer.id]
-    fun NewWindowLayer activate
+    new Layer 1 param1 newWindowLayer
+    clone newWindowLayer templateLayer false
+    access newLayerID [newWindowLayer.id]
+    fun newWindowLayer activate
 
-    index NewWindowLayer [0 0 0] super_text Title
-    fun Title set_content param1
-    fun Title update
+    index newWindowLayer [0 0 0] TextField title
+    fun title set_content param1
+    fun title update
 
-    new Cameras 1 param1 NewWindowCamera
-    clone NewWindowCamera TemplateCamera false
-    access newCameraID [NewWindowCamera.id]
-    fun NewWindowCamera activate
-    fun NewWindowCamera add_visible_layer newLayerID
-    fun NewWindowCamera add_accessible_layer newLayerID
-    fun NewWindowCamera set_drawing_borders false
-    index NewWindowLayer [0 0 0] variable objectsCameraID
+    new Camera 1 param1 newWindowCamera
+    clone newWindowCamera templateCamera false
+    access newCameraID [newWindowCamera.id]
+    fun newWindowCamera activate
+    fun newWindowCamera add_visible_layer newLayerID
+    fun newWindowCamera add_accessible_layer newLayerID
+    fun newWindowCamera set_drawing_borders false
+    index newWindowLayer [0 0 0] var objectsCameraID
     = objectsCameraID newCameraID
     = program ""
 end
 
 
 start note()
-    Layer NewWindowLayer
-    Camera NewWindowCamera
+    Layer newWindowLayer
+    Camera newWindowCamera
     string fileName ""
     = fileName param1
     = param1 "Note"
-    spawnNewWindow(NewWindowCamera, NewWindowLayer)
-    spawnNotepad(NewWindowLayer, fileName)
+    spawnNewWindow(newWindowCamera, newWindowLayer)
+    spawnNotepad(newWindowLayer, fileName)
 end
-start spawnNotepad(Layer & NewWindowLayer, string & fileName)
-    index me [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] super_editable_text Editable
-    index NewWindowLayer [0 0] object Object
-    index NewWindowLayer [0 0 0] primitives Background
-    fun Background set_color 0.0 0.0 0.0 1.0
-    new SEditTexts Object 1 "Notepad" TextEditor
-    clone TextEditor Editable false
-    fun TextEditor set_pos 5 30
-    fun TextEditor set_size 640 480
-    fun TextEditor set_color 0 1.0 0.0 0.0 1.0
-    fun TextEditor set_wrapping "w"
-    fun TextEditor set_content ""
-    fun TextEditor activate
-    fun Object set_size 640 480
+start spawnNotepad(Layer & newWindowLayer, string & fileName)
+    index self [EDITOR_OBJ_IDX EDITOR_TEXT_FIELD_IDX] EditableText editable
+    index newWindowLayer [0 0] Object object
+    index newWindowLayer [0 0 0] Primitive background
+    fun background set_color 0.0 0.0 0.0 1.0
+    new EditableText object 1 "Notepad" textEditor
+    clone textEditor editable false
+    fun textEditor set_pos 5 30
+    fun textEditor set_size 640 480
+    fun textEditor set_color 0 1.0 0.0 0.0 1.0
+    fun textEditor set_wrapping "w"
+    fun textEditor set_content ""
+    fun textEditor activate
+    fun object set_size 640 480
     
-    load_build Object ["examples/terminal/notepad.sand"]
-    loadTextFromFile(TextEditor, fileName)
+    load_build object ["examples/terminal/notepad.sand"]
+    loadTextFromFile(textEditor, fileName)
 end
 
 
 start mover()
-    Camera NewWindowCamera
-    Layer NewWindowLayer
+    Camera newWindowCamera
+    Layer newWindowLayer
     string selectedLayerID ""
     = selectedLayerID param1
     = param1 "Mover"
-    spawnNewWindow(NewWindowCamera, NewWindowLayer)
-    spawnMover(NewWindowCamera, NewWindowLayer, selectedLayerID)
+    spawnNewWindow(newWindowCamera, newWindowLayer)
+    spawnMover(newWindowCamera, newWindowLayer, selectedLayerID)
 end
-start spawnMover(Camera & NewWindowCamera, Layer & NewWindowLayer, string & selectedLayerID)
-    index NewWindowLayer [0 0] object NewObject
-    first NewObject _ _ Variables has_friends bool _ has_friends
+start spawnMover(Camera & newWindowCamera, Layer & newWindowLayer, string & selectedLayerID)
+    index newWindowLayer [0 0] Object newObject
+    first newObject _ _ var has_friends bool _ has_friends
     = has_friends true
-    index NewWindowLayer [0 0 0] primitives Background
-    fun Background set_color 0.0 0.0 0.0 1.0
-    //access selectedLayerID [my_layer.id]
-    access windowCameraID [NewWindowCamera.id]
-    new Cameras 1 "insideCamera" InsideCamera
-    fun InsideCamera activate
-    fun InsideCamera add_visible_layer selectedLayerID
-    fun InsideCamera add_accessible_layer selectedLayerID
-    fun InsideCamera pin_to_camera windowCameraID
-    fun InsideCamera activate_pin
-    fun InsideCamera set_relative_position 5 30
-    fun InsideCamera resize 630 440
-    //fun InsideCamera set_can_move_objects true
-    fun InsideCamera set_can_edit_text false
-    fun InsideCamera set_min_size 0 0
-    fun InsideCamera allow_drawing_object_borders 
+    
+    index newWindowLayer [0 0 0] Primitive background
+    fun background set_color 0.0 0.0 0.0 1.0
+    //access selectedLayerID [self_layer.id]
+    access windowCameraID [newWindowCamera.id]
+    new Camera 1 "insideCamera" insideCamera
+    fun insideCamera activate
+    fun insideCamera add_visible_layer selectedLayerID
+    fun insideCamera add_accessible_layer selectedLayerID
+    fun insideCamera pin_to_camera windowCameraID
+    fun insideCamera activate_pin
+    fun insideCamera set_relative_position 5 30
+    fun insideCamera resize 630 440
+    //fun insideCamera set_can_move_objects true
+    fun insideCamera set_can_edit_text false
+    fun insideCamera set_min_size 0 0
+    fun insideCamera allow_drawing_object_borders 
 
-    access newCameraID [InsideCamera.id]
+    access newCameraID [insideCamera.id]
 
-    new Variables NewObject 1 "insideCameraID" cameraID
+    new var newObject 1 "insideCameraID" cameraID
     fun cameraID set_string newCameraID
 
-    //bind NewObject ["examples/terminal/mover.sand"]
-    //build_subset NewObject false
-    load_build NewObject ["examples/terminal/mover.sand"]
+    //bind newObject ["examples/terminal/mover.sand"]
+    //build_subset newObject false
+    load_build newObject ["examples/terminal/mover.sand"]
 end
 
 
@@ -543,37 +544,37 @@ start autoComplete()
     if (!key_pressed(KEY_TAB) || program != "sleep")
         return
     end
-    index Cameras [0] camera Camera
-    if (!Camera.is_selected)
+    index Camera [0] Camera camera
+    if (!camera.is_selected)
         return
     end
 
-    index me [0 0] super_editable_text EditableText
+    index self [0 0] EditableText editableText
     string userInput ""
-    access userInput [EditableText.content]
+    access userInput [editableText.content]
     int userInputSize 0
     len userInput userInputSize
-    fun EditableText set_cursor_pos userInputSize
+    fun editableText set_cursor_pos userInputSize
 
-    fun EditableText set_last_color 1.0 0.8 0.0 1.0
-    fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
+    fun editableText set_last_color 1.0 0.8 0.0 1.0
+    fun editableText set_last_accent_color 0.0 0.0 0.0 1.0
 
     int protectedArea 0
-    access protectedArea [EditableText.protected_area]
+    access protectedArea [editableText.protected_area]
     substr userInput protectedArea userInputSize command
-    ValVec params
+    val[] params
     tokenize " " command params
     autoCompleteProgramsOrFiles(params, command)
 end
 
-start autoCompleteFiles(string & command, ValVec & params)
+start autoCompleteFiles(string & command, val[] & params)
     access lastParameter [params.back]
     count "/" lastParameter depth
     ++ depth
     ls "" files true depth
-    ValVec filesTokenized
+    val[] filesTokenized
     tokenize " " files filesTokenized
-    ValVec completes
+    val[] completes
     similar lastParameter filesTokenized false completes
     similar lastParameter filesTokenized true commonPart
     string result "\n"
@@ -586,10 +587,10 @@ start autoCompleteFiles(string & command, ValVec & params)
     replaceWithAutoComplete(command, params, completes, commonPart, lastParameter)
 end
 
-start autoCompleteProgramsOrFiles(ValVec & params, string & command)
+start autoCompleteProgramsOrFiles(val[] & params, string & command)
     if(params.size == 1)
         //Auto complete programs
-        ValVec completes
+        val[] completes
         similar command allowedPrograms false completes
         similar command allowedPrograms true commonPart
         string lastParameter ""
@@ -605,19 +606,19 @@ start autoCompleteProgramsOrFiles(ValVec & params, string & command)
     end
 end
 
-start replaceWithAutoComplete(string & command, ValVec & params, ValVec & completes, string & commonPart, string & lastParameter)
-    index me [0 0] super_editable_text EditableText
+start replaceWithAutoComplete(string & command, val[] & params, val[] & completes, string & commonPart, string & lastParameter)
+    index self [0 0] EditableText editableText
     if (completes.size == 1)
-        fun EditableText cut_unprotected_area
+        fun editableText cut_unprotected_area
         fun params pop_back
         fun params push_back completes
         print_v autocompletedText " " params
         //index completes [0] value instance
-        fun EditableText add_content autocompletedText
-        //fun EditableText update
-        access history [EditableText.content]
+        fun editableText add_content autocompletedText
+        //fun editableText update
+        access history [editableText.content]
         len history historySize
-        fun EditableText set_cursor_pos historySize
+        fun editableText set_cursor_pos historySize
     else_if(completes.size > 0)
         int i 0
         string result "\n"
@@ -631,7 +632,7 @@ start replaceWithAutoComplete(string & command, ValVec & params, ValVec & comple
         cout(result)
         printPrompt()
         addCommonPartToCommand(command, completes, commonPart, lastParameter)
-        rewriteLastCommand(command, EditableText)
+        rewriteLastCommand(command, editableText)
         //run updateTerminal()
     end
 end
@@ -646,16 +647,16 @@ end
 
 start printPrompt()
     string result ""
-    index me [0 0] super_editable_text EditableText
-    fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
-    fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
+    index self [0 0] EditableText editableText
+    fun editableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
+    fun editableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     string result ""
     createPrompt(result)
     cout(result)
-    colorNormalText(EditableText)
+    colorNormalText(editableText)
 end
 
-start addCommonPartToCommand(string & command, ValVec & completes, string & commonPart, string & lastParameter)
+start addCommonPartToCommand(string & command, val[] & completes, string & commonPart, string & lastParameter)
     if(completes.size > 0)
         len lastParameter lastParameterLength
         len commonPart commonPartLength
@@ -665,12 +666,12 @@ start addCommonPartToCommand(string & command, ValVec & completes, string & comm
     end
 end
 
-start rewriteLastCommand(string & command, SEditText & EditableText)
-    fun EditableText add_content command
-    //fun EditableText update
-    access history [EditableText.content]
+start rewriteLastCommand(string & command, EditableText & editableText)
+    fun editableText add_content command
+    //fun editableText update
+    access history [editableText.content]
     len history historySize
-    fun EditableText set_cursor_pos historySize
+    fun editableText set_cursor_pos historySize
 end
 
 @trigger each_iteration
@@ -678,21 +679,21 @@ start controler()
     if (program != "")
         return
     end
-    index me [0 0] super_editable_text EditableText
-    fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
-    fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
+    index self [0 0] EditableText editableText
+    fun editableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
+    fun editableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
     string result ""
     createPrompt(result)
     cout(result)
-    colorNormalText(EditableText)
+    colorNormalText(editableText)
 end
 
 
 start clearOnShortcut()
     if (program == "sleep" && key_pressed(KEY_LCTRL) && key_pressed(KEY_L))
-        index Cameras [0] camera Camera
-        if (Camera.is_selected)
+        index Camera [0] Camera camera
+        if (camera.is_selected)
             cls()
         end
     end
@@ -703,20 +704,20 @@ start controlerWithEnter()
     if (program != "_enter")
         return
     end
-    index me [0 0] super_editable_text EditableText
-    fun EditableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
-    fun EditableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
+    index self [0 0] EditableText editableText
+    fun editableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
+    fun editableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
     string result "\n"
     createPrompt(result)
     cout(result)
-    colorNormalText(EditableText)
+    colorNormalText(editableText)
     updateTerminal()
 end
 
-start colorNormalText(SEditText & EditableText)
-    fun EditableText set_last_color 0.86 0.85 0.86 1.0
-    fun EditableText set_last_accent_color 0.0 0.0 0.0 1.0
+start colorNormalText(EditableText & editableText)
+    fun editableText set_last_color 0.86 0.85 0.86 1.0
+    fun editableText set_last_accent_color 0.0 0.0 0.0 1.0
     string result " "
     printOnTerminal(result)
 end
@@ -750,19 +751,19 @@ start adjustTerminalToDisplay()
     access windowWidth [display_w]
     access windowHeight [display_h]
     
-    index Cameras [0] camera Cam0
+    index Camera [0] Camera Cam0
     fun Cam0 resize windowWidth windowHeight
-    index me [0 0] image background
+    index self [0 0] Image background
     fun background resize windowWidth windowHeight
 
-    index me [0 0] super_editable_text TerminalTextField
-    access TerminalSizeY [TerminalTextField.size_y]
-    fun TerminalTextField set_size windowWidth TerminalSizeY
-    fun TerminalTextField update
-    fun TerminalTextField crop_height_to_text
-    access TerminalSizeY [TerminalTextField.size_y]
-    if(TerminalSizeY < windowHeight)
-        fun TerminalTextField set_size windowWidth windowHeight
+    index self [0 0] EditableText terminalTextField
+    access terminalSizeY [terminalTextField.size_y]
+    fun terminalTextField set_size windowWidth terminalSizeY
+    fun terminalTextField update
+    fun terminalTextField crop_height_to_text
+    access terminalSizeY [terminalTextField.size_y]
+    if(terminalSizeY < windowHeight)
+        fun terminalTextField set_size windowWidth windowHeight
     end
     
     refreshScrollbar()
@@ -785,45 +786,45 @@ start refresh()
 end
 
 start refreshScrollbar()
-    index me [0 0] super_editable_text TerminalTextField
-    access TerminalSizeY [TerminalTextField.size_y]
+    index self [0 0] EditableText terminalTextField
+    access terminalSizeY [terminalTextField.size_y]
     access h [display_h]
-    -= TerminalSizeY h
+    -= terminalSizeY h
 
     = scrollbarHeight h
-    index me [0 0] scrollbar MainScrollbar
+    index self [0 0] Scrollbar mainScrollbar
     access windowW [display_w]
     int scrollbarWidth 16
     -= windowW scrollbarWidth
-    fun MainScrollbar set_pos windowW 0
-    fun MainScrollbar resize scrollbarWidth h
+    fun mainScrollbar set_pos windowW 0
+    fun mainScrollbar resize scrollbarWidth h
     int thumbWidth 12
-    fun MainScrollbar set_scrolling_area thumbWidth h
-    fun MainScrollbar set_thumb_size thumbWidth h
+    fun mainScrollbar set_scrolling_area thumbWidth h
+    fun mainScrollbar set_thumb_size thumbWidth h
 
-    all me _ _ Images _ _ _ AllImages
-    find_by_id_2 AllImages "thumb_track" TrackImage
-    fun TrackImage resize scrollbarWidth h
-    fun me update_scrollbars
+    all self _ _ Image _ _ _ allImages
+    find_by_id_2 allImages "thumb_track" trackImage
+    fun trackImage resize scrollbarWidth h
+    fun self update_scrollbars
 
-    refreshScrollbarCheck(h, TerminalSizeY)
+    refreshScrollbarCheck(h, terminalSizeY)
 end
 
-start refreshScrollbarCheck(double & height, double & TerminalSizeY)
-    if(TerminalSizeY > 0)
-        index me [0 0] scrollbar MainScrollbar
-        fun MainScrollbar set_real_scrolling_area 0 TerminalSizeY
-        += TerminalSizeY height
+start refreshScrollbarCheck(double & height, double & terminalSizeY)
+    if(terminalSizeY > 0)
+        index self [0 0] Scrollbar MainScrollbar
+        fun MainScrollbar set_real_scrolling_area 0 terminalSizeY
+        += terminalSizeY height
         double currentThumbHeight BASE_SCROLLBAR_HEIGHT
         = currentThumbHeight scrollbarHeight
         access windowH [display_h]
         double divide 1.0
         = divide windowH
-        /= divide TerminalSizeY
+        /= divide terminalSizeY
         *= currentThumbHeight divide
         fun MainScrollbar set_thumb_size 12 currentThumbHeight
         fun MainScrollbar scroll_to_the_end
-        fun me update_scrollbars
+        fun self update_scrollbars
         keepMinimalSizeOfScrollThumb(MainScrollbar, currentThumbHeight)
     else
         resetScrollbar()
@@ -834,16 +835,16 @@ start keepMinimalSizeOfScrollThumb(Scrollbar & MainScrollbar, double & currentTh
     if(currentThumbHeight < minScrollbarThumbHeight)
         = currentThumbHeight minScrollbarThumbHeight 
         fun MainScrollbar set_thumb_size 12 currentThumbHeight
-        fun me update_scrollbars
+        fun self update_scrollbars
     end
 end
 
 start resetScrollbar()
-    index me [0 0] scrollbar MainScrollbar
+    index self [0 0] Scrollbar MainScrollbar
     double currentThumbHeight BASE_SCROLLBAR_HEIGHT
     = currentThumbHeight scrollbarHeight
     fun MainScrollbar set_thumb_size 12 currentThumbHeight
-    fun me update_scrollbars
+    fun self update_scrollbars
 end
 
 
@@ -852,13 +853,13 @@ start enterCommand()
         return
     end
 
-    index Cameras [0] camera Camera
-    if (!Camera.is_selected)
+    index Camera [0] Camera camera
+    if (!camera.is_selected)
         return
     end
-    index me [0 0] super_editable_text EditableText
-    first EditableText _ _ _ _ content _ userInput
-    first EditableText _ _ _ _ protected_area _ protectedArea
+    index self [0 0] EditableText editableText
+    first editableText _ _ _ _ content _ userInput
+    first editableText _ _ _ _ protected_area _ protectedArea
     len userInput userInputSize
     substr userInput protectedArea userInputSize command
 
@@ -908,7 +909,7 @@ start validateAndRunProgram(bool & isAllowed)
         string run "run "
         += run param0
         = program "run"
-        inject_instr me run
+        inject_instr self run
         string result "\n"
         cout(result)
     else
@@ -933,54 +934,54 @@ end
 
 start moveInHistory()
     if(program == "sleep")
-        index Cameras [0] camera Camera
-        upArrow(Camera)
-        downArrow(Camera)
+        index Camera [0] Camera camera
+        upArrow(camera)
+        downArrow(camera)
     end
 end
 
-start upArrow(Camera & Camera)
-    if (Camera.is_selected && key_pressed(KEY_UP) && program == "sleep" && currentCommandNumber > 0)
-        index me [0 0] super_editable_text EditableText
-        first EditableText _ _ _ _ content _ userInput
-        first EditableText _ _ _ _ protected_area _ protectedArea
+start upArrow(Camera & camera)
+    if (camera.is_selected && key_pressed(KEY_UP) && program == "sleep" && currentCommandNumber > 0)
+        index self [0 0] EditableText editableText
+        first editableText _ _ _ _ content _ userInput
+        first editableText _ _ _ _ protected_area _ protectedArea
         len userInput userInputSize
         substr userInput protectedArea userInputSize command
         fun commandHistory set currentCommandNumber command
 
         -- currentCommandNumber
         //dump_memory
-        fun EditableText cut_unprotected_area
+        fun editableText cut_unprotected_area
         string diffCommand ""
         index_vec commandHistory currentCommandNumber diffCommand
-        fun EditableText add_content diffCommand
-        fun EditableText update
-        access history [EditableText.content]
+        fun editableText add_content diffCommand
+        fun editableText update
+        access history [editableText.content]
         len history historySize
-        fun EditableText set_cursor_pos historySize
+        fun editableText set_cursor_pos historySize
     end
 end
 
 
-start downArrow(Camera & Camera)
-    if (Camera.is_selected && key_pressed(KEY_DOWN) && program == "sleep" && currentCommandNumber < commandNumber)
-        index me [0 0] super_editable_text EditableText
-        first EditableText _ _ _ _ content _ userInput
-        first EditableText _ _ _ _ protected_area _ protectedArea
+start downArrow(Camera & camera)
+    if (camera.is_selected && key_pressed(KEY_DOWN) && program == "sleep" && currentCommandNumber < commandNumber)
+        index self [0 0] EditableText editableText
+        first editableText _ _ _ _ content _ userInput
+        first editableText _ _ _ _ protected_area _ protectedArea
         len userInput userInputSize
         substr userInput protectedArea userInputSize command
         fun commandHistory set currentCommandNumber command
 
         ++ currentCommandNumber
 
-        fun EditableText cut_unprotected_area
+        fun editableText cut_unprotected_area
         string diffCommand ""
         index_vec commandHistory currentCommandNumber diffCommand
-        fun EditableText add_content diffCommand
-        fun EditableText update
-        access history [EditableText.content]
+        fun editableText add_content diffCommand
+        fun editableText update
+        access history [editableText.content]
         len history historySize
-        fun EditableText set_cursor_pos historySize
+        fun editableText set_cursor_pos historySize
     end
 end
 
@@ -998,7 +999,7 @@ end
 
 start sand()
 	if(param1 != "" && exists(param1))
-        load_build me param1
+        load_build self param1
         = program ""
 	else 
         emptyInput1()
@@ -1023,14 +1024,14 @@ end
 
 
 start injectFormat(int & startFragment, int & endFragment)
-    index me [0 0] super_editable_text EditableText
+    index self [0 0] EditableText editableText
     string font "cascadia_code"
-    fun EditableText inject_format startFragment endFragment 1.0 0.0 1.0 1.0  1.0 0.0 1.0 1.0 font
+    fun editableText inject_format startFragment endFragment 1.0 0.0 1.0 1.0  1.0 0.0 1.0 1.0 font
 end
 
 start format()
     if(key_pressed(KEY_LCTRL) && key_pressed(5))
-        index me [0 0] super_editable_text Terminal
+        index self [0 0] EditableText Terminal
         access cursorPos [Terminal.cursor_pos]
         access secondCursorPos [Terminal.second_cursor_pos]
         formatCheck(cursorPos, secondCursorPos)
@@ -1052,14 +1053,14 @@ end
 
 
 start save_terminal()
-    index me [0 0] super_editable_text TerminalTextField
-    fun TerminalTextField save_to_file param1
+    index self [0 0] EditableText terminalTextField
+    fun terminalTextField save_to_file param1
     = program ""
 end
 
 start load_terminal()
-    index me [0 0] super_editable_text TerminalTextField
-    fun TerminalTextField load_from_file param1
+    index self [0 0] EditableText terminalTextField
+    fun terminalTextField load_from_file param1
     = program ""
 end
 

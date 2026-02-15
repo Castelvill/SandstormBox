@@ -10,14 +10,14 @@ start main()
     // output (terminal).
     print "Normal print with few values: " a " " b " " c " " d "\n"
 
-    int_vec arrInt [0 1 2 3 4 5 6]
+    int[] arrInt [0 1 2 3 4 5 6]
     // The first argument of the print_d instruction is a delimeter, which is inserted after every
     // other argument or every element of each passed vector.
     print_d _ "Print with a delimeter: ["
     print_d ", " arrInt
     print_d _ "]\n"
 
-    double_vec arrDouble [0.1 0.2 0.3 0.4]
+    double[] arrDouble [0.1 0.2 0.3 0.4]
     print_v strStart _ "Print that moves its output text to a variable: ["
     print_v strMiddle ", " arrDouble
     print_v strEnd _ "]\n"

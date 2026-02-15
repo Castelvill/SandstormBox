@@ -113,6 +113,26 @@ inline string mapEngineKeysToAllegroKeys(const string & key){
     return "";
 }
 
+inline EngineInstr ignoreSituationalInstructions(EngineInstr instruction){
+    switch(instruction){
+        case EngineInstr::start:
+        case EngineInstr::end_i:
+        case EngineInstr::next:
+        case EngineInstr::exit_i:
+        case EngineInstr::run:
+        case EngineInstr::reboot:
+        case EngineInstr::mkdir_i:
+        case EngineInstr::mv_i:
+        case EngineInstr::print_i:
+        case EngineInstr::ls:
+        case EngineInstr::cd:
+        case EngineInstr::pwd:
+            return null;
+        default:
+            return instruction;
+    }
+}
+
 std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
     std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|&|@|#", std::regex_constants::icase);
     auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
@@ -231,7 +251,9 @@ std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
         }
         if(canStringBeDouble(output[i])){
             cstod(output[i], error);
-            if(mergedOutput.size() > 0 && mergedOutput.back().type == TokenType::identifier_tk && mergedOutput.back().value == "-"){
+            if(mergedOutput.size() > 1 && mergedOutput.back().type == TokenType::keyword_tk
+                && mergedOutput.back().value == "-"
+            ){
                 mergedOutput.pop_back();
                 mergedOutput.emplace_back(WordStruct(TokenType::double_tk, "-" + output[i], false));
             }
@@ -242,22 +264,36 @@ std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
         }
         cstoi(output[i], error);
         if(error == ""){
-            if(mergedOutput.size() > 0 && mergedOutput.back().type == TokenType::identifier_tk && mergedOutput.back().value == "-"){
+            if(mergedOutput.size() > 1 && mergedOutput.back().type == TokenType::keyword_tk 
+                && mergedOutput.back().value == "-"
+            ){
                 mergedOutput.pop_back();
+                //TODO: Check if false should be true here
                 mergedOutput.emplace_back(WordStruct(TokenType::int_tk, "-" + output[i], false));
             }
-            else{
+            else
                 mergedOutput.emplace_back(WordStruct(TokenType::int_tk, output[i], false));
-            }
             
             continue;
         }
-        if(mergedOutput.size() > 0 && mergedOutput.back().type == TokenType::identifier_tk && mergedOutput.back().value == "-"){
-            mergedOutput.pop_back();
-            mergedOutput.emplace_back(WordStruct(TokenType::identifier_tk, output[i], true));
-        }
-        else{
-            mergedOutput.emplace_back(WordStruct(TokenType::identifier_tk, output[i], false));
+        else{ //Check if the current token is a non-instruction keyword, if not mark it as an identifier
+            bool negate = mergedOutput.size() > 1
+                && mergedOutput.back().type == TokenType::keyword_tk
+                && mergedOutput.back().value == "-";
+
+            if(negate)
+                mergedOutput.pop_back();
+
+            EngineInstr keyword = strToInstr(output[i], false);
+            keyword = ignoreSituationalInstructions(keyword);
+
+            if(keyword != null){
+                mergedOutput.emplace_back(WordStruct(TokenType::keyword_tk, output[i], negate,
+                    keyword
+                ));
+            }
+            else
+                mergedOutput.emplace_back(WordStruct(TokenType::identifier_tk, output[i], negate));
         }
     }
 
@@ -387,7 +423,7 @@ ReturnType gatherImportsFromScript(const string & exePath, const string & script
         if(words.size() == 0){
             continue;
         }
-        if(words[0].value == "import"){
+        if(words[0].instruction == EngineInstr::import){
             if(words.size() == 1){
                 cerr << "Error: Import requires at least one parameter.\n";
                 continue;
@@ -664,36 +700,21 @@ ReturnType parseTokensAndAssembleEvents(vector<EventModule> &eventContainer,
         case stop_timer:
             return instrParser.parseStopTimer();
         case Val:
-        case ValVec:
         case Pointer:
-        case PointerVec:
         case Camera:
-        case CameraVec:
         case Layer:
-        case LayerVec:
         case Object:
-        case ObjectVec:
         case Var:
-        case VarVec:
         case Vec:
-        case VecVec:
         case SText:
-        case STextVec:
         case SEditText:
-        case SEditTextVec:
         case Image:
-        case ImageVec:
         case Movement:
-        case MovementVec:
         case Collision:
-        case CollisionVec:
         case Particles:
         case Event:
-        case EventVec:
         case Scrollbar:
-        case ScrollbarVec:
         case Primitive:
-        case PrimitiveVec:
         case any:
             return instrParser.parseVarDefinition();
         case run:
@@ -894,7 +915,7 @@ ReturnType assembleEvents(vector<EventModule> & eventContainer, vector<string> &
     }
     
     if(words.size() > 0){
-        if(words[0].value != "end"){
+        if(words[0].instruction != EngineInstr::end_i){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                 << NEW_LINE_PADDING << "In " << __FUNCTION__
                 << ": Every event must end with 'end' instruction.\n";

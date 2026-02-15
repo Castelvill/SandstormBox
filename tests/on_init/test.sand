@@ -6,5 +6,5 @@ start main()
 
     var a 0
 
-    load_build me ["tests/on_init/helper_0.sand"]
+    load_build self ["tests/on_init/helper_0.sand"]
 end

@@ -4,19 +4,19 @@ start createRectangles
     int windowHeight 480
     create_display windowWidth windowHeight windowWidth windowHeight
 
-    new Cameras 1 "Camera" Camera
-    fun Camera resize windowWidth windowHeight
-    fun Camera add_visible_layer "KERNEL"
+    new Camera 1 "Camera" camera
+    fun camera resize windowWidth windowHeight
+    fun camera add_visible_layer "KERNEL"
 
     //Create rectangle by adding points - adding points by hand should be only used for polygons
-    new Primitives me 1 "rectangle0" rectangle0
+    new Primitive self 1 "rectangle0" rectangle0
     fun rectangle0 set_type "filled_rectangle"
     fun rectangle0 add_point 20.0 20.0
     fun rectangle0 add_point 150.0 120.0
     fun rectangle0 set_color 1.0 0.0 0.0 1.0
 
     //Create rectangle with the 'create' function - simpler version
-    new Primitives me 1 "rectangle1" rectangle1
+    new Primitive self 1 "rectangle1" rectangle1
     fun rectangle1 create "filled_rectangle"
     fun rectangle1 set_color 0.0 1.0 0.0 1.0
     fun rectangle1 set_pos 200 50

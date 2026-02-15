@@ -4,11 +4,11 @@ start putRectangleOnScreen
     int windowHeight 480
     create_display windowWidth windowHeight windowWidth windowHeight
 
-    new Cameras 1 "Camera" Camera
-    fun Camera resize windowWidth windowHeight
-    fun Camera add_visible_layer "KERNEL"
+    new Camera 1 "Camera" camera
+    fun camera resize windowWidth windowHeight
+    fun camera add_visible_layer "KERNEL"
 
-    new Primitives me 1 "rectangle" rectangle
+    new Primitive self 1 "rectangle" rectangle
     fun rectangle create "filled_rectangle"
     fun rectangle set_color 1.0 0.0 0.0 1.0
     fun rectangle set_pos 50 100
@@ -17,14 +17,14 @@ start putRectangleOnScreen
 
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
 
-    new STexts me 1 "Text" Text
-    fun Text set_pos 0 0
-    fun Text set_size 400 50
-    fun Text add_format "cascadia_code" 1
-    fun Text set_color 0 0.0 1.0 0.0 1.0
-    fun Text set_wrapping "n"
-    fun Text set_content "To exit this program use the CTRL+ESC shortcut or just click\nthe exit button."
-    fun Text update
+    new TextField self 1 "Text" text
+    fun text set_pos 0 0
+    fun text set_size 400 50
+    fun text add_format "cascadia_code" 1
+    fun text set_color 0 0.0 1.0 0.0 1.0
+    fun text set_wrapping "n"
+    fun text set_content "To exit this program use the CTRL+ESC shortcut or just click\nthe exit button."
+    fun text update
 end
 
 @trigger on_key_press

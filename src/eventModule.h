@@ -16,6 +16,7 @@ enum ValueSource: char{
 };
 ValueSource strToSource(const string & source, string & error);
 ValueSource strToSource(const string & source);
+ValueSource instrToSource(EngineInstr instruction);
 string sourceToStr(ValueSource instruction);
 enum DataType: char{
     //Basic data type
@@ -35,6 +36,7 @@ enum DataType: char{
 DataType strToDataType(const string & dataType);
 string dataTypeToStr(DataType dataType);
 DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSource & source);
+DataType instrToDataType(EngineInstr instruction, bool singleInstance);
 
 struct ValueLocation{
     string process;
@@ -216,7 +218,6 @@ public:
     vector<VariableInfo> LocalVariables;
     vector<PassingVariableInfo> Parameters;
 
-    bool isInline = false;
     string callingEventID = "";
     string callingType = "";
     bool willBeDeleted = false; //Event will be deleted as soon as possible, but it still can be executed.

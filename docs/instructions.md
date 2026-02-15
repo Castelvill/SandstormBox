@@ -1,10 +1,32 @@
+# Annotations
+
+## @override
+
+**Description**
+
+    Redefine the scope of an event with the same name.
+
+## @trigger
+
+**Syntax**
+
+@trigger *trigger*
+
+**Description**
+
+    Automatically execute this event every time a given trigger is triggered.
+
+**Parameters:**
+
+- trigger - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, on_idle, each_second, on_key_press, on_key_pressing, on_key_release, on_mouse_move, when_mouse_still, on_mouse_press, on_mouse_pressing, on_mouse_release, by_objects, by_variables, by_collision, by_editables, by_movement, by_stillness, on_display_resize.
+
 # Instructions
 
 ## start
 
 **Syntax**
 
-start *name*( [[parameter]...] )
+start *name* ( [[parameter]...] )
 
 **Description**
 
@@ -15,41 +37,11 @@ start *name*( [[parameter]...] )
 - name - a name for a new event;
 - [parameter] (variable) - input variable for a new event.
 
-
-## override [REMOVED]
-
-**Syntax**
-
-override *name*( [[parameter]...] )
-
-**Description**
-
-    Redefine the scope of an event with the same name.
-
-**Parameters:**
-
-- name - a name for an event;
-- [parameter] (variable) - input variable for a new event.
-
 ## end
 
 **Description**
 
     Close the instruction scope for the current event.
-
-## inline
-
-**Syntax**
-
-inline *name*
-
-**Description**
-
-    Start the instruction scope for a new inline event. Each inline scope must be closed with an "end" instruction.
-
-**Parameters:**
-
-- name - a name for a new inline event.
 
 ## compiler_breakpoint
 
@@ -62,20 +54,6 @@ inline *name*
 **Description**
 
     Set a debugger breakpoint right before the next instruction. It will be triggered at runtime. If the engine is executed outside the debugger, this instruction will trigger a crash.
-
-## triggers [REMOVED]
-
-**Syntax**
-
-triggers *trigger* [[trigger]...]
-
-**Description**
-
-    Automatically execute the current event every time any trigger provided in this instruction is active. This instruction can be used only once in any given event.
-
-**Parameters:**
-
-- trigger - a name of the event trigger. Available trigger types: on_boot, on_init, each_iteration, on_idle, each_second, on_key_press, on_key_pressing, on_key_release, on_mouse_move, when_mouse_still, on_mouse_press, on_mouse_pressing, on_mouse_release, by_objects, by_variables, by_collision, by_editables, by_movement, by_stillness, on_display_resize.
 
 ## create_display
 
@@ -103,11 +81,11 @@ if ( *expression* )
 
 **Description**
 
-    Start a new scope that will be executed if the provided expression returns true. Each if statement scope must be closed with an "end_if", "else_if" or "else" instruction.
+    Start a new scope that will be executed if the provided expression is evaluated to true. Each if statement scope must be closed with an "end", "else_if" or "else" instruction.
 
 **Parameters**
 
-- expression - a list of values, variables and logical operators arranged in Reverse Polish Notation. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists.
+- expression - a list of values, variables and logical operators. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_x, mouse_y, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, val, display_resized, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, exists, var, vec, Process, context, Mouse, Camera, Layer, Object, ObjectBase, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive.
 
 ## else_if
 
@@ -117,11 +95,11 @@ else_if ( *expression* )
 
 **Description**
 
-    Start a new scope that will be executed only if the previous if or else-if conditions returned false and the current expression returns true. Else-if scope can be started only after an if or else-if statement. Each else-if statement scope must be closed with an "end_if", "else_if" or "else" instruction.
+    Start a new scope that will be executed only if the previous if or else_if conditions evaluate to false state and the current expression is evaluated to true. Else_if scope can be started only after an if or else_if statement. Each else_if statement scope must be closed with an "end", "else_if" or "else" instruction.
 
 **Parameters**
 
-- expression - a list of values, variables and logical operators arranged in Reverse Polish Notation. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists.
+- expression - a list of values, variables and logical operators arranged in Reverse Polish Notation. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_x, mouse_y, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, val, display_resized, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, exists, var, vec, Process, context, Mouse, Camera, Layer, Object, ObjectBase, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive.
 
 ## else
 
@@ -131,17 +109,7 @@ else
 
 **Description**
 
-    Start a new scope that will be executed only if the previous if and else-if conditions returned false. Each else statement scope must be closed with an "end_if" instruction.
-
-## end_if
-
-**Syntax**
-
-end_if
-
-**Description**
-
-    Close the instruction scope for an if, else-if or else statement.
+    Start a new scope that will be executed only if the previous if and else_if conditions were evaluated to false. Each else statement scope must be closed with an "end" instruction.
 
 ## while
 
@@ -151,21 +119,11 @@ while ( *expression* )
 
 **Description**
 
-    Start a new looping scope that will be executed as long as the provided expression returns true. Each while loop scope must be closed with an "end_while" label.
+    Start a new looping scope that will be executed as long as the provided expression is evaluated to true. Each while loop scope must be closed with an "end" instruction.
 
 **Parameters**
 
-- expression - a list of values, variables and logical operators arranged in Reverse Polish Notation. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists.
-
-## end_while
-
-**Syntax**
-
-end_while
-
-**Description**
-
-    Close the while loop scope.
+- expression - a list of values, variables and logical operators arranged in Reverse Polish Notation. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_x, mouse_y, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, val, display_resized, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, exists, var, vec, Process, context, Mouse, Camera, Layer, Object, ObjectBase, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive.
 
 ## run
 
@@ -175,12 +133,12 @@ run *event* ( [[argument]...] )
 
 **Description**
 
-    Stop the execution of the current event and call a new one. After the execution of the called event returned to its parent.  
+    Stop the execution of the current event and call a new one. After executing the called event return to the calling event and resume its execution.
 
 **Parameters:**
 
 - event - a name of an event to be executed between other instructions;
-- [argument] (variable / literal) - a value that will be passed to the called event.
+- [argument] (variable) - a value that will be passed to the called event.
 
 ## exit
 
@@ -204,19 +162,19 @@ run *event* ( [[argument]...] )
    
 **Description**
 
-    Exit the current while loop and resume the execution one line after the "end_while" label.
+    Exit the current while loop and resume the execution one line after the next "end" instruction.
 
 ## continue
    
 **Description**
 
-    Stop the execution of the while loop scope and move to the beginning of the loop.
+    Stop the execution of the while loop scope and move to the beginning of the current loop.
 
 ## delete_this_event
    
 **Description**
 
-    Delete current event and interrupt the execution of the current scope.
+    Interrupt the execution of the current scope and delete the current event.
 
 ## dump_memory
    
@@ -243,14 +201,14 @@ run *event* ( [[argument]...] )
 **Parameters:**
 
 - aggregation_type (instruction): “all” - return every entity that fullfils all conditions, “first” - return only the first entity that fullfils all conditions, “last” - return only the last entity that fullfils all conditions, “random” - return one random entity that fullfils all conditions;
-- entities (variable) - a variable of one of these types: Camera, Layer, Object, Text, EditText, SText, SEditText, "Image", "Movement", "Collision", "Particles", "Event", "Param", "Vec", "Scrollbar", “Pointer”, “Val”. Type of the entity affects other parameters;
+- entities (variable) - a variable of one of these types: val, vec, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive. Type of the entity affects other parameters;
 - [camera_id] (string) - if the provided variable is of a Camera type, only the camera with this id can be aggregated;
 - [layer_id] (string) - if the provided variable is of a Layer type, only the layer with this id can be aggregated;
 - [object_id] (string) - if the provided variable is of a Layer or object type, only the object with this id can be aggregated;
 - [module_type] (string) - if the provided variable contains layers, objects or modules; only the module of this type can be aggregated;
 - [module_id] (string) - if the provided variable contains layers, objects or modules; only the module with this id can be aggregated;
 - [attribute] (string) - if provided, aggregate this attribute from the provided entities;
-- [expression] - a list of values, variables and logical operators arranged in Reverse Polish Notation. This whole expression is calculated for each entity separately and if it returns truth, entity is aggregated into the output variable. But if expression is empty, this boolean is equal to true by default. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists;
+- [expression] - a list of values, variables and logical operators arranged in Reverse Polish Notation. This whole expression is calculated for each entity separately and if it returns truth, entity is aggregated into the output variable. But if expression is empty, this boolean is equal to true by default. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_x, mouse_y, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, val, display_resized, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, exists, var, vec, Process, context, Mouse, Camera, Layer, Object, ObjectBase, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
 - [output] (variable) for all entities that fullfill all conditions.
 
 ## index
@@ -278,7 +236,7 @@ index_vec *vector* *index* [output]
 
 **Description**
 
-    Return an element of the vector based on the index. (It's much faster than "index" instruction, but now well-tested.)
+    Return an element of the vector based on the index. (It's much faster than "index" instruction, but not well-tested.)
 
 **Parameters:**
 
@@ -286,11 +244,11 @@ index_vec *vector* *index* [output]
 - index (variable / int vector) - an element to return;
 - [output] (variable).
 
-## sum
+## sum_of
 
 **Syntax**
 
-sum *left* *right* [output]
+sum_of *left* *right* [output]
 
 **Description**
 
@@ -298,8 +256,8 @@ sum *left* *right* [output]
 
 **Parameters**
 
-- left (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- left (variable) - a variable of one of these types: val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
+- right (variable) - a variable of one of these types: val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
 - [output] (variable).
 
 ## intersection
@@ -314,8 +272,8 @@ intersection *left* *right* [output]
 
 **Parameters**
 
-- left (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- left (variable) - a variable of one of these types: val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
+- right (variable) - a variable of one of these types: val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
 - [output] (variable).
 
 ## difference
@@ -330,15 +288,15 @@ difference *left* *right* [output]
 
 **Parameters**
 
-- left (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (variable) - a variable of one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- left (variable) - a variable of one of these types: val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
+- right (variable) - a variable of one of these types: val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
 - [output] (variable).
 
 ## access
 
 **Syntax**
 
-access *output* [[*source*] ...]
+access *output* [[*source*]...]
 
 **Description**
 
@@ -347,7 +305,7 @@ access *output* [[*source*] ...]
 **Parameters**
 
 - output (variable);
-- [source] - a value or variable. Available built-in variables: fullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, literal, camera, layer, ancestor, object, display_resized, vector_s, mouse_x, mouse_y, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, process, context, text, editable_text, super_text, super_editable_text, image, movement, collision, particles, event, scrollbar, primitives, variable, exists.
+- [source] - a value or variable. Available built-in variables: ffullscreen, second_passed, fps, is_directory, used_os, screen_w, screen_h, key_pressed, key_pressing, key_released, any_key_pressed, any_key_pressing, any_key_released, mouse_x, mouse_y, mouse_moved, mouse_pressed, mouse_pressing, mouse_released, val, display_resized, display_w, display_h, number_of_processes, number_of_cameras, number_of_layers, number_of_objects, booting, exists, var, vec, Process, context, Mouse, Camera, Layer, Object, ObjectBase, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive.
 
 ## bool / int / double / string
 
@@ -364,6 +322,68 @@ access *output* [[*source*] ...]
 - literal_type (instruction): bool, int, double, string;
 - output (variable);
 - values - a variable, vector of variables, literal or vector of literals.
+
+## bool[] / int[] / double[] / string[]
+
+**Syntax**
+
+*literal_type* [] *output* *values*
+
+**Description**
+
+    Declare a dynamic list/vector/array with provided values. If the input values are variables, cast them to the correct type when possible. Casting is done at runtime.
+
+**Parameters**
+
+- literal_type (instruction): bool, int, double, string;
+- output (variable);
+- values - a variable, vector of variables, literal or vector of literals.
+
+## var
+
+**Syntax**
+
+var *output* *value*
+
+**Description**
+
+    Create a new variable for the current event's owner.
+
+**Parameters**
+
+- output (variable);
+- value (variable / any literal).
+
+## vec
+
+**Syntax**
+
+vec *type* *output* [values]
+
+**Description**
+
+    Create a vector of variables for the current event's owner.
+
+**Parameters**
+
+- type (variable): bool, int, double, string;
+- output (variable);
+- [values] (variable / variable vector / any literal vector).
+
+## Camera / Layer / Object / TextField / EditableText / Image / Movement / Collision / Particles / Event / Scrollbar / Primitive
+
+**Syntax**
+
+*type* *name*
+
+**Description**
+
+    Create an empty pointer of the specified type. You can later assign an instance of this type to a variable with the provided name.
+
+**Parameters**
+
+- type (instruction): Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
+- name (variable).
 
 ## random_int
 
@@ -393,13 +413,13 @@ find_by_id *source* [context_list] [camera_id] [layer_id] [object_id] [module_ty
 
 **Parameters**
 
-- source (variable): “camera”, “layer”, “context”, “_” - if a context is not provided, choose one of the highest types of abstractions. Each camera contains its attributes and a bitmap (screen/window), while each layer contains its attributes and objects;
-- [context_list] (variable vector) - context ids will be used when source is equal to “context” or “_”. Each context can have one of these types: “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”. Type of the context affects other parameters;
-- [camera_id] (string) - if source is equal to “camera” or provided context is of a camera type, only the camera with this id can be aggregated;
-- [layer_id] (string) - if source is equal to “layer” or provided context is of a layer type, only the layer with this id can be aggregated;
-- [object_id] (string) - if source is equal to “layer” or provided context is of a layer or object type, only the object with this id can be aggregated;
-- [module_type] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
-- [module_id] (string) - if source is equal to “layer”, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
+- source (variable): Camera, Layer, context, “_” - if a context is not provided, choose one of the highest types of abstractions. Each camera contains its attributes and a bitmap (screen/window), while each layer contains its attributes and objects;
+- [context_list] (variable vector) - context ids will be used when source is equal to “context” or “_”. Each context can have one of these types: val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive. Type of the context affects other parameters;
+- [camera_id] (string) - if source is Camera or provided context is of a camera type, only the camera with this id can be aggregated;
+- [layer_id] (string) - if source is Layer or provided context is of a layer type, only the layer with this id can be aggregated;
+- [object_id] (string) - if source is Layer or provided context is of a layer or object type, only the object with this id can be aggregated;
+- [module_type] (string) - if source is Layer, or provided context contains layers, objects or modules; only the module of this type can be aggregated;
+- [module_id] (string) - if source is Layer, or provided context contains layers, objects or modules; only the module with this id can be aggregated;
 - [attribute] (variable) - if provided, aggregate this this attribute from selected entities;
 - [output] (variable).
 
@@ -415,12 +435,11 @@ find_by_id layer *layer_id* *object_id* *module_type* *module_id* *attribute* [o
 
 **Parameters**
 
-- [camera_id] (string) - if source is equal to “camera” or provided variable is of a camera type, only the camera with this id can be aggregated;
-- [layer_id] (string) - if source is equal to “layer” or provided variable is of a layer type, only the layer with this id can be aggregated;
-- [object_id] (string) - if source is equal to “layer” or provided variable is of a layer or object type, only the object with this id can be aggregated;
-- [module_type] (string) - if source is equal to “layer”, or provided variable contains layers, objects or modules; only the module of this type can be aggregated;
-- [module_id] (string) - if source is equal to “layer”, or provided variable contains layers, objects or modules; only the module with this id can be aggregated;
-- [attribute] (string) - if provided, aggregate this this attribute from selected entities;
+- [layer_id] (string) - only the layer with this id can be aggregated;
+- [object_id] (string) - only the object with this id can be aggregated;
+- [module_type] (string) - only the module of this type can be aggregated;
+- [module_id] (string) - only the module with this id can be aggregated;
+- [attribute] (string) - aggregate this attribute from selected entities;
 - [output] (variable).
 
 ## find_by_id_2
@@ -451,8 +470,8 @@ clone *left* *right* *changeOldID*
 
 **Parameters**
 
-- left (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
-- right (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar", “pointer”, “value”;
+- left (variable): val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
+- right (variable): val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive;
 - changeOldID (bool) - if true, the left variable will inherit the id of the right variable (with the last number incrementation).
 
 ## +, -, *, /
@@ -468,8 +487,8 @@ clone *left* *right* *changeOldID*
 **Parameters**
 
 - operator (instruction): "+", "-", "*", "/";
-- left (variable / any literal) - this instruction accepts these two variable types: “pointer” and “value”;
-- right (variable / any literal) - this instruction accepts these two variable types: “pointer” and “value”;
+- left (variable / any literal) - this instruction accepts these two variable types: ptr and val;
+- right (variable / any literal) - this instruction accepts these two variable types: ptr and val;
 - [output] (variable).
 
 ## ++, --
@@ -485,7 +504,7 @@ clone *left* *right* *changeOldID*
 **Parameters**
 
 - operator (variable): "++" - increment by 1, "--" - decrement by 1;
-- context (variable) - this instruction accepts these two types: “pointer” and “value”.
+- context (variable) - this instruction accepts these two types: ptr and val.
 
 ## =, +=, -=, *=, /=
 
@@ -500,8 +519,8 @@ clone *left* *right* *changeOldID*
 **Parameters**
 
 - operator (variable): "=", "+=", "-=", "*=", "/=" - these work exactly like in c++;
-- left (variable) - variable. This instruction accepts these two context types: “pointer” and “value”;
-- right (variable / any literal) - variable. This instruction accepts these two context types: “pointer” and “value”.
+- left (variable) - variable. This instruction accepts these two context types: ptr and val;
+- right (variable / any literal) - variable. This instruction accepts these two context types: ptr and val.
 
 ## in
 
@@ -515,8 +534,8 @@ in *left* *right* [output]
 
 **Parameters**
 
-- left (variable) - variable. This instruction accepts these two context types: “pointer” and “value”;
-- right (variable) - variable. This instruction accepts these two context types: “pointer” and “value”;
+- left (variable) - variable. This instruction accepts these two context types: ptr and val;
+- right (variable) - variable. This instruction accepts these two context types: ptr and val;
 - [output] (variable).
 
 ## new
@@ -531,10 +550,10 @@ new *type* [layer_id] [object_id] [quantity] [new_ids] [output]
 
 **Parameters**
 
-- type/source (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - the type of the new entities;
+- type/source (variable): val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive - the type of the new entities;
 - layer_id/[layer_id] (string) - the id of the layer with the role of a container for new objects. Required only if the new entities are objects;
 - object_id/[object_id] (string) - the id of the object with the role of a container for new modules. Required only if the new entities are modules;
-- [quantity] (variable / int) - the number of new entities that will be created. A literal or an variable of the “pointer” or “value” type.
+- [quantity] (variable / int) - the number of new entities that will be created. A literal or an variable of the ptr or val type.
 - [new_ids] (variable / vector variable / string / string vector) - the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
 - [output] (variable).
 
@@ -550,10 +569,10 @@ new *type* [destination] [quantity] [new_ids] [output]
 
 **Parameters**
 
-- type/source (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - the type of the new entities;
+- type/source (variable): val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive - the type of the new entities;
 - destination/[destination] (variable) - variable with a container for new entities;
-- [quantity] (variable / int) - the number of new entities that will be created. A literal or an variable of the “pointer” or “value” type.
-- [new_ids] (variable) - the variable with the type “pointer” or “value”. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
+- [quantity] (variable / int) - the number of new entities that will be created. A literal or an variable of the ptr or val type.
+- [new_ids] (variable) - the variable with the type ptr or val. This context provides the list of strings that will become the new identificators for new objects. You can provide any number of ids and if the number is too low, the last id will be repeated. Although, to ensure the uniqueness in the given container, indexing numbers will be automatically added to ends of repeated ids and incremented by one for every next repetition. The same automatic action will be taken if no new ids are provided;
 - [output] (variable).
 
 ## delete
@@ -568,7 +587,7 @@ delete *context*
 
 **Parameters**
 
-- context (variable): “camera”, “layer”, “object”, “text”, "editable_text", "image", "movement", "collision", "particles", "event", "variable", "scrollbar" - variable with entities selected for deletion.
+- context (variable): val, vec, var, ptr, Camera, Layer, Object, TextField, EditableText, Image, Movement, Collision, Particles, Event, Scrollbar, Primitive - variable with entities selected for deletion.
 
 ## bind
 
@@ -855,7 +874,7 @@ mv *path* *new_path*
 
 **Syntax**
 
-print [value] ...
+print [[value]...]
 
 **Description**
 
@@ -869,7 +888,7 @@ print [value] ...
 
 **Syntax**
 
-print_d [delimeter] [value] ... 
+print_d [delimeter] [[value]...]
 
 **Description**
 
@@ -884,7 +903,7 @@ print_d [delimeter] [value] ...
 
 **Syntax**
 
-print [output] [delimeter] [value] ... 
+print [output] [delimeter] [[value]...] 
 
 **Description**
 
@@ -959,37 +978,6 @@ lse *source* [detail]
 - source (variable): processes, layers, cameras, bitmaps, fonts;
 - [detail] (variable / bool) - if true, prints items in the table with details.
 
-## var
-
-**Syntax**
-
-var *output* *value*
-
-**Description**
-
-    Create a new variable for the current event's owner.
-
-**Parameters**
-
-- output (variable);
-- value (variable / any literal).
-
-## vec
-
-**Syntax**
-
-vec *type* *output* [values]
-
-**Description**
-
-    Create a vector of variables for the current event's owner.
-
-**Parameters**
-
-- type (variable): bool, int, double, string;
-- output (variable);
-- [values] (variable / variable vector / any literal vector).
-
 ## tokenize
 
 **Syntax**
@@ -1035,11 +1023,11 @@ len *text* [output]
 - text (variable / string) - text to be measured;
 - [output] (variable).
 
-## size
+## sizeof
 
 **Syntax**
 
-size *vector* [output]
+sizeof *vector* [output]
 
 **Description**
 
@@ -1193,10 +1181,9 @@ assert *left* *right*
 
 **Parameters**
 
-- left (variable / any literal) - this instruction accepts these two variable types: “pointer” and “value”;
-- right (variable / any literal) - this instruction accepts these two variable types: “pointer” and “value”;
+- left (variable / any literal) - this instruction accepts these two variable types: ptr and val;
+- right (variable / any literal) - this instruction accepts these two variable types: ptr and val;
 - [output] (variable).
-
 
 ## type
 

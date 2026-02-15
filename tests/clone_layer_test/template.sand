@@ -1,6 +1,6 @@
 @trigger on_init
 start onInit()
-    access myName [me.id]
+    access myName [self.id]
     if(myName == "Template")
         assert 1 0
     end
@@ -10,15 +10,15 @@ start onInit()
 
     decrementLock()
 
-    //print "Hello from " my_layer ":" myName ": " var0 "\n"
+    //print "Hello from " self_layer ":" myName ": " var0 "\n"
 end
 
 start decrementLock()
-    Var idleLock
-    all Layers _ _ _ _ _ _ layers
+    var idleLock 0
+    all Layer _ _ _ _ _ _ layers
     find_by_id_2 layers testLayerName testLayer
-    first testLayer _ _ _ _ object _ objects
+    first testLayer _ _ _ _ Object _ objects
     find_by_id_2 objects testObjName testObj
-    first testObj _ _ Variables idleLock _ _ idleLock
+    first testObj _ _ var idleLock _ _ idleLock
     -- idleLock
 end

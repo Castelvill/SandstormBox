@@ -6,7 +6,7 @@ start main()
 
     int x 0
     assert x 0
-    val(x)
+    value(x)
     assert x 0
     ref(x)
     assert x 2
@@ -22,7 +22,7 @@ start main()
     endTest()
 end
 
-start val(int x)
+start value(int x)
     assert x 0
     = x 1
     assert x 1

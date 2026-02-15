@@ -22,5 +22,5 @@ start main()
         end
     "
 
-    inject_code me program
+    inject_code self program
 end

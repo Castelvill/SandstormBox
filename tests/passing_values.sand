@@ -17,20 +17,20 @@ start passA(int localA)
     assert a 10
 
     type localA typeOfLocal 
-    assert typeOfLocal "Val"
+    assert typeOfLocal "val"
 
     type a typeOfGlobal
-    assert typeOfGlobal "Var"
+    assert typeOfGlobal "var"
 end
 
-start passA2(Var & localA)
+start passA2(var & localA)
     ++ localA
     assert localA 11
     assert a 11
 
     type localA typeOfLocal 
-    assert typeOfLocal "Var"
+    assert typeOfLocal "var"
 
     type a typeOfGlobal
-    assert typeOfGlobal "Var"
+    assert typeOfGlobal "var"
 end

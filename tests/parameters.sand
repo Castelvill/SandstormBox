@@ -4,8 +4,8 @@ import "tests/test_template.sand"
 start main()
     startTest()
     
-    new Objects my_layer 1 "otherObject" otherObject
-    new Variables otherObject 1 "p0" p0
+    new Object self_layer 1 "otherObject" otherObject
+    new var otherObject 1 "p0" p0
     fun p0 set_int 15
     
     assert p0 15
@@ -15,8 +15,8 @@ end
 
 @trigger on_idle
 start onIdle()
-    Var p0
-    first my_layer _ "otherObject" Variables "p0" _ _ p0 //Access variable from object inside a layer
+    var p0 0
+    first self_layer _ "otherObject" var "p0" _ _ p0 //Access variable from object inside a layer
     assert p0 16
 
     endTest()
