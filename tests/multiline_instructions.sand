@@ -1,0 +1,40 @@
+import "tests/test_template.sand"
+
+@trigger on_init
+start main()
+    startTest()
+
+    int a 5
+    int b 15
+    int c 100
+
+    multiLineFunction(
+        a,
+        b,
+        c
+    )
+
+    int[] d [
+        10
+        20
+        30
+        40
+        50
+    ]
+
+    int vectorSize 0
+    sizeof d vectorSize
+    assert vectorSize 5
+
+    endTest()
+end
+
+start multiLineFunction(
+    int a,
+    int b,
+    int c
+)
+    assert a 5
+    assert b 15
+    assert c 100
+end

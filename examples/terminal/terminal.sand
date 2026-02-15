@@ -182,7 +182,12 @@ start buildTerminal()
     var currentCommandNumber 0
     vec string commandHistory [""]
 
-    vec string allowedPrograms ["help" "ls" "cls" "cat" "cd" "pwd" "mv" "print" "exit" "reboot" "history" "forgor" "edit" "sand" "sh" "nw" "note" "mover" "fullscreen" "fs" "neofetch" "spawn" "hello" "sq" "cats" "v4" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal" "load_terminal" "test" "mkdir"]
+    vec string allowedPrograms [
+        "help" "ls" "cls" "cat" "cd" "pwd" "mv" "print" "exit" "reboot"
+        "history" "forgor" "edit" "sand" "sh" "nw" "note" "mover" "fullscreen" "fs" "neofetch"
+        "spawn" "hello" "sq" "cats" "v4" "sel_col" "xd" "wait" "sudo" "allegro" "save_terminal"
+        "load_terminal" "test" "mkdir"
+    ]
 
     var dir "scripts"
 
@@ -606,7 +611,9 @@ start autoCompleteProgramsOrFiles(val[] & params, string & command)
     end
 end
 
-start replaceWithAutoComplete(string & command, val[] & params, val[] & completes, string & commonPart, string & lastParameter)
+start replaceWithAutoComplete(string & command, val[] & params, val[] & completes,
+    string & commonPart, string & lastParameter
+)
     index self [0 0] EditableText editableText
     if (completes.size == 1)
         fun editableText cut_unprotected_area
@@ -638,7 +645,8 @@ start replaceWithAutoComplete(string & command, val[] & params, val[] & complete
 end
 
 start createPrompt(string & result)
-    //Cool way of creating prompt is not possible until extended ascii characters are not handled well in the editable text module.
+    // Cool way of creating prompt is not possible until extended ascii characters are not handled
+    // well in the editable text module.
     += result "~/"      //"┌/"
     pwd workingDir
     += result workingDir
@@ -656,7 +664,9 @@ start printPrompt()
     colorNormalText(editableText)
 end
 
-start addCommonPartToCommand(string & command, val[] & completes, string & commonPart, string & lastParameter)
+start addCommonPartToCommand(string & command, val[] & completes, string & commonPart,
+    string & lastParameter
+)
     if(completes.size > 0)
         len lastParameter lastParameterLength
         len commonPart commonPartLength
@@ -964,7 +974,9 @@ end
 
 
 start downArrow(Camera & camera)
-    if (camera.is_selected && key_pressed(KEY_DOWN) && program == "sleep" && currentCommandNumber < commandNumber)
+    if (camera.is_selected && key_pressed(KEY_DOWN) && program == "sleep"
+        && currentCommandNumber < commandNumber
+    )
         index self [0 0] EditableText editableText
         first editableText _ _ _ _ content _ userInput
         first editableText _ _ _ _ protected_area _ protectedArea

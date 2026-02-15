@@ -1,3 +1,5 @@
+#pragma once
+
 #include "parser.h"
 #include <unordered_set>
 #include <unordered_map>
@@ -20,6 +22,27 @@ std::pair<ReturnType, bool> compile(const string & exePath, const vector<string>
     size_t & topModuleUniqueIndex
 );
 
+struct TokenizerContext{
+    vector<string> stringSectors;
+    vector<string> rawTokens;
+    bool triggerPreprocessor = false;
+
+    vector <WordStruct> finalTokens;
+    bool isInsideStringSector = false;
+    unsigned sector = 0;
+    string error;
+    bool keywordAquired = false;
+
+    size_t tokenIdx = 0;
+
+    int bracketsDepth = 0;
+    int curlyBracketsDepth = 0;
+    int squareBracketsDepth = 0;
+
+    void tokenizeLine();
+    ReturnType checkDepth();
+};
+
 struct CodeGenerator{
     std::unordered_map<string, string> constants;
 
@@ -30,3 +53,4 @@ class Compiler{
 public:
     
 };
+

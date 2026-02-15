@@ -3,6 +3,8 @@
 #include <queue>
 #include "keymap.h"
 
+std::regex tokenizingRegex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|&|@|#", std::regex_constants::icase);
+
 bool canStringBeDouble(string text){
     if(text[0] == '.'){
         return false;
@@ -133,29 +135,29 @@ inline EngineInstr ignoreSituationalInstructions(EngineInstr instruction){
     }
 }
 
-std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
-    std::regex word_regex("([\\w+\\.*]*\\w+)|;|:|\\,|\\.|==|=|>=|<=|>|<|-=|\\+=|\\*=|/=|\\*\\*|\\+\\+|\\-\\-|\\+|-|\\*|/|%|\\[|\\]|\\(|\\\\\\\"|\\)|\"|!=|!|\\|\\||&&|\n|\t|&|@|#", std::regex_constants::icase);
-    auto words_begin = std::sregex_iterator(input.begin(), input.end(), word_regex);
+inline void prepareLine(const string & rawLine, vector<string> & rawTokens,
+    vector<string> & stringSectors, unsigned & lineNumber
+){
+    ++lineNumber;
+    string line = findAndUseSpecialCharacters(rawLine);
+
+    auto words_begin = std::sregex_iterator(line.begin(), line.end(), tokenizingRegex);
     auto words_end = std::sregex_iterator();
 
-    bool triggerPreprocessor = false;
-
-    vector <string> output;
     string match_str;
 
     for(std::sregex_iterator i = words_begin; i != words_end; ++i) {
         std::smatch match = *i;
         match_str = match.str();
         if (match_str.size() > 0){
-            output.push_back(match_str);
+            rawTokens.push_back(match_str);
         }
     }
-
-    vector<string> stringSectors;
+    
     bool isInsideStringSector = false;
 
-    for(size_t i = 0; i < input.size(); i++){
-        if(input[i] == '\"' && (i == 0 || input[i - 1] != '\\')){
+    for(size_t i = 0; i < line.size(); i++){
+        if(line[i] == '\"' && (i == 0 || line[i - 1] != '\\')){
             if(!isInsideStringSector){
                 stringSectors.emplace_back("");
             }
@@ -163,141 +165,186 @@ std::pair<vector<WordStruct>, bool> tokenizeCode(const string & input){
             continue;
         }
         if(isInsideStringSector){
-            stringSectors.back() += input[i];
+            stringSectors.back() += line[i];
         }
     }
+}
 
-    vector <WordStruct> mergedOutput;
-    isInsideStringSector = false;
-    unsigned sector = 0;
-    string error;
-    bool keywordAquired = false;
-
+inline void TokenizerContext::tokenizeLine(){
     //If a word is not a part of a string, add it as a single word, otherwise add the whole string
     //as a single word and ignore its parts. Don't add " to the words.
-    for(unsigned i = 0; i < output.size(); i++){
-        if(output[i][0] == '\"' && !isInsideStringSector){
+
+    for(; tokenIdx < rawTokens.size(); ++tokenIdx){
+        const string & currentToken = rawTokens[tokenIdx];
+
+        if(currentToken[0] == '\"' && !isInsideStringSector){
             isInsideStringSector = true;
-            mergedOutput.emplace_back(WordStruct(TokenType::string_tk, stringSectors[sector], false));
+            finalTokens.emplace_back(WordStruct(TokenType::string_tk, stringSectors[sector], false));
             sector++;
             continue;
         }
         if(isInsideStringSector){
-            if(output[i][0] == '\"'){
+            if(currentToken[0] == '\"'){
                 isInsideStringSector = false;
             }
             continue;
         }
-        if(output[i] == "\t"){
+        if(currentToken == "\t"){
             continue;
         }
         if(!keywordAquired){
-            mergedOutput.emplace_back(WordStruct(TokenType::keyword_tk, output[i], false, strToInstr(output[i], false)));
-            if(mergedOutput.back().instruction == null){
-                mergedOutput.back().type = TokenType::identifier_tk;
+            finalTokens.emplace_back(WordStruct(TokenType::keyword_tk, currentToken, false,
+                strToInstr(currentToken, false)
+            ));
+            if(finalTokens.back().instruction == null){
+                finalTokens.back().type = TokenType::identifier_tk;
             }
             keywordAquired = true;
             continue;
         }
-        if(isStringInGroup(output[i], 9, "!", "==", "!=", "<", "<=", ">", ">=", "||", "&&")){
-            mergedOutput.emplace_back(WordStruct(TokenType::keyword_tk, output[i], false, strToInstr(output[i], false)));
-            continue;
-        }
-        if(output[i] == "_"){
-            mergedOutput.emplace_back(WordStruct(TokenType::empty_tk, output[i], false));
-            continue;
-        }
-        if(output[i] == "("){
-            triggerPreprocessor = false;
-            mergedOutput.emplace_back(WordStruct(TokenType::start_expr_tk, output[i], false,
-                EngineInstr::start_expr
+        if(isStringInGroup(currentToken, 9, "!", "==", "!=", "<", "<=", ">", ">=", "||", "&&")){
+            finalTokens.emplace_back(WordStruct(TokenType::keyword_tk, currentToken, false,
+                strToInstr(currentToken, false)
             ));
             continue;
         }
-        if(output[i] == ")"){
-            mergedOutput.emplace_back(WordStruct(TokenType::end_expr_tk, output[i], false));
+        if(currentToken == "_"){
+            finalTokens.emplace_back(WordStruct(TokenType::empty_tk, currentToken, false));
             continue;
         }
-        if(output[i] == "{"){
-            mergedOutput.emplace_back(WordStruct(TokenType::start_scope_tk, output[i], false));
+        if(currentToken == "("){
+            triggerPreprocessor = false;
+            finalTokens.emplace_back(WordStruct(TokenType::start_expr_tk, currentToken, false,
+                EngineInstr::start_expr
+            ));
+            ++bracketsDepth;
             continue;
         }
-        if(output[i] == "}"){
-            mergedOutput.emplace_back(WordStruct(TokenType::end_scope_tk, output[i], false));
+        if(currentToken == ")"){
+            finalTokens.emplace_back(WordStruct(TokenType::end_expr_tk, currentToken, false));
+            --bracketsDepth;
             continue;
         }
-        if(output[i] == "["){
-            mergedOutput.emplace_back(WordStruct(TokenType::open_brackets_tk, output[i], false));
+        if(currentToken == "{"){
+            finalTokens.emplace_back(WordStruct(TokenType::start_scope_tk, currentToken, false));
+            ++curlyBracketsDepth;
             continue;
         }
-        if(output[i] == "]"){
-            mergedOutput.emplace_back(WordStruct(TokenType::close_brackets_tk, output[i], false));
+        if(currentToken == "}"){
+            finalTokens.emplace_back(WordStruct(TokenType::end_scope_tk, currentToken, false));
+            --curlyBracketsDepth;
             continue;
         }
-        if(output[i] == "true"){
-            mergedOutput.emplace_back(WordStruct(TokenType::bool_tk, "1", false));
+        if(currentToken == "["){
+            finalTokens.emplace_back(WordStruct(TokenType::open_brackets_tk, currentToken, false));
+            ++squareBracketsDepth;
             continue;
         }
-        if(output[i] == "false"){
-            mergedOutput.emplace_back(WordStruct(TokenType::bool_tk, "0", false));
+        if(currentToken == "]"){
+            finalTokens.emplace_back(WordStruct(TokenType::close_brackets_tk, currentToken, false));
+            --squareBracketsDepth;
             continue;
         }
-        if(output[i].starts_with("KEY_")){
-            const string & allegroMapping = mapEngineKeysToAllegroKeys(output[i]);
+        if(currentToken == "true"){
+            finalTokens.emplace_back(WordStruct(TokenType::bool_tk, "1", false));
+            continue;
+        }
+        if(currentToken == "false"){
+            finalTokens.emplace_back(WordStruct(TokenType::bool_tk, "0", false));
+            continue;
+        }
+        if(currentToken.starts_with("KEY_")){
+            const string & allegroMapping = mapEngineKeysToAllegroKeys(currentToken);
             if(!allegroMapping.empty()){
-                mergedOutput.emplace_back(WordStruct(TokenType::int_tk, allegroMapping, false));
+                finalTokens.emplace_back(WordStruct(TokenType::int_tk, allegroMapping, false));
                 continue;
             }
         }
-        if(canStringBeDouble(output[i])){
-            cstod(output[i], error);
-            if(mergedOutput.size() > 1 && mergedOutput.back().type == TokenType::keyword_tk
-                && mergedOutput.back().value == "-"
+        if(canStringBeDouble(currentToken)){
+            cstod(currentToken, error);
+            if(finalTokens.size() > 1 && finalTokens.back().type == TokenType::keyword_tk
+                && finalTokens.back().value == "-"
             ){
-                mergedOutput.pop_back();
-                mergedOutput.emplace_back(WordStruct(TokenType::double_tk, "-" + output[i], false));
+                finalTokens.pop_back();
+                finalTokens.emplace_back(WordStruct(TokenType::double_tk, "-" + currentToken,
+                    false
+                ));
             }
             else{
-                mergedOutput.emplace_back(WordStruct(TokenType::double_tk, output[i], false));
+                finalTokens.emplace_back(WordStruct(TokenType::double_tk, currentToken, false));
             }
             continue;
         }
-        cstoi(output[i], error);
+        cstoi(currentToken, error);
         if(error == ""){
-            if(mergedOutput.size() > 1 && mergedOutput.back().type == TokenType::keyword_tk 
-                && mergedOutput.back().value == "-"
+            if(finalTokens.size() > 1 && finalTokens.back().type == TokenType::keyword_tk 
+                && finalTokens.back().value == "-"
             ){
-                mergedOutput.pop_back();
+                finalTokens.pop_back();
                 //TODO: Check if false should be true here
-                mergedOutput.emplace_back(WordStruct(TokenType::int_tk, "-" + output[i], false));
+                finalTokens.emplace_back(WordStruct(TokenType::int_tk, "-" + currentToken, false));
             }
             else
-                mergedOutput.emplace_back(WordStruct(TokenType::int_tk, output[i], false));
+                finalTokens.emplace_back(WordStruct(TokenType::int_tk, currentToken, false));
             
             continue;
         }
         else{ //Check if the current token is a non-instruction keyword, if not mark it as an identifier
-            bool negate = mergedOutput.size() > 1
-                && mergedOutput.back().type == TokenType::keyword_tk
-                && mergedOutput.back().value == "-";
+            bool negate = finalTokens.size() > 1
+                && finalTokens.back().type == TokenType::keyword_tk
+                && finalTokens.back().value == "-";
 
             if(negate)
-                mergedOutput.pop_back();
+                finalTokens.pop_back();
 
-            EngineInstr keyword = strToInstr(output[i], false);
+            EngineInstr keyword = strToInstr(currentToken, false);
             keyword = ignoreSituationalInstructions(keyword);
 
             if(keyword != null){
-                mergedOutput.emplace_back(WordStruct(TokenType::keyword_tk, output[i], negate,
+                finalTokens.emplace_back(WordStruct(TokenType::keyword_tk, currentToken, negate,
                     keyword
                 ));
             }
             else
-                mergedOutput.emplace_back(WordStruct(TokenType::identifier_tk, output[i], negate));
+                finalTokens.emplace_back(WordStruct(TokenType::identifier_tk, currentToken, negate));
         }
     }
+}
 
-    return {mergedOutput, triggerPreprocessor};
+ReturnType TokenizerContext::checkDepth(){
+    if(bracketsDepth < 0 || curlyBracketsDepth < 0 || squareBracketsDepth < 0)
+        return ReturnType::SYNTAX_ERROR;
+    if(bracketsDepth == 0 && curlyBracketsDepth == 0 && squareBracketsDepth == 0)
+        return ReturnType::OK;
+    return ReturnType::CONTINUE;
+}
+
+inline std::tuple<vector<WordStruct>, bool, ReturnType> tokenizeCode(
+    vector<string>::iterator & lineIt, const vector<string>::iterator & lastLine,
+    unsigned & lineNumber
+){
+    TokenizerContext tokenizer;
+    
+    for(;;){
+        prepareLine(*lineIt, tokenizer.rawTokens, tokenizer.stringSectors, lineNumber);
+        tokenizer.tokenizeLine();
+
+        ReturnType flow = tokenizer.checkDepth();
+        switch(flow){
+            case ReturnType::CONTINUE:
+                ++lineIt;
+                if(lineIt >= lastLine){
+                    return {tokenizer.finalTokens, tokenizer.triggerPreprocessor,
+                        ReturnType::OUT_OF_SCOPE
+                    };
+                }
+                break;
+            case ReturnType::OK:
+                return {tokenizer.finalTokens, tokenizer.triggerPreprocessor, ReturnType::OK};
+            default:
+                return {tokenizer.finalTokens, tokenizer.triggerPreprocessor, flow};
+        }
+    }
 }
 
 void removeStringDuplicatesFromVector(vector<string> & stringVec){
@@ -417,9 +464,24 @@ ReturnType gatherImportsFromScript(const string & exePath, const string & script
         return ReturnType::EMPTY;
     }
     vector<WordStruct> words;
-    for(const string & line : scriptLines){
+    unsigned lineNumber = 0;
+    for(auto lineIt = scriptLines.begin(); lineIt < scriptLines.end(); ++lineIt){
         bool triggerPreprocessor = false;
-        std::tie(words, triggerPreprocessor) = tokenizeCode(line); //TODO: Use less expensive way to extract imports from lines
+        ReturnType tokenizerFlow = ReturnType::OK;
+        //TODO: Use less expensive way to extract imports from lines
+        //replace tokenizeCode with:
+        // - if(tokens[0] == import) parse();
+        // - else if(tokens[0] == start) return;
+        // - else continue;
+        std::tie(words, triggerPreprocessor, tokenizerFlow) = tokenizeCode(lineIt,
+            scriptLines.end(), lineNumber
+        ); 
+        //TODO: This if will go after getting rid of tokenizeCode
+        if(tokenizerFlow != ReturnType::OK){
+            cerr << "Error: Unspecified import error.\n";
+            return ReturnType::ERROR;
+        }
+
         if(words.size() == 0){
             continue;
         }
@@ -828,14 +890,30 @@ ReturnType assembleEvents(vector<EventModule> & eventContainer, vector<string> &
     CodeGenerator codeGenerator;
     Annotations annotations;
 
-    for(string line : code){
-        lineNumber++;
+    for(auto lineIt = code.begin(); lineIt < code.end(); ++lineIt){
         words.clear();
-        line = findAndUseSpecialCharacters(line);
 
         bool triggerPreprocessor = false;
+        ReturnType tokenizerFlow = ReturnType::OK;
         
-        std::tie(words, triggerPreprocessor) = tokenizeCode(line);
+        std::tie(words, triggerPreprocessor, tokenizerFlow) = tokenizeCode(lineIt, code.end(),
+            lineNumber
+        );
+
+        switch (tokenizerFlow){
+            case ReturnType::OUT_OF_SCOPE:
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__
+                    << ": Brackets were not closed. Compilation aborted.\n";
+                return ReturnType::ERROR;
+            case ReturnType::SYNTAX_ERROR:
+                cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                    << NEW_LINE_PADDING << "In " << __FUNCTION__
+                    << ": Not opened brackets were closed. Compilation aborted.\n";
+                return ReturnType::ERROR;
+            default:
+                break;
+        }
 
         if(words.empty()){
             continue;

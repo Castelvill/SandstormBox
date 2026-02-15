@@ -1,0 +1,25 @@
+bundle BundleA
+    int a
+    int & b
+    string c
+    Object d
+end
+
+start main()
+    int a 10
+    int b 20
+    string c "test"
+
+    BundleA bundleA [a, b, c, me]
+    function(bundleA)
+end
+
+start function(BundleA bundleA)
+    int funA bundleA.a
+
+    += bundleA.b funA
+    
+    print bundleA.c "\n"
+
+    fun bundleA.d set_pos 0 0
+end

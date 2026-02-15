@@ -5670,7 +5670,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
     }
     if(LeftOperand->readOnly){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-            << "Left operand is read-only.\n";
+            << "Operand '" << LeftOperand->ID << "' is read-only.\n";
         return;
     }
 
@@ -5685,8 +5685,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
         const InstrDescription &CurrentInstr, const string &functionName
     ) { 
         cerr << instructionError(CurrentInstr, functionName)
-            << "Left operand '" << id
-            << "' of '" << dataTypeToStr(type)
+            << "Operand '" << id << "' of '" << dataTypeToStr(type)
             << "' type was not initialized.\n";
     };
 

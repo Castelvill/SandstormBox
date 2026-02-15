@@ -1554,7 +1554,13 @@ void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType at
             if(Values.size() < 1){
                 return;
             }
-            SuperText->addContent(Values[0].getStringUnsafe());
+            {
+                string concatenate;
+                for(const VariableModule & value : Values){
+                    concatenate += value.getStringUnsafe();
+                }
+                SuperText->addContent(concatenate);
+            }
             return;
         case add_new_text_line:
             if(Values.size() < 1){

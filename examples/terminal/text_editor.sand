@@ -195,7 +195,9 @@ start refreshTextEditorScrollbarCheck(double editorSizeY, double windowHeight)
         fun self update_scrollbars
     end
 end
-start refreshTextEditorScrollbar(EditableText & editorTextField, double & windowWidth, double windowHeight)
+start refreshTextEditorScrollbar(EditableText & editorTextField, double & windowWidth,
+    double windowHeight
+)
     access editorSizeY [editorTextField.size_y]
     = scrollbarHeight windowHeight
     index self [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] Scrollbar editorScrollbar
@@ -228,7 +230,9 @@ start refreshCommandLine(double & windowWidth, double & windowHeight)
     fun commandLineBackground update_with_size
 end
 
-start refreshTextEditorScrollbarAndCommandLine(EditableText & editorTextField, double & windowWidth, double & windowHeight)
+start refreshTextEditorScrollbarAndCommandLine(EditableText & editorTextField, double & windowWidth,
+    double & windowHeight
+)
     refreshLineNumbering(editorTextField)
     refreshTextEditorScrollbar(editorTextField, windowWidth, windowHeight)
     refreshCommandLine(windowWidth, windowHeight)
@@ -261,7 +265,9 @@ start adjustTextEditorToDisplayWithoutUpdatingSize()
     refreshTextEditorScrollbarAndCommandLine(editorTextField, windowWidth, windowHeight)
 end
 
-start moveScrollbarBySelectingText(EditableText & textField, double & cursorPosY, double & windowLimitYDown, double & windowLimitYUp)
+start moveScrollbarBySelectingText(EditableText & textField, double & cursorPosY,
+    double & windowLimitYDown, double & windowLimitYUp
+)
     if (textField.is_editing_active && cursorPosY > windowLimitYDown)
         index self [EDITOR_OBJ_IDX EDITOR_SCROLLBAR_IDX] Scrollbar scrollbar
         fun scrollbar scroll_by_distance 0 8

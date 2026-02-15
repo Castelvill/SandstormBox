@@ -112,7 +112,9 @@ start lsColoringLoop(EditableText & editableText, val[] & files)
         run printFileNameOnTerminal(file)
     end
 end
-start colorIfDirectory(EditableText & editableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
+start colorIfDirectory(EditableText & editableText, string & file, int & fileNameLength,
+    int & fileNameLengthFT, int & length, int & lengthFT
+)
     string fullPath param1
     += fullPath "/"
     += fullPath file
@@ -122,7 +124,9 @@ start colorIfDirectory(EditableText & editableText, string & file, int & fileNam
         run colorIfSandScript(editableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
     end
 end
-start colorIfSandScript(EditableText & editableText, string & file, int & fileNameLength, int & fileNameLengthFT, int & length, int & lengthFT)
+start colorIfSandScript(EditableText & editableText, string & file, int & fileNameLength,
+    int & fileNameLengthFT, int & length, int & lengthFT
+)
     if(fileNameLength > 0)
         substr file fileNameLength length extension
         substr file fileNameLengthFT lengthFT extensionFT
@@ -470,7 +474,14 @@ start sudo()
 end
 
 start allegro()
-	string result "I'd just like to interject for a moment. What you're referring to as SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, Allegro plus SandstormBox."
+	string[] textLines [
+        "I'd just like to interject for a moment. What you're referring to as "
+        "SandstormBox, is in fact, Allegro/SandstormBox, or as I've recently taken to calling it, "
+        "Allegro plus SandstormBox."
+    ]
+    string finalText ""
+    print_v finalText _ textLines
+	run cout(finalText)
+    
     = program "_enter"
-	run cout(result)
 end
