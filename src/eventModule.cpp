@@ -1369,13 +1369,79 @@ string triggerToStr(const TriggerType &trigger){
             return "undefined";
     }
 }
-bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, 
-    const vector<WordStruct> &words, unsigned &cursor, const unsigned &lineNumber,
-    const string &scriptName, vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
+
+//Return true on error
+inline bool validateFunctionCallSyntax(const vector<WordStruct> & words, const unsigned cursor,
+    const unsigned lineNumber, const string & scriptName
 ){
-    if(cursor >= words.size()){
-        return false;
+    //Correct syntaxes:
+    //()
+    //(name)
+    //(name, name)
+    //(name, name, ...)
+    //(parameter = name)
+    //(parameter = name, parameter = name)
+    //(parameter = name, parameter = name, ...)
+    //(name, name, ..., parameter = name, parameter = name, ...)
+
+    //Expected: name / parameter name
+    if(words[cursor].type != TokenType::identifier_tk
+        && words[cursor + 1].instruction != EngineInstr::move
+    ){ 
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 
+            << " must be an identifier or parameter name.\n";
+        return true;
     }
+
+    //Extected: ')' / ',' / '='
+    if(cursor + 1 >= words.size()){ 
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": Parentheses were not closed.\n";
+        return true;
+    }
+
+    int isUsingNamedArgument = 0;
+    //Encountered: '='
+    if(words[cursor + 1].instruction == EngineInstr::move){
+        isUsingNamedArgument = 2;
+        //Expected: name
+        if(words[cursor + 2].type != TokenType::identifier_tk){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 
+                << " must be an identifier.\n";
+            return true;
+        }
+    }
+
+    //Not encountered: ')'
+    if(words[cursor + isUsingNamedArgument + 1].type != TokenType::end_expr_tk){
+        //Expected: ','
+        if(words[cursor + isUsingNamedArgument + 1].instruction != EngineInstr::comma_k){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": Variables must be divided by commas.\n";
+            return true;
+        }
+        //Expected: more tokens 
+        if(cursor + isUsingNamedArgument + 2 >= words.size()){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__
+                << ": Parentheses were not closed.\n";
+            return true;
+        }
+    }
+    return false;
+}
+
+bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, 
+    const vector<WordStruct> &words, unsigned &cursor, const unsigned lineNumber,
+    const string &scriptName, vector<vector<VariableLocationStruct>> & Scopes,
+    unsigned & topAddress, size_t & namedArgumentsStartAt
+){
+    if(cursor >= words.size())
+        return false;
     if(words[cursor].type == TokenType::empty_tk){
         cursor++;
         return false;
@@ -1395,69 +1461,34 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments,
         return true;
     }
     
+    bool namedArgumentsStarted = false;
     while(words[cursor].type != TokenType::end_expr_tk){
-        
-        //TODO -> make it a function
-        {
-            // [')'], [name, ')'], [name, ',']
-            // [')'], [name]
-            //if(words[cursor].type != TokenType::identifier_tk){ //[name]
-            switch(words[cursor].type){
-                case TokenType::identifier_tk:
-                case TokenType::bool_tk:
-                case TokenType::int_tk:
-                case TokenType::double_tk:
-                case TokenType::string_tk:
-                    break;
-                default:
-                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 
-                        << " must be a context.\n";
-                    return true;
-            }
-            if(cursor + 1 >= words.size()){ //[')'], [',']
+        if(validateFunctionCallSyntax(words, cursor, lineNumber, scriptName))
+            return true;
+
+        const bool createNewVariable = false;
+        int isUsingNamedArgument = 0;
+        string parameterName;
+        string variableName;
+
+        if(words[cursor + 1].instruction == EngineInstr::move){
+            namedArgumentsStarted = true;
+            isUsingNamedArgument = 2;
+            parameterName = words[cursor].value;
+            variableName = words[cursor + 2].value;
+        }
+        else{
+            ++namedArgumentsStartAt;
+            if(namedArgumentsStarted){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
                     << NEW_LINE_PADDING << "In " << __FUNCTION__
-                    << ": Parentheses were not closed.\n";
+                    << ": Cannot use nameless arguments after using named arguments.\n";
                 return true;
             }
-            if(words[cursor + 1].type != TokenType::end_expr_tk){
-                if(words[cursor + 1].instruction != EngineInstr::comma_k){
-                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << NEW_LINE_PADDING << "In " << __FUNCTION__
-                        << ": Variables must be divided by commas.\n";
-                    return true;
-                }
-                if(cursor + 2 >= words.size()){
-                    cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                        << NEW_LINE_PADDING << "In " << __FUNCTION__
-                        << ": Parentheses were not closed.\n";
-                    return true;
-                }
-            }
+            variableName = words[cursor].value;
         }
 
-        string variableId = "";
-        bool createNewVariable = false;
-
-        variableId = words[cursor].value;
-
-        switch(words[cursor].type){
-            case TokenType::identifier_tk:
-                variableId = words[cursor].value;
-                break;
-            // case TokenType::bool_tk:
-            // case TokenType::int_tk:
-            // case TokenType::double_tk:
-            // case TokenType::string_tk:
-            //     createNewVariable = true;
-            //     variableId = findUnusedNameInTheScope(Scopes, "__const__0");
-            //     break;
-            default:
-                break;
-        }
-
-        const auto [localAddress, result] = getLocalAddress(variableId, any_dt, Scopes,
+        const auto [localAddress, result] = getLocalAddress(variableName, any_dt, Scopes,
             LocalVariables, topAddress, createNewVariable
         );
 
@@ -1469,18 +1500,19 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments,
         }
         else if(result == ReturnType::UNDEFINED){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableId
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableName
                 << "' is undefined.\n";
             return true;
         }
 
         const VariableInfo & Variable = LocalVariables[localAddress];
-        Arguments.emplace_back(Variable.isReference, Variable.type, localAddress, variableId);
+        Arguments.emplace_back(Variable.isReference, Variable.type, localAddress, variableName,
+            parameterName
+        );
 
-        if(words[cursor + 1].instruction == EngineInstr::comma_k)
-            cursor += 2;
-        else
-            cursor++;
+        cursor += isUsingNamedArgument + 1;
+        if(words[cursor].instruction == EngineInstr::comma_k)
+            ++cursor;
     }
     cursor++;
     return false;

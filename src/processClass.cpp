@@ -15554,7 +15554,7 @@ EventControlFlow ProcessClass::prepareChildEvent(ObjectMemoryStruct & ObjectMemo
     if(printOutInstructions){
         cout << "run " << eventIt->getID() << "(";
         if(SelectedChild != nullptr){
-            for(auto variable : SelectedChild->Arguments){
+            for(auto variable : SelectedChild->arrangedArguments){
                 cout << variable.name << ", ";
             }
         }
@@ -15565,7 +15565,7 @@ EventControlFlow ProcessClass::prepareChildEvent(ObjectMemoryStruct & ObjectMemo
     LocalToGlobalTranslation.clear();
     EventCallState.isCurrentCallRecursive = SelectedChild->isRecursiveCall;
     allocateMemoryForDynamicVariables(eventIt, ObjectMemory);
-    if(passVariablesToTheChild(SelectedChild->Arguments, eventIt->Parameters, EventStack.back().Event,
+    if(passVariablesToTheChild(SelectedChild->arrangedArguments, eventIt->Parameters, EventStack.back().Event,
         eventIt, EventStack.back().LocalVariables, LocalToGlobalTranslation, ObjectMemory
     )){
         return flow_abort;

@@ -52,33 +52,75 @@ void AncestorObject::deleteLater(){
         Vector.deleteLater();
     }
 }
-void AncestorObject::findIndexesOfEventChildren(bool postDelete){
-    for(EventModule & ParentEvent : EventContainer){
-        for(ChildStruct & Child : ParentEvent.Children){
-            unsigned childEventIdx = 0;
-            for(; childEventIdx < EventContainer.size(); childEventIdx++){
-                if(Child.id == EventContainer[childEventIdx].getID()){
-                    Child.uniqueIndex = EventContainer[childEventIdx].getUniqueIndex();
-                    Child.containerIndex = childEventIdx;
+
+inline ReturnType findCalledFunctionDefinition(vector<EventModule> & allEvents, ChildStruct & child,
+    EventModule & parentEvent
+){
+    for(unsigned childEventIdx = 0; childEventIdx < allEvents.size(); childEventIdx++){
+        vector<PassingVariableInfo> & parameters = allEvents[childEventIdx].Parameters;
+        vector<PassingVariableInfo> & arguments = child.originalArguments;
+        
+        if(child.id != allEvents[childEventIdx].getID() || arguments.size() != parameters.size())
+            continue;
+        
+        child.uniqueIndex = allEvents[childEventIdx].getUniqueIndex();
+        child.containerIndex = childEventIdx;
+        child.arrangedArguments.clear();
+        //Copy nameless arguments
+        for(size_t argIdx = 0; argIdx < child.idxOfFirstNamedArg; ++argIdx){
+            child.arrangedArguments.push_back(arguments[argIdx]);
+        }
+        //Rearrange arguments
+        for(size_t paramIdx = child.idxOfFirstNamedArg; paramIdx < parameters.size(); ++paramIdx){
+            //Find first argument with the same name as current parameter
+            for(size_t argIdx = child.idxOfFirstNamedArg; argIdx < arguments.size(); ++argIdx){
+                if(parameters[paramIdx].name == arguments[argIdx].parameterName){
+                    child.arrangedArguments.push_back(arguments[argIdx]);
                     break;
                 }
             }
-            if(childEventIdx == EventContainer.size()){
-                if(!postDelete){
-                    printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
-                        "Child '" + Child.id + "' of the event '" + ParentEvent.getID()
-                        + "' does not exist in the event container.\n"
-                    );
-                }
-                else{
-                    printLogMessage("Warning", __FILE__, __LINE__, __FUNCTION__,
-                        "Child '" + Child.id + "' of the event '" + ParentEvent.getID()
-                        + "' has been deleted.\n"
-                    );
-                }  
+            if(child.arrangedArguments.size() <= paramIdx){
+                printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
+                    "Argument '" + parameters[paramIdx].name + "' is missing from '"
+                    + child.id + "' function call from the '" + parentEvent.getID()
+                    + "' event.\n"
+                );
+                return ReturnType::ERROR;
+            }
+        }
+        return ReturnType::OK;
+    }
+    return ReturnType::OUT_OF_SCOPE;
+}
+
+ReturnType AncestorObject::findIndexesOfEventChildren(bool postDelete){
+    for(EventModule & ParentEvent : EventContainer){
+        for(ChildStruct & Child : ParentEvent.Children){
+            ReturnType status = findCalledFunctionDefinition(EventContainer, Child, ParentEvent);
+            if(status == ReturnType::OK)
+                continue;
+            if(status == ReturnType::ERROR)
+                return ReturnType::ERROR;
+                
+            //Handle ReturnType::OUT_OF_SCOPE
+            if(!postDelete){
+                printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
+                    "Function " + Child.id + "<" + std::to_string(Child.originalArguments.size())
+                    + "> called from '" + ParentEvent.getID()
+                    + "' event does not exist in '" + ID + "' object.\n"
+                );
+                return ReturnType::ERROR;
+            }
+            else{
+                printLogMessage("Warning", __FILE__, __LINE__, __FUNCTION__,
+                    "Function '" + Child.id + "<" + std::to_string(Child.originalArguments.size())
+                    + "> called from '" + ParentEvent.getID()
+                    + "' event has been deleted from '" + ID + "' object.\n"
+                );
             }
         }
     }
+    return ReturnType::OK;
 }
 void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, 
     size_t layerUniqueIndex, const string & newLayerID, bool changeOldID,

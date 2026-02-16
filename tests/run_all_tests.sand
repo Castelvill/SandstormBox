@@ -54,6 +54,9 @@ start testRunnerEvent()
     = path "multiline_instructions"
     scheduleTest(path)
 
+    = path "named_arguments"
+    scheduleTest(path)
+
     = path "while_loop"
     scheduleTest(path)
 

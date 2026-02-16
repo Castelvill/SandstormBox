@@ -1,3 +1,5 @@
+-Handle findIndexesOfEventChildren errors.
+-Add sand wrappers for 'fun' instructions or change 'fun' syntax to "fun *variable* *function* ( [[argument]...] )"
 -Add null checks like: "if(a == null)".
 -Implement returning values from functions.
 -Implement passing literals directly into the functions.

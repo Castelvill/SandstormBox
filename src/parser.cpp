@@ -2949,7 +2949,8 @@ ReturnType InstrParser::parseRun(){
     if(words[1].type != TokenType::identifier_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
-            << ": In the '" << words[0].value << "' instruction: The first parameter is not a context.\n";
+            << ": In the '" << words[0].value
+            << "' instruction: The first parameter is not a context.\n";
         return ReturnType::ERROR;
     }
 
@@ -2961,37 +2962,43 @@ ReturnType InstrParser::parseRun(){
 
     cursor = 2;
 
-    if(NewEvent.getPassingVariables(NewEvent.Children.back().Arguments,
-        words, cursor, lineNumber, scriptName, Scopes, topAddress
+    if(NewEvent.getPassingVariables(NewEvent.Children.back().originalArguments,
+        words, cursor, lineNumber, scriptName, Scopes, topAddress,
+        NewEvent.Children.back().idxOfFirstNamedArg
     )){ return ReturnType::ERROR; }
 
     return ReturnType::OK;
 }
 ReturnType InstrParser::parseAutoRun(){
-    if(words.size() >= 3 && words[1].type == TokenType::start_expr_tk && words.back().type == TokenType::end_expr_tk){
-        const vector<WordStruct> runToken = {WordStruct(TokenType::keyword_tk, "run", false)};
-        if(!prepareNewInstruction(runToken, NewEvent, Operation, 1, lineNumber, scriptName))
-            return ReturnType::ERROR;
-        
-        if(words[0].type != TokenType::identifier_tk){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__
-                << ": In the 'auto_run' instruction: The first parameter is not a context.\n";
-            return ReturnType::ERROR;
-        }
-        Operation->specialValue = NewEvent.Children.size();
-        NewEvent.Children.emplace_back(ChildStruct(0, words[0].value, vector<PassingVariableInfo>(),
-            0, scriptName, lineNumber
-        ));
-        cursor = 1;
-
-        if(NewEvent.getPassingVariables(NewEvent.Children.back().Arguments,
-            words, cursor, lineNumber, scriptName, Scopes, topAddress
-        )){ return ReturnType::ERROR; }
-    }
-    else{
+    if(words.size() < 3 || words[1].type != TokenType::start_expr_tk
+        || words.back().type != TokenType::end_expr_tk
+    ){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'" << words[0].value << "\' does not exist.\n";
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Instruction \'"
+            << words[0].value << "\' does not exist.\n";
+        return ReturnType::ERROR;
     }
+    
+    const vector<WordStruct> runToken = {WordStruct(TokenType::keyword_tk, "run", false)};
+    if(!prepareNewInstruction(runToken, NewEvent, Operation, 1, lineNumber, scriptName))
+        return ReturnType::ERROR;
+    
+    if(words[0].type != TokenType::identifier_tk){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__
+            << ": In the 'auto_run' instruction: The first parameter is not a context.\n";
+        return ReturnType::ERROR;
+    }
+    Operation->specialValue = NewEvent.Children.size();
+    NewEvent.Children.emplace_back(ChildStruct(0, words[0].value, vector<PassingVariableInfo>(),
+        0, scriptName, lineNumber
+    ));
+    cursor = 1;
+
+    if(NewEvent.getPassingVariables(NewEvent.Children.back().originalArguments,
+        words, cursor, lineNumber, scriptName, Scopes, topAddress,
+        NewEvent.Children.back().idxOfFirstNamedArg
+    )){ return ReturnType::ERROR; }
+
     return ReturnType::OK;
 }

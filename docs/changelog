@@ -1,3 +1,6 @@
+16.02.2026
+-Implemented named arguments for function calls.
+
 15.02.2026
 -Added multiline parsing for all bracket types.
 -Replaced "me" and "my_layer" with "self" and "self_layer".

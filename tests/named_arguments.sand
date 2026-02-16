@@ -1,0 +1,39 @@
+import "tests/test_template.sand"
+
+@trigger on_init
+start main()
+    startTest()
+
+    int a 100
+    int b 50
+    int c 10
+
+    function(
+        c = c,
+        a = a,
+        b = b
+    )
+
+    assert a 100
+    assert b 50
+    assert c 54321
+
+    function1(a, c = b, b = c)
+
+    endTest()
+end
+
+start function(int a, int b, int & c)
+    assert a 100
+    assert b 50
+    assert c 10
+    = a 899
+    = b 53480
+    = c 54321
+end
+
+start function1(int a, int b, int c)
+    assert a 100
+    assert b 54321
+    assert c 50
+end

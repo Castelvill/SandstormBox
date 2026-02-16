@@ -129,7 +129,8 @@ struct PassingVariableInfo{
     bool isReference = false;
     DataType type = null_dt;
     unsigned localAddress = 0;
-    string name = ""; //Only for debugging
+    string name = "";
+    string parameterName = "";
 };
 
 
@@ -193,11 +194,13 @@ public:
 struct ChildStruct{
     size_t uniqueIndex = 0;
     string id;
-    vector<PassingVariableInfo> Arguments;
+    vector<PassingVariableInfo> originalArguments;
     unsigned containerIndex = 0;
     string callingScript;
     unsigned lineNumber = 0;
-    bool isRecursiveCall = false; 
+    bool isRecursiveCall = false;
+    size_t idxOfFirstNamedArg = 0;
+    vector<PassingVariableInfo> arrangedArguments;
 };
 
 enum TriggerType: char{
@@ -235,9 +238,10 @@ public:
     bool getPassedVariables(const vector<WordStruct> & words, unsigned & cursor, const unsigned & lineNumber,
         const string & scriptName, vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
     );
-    bool getPassingVariables(vector<PassingVariableInfo> &Arguments, const vector<WordStruct> &words,
-        unsigned &cursor, const unsigned &lineNumber, const string &scriptName,
-        vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
+    bool getPassingVariables(vector<PassingVariableInfo> &Arguments,
+        const vector<WordStruct> &words, unsigned &cursor, const unsigned lineNumber,
+        const string &scriptName, vector<vector<VariableLocationStruct>> & Scopes,
+        unsigned & topAddress, size_t & namedArgumentsStartAt
     );
     void controlSuperText(SuperTextModule * SuperText, AttributeType attribute, const vector<VariableModule> & Values,
         vector <string> & IDs, vector<SingleFont> & FontContainer, string EXE_PATH, string workingDirectory
