@@ -211,7 +211,11 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
     );
     canBeMovedWithMouse = Original.canBeMovedWithMouse;
 
-    findIndexesOfEventChildren();
+    if(findIndexesOfEventChildren() == ReturnType::ERROR){
+        cerr << "Error: In " << __FUNCTION__ << ": Function indexing inside '" << Original.ID 
+            << "' object failed. Review previous errors.\n";
+        return;
+    }
 }
 void AncestorObject::clearVectorsOfIDs(){
     superTextContainerIDs.clear();

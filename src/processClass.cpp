@@ -272,7 +272,11 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
             CurrentMap.topAddress, topModuleUniqueIndex
         );
         allocateAllLocalVariables(CurrentMap, InitObject.EventContainer);
-        InitObject.findIndexesOfEventChildren();
+        if(InitObject.findIndexesOfEventChildren() == ReturnType::ERROR){
+            cerr << "Error: In " << __FUNCTION__
+                << ": Function indexing inside '" << InitObject.getID()
+                << "' object failed. Review previous errors.\n";
+        }
         detectRecursionInEvents(InitObject.EventContainer, CurrentInstr);
     }
     
@@ -9364,7 +9368,11 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation,
             CurrentMap.MemberVarsScope, CurrentMap.topAddress, topModuleUniqueIndex
         );
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-        Object->findIndexesOfEventChildren();
+        if(Object->findIndexesOfEventChildren() == ReturnType::ERROR){
+            cerr << "Error: In " << __FUNCTION__
+                << ": Function indexing inside '" << Object->getID()
+                << "' object failed. Review previous errors.\n";
+        }
         detectRecursionInEvents(Object->EventContainer, CurrentInstr);
         wasAnyEventUpdated = true;
     }
@@ -9521,7 +9529,11 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
         }
 
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-        Object->findIndexesOfEventChildren();
+        if(Object->findIndexesOfEventChildren() == ReturnType::ERROR){
+            cerr << "Error: In " << __FUNCTION__
+                << ": Function indexing inside '" << Object->getID()
+                << "' object failed. Review previous errors.\n";
+        }
         detectRecursionInEvents(Object->EventContainer, CurrentInstr);
 
         wasAnyEventUpdated = true;
@@ -15119,7 +15131,11 @@ bool ProcessClass::deleteEntities(){
                     if(deleteEventInstance(objectIt->EventContainer, objectIt->eventContainerIDs,
                         wereLayersModified, ProcessMemory[objectIt->getUniqueIndex()]
                     )){
-                        objectIt->findIndexesOfEventChildren(true);
+                        if(objectIt->findIndexesOfEventChildren(true) == ReturnType::ERROR){
+                            cerr << "Error: In " << __FUNCTION__
+                                << ": Function indexing inside '" << objectIt->getID()
+                                << "' object failed. Review previous errors.\n";
+                        }
                         detectRecursionInEvents(objectIt->EventContainer, CurrentInstr);
                     }
                     deleteModuleInstance(objectIt->ScrollbarContainer, 
