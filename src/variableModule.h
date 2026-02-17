@@ -10,6 +10,11 @@ public:
     int vInt = 0;
 	double vDouble = 0.0;
 	string vString = "";
+    void setBool(bool value);
+    void setInt(int value);
+    void setDouble(double value);
+    void setString(const string & value);
+    bool isInitialized() const;
 };
 
 template<typename LeftType, typename RightType>
@@ -25,6 +30,7 @@ class VariableModule: public UniversalVariable{
     string layerID; //This ID is needed in events' trigger detection.
     string objectID;
 public:
+    VariableModule(UniversalVariable);
     VariableModule(PrimaryData & initData);
     VariableModule(size_t & topModuleUniqueIndex);
     VariableModule();

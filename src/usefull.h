@@ -15,7 +15,9 @@ const double FPS = 60.0;
 const vector<string> reservedIDs = {};
 
 int cstoi(const string & text, string & error);
+int stoiOrZero(const string & text);
 double cstod(const string & text, string & error);
+double stodOrZero(const string & text);
 float cstof(const string & text, string & error);
 string shortToStr(short integer);
 string intToStr(int integer);

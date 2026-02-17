@@ -1,7 +1,7 @@
+-Test passing literals to functions inside the terminal.
 -Add sand wrappers for 'fun' instructions or change 'fun' syntax to "fun *variable* *function* ( [[argument]...] )"
 -Add null checks like: "if(a == null)".
 -Implement returning values from functions.
--Implement passing literals directly into the functions.
 -Implement enums.
 -Instead of creating structs or classes maybe implement "bundle" instruction which sole reason would be to move several variables between functions as one parameter, something like javascript objects.
 -Changing the position of the cursor in the text should update currentLine and currentChar parameters in the editor's command line - expand access instruction.

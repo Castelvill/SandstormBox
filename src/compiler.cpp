@@ -276,7 +276,7 @@ inline void TokenizerContext::tokenizeLine(){
             continue;
         }
         cstoi(currentToken, error);
-        if(error == ""){
+        if(error.empty()){
             if(finalTokens.size() > 1 && finalTokens.back().type == TokenType::keyword_tk 
                 && finalTokens.back().value == "-"
             ){

@@ -19,8 +19,9 @@ ValueSource strToSource(const string & source);
 ValueSource instrToSource(EngineInstr instruction);
 string sourceToStr(ValueSource instruction);
 enum DataType: char{
-    //Basic data type
-    null_dt, bool_inst, bool_vec, int_inst, int_vec, double_inst, double_vec, string_inst,
+    null_dt,
+    //Basic data types
+    bool_inst, bool_vec, int_inst, int_vec, double_inst, double_vec, string_inst,
     string_vec, value_inst, value_vec, pointer_inst, pointer_vec,
     //Engine container
     camera_inst, camera_vec, layer_inst, layer_vec, object_inst, object_vec,
@@ -131,6 +132,7 @@ struct PassingVariableInfo{
     unsigned localAddress = 0;
     string name = "";
     string parameterName = "";
+    UniversalVariable literal;
 };
 
 

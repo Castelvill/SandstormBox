@@ -1,0 +1,37 @@
+import "tests/test_template.sand"
+
+@trigger on_init
+start main()
+    startTest()
+
+    function(654321)
+
+    function1(false, 8431, 6512.043, "Hello world!")
+
+    function2(
+        b = 890,
+        a = 431,
+        d = 21,
+        c = 232
+    )
+
+    endTest()
+end
+
+start function(int a)
+    assert a 654321
+end
+
+start function1(bool a, int b, double c, string d)
+    assert a false
+    assert b 8431
+    assert c 6512.043
+    assert d "Hello world!"
+end
+
+start function2(int a, int b, int c, int d)
+    assert a 431
+    assert b 890
+    assert c 232
+    assert d 21
+end

@@ -17,6 +17,12 @@ int cstoi(const string & text, string & error){
     }
 }
 int stoiOrZero(const string & text){
+    if(text == "true"){
+        return 1;
+    }
+    if(text == "false"){
+        return 0;
+    }
     try{
         return stoi(text);
     }
@@ -31,6 +37,14 @@ double cstod(const string & text, string & error){
     }
     catch(std::invalid_argument const& ex){
         error = "Error: In cstod: In stod: string \"" + text + "\" triggers 'std::invalid_argument'.";
+        return 0;
+    }
+}
+double stodOrZero(const string & text){
+    try{
+        return stod(text);
+    }
+    catch(std::invalid_argument const& ex){
         return 0;
     }
 }

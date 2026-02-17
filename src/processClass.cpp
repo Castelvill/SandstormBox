@@ -15485,6 +15485,28 @@ void ProcessClass::deallocateDynamicallyAllocatedMemory(vector<DynamicMemoryStru
         topDynamicAddress = localVarIt.dynamicMemoryAddress;
     }
 }
+inline bool validateVariablesTypes(const InstrDescription & CurrentInstr,
+    bool isParameterReference, DataType parameterType, DataType argumentType
+){
+    if(isParameterReference){
+        if(!areTypesCompatibleWithReference(parameterType, argumentType)){
+            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                << "Cannot pass an argument of '" << dataTypeToStr(argumentType)
+                << "' type to a parameter of '" << dataTypeToStr(parameterType)
+                << "' type.\n";
+            return true;
+        }
+        return false;		
+    }
+    if(!areTypesCompatible(parameterType, argumentType)){
+        cerr << instructionError(CurrentInstr, __FUNCTION__)
+            << "Cannot pass an argument of '" << dataTypeToStr(argumentType)
+            << "' type to a parameter of '" << dataTypeToStr(parameterType)
+            << "' type.\n";
+        return true;
+    }
+    return false;
+}
 bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & ParentEventArguments,
     const vector<PassingVariableInfo> & CurrentEventParameters,
     vector<EventModule>::iterator & ParentEvent, vector<EventModule>::iterator & CurrentEvent,
@@ -15495,7 +15517,8 @@ bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & P
     if(CurrentEventParameters.size() != ParentEventArguments.size()){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
 			<< "Number of passed arguments (" << ParentEventArguments.size() << ")"
-			<<" is not equal to the number of event parameters (" << CurrentEventParameters.size() << ").\n";
+			<<" is not equal to the number of event parameters ("
+            << CurrentEventParameters.size() << ").\n";
 		return true;
     }
     for(size_t argIdx = 0; argIdx < CurrentEventParameters.size(); argIdx++){
@@ -15509,8 +15532,10 @@ bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & P
 					<< "' type to a parameter of '" << dataTypeToStr(Parameter.type) << "' type.\n";
 				return true;
 			}
-            //When passing by reference you only need to copy the dynamic address of the variable instead of copying the whole its state.
-            CurrentEventLocalVariables[Parameter.localAddress].dynamicAddress = ParentEventLocalVariables[Argument.localAddress].dynamicAddress;
+            //When passing by reference you only need to copy the dynamic address of the variable
+            //instead of copying the whole its state.
+            CurrentEventLocalVariables[Parameter.localAddress].dynamicAddress
+                = ParentEventLocalVariables[Argument.localAddress].dynamicAddress;
 
 			continue;		
 		}
@@ -15521,14 +15546,25 @@ bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & P
 			return true;
 		}
 
-        ContextClass * ArgumentVariable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
-            ParentEventLocalVariables[Argument.localAddress], Argument.name, true
-        );
-        if(ArgumentVariable == nullptr){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Variable '" << Argument.name << "' does not exist.\n";
-            continue;
+        ContextClass * ArgumentVariable = nullptr;
+        DataType argumentType = DataType::null_dt;
+        bool useVariable = !Argument.literal.isInitialized();
+
+        if(useVariable){
+            ArgumentVariable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
+                ParentEventLocalVariables[Argument.localAddress], Argument.name, true
+            );
+            if(ArgumentVariable == nullptr){
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Variable '" << Argument.name << "' does not exist.\n";
+                continue;
+            }
+            argumentType = ArgumentVariable->type;
         }
+        else{
+            argumentType = Argument.type;
+        }
+        
 		ContextClass * ParameterVariable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
             CurrentEventLocalVariables[Parameter.localAddress], Parameter.name, true
         );
@@ -15538,28 +15574,26 @@ bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & P
             continue;
         }
 
-        if(Parameter.isReference){
-			if(!areTypesCompatibleWithReference(ParameterVariable->type, ArgumentVariable->type)){
-				cerr << instructionError(CurrentInstr, __FUNCTION__)
-					<< "Cannot pass an argument of '" << dataTypeToStr(ArgumentVariable->type)
-					<< "' type to a parameter of '" << dataTypeToStr(ParameterVariable->type) << "' type.\n";
-				return true;
-			}
-			continue;		
-		}
-        if(!areTypesCompatible(ParameterVariable->type, ArgumentVariable->type)){
-			cerr << instructionError(CurrentInstr, __FUNCTION__)
-				<< "Cannot pass an argument of '" << dataTypeToStr(ArgumentVariable->type)
-				<< "' type to a parameter of '" << dataTypeToStr(ParameterVariable->type) << "' type.\n";
-			return true;
-		}
+        if(validateVariablesTypes(CurrentInstr, Parameter.isReference, ParameterVariable->type,
+            argumentType
+        ))
+            return true;
 
-        moveRightToLeft(CurrentInstr, EngineInstr::assign, ParameterVariable, *ArgumentVariable);
+        if(useVariable){
+            moveRightToLeft(CurrentInstr, EngineInstr::assign, ParameterVariable, *ArgumentVariable);
+        }
+        else{
+            HelpContext.type = DataType::value_inst;
+            HelpContext.Values.clear();
+            HelpContext.Values.push_back(VariableModule(Argument.literal));
+            moveRightToLeft(CurrentInstr, EngineInstr::assign, ParameterVariable, HelpContext);
+        }
     }
     return false;
 }
-EventControlFlow ProcessClass::prepareChildEvent(ObjectMemoryStruct & ObjectMemory, vector<EventStackStruct> & EventStack,
-    vector<EventModule>::iterator & eventIt, ChildStruct * SelectedChild
+EventControlFlow ProcessClass::prepareChildEvent(ObjectMemoryStruct & ObjectMemory,
+    vector<EventStackStruct> & EventStack, vector<EventModule>::iterator & eventIt,
+    ChildStruct * SelectedChild
 ){
     CurrentInstr.lineNumber = SelectedChild->lineNumber;
     CurrentInstr.scriptName = SelectedChild->callingScript;

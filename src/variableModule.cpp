@@ -1,5 +1,43 @@
 #include "variableModule.h"
 
+void UniversalVariable::setBool(bool value){
+    type = 'b';
+    vBool = value;
+}
+void UniversalVariable::setInt(int value){
+    type = 'i';
+    vInt = value;
+}
+void UniversalVariable::setDouble(double value){
+    type = 'd';
+    vDouble = value;
+}
+void UniversalVariable::setString(const string & value){
+    type = 's';
+    vString = value;
+}
+bool UniversalVariable::isInitialized() const {
+    return type != 'n';
+}
+
+VariableModule::VariableModule(UniversalVariable value){
+    switch (value.type){
+        case 'b':
+            setBool(value.vBool);
+            return;
+        case 'i':
+            setInt(value.vInt);
+            return;
+        case 'd':
+            setDouble(value.vDouble);
+            return;
+        case 's':
+            setString(value.vString);
+            return;
+        default:
+            return;
+    }
+}
 VariableModule::VariableModule(PrimaryData & initData){
     uniqueIndex = *initData.topIndex++;
     objectUniqueIndex = initData.objectUniqueIndex;

@@ -512,7 +512,6 @@ string dataTypeToStr(DataType dataType){
         case any_dt:
             return "any";
         default:
-            cerr << "Error: In " << __FUNCTION__ << ": DataType with code: '" << dataType << "' is undefined.\n"; 
             return "undefined";
     }
 }
@@ -767,7 +766,7 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(const string &scri
             printError(scriptName, lineNumber, words[0].value, error);
             return true;
         }
-        index++;
+        ++index;
         return false;
     }
     else if(words[index].type == TokenType::string_tk){
@@ -784,7 +783,7 @@ bool OperationClass::addLiteralOrVectorOrVariableToParameters(const string &scri
         Parameters.back().type = 'l';
         Parameters.back().Literal.setString(words[index].value);
         ++rootParametersSize;
-        index++;
+        ++index;
         return false;
     }
     return addVectorOrVariableToParameters(
@@ -1370,6 +1369,19 @@ string triggerToStr(const TriggerType &trigger){
     }
 }
 
+inline bool notRightSideValue(TokenType token){
+    switch (token) {
+        case TokenType::identifier_tk:
+        case TokenType::bool_tk:
+        case TokenType::int_tk:
+        case TokenType::double_tk:
+        case TokenType::string_tk:
+            return false;
+        default:
+            return true;
+    }
+}
+
 //Return true on error
 inline bool validateFunctionCallSyntax(const vector<WordStruct> & words, const unsigned cursor,
     const unsigned lineNumber, const string & scriptName
@@ -1384,13 +1396,11 @@ inline bool validateFunctionCallSyntax(const vector<WordStruct> & words, const u
     //(parameter = name, parameter = name, ...)
     //(name, name, ..., parameter = name, parameter = name, ...)
 
-    //Expected: name / parameter name
-    if(words[cursor].type != TokenType::identifier_tk
-        && words[cursor + 1].instruction != EngineInstr::move
-    ){ 
+    //Expected: literal / name / parameter name
+    if(notRightSideValue(words[cursor].type)){ 
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 
-            << " must be an identifier or parameter name.\n";
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Token " << cursor+1 
+            << " must be a literal, identifier or parameter name.\n";
         return true;
     }
 
@@ -1405,12 +1415,18 @@ inline bool validateFunctionCallSyntax(const vector<WordStruct> & words, const u
     int isUsingNamedArgument = 0;
     //Encountered: '='
     if(words[cursor + 1].instruction == EngineInstr::move){
+        if(words[cursor].type != TokenType::identifier_tk){
+            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Token " << cursor+1 
+                << " must be a parameter name.\n";
+            return true;
+        }
         isUsingNamedArgument = 2;
         //Expected: name
-        if(words[cursor + 2].type != TokenType::identifier_tk){
+        if(notRightSideValue(words[cursor + 2].type)){
             cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parameter " << cursor+1 
-                << " must be an identifier.\n";
+                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Token " << cursor+1 
+                << " must be a literal or identifier.\n";
             return true;
         }
     }
@@ -1435,19 +1451,77 @@ inline bool validateFunctionCallSyntax(const vector<WordStruct> & words, const u
     return false;
 }
 
-bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments, 
-    const vector<WordStruct> &words, unsigned &cursor, const unsigned lineNumber,
-    const string &scriptName, vector<vector<VariableLocationStruct>> & Scopes,
+inline bool pushVariableToArgumentsVector(vector<PassingVariableInfo> & arguments,
+    vector<vector<VariableLocationStruct>> & scopes, vector<VariableInfo> & localVariables,
+    const unsigned lineNumber, const string & scriptName, unsigned & topAddress,
+    const string & parameterName, const string & variableName
+){
+    const auto [localAddress, result] = getLocalAddress(variableName, any_dt, scopes,
+        localVariables, topAddress
+    );
+
+    if(result == ReturnType::OUT_OF_SCOPE){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Address ("
+            << localAddress << ") is out of scope (" << localVariables.size() << ").\n";
+        return true;
+    }
+    else if(result == ReturnType::UNDEFINED){
+        cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
+            << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableName
+            << "' is undefined.\n";
+        return true;
+    }
+
+    const VariableInfo & variable = localVariables[localAddress];
+    arguments.emplace_back(variable.isReference, variable.type, localAddress, variableName,
+        parameterName
+    );
+
+    return false;
+}
+
+void pushLiteralToArgumentsVector(vector<PassingVariableInfo> & arguments,
+    const string & parameterName, const WordStruct & token
+){
+    arguments.emplace_back(PassingVariableInfo());
+    if(!parameterName.empty())
+        arguments.back().parameterName = parameterName;
+    switch (token.type){
+        case TokenType::bool_tk:
+            arguments.back().type = DataType::bool_inst;
+            arguments.back().literal.setBool(stoiOrZero(token.value));
+            break;
+        case TokenType::int_tk:
+            arguments.back().type = DataType::int_inst;
+            arguments.back().literal.setInt(stoiOrZero(token.value));
+            break;
+        case TokenType::double_tk:
+            arguments.back().type = DataType::double_inst;
+            arguments.back().literal.setDouble(stodOrZero(token.value));
+            break;
+        case TokenType::string_tk:
+            arguments.back().type = DataType::string_inst;
+            arguments.back().literal.setString(token.value);
+            break;
+        default:
+            break;
+    }
+}
+
+bool EventModule::getPassingVariables(vector<PassingVariableInfo> & arguments, 
+    const vector<WordStruct> & tokens, unsigned & cursor, const unsigned lineNumber,
+    const string & scriptName, vector<vector<VariableLocationStruct>> & scopes,
     unsigned & topAddress, size_t & namedArgumentsStartAt
 ){
-    if(cursor >= words.size())
+    if(cursor >= tokens.size())
         return false;
-    if(words[cursor].type == TokenType::empty_tk){
-        cursor++;
+    if(tokens[cursor].type == TokenType::empty_tk){
+        ++cursor;
         return false;
     }
 
-    if(words[cursor].type != TokenType::start_expr_tk){
+    if(tokens[cursor].type != TokenType::start_expr_tk){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ 
             << ": Passing parameters to a function must be enclosed in parentheses.\n";
@@ -1455,29 +1529,20 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments,
     }
     
     cursor++;
-    if(cursor >= words.size()){
+    if(cursor >= tokens.size()){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Parentheses were not closed.\n";
         return true;
     }
     
     bool namedArgumentsStarted = false;
-    while(words[cursor].type != TokenType::end_expr_tk){
-        if(validateFunctionCallSyntax(words, cursor, lineNumber, scriptName))
+    while(tokens[cursor].type != TokenType::end_expr_tk){
+        if(validateFunctionCallSyntax(tokens, cursor, lineNumber, scriptName))
             return true;
 
-        const bool createNewVariable = false;
-        int isUsingNamedArgument = 0;
         string parameterName;
-        string variableName;
 
-        if(words[cursor + 1].instruction == EngineInstr::move){
-            namedArgumentsStarted = true;
-            isUsingNamedArgument = 2;
-            parameterName = words[cursor].value;
-            variableName = words[cursor + 2].value;
-        }
-        else{
+        if(tokens[cursor + 1].instruction != EngineInstr::move){
             ++namedArgumentsStartAt;
             if(namedArgumentsStarted){
                 cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
@@ -1485,36 +1550,27 @@ bool EventModule::getPassingVariables(vector<PassingVariableInfo> &Arguments,
                     << ": Cannot use nameless arguments after using named arguments.\n";
                 return true;
             }
-            variableName = words[cursor].value;
+        }
+        else{
+            namedArgumentsStarted = true;
+            parameterName = tokens[cursor].value;
+            cursor += 2;
         }
 
-        const auto [localAddress, result] = getLocalAddress(variableName, any_dt, Scopes,
-            LocalVariables, topAddress, createNewVariable
-        );
-
-        if(result == ReturnType::OUT_OF_SCOPE){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Address ("
-                << localAddress << ") is out of scope (" << LocalVariables.size() << ").\n";
-            return true;
+        if(tokens[cursor].type == TokenType::identifier_tk){
+            pushVariableToArgumentsVector(arguments, scopes, LocalVariables, lineNumber, scriptName,
+                topAddress, parameterName, tokens[cursor].value
+            );
         }
-        else if(result == ReturnType::UNDEFINED){
-            cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
-                << NEW_LINE_PADDING << "In " << __FUNCTION__ << ": Variable '" << variableName
-                << "' is undefined.\n";
-            return true;
+        else{
+            pushLiteralToArgumentsVector(arguments, parameterName, tokens[cursor]);
         }
 
-        const VariableInfo & Variable = LocalVariables[localAddress];
-        Arguments.emplace_back(Variable.isReference, Variable.type, localAddress, variableName,
-            parameterName
-        );
-
-        cursor += isUsingNamedArgument + 1;
-        if(words[cursor].instruction == EngineInstr::comma_k)
+        ++cursor;
+        if(tokens[cursor].instruction == EngineInstr::comma_k)
             ++cursor;
     }
-    cursor++;
+    ++cursor;
     return false;
 }
 void EventModule::controlSuperText(SuperTextModule * SuperText, AttributeType attribute,
