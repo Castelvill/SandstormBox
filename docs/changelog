@@ -1,3 +1,7 @@
+18.02.2026
+-Refactored some functions and script examples.
+-Added checking if a literal is passed as a reference.
+
 17.02.2026
 -Implemented passing literals directly into the functions.
 

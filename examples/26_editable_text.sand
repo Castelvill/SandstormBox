@@ -24,8 +24,6 @@ start main()
     double accentTextColorB 1.0
     double accentTextColorA 1.0
 
-    string text "Lorem Ipsum is simply dummy text of the printing and typesetting industry.\nLorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.\nIt has survived not only five centuries,\nbut also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
-
     //Basic setup
     new EditableText self 1 "edi" textField
     fun textField set_size windowWidth windowHeight
@@ -50,6 +48,13 @@ start main()
     fun textField set_last_accent_color accentTextColorR accentTextColorG accentTextColorB accentTextColorA
 
     //Starting text content
+    string text "Lorem Ipsum is simply dummy text of the printing and typesetting industry.\n"
+    += text "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an"
+    += text "unknown printer took a galley of type and scrambled it to make a type specimen book.\n"
+    += text "It has survived not only five centuries,\nbut also the leap into electronic"
+    += text "typesetting, remaining essentially unchanged. It was popularised in the 1960s with the"
+    += text "release of Letraset sheets containing Lorem Ipsum passages, and more recently with"
+    += text "desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
     fun textField set_content text
     fun textField update
     

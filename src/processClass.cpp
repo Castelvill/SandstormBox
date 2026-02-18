@@ -15507,86 +15507,104 @@ inline bool validateVariablesTypes(const InstrDescription & CurrentInstr,
     }
     return false;
 }
-bool ProcessClass::passVariablesToTheChild(const vector<PassingVariableInfo> & ParentEventArguments,
-    const vector<PassingVariableInfo> & CurrentEventParameters,
-    vector<EventModule>::iterator & ParentEvent, vector<EventModule>::iterator & CurrentEvent,
-    vector<DynamicVariableInfo> & ParentEventLocalVariables,
-    vector<DynamicVariableInfo> & CurrentEventLocalVariables,
-    ObjectMemoryStruct & ObjectMemory
+inline std::pair<bool, ContextClass*> getParameterVariable(const InstrDescription & currentInstr,
+    vector<DynamicVariableInfo> & currentEventLocalVariables, ObjectMemoryStruct & objectMemory,
+    DataType argumentType, const FunctionParameter & parameter
 ){
-    if(CurrentEventParameters.size() != ParentEventArguments.size()){
+    ContextClass * parameterVariable = getVariableByAddress(currentInstr, objectMemory.MemoryMap,
+        currentEventLocalVariables[parameter.localAddress], parameter.name, true
+    );
+
+    if(parameterVariable == nullptr){
+        cerr << instructionError(currentInstr, __FUNCTION__)
+            << "Variable '" << parameter.name << "' does not exist.\n";
+        return {true, nullptr};
+    }
+
+    if(validateVariablesTypes(currentInstr, parameter.isReference, parameterVariable->type,
+        argumentType
+    ))
+        return {true, nullptr};
+
+    return {false, parameterVariable};
+}
+bool ProcessClass::passArgumentsToFunction(const vector<FunctionParameter> & parentEventArguments,
+    const vector<FunctionParameter> & currentEventParameters,
+    vector<EventModule>::iterator & parentEvent, vector<EventModule>::iterator & currentEvent,
+    vector<DynamicVariableInfo> & parentEventLocalVariables,
+    vector<DynamicVariableInfo> & currentEventLocalVariables,
+    ObjectMemoryStruct & objectMemory
+){
+    if(currentEventParameters.size() != parentEventArguments.size()){
         cerr << instructionError(CurrentInstr, __FUNCTION__)
-			<< "Number of passed arguments (" << ParentEventArguments.size() << ")"
+			<< "Number of passed arguments (" << parentEventArguments.size() << ")"
 			<<" is not equal to the number of event parameters ("
-            << CurrentEventParameters.size() << ").\n";
+            << currentEventParameters.size() << ").\n";
 		return true;
     }
-    for(size_t argIdx = 0; argIdx < CurrentEventParameters.size(); argIdx++){
-        const PassingVariableInfo & Argument = ParentEventArguments[argIdx];
-		const PassingVariableInfo & Parameter = CurrentEventParameters[argIdx];
+    for(size_t argIdx = 0; argIdx < currentEventParameters.size(); argIdx++){
+        const FunctionParameter & argument = parentEventArguments[argIdx];
+		const FunctionParameter & parameter = currentEventParameters[argIdx];
         
-        if(Parameter.isReference){
-			if(!areTypesCompatibleWithReference(Parameter.type, Argument.type)){
+        if(parameter.isReference){
+			if(!areTypesCompatibleWithReference(parameter.type, argument.type)){
 				cerr << instructionError(CurrentInstr, __FUNCTION__)
-					<< "Cannot pass an argument of '" << dataTypeToStr(Argument.type)
-					<< "' type to a parameter of '" << dataTypeToStr(Parameter.type) << "' type.\n";
+					<< "Cannot pass an argument of '" << dataTypeToStr(argument.type)
+					<< "' type to a parameter of '" << dataTypeToStr(parameter.type) << "' type.\n";
 				return true;
 			}
+
+            if(argument.literal.isInitialized()){
+                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    << "Cannot pass a literal as a reference.\n";
+                return true;
+            }
+
             //When passing by reference you only need to copy the dynamic address of the variable
             //instead of copying the whole its state.
-            CurrentEventLocalVariables[Parameter.localAddress].dynamicAddress
-                = ParentEventLocalVariables[Argument.localAddress].dynamicAddress;
+            currentEventLocalVariables[parameter.localAddress].dynamicAddress
+                = parentEventLocalVariables[argument.localAddress].dynamicAddress;
 
 			continue;		
 		}
-        if(!areTypesCompatible(Parameter.type, Argument.type)){
+        if(!areTypesCompatible(parameter.type, argument.type)){
 			cerr << instructionError(CurrentInstr, __FUNCTION__)
-				<< "Cannot pass an argument of '" << dataTypeToStr(Argument.type)
-				<< "' type to a parameter of '" << dataTypeToStr(Parameter.type) << "' type.\n";
+				<< "Cannot pass an argument of '" << dataTypeToStr(argument.type)
+				<< "' type to a parameter of '" << dataTypeToStr(parameter.type) << "' type.\n";
 			return true;
 		}
 
-        ContextClass * ArgumentVariable = nullptr;
-        DataType argumentType = DataType::null_dt;
-        bool useVariable = !Argument.literal.isInitialized();
-
-        if(useVariable){
-            ArgumentVariable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
-                ParentEventLocalVariables[Argument.localAddress], Argument.name, true
+        if(!argument.literal.isInitialized()){
+            ContextClass * argumentVariable = getVariableByAddress(
+                CurrentInstr, objectMemory.MemoryMap,
+                parentEventLocalVariables[argument.localAddress], argument.name, true
             );
-            if(ArgumentVariable == nullptr){
+            
+            if(argumentVariable == nullptr){
                 cerr << instructionError(CurrentInstr, __FUNCTION__)
-                    << "Variable '" << Argument.name << "' does not exist.\n";
+                    << "Variable '" << argument.name << "' does not exist.\n";
                 continue;
             }
-            argumentType = ArgumentVariable->type;
+
+            auto[error, parameterVariable] = getParameterVariable(CurrentInstr,
+                currentEventLocalVariables, objectMemory, argumentVariable->type, parameter
+            );
+
+            if(error) return true;
+
+            moveRightToLeft(CurrentInstr, EngineInstr::assign, parameterVariable, *argumentVariable);
         }
         else{
-            argumentType = Argument.type;
-        }
-        
-		ContextClass * ParameterVariable = getVariableByAddress(CurrentInstr, ObjectMemory.MemoryMap,
-            CurrentEventLocalVariables[Parameter.localAddress], Parameter.name, true
-        );
-        if(ParameterVariable == nullptr){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
-                << "Variable '" << Parameter.name << "' does not exist.\n";
-            continue;
-        }
+            auto[error, parameterVariable] = getParameterVariable(CurrentInstr,
+                currentEventLocalVariables, objectMemory, argument.type, parameter
+            );
 
-        if(validateVariablesTypes(CurrentInstr, Parameter.isReference, ParameterVariable->type,
-            argumentType
-        ))
-            return true;
+            if(error) return true;
 
-        if(useVariable){
-            moveRightToLeft(CurrentInstr, EngineInstr::assign, ParameterVariable, *ArgumentVariable);
-        }
-        else{
             HelpContext.type = DataType::value_inst;
             HelpContext.Values.clear();
-            HelpContext.Values.push_back(VariableModule(Argument.literal));
-            moveRightToLeft(CurrentInstr, EngineInstr::assign, ParameterVariable, HelpContext);
+            HelpContext.Values.push_back(VariableModule(argument.literal));
+            moveRightToLeft(CurrentInstr, EngineInstr::assign, parameterVariable, HelpContext);
         }
     }
     return false;
@@ -15615,16 +15633,17 @@ EventControlFlow ProcessClass::prepareChildEvent(ObjectMemoryStruct & ObjectMemo
     LocalToGlobalTranslation.clear();
     EventCallState.isCurrentCallRecursive = SelectedChild->isRecursiveCall;
     allocateMemoryForDynamicVariables(eventIt, ObjectMemory);
-    if(passVariablesToTheChild(SelectedChild->arrangedArguments, eventIt->Parameters, EventStack.back().Event,
+    if(passArgumentsToFunction(SelectedChild->arrangedArguments, eventIt->parameters, EventStack.back().Event,
         eventIt, EventStack.back().LocalVariables, LocalToGlobalTranslation, ObjectMemory
     )){
         return flow_abort;
     }
     return flow_run_function;
 }
-EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine, vector<ProcessClass> & Processes,
-    vector<EventModule>::iterator & startingEventIt, vector<EventModule>::iterator & eventIt,
-    vector<EventStackStruct> & EventStack, ObjectMemoryStruct & ObjectMemory, vector<AncestorObject*> & TriggeredObjects,
+EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine,
+    vector<ProcessClass> & Processes, vector<EventModule>::iterator & startingEventIt,
+    vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & EventStack,
+    ObjectMemoryStruct & ObjectMemory, vector<AncestorObject*> & TriggeredObjects,
     LayerClass *& TriggeredLayer, AncestorObject *& Triggered
 ){
     CurrentInstr.eventID = eventIt->getID();

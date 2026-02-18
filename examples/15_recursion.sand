@@ -9,7 +9,6 @@ end
 
 @trigger on_init
 start main()
-    int n 5
-    printNumbers(n)
+    printNumbers(5)
     exit
 end

@@ -1,10 +1,9 @@
-start println(val & output)
+start println(val output)
     print output "\n"
 end
 
 @trigger on_init
 start main()
-    string hello "Hello from a function!";
-    println(hello)
+    println("Hello from a function!")
     exit
 end

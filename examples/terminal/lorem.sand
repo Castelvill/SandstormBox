@@ -1,6 +1,6 @@
 @trigger on_init
 start lorem
     string result "Lorem ipsum\n"
-    run printOnTerminal(result)
+    printOnTerminal(result)
     delete_this_event
 end

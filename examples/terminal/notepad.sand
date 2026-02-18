@@ -62,20 +62,22 @@ end
 
 @trigger on_mouse_release
 start resizeObjectWhenMaxed()
-    if (mouse_released(0))
-        index self_layer [0 0 1] Collision maxCollision
-        if(maxCollision.release_on)
-            all Camera _ camera _ cameras
-            find_by_id_2 cameras cameraID camera
-            int sx 0
-            int sy 0
-            access sx [camera.size_x]
-            access sy [camera.size_y]
-            index self_layer [0 0] Object windowObject
-            fun windowObject set_size sx sy
-            index self_layer [0 0 0] EditableText notepad
-            fun notepad update
-        end
+    if (!mouse_released(0))
+        return
+    end
+
+    index self_layer [0 0 1] Collision maxCollision
+    if(maxCollision.release_on)
+        all Camera _ camera _ cameras
+        find_by_id_2 cameras cameraID camera
+        int sx 0
+        int sy 0
+        access sx [camera.size_x]
+        access sy [camera.size_y]
+        index self_layer [0 0] Object windowObject
+        fun windowObject set_size sx sy
+        index self_layer [0 0 0] EditableText notepad
+        fun notepad update
     end
 end
 
@@ -91,22 +93,23 @@ start resizeObjectWhenSwitchingToBorderlessMode()
 end
 
 start resizeObjectForBorderlessMode(Camera &camera)
-    if (isBorderless)
-        int cpx 0
-        int cpy 0
-        access cpx [camera.size_x]
-        access cpy [camera.size_y]
-        int shiftX 10
-        int shiftY 40
-        += cpx shiftX
-        += cpy shiftY
-        index self_layer [0 0] Object windowObject
-        fun windowObject set_size cpx cpy
-        index self_layer [0 0 0] EditableText notepad
-        fun notepad update
-    else 
+    if (!isBorderless)
         resizeObjectFromBorderlessMode(camera)
+        return
     end
+    
+    int cpx 0
+    int cpy 0
+    access cpx [camera.size_x]
+    access cpy [camera.size_y]
+    int shiftX 10
+    int shiftY 40
+    += cpx shiftX
+    += cpy shiftY
+    index self_layer [0 0] Object windowObject
+    fun windowObject set_size cpx cpy
+    index self_layer [0 0 0] EditableText notepad
+    fun notepad update
 end
 
 start resizeObjectFromBorderlessMode(Camera &camera)

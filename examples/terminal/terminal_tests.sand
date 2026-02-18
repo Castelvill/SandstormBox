@@ -1,26 +1,26 @@
 start newLine
     string result "\n"
-    run printOnTerminal(result)
+    printOnTerminal(result)
 end
 start nextTest
-    run printPrompt()
-    run newLine()
+    printPrompt()
+    newLine()
 end
 start testSpawn
     = param1 "elephant"
-    run spawn()
+    spawn()
 end
 start testNote
     = param1 "examples/hello.sand"
-    run note()
+    note()
 end
 start testMover
     = param1 "KERNEL"
-    run mover()
+    mover()
 end
 start testCat
     = param1 ".config"
-    run cat()
+    cat()
 end
 start testPrint
     = param1 "TEST TEST TEST\n"
@@ -28,11 +28,11 @@ start testPrint
 end
 start testEdit
     = param1 "docs/TODO.txt"
-    run edit()
+    edit()
 end
 start testSand
     = param1 "examples/terminal/lorem.sand"
-    run sand()
+    sand()
 end
 start testCd
     = param1 "scripts"
@@ -45,51 +45,51 @@ end
 start testSaveLoadTerminal
     mkdir "temp"
     = param1 "temp/test.ft"
-    run save_terminal()
-    run load_terminal()
+    save_terminal()
+    load_terminal()
 end
 start dvd
     = param1 "examples/terminal/dvd.sand"
-    run sand()
+    sand()
 end
 start test
-    run help()
-    run nextTest()
-    run neofetch()
-    run nextTest()
-    run nextTest()
-    run hello()
-    run nextTest()
+    help()
+    nextTest()
+    neofetch()
+    nextTest()
+    nextTest()
+    hello()
+    nextTest()
     run ls()
-    run nextTest()
-    run sq()
-    run nextTest()
-    run cats()
-    run nextTest()
-    run fullscreen()
-    run fs()
-    run nw()
-    run testNote()
-    run testMover()
-    run testSpawn()
-    run v4()
-    run testCat()
-    run nextTest()
-    run testPrint()
-    run nextTest()
-    run testEdit()
-    run triggerEditorExit(program)
-    run testSand()
-    run nextTest()
-    run testCd()
+    nextTest()
+    sq()
+    nextTest()
+    cats()
+    nextTest()
+    fullscreen()
+    fs()
+    nw()
+    testNote()
+    testMover()
+    testSpawn()
+    v4()
+    testCat()
+    nextTest()
+    testPrint()
+    nextTest()
+    testEdit()
+    triggerEditorExit(program)
+    testSand()
+    nextTest()
+    testCd()
     run pwd()
-    run nextTest()
-    run xd()
-    run nextTest()
-    run allegro()
-    run nextTest()
-    run testCd2()
-    run testSaveLoadTerminal()
-    run dvd()
+    nextTest()
+    xd()
+    nextTest()
+    allegro()
+    nextTest()
+    testCd2()
+    testSaveLoadTerminal()
+    dvd()
     //run cls()
 end

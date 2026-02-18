@@ -1138,7 +1138,7 @@ bool EventModule::getPassedVariables(const vector<WordStruct> & words, unsigned 
             return true;
         }
 
-        Parameters.emplace_back(isReference, variableType, localAddress, variableID);
+        parameters.emplace_back(isReference, variableType, localAddress, variableID);
     }
     cursor++;
     return false;
@@ -1451,7 +1451,7 @@ inline bool validateFunctionCallSyntax(const vector<WordStruct> & words, const u
     return false;
 }
 
-inline bool pushVariableToArgumentsVector(vector<PassingVariableInfo> & arguments,
+inline bool pushVariableToArgumentsVector(vector<FunctionParameter> & arguments,
     vector<vector<VariableLocationStruct>> & scopes, vector<VariableInfo> & localVariables,
     const unsigned lineNumber, const string & scriptName, unsigned & topAddress,
     const string & parameterName, const string & variableName
@@ -1481,10 +1481,10 @@ inline bool pushVariableToArgumentsVector(vector<PassingVariableInfo> & argument
     return false;
 }
 
-void pushLiteralToArgumentsVector(vector<PassingVariableInfo> & arguments,
+void pushLiteralToArgumentsVector(vector<FunctionParameter> & arguments,
     const string & parameterName, const WordStruct & token
 ){
-    arguments.emplace_back(PassingVariableInfo());
+    arguments.emplace_back(FunctionParameter());
     if(!parameterName.empty())
         arguments.back().parameterName = parameterName;
     switch (token.type){
@@ -1509,7 +1509,7 @@ void pushLiteralToArgumentsVector(vector<PassingVariableInfo> & arguments,
     }
 }
 
-bool EventModule::getPassingVariables(vector<PassingVariableInfo> & arguments, 
+bool EventModule::getFunctionCallArguments(vector<FunctionParameter> & arguments, 
     const vector<WordStruct> & tokens, unsigned & cursor, const unsigned lineNumber,
     const string & scriptName, vector<vector<VariableLocationStruct>> & scopes,
     unsigned & topAddress, size_t & namedArgumentsStartAt

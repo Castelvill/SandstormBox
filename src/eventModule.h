@@ -126,7 +126,7 @@ struct DynamicVariableInfo{
     bool isReference = false;
 };
 
-struct PassingVariableInfo{
+struct FunctionParameter{
     bool isReference = false;
     DataType type = null_dt;
     unsigned localAddress = 0;
@@ -196,13 +196,13 @@ public:
 struct ChildStruct{
     size_t uniqueIndex = 0;
     string id;
-    vector<PassingVariableInfo> originalArguments;
+    vector<FunctionParameter> originalArguments;
     unsigned containerIndex = 0;
     string callingScript;
     unsigned lineNumber = 0;
     bool isRecursiveCall = false;
     size_t idxOfFirstNamedArg = 0;
-    vector<PassingVariableInfo> arrangedArguments;
+    vector<FunctionParameter> arrangedArguments;
 };
 
 enum TriggerType: char{
@@ -221,7 +221,7 @@ public:
     //Types of triggers checked first in the conditional chain hierarchy. Without them event can be executed only by the other events.
     vector<TriggerType> primaryTriggerTypes;
     vector<VariableInfo> LocalVariables;
-    vector<PassingVariableInfo> Parameters;
+    vector<FunctionParameter> parameters;
 
     string callingEventID = "";
     string callingType = "";
@@ -240,7 +240,7 @@ public:
     bool getPassedVariables(const vector<WordStruct> & words, unsigned & cursor, const unsigned & lineNumber,
         const string & scriptName, vector<vector<VariableLocationStruct>> & Scopes, unsigned & topAddress
     );
-    bool getPassingVariables(vector<PassingVariableInfo> &Arguments,
+    bool getFunctionCallArguments(vector<FunctionParameter> &Arguments,
         const vector<WordStruct> &words, unsigned &cursor, const unsigned lineNumber,
         const string &scriptName, vector<vector<VariableLocationStruct>> & Scopes,
         unsigned & topAddress, size_t & namedArgumentsStartAt

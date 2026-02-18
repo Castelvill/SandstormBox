@@ -555,8 +555,8 @@ public:
     void allocateNewDynamicMemory(ObjectMemoryStruct & ObjectMemory, const VariableInfo & NewLocalVar);
     void allocateMemoryForDynamicVariables(const vector<EventModule>::iterator & newEventIt, ObjectMemoryStruct & ObjectMemory);
     void deallocateDynamicallyAllocatedMemory(vector<DynamicMemoryStruct> & DynamicMemory, unsigned & topDynamicAddress);
-    bool passVariablesToTheChild(const vector<PassingVariableInfo> & ParentEventArguments,
-        const vector<PassingVariableInfo> & CurrentEventParameters,
+    bool passArgumentsToFunction(const vector<FunctionParameter> & ParentEventArguments,
+        const vector<FunctionParameter> & CurrentEventParameters,
         vector<EventModule>::iterator & ParentEvent, vector<EventModule>::iterator & CurrentEvent,
         vector<DynamicVariableInfo> & CurrentEventLocalVariables,
         vector<DynamicVariableInfo> & ParentEventLocalVariables,

@@ -51,3 +51,10 @@ start moveLine
     fun line2 set_point 0 up 50
     fun line2 set_point 1 down 150
 end
+
+@trigger on_key_press
+start exitProgram
+    if(key_pressed(KEY_LCTRL) && key_pressed(KEY_ESC))
+        exit
+    end
+end

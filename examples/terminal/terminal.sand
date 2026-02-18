@@ -193,8 +193,7 @@ start buildTerminal()
 
     var waitingTime 0
 
-    string fileName "history.txt"
-    loadCommandHistory(fileName)
+    loadCommandHistory("history.txt")
 end
 
 @trigger on_key_press
@@ -273,7 +272,7 @@ start resizeDisplay()
 end
 
 
-start loadCommandHistory(string & fileName)
+start loadCommandHistory(string fileName)
     if(!exists(fileName))
         return
     end
@@ -469,8 +468,7 @@ end
 start note()
     Layer newWindowLayer
     Camera newWindowCamera
-    string fileName ""
-    = fileName param1
+    string fileName param1
     = param1 "Note"
     spawnNewWindow(newWindowCamera, newWindowLayer)
     spawnNotepad(newWindowLayer, fileName)
@@ -498,8 +496,7 @@ end
 start mover()
     Camera newWindowCamera
     Layer newWindowLayer
-    string selectedLayerID ""
-    = selectedLayerID param1
+    string selectedLayerID param1
     = param1 "Mover"
     spawnNewWindow(newWindowCamera, newWindowLayer)
     spawnMover(newWindowCamera, newWindowLayer, selectedLayerID)
@@ -540,8 +537,7 @@ end
 start interrupt()
     if (!key_pressed(KEY_LSHIFT) && key_pressed(KEY_LCTRL) && key_pressed(KEY_C))
         = program ""
-        string result "^C\n"
-        printOnTerminal(result)
+        printOnTerminal("^C\n")
     end
 end
 
@@ -598,9 +594,7 @@ start autoCompleteProgramsOrFiles(val[] & params, string & command)
         val[] completes
         similar command allowedPrograms false completes
         similar command allowedPrograms true commonPart
-        string lastParameter ""
-        = lastParameter command
-        string result "\n"
+        string lastParameter command
         int i 0
         if(completes.size == 1)
             print_v completes _ completes " "
@@ -628,39 +622,37 @@ start replaceWithAutoComplete(string & command, val[] & params, val[] & complete
         fun editableText set_cursor_pos historySize
     else_if(completes.size > 0)
         int i 0
-        string result "\n"
+        string autocompleteText "\n"
         while (i < completes.size)
             index completes [i] value instance
-            += result instance
-            += result " "
+            += autocompleteText instance
+            += autocompleteText " "
             ++ i
         end
-        += result "\n"
-        cout(result)
+        += autocompleteText "\n"
+        cout(autocompleteText)
         printPrompt()
         addCommonPartToCommand(command, completes, commonPart, lastParameter)
         rewriteLastCommand(command, editableText)
-        //run updateTerminal()
     end
 end
 
-start createPrompt(string & result)
+start createPrompt(string & prompt)
     // Cool way of creating prompt is not possible until extended ascii characters are not handled
     // well in the editable text module.
-    += result "~/"      //"┌/"
+    += prompt "~/"      //"┌/"
     pwd workingDir
-    += result workingDir
-    += result "\n$"     //"\n└─$"
+    += prompt workingDir
+    += prompt "\n$"     //"\n└─$"
 end
 
 start printPrompt()
-    string result ""
     index self [0 0] EditableText editableText
     fun editableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun editableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
-    string result ""
-    createPrompt(result)
-    cout(result)
+    string prompt ""
+    createPrompt(prompt)
+    cout(prompt)
     colorNormalText(editableText)
 end
 
@@ -693,9 +685,9 @@ start controler()
     fun editableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun editableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
-    string result ""
-    createPrompt(result)
-    cout(result)
+    string prompt ""
+    createPrompt(prompt)
+    cout(prompt)
     colorNormalText(editableText)
 end
 
@@ -718,9 +710,9 @@ start controlerWithEnter()
     fun editableText set_last_color terminalColorR terminalColorG terminalColorB terminalColorA
     fun editableText set_last_accent_color terminalAccentColorR terminalAccentColorG terminalAccentColorB terminalAccentColorA
     = program "sleep"
-    string result "\n"
-    createPrompt(result)
-    cout(result)
+    string prompt "\n"
+    createPrompt(prompt)
+    cout(prompt)
     colorNormalText(editableText)
     updateTerminal()
 end
@@ -728,8 +720,7 @@ end
 start colorNormalText(EditableText & editableText)
     fun editableText set_last_color 0.86 0.85 0.86 1.0
     fun editableText set_last_accent_color 0.0 0.0 0.0 1.0
-    string result " "
-    printOnTerminal(result)
+    printOnTerminal(" ")
 end
 
 
@@ -783,9 +774,7 @@ start forceRefresh()
     //TODO: Extract common part because there must be something in common or it stops working
     adjustTerminalToDisplay()
     
-    if (program != "edit")
-        
-    else
+    if (program == "edit")
         adjustTextEditorToDisplay()
     end
 end
@@ -821,39 +810,38 @@ start refreshScrollbar()
 end
 
 start refreshScrollbarCheck(double & height, double & terminalSizeY)
-    if(terminalSizeY > 0)
-        index self [0 0] Scrollbar MainScrollbar
-        fun MainScrollbar set_real_scrolling_area 0 terminalSizeY
-        += terminalSizeY height
-        double currentThumbHeight BASE_SCROLLBAR_HEIGHT
-        = currentThumbHeight scrollbarHeight
-        access windowH [display_h]
-        double divide 1.0
-        = divide windowH
-        /= divide terminalSizeY
-        *= currentThumbHeight divide
-        fun MainScrollbar set_thumb_size 12 currentThumbHeight
-        fun MainScrollbar scroll_to_the_end
-        fun self update_scrollbars
-        keepMinimalSizeOfScrollThumb(MainScrollbar, currentThumbHeight)
-    else
+    if(terminalSizeY <= 0)
         resetScrollbar()
+        return
     end
+
+    index self [0 0] Scrollbar mainScrollbar
+    fun mainScrollbar set_real_scrolling_area 0 terminalSizeY
+    += terminalSizeY height
+    double currentThumbHeight scrollbarHeight
+    access windowH [display_h]
+    double divide windowH
+    /= divide terminalSizeY
+    *= currentThumbHeight divide
+    fun mainScrollbar set_thumb_size 12 currentThumbHeight
+    fun mainScrollbar scroll_to_the_end
+    fun self update_scrollbars
+    keepMinimalSizeOfScrollThumb(mainScrollbar, currentThumbHeight)
 end
 
-start keepMinimalSizeOfScrollThumb(Scrollbar & MainScrollbar, double & currentThumbHeight)
+start keepMinimalSizeOfScrollThumb(Scrollbar & mainScrollbar, double & currentThumbHeight)
     if(currentThumbHeight < minScrollbarThumbHeight)
         = currentThumbHeight minScrollbarThumbHeight 
-        fun MainScrollbar set_thumb_size 12 currentThumbHeight
+        fun mainScrollbar set_thumb_size 12 currentThumbHeight
         fun self update_scrollbars
     end
 end
 
 start resetScrollbar()
-    index self [0 0] Scrollbar MainScrollbar
+    index self [0 0] Scrollbar mainScrollbar
     double currentThumbHeight BASE_SCROLLBAR_HEIGHT
     = currentThumbHeight scrollbarHeight
-    fun MainScrollbar set_thumb_size 12 currentThumbHeight
+    fun mainScrollbar set_thumb_size 12 currentThumbHeight
     fun self update_scrollbars
 end
 
@@ -867,6 +855,7 @@ start enterCommand()
     if (!camera.is_selected)
         return
     end
+
     index self [0 0] EditableText editableText
     first editableText _ _ _ _ content _ userInput
     first editableText _ _ _ _ protected_area _ protectedArea
@@ -897,8 +886,6 @@ end
 
 start ignoreRepetition(string & lastCommand)
     if(commandNumber > 0)
-        //dump_context_stack
-        //breakpoint
         int lastParameterIndex commandNumber
         -- lastParameterIndex
         index commandHistory [0 lastParameterIndex] value lastCommand
@@ -915,16 +902,17 @@ start saveCommand(string & command, int & commandLength, string & lastCommand)
 end
 
 start validateAndRunProgram(bool & isAllowed)
-    if (isAllowed)
-        string run "run "
-        += run param0
-        = program "run"
-        inject_instr self run
-        string result "\n"
-        cout(result)
-    else
+    if (!isAllowed)
         programNotFound()
+        return
     end
+
+    string run "run "
+    += run param0
+    = program "run"
+    inject_instr self run
+    string result "\n"
+    cout(result)    
 end
 
 
@@ -960,7 +948,7 @@ start upArrow(Camera & camera)
         fun commandHistory set currentCommandNumber command
 
         -- currentCommandNumber
-        //dump_memory
+        
         fun editableText cut_unprotected_area
         string diffCommand ""
         index_vec commandHistory currentCommandNumber diffCommand
@@ -1000,8 +988,7 @@ end
 
 start programNotFound()
     if (param0 != "")
-        string result "\nCommand not found!"
-        printOnTerminal(result)
+        printOnTerminal("\nCommand not found!")
     end
 end
 
@@ -1020,8 +1007,7 @@ end
 start emptyInput1()
     if(param1 == "")
         = program ""
-        string result "Error: This instruction requires 1 parameter!\n"
-        printOnTerminal(result)
+        printOnTerminal("Error: This instruction requires 1 parameter!\n")
     else
         informFileDoesNotExistForSand()
     end
@@ -1079,8 +1065,7 @@ end
 start mkdir()
 	= program ""
 	if(param1 == "")
-		string txt "Cannot create a directory with an empty name!\n"
-		cout(txt)
+		cout("Cannot create a directory with an empty name!\n")
 		return
 	end
 	if(exists(param1))

@@ -2956,13 +2956,13 @@ ReturnType InstrParser::parseRun(){
 
     Operation->specialValue = NewEvent.Children.size();
 
-    NewEvent.Children.emplace_back(ChildStruct(0, words[1].value, vector<PassingVariableInfo>(), 0,
+    NewEvent.Children.emplace_back(ChildStruct(0, words[1].value, vector<FunctionParameter>(), 0,
         scriptName, lineNumber
     ));
 
     cursor = 2;
 
-    if(NewEvent.getPassingVariables(NewEvent.Children.back().originalArguments,
+    if(NewEvent.getFunctionCallArguments(NewEvent.Children.back().originalArguments,
         words, cursor, lineNumber, scriptName, Scopes, topAddress,
         NewEvent.Children.back().idxOfFirstNamedArg
     )){ return ReturnType::ERROR; }
@@ -2990,12 +2990,12 @@ ReturnType InstrParser::parseAutoRun(){
         return ReturnType::ERROR;
     }
     Operation->specialValue = NewEvent.Children.size();
-    NewEvent.Children.emplace_back(ChildStruct(0, words[0].value, vector<PassingVariableInfo>(),
+    NewEvent.Children.emplace_back(ChildStruct(0, words[0].value, vector<FunctionParameter>(),
         0, scriptName, lineNumber
     ));
     cursor = 1;
 
-    if(NewEvent.getPassingVariables(NewEvent.Children.back().originalArguments,
+    if(NewEvent.getFunctionCallArguments(NewEvent.Children.back().originalArguments,
         words, cursor, lineNumber, scriptName, Scopes, topAddress,
         NewEvent.Children.back().idxOfFirstNamedArg
     )){ return ReturnType::ERROR; }

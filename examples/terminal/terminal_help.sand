@@ -1,4 +1,4 @@
-start printOnTerminal(string & textToPrint)
+start printOnTerminal(string textToPrint)
     index self [0 0] EditableText editableText
     fun editableText add_content textToPrint
     fun editableText update
@@ -11,13 +11,13 @@ start printOnTerminal(string & textToPrint)
 
     access w [display_w]
     access h [display_h]
-    index self [0 0] EditableText TerminalTextField
-    access TerminalSizeY [TerminalTextField.size_y]
+    index self [0 0] EditableText terminalTextField
+    access TerminalSizeY [terminalTextField.size_y]
 
     if(TerminalSizeY < h)
-        fun TerminalTextField set_size w h
+        fun terminalTextField set_size w h
     end
-    run refreshScrollbar()
+    refreshScrollbar()
 end
 
 start printOnTerminalUnprotected(string & textToPrint)
@@ -33,16 +33,16 @@ start printOnTerminalUnprotected(string & textToPrint)
 
     access w [display_w]
     access h [display_h]
-    index self [0 0] EditableText TerminalTextField
-    access TerminalSizeY [TerminalTextField.size_y]
+    index self [0 0] EditableText terminalTextField
+    access TerminalSizeY [terminalTextField.size_y]
 
     if(TerminalSizeY < h)
-        fun TerminalTextField set_size w h
+        fun terminalTextField set_size w h
     end
-    run refreshScrollbar()
+    refreshScrollbar()
 end
 
-start cout(string & result)
+start cout(string result)
     index self [0 0] EditableText editableText
     fun editableText add_content result
     putCursorOnTop(editableText)
@@ -55,8 +55,7 @@ start putCursorOnTop(EditableText & editableText)
 end
 
 start updateTerminal()
-    string result ""
-    run printOnTerminal(result)
+    printOnTerminal("")
 end
 
 
@@ -65,7 +64,7 @@ start help()
     index self [0 0] EditableText editableText
     fun editableText modify_last_format colorGoldR colorGoldG colorGoldB colorGoldA 0.0 0.0 0.0 1.0 "cascadia_code" 1
     = program "_enter"
-    run cout(result)
+    cout(result)
 end
 
 
@@ -75,25 +74,23 @@ start mv()
         = program ""
     else
         = program "_enter"
-        string result "Instruction 'mv' failed."
-        run cout(result)
+        cout("Instruction 'mv' failed.")
     end
 end
 
 
 start ls
-    if (exists(param1) || param1 == "")
-        string result ""
-        ls param1 result
-        val[] files
-        tokenize " " result files
-        index self [0 0] EditableText terminalTextField
-        = result ""
-        run lsColoringLoop(terminalTextField, files)
-        = program "_enter"
-    else 
-        run informFileDoesNotExistForCD()
+    if (!exists(param1) && param1 != "")
+        informFileDoesNotExistForCD()
     end
+
+    string lsResult ""
+    ls param1 lsResult
+    val[] files
+    tokenize " " lsResult files
+    index self [0 0] EditableText terminalTextField
+    lsColoringLoop(terminalTextField, files)
+    = program "_enter"
 end
 start lsColoringLoop(EditableText & editableText, val[] & files)
 	int fileIndex 0
@@ -108,8 +105,8 @@ start lsColoringLoop(EditableText & editableText, val[] & files)
         -= fileNameLengthFT lengthFT
 
         ++ fileIndex
-        run colorIfDirectory(editableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
-        run printFileNameOnTerminal(file)
+        colorIfDirectory(editableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
+        printFileNameOnTerminal(file)
     end
 end
 start colorIfDirectory(EditableText & editableText, string & file, int & fileNameLength,
@@ -121,26 +118,27 @@ start colorIfDirectory(EditableText & editableText, string & file, int & fileNam
     if (is_directory(fullPath))
         fun editableText modify_last_format 0.3 0.3 1.0 1.0  0.0 0.0 0.3 1.0 "cascadia_code" 1
     else
-        run colorIfSandScript(editableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
+        colorIfSandScript(editableText, file, fileNameLength, fileNameLengthFT, length, lengthFT)
     end
 end
 start colorIfSandScript(EditableText & editableText, string & file, int & fileNameLength,
     int & fileNameLengthFT, int & length, int & lengthFT
 )
-    if(fileNameLength > 0)
-        substr file fileNameLength length extension
-        substr file fileNameLengthFT lengthFT extensionFT
-        if(extension == ".sand")
-            fun editableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
-        else //Color if the file is of formatted text format
-            if(extensionFT == ".ft")
-                fun editableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
-            else
-                run colorIfNormalFile(editableText)
-            end
+    if(fileNameLength <= 0)
+        colorIfNormalFile(editableText)
+        return
+    end
+
+    substr file fileNameLength length extension
+    substr file fileNameLengthFT lengthFT extensionFT
+    if(extension == ".sand")
+        fun editableText modify_last_format 0.0 0.9 0.0 1.0  0.0 0.3 0.0 1.0 "cascadia_code" 1
+    else //Color if the file is of formatted text format
+        if(extensionFT == ".ft")
+            fun editableText modify_last_format 0.85 0.85 0.0 1.0  0.5 0.5 0.0 1.0 "cascadia_code" 1
+        else
+            colorIfNormalFile(editableText)
         end
-    else
-        run colorIfNormalFile(editableText)
     end
 end
 start colorIfNormalFile(EditableText & editableText)
@@ -151,7 +149,6 @@ start printFileNameOnTerminal(string & file)
 	+= result "  " 
 	run cout(result)
 end
-
 
 
 start cls()
@@ -183,7 +180,7 @@ start neofetch()
     index self [0 0] EditableText editableText
     fun editableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     = program ""
-    run cout(result)
+    cout(result)
 end
 
 start xd()
@@ -200,7 +197,7 @@ start xd()
     index self [0 0] EditableText editableText
     fun editableText modify_last_format 0.0 1.0 0.0 1.0  0.0 1.0 0.0 1.0 "cascadia_code" 1
     = program ""
-    run cout(result)
+    cout(result)
 end
 
 start sel_col()
@@ -218,13 +215,13 @@ start v4()
     print_v result " " x
     += result "\n"
     = program ""
-    run cout(result)
+    cout(result)
 end
 
 start hello()
     print_v result _ "Hello, world!\n"
     = program ""
-    run cout(result)
+    cout(result)
 end
 
 
@@ -243,7 +240,7 @@ start cats()
 | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 "
     = program ""
-    run cout(result)
+    cout(result)
 end
 
 
@@ -266,44 +263,44 @@ start sq()
               | |
 "
     = program ""
-    run cout(result)
+    cout(result)
 end
 
 
 start print()
     print_v result _ param1 param2 param3
     = program "_enter"
-    run cout(result)
+    cout(result)
 end
 
 
 start spawn()
-    new Layer 1 "SpawnLayer" SpawnLayer
-    fun SpawnLayer activate
-    access newLayerID [SpawnLayer.id]
+    new Layer 1 "SpawnLayer" spawnLayer
+    fun spawnLayer activate
+    access newLayerID [spawnLayer.id]
 
-    new Camera 1 "SpawnWindow0" NewWindow
-    fun NewWindow set_pos 0 0
-    fun NewWindow set_active true
-    fun NewWindow resize 640 480
-    fun NewWindow set_zoom 1.0
-    fun NewWindow set_speed 20
-    fun NewWindow set_key_zoom_in 15
-    fun NewWindow set_key_zoom_out 21
-    fun NewWindow set_zoom_increase 0.02
-    fun NewWindow bind_keys 15 21 13 9 12 11 10
-    fun NewWindow set_tint 1.0 1.0 1.0 1.0
-    fun NewWindow set_drawing_borders false
-    fun NewWindow set_can_be_modified_by_mouse true
-    fun NewWindow set_is_vision_affected_by_mouse true
-    fun NewWindow add_visible_layer newLayerID
-    fun NewWindow add_accessible_layer newLayerID
-    fun NewWindow set_grabbing_area_size 640 50
-    fun NewWindow pin_to_camera "Desktop"
-    fun NewWindow activate_pin
-    access newWindowID [NewWindow.id]
+    new Camera 1 "SpawnWindow0" newWindow
+    fun newWindow set_pos 0 0
+    fun newWindow set_active true
+    fun newWindow resize 640 480
+    fun newWindow set_zoom 1.0
+    fun newWindow set_speed 20
+    fun newWindow set_key_zoom_in 15
+    fun newWindow set_key_zoom_out 21
+    fun newWindow set_zoom_increase 0.02
+    fun newWindow bind_keys 15 21 13 9 12 11 10
+    fun newWindow set_tint 1.0 1.0 1.0 1.0
+    fun newWindow set_drawing_borders false
+    fun newWindow set_can_be_modified_by_mouse true
+    fun newWindow set_is_vision_affected_by_mouse true
+    fun newWindow add_visible_layer newLayerID
+    fun newWindow add_accessible_layer newLayerID
+    fun newWindow set_grabbing_area_size 640 50
+    fun newWindow pin_to_camera "Desktop"
+    fun newWindow activate_pin
+    access newWindowID [newWindow.id]
 
-    new Object SpawnLayer 1 "Window" newWindowObject
+    new Object spawnLayer 1 "Window" newWindowObject
     fun newWindowObject set_can_be_selected false
 
     new Primitive newWindowObject 1 "background" border1
@@ -328,7 +325,7 @@ start spawn()
     fun title set_wrapping "n"
     fun title set_content param1
 
-    new Object SpawnLayer 1 "Amongus" NewAmo
+    new Object spawnLayer 1 "Amongus" NewAmo
     fun NewAmo set_pos 0 80
     new Image NewAmo 1 "amongus" redAstronaut
     fun redAstronaut connect_bitmap_via_alias param1
@@ -359,15 +356,16 @@ end
 
 
 start cat()
-    if (exists(param1))
-        load_text param1 result
-        = program ""
-        index self [0 0] EditableText editableText
-        fun editableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
-        run cout(result)
-    else
-        run printNoSuchFile()
+    if (!exists(param1))
+        printNoSuchFile()
+        return
     end
+
+    load_text param1 result
+    = program ""
+    index self [0 0] EditableText editableText
+    fun editableText modify_last_format 0.2 0.74 0.7 1.0  0.0 0.0 0.0 1.0 "cascadia_code" 1
+    cout(result)
 end
 
 
@@ -376,7 +374,7 @@ start printNoSuchFile()
     string result "File '"
     += result param1
     += result "' does not exist."
-    run cout(result)
+    cout(result)
 end
 
 
@@ -390,7 +388,7 @@ start pwd()
     pwd workingDir
     += result workingDir
     = program "_enter"
-    run cout(result)
+    cout(result)
 end
 
 
@@ -399,7 +397,7 @@ start cd
         = program ""
         cd param1
     else
-        run informFileDoesNotExistForCD()
+        informFileDoesNotExistForCD()
     end
 end
 start informFileDoesNotExistForCD()
@@ -407,14 +405,14 @@ start informFileDoesNotExistForCD()
     string result "Error: Directory '"
     += result param1
     += result "' does not exist!\n"
-    run cout(result)
+    cout(result)
 end
 
 start history()
     access commandHistorySize [vec.commandHistory.size]
     -- commandHistorySize
     = program ""
-    run printHistory(commandHistorySize)
+    printHistory(commandHistorySize)
 end
 
 start printHistory(int & commandHistorySize)
@@ -450,15 +448,15 @@ start executeWaiting()
         if(waitingTime == 0)
             string result "||||||||||||||||||||"
             ++ waitingTime
-            run printOnTerminalUnprotected(result)
+            printOnTerminalUnprotected(result)
         else_if(waitingTime == 1)
             string result "********************"
             ++ waitingTime
-            run printOnTerminalUnprotected(result)
+            printOnTerminalUnprotected(result)
         else_if(waitingTime == 2)
             string result "--------------------"
             = waitingTime 0
-            run printOnTerminalUnprotected(result)
+            printOnTerminalUnprotected(result)
         end
     end
 end
@@ -467,7 +465,7 @@ start sudo()
     if (param1 == "rm" && param2 == "-rf" && param3 == "--no-preserve-root" && param4 == "/")
         string result "Haha. No."
         = program "_enter"
-        run cout(result)
+        cout(result)
     else
         = program ""
     end

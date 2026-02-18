@@ -353,8 +353,7 @@ end
 
 start informNonEmptyFileName(var & currentProgram)
     = currentProgram "_enter"
-    string result "Error: Edit program requires a name of the file."
-    printOnTerminal(result)
+    printOnTerminal("Error: Edit program requires a name of the file.")
 end
 
 start refreshLineNumbering(EditableText & editorTextField)
@@ -371,7 +370,6 @@ start refreshLineNumbering(EditableText & editorTextField)
     access wrappedLines [editorTextField.wrapped_lines]
     int linesCount 0
     sizeof wrappedLines linesCount
-
 
     if(!relativeNumbering)
         int i 0
@@ -427,8 +425,7 @@ start refreshLineNumbering(EditableText & editorTextField)
     fun lineNumberingText update
     
     //Move editor's text field to the right
-    string linesCountStr ""
-    = linesCountStr linesCount
+    string linesCountStr linesCount
     int counterLength 0
     len linesCountStr counterLength
     *= counterLength 10

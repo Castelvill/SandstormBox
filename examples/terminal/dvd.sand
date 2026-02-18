@@ -15,12 +15,12 @@ start putRectangleOnScreen
     var velX 4.0
     var velY 4.0
 
-    new Primitive self 1 "Rectangle" Rectangle
-    fun Rectangle create "filled_rectangle"
-    fun Rectangle set_color 1.0 0.0 0.0 1.0
-    fun Rectangle set_pos x y
-    fun Rectangle set_size SIZE_X SIZE_Y
-    fun Rectangle update_with_size
+    new Primitive self 1 "Rectangle" rectangle
+    fun rectangle create "filled_rectangle"
+    fun rectangle set_color 1.0 0.0 0.0 1.0
+    fun rectangle set_pos x y
+    fun rectangle set_size SIZE_X SIZE_Y
+    fun rectangle update_with_size
 
     load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code_2" true
 
@@ -72,8 +72,8 @@ start moveRectangle
 	+= y velY
     //index self 0 0 primitives Rectangle
     all self _ _ Primitive _ _ _ primitives
-	find_by_id_2 primitives "Rectangle" Rectangle
-    fun Rectangle set_pos x y
+	find_by_id_2 primitives "Rectangle" rectangle
+    fun rectangle set_pos x y
 end
 
 

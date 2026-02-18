@@ -57,8 +57,8 @@ inline ReturnType findCalledFunctionDefinition(vector<EventModule> & allEvents, 
     EventModule & parentEvent
 ){
     for(unsigned childEventIdx = 0; childEventIdx < allEvents.size(); childEventIdx++){
-        vector<PassingVariableInfo> & parameters = allEvents[childEventIdx].Parameters;
-        vector<PassingVariableInfo> & arguments = child.originalArguments;
+        vector<FunctionParameter> & parameters = allEvents[childEventIdx].parameters;
+        vector<FunctionParameter> & arguments = child.originalArguments;
         
         if(child.id != allEvents[childEventIdx].getID() || arguments.size() != parameters.size())
             continue;
@@ -94,9 +94,9 @@ inline ReturnType findCalledFunctionDefinition(vector<EventModule> & allEvents, 
 }
 
 ReturnType AncestorObject::findIndexesOfEventChildren(bool postDelete){
-    for(EventModule & ParentEvent : EventContainer){
-        for(ChildStruct & Child : ParentEvent.Children){
-            ReturnType status = findCalledFunctionDefinition(EventContainer, Child, ParentEvent);
+    for(EventModule & parentEvent : EventContainer){
+        for(ChildStruct & child : parentEvent.Children){
+            ReturnType status = findCalledFunctionDefinition(EventContainer, child, parentEvent);
             if(status == ReturnType::OK)
                 continue;
             if(status == ReturnType::ERROR)
@@ -105,16 +105,16 @@ ReturnType AncestorObject::findIndexesOfEventChildren(bool postDelete){
             //Handle ReturnType::OUT_OF_SCOPE
             if(!postDelete){
                 printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
-                    "Function " + Child.id + "<" + std::to_string(Child.originalArguments.size())
-                    + "> called from '" + ParentEvent.getID()
+                    "Function " + child.id + "<" + std::to_string(child.originalArguments.size())
+                    + "> called from '" + parentEvent.getID()
                     + "' event does not exist in '" + ID + "' object.\n"
                 );
                 return ReturnType::ERROR;
             }
             else{
                 printLogMessage("Warning", __FILE__, __LINE__, __FUNCTION__,
-                    "Function '" + Child.id + "<" + std::to_string(Child.originalArguments.size())
-                    + "> called from '" + ParentEvent.getID()
+                    "Function '" + child.id + "<" + std::to_string(child.originalArguments.size())
+                    + "> called from '" + parentEvent.getID()
                     + "' event has been deleted from '" + ID + "' object.\n"
                 );
             }
@@ -122,12 +122,12 @@ ReturnType AncestorObject::findIndexesOfEventChildren(bool postDelete){
     }
     return ReturnType::OK;
 }
-void AncestorObject::clone(const AncestorObject &Original, vector<string> &listOfUniqueIDs, 
+void AncestorObject::clone(const AncestorObject & original, vector<string> &listOfUniqueIDs, 
     size_t layerUniqueIndex, const string & newLayerID, bool changeOldID,
     size_t & topModuleUniqueIndex
 ){
-    if(isStringInVector(reservedIDs, Original.ID)){
-        cerr << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << Original.ID 
+    if(isStringInVector(reservedIDs, original.ID)){
+        cerr << "Error: In " << __FUNCTION__ << ": Object with a reserved ID \'" << original.ID 
             << "\' cannot be cloned.\n";
         return;
     }
@@ -145,74 +145,74 @@ void AncestorObject::clone(const AncestorObject &Original, vector<string> &listO
         .listOfIDs = &listOfUniqueIDs,
         .newLayerID = newLayerID
     };
-    PrimaryModule::clone(Original, initData, changeOldID);
+    PrimaryModule::clone(original, initData, changeOldID);
 
     initData.newObjectID = ID;
 
     hasInvalidatedMemory = true;
-    for(const SuperTextModule & SuperText : Original.SuperTextContainer){
+    for(const SuperTextModule & SuperText : original.SuperTextContainer){
         SuperTextContainer.emplace_back(SuperTextModule(topModuleUniqueIndex));
         initData.listOfIDs = &superTextContainerIDs;
         SuperTextContainer.back().clone(SuperText, initData, true);
     }
-    for(const SuperEditableTextModule & SuperEditableText : Original.SuperEditableTextContainer){
+    for(const SuperEditableTextModule & SuperEditableText : original.SuperEditableTextContainer){
         SuperEditableTextContainer.emplace_back(SuperEditableTextModule(topModuleUniqueIndex));
         initData.listOfIDs = &superEditableTextContainerIDs;
         SuperEditableTextContainer.back().clone(SuperEditableText, initData, true);
     }
-    for(const ImageModule & Image : Original.ImageContainer){
+    for(const ImageModule & Image : original.ImageContainer){
         ImageContainer.emplace_back(ImageModule(topModuleUniqueIndex));
         initData.listOfIDs = &imageContainerIDs;
         ImageContainer.back().clone(Image, initData, true);
     }
-    for(const MovementModule & Movement : Original.MovementContainer){
+    for(const MovementModule & Movement : original.MovementContainer){
         MovementContainer.emplace_back(MovementModule(topModuleUniqueIndex));
         initData.listOfIDs = &movementContainerIDs;
         MovementContainer.back().clone(Movement, initData, true);
     }
-    for(const CollisionModule & Collision : Original.CollisionContainer){
+    for(const CollisionModule & Collision : original.CollisionContainer){
         CollisionContainer.emplace_back(CollisionModule(topModuleUniqueIndex));
         initData.listOfIDs = &collisionContainerIDs;
         CollisionContainer.back().clone(Collision, initData, true);
     }
-    for(const ParticleEffectModule & Particle : Original.ParticlesContainer){
+    for(const ParticleEffectModule & Particle : original.ParticlesContainer){
         ParticlesContainer.emplace_back(ParticleEffectModule(topModuleUniqueIndex));
         initData.listOfIDs = &particlesContainerIDs;
         ParticlesContainer.back().clone(Particle, initData, true);
     }
-    for(const EventModule & Event : Original.EventContainer){
+    for(const EventModule & Event : original.EventContainer){
         EventContainer.emplace_back(EventModule(topModuleUniqueIndex));
         initData.listOfIDs = &eventContainerIDs;
         EventContainer.back().clone(Event, initData, true);
     }
-    for(const VariableModule & Variable : Original.VariablesContainer){
+    for(const VariableModule & Variable : original.VariablesContainer){
         VariablesContainer.emplace_back(VariableModule(topModuleUniqueIndex));
         initData.listOfIDs = &variablesContainerIDs;
         VariablesContainer.back().clone(Variable, initData, true);
     }
-    for(const ScrollbarModule & Scrollbar : Original.ScrollbarContainer){
+    for(const ScrollbarModule & Scrollbar : original.ScrollbarContainer){
         ScrollbarContainer.emplace_back(ScrollbarModule(topModuleUniqueIndex));
         initData.listOfIDs = &scrollbarContainerIDs;
         ScrollbarContainer.back().clone(Scrollbar, initData, true);
     }
-    for(const PrimitivesModule & Primitives : Original.PrimitivesContainer){
+    for(const PrimitivesModule & Primitives : original.PrimitivesContainer){
         PrimitivesContainer.emplace_back(PrimitivesModule(topModuleUniqueIndex));
         initData.listOfIDs = &primitivesContainerIDs;
         PrimitivesContainer.back().clone(Primitives, initData, true);
     }
-    for(const VectorModule & Vector : Original.VectorContainer){
+    for(const VectorModule & Vector : original.VectorContainer){
         VectorContainer.emplace_back(VectorModule(topModuleUniqueIndex));
         initData.listOfIDs = &vectorContainerIDs;
         VectorContainer.back().clone(Vector, initData, true);
     }
 
-    bindedScripts.insert(bindedScripts.end(), Original.bindedScripts.begin(), 
-        Original.bindedScripts.end()
+    bindedScripts.insert(bindedScripts.end(), original.bindedScripts.begin(), 
+        original.bindedScripts.end()
     );
-    canBeMovedWithMouse = Original.canBeMovedWithMouse;
+    canBeMovedWithMouse = original.canBeMovedWithMouse;
 
     if(findIndexesOfEventChildren() == ReturnType::ERROR){
-        cerr << "Error: In " << __FUNCTION__ << ": Function indexing inside '" << Original.ID 
+        cerr << "Error: In " << __FUNCTION__ << ": Function indexing inside '" << original.ID 
             << "' object failed. Review previous errors.\n";
         return;
     }
