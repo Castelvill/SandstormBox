@@ -1,4 +1,5 @@
 18.02.2026
+-Moved context class and its logic to a separate file.
 -Refactored some functions and script examples.
 -Added checking if a literal is passed as a reference.
 
