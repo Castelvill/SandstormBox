@@ -258,7 +258,9 @@ public:
     void controlVariables(VariableModule * Variable, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs);
     void controlScrollbar(ScrollbarModule * Scrollbar, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs);
     void controlPrimitives(PrimitivesModule * Primitives, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs);
-    void controlVector(VectorModule * Vector, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs);
+    bool controlVector(VectorModule * Vector, AttributeType attribute,
+        const vector<VariableModule> & arguments, vector<string> & ids, string & errorMessage
+    );
 
     void getContext(AttributeType attribute, vector <BasePointersStruct> & BasePointers);
 };

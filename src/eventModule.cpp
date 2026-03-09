@@ -3280,22 +3280,24 @@ void EventModule::controlPrimitives(PrimitivesModule * Primitives, AttributeType
         }
     }
 }
-void EventModule::controlVector(VectorModule * Vector, AttributeType attribute, const vector<VariableModule> & Values, vector <string> & IDs){
+bool EventModule::controlVector(VectorModule * Vector, AttributeType attribute,
+    const vector<VariableModule> & arguments, vector<string> & ids, string & errorMessage
+){
     switch(attribute){
         case set_id:
-            if(Values.size() == 0){
-                return;
+            if(arguments.size() == 0){
+                return false;
             }
-            Vector->setID(Values[0].getStringUnsafe(), &IDs);
-            return;
+            Vector->setID(arguments[0].getStringUnsafe(), &ids);
+            return false;
         case push_back_a:
-            if(Values.size() < 1){
-                return;
+            if(arguments.size() < 1){
+                return false;
             }
             if(Vector->getType() != 'n'){
-                Vector->reserve(Vector->getSize() + Values.size());
+                Vector->reserve(Vector->getSize() + arguments.size());
             }
-            for(const VariableModule & Value : Values){
+            for(const VariableModule & Value : arguments){
                 if(Value.getType() == 'b'){
                     Vector->pushBool(Value.getBoolUnsafe());
                 }
@@ -3309,58 +3311,68 @@ void EventModule::controlVector(VectorModule * Vector, AttributeType attribute, 
                     Vector->pushString(Value.getStringUnsafe());
                 }
                 else{
-                    cerr << "Error: In " << __FUNCTION__ << ": Value of '" << Value.getType()
-                        << "' type cannot be pushed back into the vector '" << Vector->getID()
-                        << "' of '" << Vector->getType() << "' type.\n";
+                    errorMessage = "Value of '" + Value.getType();
+                    errorMessage += "' type cannot be pushed back into the vector '";
+                    errorMessage += Vector->getID() + "' of '" + Vector->getType() + "' type.\n";
+                    return true;
                 }
             }
-            return;
+            return false;
         case pop_back_a:
             Vector->popBack();
-            return;
+            return false;
         case clear_a:
             Vector->clear();
-            return;
+            return false;
         case remove_a:
-            if(Values.size() < 1){
-                return;
+            if(arguments.size() < 1){
+                return false;
             }
-            Vector->removeIndex(Values[0].getIntUnsafe());
-            return;
+            if(Vector->removeIndex(arguments[0].getIntUnsafe())){
+                errorMessage += "Index " + std::to_string(arguments[0].getIntUnsafe());
+                errorMessage += " is out of scope of vector " + ID;
+                errorMessage += "<" + std::to_string(Vector->getSize());
+                errorMessage += ">.\n";
+                return true;
+            }
+            return false;
         case set_a:
-            if(Values.size() < 2 || Values[0].getIntUnsafe() + (Values.size()-1) > Vector->getSize()){
-                return;
+            if(arguments.size() < 2 || arguments[0].getIntUnsafe() + (arguments.size()-1) > Vector->getSize()){
+                return false;
             }
-            if(Values[1].getType() == 'b'){
-                for(size_t valIdx = 0; valIdx < Values.size()-1; ++valIdx){
-                    Vector->vBool[Values[0].getIntUnsafe()+valIdx].value = Values[valIdx+1].getBool();
+            if(arguments[1].getType() == 'b'){
+                for(size_t valIdx = 0; valIdx < arguments.size()-1; ++valIdx){
+                    Vector->vBool[arguments[0].getIntUnsafe()+valIdx].value = arguments[valIdx+1].getBool();
                 }
             }
-            else if(Values[1].getType() == 'i'){
-                for(size_t valIdx = 0; valIdx < Values.size()-1; ++valIdx){
-                    Vector->vInt[Values[0].getIntUnsafe()+valIdx] = Values[valIdx+1].getIntUnsafe();
+            else if(arguments[1].getType() == 'i'){
+                for(size_t valIdx = 0; valIdx < arguments.size()-1; ++valIdx){
+                    Vector->vInt[arguments[0].getIntUnsafe()+valIdx] = arguments[valIdx+1].getIntUnsafe();
                 }
             }
-            else if(Values[1].getType() == 'd'){
-                for(size_t valIdx = 0; valIdx < Values.size()-1; ++valIdx){
-                    Vector->vDouble[Values[0].getIntUnsafe()+valIdx] = Values[valIdx+1].getDoubleUnsafe();
+            else if(arguments[1].getType() == 'd'){
+                for(size_t valIdx = 0; valIdx < arguments.size()-1; ++valIdx){
+                    Vector->vDouble[arguments[0].getIntUnsafe()+valIdx] = arguments[valIdx+1].getDoubleUnsafe();
                 }
             }
-            else if(Values[1].getType() == 's'){
-                for(size_t valIdx = 0; valIdx < Values.size()-1; ++valIdx){
-                    Vector->vString[Values[0].getIntUnsafe()+valIdx] = Values[valIdx+1].getStringUnsafe();
+            else if(arguments[1].getType() == 's'){
+                for(size_t valIdx = 0; valIdx < arguments.size()-1; ++valIdx){
+                    Vector->vString[arguments[0].getIntUnsafe()+valIdx] = arguments[valIdx+1].getStringUnsafe();
                 }
             }
             else{
-                cerr << "Error: In " << __FUNCTION__ << ": Value of '" << Values[0].getType()
-                    << "' type cannot be assign to the vector '" << Vector->getID()
-                    << "' of '" << Vector->getType() << "' type.\n";
+                errorMessage += "Value of '" + arguments[0].getType();
+                errorMessage += "' type cannot be assign to the vector '" + Vector->getID();
+                errorMessage += "' of '" + Vector->getType();
+                errorMessage += "' type.\n";
+                return true;
             }
-            return;
+            return false;
         default:
-            cerr << "Error: In " << __FUNCTION__ << ": Function "
-                << attributeToStr(attribute) << "<" << Values.size() << "> does not exist.\n";
-            return;
+            errorMessage += "Function " + attributeToStr(attribute);
+            errorMessage += "<" + std::to_string(arguments.size());
+            errorMessage +=  "> does not exist.\n";
+            return true;
     }
 }
 

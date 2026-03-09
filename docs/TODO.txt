@@ -1,3 +1,5 @@
+-Replace "++" with "next" for integers at compile time.
+-Fix: Writing "else if" is not a syntax error.
 -Test passing literals to functions inside the terminal.
 -Add sand wrappers for 'fun' instructions or change 'fun' syntax to "fun *variable* *function* ( [[argument]...] )"
 -Add null checks like: "if(a == null)".

@@ -1,3 +1,7 @@
+9.03.2026
+-Created simple window manager program.
+-Improved error messages for vectors. 
+
 18.02.2026
 -Moved context class and its logic to a separate file.
 -Refactored some functions and script examples.

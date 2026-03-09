@@ -1,0 +1,538 @@
+@trigger on_init
+start onInit()
+    fun self set_can_be_selected false
+    edit_proc draw_camera_borders 1
+    load_font "fonts/CascadiaCode.ttf" 16 "cascadia_code" true
+
+    create_display 800 480 1920 1080 false
+
+    access initialDisplayWidth [display_w]
+    access initialDisplayHeight [display_h]
+
+    var displayWidth initialDisplayWidth
+    var displayHeight initialDisplayHeight
+
+    var displayIdx 0
+    var displayId "display"
+    new Camera 1 displayId display
+    fun display set_active true
+    fun display set_drawing_borders false
+    fun display resize displayWidth displayHeight
+
+    var focusedWindowIdx 0
+    var existingWindows 0
+
+    //normalized window sizes (x, y, w, h)
+    vec double windowScales [0.0 0.0 1.0 1.0]
+
+    //normalized bounding boxes (x, y, w, h, childIdx, parentIdx, splitType)
+    vec double boundsPosSize [0.0 0.0 1.0 1.0]
+    vec int splitIndexes [0 0]
+    vec bool splitDirections [false]
+
+
+    createWindow(false)
+    
+    createWindow(true)
+    createWindow(false)
+    createWindow(true)
+    moveFocus(true)
+    createWindow(true)
+    createWindow(false)
+    moveFocus(true)
+    createWindow(true)
+    moveFocus(true)
+    createWindow(false)
+    moveFocus(true)
+    moveFocus(true)
+    moveFocus(true)
+    moveFocus(true)
+end
+
+@trigger on_display_resize
+start onDisplayResize()
+    access newDisplayWidth [display_w]
+    access newDisplayHeight [display_h]
+
+    = displayWidth newDisplayWidth
+    = displayHeight newDisplayHeight
+
+    index Camera [displayIdx] Camera display
+    fun display resize displayWidth displayHeight
+
+    resizeAllWindows()
+end
+
+start windowIndexToScaleStartingIndex(int windowIdx, int & idx)
+    = idx windowIdx
+    *= idx 4
+end
+
+start windowIndexToScaleIndexes(int windowIdx, int & idxOfPosX, int & idxOfPosY, int & idxOfScaleX,
+    int & idxOfScaleY
+)
+    = idxOfPosX windowIdx
+    *= idxOfPosX 4
+    = idxOfPosY idxOfPosX
+    ++ idxOfPosY
+    = idxOfScaleX idxOfPosY
+    ++ idxOfScaleX
+    = idxOfScaleY idxOfScaleX
+    ++ idxOfScaleY
+end
+
+start resizeAllWindows()
+    int windowIdx 1
+    while(windowIdx <= existingWindows)
+        index Camera [windowIdx] Camera window
+        access windowX [window.pos_x]  
+        access windowY [window.pos_y]  
+        access windowWidth [window.size_x]  
+        access windowHeight [window.size_y]
+
+        int realIdxX 0
+        int realIdxY 0
+        int realIdxScaleX 0
+        int realIdxScaleY 0
+
+        windowIndexToScaleIndexes(windowIdx, realIdxX, realIdxY, realIdxScaleX, realIdxScaleY)
+
+        double oldPosX 0.0
+        double oldPosY 0.0
+        double oldScaleX 0.0
+        double oldScaleY 0.0
+        index_vec windowScales realIdxX oldPosX
+        index_vec windowScales realIdxY oldPosY
+        index_vec windowScales realIdxScaleX oldScaleX
+        index_vec windowScales realIdxScaleY oldScaleY
+
+        double newWindowX displayWidth
+        double newWindowY displayHeight
+
+        *= newWindowX oldPosX
+        *= newWindowY oldPosY
+
+        double newWindowWidth displayWidth
+        double newWindowHeight displayHeight
+
+        *= newWindowWidth oldScaleX newWindowX
+        *= newWindowHeight oldScaleY newWindowY
+ 
+        fun window set_relative_position newWindowX newWindowY
+        fun window resize newWindowWidth newWindowHeight
+
+        next windowIdx
+    end
+end
+
+@trigger on_key_press
+start onKeyPress()
+    if(key_pressed(KEY_F12))
+        setFullscreen()
+    else_if(key_pressed(KEY_ALT) && key_pressed(KEY_LSHIFT) && key_pressed(KEY_ENTER))
+        createWindow(false)
+    else_if(key_pressed(KEY_ALT) && key_pressed(KEY_ENTER))
+        createWindow(true)
+    else_if(key_pressed(KEY_ALT) && key_pressed(KEY_LEFT))
+        moveFocus(true)
+    else_if(key_pressed(KEY_ALT) && key_pressed(KEY_RIGHT))
+        moveFocus(false)
+    else_if(key_pressed(KEY_ALT) && key_pressed(KEY_Q))
+        destroyCurrentWindow()
+    end
+end
+
+start moveFocus(bool moveLeft)
+    if(moveLeft && focusedWindowIdx > 1)
+        -- focusedWindowIdx
+    else_if(!moveLeft && focusedWindowIdx < existingWindows)
+        ++ focusedWindowIdx
+    else
+        return
+    end
+
+    index Camera [focusedWindowIdx] Camera newFocusedWindow
+    fun newFocusedWindow focus
+end
+
+start setFullscreen()
+    if (!fullscreen)
+        env fullscreen 1
+    else
+        env fullscreen 0
+    end
+end
+
+start createWindow(bool vertical)
+    double focusedWindowX 0
+    double focusedWindowY 0
+    double focusedWindowWidth 0
+    double focusedWindowHeight 0
+    Camera focusedWindow
+
+    if(existingWindows > 0)
+        index Camera [focusedWindowIdx] Camera focusedWindow
+        access focusedWindowX [focusedWindow.pos_x]  
+        access focusedWindowY [focusedWindow.pos_y]  
+        access focusedWindowWidth [focusedWindow.size_x]  
+        access focusedWindowHeight [focusedWindow.size_y]  
+
+        //Check sizes
+        if((vertical && focusedWindowWidth < 100) || focusedWindowHeight < 100)
+            print "Window too small.\n"
+            return
+        end
+    end
+
+    new Camera 1 "window" newWindow
+    fun newWindow set_active true
+    fun newWindow set_drawing_borders true
+    fun newWindow pin_to_camera displayId
+    fun newWindow set_is_pinned_to_camera true
+    fun newWindow focus
+
+    ++ existingWindows
+
+    if(existingWindows == 1)
+        fun newWindow resize displayWidth displayHeight
+
+        fun windowScales push_back 0.0 
+        fun windowScales push_back 0.0 
+        fun windowScales push_back 1.0 
+        fun windowScales push_back 1.0 
+    else
+        splitWindow(vertical, focusedWindowX, focusedWindowY,
+            focusedWindowWidth, focusedWindowHeight, focusedWindow, newWindow
+        )
+    end
+
+    
+    = focusedWindowIdx existingWindows
+end
+
+start splitWindow(bool & vertical, double & focusedWindowX, double & focusedWindowY,
+    double & focusedWindowWidth, double & focusedWindowHeight, Camera focusedWindow,
+    Camera & newWindow
+)
+
+    int realIdxX 0
+    int realIdxY 0
+    int realIdxScaleX 0
+    int realIdxScaleY 0
+
+    windowIndexToScaleIndexes(focusedWindowIdx, realIdxX, realIdxY, realIdxScaleX, realIdxScaleY)
+
+    double parentPosX 0.0
+    double parentPosY 0.0
+    index_vec windowScales realIdxX parentPosX
+    index_vec windowScales realIdxY parentPosY
+
+    double parentScaleX 0.0
+    double parentScaleY 0.0
+    index_vec windowScales realIdxScaleX parentScaleX
+    index_vec windowScales realIdxScaleY parentScaleY
+
+    //Adding new bounding box for focused window and its new child window 
+    fun boundsPosSize push_back parentPosX
+    fun boundsPosSize push_back parentPosY
+    fun boundsPosSize push_back parentScaleX
+    fun boundsPosSize push_back parentScaleY
+    fun splitIndexes push_back focusedWindowIdx
+    fun splitIndexes push_back existingWindows
+    fun splitDirections push_back vertical
+
+    double childPosX focusedWindowX
+    double childPosY focusedWindowY
+
+    if(vertical)
+        /= focusedWindowWidth 2
+        /= parentScaleX 2.0 
+
+        double newWindowX focusedWindowX
+        += newWindowX focusedWindowWidth
+        = childPosX newWindowX
+        
+
+        fun newWindow resize focusedWindowWidth focusedWindowHeight
+        fun newWindow set_relative_position newWindowX focusedWindowY
+        fun focusedWindow resize focusedWindowWidth focusedWindowHeight
+    else
+        /= focusedWindowHeight 2
+        /= parentScaleY 2.0 
+
+        double newWindowY focusedWindowY
+        += newWindowY focusedWindowHeight
+        = childPosY newWindowY
+
+        fun newWindow resize focusedWindowWidth focusedWindowHeight
+        fun newWindow set_relative_position focusedWindowX newWindowY
+        fun focusedWindow resize focusedWindowWidth focusedWindowHeight
+    end
+
+    /= childPosX displayWidth
+    /= childPosY displayHeight
+
+    fun windowScales set realIdxScaleX parentScaleX
+    fun windowScales set realIdxScaleY parentScaleY
+    fun windowScales push_back childPosX
+    fun windowScales push_back childPosY
+    fun windowScales push_back parentScaleX
+    fun windowScales push_back parentScaleY
+end
+
+start getSplitDirectionIdx(int splitIdx, bool & splitDirectionIdx)
+    = splitDirectionIdx splitIdx
+    /= splitDirectionIdx 2
+end
+
+start getSplitDirection(int splitIdx, bool & isVerticalSplit)
+    int splitDirectionIdx splitIdx
+    /= splitDirectionIdx 2
+    index_vec splitDirections splitDirectionIdx isVerticalSplit
+end
+
+start destroyCurrentWindow()
+    if(existingWindows == 0)
+        print "No windows to delete!\n"
+        return
+    end
+
+    print_d " -> " splitIndexes
+    print "\nRemoving: " focusedWindowIdx "\n" 
+
+    int smallestSplitIdx 0
+    bool isChildWindow false
+    findStartOfLatestSplit(smallestSplitIdx, isChildWindow)
+    if(smallestSplitIdx == 0)
+        return
+    end
+
+    bool isVerticalSplit false
+    getSplitDirection(smallestSplitIdx, isVerticalSplit)
+
+    int[] subSplitsIndexes []
+    int[] posAdjustments []
+    int parentWindowIdx 0
+    index_vec splitIndexes smallestSplitIdx parentWindowIdx
+    
+    findSplitChildren(subSplitsIndexes, smallestSplitIdx, parentWindowIdx,
+        posAdjustments, isVerticalSplit, 0, 0
+    )
+
+    int childSplitIdx smallestSplitIdx
+    ++ childSplitIdx
+    int childWindowIdx 0
+    index_vec splitIndexes childSplitIdx childWindowIdx
+
+    int lastAdjIdx 0
+    sizeof posAdjustments lastAdjIdx
+    -- lastAdjIdx
+    findSplitChildren(subSplitsIndexes, smallestSplitIdx, childWindowIdx,
+        posAdjustments, isVerticalSplit, 0, lastAdjIdx
+    )
+
+    print "Sub-splits: "
+    print_d ", "  subSplitsIndexes
+    print "\n"
+
+    if(isChildWindow)
+        //expand everything to the right or down
+
+        //expand parent
+        expandWindow(parentWindowIdx, smallestSplitIdx, isVerticalSplit, 0)
+
+        //expand sub windows
+        int subSplitsSize 0
+        sizeof subSplitsIndexes subSplitsSize
+
+        int subSplitIdx 0
+        while(subSplitIdx < subSplitsSize)
+            int currentSplitIdx 0
+            index_vec subSplitsIndexes subSplitIdx currentSplitIdx
+            ++ currentSplitIdx
+
+            int windowIdx 0
+            index_vec splitIndexes currentSplitIdx windowIdx
+
+            int positionalAdjustement 0
+            index_vec posAdjustments subSplitIdx positionalAdjustement
+
+            expandWindow(windowIdx, currentSplitIdx, isVerticalSplit, positionalAdjustement)
+
+            next subSplitIdx
+        end
+
+        int splitDirectionIdx 0
+        getSplitDirectionIdx(smallestSplitIdx, splitDirectionIdx)
+
+        //================================================
+        //Lower indexes of the sub-splited windows
+        print "Parent window: " parentWindowIdx "\n"
+        int splitIndexesSize 0
+        sizeof splitIndexes splitIndexesSize
+        int splitIdx 0
+        while(splitIdx < splitIndexesSize)
+            int windowIdx 0
+            index_vec splitIndexes splitIdx windowIdx
+            if(windowIdx > focusedWindowIdx)
+                -- windowIdx
+                fun splitIndexes set splitIdx windowIdx
+            end
+            ++ splitIdx
+        end
+        //================================================
+
+        //================================================
+        //Remove scale of focused window that will be removed
+        int scaleStartingIdx 0
+        windowIndexToScaleStartingIndex(focusedWindowIdx, scaleStartingIdx)
+        fun windowScales remove scaleStartingIdx 
+        fun windowScales remove scaleStartingIdx
+        fun windowScales remove scaleStartingIdx
+        fun windowScales remove scaleStartingIdx
+        //================================================
+
+        fun splitIndexes remove smallestSplitIdx
+        fun splitIndexes remove smallestSplitIdx
+        fun splitDirections remove splitDirectionIdx
+
+        index Camera [focusedWindowIdx] Camera focusedWindow
+        delete focusedWindow
+        --existingWindows
+
+        moveFocus(true)
+
+
+    else
+        //expand everything to the left or up
+    end
+
+    print_d " -> " splitIndexes
+    print "\n"
+    print_d " -> " splitDirections
+    print "\n"
+    
+end
+
+start expandWindow(int windowIdx, int splitIdx, bool isVerticalSplit, int positionalAdjustement)
+    int realIdxX 0
+    int realIdxY 0
+    int realIdxScaleX 0
+    int realIdxScaleY 0
+
+    windowIndexToScaleIndexes(windowIdx, realIdxX, realIdxY, realIdxScaleX, realIdxScaleY)
+
+    double normPosX 0.0
+    double normPosY 0.0
+    index_vec windowScales realIdxX normPosX
+    index_vec windowScales realIdxY normPosY
+
+    double windowScaleX 0.0
+    double windowScaleY 0.0
+    index_vec windowScales realIdxScaleX windowScaleX
+    index_vec windowScales realIdxScaleY windowScaleY
+
+
+    if(isVerticalSplit)
+        double shift windowScaleX
+        *= shift positionalAdjustement
+        += normPosX shift
+
+        *= windowScaleX 2
+    else
+        double shift windowScaleY
+        *= shift positionalAdjustement
+        += normPosY shift
+
+        *= windowScaleY 2
+    end
+
+    double realPosX normPosX
+    double realPosY normPosY
+    *= realPosX displayWidth
+    *= realPosY displayHeight
+
+    double newWindowWidth displayWidth
+    double newWindowHeight displayHeight
+    *= newWindowWidth windowScaleX
+    *= newWindowHeight windowScaleY
+
+    fun windowScales set realIdxX normPosX
+    fun windowScales set realIdxY normPosY
+
+    fun windowScales set realIdxScaleX windowScaleX
+    fun windowScales set realIdxScaleY windowScaleY
+
+    index Camera [windowIdx] Camera parentWindow
+    fun parentWindow set_relative_position realPosX realPosY
+    fun parentWindow resize newWindowWidth newWindowHeight
+end
+
+start findSplitChildren(int[] & children, int mostLeftSplitIdx, int parentWindowIdx,
+    int[] & adjustments, bool isVerticalSplit, int sameDirectionCounter, int parentAdjIdx
+)
+    += mostLeftSplitIdx 2
+
+    int splitSize 0
+    sizeof splitIndexes splitSize
+    while(mostLeftSplitIdx < splitSize)
+        int currentParentWindowIdx 0
+        index_vec splitIndexes mostLeftSplitIdx currentParentWindowIdx
+        if(currentParentWindowIdx == parentWindowIdx)
+            fun children push_back mostLeftSplitIdx
+
+            bool splitDirection false
+            getSplitDirection(mostLeftSplitIdx, splitDirection)
+            if(isVerticalSplit == splitDirection)
+                //If a window is splitted in the same direction as the removed window and it's
+                //at least the second same-direction sub-split, then parent window and its child,
+                //who are 2 times smaller than the parent before the split,
+                //must be moved twice the distance in the direction of the freed space.
+                //Additionally child window must be moved away from the parent by its size. 
+                *= sameDirectionCounter 2
+                if(sameDirectionCounter > 0)
+                    fun adjustments set parentAdjIdx sameDirectionCounter
+                end
+
+                ++ sameDirectionCounter
+            end
+            fun adjustments push_back sameDirectionCounter
+
+            int childSplitIdx mostLeftSplitIdx 
+            ++ childSplitIdx
+            int childWindowIdx 0
+            index_vec splitIndexes childSplitIdx childWindowIdx
+
+            int lastAdjIdx 0
+            sizeof adjustments lastAdjIdx
+            -- lastAdjIdx
+            findSplitChildren(children, mostLeftSplitIdx, childWindowIdx,
+                adjustments, isVerticalSplit, sameDirectionCounter, lastAdjIdx
+            )
+        end
+        += mostLeftSplitIdx 2
+    end
+end
+
+start findStartOfLatestSplit(int & smallestSplitIdx, bool & isOddIdx)
+    findIndexOfLatestOccurrence(smallestSplitIdx)
+    % smallestSplitIdx 2 isOddIdx
+    if(isOddIdx)
+        --smallestSplitIdx
+    end
+end
+
+start findIndexOfLatestOccurrence(int & latestPosIdx)
+    int idx 0 
+    sizeof splitIndexes idx
+    --idx
+    while(idx > 0)
+        int currentValue 0
+        index_vec splitIndexes idx currentValue
+        if(currentValue == focusedWindowIdx)
+            = latestPosIdx idx
+            return
+        end
+        -- idx
+    end
+end

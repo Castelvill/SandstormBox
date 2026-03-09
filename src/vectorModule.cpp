@@ -312,23 +312,21 @@ bool VectorModule::popBack(){
 bool VectorModule::removeIndex(size_t index){
     if(type == 'b' && index < vBool.size()){
         vBool.erase(vBool.begin()+index);
-        return true;
+        return false;
     }
     if(type == 'i' && index < vInt.size()){
         vInt.erase(vInt.begin()+index);
-        return true;
+        return false;
     }
     if(type == 'd' && index < vDouble.size()){
         vDouble.erase(vDouble.begin()+index);
-        return true;
+        return false;
     }
     if(type == 's' && index < vString.size()){
         vString.erase(vString.begin()+index);
-        return true;
+        return false;
     }
-    cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Index (" << index
-        << ") is out of scope of vector '" << ID << "'.\n";
-    return false;
+    return true;
 }
 bool VectorModule::setBool(size_t index, bool newValue){
     if(type == 'b' && index < vBool.size()){
@@ -1492,32 +1490,28 @@ string VectorModule::getAnyStringValueUnsafe(long index) const{
     cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
     return "";
 }
-vector <string> VectorModule::getAllValuesAsStringVector() const{
+vector<string> VectorModule::getAllValuesAsStringVector() const{
     vector<string> newStringVector;
     if(type == 'b'){
-        for(unsigned index = 0; index < vBool.size(); index++){
-            if(vBool[index].value){
+        for(size_t index = 0; index < vBool.size(); index++){
+            if(vBool[index].value)
                 newStringVector.emplace_back("true");
-            }
-            newStringVector.emplace_back("false");
+            else
+                newStringVector.emplace_back("false");
         }
     }
     else if(type == 'i'){
-        for(unsigned index = 0; index < vInt.size(); index++){
+        for(size_t index = 0; index < vInt.size(); index++)
             newStringVector.emplace_back(intToStr(vInt[index]));
-        }
     }
     else if(type == 'd'){
-        for(unsigned index = 0; index < vInt.size(); index++){
+        for(size_t index = 0; index < vDouble.size(); index++)
             newStringVector.emplace_back(doubleToStr(vDouble[index]));
-        }
     }
-    else if(type == 's'){
+    else if(type == 's')
         return vString;
-    }
-    else{
+    else
         cerr << "Error: In " << __PRETTY_FUNCTION__ << ": Vector '" << ID << " is empty.\n";
-    }
     return newStringVector;
 }
 bool VectorModule::getBool(size_t index) const{

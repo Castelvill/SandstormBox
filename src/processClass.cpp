@@ -8663,7 +8663,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
     AncestorObject * ModulesObject = nullptr;
     vector<string> emptyString;
 
-    
+    string errorMessage;
     switch(Context->type){
         case camera_inst:
         case camera_vec:
@@ -8860,15 +8860,27 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
         case vector_mod_vec:
             if(Operation.Location.attribute == set_id){
                 for(VectorModule * Vector : Context->Modules.Vectors){
-                    if(!findObjectForFunction(ModulesObject, Layers, Vector->getObjectID(), Vector->getLayerID())){
+                    if(!findObjectForFunction(ModulesObject, Layers, Vector->getObjectID(),
+                        Vector->getLayerID()
+                    )){
                         continue;
                     }
-                    Event->controlVector(Vector, Operation.Location.attribute, functionArguments, ModulesObject->vectorContainerIDs);
+                    if(Event->controlVector(Vector, Operation.Location.attribute, functionArguments,
+                        ModulesObject->vectorContainerIDs, errorMessage
+                    )){
+                        cerr << instructionError(CurrentInstr, __FUNCTION__) << errorMessage;
+                        return;
+                    }
                 }
                 return;
             }
             for(VectorModule * Vector : Context->Modules.Vectors){
-                Event->controlVector(Vector, Operation.Location.attribute, functionArguments, emptyString);
+                if(Event->controlVector(Vector, Operation.Location.attribute, functionArguments,
+                    emptyString, errorMessage
+                )){
+                    cerr << instructionError(CurrentInstr, __FUNCTION__) << errorMessage;
+                    return;
+                }
             }
             break;
         case value_vec:
@@ -9567,9 +9579,8 @@ void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct &
             case vector_mod_vec:
                 for(const VectorModule * Vector : Value.Modules.Vectors){
                     vector<string> stringsFromVector = Vector->getAllValuesAsStringVector();
-                    for(string text : stringsFromVector){
+                    for(const string & text : stringsFromVector)
                         buffer += catchQuotes(text) + delimeter;
-                    }
                 }
                 break;
             case camera_inst:
