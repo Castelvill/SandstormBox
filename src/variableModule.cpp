@@ -899,7 +899,7 @@ BasePointersStruct VariableModule::getBasePointersStruct(){
 template<typename LeftType, typename RightType>
 void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand, const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo){
     if(LeftOperand == nullptr){
-        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
             << "Left operand is null.\n";
         return;
     }
@@ -912,7 +912,7 @@ void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand
         return;
     }
     if(RightOperand == nullptr){
-        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
             << "Right operand is null.\n";
         return;
     }
@@ -935,12 +935,12 @@ void executeMoveTypeInstruction(LeftType * LeftOperand, RightType * RightOperand
                 *LeftOperand /= *RightOperand;
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Cannot divide by zero.\n";
             }
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "Instruction \'" << instrToStr(instruction) << "\' is not valid.\n";
             return;
     }
@@ -959,7 +959,7 @@ void VariableModule::moveFromTemp(RightType * RightOperand, const EngineInstr & 
         executeMoveTypeInstruction(&vDouble, RightOperand, instruction, CurrentInstrInfo);
     }
     else{
-        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
             << "About the left operand: \'" << type << "\' type is not valid.\n";
     }
 }
@@ -973,14 +973,14 @@ void VariableModule::move(VariableModule *RightOperand, const EngineInstr & inst
                 vString += RightOperand->getString();
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "In variable '" << ID
                     << "': Cannot execute \'" << instrToStr(instruction)
                     << "\' instruction on string type values.\n";
             }
         }
         else{
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "Cannot execute any instructions if only the right operand is of a string type.\n";
         }
     }
@@ -998,7 +998,7 @@ void VariableModule::move(VariableModule *RightOperand, const EngineInstr & inst
         moveFromTemp((int*)nullptr, instruction, CurrentInstrInfo);
     }
     else{
-        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
             << "In variable '" << ID
             << "': About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
     }
@@ -1042,14 +1042,14 @@ void VariableModule::move(const BasePointersStruct *RightOperand, const EngineIn
                     vString += RightOperand->getString();
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "In variable '" << ID
                         << "': Cannot execute \'" << instrToStr(instruction)
                         << "\' instruction on string type values.\n";
                 }
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "In variable '" << ID
                     << "': Cannot execute any instructions if only the right operand is of a string type.\n";
             }
@@ -1059,7 +1059,7 @@ void VariableModule::move(const BasePointersStruct *RightOperand, const EngineIn
                 moveFromTemp((int*)nullptr, instruction, CurrentInstrInfo);
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "In variable '" << ID
                 << "': About the right operand: \'" << RightOperand->type << "\' type is not valid.\n";
             }

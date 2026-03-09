@@ -277,7 +277,7 @@ VariableModule ScrollbarModule::getValue(const AttributeType &attribute,
             break;
     }
     
-    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '" << attribute
+    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Attribute '" << attribute
         << "' is not valid.\n";
     return VariableModule::newBool(false);
 }

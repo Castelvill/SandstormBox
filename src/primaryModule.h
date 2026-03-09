@@ -338,7 +338,7 @@ public:
     bool isNumeric() const;
 };
 
-constexpr const char* NEW_LINE_PADDING = "\t";
+constexpr string NEW_LINE_PADDING = "\t";
 inline void printLogMessage(const string & messageType, const string & fileName, const size_t lineNumber, const string & functionName, const string & message){
     cerr << messageType << ":";
     if(messageType.size() < 8){
@@ -347,9 +347,9 @@ inline void printLogMessage(const string & messageType, const string & fileName,
     cerr << "In " << fileName << ":" << uIntToStr(lineNumber) << ":" << functionName << ":\n"
         << NEW_LINE_PADDING << message;
 }
-string instructionError(const InstrDescription & Description, const string & functionName,
+string printErrorMessage(const InstrDescription & Description, const string & functionName,
     const string & messageType = "Error");
-string instructionWarning(const InstrDescription & Description, const string & functionName);
+string printWarningMessage(const InstrDescription & Description, const string & functionName);
 
 struct PrimaryData{
     size_t * topIndex = nullptr;

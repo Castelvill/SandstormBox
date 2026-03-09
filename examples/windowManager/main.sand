@@ -25,14 +25,16 @@ start onInit()
     //normalized window sizes (x, y, w, h)
     vec double windowScales [0.0 0.0 1.0 1.0]
 
-    //normalized bounding boxes (x, y, w, h, childIdx, parentIdx, splitType)
-    vec double boundsPosSize [0.0 0.0 1.0 1.0]
+    //window splitting info
     vec int splitIndexes [0 0]
     vec bool splitDirections [false]
 
+    //test()
+end
 
+start test()
     createWindow(false)
-    
+
     createWindow(true)
     createWindow(false)
     createWindow(true)
@@ -232,11 +234,7 @@ start splitWindow(bool & vertical, double & focusedWindowX, double & focusedWind
     index_vec windowScales realIdxScaleX parentScaleX
     index_vec windowScales realIdxScaleY parentScaleY
 
-    //Adding new bounding box for focused window and its new child window 
-    fun boundsPosSize push_back parentPosX
-    fun boundsPosSize push_back parentPosY
-    fun boundsPosSize push_back parentScaleX
-    fun boundsPosSize push_back parentScaleY
+    //Adding new split info for focused window and its new child window 
     fun splitIndexes push_back focusedWindowIdx
     fun splitIndexes push_back existingWindows
     fun splitDirections push_back vertical
@@ -251,7 +249,6 @@ start splitWindow(bool & vertical, double & focusedWindowX, double & focusedWind
         double newWindowX focusedWindowX
         += newWindowX focusedWindowWidth
         = childPosX newWindowX
-        
 
         fun newWindow resize focusedWindowWidth focusedWindowHeight
         fun newWindow set_relative_position newWindowX focusedWindowY
@@ -297,8 +294,20 @@ start destroyCurrentWindow()
         return
     end
 
-    print_d " -> " splitIndexes
-    print "\nRemoving: " focusedWindowIdx "\n" 
+    if(existingWindows == 1)
+        fun windowScales remove 4 
+        fun windowScales remove 4
+        fun windowScales remove 4
+        fun windowScales remove 4
+
+        index Camera [focusedWindowIdx] Camera focusedWindow
+        delete focusedWindow
+        --existingWindows
+        return
+    end
+
+    // print_d " -> " splitIndexes
+    // print "\nRemoving: " focusedWindowIdx "\n" 
 
     int smallestSplitIdx 0
     bool isChildWindow false
@@ -331,87 +340,99 @@ start destroyCurrentWindow()
         posAdjustments, isVerticalSplit, 0, lastAdjIdx
     )
 
-    print "Sub-splits: "
-    print_d ", "  subSplitsIndexes
-    print "\n"
+    //print "Sub-splits: "
+    //print_d ", "  subSplitsIndexes
+    //print "\n"
 
     if(isChildWindow)
-        //expand everything to the right or down
-
-        //expand parent
-        expandWindow(parentWindowIdx, smallestSplitIdx, isVerticalSplit, 0)
-
-        //expand sub windows
-        int subSplitsSize 0
-        sizeof subSplitsIndexes subSplitsSize
-
-        int subSplitIdx 0
-        while(subSplitIdx < subSplitsSize)
-            int currentSplitIdx 0
-            index_vec subSplitsIndexes subSplitIdx currentSplitIdx
-            ++ currentSplitIdx
-
-            int windowIdx 0
-            index_vec splitIndexes currentSplitIdx windowIdx
-
-            int positionalAdjustement 0
-            index_vec posAdjustments subSplitIdx positionalAdjustement
-
-            expandWindow(windowIdx, currentSplitIdx, isVerticalSplit, positionalAdjustement)
-
-            next subSplitIdx
-        end
-
-        int splitDirectionIdx 0
-        getSplitDirectionIdx(smallestSplitIdx, splitDirectionIdx)
-
-        //================================================
-        //Lower indexes of the sub-splited windows
-        print "Parent window: " parentWindowIdx "\n"
-        int splitIndexesSize 0
-        sizeof splitIndexes splitIndexesSize
-        int splitIdx 0
-        while(splitIdx < splitIndexesSize)
-            int windowIdx 0
-            index_vec splitIndexes splitIdx windowIdx
-            if(windowIdx > focusedWindowIdx)
-                -- windowIdx
-                fun splitIndexes set splitIdx windowIdx
-            end
-            ++ splitIdx
-        end
-        //================================================
-
-        //================================================
-        //Remove scale of focused window that will be removed
-        int scaleStartingIdx 0
-        windowIndexToScaleStartingIndex(focusedWindowIdx, scaleStartingIdx)
-        fun windowScales remove scaleStartingIdx 
-        fun windowScales remove scaleStartingIdx
-        fun windowScales remove scaleStartingIdx
-        fun windowScales remove scaleStartingIdx
-        //================================================
-
-        fun splitIndexes remove smallestSplitIdx
-        fun splitIndexes remove smallestSplitIdx
-        fun splitDirections remove splitDirectionIdx
-
-        index Camera [focusedWindowIdx] Camera focusedWindow
-        delete focusedWindow
-        --existingWindows
-
-        moveFocus(true)
-
-
+        removeFocusedWindowAndExpandOthers(subSplitsIndexes, posAdjustments, parentWindowIdx,
+            smallestSplitIdx, isVerticalSplit
+        )
     else
         //expand everything to the left or up
     end
 
-    print_d " -> " splitIndexes
-    print "\n"
-    print_d " -> " splitDirections
-    print "\n"
+    // print_d " -> " splitIndexes
+    // print "\n"
+    // print_d " -> " splitDirections
+    // print "\n"
+end
+
+start removeFocusedWindowAndExpandOthers(int[] & subSplitsIndexes, int[] & posAdjustments,
+    int parentWindowIdx, int smallestSplitIdx, bool isVerticalSplit
+)
+    //expand everything to the right or down
+
+    //expand parent
+    expandWindow(parentWindowIdx, smallestSplitIdx, isVerticalSplit, 0)
+
+    //expand sub windows
+    int subSplitsSize 0
+    sizeof subSplitsIndexes subSplitsSize
+
+    int subSplitIdx 0
+    while(subSplitIdx < subSplitsSize)
+        int currentSplitIdx 0
+        index_vec subSplitsIndexes subSplitIdx currentSplitIdx
+        ++ currentSplitIdx
+
+        int windowIdx 0
+        index_vec splitIndexes currentSplitIdx windowIdx
+
+        int positionalAdjustement 0
+        index_vec posAdjustments subSplitIdx positionalAdjustement
+
+        expandWindow(windowIdx, currentSplitIdx, isVerticalSplit, positionalAdjustement)
+
+        next subSplitIdx
+    end
+
+    removeFocusedWindow(smallestSplitIdx, smallestSplitIdx)
+end
+
+start removeFocusedWindow(int smallestSplitIdx, int smallestSplitIdx)
+    int splitDirectionIdx 0
+    getSplitDirectionIdx(smallestSplitIdx, splitDirectionIdx)
+
+    lowerIndexes()
+
+    removeScalingInfoForRemovedWindow()
+
+    fun splitIndexes remove smallestSplitIdx
+    fun splitIndexes remove smallestSplitIdx
+    fun splitDirections remove splitDirectionIdx
+
+    index Camera [focusedWindowIdx] Camera focusedWindow
+    delete focusedWindow
+    --existingWindows
+
+    moveFocus(true)
+end
+
+start removeScalingInfoForRemovedWindow()
+    int scaleStartingIdx 0
+    windowIndexToScaleStartingIndex(focusedWindowIdx, scaleStartingIdx)
+    fun windowScales remove scaleStartingIdx 
+    fun windowScales remove scaleStartingIdx
+    fun windowScales remove scaleStartingIdx
+    fun windowScales remove scaleStartingIdx
+end
+
+start lowerIndexes()
+    // print "Parent window: " parentWindowIdx "\n"
     
+    int splitIndexesSize 0
+    sizeof splitIndexes splitIndexesSize
+    int splitIdx 0
+    while(splitIdx < splitIndexesSize)
+        int windowIdx 0
+        index_vec splitIndexes splitIdx windowIdx
+        if(windowIdx > focusedWindowIdx)
+            -- windowIdx
+            fun splitIndexes set splitIdx windowIdx
+        end
+        ++ splitIdx
+    end
 end
 
 start expandWindow(int windowIdx, int splitIdx, bool isVerticalSplit, int positionalAdjustement)
@@ -431,7 +452,6 @@ start expandWindow(int windowIdx, int splitIdx, bool isVerticalSplit, int positi
     double windowScaleY 0.0
     index_vec windowScales realIdxScaleX windowScaleX
     index_vec windowScales realIdxScaleY windowScaleY
-
 
     if(isVerticalSplit)
         double shift windowScaleX

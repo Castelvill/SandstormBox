@@ -734,25 +734,55 @@ string instrToStr(const EngineInstr & instruction){
         return "undefined";
     }
 }
-string instructionError(const InstrDescription & Description, const string & functionName, 
+string printErrorMessage(const InstrDescription & context, const string & functionName, 
     const string & messageType
 ){
-    if(Description.scriptName == ""){
-        if(Description.layerID == ""){
-            return messageType + ": In " + functionName + ":\n"
-                + NEW_LINE_PADDING;
-        }
-        return messageType + ": In " + Description.layerID + "::" + Description.objectID + "::" 
-            + Description.eventID + ": In the '" + instrToStr(Description.instruction)
-            + "' instruction: In " + functionName + ":\n" + NEW_LINE_PADDING;
+    string errorMessage;
+    errorMessage.reserve(256);
+    
+    errorMessage += messageType;
+    errorMessage += ": ";
+
+    if(!context.scriptName.empty()){
+        errorMessage += context.scriptName;
+        errorMessage += ":";
+        errorMessage += std::to_string(context.lineNumber);
+        errorMessage += "\n";
+        errorMessage += NEW_LINE_PADDING;;
     }
-    return messageType + ": In " + Description.scriptName + ":" + uIntToStr(Description.lineNumber) 
-        + ":\n" + NEW_LINE_PADDING + "In " + Description.layerID + "::" + Description.objectID
-        + "::" + Description.eventID + ": In the '" + instrToStr(Description.instruction) 
-        + "' instruction: In " + functionName + ":\n" + NEW_LINE_PADDING;
+        
+    if(!context.layerID.empty()){
+        errorMessage += "In ";
+        errorMessage += context.layerID;
+        errorMessage += ":";
+        if(!context.objectID.empty()){
+            errorMessage += ":";
+            errorMessage += context.objectID;
+            errorMessage += ":";
+        }   
+        if(!context.eventID.empty()){
+            errorMessage += ":";
+            errorMessage += context.eventID;
+            errorMessage += ":";
+        }
+        errorMessage += " ";
+    }
+    
+    if(context.instruction != EngineInstr::null){
+        errorMessage += "In the '";
+        errorMessage += std::to_string(context.instruction);
+        errorMessage += "' instruction: ";
+    }
+
+    errorMessage += "In ";
+    errorMessage += functionName;
+    errorMessage += " function:\n";
+    errorMessage += NEW_LINE_PADDING;
+    
+    return errorMessage;
 }
-string instructionWarning(const InstrDescription & Description, const string & functionName){
-    return instructionError(Description, functionName, "Warning");
+string printWarningMessage(const InstrDescription & context, const string & functionName){
+    return printErrorMessage(context, functionName, "Warning");
 }
 
 void PrimaryModule::primaryConstructor(size_t & topObjectUniqueIndex){
@@ -1953,12 +1983,12 @@ ReturnType BasePointersStruct::setPointer(const BasePointersStruct & Pointers,
     const InstrDescription & CurrentInstr
 ){
     if(readOnly){
-        cout << instructionError(CurrentInstr, __FUNCTION__)
+        cout << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Pointer is read-only and cannot be reassigned.\n";
         return READ_ONLY;
     }
     if(type != null_bt && type != Pointers.type){
-        cout << instructionError(CurrentInstr, __FUNCTION__)
+        cout << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Cannot assign a reference of the '" << baseTypeToStr(Pointers.type)
             << "' type to a pointer of the '" << baseTypeToStr(type) << "' type.\n";
         return INVALID_TYPE;

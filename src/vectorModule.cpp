@@ -415,7 +415,7 @@ void executeMoveTypeInstruction2(LeftType * LeftOperand, RightType * RightOperan
     const EngineInstr & instruction, const InstrDescription & CurrentInstrInfo
 ){
     if(LeftOperand == nullptr){
-        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
             << "Left operand is null.\n";
         return;
     }
@@ -428,7 +428,7 @@ void executeMoveTypeInstruction2(LeftType * LeftOperand, RightType * RightOperan
         return;
     }
     if(RightOperand == nullptr){
-        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
             << "Right operand is null.\n";
         return;
     }
@@ -451,12 +451,12 @@ void executeMoveTypeInstruction2(LeftType * LeftOperand, RightType * RightOperan
                 *LeftOperand /= *RightOperand;
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Cannot divide by zero.\n";
             }
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "Instruction \'" << instrToStr(instruction) << "\' is not valid.\n";
             return;
     }
@@ -486,7 +486,7 @@ void VectorModule::moveValueToEachInstance(RightType * RightOperand,
             }
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "About the left operand: \'" << type << "\' type is not valid.\n";
             return;
     }
@@ -522,19 +522,19 @@ void VectorModule::move(VariableModule* RightOperand, const EngineInstr & instru
                     }
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute \'" << instrToStr(instruction)
                         << "\' instruction on string type values.\n";
                 }
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Cannot execute any instructions if only the right operand is of a string "
                     << "type.\n";
             }
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "About the right operand: \'" << type << "\' type is not valid.\n";
             return;
     }
@@ -559,7 +559,7 @@ bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t leftSize,
         maxIndex = leftSize;
     }
     else{
-        cerr << instructionError(CurrentInstr, functionName)
+        cerr << printErrorMessage(CurrentInstr, functionName)
             << "Vector sizes " << leftSize << " (left) and " << rightSize
             << " (right) are incorrect.\n";
         return false;
@@ -593,7 +593,7 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand,
                 );
                 continue;
             default:
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Instance " << rightIndex << " of the right operand has an invalid type: '"
                     << (*RightOperand)[rightIndex].type << "'.\n";
                 continue;
@@ -627,7 +627,7 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand,
                 );
                 continue;
             default:
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Instance " << rightIndex << " of the right operand has an invalid type: '"
                     << (*RightOperand)[rightIndex]->type << "'.\n";
                 continue;
@@ -686,7 +686,7 @@ void moveAllValuesToEachInstance(vector<LeftType> * LeftOperand,
                 );
                 continue;
             default:
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Instance " << rightIndex << " of the right operand has an invalid type: '"
                     << baseTypeToStr((*RightOperand)[rightIndex].type) << "'.\n";
                 continue;
@@ -707,7 +707,7 @@ void moveString(vector<string> & vString, vector<VariableModule> * RightOperand,
                     vString[leftIndex] = (*RightOperand)[rightIndex].vString;
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute any instructions if only the left operand is of a string"
                         << " type.\n";
                 }
@@ -721,13 +721,13 @@ void moveString(vector<string> & vString, vector<VariableModule> * RightOperand,
                     vString[leftIndex] += (*RightOperand)[rightIndex].vString;
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute any instructions if only the left operand is of a string"
                         << " type.\n";
                 }
             }
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "Cannot execute \'" << instrToStr(instruction)
                 << "\' instruction on string type values.\n";
     }
@@ -746,7 +746,7 @@ void moveString(vector<string> & vString, vector<VariableModule*> * RightOperand
                     vString[leftIndex] = (*RightOperand)[rightIndex]->vString;
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute any instructions if only the left operand is of a string"
                         << " type.\n";
                 }
@@ -760,13 +760,13 @@ void moveString(vector<string> & vString, vector<VariableModule*> * RightOperand
                     vString[leftIndex] += (*RightOperand)[rightIndex]->vString;
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute any instructions if only the left operand is of a string"
                         << " type.\n";
                 }
             }
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "Cannot execute \'" << instrToStr(instruction)
                 << "\' instruction on string type values.\n";
     }
@@ -785,7 +785,7 @@ void moveString(vector<string> & vString, vector<BasePointersStruct> * RightOper
                     vString[leftIndex] = *(*RightOperand)[rightIndex].pString;
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute any instructions if only the left operand is of a string"
                         << " type.\n";
                 }
@@ -799,13 +799,13 @@ void moveString(vector<string> & vString, vector<BasePointersStruct> * RightOper
                     vString[leftIndex] += *(*RightOperand)[rightIndex].pString;
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute any instructions if only the left operand is of a string"
                         << " type.\n";
                 }
             }
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "Cannot execute \'" << instrToStr(instruction)
                 << "\' instruction on string type values.\n";
     }
@@ -873,7 +873,7 @@ void VectorModule::move(vector<RightOperandType> * RightOperand, const EngineIns
             );
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "About the right operand: \'" << type << "\' type is not valid.\n";
             return;
     }
@@ -930,19 +930,19 @@ void VectorModule::move(BasePointersStruct* RightOperand, const EngineInstr & in
                     }
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute \'" << instrToStr(instruction)
                         << "\' instruction on string type values.\n";
                 }
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Cannot execute any instructions if only the right operand is of a string "
                     << "type.\n";
             }
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "About the right operand: \'" << type << "\' type is not valid.\n";
             return;
     }
@@ -1003,7 +1003,7 @@ void checkTypeAndMove(vector<LeftType> & LeftOperand, VectorModule* RightOperand
             }
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "About the right operand: \'" << RightOperand->getType()
                 << "\' type is not valid.\n";
             return;
@@ -1037,13 +1037,13 @@ void moveString(vector<string> & leftOperand, VectorModule* RightOperand,
             }
         }
         else{
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "Cannot execute \'" << instrToStr(instruction)
                 << "\' instruction on string type values.\n";
         }
     }
     else{
-        cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
             << "Cannot execute any instructions if only the right operand is of a string type.\n";
     }
 }
@@ -1075,7 +1075,7 @@ void VectorModule::move(VectorModule* RightOperand, const EngineInstr & instruct
             moveString(vString, RightOperand, instruction, CurrentInstrInfo);
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "About the right operand: \'" << type << "\' type is not valid.\n";
             return;
     }
@@ -1119,19 +1119,19 @@ void VectorModule::moveFrom(VariableModule * LeftOperand, const EngineInstr & in
                     }
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute \'" << instrToStr(instruction)
                         << "\' instruction on string type values.\n";
                 }
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Cannot execute any instructions if only the right operand is of a string "
                     << "type.\n";
             }
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "About the right operand: \'" << type << "\' type is not valid.\n";
             return;
     }
@@ -1175,19 +1175,19 @@ void VectorModule::moveFrom(BasePointersStruct * LeftPointer, const EngineInstr 
                     }
                 }
                 else{
-                    cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                         << "Cannot execute \'" << instrToStr(instruction)
                         << "\' instruction on string type values.\n";
                 }
             }
             else{
-                cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                     << "Cannot execute any instructions if only the right operand is of a string "
                     << "type.\n";
             }
             return;
         default:
-            cerr << instructionError(CurrentInstrInfo, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstrInfo, __FUNCTION__)
                 << "About the right operand: \'" << type << "\' type is not valid.\n";
             return;
     }

@@ -19,12 +19,12 @@ int main(int argc, char* argv[]){
         Engine.resetState(false);
         for(string file : Engine.inputFiles){
             Processes.emplace_back(ProcessClass());
-            Processes.back().create(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
+            Processes.back().createProcess(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
                 file, "Init0", "KERNEL", "Init", Engine.processIDs);
         }
         for(string initFile : Engine.initFiles){
             Processes.emplace_back(ProcessClass());
-            Processes.back().create(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
+            Processes.back().createProcess(Engine.EXE_PATH, Engine.allowNotAscii, Engine.getDisplaySize(),
                 initFile, "Init0", "KERNEL", "Init", Engine.processIDs);
         }
         if(Processes.size() == 0){

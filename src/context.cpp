@@ -379,7 +379,7 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
             if(Modules.Variables.size() > 0){
                 if(Modules.Variables[0] == nullptr){
                     buffer += "nullptr";
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "In the context \'" << ID
                         << "\' the pointer to the variable has a nullptr value.\n";
                 }
@@ -398,7 +398,7 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
             for(const VariableModule * Variable: Modules.Variables){
                 if(Variable == nullptr){
                     buffer += "<nullptr>, ";
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "In the context \'" << ID
                         << "\' the pointer to the variable has a nullptr value.\n";
                     continue;
@@ -414,7 +414,7 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
             if(Modules.Vectors.size() > 0){
                 if(Modules.Vectors[0] == nullptr){
                     buffer += "nullptr";
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "In the context \'" << ID
                         << "\' the pointer to the vector has a nullptr value.\n";
                 }
@@ -438,7 +438,7 @@ string ContextClass::getValue(const InstrDescription & CurrentInstr, int maxLeng
             for(const VectorModule * Vector: Modules.Vectors){
                 if(Vector == nullptr){
                     buffer += "<nullptr>, ";
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "In the context \'" << ID
                         << "\' the pointer to the vector has a nullptr value.\n";
                     continue;
@@ -478,11 +478,11 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, const InstrDescription &
         case value_inst:
         case value_vec:
             if(Values.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context is empty.\n";
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Context is empty.\n";
                 return false;
             }
             if(Values.size() != 1){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "\': Context has more than 1 value - only the last value will be used.\n";
             }
             temp = Values.back().getInt();
@@ -490,12 +490,12 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, const InstrDescription &
         case pointer_inst:
         case pointer_vec:
             if(BasePointers.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return false;
             }
             if(BasePointers.size() != 1){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the last value will be used.\n";
             }
             temp = BasePointers.back().getInt();
@@ -503,24 +503,24 @@ bool ContextClass::getUnsignedOrAbort(unsigned &number, const InstrDescription &
         case variable_mod:
         case variable_mod_vec:
             if(Modules.Variables.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return false;
             }
             if(Modules.Variables.size() != 1){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the last value will be used.\n";
             }
             temp = Modules.Variables.back()->getInt();
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Context \'" << ID << "\' has invalid type: \'" << dataTypeToStr(type) << "\'.\n";
             return false;
     }
     if(temp < 0){
         number = 0;
-        cout << instructionWarning(CurrentInstr, __FUNCTION__)
+        cout << printWarningMessage(CurrentInstr, __FUNCTION__)
             << "Value is not unsigned - returning 0.\n";
     }
     number = temp;
@@ -531,12 +531,12 @@ bool ContextClass::getIntOrAbort(int &number, const InstrDescription & CurrentIn
         case value_inst:
         case value_vec:
             if(Values.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return true;
             }
             if(Values.size() != 1){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the first value will be used.\n";
             }
             number = Values[0].getInt();
@@ -544,12 +544,12 @@ bool ContextClass::getIntOrAbort(int &number, const InstrDescription & CurrentIn
         case pointer_inst:
         case pointer_vec:
             if(BasePointers.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return true;
             }
             if(BasePointers.size() != 1){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the first value will be used.\n";
             }
             number = BasePointers[0].getInt();
@@ -557,18 +557,18 @@ bool ContextClass::getIntOrAbort(int &number, const InstrDescription & CurrentIn
         case variable_mod:
         case variable_mod_vec:
             if(Modules.Variables.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return true;
             }
             if(Modules.Variables.size() != 1){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the first value will be used.\n";
             }
             number = Modules.Variables[0]->getInt();
             return false;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Context \'" << ID << "\' has invalid type: \'" << dataTypeToStr(type)
                 << "\'Function expects an integer or a container of integers.\n";
             return true;
@@ -580,12 +580,12 @@ bool ContextClass::getStringOrAbort(string & text, const InstrDescription & Curr
         case value_inst:
         case value_vec:
             if(Values.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return false;
             }
             if(Values.size() != 1){
-                cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+                cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the first value will be used.\n";
             }
             text = Values[0].getString();
@@ -593,12 +593,12 @@ bool ContextClass::getStringOrAbort(string & text, const InstrDescription & Curr
         case pointer_inst:
         case pointer_vec:
             if(BasePointers.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return false;
             }
             if(BasePointers.size() != 1){
-                cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+                cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the first value will be used.\n";
             }
             text = BasePointers[0].getString();
@@ -606,12 +606,12 @@ bool ContextClass::getStringOrAbort(string & text, const InstrDescription & Curr
         case variable_mod:
         case variable_mod_vec:
             if(Modules.Variables.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return false;
             }
             if(Modules.Variables.size() != 1){
-                cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+                cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the first value will be used.\n";
             }
             text = Modules.Variables[0]->getString();
@@ -619,12 +619,12 @@ bool ContextClass::getStringOrAbort(string & text, const InstrDescription & Curr
         case vector_mod:
         case vector_mod_vec:
             if(Modules.Vectors.size() == 0){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Context is empty.\n";
                 return false;
             }
             if(Modules.Vectors.size() != 1){
-                cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+                cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Context has more than 1 value - only the first value will be used.\n";
             }
             {
@@ -637,7 +637,7 @@ bool ContextClass::getStringOrAbort(string & text, const InstrDescription & Curr
             text.pop_back(); //Remove the last new line.
             return true;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Context \'" << ID << "\' has invalid type: '" << dataTypeToStr(type)
                 << "'Function expects a string or a container of strings.\n";
             return false;
@@ -1121,11 +1121,11 @@ ContextClass * getVariableByAddress(const InstrDescription & CurrentInstr,
     if(Variable.dynamicAddress > MemoryMap.size()){
         if(printError){
             if(!variableName.empty()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Address " << Variable.dynamicAddress <<" is not allocated.\n";
             }
             else{
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Variable '" << variableName << "' does not exist at the address: "
                     << Variable.dynamicAddress <<".\n";
             }
@@ -1162,7 +1162,7 @@ bool ContextClass::copyFromTheParameter(
     clear();
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+2 << " does not exist.\n";
         return true;
     }
@@ -1172,7 +1172,7 @@ bool ContextClass::copyFromTheParameter(
     }
     if(CurrentParameter.type == 'c'){
         if(EventLocalVariables.empty()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Local variables container is empty. This may cause undefined behavior.\n";
             return true;
         }
@@ -1181,7 +1181,7 @@ bool ContextClass::copyFromTheParameter(
             CurrentParameter.variableID, printErrors
         );
         if(TempContext == nullptr){ 
-            printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Variable '" << CurrentParameter.variableID << "' from the parameter "
                 << index + 2 << " does not exist.\n";
             return true;
@@ -1211,7 +1211,7 @@ bool ContextClass::copyFromTheParameter(
                 continue;
             }
             if(parameterIt.type != 'c'){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << parameterIt.type << "' type.\n";
                 return true;
             }
@@ -1221,7 +1221,7 @@ bool ContextClass::copyFromTheParameter(
                 parameterIt.variableID, printErrors
             );
             if(TempContext == nullptr){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Variable '" << parameterIt.variableID
                     << "' from the parameter " << index+2 << " does not exist.\n";
                 return true;
@@ -1285,7 +1285,7 @@ bool ContextClass::copyFromTheParameter(
                     }
                     break;
                 default:
-                    printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Context with ID '" << parameterIt.variableID << "' found in the parameter "
                         << index << " is of the invalid type: '" << dataTypeToStr(TempContext->type)
                         << "'. Function expects only numeric and string values.\n";
@@ -1294,7 +1294,7 @@ bool ContextClass::copyFromTheParameter(
         }
     }
     else{
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+2 << " has invalid type: '" << CurrentParameter.type << "'.\n";
         return true;
     }

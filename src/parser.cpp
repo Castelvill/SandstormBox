@@ -1216,7 +1216,7 @@ DataType vectorizeEntityDataType(const InstrDescription & CurrentInstr, const Da
         case any_dt:
             return any_dt;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Entity type \'"
                 << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
             return null_dt;
     }
@@ -2950,7 +2950,7 @@ ReturnType InstrParser::parseRun(){
         cerr << "Error: In " << scriptName << ":" << lineNumber << ":\n"
             << NEW_LINE_PADDING << "In " << __FUNCTION__
             << ": In the '" << words[0].value
-            << "' instruction: The first parameter is not a context.\n";
+            << "' instruction: The first parameter is not an identifier.\n";
         return ReturnType::ERROR;
     }
 

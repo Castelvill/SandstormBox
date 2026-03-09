@@ -209,7 +209,7 @@ void ProcessClass::allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap,
         }
     }
 }
-void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize,
+void ProcessClass::createProcess(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize,
     string initFilePath, string newID, string newLayerID, string newObjectID,
     vector<string> &listOfIDs
 ){
@@ -290,16 +290,17 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
             CurrentMap.topAddress, topModuleUniqueIndex
         );
         allocateAllLocalVariables(CurrentMap, InitObject.EventContainer);
-        if(InitObject.findIndexesOfEventChildren() == ReturnType::ERROR){
-            cerr << "Error: In " << __FUNCTION__
-                << ": Function indexing inside '" << InitObject.getID()
-                << "' object failed. Review previous errors.\n";
+
+        auto [status, errorMessage] = InitObject.findIndexesOfEventChildren();
+        if(status == ReturnType::ERROR){
+            CurrentInstr.scriptName = initFilePath;
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << errorMessage;
         }
         detectRecursionInEvents(InitObject.EventContainer, CurrentInstr);
     }
     
     if(isLayersUniquenessViolated()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Layers id uniqueness has been violated during the initialization of the process '"
             << ID << "'!\n";
     }
@@ -309,7 +310,7 @@ void ProcessClass::create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i
             obj.createVectorsOfIds();
         }
         if(Layer.isObjectsUniquenessViolated()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Layers id uniqueness has been violeted on the start of the process!\n";
         }
     }
@@ -1026,7 +1027,7 @@ std::pair<vector<ContextClass*>, bool> getAllVariablesPointerFromParameters(
     vector<ContextClass*> GatheredVariables;
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+2 << " does not exist.\n";
         return {vector<ContextClass*>(), true};
     }
@@ -1040,7 +1041,7 @@ std::pair<vector<ContextClass*>, bool> getAllVariablesPointerFromParameters(
             CurrentParameter.variableID, printErrors
         );
         if(TempContext == nullptr){ 
-            printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Variable '" << CurrentParameter.variableID << "' from the parameter " << index+2 << " does not exist.\n";
             return {vector<ContextClass*>(), true};
         }
@@ -1048,7 +1049,7 @@ std::pair<vector<ContextClass*>, bool> getAllVariablesPointerFromParameters(
         return {GatheredVariables, false};
     }
     else if(CurrentParameter.type == 'l'){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+2 << " contains a literal instead of a variable.\n";
         return {vector<ContextClass*>(), true};
     }
@@ -1059,12 +1060,12 @@ std::pair<vector<ContextClass*>, bool> getAllVariablesPointerFromParameters(
                 return {GatheredVariables, false};
             }
             if(parameterIt.type == 'l'){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Parameter " << realIndex << " contains a literal instead of a variable.\n";
                 return {vector<ContextClass*>(), true};
             }
             if(parameterIt.type != 'c'){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "In the parameter " << index+2 << ": Value with index " << realIndex << " is of '" << parameterIt.type << "' type.\n";
                 return {vector<ContextClass*>(), true};
             }
@@ -1074,7 +1075,7 @@ std::pair<vector<ContextClass*>, bool> getAllVariablesPointerFromParameters(
                 parameterIt.variableID, printErrors
             );
             if(TempContext == nullptr){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Variable '" << parameterIt.variableID
                     << "' from the parameter " << index+2 << " does not exist.\n";
                 return {vector<ContextClass*>(), true};
@@ -1084,7 +1085,7 @@ std::pair<vector<ContextClass*>, bool> getAllVariablesPointerFromParameters(
         return {GatheredVariables, false};
     }
     else{
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+2 << " has invalid type: '" << CurrentParameter.type << "'.\n";
         return {vector<ContextClass*>(), true};
     }
@@ -1098,19 +1099,19 @@ bool getContextPointerFromTheParameter(ContextClass *&NewContext, ObjectMemorySt
     NewContext = nullptr;
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " does not exist.\n";
         return true;
     }
     const ParameterStruct & CurrentParameter = Parameters[realIndex];
     if(CurrentParameter.type != 'c'){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " is of '"
             << CurrentParameter.type << "' type. Provide a variable instead.\n";
         return true;
     }
     if(EventLocalVariables.empty()){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Local variables container is empty. This may cause undefined behavior.\n";
         return true;
     }
@@ -1119,7 +1120,7 @@ bool getContextPointerFromTheParameter(ContextClass *&NewContext, ObjectMemorySt
         CurrentParameter.variableID, printErrors
     );
     if(NewContext == nullptr){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Variable '" << CurrentParameter.variableID
             << "' from the parameter " << index+1 << " does not exist.\n";
         return true;
@@ -1133,7 +1134,7 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
 ){
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " does not exist.\n";
         return true;
     }
@@ -1154,7 +1155,7 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
     }
     else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
         if(printErrors){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " has an invalid type: " << CurrentParameter.type << ".\n";
         }
         return true;
@@ -1167,7 +1168,7 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
         Parameters, negateWholeContextAfterCopy, index, printErrors
     )){
         if(printErrors){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Failed to find context in the parameter " << index+1 << ".\n";
         }
         return true;
@@ -1175,7 +1176,7 @@ bool getValuesFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
 
     ReturnType response = HelpContext.moveAllValues(NewValues, negateWholeContextAfterCopy, realIndex);
     if(response == ReturnType::INVALID_TYPE){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " has an invalid type: " << dataTypeToStr(HelpContext.type) << ".\n";
         return true;
     }
@@ -1187,7 +1188,7 @@ bool getDoubleVectorFromTheParameterV2(ObjectMemoryStruct & ObjectMemory, const 
 ){
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " does not exist.\n";
         return true;
     }
@@ -1205,7 +1206,7 @@ bool getDoubleVectorFromTheParameterV2(ObjectMemoryStruct & ObjectMemory, const 
     }
     else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
         if(printErrors){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " has an invalid type: " << CurrentParameter.type << ".\n";
         }
         return true;
@@ -1218,7 +1219,7 @@ bool getDoubleVectorFromTheParameterV2(ObjectMemoryStruct & ObjectMemory, const 
         Parameters, negateWholeContextAfterCopy, index, printErrors
     )){
         if(printErrors){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Failed to find context in the parameter " << index+1 << ".\n";
         }
         return true;
@@ -1226,7 +1227,7 @@ bool getDoubleVectorFromTheParameterV2(ObjectMemoryStruct & ObjectMemory, const 
 
     ReturnType response = HelpContext.getDoubleValues(NewValues, negateWholeContextAfterCopy);
     if(response == ReturnType::INVALID_TYPE){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " has an invalid type: " << dataTypeToStr(HelpContext.type) << ".\n";
         return true;
     }
@@ -1238,7 +1239,7 @@ bool getSingleValueFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vec
 ){
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " does not exist.\n";
         return true;
     }
@@ -1254,7 +1255,7 @@ bool getSingleValueFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vec
     }
     else if(CurrentParameter.type != 'c' && CurrentParameter.type != 'v'){
         if(printErrors){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " has an invalid type: " << CurrentParameter.type << ".\n";
         }
         return true;
@@ -1267,7 +1268,7 @@ bool getSingleValueFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vec
         CurrentInstr, Parameters, negateWholeContextAfterCopy, index, true
     )){
         if(printErrors){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Failed to find context in the parameter " << index+1 << ".\n";
         }
         return true;
@@ -1275,12 +1276,12 @@ bool getSingleValueFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vec
 
     ReturnType response = HelpContext.getValue(NewValue);
     if(response == ReturnType::INVALID_TYPE){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " has an invalid type: " << dataTypeToStr(HelpContext.type) << ".\n";
         return true;
     }
     if(response == ReturnType::EMPTY){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " is empty.\n";
         return true;
     }
@@ -1293,12 +1294,12 @@ bool getValueFromParameter(ObjectMemoryStruct & ObjectMemory, vector<DynamicVari
 ){
     vector<VariableModule> Literals;
     if(getValuesFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literals, printErrors)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
     }
     if(Literals.size() == 0){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "No string value in the parameter " << index+1 << ".\n";
         return true;
     }
@@ -1312,13 +1313,13 @@ bool getUnsignedVectorFromTheParameter(ObjectMemoryStruct & ObjectMemory, const 
 ){
     vector<VariableModule> Literals;
     if(getValuesFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literals, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter " << index+1 << ".\n";
         return true;
     }
     for(const VariableModule & Integer : Literals){
         if(Integer.getType() != 'i'){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Type " << Integer.getType() << "' is invalid in the parameter " << index+1 << ". Integer was expected.\n";
             return true;
         }
@@ -1332,7 +1333,7 @@ bool getDoubleVectorFromTheParameter(ObjectMemoryStruct & ObjectMemory, const ve
 ){
     vector<VariableModule> Literals;
     if(getValuesFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literals, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter " << index+1 << ".\n";
         return true;
     }
@@ -1352,12 +1353,12 @@ bool getStringFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
 ){
     VariableModule Literal;
     if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
     }
     if(Literal.getType() != 's'){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "No string value in the parameter " << index+1 << ".\n";
         return true;
     }
@@ -1370,13 +1371,13 @@ bool getStringVectorFromTheParameter(ObjectMemoryStruct & ObjectMemory, const ve
 ){
     vector<VariableModule> Literals;
     if(getValuesFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literals, printErrors)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
     }
     for(const VariableModule & StringValue : Literals){
         if(StringValue.getType() != 's'){
-            printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Type " << StringValue.getType() << "' is invalid in the parameter " << index+1 << ". String was expected.\n";
             return true;
         }
@@ -1389,12 +1390,12 @@ bool getBoolFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<Dyn
 ){
     VariableModule Literal;
     if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
     }
     if(Literal.getType() != 'b' && Literal.getType() != 'i'){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "No bool value in the parameter " << index+1 << ".\n";
         return true;
     }
@@ -1407,18 +1408,18 @@ bool getUnsignedFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector
 ){
     Literal.clear();
     if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
     }
     if(Literal.getType() != 'b' && Literal.getType() != 'i'){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "No bool value in the parameter " << index+1 << ".\n";
         return true;
     }
     int newInt = Literal.getIntUnsafe();
     if(newInt < 0){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Integer " << newInt << " is not usigned in the parameter " << index+1 << ".\n";
         return true;
     }
@@ -1431,7 +1432,7 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
 ){
     unsigned realIndex = 0;
     if(translateIndexToTreeRoots(Parameters, index, realIndex)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " does not exist.\n";
         return true;
     }
@@ -1439,19 +1440,19 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
     const ParameterStruct & CurrentParameter = Parameters[realIndex];
 
     if(CurrentParameter.type == 'e'){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter " << index+1 << " is empty.\n";
         return true;
     }
     if(CurrentParameter.type == 'l'){
         if(CurrentParameter.Literal.type != 'b' && CurrentParameter.Literal.type != 'i'){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " is not an integer.\n";
             return true;
         }
         int newInt = CurrentParameter.Literal.getIntUnsafe();
         if(newInt < 0){
-            printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+            printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Integer " << newInt << " is not usigned in the parameter " << index+1 << ".\n";
             return true;
         }
@@ -1460,7 +1461,7 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
     }
     else if(CurrentParameter.type != 'c'){
         if(printErrors){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter " << index+1 << " has an invalid type: " << CurrentParameter.type << ".\n";
         }
         return true;
@@ -1472,7 +1473,7 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
         CurrentParameter.variableID, printErrors
     );
     if(HelpContext == nullptr){ 
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Variable '" << CurrentParameter.variableID << "' from the parameter " << index+2 << " does not exist.\n";
         return true;
     }
@@ -1485,13 +1486,13 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
                 return true;
             }
             if(HelpContext->Values[0].type != 'b' && HelpContext->Values[0].type != 'i'){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Parameter " << index+1 << " is not an integer.\n";
                 return true;
             }
             newInt = HelpContext->Values[0].getIntUnsafe();
             if(newInt < 0){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Integer " << newInt << " is not usigned in the parameter " << index+1 << ".\n";
                 return true;
             }
@@ -1504,7 +1505,7 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
             }
             newInt = HelpContext->BasePointers[0].getInt();
             if(newInt < 0){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Integer " << newInt << " is not usigned in the parameter " << index+1 << ".\n";
                 return true;
             }
@@ -1516,13 +1517,13 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
                 return true;
             }
             if(HelpContext->Modules.Variables[0]->type != 'b' && HelpContext->Modules.Variables[0]->type != 'i'){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Parameter " << index+1 << " is not an integer.\n";
                 return true;
             }
             newInt = HelpContext->Modules.Variables[0]->getIntUnsafe();
             if(newInt < 0){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Integer " << newInt << " is not usigned in the parameter " << index+1 << ".\n";
                 return true;
             }
@@ -1537,13 +1538,13 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
                 return true;
             }
             if(HelpContext->Modules.Vectors[0]->getType() != 'b' && HelpContext->Modules.Vectors[0]->getType() != 'i'){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Parameter " << index+1 << " is not an integer.\n";
                 return true;
             }
             newInt = HelpContext->Modules.Vectors[0]->getIntUnsafe(0);
             if(newInt < 0){
-                printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+                printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Integer " << newInt << " is not usigned in the parameter " << index+1 << ".\n";
                 return true;
             }
@@ -1552,7 +1553,7 @@ bool getUnsignedFromTheParameterOptimized(ObjectMemoryStruct & ObjectMemory, con
         }
         default:
             if(printErrors){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Parameter " << index+1 << " has an invalid type: " << dataTypeToStr(HelpContext->type) << ".\n";
             }
             return true;
@@ -1565,12 +1566,12 @@ bool getIntFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<Dyna
 ){
     VariableModule Literal;
     if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext, CurrentInstr, Parameters, index, Literal, printErrors)){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
     }
     if(Literal.getType() != 'b' && Literal.getType() != 'i'){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "No bool value in the parameter " << index+1 << ".\n";
         return true;
     }
@@ -1585,12 +1586,12 @@ bool getDoubleFromTheParameter(ObjectMemoryStruct & ObjectMemory, const vector<D
     if(getSingleValueFromTheParameter(ObjectMemory, DynamicLocalVariables, HelpContext,
         CurrentInstr, Parameters, index, Literal, printErrors
     )){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter " << index+1 << ".\n";
         return true;
     }
     if(Literal.getType() != 'd' && Literal.getType() != 'i'){
-        printErrors && cerr << instructionError(CurrentInstr, __FUNCTION__)
+        printErrors && cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "No double value in the parameter " << index+1 << ".\n";
         return true;
     }
@@ -1673,7 +1674,7 @@ bool ProcessClass::chooseRandomModuleInstance(ContextClass & NewContext){
             chooseRandomEntity(NewContext.Modules.Vectors);
             return true;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Type \'" << dataTypeToStr(NewContext.type) << "\' is not valid for this function.\n";
             return false;
     }
@@ -2055,7 +2056,7 @@ void ProcessClass::findContextInModule(DataType type, AttributeType attribute, C
                 }
             }
             else{
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context not found.\n";
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Context not found.\n";
             }
             return;
     }
@@ -2093,7 +2094,7 @@ void ProcessClass::getContextFromModuleVectorById(DataType moduleType, string mo
                 }
             }
             else{
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "No type.\n";
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "No type.\n";
             }
         }
 
@@ -2413,7 +2414,7 @@ void ProcessClass::aggregateModules(OperationClass & Operation, ContextClass & N
             );
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Module type \'" << dataTypeToStr(OldContext->type) << "\' does not exist.\n";
             delete EmptyObject;
             return;
@@ -2497,7 +2498,7 @@ void ProcessClass::findContextInCamera(AttributeType attribute, ContextClass & N
             return;
         case id:
             if(isStringInVector(reservedIDs, Camera->ID)){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Access to the reserved ID \'" << Camera->ID << "\' address was denied.\n";
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Access to the reserved ID \'" << Camera->ID << "\' address was denied.\n";
                 return;
             }
             NewContext.addBasePointer(&Camera->ID);
@@ -2599,7 +2600,7 @@ void ProcessClass::findContextInCamera(AttributeType attribute, ContextClass & N
             NewContext.addBasePointer(&Camera->canEditText);
             return;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Attribute '"
                 << attributeToStr(attribute) << "' is not valid.\n";
             return;
     }
@@ -2640,7 +2641,7 @@ void ProcessClass::findContextInLayer(const ValueLocation & Location, ContextCla
             return;
         case id:
             if(isStringInVector(reservedIDs, Layer->getID())){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Access to the reserved ID \'" << Layer->getID()
                     << "\' address was denied.\n";
                 return;
@@ -2660,7 +2661,7 @@ void ProcessClass::findContextInLayer(const ValueLocation & Location, ContextCla
             NewContext.addBasePointer(&Layer->pos.y);
             return;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Attribute \'" << attributeToStr(Location.attribute) << "\' does not exist.\n";
             return;
     }
@@ -2717,7 +2718,7 @@ inline DataType instantiateEntityDataType(const InstrDescription & CurrentInstr,
         case pointer_inst:
             return oldType;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Entity type \'"
                 << dataTypeToStr(oldType) << "\' is not valid for this operation.\n";
             return null_dt;
     }
@@ -2807,7 +2808,7 @@ void ProcessClass::findContextInObject(const ValueLocation & Location, ContextCl
             }
         }
         else{
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context not found.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Context not found.\n";
         }
     }
 }
@@ -2826,7 +2827,7 @@ bool ProcessClass::findLayerAndObject(ValueLocation & Location, AncestorObject *
         }
     }
     if(CurrentLayer == nullptr || CurrentLayer->getIsDeleted()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer \'" << Location.layerID << "\' does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Layer \'" << Location.layerID << "\' does not exist.\n";
         return false;
     }
     if(OwnerLayer != nullptr && CurrentLayer == OwnerLayer && Owner != nullptr && Location.objectID == Owner->getID()){
@@ -2842,7 +2843,7 @@ bool ProcessClass::findLayerAndObject(ValueLocation & Location, AncestorObject *
     }
     
     if(CurrentObject == nullptr || CurrentObject->getIsDeleted()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
         return false;
     }
 
@@ -2878,7 +2879,7 @@ void ProcessClass::aggregateCamerasAndLayersById(ValueLocation & Location, Conte
         }
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "No valid source provided.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "No valid source provided.\n";
     }
 }
 void ProcessClass::aggregateModulesById(DataType moduleType, string moduleID, AttributeType attribute,
@@ -3130,7 +3131,7 @@ inline bool cmpVars(VariableModule * Left, EngineInstr op, VariableModule * Righ
     // }
     auto[result, status] = Left->isConditionMet(op, Right);
     if(status != OK){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Invalid comparison: "
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Invalid comparison: "
             << Left->getID() << ":" << Left->type << ":" << Left->getAnyValue() << " "
             << instrToStr(op) << " "
             << Right->getID() << ":" << Right->getType() << ":" << Right->getAnyValue() << "\n";
@@ -3140,7 +3141,7 @@ inline bool cmpVars(VariableModule * Left, EngineInstr op, VariableModule * Righ
 inline bool areEqual(VariableModule * Left, BasePointersStruct & Right, const InstrDescription &CurrentInstr){
     auto[result, status] = Left->isConditionMet(EngineInstr::equal, Right);
     if(status != OK){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Invalid comparison: "
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Invalid comparison: "
             << Left->getID() << ":" << Left->type << ":" << Left->getAnyValue() << " "
             << instrToStr(EngineInstr::equal) << " "
             << Right.type << ":" << Right.getString() << "\n";
@@ -3245,13 +3246,13 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStru
     }
 
     if(LeftOperand.type != RightOperand.type){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Right operand has a different type than the left operand.\n";
         return;
     }
 
     if(negateWholeContextAfterCopy){
-        cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+        cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
             << "This instruction ignores negating values, because it can copy pointers.\n";
     }
 
@@ -3363,7 +3364,7 @@ void ProcessClass::aggregateTwoSets(OperationClass & Operation, ObjectMemoryStru
             NewContext.type = vector_mod_vec;
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Type \'" << dataTypeToStr(LeftOperand.type) << "\' is not valid.\n";
             return;
     }
@@ -3386,7 +3387,7 @@ void ProcessClass::aggregateEntities(OperationClass & Operation, ObjectMemoryStr
             aggregateLayers(Operation, NewContext, vector<LayerClass*>(), Engine, ObjectMemory, false);
         }
         else{
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Source type \'" << sourceToStr(Operation.Location.source)
                 << "\' does not exist in this context.\n";
         }
@@ -3397,7 +3398,7 @@ void ProcessClass::aggregateEntities(OperationClass & Operation, ObjectMemoryStr
             if(getContextPointerFromTheParameter(SourceContext, ObjectMemory, LocalToGlobalTranslation,
                 CurrentInstr, Operation.Parameters, index, true
             )){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Failed to get context from the parameter " << index+1 << ".\n";
                 return;
             }
@@ -3459,14 +3460,14 @@ void ProcessClass::aggregateEntities(OperationClass & Operation, ObjectMemoryStr
         assignVariable(ObjectMemory, Operation.Output);
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "New context does not have a type.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "New context does not have a type.\n";
     }
 }
 inline bool doesOperandContainSingleElement(const InstrDescription & CurrentInstr, string functionName,
     const DataType & leftOperandType, const DataType & rightOperandType, const size_t & rightOperandSize
 ){
     if(rightOperandSize != 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Cannot move '" << dataTypeToStr(rightOperandType)
             << "'<" << rightOperandSize << "> to a variable of '"
             << dataTypeToStr(leftOperandType) << "' type.\n";
@@ -3477,15 +3478,15 @@ inline bool doesOperandContainSingleElement(const InstrDescription & CurrentInst
 inline bool didFnFailed(const InstrDescription & CurrentInstr, const string & functionName, const ReturnType & result){
     switch(result){
         case ReturnType::EMPTY:
-            cerr << instructionError(CurrentInstr, functionName)
+            cerr << printErrorMessage(CurrentInstr, functionName)
                 << "Operand is empty.\n";
             return true;
         case ReturnType::NULL_VAL:
-            cerr << instructionError(CurrentInstr, functionName)
+            cerr << printErrorMessage(CurrentInstr, functionName)
                 << "Operand is null.\n";
             return true;
         case ReturnType::CORRUPTED:
-            cerr << instructionError(CurrentInstr, functionName)
+            cerr << printErrorMessage(CurrentInstr, functionName)
                 << "Operand is corrupted.\n";
             return true;
         default:
@@ -3609,12 +3610,12 @@ bool isEntityTypeEqual(DataType leftType, DataType rightType){
 void assignRightToLeft(const InstrDescription & CurrentInstr, ContextClass * LeftOperand, ContextClass & RightOperand){
     //Move a starting value to an empty variable. In other words, clear the left operand and assign it with new values or pointers.
     if(LeftOperand->readOnly){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Left operand is read-only.\n";
         return;
     }
     auto printAssignRightToLeftError = [](const InstrDescription & CurrentInstr, const DataType & leftType, const DataType & rightType) { 
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
         << "Cannot assign '" << dataTypeToStr(rightType)
         << "' to a variable of '" << dataTypeToStr(leftType) << "' type.\n";
     };
@@ -3929,7 +3930,7 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
         return;
     }
     if(LeftOperand->readOnly){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Operand '" << LeftOperand->ID << "' is read-only.\n";
         return;
     }
@@ -3937,14 +3938,14 @@ void moveRightToLeft(const InstrDescription & CurrentInstr, const EngineInstr & 
     auto printMoveRightToLeftError = [](const DataType & leftType, const DataType & rightType,
         const InstrDescription & CurrentInstr, const string &functionName
     ) { 
-        cerr << instructionError(CurrentInstr, functionName)
+        cerr << printErrorMessage(CurrentInstr, functionName)
             << "Cannot move a value of '" << dataTypeToStr(rightType)
             << "' type to a variable of '" << dataTypeToStr(leftType) << "' type.\n";
     };
     auto printLeftNotInitialized = [](const string &id, const DataType &type,
         const InstrDescription &CurrentInstr, const string &functionName
     ) { 
-        cerr << instructionError(CurrentInstr, functionName)
+        cerr << printErrorMessage(CurrentInstr, functionName)
             << "Operand '" << id << "' of '" << dataTypeToStr(type)
             << "' type was not initialized.\n";
     };
@@ -4453,7 +4454,7 @@ void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, const Outpu
         LocalToGlobalTranslation[Output.localAddress], Output.variableID, false
     );
     if(Variable == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID << "' does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID << "' does not exist.\n";
         return;
     }
     //Variable->clearState();
@@ -4469,7 +4470,7 @@ void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, const Outpu
 }
 void ProcessClass::assignVariable(ObjectMemoryStruct & ObjectMemory, ContextClass * Variable){
     if(Variable == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Variable->ID << "' does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Variable '" << Variable->ID << "' does not exist.\n";
         return;
     }
     if(Variable->type == null_dt){
@@ -4503,7 +4504,7 @@ void ProcessClass::moveToVariable(ObjectMemoryStruct & ObjectMemory,
         LocalToGlobalTranslation[Output.localAddress], Output.variableID, false
     );
     if(Variable == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID
             << "' does not exist.\n";
         return;
     }
@@ -4574,7 +4575,7 @@ void ProcessClass::aggregateOnlyById(ObjectMemoryStruct & ObjectMemory, Operatio
             if(getContextPointerFromTheParameter(Context, ObjectMemory, LocalToGlobalTranslation,
                  CurrentInstr, Operation.Parameters, index, true
             )){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Failed to get context from the parameter " << index+1 << ".\n";
                 return;
             }
@@ -4595,7 +4596,7 @@ void ProcessClass::aggregateOnlyById(ObjectMemoryStruct & ObjectMemory, Operatio
         assignVariable(ObjectMemory, Operation.Output);
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed.\n";
     }
 }
 
@@ -4606,7 +4607,7 @@ inline bool checkForVectorSize(const InstrDescription & CurrentInstr, size_t lef
         sameSize = true;
     }
     else if(rightSize != 1){
-        cerr << instructionError(CurrentInstr, functionName)
+        cerr << printErrorMessage(CurrentInstr, functionName)
             << "Vector sizes " << leftSize << " (left) and " << rightSize
             << " (right) are incorrect.\n";
         return false;
@@ -4641,13 +4642,13 @@ void cloneRightToLeft(vector<Module*> & LeftOperand, vector<Module*> & RightOper
                 }
         
                 if(isStringInVector(reservedIDs, RightOperand[j]->getID())){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Module with a reserved ID \'" << RightOperand[j]->getID()
                         << "\' cannot be cloned.\n";
                     return;
                 }
                 if(isStringInVector(reservedIDs, LeftOperand[i]->getID())){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Module with a reserved ID \'" << LeftOperand[i]->getID()
                         << "\' cannot be changed.\n";
                     return;
@@ -4705,12 +4706,12 @@ void ProcessClass::moveValues(OperationClass & Operation, ObjectMemoryStruct & O
     if(getContextPointerFromTheParameter(LeftOperand, ObjectMemory, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
     }
     if(LeftOperand->readOnly){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Left operand is read-only.\n";
         return;
     }
@@ -4726,7 +4727,7 @@ void ProcessClass::moveValues(OperationClass & Operation, ObjectMemoryStruct & O
         case vector_mod_vec:
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Left operand has an invalid type: \'"
                 << dataTypeToStr(LeftOperand->type) << "\'.\n";
             return;
@@ -4741,7 +4742,7 @@ void ProcessClass::moveValues(OperationClass & Operation, ObjectMemoryStruct & O
         if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
             CurrentInstr, Operation.Parameters, negateAfterCopy, 1, true
         )){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Parameter 2 does not exist.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Parameter 2 does not exist.\n";
             return;
         }
         if(negateAfterCopy){
@@ -4768,7 +4769,7 @@ void ProcessClass::incrementInteger(OperationClass & Operation, ObjectMemoryStru
     if(getContextPointerFromTheParameter(LeftOperand, ObjectMemory, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
     }
@@ -4820,7 +4821,7 @@ void ProcessClass::incrementInteger(OperationClass & Operation, ObjectMemoryStru
                         ++(*Pointer.pUInt);
                         break;
                     default:
-                        cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                             << "Cannot increment a pointer of '" << baseTypeToStr(Pointer.type) << "' type.\n";
                         return;
                 }
@@ -4853,7 +4854,7 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                 case vector_mod_vec:
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
                         << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
                     break;
@@ -4872,7 +4873,7 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                         if(sameSize || i == 0){
                             RightVariable = RightOperand->Values[i].getBaseVariableStruct();
                             if(RightVariable.type == null_bt){
-                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
+                                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
                                 if(!sameSize){
                                     return;
                                 }
@@ -4892,7 +4893,7 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                         if(sameSize || i == 0){
                             RightVariable = RightOperand->Modules.Variables[i]->getBaseVariableStruct();
                             if(RightVariable.type == null_bt){
-                                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                                     << "Failed to fetch a variable.\n";
                                 if(!sameSize){
                                     return;
@@ -4907,7 +4908,7 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                 case vector_mod_vec:
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
                         << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
                     break;
@@ -4932,7 +4933,7 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                 case vector_mod_vec:
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
                         << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
                     break;
@@ -4951,14 +4952,14 @@ inline void cloneEntitiesOfDifferentType(ContextClass * LeftOperand, ContextClas
                 case variable_mod_vec:
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
                         << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
                     break;
             }
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Cannot assign a value of \'" << dataTypeToStr(RightOperand->type)
                 << "\' type to a variable of \'" << dataTypeToStr(LeftOperand->type) << "\' type.\n";
             break;
@@ -5167,7 +5168,7 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     vector<EventStackStruct> & MemoryStack
 ){
     if(Operation.rootParametersSize < 3){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Instruction requires at least 3 parameters.\n";
         return;
     }
@@ -5176,7 +5177,7 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     if(getContextPointerFromTheParameter(LeftOperand, ObjectMemory, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
     }
@@ -5184,7 +5185,7 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     if(getContextPointerFromTheParameter(RightOperand, ObjectMemory, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, 1, true)
     ){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 2.\n";
         return;
     }
@@ -5193,7 +5194,7 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     if(getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 2, changeOldID, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a bool value from the parameter 3.\n";
         return;
     }
@@ -5207,7 +5208,7 @@ void ProcessClass::cloneEntities(OperationClass & Operation, ObjectMemoryStruct 
     }
 
     if(LeftOperand->readOnly){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Left operand is read-only.\n";
         return;
     }
@@ -5251,13 +5252,13 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemorySt
     if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 0, leftValues, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get values from the parameter 1.\n";
         return;
     }
 
     if(leftValues.empty()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter 1 is empty. Aborting.\n";
         return;
     }
@@ -5266,13 +5267,13 @@ void ProcessClass::executeArithmetics(OperationClass & Operation, ObjectMemorySt
     if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 1, rightValues, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get values from the parameter 2.\n";
         return;
     }
 
     if(rightValues.empty()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter 2 is empty. Aborting.\n";
         return;
     }
@@ -5407,7 +5408,7 @@ void ProcessClass::generateRandomValue(const OperationClass & Operation,
     if(getDoubleVectorFromTheParameterV2(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 0, minValues, false
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter 1.\n";
         return;
     }
@@ -5416,7 +5417,7 @@ void ProcessClass::generateRandomValue(const OperationClass & Operation,
     if(getDoubleVectorFromTheParameterV2(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 1, maxValues, false
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter 1.\n";
         return;
     }
@@ -5599,7 +5600,7 @@ inline void checkIfVectorContainsVectorOfTheSameType(ContextClass & LeftOperand,
             result = containsTheSameModule(LeftOperand.Modules.Vectors, RightOperand.Modules.Vectors);
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "\'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "\'"
                 << dataTypeToStr(LeftOperand.type) << "\' type does not exist.\n";
             break;
     }
@@ -5647,7 +5648,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                     }
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
                         << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
                         << dataTypeToStr(LeftOperand.type) << "\' type.\n";
                     break;
@@ -5663,7 +5664,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                         for(j = 0; j < RightOperand.Values.size(); j++){
                             RightVariable = RightOperand.Values[j].getBaseVariableStruct();
                             if(RightVariable.type == null_bt){
-                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
+                                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
                                 continue;
                             }
                             if(LeftOperand.BasePointers[i].areEqual(&RightVariable)){
@@ -5686,7 +5687,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                         for(j = 0; j < RightOperand.Modules.Variables.size(); j++){
                             RightVariable = RightOperand.Modules.Variables[j]->getBaseVariableStruct();
                             if(RightVariable.type == null_bt){
-                                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
+                                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to fetch a variable.\n";
                                 continue;
                             }
                             if(LeftOperand.BasePointers[i].areEqual(&RightVariable)){
@@ -5714,7 +5715,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                     }
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
                         << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
                         << dataTypeToStr(LeftOperand.type) << "\' type.\n";
                     break;
@@ -5769,7 +5770,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                     }
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
                         << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
                         << dataTypeToStr(LeftOperand.type) << "\' type.\n";
                     break;
@@ -5791,7 +5792,7 @@ inline void checkIfVectorContainsVectorOfDifferentType(ContextClass & LeftOperan
                 case vector_mod_vec:
                     break;
                 default:
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Cannot assign a value of \'"
                         << dataTypeToStr(RightOperand.type) << "\' type to a variable of \'"
                         << dataTypeToStr(LeftOperand.type) << "\' type.\n";
                     break;
@@ -5811,7 +5812,7 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation,
     if(LeftOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 1.\n";
         return;
     }
@@ -5819,7 +5820,7 @@ void ProcessClass::checkIfVectorContainsVector(OperationClass & Operation,
     if(RightOperand.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, negateAfterCopy, 1, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get the parameter 2.\n";
         return;
     }
@@ -5891,7 +5892,7 @@ bool ProcessClass::prepareVectorSizeAndIDsForNew(OperationClass & Operation,
         LeftOperandProc, CurrentInstr, Operation.Parameters, skipOneParameter + 1, newVectorSize,
         false
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return false;
     }
 
@@ -5906,7 +5907,7 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation,
     PrimaryData & initData, vector<LayerClass> &Layers
 ){
     if(Operation.Parameters[0].type != 'l'){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Destination type was not provided - the first string value of the instruction.\n";
         return false;
     }
@@ -5955,14 +5956,14 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation,
         if(Context.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
             CurrentInstr, Operation.Parameters, negateAfterCopy, 1, true
         )){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "No context found.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "No context found.\n";
             return false;
         }
         if((Context.type == layer_inst || Context.type == layer_vec)
             && Operation.Location.source == object
         ){
             if(Context.Layers.empty()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context has no layers.\n";
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Context has no layers.\n";
                 return false;
             }
             CurrentLayer = Context.Layers.back();
@@ -5974,7 +5975,7 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation,
             && Operation.Location.source != object
         ){
             if(Context.Objects.empty()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Context has no objects.\n";
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Context has no objects.\n";
                 return false;
             }
             CurrentObject = Context.Objects.back();
@@ -5985,25 +5986,25 @@ bool ProcessClass::prepareDestinationForNew(OperationClass & Operation,
             return true;
         }
         else{
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot create an entity of \'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Cannot create an entity of \'"
                 << sourceToStr(Operation.Location.source) << "\' type in a context of \'"
                 << dataTypeToStr(Context.type) << "\' type.\n";
             return false;
         }
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Wrong destination type.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Wrong destination type.\n";
         return false;
     }
 
     if(CurrentLayer == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer \'"
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Layer \'"
             << Operation.Location.layerID << "\' does not exist.\n";
         return false;
     }
 
     if(CurrentObject == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object \'"
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Object \'"
             << Operation.Location.objectID << "\' does not exist.\n";
         return false;
     }
@@ -6014,7 +6015,7 @@ void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClas
     OutputParameterStruct & Output
 ){
     if(Output.localAddress >= LocalToGlobalTranslation.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Local address '"
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Local address '"
             << Output.localAddress << "' is out of scope.\n";
         return;
     }
@@ -6022,7 +6023,7 @@ void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClas
         LocalToGlobalTranslation[Output.localAddress], Output.variableID, false
     );
     if(Variable == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Variable '" << Output.variableID
             << "' does not exist.\n";
         return;
     }
@@ -6033,7 +6034,7 @@ void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClas
         Output.type = NewValue.type;
     }
     else if(Variable->type != NewValue.type){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Cannot assign an entity of '" << dataTypeToStr(NewValue.type)
             << "' type to the entity of '" << dataTypeToStr(Variable->type) << "' type.\n";
         return;
@@ -6125,7 +6126,7 @@ void ProcessClass::assignEntities(ObjectMemoryStruct & ObjectMemory, ContextClas
             }
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Entity type \'"
                 << dataTypeToStr(Output.type) << "\' does not exist.\n";
             break;
     }
@@ -6203,7 +6204,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
     vector<EventStackStruct> & MemoryStack, string & focusedProcessID
 ){
     if(Operation.rootParametersSize == 0){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "No parameters provided.\n";
         return;
     }
@@ -6226,7 +6227,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
     }
 
     if(newVectorSize == 0){
-        cout << instructionWarning(CurrentInstr, __FUNCTION__)
+        cout << printWarningMessage(CurrentInstr, __FUNCTION__)
             << "No new entity will be created - the count of new entities is zero.\n";
         return;
     }
@@ -6464,7 +6465,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
             );
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Entity type \'"
                 << sourceToStr(Operation.Location.source) << "\' does not exist.\n";
             break;
     }
@@ -6474,7 +6475,7 @@ void ProcessClass::createNewEntities(OperationClass & Operation, ObjectMemoryStr
         wasNewExecuted = true;
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Instruction failed.\n";
     }
 }
@@ -6495,12 +6496,12 @@ void ProcessClass::markEntitiesForDeletion(OperationClass & Operation, ObjectMem
     ContextClass * DeletedContext = nullptr;
     
     if(getContextPointerFromTheParameter(DeletedContext, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get context.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to get context.\n";
         return;
     }
 
     if(DeletedContext->size() == 0 || DeletedContext->type == null_dt){
-        cout << instructionWarning(CurrentInstr, __FUNCTION__) << "Nothing to delete from selected context.\n";
+        cout << printWarningMessage(CurrentInstr, __FUNCTION__) << "Nothing to delete from selected context.\n";
         return;
     }
 
@@ -6804,7 +6805,7 @@ void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity> & Aggr
             }
         }
         if(realIndex == Aggregated.size()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Index " << index << " is out of vector's scope<" << realSize << ">.\n";
         }
     }
@@ -6814,7 +6815,7 @@ void findInstanceInVectorByIndex(const EngineInstr & instruction, vector<unsigne
     vector<Entity> & NewVector, DataType & newType, const InstrDescription & CurrentInstr
 ){
     if(type != pointer_inst && type != pointer_vec && type != value_inst && type != value_vec){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "This function allows only entities of \'pointer\' and \'value\' types.\n";
         return;
     }
@@ -6827,7 +6828,7 @@ void findInstanceInVectorByIndex(const EngineInstr & instruction, vector<unsigne
             }
         }
         else{
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Index " << index << " is out of vector's scope<" << Aggregated.size() << ">.\n";
         }
     }
@@ -6839,7 +6840,7 @@ void findInstanceInVectorByIndex(vector<unsigned> indexes, vector<Entity*> & Agg
     unsigned realIndex = 0;
     for(unsigned i = 0; i < indexes.size(); i++){
         if(indexes[i] > Aggregated.size()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Index " << skipTheFirstIndex + i << " is equal to " << indexes[i]
                 << ", while the size of the vector is " << Aggregated.size() << ".\n";
             return;
@@ -6865,7 +6866,7 @@ inline void findInstanceInVectorByIndexNoReference(const vector<unsigned> & inde
 ){
     for(unsigned i = 0; i < indexes.size(); i++){
         if(indexes[i] >= Aggregated.size()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Index " << skipTheFirstIndex + i << " is equal to " << indexes[i]
                 << ", while the size of the vector is " << Aggregated.size() << ".\n";
             return;
@@ -6877,7 +6878,7 @@ void ProcessClass::getIndexes(ObjectMemoryStruct & ObjectMemory, const vector<Pa
     ContextClass IndexContext;
 
     if(getUnsignedVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Parameters, skipContext, indexes)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter " << skipContext + 1 << ".\n";
         return;
     }
@@ -6948,7 +6949,7 @@ inline DataType attributeToVecDataType(const InstrDescription & CurrentInstr, co
         case vector_a:
             return vector_mod_vec;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Entity type \'"
                 << attributeToStr(attribute) << "\' is not valid for this operation.\n";
             return null_dt;
     }
@@ -7007,7 +7008,7 @@ void ProcessClass::getReferenceFromLayer(const OperationClass & Operation, Conte
     
 
     if(indexes.size() < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "In order to find an object by its index, you must provide at least 2 index.\n";
         return;
     }
@@ -7024,7 +7025,7 @@ void ProcessClass::getReferenceFromLayer(const OperationClass & Operation, Conte
     }
     
     if(Layer == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Index is out of layers vector's scope.\n";
         return;
     }
@@ -7034,7 +7035,7 @@ void ProcessClass::getReferenceFromLayer(const OperationClass & Operation, Conte
     }
     else{
         if(indexes.size() < 3){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "In order to find a module instance by its index, you must provide at least 3 indexes.\n";
             return;
         }
@@ -7050,7 +7051,7 @@ void ProcessClass::getReferenceFromLayer(const OperationClass & Operation, Conte
             }
         }
         if(Object == nullptr){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Index is out of objects vector's scope.\n";
             return;
         }
@@ -7065,7 +7066,7 @@ void ProcessClass::getReferenceFromObject(const OperationClass & Operation, Cont
     }
 
     if(indexes.size() < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "In order to find a module instance by its index, you must provide at least 2 indexes.\n";
         return;
     }
@@ -7081,7 +7082,7 @@ void ProcessClass::getReferenceFromObject(const OperationClass & Operation, Cont
         }
     }
     if(Object == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Index is out of objects vector's scope.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Index is out of objects vector's scope.\n";
         return;
     }
 
@@ -7182,7 +7183,7 @@ void ProcessClass::getReferenceFromContextByIndex(OperationClass & Operation, Co
             findInstanceInVectorByIndex(Operation.instruction, indexes, SourceContext.Values, instType, NewContext.Values, NewContext.type, CurrentInstr);
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Context of \'" << dataTypeToStr(SourceContext.type) << "\' type is invalid for this operation.\n";
             return;
     }
@@ -7236,7 +7237,7 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
                 case primitives_a:
                 case vector_a:{
                     if(indexes.size() < 2){
-                        cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                             << "In order to find an object by its index, you must provide at least 2 indexes.\n";
                         return;
                     }
@@ -7252,7 +7253,7 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
                         }
                     }
                     if(Layer == nullptr){
-                        cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                             << "Index is out of layers vector's scope.\n";
                         return;
                     }
@@ -7263,7 +7264,7 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
                     }
                     else{
                         if(indexes.size() < 3){
-                            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                                 << "In order to find a module instance by its index, you must provide at least 3 indexes.\n";
                             return;
                         }
@@ -7279,7 +7280,7 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
                             }
                         }
                         if(Object == nullptr){
-                            cerr << instructionError(CurrentInstr, __FUNCTION__)
+                            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                                 << "Index is out of objects vector's scope.\n";
                             return;
                         }
@@ -7293,13 +7294,13 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
             }
         }
         else{
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Source cannot have \'" << sourceToStr(Operation.Location.source) << "\' value.\n";
             return;
         }
 
         if(NewContext.type == null_dt){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Index is out of vector's scope.\n";
             return;
         }
@@ -7310,14 +7311,14 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
         if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
             CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
         )){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "No context found.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "No context found.\n";
             return;
         }
 
         getIndexes(ObjectMemory, Operation.Parameters, indexes, true);
         
         if(indexes.empty()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "No indexes provided.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "No indexes provided.\n";
             return;
         }
 
@@ -7341,7 +7342,7 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
 
     switch(NewContext.type){
         case null_dt:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed.\n";
             return;
         case value_inst:
         case value_vec:
@@ -7361,14 +7362,14 @@ void ProcessClass::getReferenceByIndex(OperationClass & Operation, ObjectMemoryS
 void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     ContextClass * SourceContext;
     if(getContextPointerFromTheParameter(SourceContext, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
     }
 
     unsigned index = 0;
     if(getUnsignedFromTheParameterOptimized(ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 1, index, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the parameter 2.\n";
         return;
     }
@@ -7386,7 +7387,7 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemor
             NewContext.type = value_inst;
             if(SourceContext->Modules.Vectors.back()->getType() == 'b'){
                 if(index >= SourceContext->Modules.Vectors.back()->vBool.size()){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Index is equal to " << index << ", while the size of the vector is "
                         << SourceContext->Modules.Vectors.back()->vBool.size() << ".\n";
                     return;
@@ -7395,7 +7396,7 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemor
             }
             else if(SourceContext->Modules.Vectors.back()->getType() == 'i'){
                 if(index >= SourceContext->Modules.Vectors.back()->vInt.size()){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Index is equal to " << index << ", while the size of the vector is "
                         << SourceContext->Modules.Vectors.back()->vInt.size() << ".\n";
                     return;
@@ -7404,7 +7405,7 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemor
             }
             else if(SourceContext->Modules.Vectors.back()->getType() == 'd'){
                 if(index >= SourceContext->Modules.Vectors.back()->vDouble.size()){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Index is equal to " << index << ", while the size of the vector is " 
                         << SourceContext->Modules.Vectors.back()->vDouble.size() << ".\n";
                     return;
@@ -7413,7 +7414,7 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemor
             }
             else if(SourceContext->Modules.Vectors.back()->getType() == 's'){
                 if(index >= SourceContext->Modules.Vectors.back()->vString.size()){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Index is equal to " << index << ", while the size of the vector is "
                         << SourceContext->Modules.Vectors.back()->vString.size() << ".\n";
                     return;
@@ -7424,7 +7425,7 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemor
         case value_vec:
             NewContext.type = value_inst;
             if(index >= SourceContext->Values.size()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Index is equal to " << index << ", while the size of the vector is "
                     << SourceContext->Values.size() << ".\n";
                 return;
@@ -7432,7 +7433,7 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemor
             NewContext.Values.push_back(SourceContext->Values[index]);
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Variable '" << SourceContext->ID << "' has invalid type: \'"
                 << dataTypeToStr(SourceContext->type) << "\'.\n";
             return;
@@ -7443,7 +7444,7 @@ void ProcessClass::getInstanceFromVector(OperationClass & Operation, ObjectMemor
         //assignVariable(ObjectMemory, Operation.Output);
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed.\n";
     }
 }
 void printStringVectorForInstruction(const vector<string> & values, int maxLengthOfValuesPrinting){
@@ -7465,7 +7466,7 @@ void ProcessClass::bindFilesToObjects(OperationClass & Operation, ObjectMemorySt
     if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get any objects from the first parameter.\n";
         return;
     }
@@ -7485,7 +7486,7 @@ void ProcessClass::bindFilesToObjects(OperationClass & Operation, ObjectMemorySt
     vector<string> scriptPaths;
 
     if(getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, scriptPaths, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get value from the parameter 2.\n";
         return;
     }
@@ -7516,7 +7517,7 @@ void ProcessClass::removeBindedFilesFromObjects(OperationClass & Operation,
     if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get any objects from the first parameter.\n";
         return;
     }
@@ -7556,7 +7557,7 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation,
     if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get any objects from the first parameter.\n";
         return false;
     }
@@ -7601,7 +7602,7 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation,
     for(AncestorObject * Object : ObjectContext.Objects){
         if(canResetEvents && Object == Owner){
             if(!canDeleteEventsOfItsOwner){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Cannot delete events of the owner of the currently executed event.\n";
                 continue;
             }
@@ -7613,7 +7614,7 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation,
         }
         LayerClass * ObjectsLayer = findLayerWithId(Layers, Object->getLayerID());
         if(ObjectsLayer == nullptr){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Layer '" << Object->getLayerID() << "' with an object '"
                 << Object->getID() << "' does not exist.\n";
             return myEventsAreDeleted;
@@ -7624,11 +7625,12 @@ bool ProcessClass::buildEventsInObjects(OperationClass & Operation,
             CurrentMap.MemberVarsScope, CurrentMap.topAddress, topModuleUniqueIndex
         );
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-        if(Object->findIndexesOfEventChildren() == ReturnType::ERROR){
-            cerr << "Error: In " << __FUNCTION__
-                << ": Function indexing inside '" << Object->getID()
-                << "' object failed. Review previous errors.\n";
+
+        auto [status, errorMessage] = Object->findIndexesOfEventChildren();
+        if(status == ReturnType::ERROR){
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << errorMessage;
         }
+
         detectRecursionInEvents(Object->EventContainer, CurrentInstr);
         wasAnyEventUpdated = true;
     }
@@ -7650,7 +7652,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
     if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get any objects from the first parameter. "
             << "Instruction requires two parameters.\n";
         return false;
@@ -7670,7 +7672,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
 
     vector<string> stringVector;
     if(getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, stringVector, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 2. A vector of strings was expected.\n";
         return false;
     }
@@ -7702,7 +7704,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
     for(AncestorObject * Object : ObjectContext.Objects){
         if(canResetEvents && Object == Owner){
             if(!canDeleteEventsOfItsOwner){
-                std::cerr << instructionError(CurrentInstr, __FUNCTION__)
+                std::cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Cannot delete events of the owner of the currently executed event.\n";
                 continue;
             }
@@ -7714,7 +7716,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
         }
         LayerClass * ObjectsLayer = findLayerWithId(Layers, Object->getLayerID());
         if(ObjectsLayer == nullptr){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Layer '" << Object->getLayerID() << "' with an object '"
                 << Object->getID() << "' does not exist.\n";
             return myEventsAreDeleted;
@@ -7765,7 +7767,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
                     }
                 }
                 if(isInsideStringSector){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "String section was not closed in lines:\n";
                     for(const string & line : stringVector){
                         cout << "\t" << line << "\n";
@@ -7776,7 +7778,7 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
                 );
                 } break;
             default:
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "\'" << mode
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "\'" << mode
                     << "\' mode does not exist."
                     << "Allowed modes: p (uses translateScriptsFromPaths), "
                     << "s (uses translateSubsetBindedScripts),"
@@ -7785,11 +7787,12 @@ bool ProcessClass::customBuildEventsInObjects(OperationClass & Operation, Object
         }
 
         allocateAllLocalVariables(CurrentMap, Object->EventContainer);
-        if(Object->findIndexesOfEventChildren() == ReturnType::ERROR){
-            cerr << "Error: In " << __FUNCTION__
-                << ": Function indexing inside '" << Object->getID()
-                << "' object failed. Review previous errors.\n";
+
+        auto [status, errorMessage] = Object->findIndexesOfEventChildren();
+        if(status == ReturnType::ERROR){
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << errorMessage;
         }
+
         detectRecursionInEvents(Object->EventContainer, CurrentInstr);
 
         wasAnyEventUpdated = true;
@@ -7810,7 +7813,7 @@ void ProcessClass::clearEventsInObjects(OperationClass & Operation,
     if(ObjectContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get any objects from the first parameter. "
             << "Instruction requires one parameter.\n";
         return;
@@ -7830,7 +7833,7 @@ void ProcessClass::clearEventsInObjects(OperationClass & Operation,
 
     for(AncestorObject * Object : ObjectContext.Objects){
         if(Object == Owner){
-            cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+            cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
                 << "Cannot delete events from the owner of the currently executed event.\n";
             continue;
         }
@@ -8236,7 +8239,7 @@ void ProcessClass::executeFunctionForCameras(OperationClass & Operation, const v
                 unfocusCameras(Cameras, SelectedCamera, getID(), focusedProcessID);
                 break;
             default:
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Function " << attributeToStr(Operation.Location.attribute)
                     << "<" << Variables.size() << "> does not exist.\n";
                 break;
@@ -8249,7 +8252,7 @@ void ProcessClass::executeFunctionForCameras(OperationClass & Operation, const v
 }
 void ProcessClass::moveLayerInDrawingOrder(LayerClass * Layer, unsigned newIndex){
     if(newIndex >= layersOrder.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Index " << newIndex
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Index " << newIndex
             << " is out of scope of objects' drawing order of size " << layersOrder.size() << ".\n";  
         return;
     }
@@ -8261,7 +8264,7 @@ void ProcessClass::moveLayerInDrawingOrder(LayerClass * Layer, unsigned newIndex
         }
     }
     if(oldIndex == layersOrder.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer '" << Layer->getID() << "' was not found in the drawing order.\n";   
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Layer '" << Layer->getID() << "' was not found in the drawing order.\n";   
         return;
     }
     if(newIndex == oldIndex){
@@ -8298,7 +8301,7 @@ void ProcessClass::minimizeLayerInDrawingOrder(LayerClass * Layer){
         }
     }
     if(oldIndex == layersOrder.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer '" << Layer->getID() << "' was not found in the drawing order.\n";   
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Layer '" << Layer->getID() << "' was not found in the drawing order.\n";   
         return;
     }
     for(; oldIndex > 0; --oldIndex){
@@ -8314,7 +8317,7 @@ void ProcessClass::bringForwardLayerInDrawingOrder(LayerClass * Layer){
         }
     }
     if(oldIndex == layersOrder.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer '" << Layer->getID() << "' was not found in the drawing order.\n";   
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Layer '" << Layer->getID() << "' was not found in the drawing order.\n";   
         return;
     }
     for(; oldIndex < layersOrder.size(); ++oldIndex){
@@ -8387,7 +8390,7 @@ void ProcessClass::executeFunctionForLayers(OperationClass & Operation, const ve
                 minimizeLayerInDrawingOrder(Layer);
                 break;
             default:
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Function "
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Function "
                     << attributeToStr(Operation.Location.attribute)
                     << "<" << Variables.size() << "> does not exist.\n";
                 break;
@@ -8402,12 +8405,12 @@ inline bool ProcessClass::getLayerOfTheObject(LayerClass *& ObjectLayer, Ancesto
         }
     }
     if(ObjectLayer == nullptr){
-        cerr << instructionError(CurrentInstr, functionName) << "Layer '" << Object->getID()
+        cerr << printErrorMessage(CurrentInstr, functionName) << "Layer '" << Object->getID()
             << "' with an object '" << Object->getID() << "' was not found in the drawing order.\n";   
         return true;
     }
     if(ObjectLayer->getIsDeleted()){
-        cerr << instructionError(CurrentInstr, functionName) << "Layer '" << ObjectLayer->getID()
+        cerr << printErrorMessage(CurrentInstr, functionName) << "Layer '" << ObjectLayer->getID()
             << "' with an object '" << Object->getID() << "' was deleted.\n";  
         return true;
     }
@@ -8421,7 +8424,7 @@ inline bool ProcessClass::findCurrentIndexInObjectsDrawingOrder(LayerClass * Obj
         }
     }
     if(currentIndex == ObjectLayer->objectsOrder.size()){
-        cerr << instructionError(CurrentInstr, functionName) << "Layer '" << Object->getID()
+        cerr << printErrorMessage(CurrentInstr, functionName) << "Layer '" << Object->getID()
             << "' with an object '" << Object->getID() << "' was not found in the drawing order.\n";   
         return true;
     }
@@ -8433,7 +8436,7 @@ void ProcessClass::moveObjectInDrawingOrder(AncestorObject * Object, unsigned ne
         return;
     }
     if(newIndex >= ObjectLayer->objectsOrder.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Index " << newIndex
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Index " << newIndex
             << " is out of scope of objects' drawing order of size " << ObjectLayer->objectsOrder.size() << ".\n";  
         return;
     }
@@ -8629,7 +8632,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
     if(getContextPointerFromTheParameter(Context, ObjectMemory, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Function requires at least one context.\n";
         return;
     }
@@ -8641,7 +8644,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
         if(getValuesFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext,
             CurrentInstr, Operation.Parameters, index, functionArguments, true
         )){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Failed to get value from the parameter " << index+1 << ".\n";
             return;
         }
@@ -8868,7 +8871,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                     if(Event->controlVector(Vector, Operation.Location.attribute, functionArguments,
                         ModulesObject->vectorContainerIDs, errorMessage
                     )){
-                        cerr << instructionError(CurrentInstr, __FUNCTION__) << errorMessage;
+                        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << errorMessage;
                         return;
                     }
                 }
@@ -8878,7 +8881,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                 if(Event->controlVector(Vector, Operation.Location.attribute, functionArguments,
                     emptyString, errorMessage
                 )){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__) << errorMessage;
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << errorMessage;
                     return;
                 }
             }
@@ -8886,7 +8889,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
         case value_vec:
             if(Operation.Location.attribute == pop_back_a){
                 if(Context->Values.size() == 0){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Vector of literals is empty. Cannot use 'pop_back' function.\n";
                     return;
                 }
@@ -8902,7 +8905,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                 if((size_t)functionArguments[0].getIntUnsafe() >= Context->Values.size() || 
                     functionArguments[0].getIntUnsafe() + (functionArguments.size()-1) > Context->Values.size()
                 ){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "In function " << attributeToStr(Operation.Location.attribute)
                         << " index " << functionArguments[0].getIntUnsafe() << " is out of scope.\n";
                     return;
@@ -8916,7 +8919,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                 Context->Values.clear();
             }
             else{
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Function " << attributeToStr(Operation.Location.attribute)
                     << "<" << functionArguments.size() << "> does not exist.\n";
             }
@@ -8927,7 +8930,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
             }
             if(Operation.Location.attribute == set_bool && functionArguments.size() > 0){
                 if(!functionArguments[0].isNumeric()){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
                     return;
                 }
@@ -8935,7 +8938,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
             }
             else if(Operation.Location.attribute == set_int && functionArguments.size() > 0){
                 if(!functionArguments[0].isNumeric()){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
                     return;
                 }
@@ -8943,7 +8946,7 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
             }
             else if(Operation.Location.attribute == set_double && functionArguments.size() > 0){
                 if(!functionArguments[0].isNumeric()){
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Argument of '" << Operation.Location.attribute << "' function is not numeric.\n";
                     return;
                 }
@@ -8953,26 +8956,26 @@ void ProcessClass::executeFunction(OperationClass & Operation, ObjectMemoryStruc
                 Context->Values[0].setString(functionArguments[0].getStringUnsafe());
             }
             else{
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Function " << attributeToStr(Operation.Location.attribute)
                     << "<" << functionArguments.size() << "> does not exist.\n";
             }
             break;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Type \'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Type \'"
                 << dataTypeToStr(Context->type) << "\' does not exist.\n";
             break;
     }
 }
 void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, EngineClass & Engine){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
         return;
     }
 
     string strAttribute = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, strAttribute, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 1.\n";
         return;
     }
@@ -8984,12 +8987,12 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemor
 
     VariableModule FirstValue;
     if(getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, FirstValue, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 2.\n";
         return;
     }
     if(FirstValue.getType() == 'n'){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter 2 has a null value.\n";
         return;
     }
@@ -9013,7 +9016,7 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemor
     switch(e_attribute){
         case window_title_a:
             if(Engine.display == nullptr){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
                 return;
             }
@@ -9025,17 +9028,17 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemor
             return;
         case display_size_a:
             if(Engine.display == nullptr){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
                 return;
             }
             if(SecondValue.getType() == 'n'){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Changing the attribute '" << strAttribute << "' requires 2 values.\n";
                 return;
             }
             if(!FirstValue.isNumeric() || !SecondValue.isNumeric()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Changing the attribute '" << strAttribute << "' requires 2 last parameters to be of a numeric type.\n";
                 return;
             }
@@ -9044,7 +9047,7 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemor
             }
             Engine.displaySize.set(FirstValue.getInt(), SecondValue.getInt());
             if(!al_resize_display(Engine.display, Engine.displaySize.x, Engine.displaySize.y)){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
                 /*#if __WIN32__
                     cerr << instructionError(CurrentInstr, __FUNCTION__) << "al_resize_display() failed to resize the display.\n";
                 #else
@@ -9054,7 +9057,7 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemor
             return;
         case fullscreen_a:
             if(Engine.display == nullptr){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Display was not created yet. To create it use the \"create_window\" instruction.\n";
                 return;
             }
@@ -9085,7 +9088,7 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemor
             return;
         case afk_timeout_time_a:
             if(!FirstValue.isNumeric()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Changing the attribute '" << strAttribute
                     << "' requires the 'time' parameter to be of a numeric type.\n";
                 return;
@@ -9097,20 +9100,20 @@ void ProcessClass::changeEngineVariables(OperationClass & Operation, ObjectMemor
             Engine.canExitWhenNoEventIsTriggered = FirstValue.getBool();
             return;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Attribute '"
                 << strAttribute << "' is not valid for this instruction.\n";
             return;
     }
 }
 void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<string> & processIDs){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 parameter.\n";
         return;
     }
 
     string attribute = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, attribute, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 1.\n";
         return;
     }
@@ -9138,20 +9141,20 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
 
     if(Operation.rootParametersSize < 2){
         printOutInstructions && cout << "\n";
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
         return;
     }
 
     VariableModule FirstValue;
     if(getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, FirstValue, true)){
         printOutInstructions && cout << "\n";
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 2.\n";
         return;
     }
     if(FirstValue.getType() == 'n'){
         printOutInstructions && cout << "\n";
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter 2 has a null value.\n";
         return;
     }
@@ -9173,7 +9176,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
     if(attribute == "id"){
         if(FirstValue.getType() != 's'){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter 2 must be of a string type.\n";
             return;
         }
@@ -9221,7 +9224,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
     else if(attribute == "reservation_multiplier"){
         if(FirstValue.getType() != 'd'){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter 2 must be of a double type.\n";
             return;
         }
@@ -9230,12 +9233,12 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
     else if(attribute == "window_pos"){
         if(SecondValue.getType() == 'n'){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Changing the attribute \'" << attribute << "\' requires 2 values.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Changing the attribute \'" << attribute << "\' requires 2 values.\n";
             return;
         }
         if(!FirstValue.isNumeric() || !SecondValue.isNumeric()){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Changing the attribute '" << attribute << "' requires 2 last parameters to be of a numeric type.\n";
             return;
         }
@@ -9244,12 +9247,12 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
     else if(attribute == "window_size"){
         if(SecondValue.getType() == 'n'){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Changing the attribute \'" << attribute << "\' requires 2 values.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Changing the attribute \'" << attribute << "\' requires 2 values.\n";
             return;
         }
         if(!FirstValue.isNumeric() || !SecondValue.isNumeric()){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Changing the attribute '" << attribute << "' requires 2 last parameters to be of a numeric type.\n";
             return;
         }
@@ -9259,12 +9262,12 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
     else if(attribute == "min_window_size"){
         if(SecondValue.getType() == 'n'){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Changing the attribute \'" << attribute << "\' requires 2 values.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Changing the attribute \'" << attribute << "\' requires 2 values.\n";
             return;
         }
         if(!FirstValue.isNumeric() || !SecondValue.isNumeric()){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Changing the attribute '" << attribute << "' requires 2 last parameters to be of a numeric type.\n";
             return;
         }
@@ -9276,7 +9279,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
 
         if(Operation.rootParametersSize < 5){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Changing the attribute \'" << attribute << "\' requires 4 values.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Changing the attribute \'" << attribute << "\' requires 4 values.\n";
             return;
         }
         
@@ -9284,7 +9287,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
         getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 3, ThirdValue, false);
         if(ThirdValue.getType() == 'n'){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter 4 is of a null type. Changing the attribute \'" << attribute << "\' requires 4 non-null values.\n";
             return;
         }
@@ -9296,7 +9299,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
         getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 4, FourthValue, false);
         if(FourthValue.getType() == 'n'){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Parameter 5 is of a null type. Changing the attribute \'" << attribute << "\' requires 4 non-null values.\n";
             return;
         }
@@ -9308,7 +9311,7 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
             || !ThirdValue.isNumeric() || !FourthValue.isNumeric()
         ){
             printOutInstructions && cout << "\n";
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Changing the attribute \'" << attribute << "\' requires 4 last parameters to be of a numeric type.\n";
             return;
         }
@@ -9319,25 +9322,25 @@ void ProcessClass::changeProcessVariables(OperationClass & Operation, ObjectMemo
     }
     else{
         printOutInstructions && cout << "\n";
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute \'" << attribute << "\' is not valid.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Attribute \'" << attribute << "\' is not valid.\n";
     }
 }
 void ProcessClass::loadBitmap(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, vector<SingleBitmap> & BitmapContainer){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 parameters.\n";
         return;
     }
 
     string pathToTheBitmap = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheBitmap, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
 
     string nameForTheBitmap = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, nameForTheBitmap, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
@@ -9356,13 +9359,13 @@ void ProcessClass::loadBitmap(OperationClass & Operation, ObjectMemoryStruct & O
 }
 void ProcessClass::createDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
         return;
     }
 
     string pathToTheDirectory = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheDirectory, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
@@ -9372,7 +9375,7 @@ void ProcessClass::createDirectory(OperationClass & Operation, ObjectMemoryStruc
     }
 
     if(pathToTheDirectory == "" || pathToTheDirectory == "~/" || pathToTheDirectory[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheDirectory << "\'.\n";
         return;
     }
@@ -9380,19 +9383,19 @@ void ProcessClass::createDirectory(OperationClass & Operation, ObjectMemoryStruc
         std::filesystem::create_directory(EXE_PATH + workingDirectory + pathToTheDirectory);
     }
     catch(std::filesystem::filesystem_error const& ex){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "No such directory \'" << EXE_PATH + workingDirectory + pathToTheDirectory << "\'.\n";
     }
 }
 void ProcessClass::removeFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
         return;
     }
 
     string path = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, path, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
@@ -9402,7 +9405,7 @@ void ProcessClass::removeFileOrDirectory(OperationClass & Operation, ObjectMemor
     }
 
     if(path == "" || path == "~/" || path[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + path << "\'.\n";
         return;
     }
@@ -9410,18 +9413,18 @@ void ProcessClass::removeFileOrDirectory(OperationClass & Operation, ObjectMemor
         std::filesystem::remove(EXE_PATH + workingDirectory + path);
     }
     catch(std::filesystem::filesystem_error const& ex){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "" << ex.what() << "\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "" << ex.what() << "\n";
     }
 }
 void ProcessClass::removeRecursivelyFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
         return;
     }
 
     string path = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, path, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
@@ -9431,7 +9434,7 @@ void ProcessClass::removeRecursivelyFileOrDirectory(OperationClass & Operation, 
     }
 
     if(path == "" || path == "~/" || path[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + path << "\'.\n";
         return;
     }
@@ -9439,35 +9442,35 @@ void ProcessClass::removeRecursivelyFileOrDirectory(OperationClass & Operation, 
         std::filesystem::remove_all(EXE_PATH + workingDirectory + path);
     }
     catch(std::filesystem::filesystem_error const& ex){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "" << ex.what() << "\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "" << ex.what() << "\n";
     }
 }
 void ProcessClass::renameFileOrDirectory(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 1 string parameter.\n";
         return;
     }
 
     string originalPath = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, originalPath, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     if(originalPath == "" || originalPath == "~/" || originalPath[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + originalPath << "\'.\n";
         return;
     }
 
     string newPath = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, newPath, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
     if(newPath == "" || newPath == "~/" || newPath[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + newPath << "\'.\n";
         return;
     }
@@ -9476,7 +9479,7 @@ void ProcessClass::renameFileOrDirectory(OperationClass & Operation, ObjectMemor
         std::filesystem::rename(EXE_PATH + workingDirectory + originalPath, EXE_PATH + workingDirectory + newPath);
     }
     catch(std::filesystem::filesystem_error const& ex){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "" << ex.what() << "\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "" << ex.what() << "\n";
     }
 }
 template <class T>
@@ -9501,7 +9504,7 @@ string catchQuotes(const string & input){
 }
 void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
 
@@ -9517,7 +9520,7 @@ void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct &
             LocalToGlobalTranslation, CurrentInstr, Operation.Parameters,
             negateAfterCopy, index, true
         )){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Failed to get the context from the parameter " << index+2 << ".\n";
             return;
         }
@@ -9634,7 +9637,7 @@ void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct &
             case null_dt:
                 break;
             default:
-                cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+                cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "DataType \'" << dataTypeToStr(Value.type) << "\' is not valid for this operation.\n";
                 break;
         }
@@ -9660,13 +9663,13 @@ void ProcessClass::executePrint(OperationClass & Operation, ObjectMemoryStruct &
 }
 void ProcessClass::loadFileAsString(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
 
     string pathToTheFile = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFile, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
@@ -9675,7 +9678,7 @@ void ProcessClass::loadFileAsString(OperationClass & Operation, ObjectMemoryStru
         cout << instrToStr(Operation.instruction) << " " << pathToTheFile << " " << Operation.Output.variableID << "\n";
     }
     if(pathToTheFile == "" || pathToTheFile == "~/" || pathToTheFile[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: '" << EXE_PATH + workingDirectory + pathToTheFile << "'.\n";
         return;
     }
@@ -9685,7 +9688,7 @@ void ProcessClass::loadFileAsString(OperationClass & Operation, ObjectMemoryStru
     std::ifstream File(EXE_PATH + workingDirectory + pathToTheFile);
 
 	if(!File){
-		cerr << instructionError(CurrentInstr, __FUNCTION__)
+		cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Cannot open the file: " << EXE_PATH + workingDirectory + pathToTheFile << "\n";
         return;
     }
@@ -9701,25 +9704,25 @@ void ProcessClass::loadFileAsString(OperationClass & Operation, ObjectMemoryStru
 }
 void ProcessClass::saveStringAsFile(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 string parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 string parameters.\n";
         return;
     }
 
     string pathToTheFile = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFile, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     if(pathToTheFile == "" || pathToTheFile == "~/" || pathToTheFile[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheFile << "\'.\n"; 
         return;
     }
 
     vector<string> textToWrite;
     if(getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, textToWrite, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
@@ -9742,7 +9745,7 @@ void ProcessClass::saveStringAsFile(OperationClass & Operation, ObjectMemoryStru
     std::ofstream File(finalPath);
 
 	if(!File){
-		cerr << instructionError(CurrentInstr, __FUNCTION__)
+		cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Cannot open the file: '" << finalPath << "'.\n";
         return;
     }
@@ -9753,13 +9756,13 @@ void ProcessClass::saveStringAsFile(OperationClass & Operation, ObjectMemoryStru
 }
 void ProcessClass::listOutEntities(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, const vector<ProcessClass> & Processes, const EngineClass & Engine){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
     
     string source = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, source, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
@@ -9876,18 +9879,18 @@ void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessCl
     vector<EventModule>::iterator & eventIt, vector<EventStackStruct> & MemoryStack, EngineClass & Engine
 ){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
     
     string processID = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, processID, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     if(processID == ""){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter 1 cannot have an empty string.\n";
         return;
     }
@@ -9902,14 +9905,14 @@ void ProcessClass::createNewProcess(OperationClass & Operation, vector<ProcessCl
     }
 
     if(pathToTheScript == "" || pathToTheScript == "~/" || pathToTheScript[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheScript << "\'.\n"; 
         return;
     }
     
     if(Processes.size() + 1 <= Processes.capacity()){
         Processes.emplace_back(ProcessClass());
-        Processes.back().create(Engine.EXE_PATH + workingDirectory, Engine.allowNotAscii, Engine.getDisplaySize(),
+        Processes.back().createProcess(Engine.EXE_PATH + workingDirectory, Engine.allowNotAscii, Engine.getDisplaySize(),
             pathToTheScript, processID, layerID, objectID, Engine.processIDs
         );
     }
@@ -9923,7 +9926,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation,
     vector<EventStackStruct> & MemoryStack
 ){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Instruction requires at least 1 parameter.\n";
         return;
     }
@@ -9932,7 +9935,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation,
     if(getValueFromParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 0, Value, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a value from the parameter 1.\n";
         return;
     }
@@ -9945,7 +9948,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation,
 
     for(const VariableModule & Variable : Owner->VariablesContainer){
         if(Variable.getID() == Operation.Output.variableID){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Cannot create a variable with id \'"
                 << Operation.Output.variableID
                 << "\', because a variable with the same id already exists inside '"
@@ -9987,7 +9990,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation,
         ));
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter 1 has an invalid type: \'" << Value.getType() << "\'.\n";
         return;
     }
@@ -10005,7 +10008,7 @@ void ProcessClass::createNewOwnerVariable(OperationClass & Operation,
         assignVariable(ObjectMemory, Operation.Output);
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Instruction \'" << instrToStr(Operation.instruction) << "\' failed.\n";
     }
 }
@@ -10015,7 +10018,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
     vector<EventStackStruct> & MemoryStack
 ){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Instruction requires 2 parameters.\n";
         return;
     }
@@ -10024,7 +10027,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
             Operation.Parameters, 0, vectorType, true
         )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
@@ -10044,7 +10047,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
 
     for(const VectorModule & Vector : Owner->VectorContainer){
         if(Vector.getID() == Operation.Output.variableID){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Cannot create a vector with the id '"
                 << Operation.Output.variableID
                 << "', because a vector with the same id already exists.\n";
@@ -10070,7 +10073,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
 
     if(Owner->VectorContainer.back().getType() == 'n' && vectorType != "null"){
         Owner->VectorContainer.pop_back();
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Type '" << vectorType << "' is not valid.\n";
         return;
     }
@@ -10080,7 +10083,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
         for(const VariableModule & Value : Values){
             if(Value.getType() != 'b'){
                 Owner->VectorContainer.pop_back();
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Literal (" << Value.getType() << ") is not of a " << vectorType
                     << " type.\n";
                 return;
@@ -10093,7 +10096,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
         for(const VariableModule & Value : Values){
             if(Value.getType() != 'i'){
                 Owner->VectorContainer.pop_back();
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Literal (" << Value.getType() << ") is not of a " << vectorType
                     << " type.\n";
                 return;
@@ -10106,7 +10109,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
         for(const VariableModule & Value : Values){
             if(Value.getType() != 'd'){
                 Owner->VectorContainer.pop_back();
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Literal (" << Value.getType() << ") is not of a " << vectorType
                     << " type.\n";
                 return;
@@ -10119,7 +10122,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
         for(const VariableModule & Value : Values){
             if(Value.getType() != 's'){
                 Owner->VectorContainer.pop_back();
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "Literal ("
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Literal ("
                     << Value.getType() << ") is not of a " << vectorType << " type.\n";
                 return;
             }
@@ -10128,7 +10131,7 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
     }
     else{
         Owner->VectorContainer.pop_back();
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter 2 has an invalid value: \'" << vectorType << "\'.\n";
         return;
     }
@@ -10146,35 +10149,35 @@ void ProcessClass::createNewOwnerVector(OperationClass & Operation,
         assignVariable(ObjectMemory, Operation.Output);
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction \'"
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction \'"
             << instrToStr(Operation.instruction) << "\' failed.\n";
     }
 }
 void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 string parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 2 string parameters.\n";
         return;
     }
 
     string delimeter = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, delimeter, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     if(delimeter.size() == 0){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Delimeter cannot be empty.\n";
         return;
     }
     if(delimeter.size() > 1){
-        cout << instructionWarning(CurrentInstr, __FUNCTION__)
+        cout << printWarningMessage(CurrentInstr, __FUNCTION__)
             << "Instruction will use only the first character of the \"" << delimeter << "\" string as a delimeter.\n";
     }
 
     string text = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, text, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
@@ -10186,7 +10189,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ObjectM
     );
 
     if(error){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to gather output variables.\n";
         return;
     }
@@ -10202,7 +10205,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ObjectM
     NewContext.clear();
     NewContext.type = value_vec;
     if(Outputs.empty()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction has no output variables. Nothing to do.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction has no output variables. Nothing to do.\n";
         return;
     }
 
@@ -10218,7 +10221,7 @@ void ProcessClass::tokenizeStringFromContext(OperationClass & Operation, ObjectM
     }
 
     if(tokenizedWords.size() > Outputs.size()){
-        cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+        cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
             << "Number of extracted tokens (" << tokenizedWords.size()
             << ") is not equal to the number of provided outputs (" << Outputs.size() << ").\n";
     }
@@ -10363,13 +10366,13 @@ void ProcessClass::printTree(OperationClass & Operation, ObjectMemoryStruct & Ob
 }
 void ProcessClass::getStringSizeFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 string parameter.\n";
         return;
     }
 
     string text = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, text, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
@@ -10387,7 +10390,7 @@ void ProcessClass::getSizeOfContext(OperationClass & Operation, ObjectMemoryStru
     ContextClass * Context = nullptr;
     
     if(getContextPointerFromTheParameter(Context, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 1.\n";
         return;
     }
@@ -10406,25 +10409,25 @@ void ProcessClass::getSizeOfContext(OperationClass & Operation, ObjectMemoryStru
 }
 void ProcessClass::getSubStringFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 3){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 3 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 3 parameters.\n";
         return;
     }
 
     string text = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, text, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     unsigned beginning = 0;
     if(getUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 1, beginning, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the parameter 2.\n";
         return;
     }
     unsigned length = 0;
     if(getUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 2, length, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the parameter 3.\n";
         return;
     }
@@ -10449,31 +10452,31 @@ void ProcessClass::getSubStringFromContext(OperationClass & Operation, ObjectMem
 }
 void ProcessClass::loadFontFromContext(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory, EngineClass & Engine){
     if(Operation.rootParametersSize < 3){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 3 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 3 parameters.\n";
         return;
     }
 
     string pathToTheFont = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pathToTheFont, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
     unsigned fontSize = 0;
     if(getUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, LeftOperandProc, CurrentInstr, Operation.Parameters, 1, fontSize, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the parameter 2.\n";
         return;
     }
     string fontID = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 2, fontID, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 3.\n";
         return;
     }
     bool ignoreWarnings = false;
     if(getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 3, ignoreWarnings, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a bool value from the parameter 4.\n";
         return;
     }
@@ -10483,7 +10486,7 @@ void ProcessClass::loadFontFromContext(OperationClass & Operation, ObjectMemoryS
     }
 
     if(pathToTheFont == "" || pathToTheFont == "~/" || pathToTheFont[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + pathToTheFont << "\'.\n"; 
         return;
     }
@@ -10491,7 +10494,7 @@ void ProcessClass::loadFontFromContext(OperationClass & Operation, ObjectMemoryS
     for(const SingleFont & Font : Engine.FontContainer){
         if(Font.ID == fontID){
             if(!ignoreWarnings){
-                cout << instructionWarning(CurrentInstr, __FUNCTION__)
+                cout << printWarningMessage(CurrentInstr, __FUNCTION__)
                     << "Loading failed. Font with the id \'" << Font.ID << "\' already exists.\n";
             }
             return;
@@ -10504,7 +10507,7 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
     ObjectMemoryStruct & ObjectMemory
 ){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Instruction requires 2 parameters.\n";
         return;
     }
@@ -10514,7 +10517,7 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
     if(SourceContext.copyFromTheParameter(ObjectMemory.MemoryMap, LocalToGlobalTranslation,
         CurrentInstr, Operation.Parameters, negateAfterCopy, 0, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a context from the parameter 1.\n";
         return;
     }
@@ -10523,13 +10526,13 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 1, entityID, true
     )){;
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
 
     if(entityID == ""){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Parameter 2 (id) cannot be empty.\n";
         return;
     }
@@ -10546,7 +10549,7 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
         const InstrDescription & CurrentInstr
     ){
         if(isEmpty){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "There are no instances of '" << dataTypeToStr(type)
                 << "' type in the context.\n";
             return true;
@@ -10771,7 +10774,7 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
     }
     
     if(NewContext.getVectorSize() == 0){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "There is no entity '" << entityID << "' of the '"
             << dataTypeToStr(SourceContext.type) << "' type. Cannot create a variable with id '"
             << Operation.Output.variableID << "'.\n";
@@ -10782,7 +10785,7 @@ void ProcessClass::findByIDInObjectMemory(OperationClass & Operation,
 vector<string> getAllFilesNamesWithinFolder(string directory, string workingDirectory, int depth, char mode, const InstrDescription & CurrentInstr){
     vector<string> names;
     if(!std::filesystem::exists(directory)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Directory '" << directory
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Directory '" << directory
             << "' does not exist.\n";
         return names;
     }
@@ -10815,14 +10818,14 @@ void ProcessClass::listOutFiles(OperationClass & Operation, ObjectMemoryStruct &
     getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, directory, false);
 
     if(directory.size() >= 256)[[unlikely]]{
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Path to a directory exceeds the length limit of 255 characters.\n";
         //TODO: Check the length of each directory name in the path, because there's a file name limit of 255.
         return;
     }
 
     if(directory == "~/" || directory[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + directory << "\'.\n";
         return;
     }
@@ -10903,7 +10906,7 @@ void ProcessClass::changeWorkingDirectory(OperationClass & Operation, ObjectMemo
     getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, newDirectory, false);
 
     if(newDirectory == "~/" || newDirectory[0] == ' '){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Access denied to the path: \'" << EXE_PATH + workingDirectory + newDirectory << "\'.\n";
         return;
     }
@@ -10939,7 +10942,7 @@ void ProcessClass::changeWorkingDirectory(OperationClass & Operation, ObjectMemo
             testPath += '/';
         }
         if(!std::filesystem::exists(EXE_PATH + testPath)){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Directory '" << EXE_PATH + testPath << "' does not exist.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Directory '" << EXE_PATH + testPath << "' does not exist.\n";
             return;
         }
         workingDirectory = testPath;
@@ -10958,20 +10961,20 @@ void ProcessClass::printWorkingDirectory(OperationClass & Operation, ObjectMemor
 }
 void ProcessClass::findSimilarStrings(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
 
     string pattern = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pattern, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1.\n";
         return;
     }
 
     vector<string> stringVector;
     if(getStringVectorFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, stringVector, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2.\n";
         return;
     }
@@ -11033,20 +11036,20 @@ void ProcessClass::findSimilarStrings(OperationClass & Operation, ObjectMemorySt
 }
 void ProcessClass::countPatternOccurrences(OperationClass &Operation, ObjectMemoryStruct &ObjectMemory){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
 
     string pattern = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, pattern, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1 (pattern).\n";
         return;
     }
 
     string text = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 1, text, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 2 (text).\n";
         return;
     }
@@ -11105,25 +11108,25 @@ void ProcessClass::createDisplay(OperationClass & Operation, ObjectMemoryStruct 
     if(getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 0, Engine.displaySize.x, true)
     ){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return;
     }
     if(getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 1, Engine.displaySize.y, true)
     ){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return;
     }
     if(getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 2, Engine.backbufferSize.x, true)
     ){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return;
     }
     if(getIntFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
         Operation.Parameters, 3, Engine.backbufferSize.y, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Failed to get an unsigned int.\n";
         return;
     }
     getBoolFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr,
@@ -11168,13 +11171,13 @@ void ProcessClass::printProfiler(){
 }
 void ProcessClass::startTimer(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 1 parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 1 parameter.\n";
         return;
     }
 
     string userDefinedTimerName = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, userDefinedTimerName, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1 (name).\n";
         return;
     }
@@ -11183,19 +11186,19 @@ void ProcessClass::startTimer(OperationClass & Operation, ObjectMemoryStruct & O
 }
 void ProcessClass::stopTimer(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 parameter.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires at least 1 parameter.\n";
         return;
     }
 
     string userDefinedTimerName = "";
     if(getStringFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, CurrentInstr, Operation.Parameters, 0, userDefinedTimerName, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get a string value from the parameter 1 (name).\n";
         return;
     }
 
     if(!userDefinedTimers.contains(userDefinedTimerName)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "There is no user defined timer with the name '" << userDefinedTimerName << "'.\n";
         return;
     }
@@ -11210,7 +11213,7 @@ void ProcessClass::stopTimer(OperationClass & Operation, ObjectMemoryStruct & Ob
 }
 bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 2){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Instruction requires 2 parameters.\n";
         return true;
     }
@@ -11333,7 +11336,7 @@ bool ProcessClass::assertValues(OperationClass & Operation, ObjectMemoryStruct &
 }
 void ProcessClass::getContextType(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1 || Operation.Output.type == null_dt){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
     
@@ -11343,7 +11346,7 @@ void ProcessClass::getContextType(OperationClass & Operation, ObjectMemoryStruct
 
     ContextClass * Variable = nullptr;
     if(getContextPointerFromTheParameter(Variable, ObjectMemory, LocalToGlobalTranslation, CurrentInstr, Operation.Parameters, 0, true)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get context from the parameter 0.\n";
         return;
     }
@@ -11360,7 +11363,7 @@ void ProcessClass::getContextType(OperationClass & Operation, ObjectMemoryStruct
 }
 void ProcessClass::loadVariableFromMemoryAddress(OperationClass & Operation, ObjectMemoryStruct & ObjectMemory){
     if(Operation.rootParametersSize < 1 || Operation.Output.type == null_dt){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Instruction requires 2 parameters.\n";
         return;
     }
     
@@ -11372,7 +11375,7 @@ void ProcessClass::loadVariableFromMemoryAddress(OperationClass & Operation, Obj
     if(getUnsignedFromTheParameter(ObjectMemory, LocalToGlobalTranslation, HelpContext, LeftOperandProc,
         CurrentInstr, Operation.Parameters, 0, memoryAddress, true
     )){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Failed to get an unsigned value from the 'address' parameter.\n";
         return;
     }
@@ -11382,7 +11385,7 @@ void ProcessClass::loadVariableFromMemoryAddress(OperationClass & Operation, Obj
     }
 
     if(memoryAddress > ObjectMemory.MemoryMap.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Address " << memoryAddress <<" is not allocated.\n";
         return;
     }
@@ -11535,7 +11538,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                     setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.specialValue);
                 }
                 else{
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Conditional status is equal to '" << EventCallState.conditionalStatus << "'.\n";
                 }
                 break;
@@ -11555,7 +11558,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                     setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.specialValue);
                 }
                 else{
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Conditional status is equal to '" << EventCallState.conditionalStatus << "'.\n";
                 }
                 break;
@@ -11579,7 +11582,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
                     setProgramCounter(EventCallState.programCounter, EventCallState.decrementProgramCounter, Operation.jumpToLine);
                 }
                 else{
-                    cerr << instructionError(CurrentInstr, __FUNCTION__)
+                    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                         << "Conditional status is equal to '" << EventCallState.conditionalStatus << "'.\n";
                 }
                 break;
@@ -11860,7 +11863,7 @@ EngineInstr ProcessClass::executeInstructions(LayerClass *& OwnerLayer,
 }
 VariableModule ProcessClass::findNextValueInMovementModule(ConditionClass &Condition, AncestorObject *CurrentObject){
     if(CurrentObject == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
         return VariableModule::newBool(false);
     }
     VariableModule NewValue;
@@ -11945,7 +11948,7 @@ VariableModule ProcessClass::findNextValueInMovementModule(ConditionClass &Condi
         }
         break;
     }
-    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '"
+    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Attribute '"
         << attributeToStr(Condition.Location.attribute) << "' is not valid.\n";
     NewValue.setBool(false);
     NewValue.setID("null", nullptr);
@@ -11953,7 +11956,7 @@ VariableModule ProcessClass::findNextValueInMovementModule(ConditionClass &Condi
 }
 VariableModule ProcessClass::getValueFromObjectInCamera(AncestorObject * CurrentObject, const AttributeType & attribute, const string & cameraID){
     if(CurrentObject == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
         return VariableModule::newBool(false);
     }
     bool newValue = false;
@@ -11976,7 +11979,7 @@ VariableModule ProcessClass::getValueFromObjectInCamera(AncestorObject * Current
         }
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '" << attribute << "' is not valid.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Attribute '" << attribute << "' is not valid.\n";
     }
     return VariableModule::newBool(newValue);
 }
@@ -11984,7 +11987,7 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
     const AttributeType & attribute, const short & button
 ){
     if(CurrentObject == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
         return VariableModule::newBool(false);
     }
     bool result = false;
@@ -12022,13 +12025,13 @@ VariableModule ProcessClass::getValueFromMouseClickingObject(const MouseClass & 
         }
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '" << attribute << "' is not valid.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Attribute '" << attribute << "' is not valid.\n";
     }
     return VariableModule::newBool(result);
 }
 VariableModule ProcessClass::getValueFromObjectInCollision(ConditionClass &Condition, AncestorObject * CurrentObject, LayerClass * CurrentLayer){
     if(CurrentObject == nullptr || CurrentObject->getIsDeleted()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Object does not exist.\n";
         return VariableModule::newBool(false);
     }
     switch(Condition.Location.attribute){
@@ -12098,7 +12101,7 @@ VariableModule ProcessClass::getValueFromObjectInCollision(ConditionClass &Condi
             break;
     }
     if(CurrentLayer == nullptr || CurrentLayer->getIsDeleted()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Layer does not exist.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Layer does not exist.\n";
         return VariableModule::newBool(false);
     }
     for(const CollisionModule & Collision : CurrentObject->CollisionContainer){
@@ -12177,7 +12180,7 @@ VariableModule ProcessClass::getValueFromObjectInCollision(ConditionClass &Condi
         }
         break;
     }
-    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Attribute '"
+    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Attribute '"
         << attributeToStr(Condition.Location.attribute) << "' is not valid.\n";
     return VariableModule::newBool(false, "null");
 }
@@ -12199,7 +12202,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                     return Variable;
                 }
             }
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable  '" << Condition.Location.moduleID << "' does not exist.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Variable  '" << Condition.Location.moduleID << "' does not exist.\n";
             break;
         case ancestor:
         case null_s:
@@ -12225,7 +12228,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                     return SuperText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), CurrentInstr);
                 }
             }
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
             break;
         case super_editable_text:
             for(const SuperEditableTextModule & SuperEditableText : CurrentObject->SuperEditableTextContainer){
@@ -12236,7 +12239,7 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                     return SuperEditableText.getAttributeValue(Condition.Location.attribute, Condition.Literal.getStringUnsafe(), CurrentInstr);
                 }
             }
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
             break;
         case collision:
             return getValueFromObjectInCollision(Condition, CurrentObject, CurrentLayer);
@@ -12249,13 +12252,13 @@ VariableModule ProcessClass::findNextValueAmongObjects(ConditionClass & Conditio
                     return Scrollbar.getValue(Condition.Location.attribute, CurrentInstr);
                 }
             }
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "There is no text with id: \'" << Condition.Location.moduleID << "\'.\n";
             return VariableModule::newBool(false, "null");
         default:
             break;
     }
     
-    cerr << instructionError(CurrentInstr, __FUNCTION__) << "Value not found.\n";
+    cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Value not found.\n";
     return VariableModule::newBool(false, "null");
 }
 inline bool getIntFromContext(const InstrDescription & CurrentInstr, string function, ObjectMemoryStruct & ObjectMemory,
@@ -12266,12 +12269,12 @@ inline bool getIntFromContext(const InstrDescription & CurrentInstr, string func
     );
 
     if(Context == nullptr){
-        cerr << instructionError(CurrentInstr, function)
+        cerr << printErrorMessage(CurrentInstr, function)
             << ": Variable with the name '" << variableID << "' does not exist.\n";
         return true;
     }
     if(Context->getIntOrAbort(value, CurrentInstr)){
-        cerr << instructionError(CurrentInstr, function)
+        cerr << printErrorMessage(CurrentInstr, function)
             << "Could not get an integer from the variable with name '" << variableID << "'.\n";
         return true;
     }
@@ -12320,7 +12323,7 @@ void ProcessClass::getScreenWidthOrHeigth(ObjectMemoryStruct & ObjectMemory, Var
         tempInt = Condition.Literal.vInt;
     }
     else{
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << ": Accessing value \'" << sourceToStr(source) << "\' requires a screen id of the integer type.\n";
         NewValue.setBool(false);
         return;
@@ -12351,7 +12354,7 @@ bool ProcessClass::getProcess(VariableModule & NewValue, vector<ProcessClass> * 
             }
         }
         if(Process == nullptr){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << ": Process with id \'" << processID << "\' does not exist.\n";
             NewValue.setBool(false);
             return true;
@@ -12366,17 +12369,17 @@ VariableModule ProcessClass::getValueFromVector(ConditionClass & Condition, Obje
         LocalToGlobalTranslation[Condition.localAddresses[0]], Condition.Location.moduleID, true
     );
     if(Context == nullptr){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "No context found.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "No context found.\n";
         NewValue.setBool(false);
         return NewValue;
     }
     if(Context->Modules.Vectors.size() == 0){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "There are no vectors in the context.\n";
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "There are no vectors in the context.\n";
         NewValue.setBool(false);
         return NewValue;
     }
     if(Context->Modules.Vectors.size() != 1){
-        cout << instructionWarning(CurrentInstr, __FUNCTION__)
+        cout << printWarningMessage(CurrentInstr, __FUNCTION__)
             << "There are several vectors in the context. Program will proceed with the last added vector.\n";
     }
     if(Condition.Literal.getType() == 'i'){
@@ -12388,7 +12391,7 @@ VariableModule ProcessClass::getValueFromVector(ConditionClass & Condition, Obje
         );
         unsigned vectorIdx = 0;
         if(IndexContext == nullptr || !IndexContext->getUnsignedOrAbort(vectorIdx, CurrentInstr)){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Cannot find a context for an index.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Cannot find a context for an index.\n";
             NewValue.setBool(false);
             return NewValue;
         }
@@ -12397,7 +12400,7 @@ VariableModule ProcessClass::getValueFromVector(ConditionClass & Condition, Obje
     else if(Condition.Location.attribute == size_a || Condition.Location.attribute == back_a){
         return Context->Modules.Vectors.back()->getValue(Condition.Location.attribute, 0);
     }
-    cerr << instructionError(CurrentInstr, __FUNCTION__)
+    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
         << "Attribute '" << attributeToStr(Condition.Location.attribute)
         << "' is not valid for this value source.\n";
     NewValue.setBool(false);
@@ -12423,7 +12426,7 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
         const InstrDescription & CurrentInstr
     ){
         if(vecSize != 1){
-            cerr << instructionWarning(CurrentInstr, __FUNCTION__)
+            cerr << printWarningMessage(CurrentInstr, __FUNCTION__)
                 << "There is more than one instance of '" << dataTypeToStr(type)
                 << "' in the context. Only the first instance will be used.\n";
         }
@@ -12441,7 +12444,7 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
         VariableModule & NewValue, const InstrDescription & CurrentInstr
     ){
         if(isEmpty){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "There are no instances of '" << dataTypeToStr(type)
                 << "' type in the context.\n";
             NewValue.setBool(false);
@@ -12452,7 +12455,7 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
     auto printIncorrectAttributeError = [](const AttributeType attribute, const DataType type,
         VariableModule & NewValue, const InstrDescription & CurrentInstr
     ){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) 
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) 
             << "Instances of '" << dataTypeToStr(type) << "' does not support the '"
             << attributeToStr(attribute) <<  "' attribute.\n";
         NewValue.setBool(false);
@@ -12722,7 +12725,7 @@ void ProcessClass::getValueFromContext(ConditionClass & Condition, ObjectMemoryS
             break;
     }
     
-    cerr << instructionError(CurrentInstr, __FUNCTION__)
+    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
         << "No value can be extracted from the context.\n";
     return;
 }
@@ -12912,7 +12915,7 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
                     return;
                 }
             }
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Variable '" << Condition.Location.moduleID << "' does not exist.\n";
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Variable '" << Condition.Location.moduleID << "' does not exist.\n";
             return;}
         case camera:{
             if(getProcess(NewValue, Processes, Process, Condition.Location.process)){
@@ -13040,7 +13043,7 @@ void ProcessClass::findNextValue(ConditionClass & Condition, AncestorObject * Ow
             break;
     }
     
-    cerr << instructionError(CurrentInstr, __FUNCTION__)
+    cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
         << "Source \'" << sourceToStr(Condition.Location.source) << "\' is not valid.\n";
     NewValue.setBool(false);
 }
@@ -13155,7 +13158,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                         }
                         break;
                     default:
-                        cerr << instructionError(CurrentInstr, __FUNCTION__)
+                        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                             << "Operator '" << instrToStr(op) << "' unrecognized in the if statement.\n";
                         break;
                 }
@@ -13172,7 +13175,7 @@ char ProcessClass::evaluateConditionalChain(vector<ConditionClass> & Conditional
                 return 'f';
             }
             else{
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "String is not a valid booleon value.\n";
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "String is not a valid booleon value.\n";
             }
         }
         if(resultStack[stackSize].vBool){
@@ -13190,7 +13193,7 @@ std::pair<vector<EventModule>::iterator, ChildStruct*> ProcessClass::findChildEv
     const unsigned & runChildEventWithIndex
 ){
     if(runChildEventWithIndex >= Event->Children.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Index " << runChildEventWithIndex << " is out of scope of child events container ("
                 << Event->Children.size() << ").\n";
         return {Event, nullptr};
@@ -13199,7 +13202,7 @@ std::pair<vector<EventModule>::iterator, ChildStruct*> ProcessClass::findChildEv
     ChildStruct* SelectedChild = &Event->Children[runChildEventWithIndex];
 
     if(SelectedChild->containerIndex >= EventContainer.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Index " << SelectedChild->containerIndex << " is out of scope of event container ("
             << EventContainer.size() << ").\n";
         return {Event, nullptr};
@@ -13209,7 +13212,7 @@ std::pair<vector<EventModule>::iterator, ChildStruct*> ProcessClass::findChildEv
         + SelectedChild->containerIndex;
 
     if(ChildEvent->getUniqueIndex() != SelectedChild->uniqueIndex){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Event '" << ChildEvent->getID() << "' was found in place of event '"
             << SelectedChild->id << "'. Index " << SelectedChild->containerIndex
             << " is incorrect. Check if the event '" << SelectedChild->id << "' was defined.\n";
@@ -13217,7 +13220,7 @@ std::pair<vector<EventModule>::iterator, ChildStruct*> ProcessClass::findChildEv
     }
 
     if(ChildEvent->getIsDeleted() || !ChildEvent->getIsActive()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Event '" << SelectedChild->id
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Event '" << SelectedChild->id
             << "' does not exist.\n";
         return {Event, nullptr};
     }
@@ -13295,7 +13298,7 @@ void removeIndexFromOrder(const InstrDescription Description, vector<unsigned> &
         }
     }
     if(!foundInOrder || order.size() == 0){
-        cerr << instructionWarning(Description, __FUNCTION__)
+        cerr << printWarningMessage(Description, __FUNCTION__)
             << ": Index " << index << " was not included in the order of size " << order.size() << ".\n";
         return;
     }
@@ -13398,10 +13401,10 @@ bool ProcessClass::deleteEntities(){
                     if(deleteEventInstance(objectIt->EventContainer, objectIt->eventContainerIDs,
                         wereLayersModified, ProcessMemory[objectIt->getUniqueIndex()]
                     )){
-                        if(objectIt->findIndexesOfEventChildren(true) == ReturnType::ERROR){
-                            cerr << "Error: In " << __FUNCTION__
-                                << ": Function indexing inside '" << objectIt->getID()
-                                << "' object failed. Review previous errors.\n";
+
+                        auto [status, errorMessage] = objectIt->findIndexesOfEventChildren(true);
+                        if(status == ReturnType::ERROR){
+                            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << errorMessage;
                         }
                         detectRecursionInEvents(objectIt->EventContainer, CurrentInstr);
                     }
@@ -13743,7 +13746,7 @@ void ProcessClass::deallocateDynamicallyAllocatedMemory(vector<DynamicMemoryStru
             continue;
         }
         if(localVarIt.dynamicMemoryAddress >= DynamicMemory.size()){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Dynamic memory at address " << localVarIt.dynamicMemoryAddress
                 << " has already been deallocated.\n";
             continue;
@@ -13757,7 +13760,7 @@ inline bool validateVariablesTypes(const InstrDescription & CurrentInstr,
 ){
     if(isParameterReference){
         if(!areTypesCompatibleWithReference(parameterType, argumentType)){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "Cannot pass an argument of '" << dataTypeToStr(argumentType)
                 << "' type to a parameter of '" << dataTypeToStr(parameterType)
                 << "' type.\n";
@@ -13766,7 +13769,7 @@ inline bool validateVariablesTypes(const InstrDescription & CurrentInstr,
         return false;		
     }
     if(!areTypesCompatible(parameterType, argumentType)){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Cannot pass an argument of '" << dataTypeToStr(argumentType)
             << "' type to a parameter of '" << dataTypeToStr(parameterType)
             << "' type.\n";
@@ -13783,7 +13786,7 @@ inline std::pair<bool, ContextClass*> getParameterVariable(const InstrDescriptio
     );
 
     if(parameterVariable == nullptr){
-        cerr << instructionError(currentInstr, __FUNCTION__)
+        cerr << printErrorMessage(currentInstr, __FUNCTION__)
             << "Variable '" << parameter.name << "' does not exist.\n";
         return {true, nullptr};
     }
@@ -13803,7 +13806,7 @@ bool ProcessClass::passArgumentsToFunction(const vector<FunctionParameter> & par
     ObjectMemoryStruct & objectMemory
 ){
     if(currentEventParameters.size() != parentEventArguments.size()){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
 			<< "Number of passed arguments (" << parentEventArguments.size() << ")"
 			<<" is not equal to the number of event parameters ("
             << currentEventParameters.size() << ").\n";
@@ -13815,14 +13818,14 @@ bool ProcessClass::passArgumentsToFunction(const vector<FunctionParameter> & par
         
         if(parameter.isReference){
 			if(!areTypesCompatibleWithReference(parameter.type, argument.type)){
-				cerr << instructionError(CurrentInstr, __FUNCTION__)
+				cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
 					<< "Cannot pass an argument of '" << dataTypeToStr(argument.type)
 					<< "' type to a parameter of '" << dataTypeToStr(parameter.type) << "' type.\n";
 				return true;
 			}
 
             if(argument.literal.isInitialized()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Cannot pass a literal as a reference.\n";
                 return true;
             }
@@ -13835,7 +13838,7 @@ bool ProcessClass::passArgumentsToFunction(const vector<FunctionParameter> & par
 			continue;		
 		}
         if(!areTypesCompatible(parameter.type, argument.type)){
-			cerr << instructionError(CurrentInstr, __FUNCTION__)
+			cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
 				<< "Cannot pass an argument of '" << dataTypeToStr(argument.type)
 				<< "' type to a parameter of '" << dataTypeToStr(parameter.type) << "' type.\n";
 			return true;
@@ -13848,7 +13851,7 @@ bool ProcessClass::passArgumentsToFunction(const vector<FunctionParameter> & par
             );
             
             if(argumentVariable == nullptr){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Variable '" << argument.name << "' does not exist.\n";
                 continue;
             }
@@ -13959,7 +13962,7 @@ EventControlFlow ProcessClass::executeSingleEvent(EngineClass & Engine,
             );
             
             if(SelectedChild == nullptr){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Pointer to the child event instance is null. Aborting.\n";
                 return flow_abort;
             }
@@ -14122,7 +14125,7 @@ bool ProcessClass::executeTriggeredEvents(EngineClass & Engine, vector<ProcessCl
         startingEventIt = eventIt;
 
         if(!ProcessMemory.contains(triggeredObjectIt->getUniqueIndex())){
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Object '" 
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Object '" 
                 << triggeredObjectIt->getID() << "' doesn't have memory.\n";
             continue;
         }
@@ -15649,11 +15652,11 @@ ModuleIndex PointerRecalculator::getIndex(Module *& Instance, vector<LayerClass>
     const InstrDescription & CurrentInstr
 ){
     if(Instance->getLayerUniqueIndex() == 0){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Module instance does not belong to any layer.\n";
     }
     if(Instance->getObjectUniqueIndex() == 0){
-        cerr << instructionError(CurrentInstr, __FUNCTION__)
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
             << "Module instance does not belong to any object.\n";
     }
     if(Instance->getLayerUniqueIndex() == 0 || Instance->getObjectUniqueIndex() == 0){
@@ -15721,11 +15724,11 @@ ModuleIndex PointerRecalculator::getIndex(vector<EventModule>::iterator & Instan
     vector<LayerClass> & Layers, const InstrDescription & CurrentInstr
 ){
     if(Instance->getLayerUniqueIndex() == 0){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Event '" << Instance->getID()
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Event '" << Instance->getID()
             << "' does not belong to any layer.\n";
     }
     if(Instance->getObjectUniqueIndex() == 0){
-        cerr << instructionError(CurrentInstr, __FUNCTION__) << "Event '" << Instance->getID()
+        cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Event '" << Instance->getID()
             << "' does not belong to any object.\n";
     }
     if(Instance->getLayerUniqueIndex() == 0 || Instance->getObjectUniqueIndex() == 0){
@@ -15835,7 +15838,7 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras,
         for(size_t varCamIdx = 0; varCamIdx < IndexPair.second.size(); ++varCamIdx){
             unsigned realCamIdx = IndexPair.second[varCamIdx];
             if(realCamIdx >= Cameras.size()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "CameraIndexes["
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "CameraIndexes["
                     << IndexPair.first << "][" << realCamIdx
                     << "] goes out of scope of Cameras<" << Cameras.size() << ">.\n";
                 CurrentContext.Cameras[varCamIdx] = nullptr;
@@ -15846,7 +15849,7 @@ void PointerRecalculator::updatePointersToCameras(vector<Camera2D> &Cameras,
     }
     if(SelectedCamera != nullptr){
         if(Cameras.size() <= selectedCameraIndex){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << "selectedCameraIndex goes out of scope of Cameras.\n";
             unfocusCameras(Cameras, SelectedCamera, processID, focusedProcessID);
             return;
@@ -15863,7 +15866,7 @@ void PointerRecalculator::updatePointersToLayers(vector<LayerClass> &Layers,
         for(size_t varLayerIdx = 0; varLayerIdx < IndexPair.second.size(); ++varLayerIdx){
             unsigned realLayerIdx = IndexPair.second[varLayerIdx];
             if(realLayerIdx >= Layers.size()){
-                cerr << instructionError(CurrentInstr, __FUNCTION__) << "LayerIndexes[\""
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "LayerIndexes[\""
                     << IndexPair.first << "\"][" << realLayerIdx << "]"
                     << " goes out of scope of Layers<" << Layers.size()  << ">.\n";
                 CurrentContext.Layers[varLayerIdx] = nullptr;
@@ -15894,7 +15897,7 @@ void PointerRecalculator::updatePointersToObjects(vector<LayerClass> &Layers,
     }
     if(SelectedLayer != nullptr){
         if(Layers.size() <= selectedLayerIndex){
-            cerr << instructionError(CurrentInstr, __FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                 << ": selectedLayerIndex(" << selectedLayerIndex
                 << ") goes out of scope of Layers<" << Layers.size() << ">.\n";
             SelectedLayer = nullptr;
@@ -15947,7 +15950,7 @@ void PointerRecalculator::updatePointersToModules(vector<LayerClass> & Layers,
             Object = Index.object(Layers);
 
             if(Object == nullptr){
-                cerr << instructionError(CurrentInstr, __FUNCTION__)
+                cerr << printErrorMessage(CurrentInstr, __FUNCTION__)
                     << "Object pointer is a null value.\n";
                 continue;
             }

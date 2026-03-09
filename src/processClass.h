@@ -260,7 +260,7 @@ public:
         bool isLocal, bool isReference, unsigned newRealAddress, unsigned localIndex,
         ObjectMemoryStruct & CurrentMap);
     void allocateAllLocalVariables(ObjectMemoryStruct &CurrentMap, const vector<EventModule> & EventContainer);
-    void create(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
+    void createProcess(string EXE_PATH_FROM_ENGINE, bool allowNotAscii, vec2i screenSize, string initFilePath, string newID, string newLayerID, string newObjectID, vector<string> &listOfIDs);
     void clear();
     void resizeWindow(vec2d newSize);
     void resizeWindow(double x, double y);

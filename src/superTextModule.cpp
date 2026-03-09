@@ -478,7 +478,7 @@ VariableModule SuperTextModule::getAttributeValue(const AttributeType &attribute
             return VariableModule::newDouble(cursorPixelPosY);
         }
         default:
-            cerr << instructionError(CurrentInstr, __PRETTY_FUNCTION__)
+            cerr << printErrorMessage(CurrentInstr, __PRETTY_FUNCTION__)
                 << "\n" << NEW_LINE_PADDING << "Attribute '" << attribute << "' is not valid.\n";
             return VariableModule::newBool(false);
     }

@@ -53,8 +53,8 @@ void AncestorObject::deleteLater(){
     }
 }
 
-inline ReturnType findCalledFunctionDefinition(vector<EventModule> & allEvents, ChildStruct & child,
-    EventModule & parentEvent
+inline std::pair<ReturnType, string> findCalledFunctionDefinition(vector<EventModule> & allEvents,
+    ChildStruct & child, EventModule & parentEvent
 ){
     for(unsigned childEventIdx = 0; childEventIdx < allEvents.size(); childEventIdx++){
         vector<FunctionParameter> & parameters = allEvents[childEventIdx].parameters;
@@ -80,36 +80,34 @@ inline ReturnType findCalledFunctionDefinition(vector<EventModule> & allEvents, 
                 }
             }
             if(child.arrangedArguments.size() <= paramIdx){
-                printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
-                    "Argument '" + parameters[paramIdx].name + "' is missing from '"
-                    + child.id + "' function call from the '" + parentEvent.getID()
-                    + "' event.\n"
-                );
-                return ReturnType::ERROR;
+                string errorMessage = "Argument '" + parameters[paramIdx].name
+                    + "' is missing from '" + child.id + "' function call from the '"
+                    + parentEvent.getID() + "' event.\n";
+                return {ReturnType::ERROR, errorMessage};
             }
         }
-        return ReturnType::OK;
+        return {ReturnType::OK, ""};
     }
-    return ReturnType::OUT_OF_SCOPE;
+    return {ReturnType::OUT_OF_SCOPE, ""};
 }
 
-ReturnType AncestorObject::findIndexesOfEventChildren(bool postDelete){
+std::pair<ReturnType, string> AncestorObject::findIndexesOfEventChildren(bool postDelete){
     for(EventModule & parentEvent : EventContainer){
         for(ChildStruct & child : parentEvent.Children){
-            ReturnType status = findCalledFunctionDefinition(EventContainer, child, parentEvent);
+            auto [status, errorMessage] = findCalledFunctionDefinition(EventContainer, child,
+                parentEvent
+            );
             if(status == ReturnType::OK)
                 continue;
             if(status == ReturnType::ERROR)
-                return ReturnType::ERROR;
+                return {ReturnType::ERROR, errorMessage};
                 
             //Handle ReturnType::OUT_OF_SCOPE
             if(!postDelete){
-                printLogMessage("Error", __FILE__, __LINE__, __FUNCTION__,
-                    "Function " + child.id + "<" + std::to_string(child.originalArguments.size())
-                    + "> called from '" + parentEvent.getID()
-                    + "' event does not exist in '" + ID + "' object.\n"
-                );
-                return ReturnType::ERROR;
+                string errorMessage = "Function '" + child.id + "'<"
+                    + std::to_string(child.originalArguments.size()) + "> called from '"
+                    + parentEvent.getID() + "' event does not exist in '" + ID + "' object.\n";
+                return {ReturnType::ERROR, errorMessage};
             }
             else{
                 printLogMessage("Warning", __FILE__, __LINE__, __FUNCTION__,
@@ -120,7 +118,7 @@ ReturnType AncestorObject::findIndexesOfEventChildren(bool postDelete){
             }
         }
     }
-    return ReturnType::OK;
+    return {ReturnType::OK, ""};
 }
 void AncestorObject::clone(const AncestorObject & original, vector<string> &listOfUniqueIDs, 
     size_t layerUniqueIndex, const string & newLayerID, bool changeOldID,
@@ -211,9 +209,10 @@ void AncestorObject::clone(const AncestorObject & original, vector<string> &list
     );
     canBeMovedWithMouse = original.canBeMovedWithMouse;
 
-    if(findIndexesOfEventChildren() == ReturnType::ERROR){
-        cerr << "Error: In " << __FUNCTION__ << ": Function indexing inside '" << original.ID 
-            << "' object failed. Review previous errors.\n";
+    auto [status, errorMessage] = findIndexesOfEventChildren();
+
+    if(status == ReturnType::ERROR){
+        cerr << "Error: In " << __FUNCTION__ << errorMessage;
         return;
     }
 }

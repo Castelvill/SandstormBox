@@ -1,4 +1,6 @@
 9.03.2026
+-Cleaned up window manager program.
+-Improved printing error messages.
 -Created simple window manager program.
 -Improved error messages for vectors. 
 

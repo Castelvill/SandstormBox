@@ -547,7 +547,7 @@ DataType sourceToEntityType(const InstrDescription & CurrentInstr, const ValueSo
         case vector_s:
             return vector_mod;
         default:
-            cerr << instructionError(CurrentInstr, __FUNCTION__) << "Entity type \'"
+            cerr << printErrorMessage(CurrentInstr, __FUNCTION__) << "Entity type \'"
                 << sourceToStr(source) << "\' is not valid for this operation.\n";
             return null_dt;
     }
@@ -1457,7 +1457,7 @@ inline bool pushVariableToArgumentsVector(vector<FunctionParameter> & arguments,
     const string & parameterName, const string & variableName
 ){
     const auto [localAddress, result] = getLocalAddress(variableName, any_dt, scopes,
-        localVariables, topAddress
+        localVariables, topAddress, false
     );
 
     if(result == ReturnType::OUT_OF_SCOPE){

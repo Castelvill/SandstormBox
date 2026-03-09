@@ -101,7 +101,7 @@ public:
     void propagateLayer();
     void propagateObjectID();
     string getObjectID();
-    ReturnType findIndexesOfEventChildren(bool postDelete = false);
+    std::pair<ReturnType, string> findIndexesOfEventChildren(bool postDelete = false);
 };
 
 #endif // ALLOBJECTS_H_INCLUDED
